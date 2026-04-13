@@ -3,7 +3,7 @@
     /// <summary>
     /// Кількість ресурсу. Value Object — незмінний, порівнюється за значенням.
     /// </summary>
-    public class ResourceAmount
+    public record ResourceAmount
     {
         /// <summary>Числове значення кількості ресурсу.</summary>
         public int Value { get; }
@@ -23,7 +23,7 @@
         public ResourceAmount Add(ResourceAmount other) => new ResourceAmount(Value + other.Value);
 
         /// <summary>Віднімає кількість від поточної. Кидає виняток якщо недостатньо.</summary>
-        public ResourceAmount Substract(ResourceAmount other)
+        public ResourceAmount Subtract(ResourceAmount other)
         {
             if(Value < other.Value)
                 throw new InvalidOperationException("Недостатньо ресурсів.");

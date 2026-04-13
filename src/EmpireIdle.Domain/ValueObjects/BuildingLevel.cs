@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace EmpireIdle.Domain.ValueObjects
+﻿namespace EmpireIdle.Domain.ValueObjects
 {
     /// <summary>
     /// Рівень будівлі. Value Object — незмінний, не може бути нульовим або від'ємним.
     /// </summary>
-    public class BuildingLevel
+    public record BuildingLevel
     {
         /// <summary>Числове значення рівня.</summary>
         public int Value { get; }
