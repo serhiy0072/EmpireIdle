@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EmpireIdle.API/EmpireIdle.API.csproj" />
+    <Project Path="src/EmpireIdle.Application/EmpireIdle.Application.csproj" />
+    <Project Path="src/EmpireIdle.Domain/EmpireIdle.Domain.csproj" />
+    <Project Path="src/EmpireIdle.Infrastructure/EmpireIdle.Infrastructure.csproj" />
+  </Folder>
+</Solution>
