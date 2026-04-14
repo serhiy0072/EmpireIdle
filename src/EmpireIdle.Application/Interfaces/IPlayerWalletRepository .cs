@@ -10,6 +10,6 @@ namespace EmpireIdle.Application.Interfaces
     public interface IPlayerWalletRepository : IRepository<PlayerWallet>
     {
         /// <summary>Знайти гаманець за ідентифікатором гравця.</summary>
-        Task<PlayerWallet?> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken = default)
+        Task<PlayerWallet?> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken = default);
     }
 }
