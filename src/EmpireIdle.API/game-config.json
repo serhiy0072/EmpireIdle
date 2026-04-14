@@ -1,0 +1,29 @@
+{
+  "GameName": "EmpireIdle",
+  "Resources": [
+    {
+      "Key": "gold",
+      "DisplayName": "Gold",
+      "Icon": "gold.svg"
+    },
+    {
+      "Key": "wood",
+      "DisplayName": "Wood",
+      "Icon": "wood.svg"
+    }
+  ],
+  "Buildings": [
+    {
+      "Key": "farm",
+      "DisplayName": "Farm",
+      "ProducesResource": "gold",
+      "BaseProductionPerMinute": 10
+    },
+    {
+      "Key": "sawmill",
+      "DisplayName": "Sawmill",
+      "ProducesResource": "wood",
+      "BaseProductionPerMinute": 8
+    }
+  ]
+}
