@@ -15,4 +15,10 @@
     <ProjectReference Include="..\EmpireIdle.Infrastructure\EmpireIdle.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="game-config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
