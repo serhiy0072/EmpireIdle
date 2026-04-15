@@ -22,9 +22,10 @@ namespace EmpireIdle.Infrastructure.Persistence
             return await _context.SaveChangesAsync(cancellationToken);
         }
 
-        /// <inheritdoc/>\
-        public void Dispose({
+        /// <inheritdoc/>
+        public void Dispose()
+        {
             _context.Dispose();
-        })
+        }
     }
 }

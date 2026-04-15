@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,7 @@ builder.Configuration.AddJsonFile("game-config.json", optional: false, reloadOnC
 
 builder.Services.AddOpenApi();
 builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
+builder.Services.AddInfrastucture(builder.Configuration);
 
 var app = builder.Build();
 
