@@ -18,7 +18,7 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Оновити існуючий запис.</summary>
         void Update(T entity);
 
-        // <summary>Видалити запис.</summary>
+        /// <summary>Видалити запис.</summary>
         void Delete(T entity);
     }
 }

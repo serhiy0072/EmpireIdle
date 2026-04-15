@@ -2,6 +2,11 @@
 
 namespace EmpireIdle.Domain.Entities
 {
+    /// <summary>
+    /// Запис про зміну балансу гаманця.
+    /// Незмінний після створення — тільки append.
+    /// Кожна зміна балансу обов'язково має відповідну транзакцію.
+    /// </summary>
     public class WalletTransaction : Entity
     {
         /// <summary>Ідентифікатор гаманця.</summary>
