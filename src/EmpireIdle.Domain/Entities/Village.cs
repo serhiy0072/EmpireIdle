@@ -1,5 +1,6 @@
 ﻿using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.ValueObjects;
+using System.Linq;
 
 namespace EmpireIdle.Domain.Entities
 {
@@ -11,7 +12,7 @@ namespace EmpireIdle.Domain.Entities
     {
         private readonly List<Building> _buildings = new();
         private readonly List<IDomainEvent> _domainEvents = new();
-        private readonly Dictionary<string, ResourceAmount> _resources = new();
+        private readonly List<VillageResource> _resources = new();
 
         /// <summary>Назва села.</summary>
         public string Name { get; private set; } = null!;
@@ -30,14 +31,14 @@ namespace EmpireIdle.Domain.Entities
         public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
         /// <summary>Всі ресурси села. Ключ — тип ресурсу.</summary>
-        public IReadOnlyDictionary<string, ResourceAmount> Resources => _resources;
+        public IReadOnlyCollection<VillageResource> Resources => _resources;
 
         public Village(Guid id, Guid playerId, string name) : base(id)
         {
             PlayerId = playerId;
             Name = name;
-            _resources[ResourceType.Gold] = ResourceAmount.Zero;
-            _resources[ResourceType.Wood] = ResourceAmount.Zero;
+            _resources.Add(new VillageResource { VillageId = id, ResourceType = ResourceType.Gold, Amount = 0 });
+            _resources.Add(new VillageResource { VillageId = id, ResourceType = ResourceType.Wood, Amount = 0 });
         }
 
         protected Village() { } // Для EF Core
@@ -54,16 +55,18 @@ namespace EmpireIdle.Domain.Entities
                 var prodused = building.CalculateProduction(elapsed);
                 foreach (var (type, amount) in prodused)
                 {
-                    if (!_resources.ContainsKey(type))
+                    var resource = _resources.FirstOrDefault(r => r.ResourceType == type);
+                    if (resource is null)
                     {
-                        _resources[type] = ResourceAmount.Zero;
+                        resource = new VillageResource { VillageId = Id, ResourceType = type, Amount = 0 };
+                        _resources.Add(resource);
                     }
-                    _resources[type] = _resources[type].Add(amount);
+                    resource.Amount += amount.Value;
                 }
             }
 
             LastTickAt = DateTime.UtcNow;
-            _domainEvents.Add(new ResourcesCollected(Id, _resources));
+            _domainEvents.Add(new ResourcesCollected(Id, _resources.ToDictionary(r => r.ResourceType, r => new ResourceAmount(r.Amount))));
         }
 
 
