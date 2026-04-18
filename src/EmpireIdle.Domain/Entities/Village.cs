@@ -37,6 +37,7 @@ namespace EmpireIdle.Domain.Entities
         {
             PlayerId = playerId;
             Name = name;
+            LastTickAt = DateTime.UtcNow;
             _resources.Add(new VillageResource { VillageId = id, ResourceType = ResourceType.Gold, Amount = 0 });
             _resources.Add(new VillageResource { VillageId = id, ResourceType = ResourceType.Wood, Amount = 0 });
         }

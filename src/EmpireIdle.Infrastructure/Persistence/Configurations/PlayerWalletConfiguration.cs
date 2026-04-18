@@ -15,6 +15,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<PlayerWallet> builder)
         {
             builder.HasKey(pw => pw.Id);
+            builder.Ignore(pw => pw.DomainEvents);
 
             builder.Property(pw => pw.GemBalance).HasConversion(g => g.Value, v => new GemAmount(v)).HasColumnName("GemBalance");
             builder.Property(pw => pw.CoinBalance).HasConversion(c => c.Value, v => new CoinAmount(v)).HasColumnName("CoinBalance");
