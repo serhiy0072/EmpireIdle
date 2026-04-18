@@ -10,6 +10,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Village> builder)
         {
             builder.HasKey(v => v.Id);
+            builder.Ignore(v => v.DomainEvents);
 
             builder.Property(v => v.Name).IsRequired().HasMaxLength(100);
             builder.HasMany(typeof(VillageResource),"_resources").WithOne().HasForeignKey("VillageId").IsRequired();
