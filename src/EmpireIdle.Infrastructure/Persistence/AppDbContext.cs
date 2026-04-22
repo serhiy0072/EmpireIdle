@@ -6,7 +6,7 @@ namespace EmpireIdle.Infrastructure.Persistence
     /// <summary>
     /// Головний контекст бази даних. Реалізує Unit of Work через EF Core.
     /// </summary>
-    public class AppDbContext :DbContext
+    public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

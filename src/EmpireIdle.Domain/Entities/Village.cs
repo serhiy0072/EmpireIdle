@@ -1,6 +1,5 @@
 ﻿using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.ValueObjects;
-using System.Linq;
 
 namespace EmpireIdle.Domain.Entities
 {
@@ -53,8 +52,8 @@ namespace EmpireIdle.Domain.Entities
 
             foreach (var building in _buildings)
             {
-                var prodused = building.CalculateProduction(elapsed);
-                foreach (var (type, amount) in prodused)
+                var produced = building.CalculateProduction(elapsed);
+                foreach (var (type, amount) in produced)
                 {
                     var resource = _resources.FirstOrDefault(r => r.ResourceType == type);
                     if (resource is null)

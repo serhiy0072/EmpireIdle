@@ -36,8 +36,9 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="elapsed">Час що минув.</param>
         public Dictionary<string, ResourceAmount> CalculateProduction(TimeSpan elapsed)
         {
-            var minutes = (int)elapsed.TotalMinutes;
-            var amount = new ResourceAmount(Level.Value * 10 * minutes);
+            // Рахуємо через double щоб зберегти дробові хвилини.
+            // Без цього тік кожні 30с даватиме 0 ресурсів (int)0.5 = 0.
+            var amount = new ResourceAmount((int)(Level.Value * 10 * elapsed.TotalMinutes));
 
             // Тип ресурсу визначатиметься через GameConfig у наступних фазах
             return new Dictionary<string, ResourceAmount>

@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using System.IO;
 using System.Reflection;
 
-namespace EmpireIdle.Infrastructure.Persistence.Repositories
+namespace EmpireIdle.Infrastructure.Persistence
 {
     /// <summary>
     /// Фабрика для створення AppDbContext під час design-time операцій (міграції).

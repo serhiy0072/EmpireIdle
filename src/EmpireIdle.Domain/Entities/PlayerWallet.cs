@@ -10,7 +10,7 @@ namespace EmpireIdle.Domain.Entities
     /// </summary>
     public class PlayerWallet : Entity
     {
-        private readonly List<WalletTransaction> _walletTransactions = new();
+        private readonly List<WalletTransaction> _transactions = new();
         private readonly List<IDomainEvent> _domainEvents = new();
 
         /// <summary>Ідентифікатор власника.</summary>
@@ -24,7 +24,7 @@ namespace EmpireIdle.Domain.Entities
         public CoinAmount CoinBalance { get; private set; } = null!;
 
         /// <summary>Історія транзакцій (тільки для читання).</summary>
-        public IReadOnlyCollection<WalletTransaction> Transactions => _walletTransactions.AsReadOnly();
+        public IReadOnlyCollection<WalletTransaction> Transactions => _transactions.AsReadOnly();
 
         /// <summary>Доменні події що очікують публікації.</summary>
         public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
@@ -46,7 +46,7 @@ namespace EmpireIdle.Domain.Entities
         public void AddGems(GemAmount amount, string stripePaymentId)
         {
             GemBalance = GemBalance.Add(amount);
-            _walletTransactions.Add(new WalletTransaction(
+            _transactions.Add(new WalletTransaction(
                    Guid.NewGuid(),
                    Id,
                    TransactionType.GemPurchase,
@@ -63,13 +63,15 @@ namespace EmpireIdle.Domain.Entities
         public void SpendGems(GemAmount amount, string description)
         {
             GemBalance = GemBalance.Subtract(amount);
-            _walletTransactions.Add(new WalletTransaction(
+            _transactions.Add(new WalletTransaction(
                 Guid.NewGuid(),
                 Id,
                 TransactionType.GemSpend,
                 -amount.Value,
                 description
-                )); 
+                ));
+
+            _domainEvents.Add(new GemsSpent(PlayerId, amount, GemBalance, description));
         }
 
         /// <summary>Очищує список доменних подій після їх публікації.</summary>

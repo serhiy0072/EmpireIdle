@@ -19,7 +19,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(pw => pw.GemBalance).HasConversion(g => g.Value, v => new GemAmount(v)).HasColumnName("GemBalance");
             builder.Property(pw => pw.CoinBalance).HasConversion(c => c.Value, v => new CoinAmount(v)).HasColumnName("CoinBalance");
-            builder.HasMany(typeof(WalletTransaction), "_walletTransactions").WithOne().HasForeignKey("WalletId").IsRequired();
+            builder.HasMany(pw => pw.Transactions).WithOne().HasForeignKey("WalletId").IsRequired();
+
+            builder.Metadata.FindNavigation(nameof(PlayerWallet.Transactions))!.SetPropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }
