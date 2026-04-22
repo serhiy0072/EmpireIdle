@@ -1,6 +1,5 @@
 ﻿using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.ValueObjects;
-using System.Linq;
 
 namespace EmpireIdle.Domain.Entities
 {
