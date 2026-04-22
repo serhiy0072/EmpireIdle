@@ -69,7 +69,9 @@ namespace EmpireIdle.Domain.Entities
                 TransactionType.GemSpend,
                 -amount.Value,
                 description
-                )); 
+                ));
+
+            _domainEvents.Add(new GemsSpent(PlayerId, amount, GemBalance, description));
         }
 
         /// <summary>Очищує список доменних подій після їх публікації.</summary>
