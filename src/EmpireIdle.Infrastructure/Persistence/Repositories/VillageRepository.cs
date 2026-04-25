@@ -39,10 +39,16 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(v => v.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
+        public async Task<List<Village>> GetAllAsync(CancellationToken cancellationToken = default) => await _context.Villages
+            .Include(v => v.Buildings)
+            .Include(v => v.Resources)
+            .AsSplitQuery() 
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public void Update(Village entity) => _context.Villages.Update(entity);
 
         /// <inheritdoc/>
         public void Delete(Village entity) => _context.Villages.Remove(entity);
-
     }
 }
