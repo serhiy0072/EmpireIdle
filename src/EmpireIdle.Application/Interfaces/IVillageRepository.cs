@@ -9,5 +9,6 @@ namespace EmpireIdle.Application.Interfaces
     {
         /// <summary>Знайти село за ідентифікатором гравця.</summary>
         Task<Village?> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken = default);
+        Task<List<Village>> GetAllAsync(CancellationToken cancellationToken = default);
     }
 }
