@@ -1,4 +1,5 @@
 ﻿using EmpireIdle.Domain.Events;
+using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
@@ -46,22 +47,28 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>
         /// Нараховує ресурси на основі будівель і часу що минув з останнього тіку.
         /// </summary>
-        public void CollectResources()
+        /// <param name="buildingConfigs">Конфігурації будівель з GameConfig (Key → BuildingConfig).</param
+        public void CollectResources(Dictionary<string, BuildingConfig> buildingConfigs)
         {
             var elapsed = DateTime.UtcNow - LastTickAt;
 
             foreach (var building in _buildings)
             {
-                var produced = building.CalculateProduction(elapsed);
+                if (!buildingConfigs.TryGetValue(building.Type, out var config))
+                    continue;
+
+                var produced = building.CalculateProduction(config.ProducesResource, config.BaseProductionPerMinute, elapsed);
                 foreach (var (type, amount) in produced)
                 {
                     var resource = _resources.FirstOrDefault(r => r.ResourceType == type);
-                    if (resource is null)
+                    if (resource is not null)
                     {
-                        resource = new VillageResource { VillageId = Id, ResourceType = type, Amount = 0 };
-                        _resources.Add(resource);
+                        resource.Amount += amount.Value;
                     }
-                    resource.Amount += amount.Value;
+                    else
+                    {
+                        _resources.Add(new VillageResource { VillageId = Id, ResourceType = type, Amount = 0 });
+                    }
                 }
             }
 

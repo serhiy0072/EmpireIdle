@@ -33,17 +33,19 @@ namespace EmpireIdle.Domain.Entities
         /// Розраховує кількість ресурсів вироблених за вказаний час.
         /// Базова формула: рівень * 10 одиниць за хвилину.
         /// </summary>
+        /// <param name="producesResource">Тип ресурсу з GameConfig.</param>
+        /// <param name="baseProductionPerMinute">Базова швидкість виробництва з GameConfig.</param>
         /// <param name="elapsed">Час що минув.</param>
-        public Dictionary<string, ResourceAmount> CalculateProduction(TimeSpan elapsed)
+        public Dictionary<string, ResourceAmount> CalculateProduction(string producesResource, int baseProductionPerMinute, TimeSpan elapsed)
         {
             // Рахуємо через double щоб зберегти дробові хвилини.
             // Без цього тік кожні 30с даватиме 0 ресурсів (int)0.5 = 0.
-            var amount = new ResourceAmount((int)(Level.Value * 10 * elapsed.TotalMinutes));
+            var amount = new ResourceAmount((int)(Level.Value * baseProductionPerMinute * elapsed.TotalMinutes));
 
             // Тип ресурсу визначатиметься через GameConfig у наступних фазах
             return new Dictionary<string, ResourceAmount>
             {
-                [ResourceType.Gold] = amount
+                [producesResource] = amount
             };
         }
     }
