@@ -4,7 +4,7 @@ using EmpireIdle.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using EmpireIdle.Infrastructure.Services;
+using EmpireIdle.Application.Services;
 
 namespace EmpireIdle.Infrastructure
 {

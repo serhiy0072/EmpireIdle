@@ -3,7 +3,7 @@ using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace EmpireIdle.Infrastructure.Services
+namespace EmpireIdle.Application.Services
 {
     /// <summary>
     /// Обробляє тік ресурсів для всіх сел.
