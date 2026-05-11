@@ -43,5 +43,11 @@
 
         /// <summary>Базова кількість ресурсу за хвилину на 1 рівні.</summary>
         public int BaseProductionPerMinute { get; set; }
+
+        /// <summary>Ресурс який потрібен для апгрейду (наприклад "gold").</summary>
+        public string CostResource { get; set; } = null!;
+
+        /// <summary>Базова вартість апгрейду на 1 рівні. Формула: BaseCost * поточний рівень.</summary>
+        public int BaseCost { get; set; }
     }
 }

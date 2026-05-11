@@ -48,5 +48,14 @@ namespace EmpireIdle.Domain.Entities
                 [producesResource] = amount
             };
         }
+
+        /// <summary>
+        /// Підвищити рівень будівлі на 1.
+        /// Валідація ресурсів відбувається в Village (aggregate root).
+        /// </summary>
+        public void Update()
+        {
+            Level = Level.Next();
+        }
     }
 }

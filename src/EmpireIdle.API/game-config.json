@@ -18,13 +18,17 @@
         "Key": "farm",
         "DisplayName": "Farm",
         "ProducesResource": "gold",
-        "BaseProductionPerMinute": 10
+        "BaseProductionPerMinute": 10,
+        "CostResource": "gold",
+        "BaseCost": 100
       },
       {
         "Key": "sawmill",
         "DisplayName": "Sawmill",
         "ProducesResource": "wood",
-        "BaseProductionPerMinute": 8
+        "BaseProductionPerMinute": 8,
+        "CostResource": "wood",
+        "BaseCost": 120
       }
     ]
   }
