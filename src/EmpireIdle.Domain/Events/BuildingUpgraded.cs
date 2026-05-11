@@ -1,7 +1,4 @@
 ﻿using EmpireIdle.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace EmpireIdle.Domain.Events
 {

@@ -26,6 +26,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
             services.AddScoped<IResourceTickService, ResourceTickService>();
+            services.AddScoped<UpgradeBuildingService>();
 
             return services;
         }
