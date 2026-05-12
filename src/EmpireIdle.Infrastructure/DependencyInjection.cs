@@ -4,7 +4,7 @@ using EmpireIdle.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using EmpireIdle.Infrastructure.Services;
+using EmpireIdle.Application.Services;
 
 namespace EmpireIdle.Infrastructure
 {
@@ -26,6 +26,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
             services.AddScoped<IResourceTickService, ResourceTickService>();
+            services.AddScoped<UpgradeBuildingService>();
 
             return services;
         }
