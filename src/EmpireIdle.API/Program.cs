@@ -17,6 +17,7 @@ builder.Services.AddHangfire(config =>
     config.UsePostgreSqlStorage(options => 
             options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"))));
 builder.Services.AddHangfireServer();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -34,6 +35,7 @@ RecurringJob.AddOrUpdate<IResourceTickService>(
     "resource-tick",
     service => service.TickAllVillagesAsync(CancellationToken.None),
     Cron.Minutely);
+app.MapControllers();
 
 app.Run();
 
