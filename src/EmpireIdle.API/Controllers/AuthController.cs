@@ -42,7 +42,7 @@ namespace EmpireIdle.API.Controller
         }
 
         /// <summary>
-        /// Залогінитись і отримати JWT токени.
+        /// Залогінитись і отримати JWT токени.д
         /// </summary>
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
