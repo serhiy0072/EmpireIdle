@@ -18,7 +18,7 @@ namespace EmpireIdle.Application.Services
         /// <summary>
         /// Отримати село за ідентифікатором гравця.
         /// </summary>
-        public async Task<Village> GetByPlayerId(Guid playerId, CancellationToken cancellation = default)
+        public async Task<Village> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellation = default)
         {
             var village = await _villageRepository.GetByPlayerIdAsync(playerId, cancellation) 
                 ?? throw new InvalidOperationException($"Village not found for player {playerId}.");

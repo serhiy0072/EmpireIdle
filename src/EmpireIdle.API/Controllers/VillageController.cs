@@ -25,7 +25,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetVillage(Guid playerId, CancellationToken cancellationToken)
         {
-            var village = await _getVillageService.GetByPlayerId(playerId, cancellationToken);
+            var village = await _getVillageService.GetByPlayerIdAsync(playerId, cancellationToken);
 
             var response = new VillageResponse(
                 village.Id,
