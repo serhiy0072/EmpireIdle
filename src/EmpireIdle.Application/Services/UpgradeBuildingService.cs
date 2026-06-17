@@ -15,13 +15,15 @@ namespace EmpireIdle.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<UpgradeBuildingService> _logger;
         private readonly GameConfig _gameConfig;
+        private readonly IGameNotifier _notifier;
 
-        public UpgradeBuildingService(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<UpgradeBuildingService> logger, IOptions<GameConfig> gameConfig)
+        public UpgradeBuildingService(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<UpgradeBuildingService> logger, IOptions<GameConfig> gameConfig, IGameNotifier notifier)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _gameConfig = gameConfig.Value;
+            _notifier = notifier;
         }
 
         /// <summary>
@@ -38,6 +40,9 @@ namespace EmpireIdle.Application.Services
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+            var building = village.Buildings.First(b => b.Id == buildingId);
+            await _notifier.NotifyBuildingUpgradedAsync(playerId, buildingId, building.Level.Value, cancellationToken);
+                
             _logger.LogInformation($"Building {buildingId} upgraded in village {village.Id} for player {playerId}");
         }
     }

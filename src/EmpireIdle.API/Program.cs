@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
+using EmpireIdle.API.Hubs;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.OpenApi;
@@ -59,6 +60,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = jwtSettings.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
         };
+
+        // SignalR передає JWT через query string (?access_token=...)
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken; ;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -78,7 +96,19 @@ builder.Services.AddControllers();
 
 builder.Services.AddExceptionHandler<EmpireIdle.API.Middleware.GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
- 
+
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier> ();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SignalRTest", policy =>
+        policy.WithOrigins("null", "http://localhost")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -98,9 +128,13 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseExceptionHandler();
 
+app.UseCors("SignalRTest");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapHub<GameHub>("/hubs/game");
 
 // Recurring job — тік ресурсів кожну хвилину
 RecurringJob.AddOrUpdate<IResourceTickService>(
