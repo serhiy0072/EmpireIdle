@@ -2,7 +2,7 @@
 
 namespace EmpireIdle.API.DTOs
 {
-    public record VillageResponse(Guid Id, StringDictionary Name, DateTime LastTickAt,
+    public record VillageResponse(Guid Id, string Name, DateTime LastTickAt,
         List<BuildingResponse> Buildings, List<ResourceResponse> Resources);
 
     public record BuildingResponse(Guid Id, string Type, int Level, DateTime LastCollectedAt);
