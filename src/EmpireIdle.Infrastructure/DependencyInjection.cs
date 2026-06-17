@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using EmpireIdle.Application.Services;
 using EmpireIdle.Infrastructure.Auth;
 using Microsoft.AspNetCore.Identity;
+using MediatR;
 
 namespace EmpireIdle.Infrastructure
 {
@@ -32,6 +33,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<CreatePlayerService>();
             services.AddScoped<GetVillageService>();
             services.AddScoped<AddBuildingService>();
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly));
 
             // Identity
             services.AddIdentityCore<IdentityUser>(options =>
