@@ -1,11 +1,13 @@
 ﻿using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmpireIdle.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class VillageController : ControllerBase
     {
         private readonly GetVillageService _getVillageService;

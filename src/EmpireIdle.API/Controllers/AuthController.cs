@@ -24,7 +24,7 @@ namespace EmpireIdle.API.Controller
         /// <summary>
         /// Зареєструвати нового гравця: Identity user + Player + Village + Wallet.
         /// </summary>
-        [HttpPost]
+        [HttpPost("register")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)

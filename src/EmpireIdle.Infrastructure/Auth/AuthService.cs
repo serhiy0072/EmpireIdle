@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -14,10 +15,10 @@ namespace EmpireIdle.Infrastructure.Auth
         private readonly UserManager<IdentityUser> _userManager;
         private readonly JwtSettings _jwtSettings;
 
-        public AuthService(UserManager<IdentityUser> userManager, JwtSettings jwtSettings)
+        public AuthService(UserManager<IdentityUser> userManager, IOptions<JwtSettings> jwtSettings)
         {
             _userManager = userManager;
-            _jwtSettings = jwtSettings;
+            _jwtSettings = jwtSettings.Value;
         }
 
         /// <summary>

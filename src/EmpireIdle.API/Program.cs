@@ -22,13 +22,28 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Browser-based idle empire builder game API"
     });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Введи JWT токен (без слова Bearer)"
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
 });
 
 builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
 
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSetting"));
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
-var jwtSettings = builder.Configuration.GetSection("JwtSetting").Get<JwtSettings>()
+var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>()
         ?? throw new InvalidOperationException("JWT settings not configured.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -50,20 +65,20 @@ builder.Services.AddAuthorization();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
-        "ConnectionString 'DefaultConnection' not found. Check User Secrets."); 
+        "ConnectionString 'DefaultConnection' not found. Check User Secrets.");
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Hangfire — використовує ту саму PostgreSQL базу
 builder.Services.AddHangfire(config =>
     config.UsePostgreSqlStorage(options =>
-        options.UseNpgsqlConnection(connectionString))); 
+        options.UseNpgsqlConnection(connectionString)));
 builder.Services.AddHangfireServer();
 builder.Services.AddControllers();
 
 builder.Services.AddExceptionHandler<EmpireIdle.API.Middleware.GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-
+ 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -77,17 +92,21 @@ if (app.Environment.IsDevelopment())
     app.MapHangfireDashboard("/hangfire");
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseExceptionHandler();
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 // Recurring job — тік ресурсів кожну хвилину
 RecurringJob.AddOrUpdate<IResourceTickService>(
     "resource-tick",
     service => service.TickAllVillagesAsync(CancellationToken.None),
     Cron.Minutely);
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
 
 app.Run();
 
