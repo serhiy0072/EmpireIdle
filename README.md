@@ -1,6 +1,6 @@
 # 🏰 EmpireIdle
 
-Browser-based idle/empire builder game built with **ASP.NET Core (.NET 10)**, **Clean Architecture**, **DDD**, and **React** (frontend in progress).
+Browser-based idle/empire builder game built with **ASP.NET Core (.NET 10)**, **Clean Architecture**, **DDD**, and **React** (frontend planned).
 
 Build villages, construct buildings, collect resources, and upgrade your empire — even while you're offline.
 
@@ -16,6 +16,7 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 │Infrastructure│  │       API          │
 │ EF Core      │  │ Controllers, DTOs │
 │ Repositories │  │ Hangfire, Swagger  │
+│ Identity/JWT │  │ Auth, Middleware   │
 └──────┬───┬───┘  └────────┬──────────┘
        │   │               │
        │   └───────┬───────┘
@@ -37,11 +38,12 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 ## 🛠️ Tech Stack
 
 - **Backend:** ASP.NET Core / .NET 10, EF Core, PostgreSQL
+- **Auth:** ASP.NET Identity, JWT with refresh token rotation
 - **Background Jobs:** Hangfire with PostgreSQL storage
 - **Architecture:** Clean Architecture, DDD, Repository + UoW
 - **API:** REST, Swagger/OpenAPI, ProblemDetails error handling
-- **Frontend:** React (planned — Phase 4+)
-- **Monetization:** Stripe (planned — Phase 7)
+- **Frontend:** React (planned)
+- **Monetization:** Stripe (planned)
 - **License:** AGPL-3.0
 
 ## 📦 Projects
@@ -50,8 +52,8 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 |---------|---------------|
 | `EmpireIdle.Domain` | Entities, Value Objects, Domain Events, Game Config |
 | `EmpireIdle.Application` | Use Cases (services), Repository interfaces |
-| `EmpireIdle.Infrastructure` | EF Core, PostgreSQL, Repository implementations, DI |
-| `EmpireIdle.API` | Controllers, DTOs, Hangfire config, Swagger, Middleware |
+| `EmpireIdle.Infrastructure` | EF Core, PostgreSQL, Identity/JWT, Repository implementations, DI |
+| `EmpireIdle.API` | Controllers, DTOs, Auth, Hangfire config, Swagger, Middleware |
 
 ## 🚀 Getting Started
 
@@ -65,7 +67,7 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/EmpireIdle.git
+   git clone https://github.com/serhiy0072/EmpireIdle.git
    cd EmpireIdle
    ```
 
@@ -75,10 +77,13 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
    CREATE DATABASE empireidle OWNER empireidle_user;
    ```
 
-3. **Configure connection string via User Secrets:**
+3. **Configure secrets via User Secrets:**
    ```bash
    cd src/EmpireIdle.API
    dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=empireidle;Username=empireidle_user;Password=your_password"
+   dotnet user-secrets set "JwtSettings:Secret" "your-very-long-random-secret-at-least-32-chars"
+   dotnet user-secrets set "JwtSettings:Issuer" "EmpireIdle"
+   dotnet user-secrets set "JwtSettings:Audience" "EmpireIdle.Players"
    ```
 
 4. **Apply migrations:**
@@ -98,47 +103,36 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 
 ## 📡 API Endpoints
 
+### Auth
+
 | Method | URL | Description |
 |--------|-----|-------------|
-| `POST` | `/api/player/register` | Register new player (creates village + wallet) |
+| `POST` | `/api/auth/register` | Register player (IdentityUser + Village + Wallet), returns JWT |
+| `POST` | `/api/auth/login` | Authenticate, returns access + refresh tokens |
+| `POST` | `/api/auth/refresh` | Rotate tokens (with reuse detection) |
+
+### Game (requires JWT)
+
+| Method | URL | Description |
+|--------|-----|-------------|
 | `GET` | `/api/village/{playerId}` | Get village state with buildings and resources |
 | `POST` | `/api/village/{playerId}/buildings` | Build a new building |
 | `POST` | `/api/village/{playerId}/buildings/upgrade` | Upgrade a building |
 
-### Example: Register a player
+### Example: Register
 
 ```bash
-curl -X POST http://localhost:5253/api/player/register \
+curl -X POST http://localhost:5253/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username": "player1", "email": "player1@example.com"}'
+  -d '{"username": "player1", "email": "player1@example.com", "password": "Test12345"}'
 ```
 
 Response:
 ```json
 {
+  "accessToken": "eyJhbGc...",
+  "refreshToken": "Xk7pQ9z...",
   "playerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-}
-```
-
-### Example: Get village state
-
-```bash
-curl http://localhost:5253/api/village/3fa85f64-5717-4562-b3fc-2c963f66afa6
-```
-
-Response:
-```json
-{
-  "id": "...",
-  "name": "player1's Village",
-  "lastTickAt": "2026-04-22T18:30:00Z",
-  "buildings": [
-    { "id": "...", "type": "farm", "level": 1, "lastCollectedAt": "..." }
-  ],
-  "resources": [
-    { "resourceType": "gold", "amount": 150 },
-    { "resourceType": "wood", "amount": 0 }
-  ]
 }
 ```
 
@@ -169,6 +163,14 @@ Response:
 }
 ```
 
+## 🔐 Authentication
+
+JWT-based auth with refresh token rotation:
+- Access tokens (short-lived, configurable lifetime)
+- Refresh tokens stored in PostgreSQL, single-use with rotation
+- **Reuse detection:** using a revoked refresh token revokes all user sessions (theft protection)
+- Game endpoints protected with `[Authorize]`
+
 ## 🗺️ Roadmap
 
 | Phase | Description | Status |
@@ -176,12 +178,15 @@ Response:
 | 1 | Clean Architecture + DDD Domain Model | ✅ |
 | 2 | EF Core, Hangfire, Game Logic, Building Upgrades | ✅ |
 | 3 | REST API Endpoints, Swagger, Error Handling | ✅ |
-| 4 | React Frontend (SPA) | ⏳ |
-| 5 | SignalR Real-time Updates | ⏳ |
-| 6 | Authentication (ASP.NET Identity + JWT) | ⏳ |
-| 7 | Stripe Monetization (Gems) | ⏳ |
-| 8 | RabbitMQ Inter-service Messaging | ⏳ |
-| 9 | Docker + CI/CD | ⏳ |
+| 4 | Authentication (ASP.NET Identity + JWT) | ✅ |
+| 5 | Realtime updates (SignalR) | ⏳ |
+| 6 | CQRS + MediatR | ⏳ |
+| 7 | Frontend (React + TypeScript) | ⏳ |
+| 8 | Gems Economy (Quests, Rewards, Events) | ⏳ |
+| 9 | Monetization (Stripe) | ⏳ |
+| 10 | Chat System (SignalR) | ⏳ |
+| 11 | Player Trading (RabbitMQ) | ⏳ |
+| 12 | Docker + CI/CD | ⏳ |
 
 ## 📄 License
 
