@@ -3,6 +3,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Auth;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Principal;
 
@@ -27,7 +28,7 @@ namespace EmpireIdle.API.Controller
         [HttpPost("register")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Register([FromBody] DTOs.RegisterRequest request, CancellationToken cancellationToken)
         {
             // 1. Створити Identity user (валідація пароля, унікальність email)
             await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
@@ -47,7 +48,7 @@ namespace EmpireIdle.API.Controller
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Login([FromBody] DTOs.LoginRequest request, CancellationToken cancellationToken)
         {
             var (accessToken, refreshToken) = await _authService.LoginAsync(request.Email, request.Password);
 
@@ -55,6 +56,19 @@ namespace EmpireIdle.API.Controller
                     ?? throw new InvalidOperationException("Player not found for this account.");
 
             return Ok(new AuthResponse(accessToken, refreshToken, player.Id));
+        }
+
+        /// <summary>
+        /// Оновити access token за refresh token (з ротацією).
+        /// </summary>
+        [HttpPost("refresh")]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Refresh([FromBody] DTOs.RefreshRequest request, CancellationToken cancellationToken)
+        {
+            var (accessToken, refreshToken) = await _authService.RefreshAsync(request.RefreshToken);
+
+            return Ok(new AuthResponse(accessToken, refreshToken, Guid.Empty));
         }
     }
 }
