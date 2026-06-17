@@ -1,9 +1,13 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
+using EmpireIdle.Infrastructure.Auth;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.OpenApi;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +25,28 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSetting"));
+
+var jwtSettings = builder.Configuration.GetSection("JwtSetting").Get<JwtSettings>()
+        ?? throw new InvalidOperationException("JWT settings not configured.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
@@ -59,6 +85,8 @@ RecurringJob.AddOrUpdate<IResourceTickService>(
     "resource-tick",
     service => service.TickAllVillagesAsync(CancellationToken.None),
     Cron.Minutely);
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
