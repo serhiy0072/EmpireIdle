@@ -1,7 +1,9 @@
 ﻿using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Services;
+using EmpireIdle.Application.Villages.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -10,12 +12,12 @@ namespace EmpireIdle.API.Controllers
     [Authorize]
     public class VillageController : ControllerBase
     {
-        private readonly GetVillageService _getVillageService;
+        private readonly IMediator _mediator;
         private readonly AddBuildingService _addBuildingService;
         private readonly UpgradeBuildingService _upgradeBuildingService;
-        public VillageController(GetVillageService getVillageService, AddBuildingService addBuildingService, UpgradeBuildingService upgradeBuildingService)
+        public VillageController(IMediator mediator, AddBuildingService addBuildingService, UpgradeBuildingService upgradeBuildingService)
         {
-            _getVillageService = getVillageService;
+            _mediator = mediator;
             _addBuildingService = addBuildingService;
             _upgradeBuildingService = upgradeBuildingService;
         }
@@ -27,7 +29,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetVillage(Guid playerId, CancellationToken cancellationToken)
         {
-            var village = await _getVillageService.GetByPlayerIdAsync(playerId, cancellationToken);
+            var village = await _mediator.Send(new GetVillageQuery(playerId), cancellationToken);
 
             var response = new VillageResponse(
                 village.Id,
