@@ -1,13 +1,14 @@
+using EmpireIdle.API.Hubs;
+using EmpireIdle.API.Jobs;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
-using EmpireIdle.API.Hubs;
 using Hangfire;
 using Hangfire.PostgreSql;
-using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -108,6 +109,7 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod()
         .AllowCredentials());
 });
+builder.Services.AddScoped<ResourceTickJob>();
 
 var app = builder.Build();
 
@@ -137,9 +139,9 @@ app.MapControllers();
 app.MapHub<GameHub>("/hubs/game");
 
 // Recurring job — тік ресурсів кожну хвилину
-RecurringJob.AddOrUpdate<IResourceTickService>(
+RecurringJob.AddOrUpdate<ResourceTickJob>(
     "resource-tick",
-    service => service.TickAllVillagesAsync(CancellationToken.None),
+    job => job.RunAsync(),
     Cron.Minutely);
 
 app.Run();
