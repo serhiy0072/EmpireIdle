@@ -14,13 +14,9 @@ namespace EmpireIdle.API.Controllers
     public class VillageController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly AddBuildingService _addBuildingService;
-        private readonly UpgradeBuildingService _upgradeBuildingService;
-        public VillageController(IMediator mediator, AddBuildingService addBuildingService, UpgradeBuildingService upgradeBuildingService)
+        public VillageController(IMediator mediator)
         {
             _mediator = mediator;
-            _addBuildingService = addBuildingService;
-            _upgradeBuildingService = upgradeBuildingService;
         }
         /// <summary>
         /// Отримати стан села гравця з будівлями та ресурсами.
@@ -50,7 +46,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddBuilding(Guid playerId, [FromBody] AddBuildingRequest request, CancellationToken cancellationToken)
         {
-            var buildingId = await _addBuildingService.AddAsync(playerId, request.BuildingType, cancellationToken);
+            var buildingId = await _mediator.Send(new AddBuildingCommand(playerId, request.BuildingType), cancellationToken);
 
             return CreatedAtAction(nameof(GetVillage), new { playerId }, new PlayerResponse(buildingId));
         }

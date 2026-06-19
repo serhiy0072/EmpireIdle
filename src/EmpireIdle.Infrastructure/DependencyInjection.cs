@@ -29,10 +29,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
             services.AddScoped<IResourceTickService, ResourceTickService>();
-            services.AddScoped<UpgradeBuildingService>();
             services.AddScoped<CreatePlayerService>();
             services.AddScoped<GetVillageService>();
-            services.AddScoped<AddBuildingService>();
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly));
 
             // Identity
