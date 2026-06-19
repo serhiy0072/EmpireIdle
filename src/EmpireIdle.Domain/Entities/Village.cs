@@ -82,7 +82,7 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="buildingId">Ідентифікатор будівлі для апгрейду.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
         /// <exception cref="InvalidOperationException">Якщо будівля не знайдена, конфіг відсутній, або недостатньо ресурсів.</exception>
-        public void UpdateBuilding(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs)
+        public void UpgradeBuilding(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId) ??
                 throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
