@@ -1,9 +1,10 @@
 ﻿using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Services;
+using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MediatR;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -62,8 +63,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpgradeBuilding(Guid playerId, [FromBody] UpgradeBuildingRequest request, CancellationToken cancellationToken)
         {
-            await _upgradeBuildingService.UpgradeAsync(playerId, request.BuildingId, cancellationToken);
-
+            await _mediator.Send(new UpgradeBuildingCommand(playerId, request.BuildingId), cancellationToken);
             return NoContent();
         }
 
