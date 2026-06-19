@@ -1,8 +1,10 @@
 ﻿using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Players.Commands;
 using EmpireIdle.Application.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Auth;
+using MediatR;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Principal;
@@ -12,14 +14,14 @@ namespace EmpireIdle.API.Controller
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
-        private readonly CreatePlayerService _createPlayerService;
         private readonly IPlayerRepository _playerRepository;
+        private readonly IMediator _mediator;
 
-        public AuthController(AuthService authService, CreatePlayerService createPlayerService, IPlayerRepository playerRepository)
+        public AuthController(AuthService authService, IPlayerRepository playerRepository, IMediator mediator)
         {
             _authService = authService;
-            _createPlayerService = createPlayerService;
             _playerRepository = playerRepository;
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -34,7 +36,7 @@ namespace EmpireIdle.API.Controller
             await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
 
             // 2. Створити доменного Player + Village + Wallet
-            var playerId = await _createPlayerService.CreateAsync(request.UserName, request.Email, cancellationToken);
+            var playerId = await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email), cancellationToken);
 
             // 3. Одразу залогінити
             var (accessToken, refreshToken) = await _authService.LoginAsync(request.Email, request.Password);

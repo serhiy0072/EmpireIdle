@@ -1,0 +1,57 @@
+﻿using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Entities;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
+namespace EmpireIdle.Application.Players.Commands
+{
+    /// <summary>
+    /// Команда створення нового гравця: Player + Village + PlayerWallet.
+    /// </summary>
+    public record CreatePlayerCommand(string UserName, string Email) : IRequest<Guid>;
+
+    /// <summary>
+    /// Обробник команди CreatePlayerCommand. Повертає Id створеного гравця.
+    /// </summary>
+    public class CreatePlayerCommandHandler : IRequestHandler<CreatePlayerCommand, Guid>
+    {
+        private readonly IPlayerRepository _playerRepository;
+        private readonly IVillageRepository _villageRepository;
+        private readonly IPlayerWalletRepository _walletRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<CreatePlayerCommand> _logger;
+
+        public CreatePlayerCommandHandler(IPlayerRepository playerRepository, IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, IUnitOfWork unitOfWork, ILogger<CreatePlayerCommand> logger)
+        {
+            _playerRepository = playerRepository;
+            _villageRepository = villageRepository;
+            _walletRepository = walletRepository;
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+        }
+
+        public async Task<Guid> Handle(CreatePlayerCommand request, CancellationToken cancellationToken)
+        {
+            var existing = await _playerRepository.GetByEmailAsync(request.Email, cancellationToken);
+            if(existing is not null)
+                throw new InvalidOperationException($"Player with email '{request.Email}' already exists.");
+
+            var playerId = Guid.NewGuid();
+
+            var player = new Player(playerId, request.UserName, request.Email);
+            var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village");
+            var wallet = new PlayerWallet(Guid.NewGuid(), playerId);
+
+            await _playerRepository.AddAsync(player, cancellationToken);
+            await _villageRepository.AddAsync(village, cancellationToken);
+            await _walletRepository.AddAsync(wallet, cancellationToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Player {PlayerId} created: {Username} ({Email})",
+                playerId, request.UserName, request.Email);
+
+            return playerId;
+        }
+    }
+}
