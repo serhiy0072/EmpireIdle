@@ -47,7 +47,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>
         /// Нараховує ресурси на основі будівель і часу що минув з останнього тіку.
         /// </summary>
-        /// <param name="buildingConfigs">Конфігурації будівель з GameConfig (Key → BuildingConfig).</param
+        /// <param name="buildingConfigs">Конфігурації будівель з GameConfig (Key → BuildingConfig).</param>
         public void CollectResources(Dictionary<string, BuildingConfig> buildingConfigs)
         {
             var elapsed = DateTime.UtcNow - LastTickAt;

@@ -57,7 +57,7 @@ namespace EmpireIdle.Application.Villages.Commands
                 await _notifier.NotifyResourcesUpdatedAsync(village.PlayerId, resources, cancellationToken);
             }
 
-            _logger.LogInformation("Resource tick completed for {Count} villfges.", villages.Count);
+            _logger.LogInformation("Resource tick completed for {Count} villages.", villages.Count);
         }
     }
 }

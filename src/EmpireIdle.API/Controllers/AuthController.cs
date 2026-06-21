@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Principal;
 
-namespace EmpireIdle.API.Controller
+namespace EmpireIdle.API.Controllers
 {
     public class AuthController : ControllerBase
     {
@@ -45,7 +45,7 @@ namespace EmpireIdle.API.Controller
         }
 
         /// <summary>
-        /// Залогінитись і отримати JWT токени.д
+        /// Залогінитись і отримати JWT токени.
         /// </summary>
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
