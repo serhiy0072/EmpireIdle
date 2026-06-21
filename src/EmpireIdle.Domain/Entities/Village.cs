@@ -96,7 +96,7 @@ namespace EmpireIdle.Domain.Entities
                 ?? throw new InvalidOperationException($"Resource '{config.CostResource}' not found in village {Id}.");
 
             if(resource.Amount < cost)
-                throw new InsufficientExecutionStackException($"Not enough {config.CostResource}: need {cost}, have {resource.Amount}.");
+                throw new InvalidOperationException($"Not enough {config.CostResource}: need {cost}, have {resource.Amount}.");
 
             resource.Amount -= cost;
             building.Update();
