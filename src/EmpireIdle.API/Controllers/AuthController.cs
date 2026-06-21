@@ -41,7 +41,8 @@ namespace EmpireIdle.API.Controller
             // 3. Одразу залогінити
             var (accessToken, refreshToken) = await _authService.LoginAsync(request.Email, request.Password);
 
-            return CreatedAtAction(null, new AuthResponse(accessToken, refreshToken, playerId));
+            var response = new AuthResponse(accessToken, refreshToken, playerId);
+            return Created((string?)null, response);
         }
 
         /// <summary>
