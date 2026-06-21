@@ -1,5 +1,4 @@
 ﻿using EmpireIdle.API.DTOs;
-using EmpireIdle.Application.Services;
 using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
 using MediatR;

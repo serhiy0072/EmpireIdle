@@ -4,7 +4,6 @@ using EmpireIdle.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using EmpireIdle.Application.Services;
 using EmpireIdle.Infrastructure.Auth;
 using Microsoft.AspNetCore.Identity;
 using MediatR;
@@ -28,7 +27,6 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IVillageRepository, VillageRepository>();
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
-            services.AddScoped<GetVillageService>();
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly));
 
             // Identity

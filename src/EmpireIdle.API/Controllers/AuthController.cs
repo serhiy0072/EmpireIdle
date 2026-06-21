@@ -1,7 +1,6 @@
 ﻿using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Players.Commands;
-using EmpireIdle.Application.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Auth;
 using MediatR;
