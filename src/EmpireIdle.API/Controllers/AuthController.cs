@@ -1,12 +1,10 @@
 ﻿using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Players.Commands;
-using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Principal;
 
 namespace EmpireIdle.API.Controllers
 {

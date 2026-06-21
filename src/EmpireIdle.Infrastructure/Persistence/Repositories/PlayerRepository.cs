@@ -1,9 +1,6 @@
 ﻿using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EmpireIdle.Infrastructure.Persistence.Repositories
 {

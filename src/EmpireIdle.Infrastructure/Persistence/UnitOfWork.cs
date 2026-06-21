@@ -1,7 +1,4 @@
-﻿using EmpireIdle.Application.Interfaces;
-using System.Threading;
-using System.Threading.Tasks;
-
+﻿
 namespace EmpireIdle.Infrastructure.Persistence
 {
     /// <summary>

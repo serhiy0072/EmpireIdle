@@ -1,6 +1,5 @@
 ﻿using EmpireIdle.Application.Villages.Commands;
 using MediatR;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EmpireIdle.API.Jobs
 {
