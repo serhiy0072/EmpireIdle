@@ -24,6 +24,11 @@ namespace EmpireIdle.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            foreach(var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
+                    modelBuilder.Entity(entityType.ClrType).Ignore(nameof(Entity.DomainEvents));
+            }
         }
     }
 }

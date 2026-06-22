@@ -1,4 +1,6 @@
 ﻿
+using EmpireIdle.Application.Interfaces;
+
 namespace EmpireIdle.Infrastructure.Persistence
 {
     /// <summary>
