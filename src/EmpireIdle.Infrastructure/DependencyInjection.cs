@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using EmpireIdle.Infrastructure.Auth;
 using Microsoft.AspNetCore.Identity;
+using FluentValidation;
 using MediatR;
 
 namespace EmpireIdle.Infrastructure
@@ -37,7 +38,9 @@ namespace EmpireIdle.Infrastructure
                 {
                     cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly);
                     cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
                 });
+            services.AddValidatorsFromAssembly(typeof(IRepository<>).Assembly);
 
             // Identity
             services.AddIdentityCore<IdentityUser>(options =>
