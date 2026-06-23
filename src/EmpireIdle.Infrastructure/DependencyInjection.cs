@@ -1,11 +1,14 @@
 ﻿using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Infrastructure.Persistence;
 using EmpireIdle.Infrastructure.Persistence.Repositories;
+using EmpireIdle.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using EmpireIdle.Infrastructure.Auth;
 using Microsoft.AspNetCore.Identity;
+using FluentValidation;
 using MediatR;
 
 namespace EmpireIdle.Infrastructure
@@ -18,7 +21,10 @@ namespace EmpireIdle.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             // Database
-            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<AppDbContext>((sp, options) =>
+                 options
+                    .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+                    .AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>()));
 
             // Unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -27,7 +33,14 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IVillageRepository, VillageRepository>();
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly));
+            services.AddScoped<DomainEventDispatchInterceptor>();
+            services.AddMediatR(cfg =>
+                {
+                    cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly);
+                    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+                });
+            services.AddValidatorsFromAssembly(typeof(IRepository<>).Assembly);
 
             // Identity
             services.AddIdentityCore<IdentityUser>(options =>

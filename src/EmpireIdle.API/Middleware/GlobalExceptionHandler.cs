@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using FluentValidation;
 
 namespace EmpireIdle.API.Middleware
 {
@@ -17,14 +18,30 @@ namespace EmpireIdle.API.Middleware
 
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
+            _logger.LogError(exception, "Exception handled: {Message}", exception.Message);
+
+            if (exception is ValidationException validationException)
+            {
+                var errors = validationException.Errors.GroupBy(e => e.PropertyName).ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+
+                var validationProblem = new ValidationProblemDetails(errors)
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Validation Failed",
+                    Instance = httpContext.Request.Path
+                };
+
+                httpContext.Response.StatusCode = StatusCodes.Status400BadRequest; ;
+                await httpContext.Response.WriteAsJsonAsync(validationProblem, cancellationToken);
+                return true;
+            }
+
             var (statusCode, title) = exception switch
             {
                 InvalidOperationException => (StatusCodes.Status400BadRequest, "BadRequest"),
                 ArgumentException => (StatusCodes.Status400BadRequest, "Invalid Argument"),
                 _ => (StatusCodes.Status500InternalServerError, "Internal Server Error")
             };
-
-            _logger.LogError(exception, "Exception handled: {Message}", exception.Message);
 
             var problemDetails = new ProblemDetails
             {

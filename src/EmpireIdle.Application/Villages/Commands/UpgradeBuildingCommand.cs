@@ -20,15 +20,13 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<UpgradeBuildingCommandHandler> _logger;
         private readonly GameConfig _gameConfig;
-        private readonly IGameNotifier _notifier;
 
-        public UpgradeBuildingCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<UpgradeBuildingCommandHandler> logger, IOptions<GameConfig> gameConfig, IGameNotifier notifier)
+        public UpgradeBuildingCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<UpgradeBuildingCommandHandler> logger, IOptions<GameConfig> gameConfig)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _gameConfig = gameConfig.Value;
-            _notifier = notifier;
         }
 
         public async Task Handle(UpgradeBuildingCommand request, CancellationToken cancellationToken)
@@ -41,10 +39,6 @@ namespace EmpireIdle.Application.Villages.Commands
             village.UpgradeBuilding(request.BuildingId, buildingConfigs);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            var building = village.Buildings.First(b => b.Id == request.BuildingId);
-            await _notifier.NotifyBuildingUpgradedAsync(
-                request.PlayerId, request.BuildingId, building.Level.Value, cancellationToken);
 
             _logger.LogInformation(
                 "Building {BuildingId} upgraded in village {VillageId} for player {PlayerId}",

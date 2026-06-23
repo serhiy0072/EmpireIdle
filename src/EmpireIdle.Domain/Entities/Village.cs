@@ -11,7 +11,6 @@ namespace EmpireIdle.Domain.Entities
     public class Village : Entity
     {
         private readonly List<Building> _buildings = new();
-        private readonly List<IDomainEvent> _domainEvents = new();
         private readonly List<VillageResource> _resources = new();
 
         /// <summary>Назва села.</summary>
@@ -26,9 +25,6 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Будівлі села (тільки для читання).</summary>
         public IReadOnlyCollection<Building> Buildings => _buildings.AsReadOnly();
-
-        /// <summary>Доменні події що очікують публікації.</summary>
-        public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
         /// <summary>Всі ресурси села. Ключ — тип ресурсу.</summary>
         public IReadOnlyCollection<VillageResource> Resources => _resources;
@@ -73,7 +69,7 @@ namespace EmpireIdle.Domain.Entities
             }
 
             LastTickAt = DateTime.UtcNow;
-            _domainEvents.Add(new ResourcesCollected(Id, _resources.ToDictionary(r => r.ResourceType, r => new ResourceAmount(r.Amount))));
+            RaiseDomainEvent(new ResourcesCollected(Id, PlayerId, _resources.ToDictionary(r => r.ResourceType, r => new ResourceAmount(r.Amount))));
         }
 
         /// <summary>
@@ -101,7 +97,7 @@ namespace EmpireIdle.Domain.Entities
             resource.Amount -= cost;
             building.Update();
 
-            _domainEvents.Add(new Events.BuildingUpgraded(Id, building.Id, building.Type, building.Level, config.CostResource, cost));
+            RaiseDomainEvent(new Events.BuildingUpgraded(Id, PlayerId, building.Id, building.Type, building.Level, config.CostResource, cost));
         }
 
         /// <summary>Додає нову будівлю до села.</summary>
@@ -110,8 +106,6 @@ namespace EmpireIdle.Domain.Entities
             _buildings.Add(building);
         }
 
-        /// <summary>Очищує список доменних подій після їх публікації.</summary>
-        public void ClearDomainEvents() => _domainEvents.Clear();
     }
 }
 
