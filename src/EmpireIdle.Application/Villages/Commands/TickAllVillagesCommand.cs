@@ -20,20 +20,17 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TickAllVillagesCommandHandler> _logger;
         private readonly GameConfig _gameConfig;
-        private readonly IGameNotifier _notifier;
 
         public TickAllVillagesCommandHandler(
             IVillageRepository villageRepository, 
             IUnitOfWork unitOfWork, 
             ILogger<TickAllVillagesCommandHandler> logger, 
-            IOptions<GameConfig> gameConfig,
-            IGameNotifier notifier)
+            IOptions<GameConfig> gameConfig)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _gameConfig = gameConfig.Value;
-            _notifier = notifier;
         }
 
         public async Task Handle(TickAllVillagesCommand request, CancellationToken cancellationToken)
@@ -50,12 +47,6 @@ namespace EmpireIdle.Application.Villages.Commands
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            foreach(var village in villages)
-            {
-                var resources = village.Resources.ToDictionary(r => r.ResourceType, r => r.Amount);
-                await _notifier.NotifyResourcesUpdatedAsync(village.PlayerId, resources, cancellationToken);
-            }
 
             _logger.LogInformation("Resource tick completed for {Count} villages.", villages.Count);
         }

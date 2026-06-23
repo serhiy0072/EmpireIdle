@@ -69,7 +69,7 @@ namespace EmpireIdle.Domain.Entities
             }
 
             LastTickAt = DateTime.UtcNow;
-            RaiseDomainEvent(new ResourcesCollected(Id, _resources.ToDictionary(r => r.ResourceType, r => new ResourceAmount(r.Amount))));
+            RaiseDomainEvent(new ResourcesCollected(Id, PlayerId, _resources.ToDictionary(r => r.ResourceType, r => new ResourceAmount(r.Amount))));
         }
 
         /// <summary>
