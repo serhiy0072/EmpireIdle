@@ -1,4 +1,5 @@
 ﻿using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Infrastructure.Persistence;
 using EmpireIdle.Infrastructure.Persistence.Repositories;
 using EmpireIdle.Infrastructure.Persistence.Interceptors;
@@ -32,7 +33,11 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
             services.AddScoped<DomainEventDispatchInterceptor>();
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly));
+            services.AddMediatR(cfg =>
+                {
+                    cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly);
+                    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                });
 
             // Identity
             services.AddIdentityCore<IdentityUser>(options =>
