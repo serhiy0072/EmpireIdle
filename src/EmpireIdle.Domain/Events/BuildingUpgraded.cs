@@ -5,8 +5,8 @@ namespace EmpireIdle.Domain.Events
     /// <summary>
     /// Подія що виникає коли гравець апгрейдить будівлю.
     /// </summary>
-    public record BuildingUpgraded(Guid VillageId, Guid BuildingId, string BuildingType, BuildingLevel NewLevel, string CostResource, int CostAmount) : IDomainEvent
+    public record BuildingUpgraded(Guid VillageId, Guid PlayerId, Guid BuildingId, string BuildingType, BuildingLevel NewLevel, string CostResource, int CostAmount) : IDomainEvent
     {
-        public DateTime OccurredAt { get; } = DateTime.Now;
+        public DateTime OccurredAt { get; } = DateTime.UtcNow;
     }
 }

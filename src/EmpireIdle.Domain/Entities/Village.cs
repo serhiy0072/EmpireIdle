@@ -97,7 +97,7 @@ namespace EmpireIdle.Domain.Entities
             resource.Amount -= cost;
             building.Update();
 
-            RaiseDomainEvent(new Events.BuildingUpgraded(Id, building.Id, building.Type, building.Level, config.CostResource, cost));
+            RaiseDomainEvent(new Events.BuildingUpgraded(Id, PlayerId, building.Id, building.Type, building.Level, config.CostResource, cost));
         }
 
         /// <summary>Додає нову будівлю до села.</summary>
