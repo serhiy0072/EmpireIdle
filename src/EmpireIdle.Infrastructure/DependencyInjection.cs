@@ -1,6 +1,7 @@
 ﻿using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Infrastructure.Persistence;
 using EmpireIdle.Infrastructure.Persistence.Repositories;
+using EmpireIdle.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +19,10 @@ namespace EmpireIdle.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             // Database
-            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<AppDbContext>((sp, options) =>
+                 options
+                    .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+                    .AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>()));
 
             // Unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -27,6 +31,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IVillageRepository, VillageRepository>();
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
+            services.AddScoped<DomainEventDispatchInterceptor>();
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly));
 
             // Identity
