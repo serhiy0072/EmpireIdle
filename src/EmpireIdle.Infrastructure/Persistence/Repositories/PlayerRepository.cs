@@ -21,7 +21,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
         /// <inheritdoc/>
         public async Task<Player?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
-            => await _context.Players.FirstOrDefaultAsync(p => p.Email == email, cancellationToken);
+            => await _context.Players.FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower(), cancellationToken);
 
         /// <inheritdoc/>
         public async Task<Player?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

@@ -32,13 +32,15 @@ namespace EmpireIdle.Application.Players.Commands
 
         public async Task<Guid> Handle(CreatePlayerCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _playerRepository.GetByEmailAsync(request.Email, cancellationToken);
+            var email = request.Email.Trim().ToLowerInvariant();
+
+            var existing = await _playerRepository.GetByEmailAsync(email, cancellationToken);
             if(existing is not null)
-                throw new InvalidOperationException($"Player with email '{request.Email}' already exists.");
+                throw new InvalidOperationException($"Player with email '{email}' already exists.");
 
             var playerId = Guid.NewGuid();
 
-            var player = new Player(playerId, request.UserName, request.Email);
+            var player = new Player(playerId, request.UserName, email);
             var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village");
             var wallet = new PlayerWallet(Guid.NewGuid(), playerId);
 
