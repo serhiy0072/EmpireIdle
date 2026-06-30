@@ -72,7 +72,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
                 {
-                    context.Token = accessToken; 
+                    context.Token = accessToken;
                 }
 
                 return Task.CompletedTask;
@@ -99,17 +99,18 @@ builder.Services.AddExceptionHandler<EmpireIdle.API.Middleware.GlobalExceptionHa
 builder.Services.AddProblemDetails();
 
 builder.Services.AddSignalR();
-builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier> ();
+builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("SignalRTest", policy =>
-        policy.WithOrigins("null", "http://localhost")
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials());
-});
 builder.Services.AddScoped<ResourceTickJob>();
+
+const string FrontendCors = "FrontendCors";
+    builder.Services.AddCors(option =>
+        option.AddPolicy(FrontendCors, policy =>
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials()
+));
 
 var app = builder.Build();
 
@@ -130,7 +131,7 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseExceptionHandler();
 
-app.UseCors("SignalRTest");
+app.UseCors("FrontendCors");
 
 app.UseAuthentication();
 app.UseAuthorization();
