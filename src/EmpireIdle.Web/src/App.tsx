@@ -1,9 +1,5 @@
-function App() {
-  return (
-    <h1 className="text-3xl font-medium text-blue-600 p-8">
-      EmpireIdle — фронтенд живий
-    </h1>
-  )
-}
+import LoginPage from "./pages/LoginPage";
 
-export default App
+export default function App() {
+  return <LoginPage />;
+}
