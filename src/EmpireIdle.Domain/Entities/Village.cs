@@ -41,10 +41,11 @@ namespace EmpireIdle.Domain.Entities
         protected Village() { } // Для EF Core
 
         /// <summary>
-        /// Нараховує ресурси на основі будівель і часу що минув з останнього тіку.
+        /// Тік виробництва: кожна будівля накопичує виробіток у власний буфер (до капу).
+        /// Ресурси села змінюються лише при зборі (CollectFromBuilding).
         /// </summary>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig (Key → BuildingConfig).</param>
-        public void CollectResources(Dictionary<string, BuildingConfig> buildingConfigs)
+        public void TickProduction(Dictionary<string, BuildingConfig> buildingConfigs)
         {
             var elapsed = DateTime.UtcNow - LastTickAt;
 
@@ -53,23 +54,10 @@ namespace EmpireIdle.Domain.Entities
                 if (!buildingConfigs.TryGetValue(building.Type, out var config))
                     continue;
 
-                var produced = building.CalculateProduction(config.ProducesResource, config.BaseProductionPerMinute, elapsed);
-                foreach (var (type, amount) in produced)
-                {
-                    var resource = _resources.FirstOrDefault(r => r.ResourceType == type);
-                    if (resource is not null)
-                    {
-                        resource.Amount += amount.Value;
-                    }
-                    else
-                    {
-                        _resources.Add(new VillageResource { VillageId = Id, ResourceType = type, Amount = 0 });
-                    }
-                }
+                building.AccumulateProduction(config.BaseProductionPerMinute, config.BaseStorage, config.StorageGrowth, elapsed);
             }
 
             LastTickAt = DateTime.UtcNow;
-            RaiseDomainEvent(new ResourcesCollected(Id, PlayerId, _resources.ToDictionary(r => r.ResourceType, r => new ResourceAmount(r.Amount))));
         }
 
         /// <summary>
@@ -88,16 +76,45 @@ namespace EmpireIdle.Domain.Entities
 
             var cost = config.BaseCost * building.Level.Value;
 
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.CostResource) 
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.CostResource)
                 ?? throw new InvalidOperationException($"Resource '{config.CostResource}' not found in village {Id}.");
 
-            if(resource.Amount < cost)
+            if (resource.Amount < cost)
                 throw new InvalidOperationException($"Not enough {config.CostResource}: need {cost}, have {resource.Amount}.");
 
             resource.Amount -= cost;
-            building.Update();
+            building.Upgrade();
 
             RaiseDomainEvent(new Events.BuildingUpgraded(Id, PlayerId, building.Id, building.Type, building.Level, config.CostResource, cost));
+        }
+
+        /// <summary>
+        /// Збирає накопичене з буфера будівлі у ресурси села.
+        /// </summary>
+        /// <param name="buildingId">Ідентифікатор будівлі.</param>
+        /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
+        /// <exception cref="InvalidOperationException">Якщо будівля або її конфіг не знайдені.</exception>
+        public void CollectFromBuilding(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs)
+        {
+            var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
+                ?? throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
+
+            if (!buildingConfigs.TryGetValue(building.Type, out var config))
+                throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
+
+            var collected = building.Collect();
+            if (collected == 0)
+                return;// порожній буфер — не подія і не зміна стану
+
+            var resource = _resources.FirstOrDefault(r=> r.ResourceType == config.ProducesResource);
+            if(resource is null)
+            {
+                resource = new VillageResource { VillageId = Id, ResourceType = config.ProducesResource, Amount = 0 };
+                _resources.Add(resource);
+            }
+            resource.Amount += collected;
+
+            RaiseDomainEvent(new BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
         }
 
         /// <summary>Додає нову будівлю до села.</summary>

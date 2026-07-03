@@ -16,9 +16,10 @@ namespace EmpireIdle.API.Hubs
             _hubContext = hubContext;
         }
 
-        public async Task NotifyResourcesUpdatedAsync(Guid playerId, IReadOnlyDictionary<string, int> resources, CancellationToken cancellationToken = default)
+        public async Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected, int newVillageAmount, CancellationToken cancellationToken = default)
         {
-            await _hubContext.Clients.Group(playerId.ToString()).SendAsync("ResourcesUpdated", resources, cancellationToken);
+            await _hubContext.Clients.Group(playerId.ToString())
+                .SendAsync("BuildingCollected", new {buildingId, resourceType, collected, newVillageAmount }, cancellationToken);
         }
                          
         public async Task NotifyBuildingUpgradedAsync(Guid playerId, Guid buildingId, int newLevel, CancellationToken cancellationToken = default)

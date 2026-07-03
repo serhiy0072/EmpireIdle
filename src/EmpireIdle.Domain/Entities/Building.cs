@@ -19,6 +19,15 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Час останнього збору ресурсів.</summary>
         public DateTime LastCollectedAt { get; private set; }
 
+        /// <summary>Накопичені в буфері ресурси, що очікують збору.</summary>
+        public int StoredAmount { get; private set; }
+
+        /// <summary>
+        /// Дробовий залишок виробництва (0..1), що переноситься на наступний тік.
+        /// Без нього ціла частина обрізалась би щотіку і дрібний виробіток губився назавжди.
+        /// </summary>
+        public double ProductionRemainder { get; private set; }
+
         public Building(Guid id, Guid villageId, string type) : base(id)
         {
             VillageId = villageId;
@@ -30,30 +39,53 @@ namespace EmpireIdle.Domain.Entities
         protected Building() { }// Для EF Core
 
         /// <summary>
+        /// Максимальна місткість буфера для поточного рівня:
+        /// BaseStorage × StorageGrowth^(рівень − 1), округлення вниз.
+        /// </summary>
+        public int GetStorageGap(int baseStorage, double storageGrowth)
+            => (int)(baseStorage * Math.Pow(storageGrowth,Level.Value-1));
+
+        /// <summary>
         /// Розраховує кількість ресурсів вироблених за вказаний час.
         /// Базова формула: рівень * 10 одиниць за хвилину.
         /// </summary>
-        /// <param name="producesResource">Тип ресурсу з GameConfig.</param>
         /// <param name="baseProductionPerMinute">Базова швидкість виробництва з GameConfig.</param>
-        /// <param name="elapsed">Час що минув.</param>
-        public Dictionary<string, ResourceAmount> CalculateProduction(string producesResource, int baseProductionPerMinute, TimeSpan elapsed)
+        /// <param name="baseStorage">Базова місткість буфера з GameConfig.</param>
+        /// <param name="storageGrowth">Коефіцієнт росту місткості з GameConfig.</param>
+        /// <param name="elapsed">Час що минув від попереднього тіку.</param>
+        public void AccumulateProduction(int baseProductionPerMinute, int baseStorage, double storageGrowth, TimeSpan elapsed)
         {
-            // Рахуємо через double щоб зберегти дробові хвилини.
-            // Без цього тік кожні 30с даватиме 0 ресурсів (int)0.5 = 0.
-            var amount = new ResourceAmount((int)(Level.Value * baseProductionPerMinute * elapsed.TotalMinutes));
+            if (elapsed <= TimeSpan.Zero)
+                return;
 
-            // Тип ресурсу визначатиметься через GameConfig у наступних фазах
-            return new Dictionary<string, ResourceAmount>
-            {
-                [producesResource] = amount
-            };
+            var cap = GetStorageGap(baseStorage, storageGrowth);
+            if(StoredAmount >= cap)
+                return;// буфер повний — виробництво зупинене, нічого не накопичуємо
+
+            var produced = Level.Value * baseProductionPerMinute * elapsed.TotalMinutes + ProductionRemainder;
+            var whole = (int)produced;
+
+            StoredAmount = Math.Min(StoredAmount + whole, cap);
+            ProductionRemainder = StoredAmount < cap ? produced - whole : 0; // якщо буфер заповнений, дробову частину не переносимо
+        }
+
+        /// <summary>
+        /// Збирає накопичене з буфера. Повертає зібрану кількість, обнуляє буфер,
+        /// оновлює час останнього збору.
+        /// </summary>
+        public int Collect()
+        {
+            var collected = StoredAmount;
+            StoredAmount = 0;
+            LastCollectedAt = DateTime.UtcNow;
+            return collected;
         }
 
         /// <summary>
         /// Підвищити рівень будівлі на 1.
         /// Валідація ресурсів відбувається в Village (aggregate root).
         /// </summary>
-        public void Update()
+        public void Upgrade()
         {
             Level = Level.Next();
         }

@@ -6,8 +6,8 @@
     /// </summary>
     public interface IGameNotifier
     {
-        /// <summary>Повідомити гравця про оновлення ресурсів у його селі.</summary>
-        Task NotifyResourcesUpdatedAsync(Guid playerId, IReadOnlyDictionary<string, int> resources, CancellationToken cancellationToken = default);
+        /// <summary>Сповістити гравця про зібрані з будівлі ресурси та новий баланс.</summary>
+        Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected, int newVillageAmount, CancellationToken cancellationToken = default);
 
         /// <summary>Повідомити гравця про апгрейд будівлі.</summary>
         Task NotifyBuildingUpgradedAsync(Guid playerId, Guid buildingId, int newLevel, CancellationToken cancellationToken = default);

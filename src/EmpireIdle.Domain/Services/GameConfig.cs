@@ -49,5 +49,11 @@
 
         /// <summary>Базова вартість апгрейду на 1 рівні. Формула: BaseCost * поточний рівень.</summary>
         public int BaseCost { get; set; }
+
+        /// <summary>Базова місткість буфера будівлі на 1 рівні.</summary>
+        public int BaseStorage { get; set; }
+
+        /// <summary>Коефіцієнт росту місткості з рівнем. Формула: BaseStorage * StorageGrowth^(рівень-1).</summary>
+        public double StorageGrowth { get; set; }
     }
 }

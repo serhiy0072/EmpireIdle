@@ -43,7 +43,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
             foreach(var village in villages)
             {
-                village.CollectResources(buildingConfigs);
+                village.TickProduction(buildingConfigs);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
