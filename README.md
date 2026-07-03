@@ -33,16 +33,18 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 └──────────────────────────┘
 ```
 
-**Key patterns:** Clean Architecture, DDD (Aggregates, Value Objects, Domain Events), Repository + Unit of Work, CQRS-ready structure.
+**Key patterns:** Clean Architecture, DDD (Aggregates, Value Objects, Domain Events), Repository + Unit of Work, CQRS with MediatR.
 
 ## 🛠️ Tech Stack
 
 - **Backend:** ASP.NET Core / .NET 10, EF Core, PostgreSQL
 - **Auth:** ASP.NET Identity, JWT with refresh token rotation
+- **CQRS:** MediatR (commands/queries, pipeline behaviors for logging + FluentValidation)
+- **Realtime:** SignalR (per-player groups, JWT auth over WebSocket)
 - **Background Jobs:** Hangfire with PostgreSQL storage
 - **Architecture:** Clean Architecture, DDD, Repository + UoW
 - **API:** REST, Swagger/OpenAPI, ProblemDetails error handling
-- **Frontend:** React (planned)
+- **Frontend:** React 19 + TypeScript + Vite + Tailwind (in progress — login page implemented, game UI pending)
 - **Monetization:** Stripe (planned)
 - **License:** AGPL-3.0
 
@@ -53,7 +55,8 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 | `EmpireIdle.Domain` | Entities, Value Objects, Domain Events, Game Config |
 | `EmpireIdle.Application` | Use Cases (services), Repository interfaces |
 | `EmpireIdle.Infrastructure` | EF Core, PostgreSQL, Identity/JWT, Repository implementations, DI |
-| `EmpireIdle.API` | Controllers, DTOs, Auth, Hangfire config, Swagger, Middleware |
+| `EmpireIdle.API` | Controllers, DTOs, Auth, Hangfire config, Swagger, Middleware, SignalR Hub |
+| `EmpireIdle.Web` | React + TypeScript frontend (login implemented; village dashboard, SignalR client pending) |
 
 ## 🚀 Getting Started
 
@@ -179,9 +182,9 @@ JWT-based auth with refresh token rotation:
 | 2 | EF Core, Hangfire, Game Logic, Building Upgrades | ✅ |
 | 3 | REST API Endpoints, Swagger, Error Handling | ✅ |
 | 4 | Authentication (ASP.NET Identity + JWT) | ✅ |
-| 5 | Realtime updates (SignalR) | ⏳ |
-| 6 | CQRS + MediatR | ⏳ |
-| 7 | Frontend (React + TypeScript) | ⏳ |
+| 5 | Realtime updates (SignalR) | ✅ |
+| 6 | CQRS + MediatR | ✅ |
+| 7 | Frontend (React + TypeScript) | 🔄 In progress |
 | 8 | Gems Economy (Quests, Rewards, Events) | ⏳ |
 | 9 | Monetization (Stripe) | ⏳ |
 | 10 | Chat System (SignalR) | ⏳ |
