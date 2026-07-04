@@ -1,9 +1,11 @@
 ﻿using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
+using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -13,10 +15,14 @@ namespace EmpireIdle.API.Controllers
     public class VillageController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public VillageController(IMediator mediator)
+        private readonly GameConfig _gameConfig;
+
+        public VillageController(IMediator mediator, IOptions<GameConfig> gameConfig)
         {
             _mediator = mediator;
+            _gameConfig = gameConfig.Value;
         }
+
         /// <summary>
         /// Отримати стан села гравця з будівлями та ресурсами.
         /// </summary>
@@ -27,11 +33,19 @@ namespace EmpireIdle.API.Controllers
         {
             var village = await _mediator.Send(new GetVillageQuery(playerId), cancellationToken);
 
+            var buildingConfigMap = _gameConfig.Buildings.ToDictionary(bc => bc.Key);
+
             var response = new VillageResponse(
                 village.Id,
                 village.Name,
                 village.LastTickAt,
-                village.Buildings.Select(b => new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt)).ToList(),
+                village.Buildings.Select(b =>
+                {
+                    var storageCap = buildingConfigMap.TryGetValue(b.Type, out var cfg)
+                        ? b.GetStorageCap(cfg.BaseStorage, cfg.StorageGrowth)
+                        : 0;
+                    return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt, b.StoredAmount, storageCap);
+                }).ToList(),
                 village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount)).ToList());
 
             return Ok(response);
@@ -62,5 +76,16 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Зібрати накопичені ресурси з буфера будівлі.
+        /// </summary>
+        [HttpPost("{playerId:guid}/buildings/{buildingId:guid}/collect")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CollectBuilding(Guid playerId, Guid buildingId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new CollectBuildingCommand(playerId, buildingId), cancellationToken);
+            return NoContent();
+        }
     }
 }

@@ -42,7 +42,7 @@ namespace EmpireIdle.Domain.Entities
         /// Максимальна місткість буфера для поточного рівня:
         /// BaseStorage × StorageGrowth^(рівень − 1), округлення вниз.
         /// </summary>
-        public int GetStorageGap(int baseStorage, double storageGrowth)
+        public int GetStorageCap(int baseStorage, double storageGrowth)
             => (int)(baseStorage * Math.Pow(storageGrowth,Level.Value-1));
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace EmpireIdle.Domain.Entities
             if (elapsed <= TimeSpan.Zero)
                 return;
 
-            var cap = GetStorageGap(baseStorage, storageGrowth);
+            var cap = GetStorageCap(baseStorage, storageGrowth);
             if(StoredAmount >= cap)
                 return;// буфер повний — виробництво зупинене, нічого не накопичуємо
 
