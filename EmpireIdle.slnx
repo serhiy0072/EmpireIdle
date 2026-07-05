@@ -5,4 +5,7 @@
     <Project Path="src/EmpireIdle.Domain/EmpireIdle.Domain.csproj" />
     <Project Path="src/EmpireIdle.Infrastructure/EmpireIdle.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="EmpireIdle.Domain.Tests/EmpireIdle.Domain.Tests.csproj" Id="49028f1d-9e7d-4fee-a7f3-8699f2e06cb2" />
+  </Folder>
 </Solution>
