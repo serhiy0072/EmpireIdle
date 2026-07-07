@@ -1,4 +1,5 @@
 ﻿using EmpireIdle.Domain.Entities;
+using System.Net.WebSockets;
 
 namespace EmpireIdle.Domain.Tests.Entities;
 
@@ -24,5 +25,49 @@ public class BuildingTests
 
         // Assert
         Assert.Equal(expectedCap, actual);
+    }
+
+    /// <summary>
+    /// Дробова частина виробітку не губиться між тіками: два тіки по 0.5 хвилини
+    /// мають дати той самий результат, що один тік на 1 хвилину.
+    /// </summary>
+    [Fact]
+    public void AccumulateProduction_ShouldCarryFractionalRemainder_BetweenTicks()
+    {
+        // Arrange
+        // farm 1 рівня: base=10/хв, storage=60, growth=1.3.
+        // Кап на 1 рівні = 60, тож 10 одиниць у нього поміщаються без обрізання.
+        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "farm");
+        var halfMinute = TimeSpan.FromSeconds(30);
+
+        // Act
+        // Два півхвилинні тіки: кожен виробляє 10 * 0.5 = 5.0 → по 5 у буфер.
+        building.AccumulateProduction(baseProductionPerMinute: 10, baseStorage: 60, storageGrowth: 1.3, elapsed: halfMinute);
+        building.AccumulateProduction(baseProductionPerMinute: 10, baseStorage: 60, storageGrowth: 1.3, elapsed: halfMinute);
+
+        // Assert
+        Assert.Equal(10, building.StoredAmount);
+    }
+
+    /// <summary>
+    /// Виробіток, що дає дробове значення, накопичує ціле у буфер,
+    /// а залишок переносить — тож він не зникає при (int)-обрізанні.
+    /// </summary>
+    [Fact]
+    public void AccumulateProduction_ShouldNotLoseSubUnitProduction_AcrossManyTicks()
+    {
+        // Arrange
+        // base=10/хв, тік = 6 секунд = 0.1 хв → виробіток за тік = 10 * 0.1 = 1.0.
+        // Але візьмемо base=7 → 7 * 0.1 = 0.7 за тік: жоден окремий тік не дає цілого!
+        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "farm");
+        var tick = TimeSpan.FromSeconds(6);
+
+        // Act: 10 тіків по 0.7 = 7.0 сумарно.
+        for(int i=0;i<10;i++)
+            building.AccumulateProduction(baseProductionPerMinute: 10, baseStorage: 60, storageGrowth: 1.3, elapsed: tick);
+
+        // Assert: без переносу залишку кожен тік давав би (int)0.7 = 0 → буфер 0 (баг).
+        // З переносом: 0.7,1.4,2.1,...,7.0 → буфер 7.
+        Assert.Equal(10, building.StoredAmount);
     }
 }
