@@ -70,4 +70,23 @@ public class BuildingTests
         // З переносом: 0.7,1.4,2.1,...,7.0 → буфер 7.
         Assert.Equal(10, building.StoredAmount);
     }
+
+    /// <summary>
+    /// Буфер не перевищує кап: надлишок виробітку згорає, а залишок обнуляється.
+    /// </summary>
+    [Fact]
+    public void AccumulateProduction_ShouldCapStorageLimit_AndDiscardOverflow()
+    {
+        // Arrange: кап farm 1 рівня = 60. Заповнимо буфер майже до стелі тіком,
+        // що виробляє більше, ніж лишилось місця.
+        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "farm");
+
+        // 6 хвилин × 10/хв = 60 → рівно кап; додамо ще, щоб перевищити.
+        building.AccumulateProduction(10, 60, 1.3, TimeSpan.FromMinutes(10));
+
+        //Assert
+        Assert.Equal(60, building.StoredAmount); //уперлось в стелю
+        Assert.Equal(0, building.ProductionRemainder); //залишок обнулено, надлишок згорів
+
+    }
 }
