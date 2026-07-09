@@ -1,7 +1,9 @@
 ﻿using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.Application.Players.Commands
 {
@@ -20,14 +22,16 @@ namespace EmpireIdle.Application.Players.Commands
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreatePlayerCommand> _logger;
+        private readonly GameConfig _gameConfig;
 
-        public CreatePlayerCommandHandler(IPlayerRepository playerRepository, IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, IUnitOfWork unitOfWork, ILogger<CreatePlayerCommand> logger)
+        public CreatePlayerCommandHandler(IPlayerRepository playerRepository, IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, IUnitOfWork unitOfWork, ILogger<CreatePlayerCommand> logger, IOptions<GameConfig> gameConfig)
         {
             _playerRepository = playerRepository;
             _villageRepository = villageRepository;
             _walletRepository = walletRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _gameConfig = gameConfig.Value;
         }
 
         public async Task<Guid> Handle(CreatePlayerCommand request, CancellationToken cancellationToken)
@@ -41,7 +45,7 @@ namespace EmpireIdle.Application.Players.Commands
             var playerId = Guid.NewGuid();
 
             var player = new Player(playerId, request.UserName, email);
-            var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village");
+            var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village", _gameConfig.Resources.Select(r => r.Key));
             var wallet = new PlayerWallet(Guid.NewGuid(), playerId);
 
             await _playerRepository.AddAsync(player, cancellationToken);

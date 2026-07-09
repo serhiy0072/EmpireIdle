@@ -14,8 +14,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void CollectFromBuilding_ShouldMoveBufferIntoVillageResources()
         {
             // Arrange
-            var playerId = Guid.NewGuid();
-            var village = new Village(Guid.NewGuid(),playerId, "Test Village");
+            var village = TestData.CreateVillage();
 
             // конфіг однієї будівлі farm (яку ресурс виробляє + параметри буфера)
             var configs = new Dictionary<string, BuildingConfig>
