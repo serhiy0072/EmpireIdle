@@ -8,6 +8,11 @@
         "Icon": "gold.svg"
       },
       {
+        "Key": "food",
+        "DisplayName": "Food",
+        "Icon": "food.svg"
+      },
+      {
         "Key": "wood",
         "DisplayName": "Wood",
         "Icon": "wood.svg"
@@ -15,11 +20,21 @@
     ],
     "Buildings": [
       {
-        "Key": "farm",
-        "DisplayName": "Farm",
+        "Key": "goldmine",
+        "DisplayName": "Goldmine",
         "ProducesResource": "gold",
         "BaseProductionPerMinute": 10,
         "CostResource": "gold",
+        "BaseStorage": 60,
+        "StorageGrowth": 1.3,
+        "BaseCost": 100
+      },
+      {
+        "Key": "farm",
+        "DisplayName": "Farm",
+        "ProducesResource": "food",
+        "BaseProductionPerMinute": 10,
+        "CostResource": "food",
         "BaseStorage": 60,
         "StorageGrowth": 1.3,
         "BaseCost": 100

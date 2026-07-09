@@ -1,6 +1,5 @@
 ﻿using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
 {
@@ -29,13 +28,19 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Всі ресурси села. Ключ — тип ресурсу.</summary>
         public IReadOnlyCollection<VillageResource> Resources => _resources;
 
-        public Village(Guid id, Guid playerId, string name) : base(id)
+        /// <summary>
+        /// Створює нове село зі стартовим набором ресурсів (по нулю кожного).
+        /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
+        /// </summary>
+        /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
+        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys) : base(id)
         {
             PlayerId = playerId;
             Name = name;
             LastTickAt = DateTime.UtcNow;
-            _resources.Add(new VillageResource { VillageId = id, ResourceType = ResourceType.Gold, Amount = 0 });
-            _resources.Add(new VillageResource { VillageId = id, ResourceType = ResourceType.Wood, Amount = 0 });
+
+            foreach(var key in resourceKeys)
+                _resources.Add(new VillageResource { VillageId=id, ResourceType=key, Amount = 0 }); ;
         }
 
         protected Village() { } // Для EF Core
