@@ -22,7 +22,7 @@ namespace EmpireIdle.Application.Villages.Queries
 
         public async Task<Village> Handle(GetVillageQuery request, CancellationToken cancellationToken)
         {
-            return await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
+            return await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village for player with ID {request.PlayerId} not found.");
         }
     }
