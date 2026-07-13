@@ -20,14 +20,14 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => await _context.PlayerWallets.AddAsync(entity, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<PlayerWallet?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => await _context.PlayerWallets
+        public Task<PlayerWallet?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.PlayerWallets
             .Include(pw => pw.Transactions)
             .FirstOrDefaultAsync(pw =>  pw.Id == id, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<PlayerWallet?> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken = default)
-            => await _context.PlayerWallets
+        public Task<PlayerWallet?> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.PlayerWallets
             .Include(pw => pw.Transactions)
             .FirstOrDefaultAsync(pw => pw.PlayerId == playerId, cancellationToken);
 

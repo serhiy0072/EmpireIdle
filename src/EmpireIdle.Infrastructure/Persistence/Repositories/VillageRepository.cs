@@ -21,24 +21,24 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => await _context.Villages.AddAsync(entity, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<Village?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => await _context.Villages
+        public Task<Village?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.Villages
             .Include(v => v.Buildings)
             .Include(v => v.Resources)
             .AsSplitQuery()
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<Village?> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken = default)
-            => await _context.Villages
+        public Task<Village?> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.Villages
             .Include(v => v.Buildings)
             .Include(v => v.Resources)
             .AsSplitQuery()
             .FirstOrDefaultAsync(v => v.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<Village?> GetByPlayerIdReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default)
-            => await _context.Villages
+        public Task<Village?> GetByPlayerIdReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.Villages
             .Include(v => v.Buildings)
             .Include(v => v.Resources)
             .AsNoTracking()
@@ -46,7 +46,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(v => v.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<List<Village>> GetAllAsync(CancellationToken cancellationToken = default) => await _context.Villages
+        public Task<List<Village>> GetAllAsync(CancellationToken cancellationToken = default) 
+            => _context.Villages
             .Include(v => v.Buildings)
             .Include(v => v.Resources)
             .AsSplitQuery() 

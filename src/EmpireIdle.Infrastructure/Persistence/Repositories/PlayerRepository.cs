@@ -20,12 +20,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => await _context.Players.AddAsync(entity, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<Player?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
-            => await _context.Players.FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower(), cancellationToken);
+        public Task<Player?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+            => _context.Players.FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower(), cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<Player?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => await _context.Players.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        public Task<Player?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.Players.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
         /// <inheritdoc/>
         public void Update(Player entity) => _context.Update(entity);
