@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EmpireIdle.API.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -66,9 +68,13 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Refresh([FromBody] DTOs.RefreshRequest request, CancellationToken cancellationToken)
         {
-            var (accessToken, refreshToken) = await _authService.RefreshAsync(request.RefreshToken);
+            var (accessToken, refreshToken, email) = await _authService.RefreshAsync(request.RefreshToken);
 
-            return Ok(new AuthResponse(accessToken, refreshToken, Guid.Empty));
+            var player = await _playerRepository.GetByEmailAsync(email,cancellationToken)
+                ?? throw new InvalidOperationException("Player not found for this account.");
+
+
+            return Ok(new AuthResponse(accessToken, refreshToken, player.Id));
         }
     }
 }

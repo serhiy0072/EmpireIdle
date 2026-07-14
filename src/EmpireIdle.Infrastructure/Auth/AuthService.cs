@@ -69,7 +69,7 @@ namespace EmpireIdle.Infrastructure.Auth
         /// <summary>
         /// Оновити пару токенів за refresh token. Старий токен ревокується (ротація).
         /// </summary>
-        public async Task<(string AccessToken, string RefreshToken)> RefreshAsync(string refreshToken)
+        public async Task<(string AccessToken, string RefreshToken, string Email)> RefreshAsync(string refreshToken)
         {
             var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken)
                 ?? throw new InvalidOperationException("Invalid refresh token.");
@@ -106,7 +106,7 @@ namespace EmpireIdle.Infrastructure.Auth
             await _context.SaveChangesAsync();
 
             var accessToken = GenerateAccessToken(user);
-            return (accessToken, newRefreshToken);
+            return (accessToken, newRefreshToken, user.Email!);
         }
 
         private async Task<string> CreateRefreshTokenAsync(string userId)

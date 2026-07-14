@@ -65,14 +65,14 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Апгрейдити будівлю в селі гравця.
+        /// Покращити будівлю в селі гравця.
         /// </summary>
-        [HttpPost("{playerId:guid}/buildings/upgrade")]
+        [HttpPost("{playerId:guid}/buildings/{buildingId:guid}/upgrade")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpgradeBuilding(Guid playerId, [FromBody] UpgradeBuildingRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpgradeBuilding(Guid playerId, Guid buildingId, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new UpgradeBuildingCommand(playerId, request.BuildingId), cancellationToken);
+            await _mediator.Send(new UpgradeBuildingCommand(playerId, buildingId), cancellationToken);
             return NoContent();
         }
 
