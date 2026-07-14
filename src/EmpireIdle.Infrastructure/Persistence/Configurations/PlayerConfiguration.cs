@@ -18,6 +18,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(p=>p.Email).IsRequired().HasMaxLength(200);
 
             builder.HasIndex(p => p.Email).IsUnique();
+            builder.HasIndex(p => p.ServerId);
         }
     }
 }

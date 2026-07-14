@@ -15,6 +15,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Назва села.</summary>
         public string Name { get; private set; } = null!;
 
+        /// <summary>Ідентифікатор ігрового сервера, на якому живе цей гравець.</summary>
+        public int ServerId { get; private set; }
+
         /// <summary>Ідентифікатор власника.</summary>
         public Guid PlayerId { get; private set; }
 
@@ -33,11 +36,12 @@ namespace EmpireIdle.Domain.Entities
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
         /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
-        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys) : base(id)
+        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int servetId = 1) : base(id)
         {
             PlayerId = playerId;
             Name = name;
             LastTickAt = DateTime.UtcNow;
+            ServerId = servetId;
 
             foreach(var key in resourceKeys)
                 _resources.Add(new VillageResource { VillageId=id, ResourceType=key, Amount = 0 }); ;
