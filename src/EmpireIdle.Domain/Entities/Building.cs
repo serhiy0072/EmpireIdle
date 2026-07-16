@@ -19,8 +19,14 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Час останнього збору ресурсів.</summary>
         public DateTime LastCollectedAt { get; private set; }
 
+        /// <summary>Час завершення поточного апгрейду; null — будівля не будується.</summary>
+        public DateTime? ConstructionCompletesAt { get; private set; }
+
         /// <summary>Накопичені в буфері ресурси, що очікують збору.</summary>
         public int StoredAmount { get; private set; }
+
+        /// <summary>Чи триває апгрейд будівлі (виробництво на цей час зупинене).</summary>
+        public bool IsUnderConstruction => ConstructionCompletesAt is not null;
 
         /// <summary>
         /// Дробовий залишок виробництва (0..1), що переноситься на наступний тік.
@@ -55,6 +61,9 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="elapsed">Час що минув від попереднього тіку.</param>
         public void AccumulateProduction(int baseProductionPerMinute, int baseStorage, double storageGrowth, TimeSpan elapsed)
         {
+            if (IsUnderConstruction)
+                return; // будівля на реконструкції - виробництво зупинене
+
             if (elapsed <= TimeSpan.Zero)
                 return;
 
@@ -88,6 +97,40 @@ namespace EmpireIdle.Domain.Entities
         public void Upgrade()
         {
             Level = Level.Next();
+        }
+
+        /// <summary>
+        /// Розпочати апгрейд: будівля переходить у стан будівництва до вказаного часу.
+        /// Рівень підніметься лише при завершенні (CompleteConstruction).
+        /// </summary>
+        public void BeginConstruction(TimeSpan duration)
+        {
+            if (IsUnderConstruction)
+                throw new InvalidOperationException($"Building {Id} is already under construction.");
+
+            ConstructionCompletesAt = DateTime.UtcNow + duration;
+        }
+
+        /// <summary>
+        /// Завершити будівництво: підняти рівень і вийти зі стану будівництва.
+        /// Викликається сканером, коли настав ConstructionCompletesAt.
+        /// </summary>
+        public void CompletedConstruction()
+        {
+            if (!IsUnderConstruction)
+                throw new InvalidOperationException($"Building {Id} is not already under construction.");
+            Level = Level.Next();
+            ConstructionCompletesAt = null;
+        }
+
+        /// <summary>Прискорити будівництво (speedup за gems або допомога союзника).</summary>
+        public void ReduceConstructionTime(TimeSpan reduction)
+        {
+
+            if (!IsUnderConstruction)
+                throw new InvalidOperationException($"Building {Id} is not already under construction.");
+
+            ConstructionCompletesAt -= reduction;
         }
     }
 }
