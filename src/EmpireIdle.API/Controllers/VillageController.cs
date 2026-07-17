@@ -44,7 +44,7 @@ namespace EmpireIdle.API.Controllers
                     var storageCap = buildingConfigMap.TryGetValue(b.Type, out var cfg)
                         ? b.GetStorageCap(cfg.BaseStorage, cfg.StorageGrowth)
                         : 0;
-                    return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt, b.StoredAmount, storageCap);
+                    return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt, b.StoredAmount, storageCap, b.ConstructionCompletesAt, b.IsUnderConstruction);
                 }).ToList(),
                 village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount)).ToList());
 
