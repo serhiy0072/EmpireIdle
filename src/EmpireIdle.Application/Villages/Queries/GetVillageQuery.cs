@@ -1,4 +1,5 @@
-﻿using EmpireIdle.Application.Interfaces;
+﻿
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using MediatR;
 

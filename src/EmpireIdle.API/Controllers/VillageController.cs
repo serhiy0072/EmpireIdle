@@ -87,5 +87,14 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new CollectBuildingCommand(playerId, buildingId), cancellationToken);
             return NoContent();
         }
+
+        //[HttpPost("{playerId:guid}/buildings/{buildingId:guid}/speedup")]
+        //[ProducesResponseType(StatusCodes.Status204NoContent)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        //public async Task<IActionResult> SpeedUpConstruction(Guid playerId, Guid buildingId, CancellationToken cancellationToken)
+        //{
+        //    await _mediator.Send(new SpeedUpConstructionCommand(playerId, buildingId), cancellationToken);
+        //    return NoContent();
+        //}
     }
 }

@@ -104,12 +104,12 @@ builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 builder.Services.AddScoped<ResourceTickJob>();
 
 const string FrontendCors = "FrontendCors";
-    builder.Services.AddCors(option =>
-        option.AddPolicy(FrontendCors, policy =>
-            policy.WithOrigins("http://localhost:5173")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials()
+builder.Services.AddCors(option =>
+    option.AddPolicy(FrontendCors, policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
 ));
 
 var app = builder.Build();
@@ -140,10 +140,8 @@ app.MapControllers();
 app.MapHub<GameHub>("/hubs/game");
 
 // Recurring job — тік ресурсів кожну хвилину
-RecurringJob.AddOrUpdate<ResourceTickJob>(
-    "resource-tick",
-    job => job.RunAsync(),
-    Cron.Minutely);
+RecurringJob.AddOrUpdate<ResourceTickJob>("resource-tick", job => job.RunAsync(), Cron.Minutely);
+RecurringJob.AddOrUpdate<ConstructionScanJob>("construction-scan", job => job.RunAsync(), Cron.Minutely);
 
 app.Run();
 

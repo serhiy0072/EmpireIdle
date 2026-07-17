@@ -35,15 +35,15 @@ namespace EmpireIdle.Domain.Entities
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
         /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
-        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int serverId = 1) : base(id)
+        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int servetId = 1) : base(id)
         {
             PlayerId = playerId;
             Name = name;
             LastTickAt = DateTime.UtcNow;
-            ServerId = serverId;
+            ServerId = servetId;
 
             foreach(var key in resourceKeys)
-                _resources.Add(new VillageResource { VillageId=id, ResourceType=key, Amount = 0 }); 
+                _resources.Add(new VillageResource { VillageId=id, ResourceType=key, Amount = 0 }); ;
         }
 
         protected Village() { } // Для EF Core
@@ -126,7 +126,7 @@ namespace EmpireIdle.Domain.Entities
             }
             resource.Amount += collected;
 
-            RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
+            RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
         }
 
         /// <summary>

@@ -103,7 +103,7 @@ namespace EmpireIdle.Domain.Entities
         /// Розпочати апгрейд: будівля переходить у стан будівництва до вказаного часу.
         /// Рівень підніметься лише при завершенні (CompleteConstruction).
         /// </summary>
-        public void BeginConstruction(TimeSpan duration)
+        public void BeginUpgrade(TimeSpan duration)
         {
             if (IsUnderConstruction)
                 throw new InvalidOperationException($"Building {Id} is already under construction.");
@@ -115,7 +115,7 @@ namespace EmpireIdle.Domain.Entities
         /// Завершити будівництво: підняти рівень і вийти зі стану будівництва.
         /// Викликається сканером, коли настав ConstructionCompletesAt.
         /// </summary>
-        public void CompletedConstruction()
+        public void CompleteConstruction()
         {
             if (!IsUnderConstruction)
                 throw new InvalidOperationException($"Building {Id} is not already under construction.");
