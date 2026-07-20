@@ -36,12 +36,12 @@ namespace EmpireIdle.Application.Villages.Commands
 
             var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
 
-            village.UpgradeBuilding(request.BuildingId, buildingConfigs);
+            village.BeginBuildingUpgrade(request.BuildingId, buildingConfigs);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Building {BuildingId} upgraded in village {VillageId} for player {PlayerId}",
+                "Building {BuildingId} upgrade started in village {VillageId} for player {PlayerId}",
                 request.BuildingId, village.Id, request.PlayerId);
         }
     }

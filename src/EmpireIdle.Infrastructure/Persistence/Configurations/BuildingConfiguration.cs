@@ -13,6 +13,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Building> builder)
         {
             builder.HasKey(b => b.Id);
+            builder.Property(b => b.Id).ValueGeneratedNever(); // ключ завжди ставить домен, не БД/EF
 
             builder.Property(b => b.Type).IsRequired().HasMaxLength(50);
             builder.Property(b => b.Level).HasConversion(l=> l.Value, v=>new Domain.ValueObjects.BuildingLevel(v)).HasColumnName("Level");

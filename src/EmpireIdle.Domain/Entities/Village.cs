@@ -21,7 +21,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Ідентифікатор власника.</summary>
         public Guid PlayerId { get; private set; }
 
-
         /// <summary>Час останнього нарахування ресурсів.</summary>
         public DateTime LastTickAt { get; private set; }
 
@@ -36,15 +35,15 @@ namespace EmpireIdle.Domain.Entities
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
         /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
-        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int servetId = 1) : base(id)
+        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int serverId = 1) : base(id)
         {
             PlayerId = playerId;
             Name = name;
             LastTickAt = DateTime.UtcNow;
-            ServerId = servetId;
+            ServerId = serverId;
 
             foreach(var key in resourceKeys)
-                _resources.Add(new VillageResource { VillageId=id, ResourceType=key, Amount = 0 }); ;
+                _resources.Add(new VillageResource { VillageId=id, ResourceType=key, Amount = 0 }); 
         }
 
         protected Village() { } // Для EF Core
@@ -70,13 +69,15 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Апгрейдити будівлю за ресурси згідно з конфігурацією.
+        /// Розпочати апгрейд будівлі: перевіряє ліміт будівельників і вартість,
+        /// списує ресурси та ставить будівлю в стан будівництва.
+        /// Рівень підніметься при завершенні (CompleteDueConstructions).
         /// </summary>
-        /// <param name="buildingId">Ідентифікатор будівлі для апгрейду.</param>
-        /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
-        /// <exception cref="InvalidOperationException">Якщо будівля не знайдена, конфіг відсутній, або недостатньо ресурсів.</exception>
-        public void UpgradeBuilding(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs)
+        public void BeginBuildingUpgrade(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs, int builderCount = 1)
         {
+            if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
+                throw new InvalidOperationException("All builders are busy");
+
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId) ??
                 throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
 
@@ -92,9 +93,11 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException($"Not enough {config.CostResource}: need {cost}, have {resource.Amount}.");
 
             resource.Amount -= cost;
-            building.Upgrade();
 
-            RaiseDomainEvent(new Events.BuildingUpgraded(Id, PlayerId, building.Id, building.Type, building.Level, config.CostResource, cost));
+            var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
+            building.BeginUpgrade(TimeSpan.FromMinutes(buildMinutes));
+
+            RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
         }
 
         /// <summary>
@@ -123,7 +126,26 @@ namespace EmpireIdle.Domain.Entities
             }
             resource.Amount += collected;
 
-            RaiseDomainEvent(new BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
+            RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
+        }
+
+        /// <summary>
+        /// Завершує всі будівництва, чий час настав. Викликається сканером.
+        /// Повертає кількість завершених (для логування).
+        /// </summary>
+        public int CompleteDueConstructions(DateTime utcNow)
+        {
+            var due = _buildings
+                .Where(b => b.IsUnderConstruction && b.ConstructionCompletesAt <= utcNow)
+                .ToList();
+
+            foreach (var building in due)
+            {
+                building.CompleteConstruction();
+                RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
+            }
+
+            return due.Count;
         }
 
         /// <summary>Додає нову будівлю до села.</summary>

@@ -55,5 +55,11 @@
 
         /// <summary>Коефіцієнт росту місткості з рівнем. Формула: BaseStorage * StorageGrowth^(рівень-1).</summary>
         public double StorageGrowth { get; set; }
+
+        /// <summary>Базовий час апгрейду на 1 рівні, хвилин.</summary>
+        public int BaseBuildMinutes { get; set; }
+
+        /// <summary>Коефіцієнт росту часу апгрейду з рівнем: час = BaseBuildMinutes × BuildTimeGrowth^(рівень−1).</summary>
+        public double BuildTimeGrowth { get; set; }
     }
 }

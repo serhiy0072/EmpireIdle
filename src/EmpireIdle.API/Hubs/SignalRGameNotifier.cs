@@ -19,12 +19,17 @@ namespace EmpireIdle.API.Hubs
         public async Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected, int newVillageAmount, CancellationToken cancellationToken = default)
         {
             await _hubContext.Clients.Group(playerId.ToString())
-                .SendAsync("BuildingCollected", new {buildingId, resourceType, collected, newVillageAmount }, cancellationToken);
+                .SendAsync("BuildingCollected", new { buildingId, resourceType, collected, newVillageAmount }, cancellationToken);
+        }
+
+        public async Task NotifyUpgradeStartedAsync(Guid playerId, Guid buildingId, DateTime completesAt, CancellationToken cancellationToken = default)
+        {
+            await _hubContext.Clients.Group(playerId.ToString()).SendAsync("UpgradeStarted", new {buildingId, completesAt}, cancellationToken);
         }
                          
-        public async Task NotifyBuildingUpgradedAsync(Guid playerId, Guid buildingId, int newLevel, CancellationToken cancellationToken = default)
+        public async Task NotifyUpgradeCompletedAsync(Guid playerId, Guid buildingId, int newLevel, CancellationToken cancellationToken = default)
         {
-            await _hubContext.Clients.Group(playerId.ToString()).SendAsync("BuildingUpgraded", new { buildingId, newLevel }, cancellationToken);
+            await _hubContext.Clients.Group(playerId.ToString()).SendAsync("UpgradeCompleted", new { buildingId, newLevel }, cancellationToken);
         }
     }
 }

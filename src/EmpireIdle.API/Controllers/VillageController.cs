@@ -44,7 +44,7 @@ namespace EmpireIdle.API.Controllers
                     var storageCap = buildingConfigMap.TryGetValue(b.Type, out var cfg)
                         ? b.GetStorageCap(cfg.BaseStorage, cfg.StorageGrowth)
                         : 0;
-                    return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt, b.StoredAmount, storageCap);
+                    return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt, b.StoredAmount, storageCap, b.ConstructionCompletesAt, b.IsUnderConstruction);
                 }).ToList(),
                 village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount)).ToList());
 
@@ -87,5 +87,14 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new CollectBuildingCommand(playerId, buildingId), cancellationToken);
             return NoContent();
         }
+
+        //[HttpPost("{playerId:guid}/buildings/{buildingId:guid}/speedup")]
+        //[ProducesResponseType(StatusCodes.Status204NoContent)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        //public async Task<IActionResult> SpeedUpConstruction(Guid playerId, Guid buildingId, CancellationToken cancellationToken)
+        //{
+        //    await _mediator.Send(new SpeedUpConstructionCommand(playerId, buildingId), cancellationToken);
+        //    return NoContent();
+        //}
     }
 }

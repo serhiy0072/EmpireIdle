@@ -10,10 +10,8 @@ namespace EmpireIdle.Application.Villages.EventHandlers
     {
         private readonly IGameNotifier _notifier;
 
-        public BuildingCollectedNotificationHandler(IGameNotifier notifier)
-        {
-            _notifier = notifier;
-        }
+        public BuildingCollectedNotificationHandler(IGameNotifier notifier) => _notifier = notifier;
+        
 
         public async Task Handle(DomainEventNotification<BuildingCollected> notification, CancellationToken cancellationToken)
         {
