@@ -35,27 +35,9 @@ namespace EmpireIdle.Application.Villages.Commands
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            var config = _gameConfig.Buildings.FirstOrDefault(b => b.Key == request.BuildingType)
-                ?? throw new InvalidOperationException($"Unknown building type '{request.BuildingType}'.");
+            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
 
-            // Перша будівля кожного типу безкоштовна, наступні коштують BaseCost
-            var existingCount = village.Buildings.Count(b => b.Type == request.BuildingType);
-            if (existingCount > 0)
-            {
-                var cost = config.BaseCost;
-                var resource = village.Resources.FirstOrDefault(r => r.ResourceType == config.CostResource)
-                    ?? throw new InvalidOperationException($"Resource '{config.CostResource}' not found in village.");
-
-                if (resource.Amount < cost)
-                    throw new InvalidOperationException(
-                        $"Not enough {config.CostResource}: need {cost}, have {resource.Amount}.");
-
-                resource.Amount -= cost;
-            }
-
-            var buildingId = Guid.NewGuid();
-            var building = new Building(buildingId, village.Id, request.BuildingType);
-            village.AddBuilding(building);
+            var buildingId = village.AddBuilding(request.BuildingType, buildingConfigs);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

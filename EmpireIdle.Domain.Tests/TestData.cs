@@ -1,17 +1,64 @@
-﻿using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Domain.Tests;
 
 /// <summary>
 /// Фабрики для створення доменних об'єктів у тестах.
-/// Тримає рутину конструювання в одному місці, щоб тести лишались читабельними.
 /// </summary>
 internal static class TestData
 {
-    /// <summary>Стандартний набір ресурсів для тестового села.</summary>
-    public static readonly string[] DefaultResources = { "gold", "food", "wood" };
+    /// <summary>Стандартний набір ресурсів тестового села.</summary>
+    public static readonly string[] DefaultResources = { "gold", "food", "wood", "iron" };
 
-    /// <summary>Створює порожнє село зі стандартними ресурсами (по нулю кожного).</summary>
+    /// <summary>Стандартний набір зон тестового села.</summary>
+    public static readonly (string Type, int Slots)[] DefaultZones =
+        { ("plain", 4), ("forest", 3), ("mountain", 3), ("water", 2) };
+
+    /// <summary>Мінімальний конфіг ферми для тестів (зона plain, без порога Ратуші).</summary>
+    public static Dictionary<string, BuildingConfig> FarmConfigs(int baseCostFood = 100) => new()
+    {
+        ["farm"] = new BuildingConfig
+        {
+            Key = "farm",
+            ProducesResource = "food",
+            BaseProductionPerMinute = 10,
+            Cost = new List<ResourceCost> { new() { Resource = "food", Amount = baseCostFood } },
+            BaseStorage = 60,
+            StorageGrowth = 1.3,
+            BaseBuildMinutes = 5,
+            BuildTimeGrowth = 1.5,
+            AllowedZone = "plain",
+            RequiresTownHallLevel = 0
+        }
+    };
+
+    /// <summary>Створює пороже село зі стандартними ресурсами й зонами.</summary>
     public static Village CreateVillage(Guid? playerId = null)
-        => new(Guid.NewGuid(), playerId ?? Guid.NewGuid(), "Test Village", DefaultResources);
+        => new(Guid.NewGuid(), playerId ?? Guid.NewGuid(), "Test Village", DefaultResources, DefaultZones);
+
+    /// <summary>Створює село зі стандартними ресурсами й зонами, ініціалізованими з вказаною кількістю ресурсів.</summary>
+    public static Village CreateVillageWithResources(int resourceAmount = 0, Guid? playerId = null)
+    {
+        var village = CreateVillage(playerId);
+
+        // Manually initialize resources using reflection
+        var resourcesField = village.GetType().GetField("_resources",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        if (resourcesField?.GetValue(village) is System.Collections.Generic.List<VillageResource> resourcesList)
+        {
+            foreach (var resourceType in DefaultResources)
+            {
+                resourcesList.Add(new VillageResource 
+                { 
+                    VillageId = village.Id, 
+                    ResourceType = resourceType, 
+                    Amount = resourceAmount 
+                });
+            }
+        }
+
+        return village;
+    }
 }
