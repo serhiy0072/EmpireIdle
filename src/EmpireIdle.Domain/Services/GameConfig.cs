@@ -14,6 +14,9 @@
 
         /// <summary>Список типів будівель.</summary>
         public List<BuildingConfig> Buildings { get; set; } = new();
+
+        /// <summary>Список типів зон для будівель.</summary>
+        public List<ZoneConfig> Zones { get; set; } = new();
     }
 
     /// <summary>Конфігурація одного типу ресурсу.</summary>
@@ -44,11 +47,9 @@
         /// <summary>Базова кількість ресурсу за хвилину на 1 рівні.</summary>
         public int BaseProductionPerMinute { get; set; }
 
-        /// <summary>Ресурс який потрібен для апгрейду (наприклад "gold").</summary>
-        public string CostResource { get; set; } = null!;
-
-        /// <summary>Базова вартість апгрейду на 1 рівні. Формула: BaseCost * поточний рівень.</summary>
-        public int BaseCost { get; set; }
+        /// <summary>Вартість апгрейду на 1 рівні — список пар «ресурс → кількість».
+        /// Реальна вартість рівня = кожен Amount × поточний рівень.</summary>
+        public List<ResourceCost> Cost { get; set; } = new();
 
         /// <summary>Базова місткість буфера будівлі на 1 рівні.</summary>
         public int BaseStorage { get; set; }
@@ -61,5 +62,27 @@
 
         /// <summary>Коефіцієнт росту часу апгрейду з рівнем: час = BaseBuildMinutes × BuildTimeGrowth^(рівень−1).</summary>
         public double BuildTimeGrowth { get; set; }
+        /// <summary>Зона, у якій дозволено будувати; null — поза зонами (Ратуша, Стіни).</summary>
+        public string? AllowedZone { get; set; }
+
+        /// <summary>Мінімальний рівень Ратуші для розблокування будівлі.</summary>
+        public int RequiresTownHallLevel { get; set; }
+    }
+
+    /// <summary>Одна складова вартості — скільки якого ресурсу.</summary>
+    public class ResourceCost
+    {
+        public string Resource { get; set; } = null!;
+        public int Amount { get; set; }
+    }
+
+    /// <summary>Конфігурація типу зони села.</summary>
+    public class ZoneConfig
+    {
+        /// <summary>Тип зони (plain, forest, mountain, water).</summary>
+        public string Type { get; set; } = null!;
+
+        /// <summary>Кількість слотів під будівлі у цій зоні.</summary>
+        public int Slots { get; set; }
     }
 }

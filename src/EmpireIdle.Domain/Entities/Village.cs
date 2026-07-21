@@ -84,15 +84,23 @@ namespace EmpireIdle.Domain.Entities
             if (!buildingConfigs.TryGetValue(building.Type, out var config))
                 throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
 
-            var cost = config.BaseCost * building.Level.Value;
+            // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
+            foreach (var line in config.Cost)
+            {
+                var need = line.Amount * building.Level.Value;
+                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
+                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
 
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.CostResource)
-                ?? throw new InvalidOperationException($"Resource '{config.CostResource}' not found in village {Id}.");
+                if (res.Amount < need)
+                    throw new InvalidOperationException($"Not enough {line.Resource}: need {need}, have {res.Amount}.");
+            }
 
-            if (resource.Amount < cost)
-                throw new InvalidOperationException($"Not enough {config.CostResource}: need {cost}, have {resource.Amount}.");
-
-            resource.Amount -= cost;
+            // Усе перевірено — тепер списуємо (жодного часткового списання при нестачі)
+            foreach (var line in config.Cost)
+            {
+                var need = line.Amount * building.Level.Value;
+                _resources.First(r => r.ResourceType == line.Resource).Amount -= need;
+            }
 
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
             building.BeginUpgrade(TimeSpan.FromMinutes(buildMinutes));
@@ -148,7 +156,8 @@ namespace EmpireIdle.Domain.Entities
             return due.Count;
         }
 
-        /// <summary>Додає нову будівлю до села.</summary>
+        /// <summary>Додає будівлю, перевіривши всі інваріанти та списавши вартість.</summary>
+        /// <remarks>Перша будівля кожного типу безкоштовна.</remarks>
         public void AddBuilding(Building building)
         {
             _buildings.Add(building);

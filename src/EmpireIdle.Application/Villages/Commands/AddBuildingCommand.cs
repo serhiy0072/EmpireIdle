@@ -42,15 +42,20 @@ namespace EmpireIdle.Application.Villages.Commands
             var existingCount = village.Buildings.Count(b => b.Type == request.BuildingType);
             if (existingCount > 0)
             {
-                var cost = config.BaseCost;
-                var resource = village.Resources.FirstOrDefault(r => r.ResourceType == config.CostResource)
-                    ?? throw new InvalidOperationException($"Resource '{config.CostResource}' not found in village.");
+                // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
+                foreach (var line in config.Cost)
+                {
+                    var res = village.Resources.FirstOrDefault(r => r.ResourceType == line.Resource)
+                        ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village.");
 
-                if (resource.Amount < cost)
-                    throw new InvalidOperationException(
-                        $"Not enough {config.CostResource}: need {cost}, have {resource.Amount}.");
+                    if (res.Amount < line.Amount)
+                        throw new InvalidOperationException(
+                            $"Not enough {line.Resource}: need {line.Amount}, have {res.Amount}.");
+                }
 
-                resource.Amount -= cost;
+                // Усе перевірено — списуємо (все або нічого)
+                foreach (var line in config.Cost)
+                    village.Resources.First(r => r.ResourceType == line.Resource).Amount -= line.Amount;
             }
 
             var buildingId = Guid.NewGuid();
