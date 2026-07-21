@@ -47,7 +47,10 @@ namespace EmpireIdle.Domain.Entities
             LastTickAt = DateTime.UtcNow;
             ServerId = serverId;
 
-            foreach(var(type, slots) in zones)
+            foreach (var key in resourceKeys)
+                _resources.Add(new VillageResource { VillageId = id, ResourceType = key, Amount = 0 });
+
+            foreach (var(type, slots) in zones)
                 _zones.Add(new VillageZone(Guid.NewGuid(), id, type, slots));
         }
 
