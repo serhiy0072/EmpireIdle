@@ -16,6 +16,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(v => v.Name).IsRequired().HasMaxLength(100);
             builder.HasMany(v => v.Resources).WithOne().HasForeignKey("VillageId").IsRequired();
             builder.HasMany(v => v.Buildings).WithOne().HasForeignKey(b => b.VillageId);
+            builder.HasMany(v => v.Zones).WithOne().HasForeignKey(b => b.VillageId).OnDelete(DeleteBehavior.Cascade);
+
+            builder.Navigation(v => v.Zones).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             builder.Metadata.FindNavigation(nameof(Village.Resources))!.SetPropertyAccessMode(PropertyAccessMode.Field);
             builder.Metadata.FindNavigation(nameof(Village.Buildings))!.SetPropertyAccessMode(PropertyAccessMode.Field);

@@ -43,6 +43,32 @@
     ],
     "Buildings": [
       {
+        "Key": "townhall",
+        "DisplayName": "Town Hall",
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 200
+          },
+          {
+            "Resource": "wood",
+            "Amount": 150
+          },
+          {
+            "Resource": "food",
+            "Amount": 100
+          }
+        ],
+        "BaseStorage": 0,
+        "StorageGrowth": 1,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.6,
+        "AllowedZone": null,
+        "RequiresTownHallLevel": 0
+      },
+      {
         "Key": "goldmine",
         "DisplayName": "Goldmine",
         "ProducesResource": "gold",
@@ -59,9 +85,8 @@
         ],
         "BaseStorage": 60,
         "StorageGrowth": 1.3,
-        "BaseCost": 100,
         "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": "1.5",
+        "BuildTimeGrowth": 1.5,
         "AllowedZone": "mountain",
         "RequiresTownHallLevel": 0
       },
@@ -82,9 +107,8 @@
         ],
         "BaseStorage": 60,
         "StorageGrowth": 1.3,
-        "BaseCost": 100,
         "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": "1.5",
+        "BuildTimeGrowth": 1.5,
         "AllowedZone": "mountain",
         "RequiresTownHallLevel": 0
       },
@@ -105,7 +129,6 @@
         ],
         "BaseStorage": 60,
         "StorageGrowth": 1.3,
-        "BaseCost": 100,
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "plain",
@@ -128,7 +151,6 @@
         ],
         "BaseStorage": 80,
         "StorageGrowth": 1.35,
-        "BaseCost": 120,
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "forest",
@@ -151,7 +173,6 @@
         ],
         "BaseStorage": 80,
         "StorageGrowth": 1.35,
-        "BaseCost": 120,
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "water",

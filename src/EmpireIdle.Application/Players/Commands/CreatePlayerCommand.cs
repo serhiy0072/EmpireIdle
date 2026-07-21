@@ -45,8 +45,15 @@ namespace EmpireIdle.Application.Players.Commands
             var playerId = Guid.NewGuid();
 
             var player = new Player(playerId, request.UserName, email);
-            var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village", _gameConfig.Resources.Select(r => r.Key));
             var wallet = new PlayerWallet(Guid.NewGuid(), playerId);
+            var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village",
+                _gameConfig.Resources.Select(r => r.Key),
+                _gameConfig.Zones.Select(z => (z.Type, z.Slots)));
+
+            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
+            village.AddBuilding("townhall", buildingConfigs);
+            village.AddBuilding("farm", buildingConfigs);
+            // barracks додамо, коли з'явиться у ростері (фаза юнітів)
 
             await _playerRepository.AddAsync(player, cancellationToken);
             await _villageRepository.AddAsync(village, cancellationToken);

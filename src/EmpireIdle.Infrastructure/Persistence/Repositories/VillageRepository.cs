@@ -33,6 +33,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.Villages
             .Include(v => v.Buildings)
             .Include(v => v.Resources)
+            .Include(v => v.Zones)
             .AsSplitQuery()
             .FirstOrDefaultAsync(v => v.PlayerId == playerId, cancellationToken);
 
@@ -41,6 +42,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.Villages
             .Include(v => v.Buildings)
             .Include(v => v.Resources)
+            .Include(v => v.Zones)
             .AsNoTracking()
             .AsSplitQuery()
             .FirstOrDefaultAsync(v => v.PlayerId == playerId, cancellationToken);
@@ -50,7 +52,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.Villages
             .Include(v => v.Buildings)
             .Include(v => v.Resources)
-            .AsSplitQuery() 
+            .Include(v => v.Zones)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>

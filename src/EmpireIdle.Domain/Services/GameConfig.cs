@@ -42,7 +42,7 @@
         public string DisplayName { get; set; } = null!;
 
         /// <summary>Який ресурс виробляє ця будівля.</summary>
-        public string ProducesResource { get; set; } = null!;
+        public string? ProducesResource { get; set; } = null!;
 
         /// <summary>Базова кількість ресурсу за хвилину на 1 рівні.</summary>
         public int BaseProductionPerMinute { get; set; }
@@ -67,6 +67,7 @@
 
         /// <summary>Мінімальний рівень Ратуші для розблокування будівлі.</summary>
         public int RequiresTownHallLevel { get; set; }
+
     }
 
     /// <summary>Одна складова вартості — скільки якого ресурсу.</summary>

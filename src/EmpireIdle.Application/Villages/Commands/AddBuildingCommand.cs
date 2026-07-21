@@ -35,32 +35,9 @@ namespace EmpireIdle.Application.Villages.Commands
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            var config = _gameConfig.Buildings.FirstOrDefault(b => b.Key == request.BuildingType)
-                ?? throw new InvalidOperationException($"Unknown building type '{request.BuildingType}'.");
+            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
 
-            // Перша будівля кожного типу безкоштовна, наступні коштують BaseCost
-            var existingCount = village.Buildings.Count(b => b.Type == request.BuildingType);
-            if (existingCount > 0)
-            {
-                // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
-                foreach (var line in config.Cost)
-                {
-                    var res = village.Resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                        ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village.");
-
-                    if (res.Amount < line.Amount)
-                        throw new InvalidOperationException(
-                            $"Not enough {line.Resource}: need {line.Amount}, have {res.Amount}.");
-                }
-
-                // Усе перевірено — списуємо (все або нічого)
-                foreach (var line in config.Cost)
-                    village.Resources.First(r => r.ResourceType == line.Resource).Amount -= line.Amount;
-            }
-
-            var buildingId = Guid.NewGuid();
-            var building = new Building(buildingId, village.Id, request.BuildingType);
-            village.AddBuilding(building);
+            var buildingId = village.AddBuilding(request.BuildingType, buildingConfigs);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
