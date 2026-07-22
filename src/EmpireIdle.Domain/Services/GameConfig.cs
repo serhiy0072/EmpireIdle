@@ -68,6 +68,9 @@
         /// <summary>Мінімальний рівень Ратуші для розблокування будівлі.</summary>
         public int RequiresTownHallLevel { get; set; }
 
+        /// <summary>Скільки населення додає кожен рівень цієї будівлі (0 — не житлова).</summary>
+        public int PopulationPerLevel { get; set; }
+
     }
 
     /// <summary>Одна складова вартості — скільки якого ресурсу.</summary>

@@ -22,6 +22,11 @@
         "DisplayName": "Iron",
         "Icon": "iron.svg"
       }
+      {
+        "Key": "population",
+        "DisplayName": "Population",
+        "Icon": "population.svg"
+      }
     ],
     "Zones": [
       {
@@ -68,6 +73,29 @@
         "AllowedZone": null,
         "RequiresTownHallLevel": 0
       },
+      {
+        "Key": "house",
+        "DisplayName": "House",
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 200
+          },
+          {
+            "Resource": "wood",
+            "Amount": 50
+          }
+        ],
+        "BaseStorage": 0,
+        "StorageGrowth": 1,
+        "BaseBuildMinutes": 3,
+        "BuildTimeGrowth": 1.4,
+        "AllowedZone": "plain",
+        "RequiresTownHallLevel": 0,
+        "PopulationPerLevel": 5
+      }
       {
         "Key": "goldmine",
         "DisplayName": "Goldmine",
@@ -178,6 +206,31 @@
         "AllowedZone": "water",
         "RequiresTownHallLevel": 0
       }
-    ]
+    ],
+    "Units": [
+      {
+        "Key": "infantry",
+        "DisplayName": "Infantry",
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 10
+          },
+          {
+            "Resource": "food",
+            "Amount": 5
+          },
+          {
+            "Resource": "population",
+            "Amount": 1
+          }
+        ],
+        "BaseTrainMinutes": 2,
+        "Stats": {
+          "Attack": 8,
+          "Defense": 12,
+          "Speed": 4
+        }
+      }
   }
 }

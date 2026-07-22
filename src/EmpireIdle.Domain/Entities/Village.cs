@@ -154,7 +154,7 @@ namespace EmpireIdle.Domain.Entities
         /// Завершує всі будівництва, чий час настав. Викликається сканером.
         /// Повертає кількість завершених (для логування).
         /// </summary>
-        public int CompleteDueConstructions(DateTime utcNow)
+        public int CompleteDueConstructions(DateTime utcNow, Dictionary<string, BuildingConfig> buildingConfigs)
         {
             var due = _buildings
                 .Where(b => b.IsUnderConstruction && b.ConstructionCompletesAt <= utcNow)
@@ -163,6 +163,10 @@ namespace EmpireIdle.Domain.Entities
             foreach (var building in due)
             {
                 building.CompleteConstruction();
+
+                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.PopulationPerLevel > 0)
+                    AddPopulation(config.PopulationPerLevel); //апгрейд житлової будівлі додає населення
+
                 RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
             }
 
@@ -215,9 +219,24 @@ namespace EmpireIdle.Domain.Entities
 
             var building = new Building(Guid.NewGuid(), Id, buildingType);
             _buildings.Add(building);
+
+            if(config.PopulationPerLevel >0)
+                AddPopulation(config.PopulationPerLevel); //будівля 1-го рівня одразу дає населення
+
             return building.Id;
         }
 
+        /// <summary>Додає населення (від будівництва/апгрейду житлової будівлі).</summary>
+        private void AddPopulation(int amount)
+        {
+            var population = _resources.FirstOrDefault(r => r.ResourceType == "population");
+            if(population is null)
+            {
+                population = new VillageResource { VillageId = Id, ResourceType = "population", Amount = 0 };
+                _resources.Add(population);
+            }
+            population.Amount += amount;
+        }
     }
 }
 
