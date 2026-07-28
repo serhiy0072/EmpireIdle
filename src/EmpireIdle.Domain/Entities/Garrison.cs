@@ -33,7 +33,7 @@ namespace EmpireIdle.Domain.Entities
         public void TrainUnits(string unitType, int count, TimeSpan trainDuration)
         {
             if(count < 1 || count > 5)
-                throw new ArgumentOutOfRangeException(nameof(count), "Count must be between 1 and 5.");
+                throw new InvalidOperationException("Training batch size must be between 1 and 5.");
 
             if (_trainingOrders.Any())
                 throw new InvalidOperationException("Barracks are already training a batch.");
