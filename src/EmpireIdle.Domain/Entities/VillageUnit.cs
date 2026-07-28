@@ -3,13 +3,13 @@
     /// <summary>Кількість юнітів певного типу в гарнізоні села.</summary>
     public class VillageUnit : Entity
     {
-        public Guid VillageId { get; private set; }
+        public Guid GarrisonId { get; private set; }
         public string UnitType { get; private set; } = null!;
         public int Count { get; private set; }
 
-        public VillageUnit(Guid id, Guid villageId, string unitType) : base(id)
+        public VillageUnit(Guid id, Guid garrisonId, string unitType) : base(id)
         {
-            VillageId = villageId;
+            GarrisonId = garrisonId;
             UnitType = unitType;
             Count = 0;
         }

@@ -39,7 +39,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException("Barracks are already training a batch.");
 
             _trainingOrders.Add(new UnitTrainingOrder(
-                Guid.NewGuid(), VillageId, unitType, count, DateTime.UtcNow.Add(trainDuration)));
+                Guid.NewGuid(), Id, unitType, count, DateTime.UtcNow.Add(trainDuration)));
         }
 
         /// <summary>Завершує дозрілі замовлення: юніти йдуть у гарнізон.</summary>
@@ -52,7 +52,7 @@ namespace EmpireIdle.Domain.Entities
                 var unit = _units.FirstOrDefault(u => u.UnitType == order.UnitType);
                 if (unit is null)
                 {
-                    unit = new VillageUnit(Guid.NewGuid(), VillageId, order.UnitType);
+                    unit = new VillageUnit(Guid.NewGuid(), Id, order.UnitType);
                     _units.Add(unit);
                 }
                 unit.Add(order.Count);

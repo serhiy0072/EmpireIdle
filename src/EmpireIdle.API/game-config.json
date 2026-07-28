@@ -21,7 +21,7 @@
         "Key": "iron",
         "DisplayName": "Iron",
         "Icon": "iron.svg"
-      }
+      },
       {
         "Key": "population",
         "DisplayName": "Population",
@@ -95,7 +95,7 @@
         "AllowedZone": "plain",
         "RequiresTownHallLevel": 0,
         "PopulationPerLevel": 5
-      }
+      },
       {
         "Key": "goldmine",
         "DisplayName": "Goldmine",
@@ -232,5 +232,6 @@
           "Speed": 4
         }
       }
+    ]
   }
 }

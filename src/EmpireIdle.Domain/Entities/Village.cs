@@ -164,6 +164,28 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
+        /// Списує вартість із ресурсів села: спершу перевіряє всі позиції,
+        /// потім списує (все або нічого — без часткового списання).
+        /// </summary>
+        /// <param name="cost">Позиції вартості (ресурс → кількість за одиницю).</param>
+        /// <param name="multiplier">Множник (кількість юнітів, рівень будівлі тощо).</param>
+        public void ChargeCost(List<ResourceCost> cost, int multiplier = 1)
+        {
+            foreach (var line in cost)
+            {
+                var need = line.Amount * multiplier;
+                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
+                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
+
+                if (res.Amount < need)
+                    throw new InvalidOperationException($"Not enough {line.Resource}: need {need}, have {res.Amount}.");
+            }
+
+            foreach (var line in cost)
+                _resources.First(r => r.ResourceType == line.Resource).Amount -= line.Amount * multiplier;
+        }
+
+        /// <summary>
         /// Розпочати апгрейд будівлі: перевіряє ліміт будівельників і вартість,
         /// списує ресурси та ставить будівлю в стан будівництва.
         /// Рівень підніметься при завершенні (CompleteDueConstructions).

@@ -1,0 +1,17 @@
+﻿using EmpireIdle.Domain.Entities;
+
+namespace EmpireIdle.Application.Interfaces
+{
+    /// <summary>Репозиторій гарнізонів.</summary>
+    public interface IGarrisonRepository
+    {
+        /// <summary>Знайти гарнізон за ідентифікатором села.</summary>
+        Task<Garrison?> GetByVillageIdAsync(Guid villageId, CancellationToken cancellationToken);
+
+        /// <summary>Усі гарнізони (для сканера тренувань).</summary>
+        Task<List<Garrison>> GetAllAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Додати новий гарнізон.</summary>
+        Task AddAsync(Garrison garrison, CancellationToken cancellationToken = default);
+    }
+}

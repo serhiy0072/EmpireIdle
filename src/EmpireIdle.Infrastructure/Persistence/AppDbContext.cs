@@ -19,6 +19,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<VillageResource> VillageResources => Set<VillageResource>();
         public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public DbSet<Garrison> Garrisons => Set<Garrison>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

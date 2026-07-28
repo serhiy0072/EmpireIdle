@@ -17,6 +17,9 @@
 
         /// <summary>Список типів зон для будівель.</summary>
         public List<ZoneConfig> Zones { get; set; } = new();
+
+        /// <summary>Усі типи юнітів.</summary>
+        public List<UnitConfig> Units { get; set; } = new();
     }
 
     /// <summary>Конфігурація одного типу ресурсу.</summary>
@@ -88,5 +91,27 @@
 
         /// <summary>Кількість слотів під будівлі у цій зоні.</summary>
         public int Slots { get; set; }
+    }
+
+    /// <summary>Конфігурація одного типу юніта.</summary>
+    public class UnitConfig
+    {
+        /// <summary>Унікальний ключ юніта (наприклад "infantry").</summary>
+        public string Key { get; set; } = null!;
+
+        /// <summary>Відображувана назва.</summary>
+        public string DisplayName { get; set; } = null!;
+
+        /// <summary>Вартість тренування одного юніта.</summary>
+        public List<ResourceCost> Cost { get; set; } = new();
+
+        /// <summary>Час тренування одного юніта, хвилин (партія = ×кількість).</summary>
+        public int BaseTrainMinutes { get; set; }
+
+        /// <summary>
+        /// Бойові стати: ключ → значення (Attack, Defense, Speed…).
+        /// Config-driven: додав стат у JSON — код не змінюється.
+        /// </summary>
+        public Dictionary<string, double> Stats { get; set; } = new();
     }
 }
