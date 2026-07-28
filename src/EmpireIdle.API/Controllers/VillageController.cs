@@ -1,4 +1,5 @@
 ﻿using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
 using EmpireIdle.Domain.Services;
@@ -96,5 +97,17 @@ namespace EmpireIdle.API.Controllers
         //    await _mediator.Send(new SpeedUpConstructionCommand(playerId, buildingId), cancellationToken);
         //    return NoContent();
         //}
+
+        /// <summary>
+        /// Замовити тренування партії юнітів (1–5).
+        /// </summary>
+        [HttpPost("{playerId:guid}/units/train")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> TrainUnits(Guid playerId, [FromBody] TrainUnitsRequest request, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new TrainUnitsCommand(playerId, request.UnitType, request.Count), cancellationToken);
+            return NoContent();
+        }
     }
 }
