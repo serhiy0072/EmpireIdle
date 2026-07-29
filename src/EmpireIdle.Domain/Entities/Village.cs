@@ -79,46 +79,6 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Розпочати апгрейд будівлі: перевіряє ліміт будівельників і вартість,
-        /// списує ресурси та ставить будівлю в стан будівництва.
-        /// Рівень підніметься при завершенні (CompleteDueConstructions).
-        /// </summary>
-        public void BeginBuildingUpgrade(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs, int builderCount = 1)
-        {
-            if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
-                throw new InvalidOperationException("All builders are busy");
-
-            var building = _buildings.FirstOrDefault(b => b.Id == buildingId) ??
-                throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
-
-            if (!buildingConfigs.TryGetValue(building.Type, out var config))
-                throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
-
-            // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
-            foreach (var line in config.Cost)
-            {
-                var need = line.Amount * building.Level.Value;
-                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
-
-                if (res.Amount < need)
-                    throw new InvalidOperationException($"Not enough {line.Resource}: need {need}, have {res.Amount}.");
-            }
-
-            // Усе перевірено — тепер списуємо (жодного часткового списання при нестачі)
-            foreach (var line in config.Cost)
-            {
-                var need = line.Amount * building.Level.Value;
-                _resources.First(r => r.ResourceType == line.Resource).Amount -= need;
-            }
-
-            var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
-            building.BeginUpgrade(TimeSpan.FromMinutes(buildMinutes));
-
-            RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
-        }
-
-        /// <summary>
         /// Збирає накопичене з буфера будівлі у ресурси села.
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
@@ -148,25 +108,6 @@ namespace EmpireIdle.Domain.Entities
             resource.Amount += collected;
 
             RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
-        }
-
-        /// <summary>
-        /// Завершує всі будівництва, чий час настав. Викликається сканером.
-        /// Повертає кількість завершених (для логування).
-        /// </summary>
-        public int CompleteDueConstructions(DateTime utcNow)
-        {
-            var due = _buildings
-                .Where(b => b.IsUnderConstruction && b.ConstructionCompletesAt <= utcNow)
-                .ToList();
-
-            foreach (var building in due)
-            {
-                building.CompleteConstruction();
-                RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
-            }
-
-            return due.Count;
         }
 
         /// <summary>
@@ -215,9 +156,109 @@ namespace EmpireIdle.Domain.Entities
 
             var building = new Building(Guid.NewGuid(), Id, buildingType);
             _buildings.Add(building);
+
+            if (config.PopulationPerLevel > 0)
+                AddPopulation(config.PopulationPerLevel); //будівля 1-го рівня одразу дає населення
+
             return building.Id;
         }
 
+        /// <summary>
+        /// Списує вартість із ресурсів села: спершу перевіряє всі позиції,
+        /// потім списує (все або нічого — без часткового списання).
+        /// </summary>
+        /// <param name="cost">Позиції вартості (ресурс → кількість за одиницю).</param>
+        /// <param name="multiplier">Множник (кількість юнітів, рівень будівлі тощо).</param>
+        public void ChargeCost(List<ResourceCost> cost, int multiplier = 1)
+        {
+            foreach (var line in cost)
+            {
+                var need = line.Amount * multiplier;
+                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
+                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
+
+                if (res.Amount < need)
+                    throw new InvalidOperationException($"Not enough {line.Resource}: need {need}, have {res.Amount}.");
+            }
+
+            foreach (var line in cost)
+                _resources.First(r => r.ResourceType == line.Resource).Amount -= line.Amount * multiplier;
+        }
+
+        /// <summary>
+        /// Розпочати апгрейд будівлі: перевіряє ліміт будівельників і вартість,
+        /// списує ресурси та ставить будівлю в стан будівництва.
+        /// Рівень підніметься при завершенні (CompleteDueConstructions).
+        /// </summary>
+        public void BeginBuildingUpgrade(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs, int builderCount = 1)
+        {
+            if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
+                throw new InvalidOperationException("All builders are busy");
+
+            var building = _buildings.FirstOrDefault(b => b.Id == buildingId) ??
+                throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
+
+            if (!buildingConfigs.TryGetValue(building.Type, out var config))
+                throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
+
+            // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
+            foreach (var line in config.Cost)
+            {
+                var need = line.Amount * building.Level.Value;
+                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
+                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
+
+                if (res.Amount < need)
+                    throw new InvalidOperationException($"Not enough {line.Resource}: need {need}, have {res.Amount}.");
+            }
+
+            // Усе перевірено — тепер списуємо (жодного часткового списання при нестачі)
+            foreach (var line in config.Cost)
+            {
+                var need = line.Amount * building.Level.Value;
+                _resources.First(r => r.ResourceType == line.Resource).Amount -= need;
+            }
+
+            var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
+            building.BeginUpgrade(TimeSpan.FromMinutes(buildMinutes));
+
+            RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
+        }
+
+        /// <summary>
+        /// Завершує всі будівництва, чий час настав. Викликається сканером.
+        /// Повертає кількість завершених (для логування).
+        /// </summary>
+        public int CompleteDueConstructions(DateTime utcNow, Dictionary<string, BuildingConfig> buildingConfigs)
+        {
+            var due = _buildings
+                .Where(b => b.IsUnderConstruction && b.ConstructionCompletesAt <= utcNow)
+                .ToList();
+
+            foreach (var building in due)
+            {
+                building.CompleteConstruction();
+
+                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.PopulationPerLevel > 0)
+                    AddPopulation(config.PopulationPerLevel); //апгрейд житлової будівлі додає населення
+
+                RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
+            }
+
+            return due.Count;
+        }
+
+        /// <summary>Додає населення (від будівництва/апгрейду житлової будівлі).</summary>
+        private void AddPopulation(int amount)
+        {
+            var population = _resources.FirstOrDefault(r => r.ResourceType == "population");
+            if(population is null)
+            {
+                population = new VillageResource { VillageId = Id, ResourceType = "population", Amount = 0 };
+                _resources.Add(population);
+            }
+            population.Amount += amount;
+        }
     }
 }
 

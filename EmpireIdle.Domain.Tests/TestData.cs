@@ -42,20 +42,15 @@ internal static class TestData
     {
         var village = CreateVillage(playerId);
 
-        // Manually initialize resources using reflection
+        // Manually update resource amounts using reflection
         var resourcesField = village.GetType().GetField("_resources",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         if (resourcesField?.GetValue(village) is System.Collections.Generic.List<VillageResource> resourcesList)
         {
-            foreach (var resourceType in DefaultResources)
+            foreach (var resource in resourcesList)
             {
-                resourcesList.Add(new VillageResource 
-                { 
-                    VillageId = village.Id, 
-                    ResourceType = resourceType, 
-                    Amount = resourceAmount 
-                });
+                resource.Amount = resourceAmount;
             }
         }
 

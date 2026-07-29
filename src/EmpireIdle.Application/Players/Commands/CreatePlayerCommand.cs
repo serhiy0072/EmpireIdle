@@ -20,15 +20,17 @@ namespace EmpireIdle.Application.Players.Commands
         private readonly IPlayerRepository _playerRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IPlayerWalletRepository _walletRepository;
+        private readonly IGarrisonRepository _garrisonRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreatePlayerCommand> _logger;
         private readonly GameConfig _gameConfig;
 
-        public CreatePlayerCommandHandler(IPlayerRepository playerRepository, IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, IUnitOfWork unitOfWork, ILogger<CreatePlayerCommand> logger, IOptions<GameConfig> gameConfig)
+        public CreatePlayerCommandHandler(IPlayerRepository playerRepository, IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, IGarrisonRepository garrisonRepository, IUnitOfWork unitOfWork, ILogger<CreatePlayerCommand> logger, IOptions<GameConfig> gameConfig)
         {
             _playerRepository = playerRepository;
             _villageRepository = villageRepository;
             _walletRepository = walletRepository;
+            _garrisonRepository = garrisonRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _gameConfig = gameConfig.Value;
@@ -49,6 +51,9 @@ namespace EmpireIdle.Application.Players.Commands
             var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village",
                 _gameConfig.Resources.Select(r => r.Key),
                 _gameConfig.Zones.Select(z => (z.Type, z.Slots)));
+
+            var garrison = new Garrison(Guid.NewGuid(), village.Id);
+            await _garrisonRepository.AddAsync(garrison, cancellationToken);
 
             var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
             village.AddBuilding("townhall", buildingConfigs);

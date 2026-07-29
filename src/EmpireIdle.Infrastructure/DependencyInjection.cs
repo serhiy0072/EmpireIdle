@@ -33,6 +33,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IVillageRepository, VillageRepository>();
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
+            services.AddScoped<IGarrisonRepository, GarrisonRepository>();
             services.AddScoped<DomainEventDispatchInterceptor>();
             services.AddMediatR(cfg =>
                 {

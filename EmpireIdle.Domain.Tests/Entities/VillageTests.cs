@@ -81,5 +81,28 @@ namespace EmpireIdle.Domain.Tests.Entities
             var food = village.Resources.Single(r => r.ResourceType == "food");
             Assert.Equal(100, food.Amount); // 200 - 100 = 100
         }
+
+        /// <summary>
+        /// ChargeCost списує всі позиції з множником; при нестачі одного ресурсу
+        /// не списується нічого (все або нічого).
+        /// </summary>
+        [Fact]
+        public void ChargeCost_ShouldNotChargeAnything_WhenOneResourceIsInsufficient()
+        {
+            // Arrange
+            var village = TestData.CreateVillage();
+            village.Resources.Single(r => r.ResourceType == "gold").Amount = 100;
+            village.Resources.Single(r => r.ResourceType == "food").Amount = 10;
+
+            var cost = new List<ResourceCost>
+            {
+                new() { Resource = "gold", Amount = 10 },
+                new() { Resource = "food", Amount = 50 } // не вистачає
+            };
+
+            // Act + Assert
+            Assert.Throws<InvalidOperationException>(() => village.ChargeCost(cost));
+            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "gold").Amount); // не списалось
+        }
     }
 }
