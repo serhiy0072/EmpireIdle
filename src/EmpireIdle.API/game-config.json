@@ -232,6 +232,17 @@
           "Speed": 4
         }
       }
-    ]
+    ],
+    "Map": {
+      "Width": 1000,
+      "Height": 1000,
+      "TerrainSeed": 20260729,
+      "TerrainWeights": {
+        "plain": 40,
+        "forest": 25,
+        "mountain": 20,
+        "water": 15
+      }
+    }
   }
 }

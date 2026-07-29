@@ -20,6 +20,9 @@
 
         /// <summary>Усі типи юнітів.</summary>
         public List<UnitConfig> Units { get; set; } = new();
+
+        /// <summary>Параметри карти світу.</summary>
+        public MapConfig Map { get; set; } = new();
     }
 
     /// <summary>Конфігурація одного типу ресурсу.</summary>
@@ -113,5 +116,21 @@
         /// Config-driven: додав стат у JSON — код не змінюється.
         /// </summary>
         public Dictionary<string, double> Stats { get; set; } = new();
+    }
+
+    /// <summary>Параметри карти світу (per-server у майбутньому).</summary>
+    public class MapConfig
+    {
+        /// <summary>Ширина карти в клітинах.</summary>
+        public int Width { get; set; } = 1000;
+
+        /// <summary>Висота карти в клітинах.</summary>
+        public int Height { get; set; } = 1000;
+
+        /// <summary>Сід генерації терейну — той самий сід дає ту саму карту.</summary>
+        public int TerrainSeed { get; set; }
+
+        /// <summary>Ваги типів місцевості: ключ → відносна частка (сума не обов'язково 100).</summary>
+        public Dictionary<string, int> TerrainWeights { get; set; } = new();
     }
 }

@@ -7,6 +7,7 @@ using EmpireIdle.Infrastructure.Auth;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
@@ -100,8 +101,8 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
-
 builder.Services.AddScoped<ResourceTickJob>();
+builder.Services.AddSingleton(sp => new TerrainGenerator(sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
 
 const string FrontendCors = "FrontendCors";
 builder.Services.AddCors(option =>
