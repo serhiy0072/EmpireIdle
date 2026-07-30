@@ -102,6 +102,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 builder.Services.AddScoped<ResourceTickJob>();
+builder.Services.AddScoped<ConstructionScanJob>();
 builder.Services.AddSingleton(sp => new TerrainGenerator(sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
 
 const string FrontendCors = "FrontendCors";
