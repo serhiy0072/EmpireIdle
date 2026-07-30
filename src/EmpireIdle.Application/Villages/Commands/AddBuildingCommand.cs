@@ -1,4 +1,5 @@
-﻿using EmpireIdle.Application.Interfaces;
+﻿using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -10,7 +11,7 @@ namespace EmpireIdle.Application.Villages.Commands
     /// <summary>
     /// Команда побудови нової будівлі в селі гравця.
     /// </summary>
-    public record AddBuildingCommand(Guid PlayerId, string BuildingType) : IRequest<Guid>;
+    public record AddBuildingCommand(Guid PlayerId, string BuildingType) : IRequest<Guid>, IPlayerScopedRequest;
 
     /// <summary>
     /// Обробник команди AddBuildingCommand. Повертає Id створеної будівлі.

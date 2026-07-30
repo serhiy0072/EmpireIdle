@@ -1,4 +1,5 @@
-﻿using EmpireIdle.Application.Interfaces;
+﻿using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace EmpireIdle.Application.Villages.Commands
 {
     /// <summary>Команда: зібрати накопичені ресурси з буфера будівлі.</summary>
-    public record CollectBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest;
+    public record CollectBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest, IPlayerScopedRequest;
 
     public class CollectBuildingCommandHandler : IRequestHandler<CollectBuildingCommand>
     {

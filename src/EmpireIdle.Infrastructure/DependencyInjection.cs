@@ -39,6 +39,7 @@ namespace EmpireIdle.Infrastructure
                 {
                     cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly);
                     cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                    cfg.AddOpenBehavior(typeof(PlayerScopeBehavior<,>));
                     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
                 });
             services.AddValidatorsFromAssembly(typeof(IRepository<>).Assembly);

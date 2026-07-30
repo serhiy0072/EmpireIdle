@@ -1,4 +1,5 @@
 ﻿
+using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using MediatR;
@@ -8,7 +9,7 @@ namespace EmpireIdle.Application.Villages.Queries
     /// <summary>
     /// Запит на отримання села гравця.
     /// </summary>
-    public record GetVillageQuery(Guid PlayerId) : IRequest<Village>;
+    public record GetVillageQuery(Guid PlayerId) : IRequest<Village>, IPlayerScopedRequest;
 
     /// <summary>
     /// Обробник запиту GetVillageQuery.

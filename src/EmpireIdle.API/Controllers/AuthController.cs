@@ -35,10 +35,10 @@ namespace EmpireIdle.API.Controllers
             await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
 
             // 2. Створити доменного Player + Village + Wallet
-            var playerId = await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email), cancellationToken);
+            await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email), cancellationToken);
 
-            // 3. Одразу залогінити
-            var (accessToken, refreshToken) = await _authService.LoginAsync(request.Email, request.Password);
+            // 3. Одразу залогінити — playerId прийде вже в токені
+            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password);
 
             var response = new AuthResponse(accessToken, refreshToken, playerId);
             return Created((string?)null, response);
@@ -52,12 +52,8 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] DTOs.LoginRequest request, CancellationToken cancellationToken)
         {
-            var (accessToken, refreshToken) = await _authService.LoginAsync(request.Email, request.Password);
-
-            var player = await _playerRepository.GetByEmailAsync(request.Email, cancellationToken)
-                    ?? throw new InvalidOperationException("Player not found for this account.");
-
-            return Ok(new AuthResponse(accessToken, refreshToken, player.Id));
+            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password);
+            return Ok(new AuthResponse(accessToken, refreshToken, playerId));
         }
 
         /// <summary>
@@ -68,13 +64,8 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Refresh([FromBody] DTOs.RefreshRequest request, CancellationToken cancellationToken)
         {
-            var (accessToken, refreshToken, email) = await _authService.RefreshAsync(request.RefreshToken);
-
-            var player = await _playerRepository.GetByEmailAsync(email,cancellationToken)
-                ?? throw new InvalidOperationException("Player not found for this account.");
-
-
-            return Ok(new AuthResponse(accessToken, refreshToken, player.Id));
+            var (accessToken, refreshToken, playerId) = await _authService.RefreshAsync(request.RefreshToken);
+            return Ok(new AuthResponse(accessToken, refreshToken, playerId));
         }
     }
 }
