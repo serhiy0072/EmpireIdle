@@ -1,49 +1,62 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace EmpireIdle.Domain.Services
+﻿namespace EmpireIdle.Domain.Services
 {
     /// <summary>
-    /// Детермінований генератор типу місцевості для клітини карти.
+    /// Детермінований генератор місцевості для клітини карти.
     /// Терейн НЕ зберігається в БД: той самий (serverId, x, y) завжди дає той самий тип,
     /// тому карта «існує» без жодного рядка в базі.
     /// </summary>
     public class TerrainGenerator
     {
         private readonly MapConfig _config;
-        private readonly List<(string Type, int ComulativeWeight)> _distribution;
+        private readonly List<(TerrainConfig Terrain, int CumulativeWeight)> _distribution;
         private readonly int _totalWeight;
 
         public TerrainGenerator(MapConfig config)
         {
             _config = config;
-            _distribution = new List<(string, int)>();
 
-            // Будуємо кумулятивний розподіл один раз: [(plain,40),(forest,65),(mountain,85),(water,100)]
-            int cumulative = 0;
-            foreach (var (type, weight) in _config.TerrainWeights.OrderBy(w => w.Key))
+            // Кумулятивний розподіл будуємо один раз: [(plain,35),(forest,57),(mountain,75)…]
+            // Сортування за Type — щоб порядок не залежав від порядку в JSON (детермінованість).
+            var cumulative = 0;
+            _distribution = new List<(TerrainConfig, int)>();
+            foreach (var terrain in _config.Terrains.Where(t => t.Weight > 0).OrderBy(t => t.Type))
             {
-                cumulative += weight;
-                _distribution.Add((type, cumulative));
+                cumulative += terrain.Weight;
+                _distribution.Add((terrain, cumulative));
             }
             _totalWeight = cumulative;
 
-            if (cumulative <= 0)
-                throw new InvalidOperationException("Map TerrainWeights must contain at least one positive weight.");
+            if (_totalWeight <= 0)
+                throw new InvalidOperationException("Map config must contain at least one terrain with positive weight.");
         }
 
-        /// <summary>Тип місцевості клітини. Детермінований для однакових вхідних даних.</summary>
-        public String GetTerrain(int serverId, int x, int y)
+        /// <summary>Повний опис місцевості клітини (тип + прохідність + вартість руху).</summary>
+        public TerrainConfig GetTerrain(int serverId, int x, int y)
         {
             var roll = Hash(serverId, x, y) % _totalWeight;
-            foreach(var (type, cumulativeWeight) in _distribution)
-            {
+
+            foreach (var (terrain, cumulativeWeight) in _distribution)
                 if (roll < cumulativeWeight)
-                    return type;
-            }
-            return _distribution[^1].Type; //недосяжно, але компілятор має бути щасливий
+                    return terrain;
+
+            return _distribution[^1].Terrain; // недосяжно: roll завжди < _totalWeight
         }
+
+        /// <summary>Ключ типу місцевості клітини.</summary>
+        public string GetTerrainType(int serverId, int x, int y)
+            => GetTerrain(serverId, x, y).Type;
+
+        /// <summary>Чи може армія проходити через клітину.</summary>
+        public bool IsPassable(int serverId, int x, int y)
+            => GetTerrain(serverId, x, y).Passable;
+
+        /// <summary>Чи можна розмістити село або монстра на клітині.</summary>
+        public bool IsHabitable(int serverId, int x, int y)
+            => GetTerrain(serverId, x, y).Habitable;
+
+        /// <summary>Множник часу проходу через клітину.</summary>
+        public double GetMoveCost(int serverId, int x, int y)
+            => GetTerrain(serverId, x, y).MoveCost;
 
         /// <summary>Чи лежить клітина в межах карти.</summary>
         public bool IsInBounds(int x, int y)
