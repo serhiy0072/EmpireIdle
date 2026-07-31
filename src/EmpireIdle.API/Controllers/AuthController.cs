@@ -2,6 +2,7 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Players.Commands;
 using EmpireIdle.Infrastructure.Auth;
+using EmpireIdle.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +16,14 @@ namespace EmpireIdle.API.Controllers
         private readonly AuthService _authService;
         private readonly IPlayerRepository _playerRepository;
         private readonly IMediator _mediator;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AuthController(AuthService authService, IPlayerRepository playerRepository, IMediator mediator)
+        public AuthController(AuthService authService, IPlayerRepository playerRepository, IMediator mediator, IUnitOfWork unitOfWork)
         {
             _authService = authService;
             _playerRepository = playerRepository;
             _mediator = mediator;
+            _unitOfWork = unitOfWork;
         }
 
         /// <summary>
@@ -31,17 +34,28 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] DTOs.RegisterRequest request, CancellationToken cancellationToken)
         {
-            // 1. Створити Identity user (валідація пароля, унікальність email)
-            await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            // 2. Створити доменного Player + Village + Wallet
-            await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email), cancellationToken);
+            try
+            {
+                // 1. Identity user (валідація пароля, унікальність email)
+                await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
 
-            // 3. Одразу залогінити — playerId прийде вже в токені
+                // 2. Доменний Player + Village + Garrison + Wallet
+                await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email), cancellationToken);
+
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                throw; // GlobalExceptionHandler перетворить на 400
+            }
+
+            // 3. Логін — уже поза транзакцією, дані закомічені
             var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password);
 
-            var response = new AuthResponse(accessToken, refreshToken, playerId);
-            return Created((string?)null, response);
+            return Created((string?)null, new AuthResponse(accessToken, refreshToken, playerId));
         }
 
         /// <summary>
