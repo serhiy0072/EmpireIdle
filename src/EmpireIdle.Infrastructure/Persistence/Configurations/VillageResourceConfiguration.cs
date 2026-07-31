@@ -15,6 +15,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasKey(vr => new { vr.VillageId, vr.ResourceType });
 
             builder.Property(vr=>vr.ResourceType).IsRequired().HasMaxLength(50);
+            builder.Property(vr => vr.Amount).UsePropertyAccessMode(PropertyAccessMode.Property);
             builder.Property(vr => vr.Amount).IsRequired();
 
             builder.ToTable("VillageResources");

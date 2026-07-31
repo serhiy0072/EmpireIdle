@@ -50,7 +50,7 @@ internal static class TestData
         {
             foreach (var resource in resourcesList)
             {
-                resource.Amount = resourceAmount;
+                resource.Add(resourceAmount);
             }
         }
 
