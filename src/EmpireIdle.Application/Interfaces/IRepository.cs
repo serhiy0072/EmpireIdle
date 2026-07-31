@@ -12,11 +12,5 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Додати новий запис.</summary>
         Task AddAsync(T entity, CancellationToken cancellationToken = default);
-
-        /// <summary>Оновити існуючий запис.</summary>
-        void Update(T entity);
-
-        /// <summary>Видалити запис.</summary>
-        void Delete(T entity);
     }
 }

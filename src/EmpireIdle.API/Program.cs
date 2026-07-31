@@ -102,7 +102,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 builder.Services.AddScoped<ResourceTickJob>();
-builder.Services.AddScoped<ConstructionScanJob>();
+builder.Services.AddScoped<TimerScanJob>();
 builder.Services.AddSingleton(sp => new TerrainGenerator(sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer>();
@@ -145,7 +145,7 @@ app.MapHub<GameHub>("/hubs/game");
 
 // Recurring job — тік ресурсів кожну хвилину
 RecurringJob.AddOrUpdate<ResourceTickJob>("resource-tick", job => job.RunAsync(), Cron.Minutely);
-RecurringJob.AddOrUpdate<ConstructionScanJob>("construction-scan", job => job.RunAsync(), Cron.Minutely);
+RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
 
 app.Run();
 

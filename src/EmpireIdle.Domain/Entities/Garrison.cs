@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
@@ -19,7 +16,7 @@ namespace EmpireIdle.Domain.Entities
         public IReadOnlyCollection<VillageUnit> Units => _units.AsReadOnly();
         public IReadOnlyCollection<UnitTrainingOrder> TrainingOrders => _trainingOrders.AsReadOnly();
 
-        public Garrison(Guid Id, Guid villageId) : base(Id)
+        public Garrison(Guid id, Guid villageId) : base(id)
         {
             VillageId = villageId;
         }

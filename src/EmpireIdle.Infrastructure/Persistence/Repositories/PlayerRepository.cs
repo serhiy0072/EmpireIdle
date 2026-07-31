@@ -26,12 +26,5 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<Player?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.Players.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
-
-        /// <inheritdoc/>
-        public void Update(Player entity) => _context.Update(entity);
-
-        /// <inheritdoc/>
-        public void Delete(Player entity) => _context.Remove(entity);
-
     }
 }

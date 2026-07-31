@@ -7,17 +7,17 @@ using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.Application.Villages.Commands
 {
-    public record CompleteConstructionsCommand : IRequest;
+    public record CompleteDueTimersCommand : IRequest;
 
-    public class CompleteConstructionsCommandHandler : IRequestHandler<CompleteConstructionsCommand>
+    public class CompleteDueTimersCommandHandler : IRequestHandler<CompleteDueTimersCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGarrisonRepository _garrisonRepository;
-        private readonly ILogger<CompleteConstructionsCommandHandler> _logger;
+        private readonly ILogger<CompleteDueTimersCommandHandler> _logger;
         private readonly GameConfig _gameConfig;
 
-        public CompleteConstructionsCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, IGarrisonRepository garrisonRepository, ILogger<CompleteConstructionsCommandHandler> logger, IOptions<GameConfig> gameConfig)
+        public CompleteDueTimersCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, IGarrisonRepository garrisonRepository, ILogger<CompleteDueTimersCommandHandler> logger, IOptions<GameConfig> gameConfig)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
@@ -26,7 +26,7 @@ namespace EmpireIdle.Application.Villages.Commands
             _gameConfig = gameConfig.Value;
         }
 
-        public async Task Handle(CompleteConstructionsCommand request, CancellationToken cancellationToken)
+        public async Task Handle(CompleteDueTimersCommand request, CancellationToken cancellationToken)
         {
             var villages = await _villageRepository.GetAllAsync(cancellationToken);
             var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);

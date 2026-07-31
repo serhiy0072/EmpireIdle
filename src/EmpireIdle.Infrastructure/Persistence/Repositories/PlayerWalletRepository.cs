@@ -30,11 +30,5 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.PlayerWallets
             .Include(pw => pw.Transactions)
             .FirstOrDefaultAsync(pw => pw.PlayerId == playerId, cancellationToken);
-
-        /// <inheritdoc/>
-        public void Update(PlayerWallet entity) => _context.Update(entity);
-
-        /// <inheritdoc/>
-        public void Delete(PlayerWallet entity) => _context.Remove(entity);
     }
 }
