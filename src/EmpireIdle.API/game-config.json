@@ -237,56 +237,50 @@
       "Width": 1000,
       "Height": 1000,
       "TerrainSeed": 20260729,
-      "TerrainWeights": {
-        "plain": 40,
-        "forest": 25,
-        "mountain": 20,
-        "water": 15
-      }
-    },
-    "Terrains": [
-      {
-        "Type": "plain",
-        "Weight": 35,
-        "Passable": true,
-        "MoveCost": 1.0,
-        "Habitable": true
-      },
-      {
-        "Type": "forest",
-        "Weight": 22,
-        "Passable": true,
-        "MoveCost": 1.5,
-        "Habitable": true
-      },
-      {
-        "Type": "mountain",
-        "Weight": 18,
-        "Passable": true,
-        "MoveCost": 2.0,
-        "Habitable": true
-      },
-      {
-        "Type": "water",
-        "Weight": 13,
-        "Passable": false,
-        "MoveCost": 1.0,
-        "Habitable": false
-      },
-      {
-        "Type": "peaks",
-        "Weight": 7,
-        "Passable": false,
-        "MoveCost": 1.0,
-        "Habitable": false
-      },
-      {
-        "Type": "swamp",
-        "Weight": 5,
-        "Passable": true,
-        "MoveCost": 2.5,
-        "Habitable": false
-      }
-    ]
+      "Terrains": [
+        {
+          "Type": "plain",
+          "Weight": 35,
+          "Passable": true,
+          "MoveCost": 1.0,
+          "Habitable": true
+        },
+        {
+          "Type": "forest",
+          "Weight": 22,
+          "Passable": true,
+          "MoveCost": 1.5,
+          "Habitable": true
+        },
+        {
+          "Type": "mountain",
+          "Weight": 18,
+          "Passable": true,
+          "MoveCost": 2.0,
+          "Habitable": true
+        },
+        {
+          "Type": "water",
+          "Weight": 13,
+          "Passable": false,
+          "MoveCost": 1.0,
+          "Habitable": false
+        },
+        {
+          "Type": "peaks",
+          "Weight": 7,
+          "Passable": false,
+          "MoveCost": 1.0,
+          "Habitable": false
+        },
+        {
+          "Type": "swamp",
+          "Weight": 5,
+          "Passable": true,
+          "MoveCost": 2.5,
+          "Habitable": false
+        }
+      ]
+    }
   }
 }

@@ -34,18 +34,26 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Всі ресурси села. Ключ — тип ресурсу.</summary>
         public IReadOnlyCollection<VillageResource> Resources => _resources;
 
+        /// <summary>Координата X на карті світу.</summary>
+        public int X { get; private set; }
+
+        /// <summary>Координата Y на карті світу.</summary>
+        public int Y { get; private set; }
+
         /// <summary>
         /// Створює нове село зі стартовим набором ресурсів (по нулю кожного).
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
         /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
         public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys,
-            IEnumerable<(string Type, int Slots)> zones, int serverId = 1) : base(id)
+            IEnumerable<(string Type, int Slots)> zones, int x, int y, int serverId = 1) : base(id)
         {
             PlayerId = playerId;
             Name = name;
             LastTickAt = DateTime.UtcNow;
             ServerId = serverId;
+            X = x;
+            Y = y;
 
             foreach (var key in resourceKeys)
                 _resources.Add(new VillageResource (id, key));

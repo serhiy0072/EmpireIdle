@@ -103,7 +103,13 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 builder.Services.AddScoped<ResourceTickJob>();
 builder.Services.AddScoped<TimerScanJob>();
+
 builder.Services.AddSingleton(sp => new TerrainGenerator(sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
+builder.Services.AddSingleton(sp =>
+    new SettlementPlacer(
+            sp.GetRequiredService<TerrainGenerator>(),
+            sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer>();
 

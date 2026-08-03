@@ -21,11 +21,22 @@ namespace EmpireIdle.Application.Players.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly IGarrisonRepository _garrisonRepository;
+        private readonly IMapRepository _mapRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreatePlayerCommand> _logger;
+        private readonly SettlementPlacer _settlementPlacer;
         private readonly GameConfig _gameConfig;
 
-        public CreatePlayerCommandHandler(IPlayerRepository playerRepository, IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, IGarrisonRepository garrisonRepository, IUnitOfWork unitOfWork, ILogger<CreatePlayerCommand> logger, IOptions<GameConfig> gameConfig)
+        public CreatePlayerCommandHandler(
+            IPlayerRepository playerRepository, 
+            IVillageRepository villageRepository, 
+            IPlayerWalletRepository walletRepository, 
+            IGarrisonRepository garrisonRepository, 
+            IUnitOfWork unitOfWork, 
+            ILogger<CreatePlayerCommand> logger, 
+            IOptions<GameConfig> gameConfig,
+            SettlementPlacer settlementPlacer,
+            IMapRepository mapRepository)
         {
             _playerRepository = playerRepository;
             _villageRepository = villageRepository;
@@ -34,6 +45,8 @@ namespace EmpireIdle.Application.Players.Commands
             _unitOfWork = unitOfWork;
             _logger = logger;
             _gameConfig = gameConfig.Value;
+            _settlementPlacer = settlementPlacer;
+            _mapRepository = mapRepository;
         }
 
         public async Task<Guid> Handle(CreatePlayerCommand request, CancellationToken cancellationToken)
@@ -48,9 +61,15 @@ namespace EmpireIdle.Application.Players.Commands
 
             var player = new Player(playerId, request.UserName, email);
             var wallet = new PlayerWallet(Guid.NewGuid(), playerId);
+            var (x, y) = await _settlementPlacer.FindSpotAsync(
+                serverId: 1,
+                isOccupied: (cx, cy) => _mapRepository.IsOccupiedAsync(1, cx, cy, cancellationToken),
+                maxAttempts: 200);
+
             var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village",
                 _gameConfig.Resources.Select(r => r.Key),
-                _gameConfig.Zones.Select(z => (z.Type, z.Slots)));
+                _gameConfig.Zones.Select(z => (z.Type, z.Slots)),
+                x, y);
 
             var garrison = new Garrison(Guid.NewGuid(), village.Id);
             await _garrisonRepository.AddAsync(garrison, cancellationToken);
@@ -63,6 +82,9 @@ namespace EmpireIdle.Application.Players.Commands
             await _playerRepository.AddAsync(player, cancellationToken);
             await _villageRepository.AddAsync(village, cancellationToken);
             await _walletRepository.AddAsync(wallet, cancellationToken);
+            await _mapRepository.AddAsync(
+                new MapCell(Guid.NewGuid(), 1, x, y, MapOccupantType.Village, village.Id),
+                cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
