@@ -109,6 +109,13 @@ builder.Services.AddSingleton(sp =>
     new SettlementPlacer(
             sp.GetRequiredService<TerrainGenerator>(),
             sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<GameConfig>>().Value;
+    return new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), config.Map, config.Monsters);
+});
+
+builder.Services.AddScoped<MonsterSpawnJob>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer>();
@@ -152,6 +159,7 @@ app.MapHub<GameHub>("/hubs/game");
 // Recurring job — тік ресурсів кожну хвилину
 RecurringJob.AddOrUpdate<ResourceTickJob>("resource-tick", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
+RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
 
 app.Run();
 

@@ -237,6 +237,7 @@
       "Width": 1000,
       "Height": 1000,
       "TerrainSeed": 20260729,
+      "ServerLevel": 1,
       "Terrains": [
         {
           "Type": "plain",
@@ -281,6 +282,48 @@
           "Habitable": false
         }
       ]
-    }
+    },
+    "Monsters": [
+      {
+        "Key": "wolf",
+        "DisplayName": "Wolf",
+        "MinLevel": 1,
+        "MaxLevel": 5,
+        "RequiresServerLevel": 0,
+        "BasePower": 100,
+        "PowerGrowth": 1.6,
+        "Rewards": [
+          {
+            "Resource": "food",
+            "Amount": 50
+          },
+          {
+            "Resource": "gold",
+            "Amount": 20
+          }
+        ],
+        "RewardGrowth": 1.5
+      },
+      {
+        "Key": "orc",
+        "DisplayName": "Orc Raider",
+        "MinLevel": 5,
+        "MaxLevel": 12,
+        "RequiresServerLevel": 3,
+        "BasePower": 800,
+        "PowerGrowth": 1.7,
+        "Rewards": [
+          {
+            "Resource": "iron",
+            "Amount": 80
+          },
+          {
+            "Resource": "gold",
+            "Amount": 100
+          }
+        ],
+        "RewardGrowth": 1.5
+      }
+    ]
   }
 }

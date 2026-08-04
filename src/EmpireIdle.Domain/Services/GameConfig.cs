@@ -23,6 +23,9 @@
 
         /// <summary>Параметри карти світу.</summary>
         public MapConfig Map { get; set; } = new();
+
+        /// <summary>Типи монстрів на карті.</summary>
+        public List<MonsterConfig> Monsters { get; set; } = new();
     }
 
     /// <summary>Конфігурація одного типу ресурсу.</summary>
@@ -127,6 +130,12 @@
         /// <summary>Висота карти в клітинах.</summary>
         public int Height { get; set; } = 1000;
 
+        /// <summary>Рівень світу: гейтить появу типів монстрів (тимчасово з конфіга).</summary>
+        public int ServerLevel { get; set; } = 1;
+
+        /// <summary>Скільки клітин карти припадає на одного монстра (щільність спавну).</summary>
+        public int CellsPerMonster { get; set; } = 500;
+
         /// <summary>Сід генерації терейну — той самий сід дає ту саму карту.</summary>
         public int TerrainSeed { get; set; }
 
@@ -151,5 +160,36 @@
 
         /// <summary>Чи можна розміщувати село або монстра.</summary>
         public bool Habitable { get; set; } = true;
+    }
+
+    /// <summary>Конфігурація типу монстра.</summary>
+    public class MonsterConfig
+    {
+        /// <summary>Унікальний ключ (wolf, orc…).</summary>
+        public string Key { get; set; } = null!;
+
+        /// <summary>Відображувана назва.</summary>
+        public string DisplayName { get; set; } = null!;
+
+        /// <summary>Мінімальний рівень монстра цього типу.</summary>
+        public int MinLevel { get; set; } = 1;
+
+        /// <summary>Максимальний рівень монстра цього типу.</summary>
+        public int MaxLevel { get; set; } = 1;
+
+        /// <summary>Мінімальний рівень сервера, з якого тип з'являється на карті.</summary>
+        public int RequiresServerLevel { get; set; }
+
+        /// <summary>Бойова сила на 1 рівні.</summary>
+        public int BasePower { get; set; }
+
+        /// <summary>Коефіцієнт росту сили: BasePower × PowerGrowth^(рівень−1).</summary>
+        public double PowerGrowth { get; set; } = 1.5;
+
+        /// <summary>Нагорода за перемогу на 1 рівні.</summary>
+        public List<ResourceCost> Rewards { get; set; } = new();
+
+        /// <summary>Коефіцієнт росту нагороди з рівнем.</summary>
+        public double RewardGrowth { get; set; } = 1.5;
     }
 }

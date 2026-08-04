@@ -21,6 +21,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Garrison> Garrisons => Set<Garrison>();
         public DbSet<MapCell> MapCells => Set<MapCell>();
+        public DbSet<Monster> Monsters => Set<Monster>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
