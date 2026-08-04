@@ -57,5 +57,49 @@ namespace EmpireIdle.Domain.Entities
             }
             return due.Count;
         }
+
+        /// <summary>
+        /// Знімає юнітів із гарнізону для походу.
+        /// </summary>
+        /// <param name="units">Тип юніта → кількість.</param>
+        public void SendUnits(IReadOnlyDictionary<string, int> units)
+        {
+            if (units.Count == 0)
+                throw new InvalidOperationException("Cannot send an empty army.");
+
+            // Спершу перевіряємо ВСІ позиції — щоб не зняти частину і впасти
+            foreach (var (unitType, count) in units)
+            {
+                if (count < 1)
+                    throw new InvalidOperationException($"Invalid unit count for '{unitType}'.");
+
+                var unit = _units.FirstOrDefault(u => u.UnitType == unitType)
+                    ?? throw new InvalidOperationException($"No '{unitType}' units in garrison.");
+
+                if (unit.Count < count)
+                    throw new InvalidOperationException($"Not enough '{unitType}': need {count}, have {unit.Count}.");
+            }
+
+            foreach (var (unitType, count) in units)
+                _units.First(u => u.UnitType == unitType).Subtract(count);
+        }
+
+        /// <summary>Повертає юнітів у гарнізон (після походу).</summary>
+        public void ReceiveUnits(IReadOnlyDictionary<string, int> units)
+        {
+            foreach (var (unitType, count) in units)
+            {
+                if (count < 1)
+                    continue;
+
+                var unit = _units.FirstOrDefault(u => u.UnitType == unitType);
+                if (unit is null)
+                {
+                    unit = new VillageUnit(Guid.NewGuid(), Id, unitType);
+                    _units.Add(unit);
+                }
+                unit.Add(count);
+            }
+        }
     }
 }
