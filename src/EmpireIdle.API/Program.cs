@@ -114,6 +114,11 @@ builder.Services.AddSingleton(sp =>
     var config = sp.GetRequiredService<IOptions<GameConfig>>().Value;
     return new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), config.Map, config.Monsters);
 });
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<GameConfig>>().Value;
+    return new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), config.Units);
+});
 
 builder.Services.AddScoped<MonsterSpawnJob>();
 

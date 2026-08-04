@@ -1,4 +1,5 @@
-﻿using EmpireIdle.Application.Villages.Commands;
+﻿using EmpireIdle.Application.Marches.Commands;
+using EmpireIdle.Application.Villages.Commands;
 using MediatR;
 
 namespace EmpireIdle.API.Jobs
@@ -8,7 +9,10 @@ namespace EmpireIdle.API.Jobs
         private readonly IMediator _mediator;
         public TimerScanJob(IMediator mediator) => _mediator = mediator;
 
-        public Task RunAsync() => _mediator.Send(new CompleteDueTimersCommand());
-
+        public async Task RunAsync()
+        {
+            await _mediator.Send(new CompleteDueTimersCommand());
+            await _mediator.Send(new CompleteDueMarchesCommand());
+        }
     }
 }

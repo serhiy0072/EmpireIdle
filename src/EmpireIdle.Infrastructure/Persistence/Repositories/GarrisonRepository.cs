@@ -36,5 +36,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             await _context.Garrisons.AddAsync(garrison, cancellationToken);
         }
 
+        /// <inheritdoc/>
+        public Task<Garrison?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.Garrisons
+            .Include(g => g.Units)
+            .Include(g => g.TrainingOrders)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
+
     }
 }

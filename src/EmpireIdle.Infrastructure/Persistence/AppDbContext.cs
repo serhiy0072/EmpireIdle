@@ -22,6 +22,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<Garrison> Garrisons => Set<Garrison>();
         public DbSet<MapCell> MapCells => Set<MapCell>();
         public DbSet<Monster> Monsters => Set<Monster>();
+        public DbSet<March> Marches => Set<March>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
