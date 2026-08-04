@@ -55,11 +55,5 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Include(v => v.Zones)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
-
-        /// <inheritdoc/>
-        public void Update(Village entity) => _context.Villages.Update(entity);
-
-        /// <inheritdoc/>
-        public void Delete(Village entity) => _context.Villages.Remove(entity);
     }
 }

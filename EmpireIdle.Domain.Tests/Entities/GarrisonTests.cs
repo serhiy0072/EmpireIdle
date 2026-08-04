@@ -107,5 +107,46 @@ namespace EmpireIdle.Domain.Tests.Entities
             var unit = Assert.Single(garrison.Units);
             Assert.Equal(5, unit.Count); // 2 + 3
         }
+        /// <summary>Відправка знімає юнітів із гарнізону.</summary>
+        [Fact]
+        public void SendUnits_ShouldRemoveUnitsFromGarrison()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
+            garrison.TrainUnits("infantry", 5, TimeSpan.FromMinutes(10));
+            garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
+
+            garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 });
+
+            Assert.Equal(2, garrison.Units.Single().Count);
+        }
+
+        /// <summary>Не можна відправити більше юнітів, ніж є.</summary>
+        [Fact]
+        public void SendUnits_ShouldThrow_WhenNotEnoughUnits()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
+            garrison.TrainUnits("infantry", 2, TimeSpan.FromMinutes(4));
+            garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
+
+            Assert.Throws<InvalidOperationException>(() =>
+                garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 5 }));
+
+            Assert.Equal(2, garrison.Units.Single().Count); // нічого не зняли
+        }
+
+        /// <summary>Повернення армії додає юнітів назад у гарнізон.</summary>
+        [Fact]
+        public void ReceiveUnits_ShouldReturnUnitsToGarrison()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
+            garrison.TrainUnits("infantry", 5, TimeSpan.FromMinutes(10));
+            garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
+
+            var army = new Dictionary<string, int> { ["infantry"] = 3 };
+            garrison.SendUnits(army);
+            garrison.ReceiveUnits(army);
+
+            Assert.Equal(5, garrison.Units.Single().Count); // усі повернулись
+        }
     }
 }

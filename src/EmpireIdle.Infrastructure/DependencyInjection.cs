@@ -34,11 +34,16 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerRepository, PlayerRepository>();
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
             services.AddScoped<IGarrisonRepository, GarrisonRepository>();
+            services.AddScoped<IMapRepository, MapRepository>();
             services.AddScoped<DomainEventDispatchInterceptor>();
+            services.AddScoped<IMonsterRepository, MonsterRepository>();
+            services.AddScoped<IMarchRepository, MarchRepository>();
+
             services.AddMediatR(cfg =>
                 {
                     cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly);
                     cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                    cfg.AddOpenBehavior(typeof(PlayerScopeBehavior<,>));
                     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
                 });
             services.AddValidatorsFromAssembly(typeof(IRepository<>).Assembly);

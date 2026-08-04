@@ -74,6 +74,135 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("Garrisons", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.MapCell", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OccupantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("OccupantType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccupantType", "OccupantId");
+
+                    b.HasIndex("ServerId", "X", "Y")
+                        .IsUnique();
+
+                    b.ToTable("MapCells", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.March", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ArrivesAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GarrisonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("OriginX")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OriginY")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetX")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetY")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GarrisonId");
+
+                    b.HasIndex("State", "ArrivesAt");
+
+                    b.ToTable("Marches", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.MarchUnit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("MarchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UnitType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MarchId");
+
+                    b.ToTable("MarchUnits", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.Monster", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SpawnedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId");
+
+                    b.ToTable("Monsters", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Player", b =>
                 {
                     b.Property<Guid>("Id")
@@ -174,6 +303,12 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -519,6 +654,15 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.MarchUnit", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.March", null)
+                        .WithMany("Units")
+                        .HasForeignKey("MarchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.UnitTrainingOrder", b =>
                 {
                     b.HasOne("EmpireIdle.Domain.Entities.Garrison", null)
@@ -619,6 +763,11 @@ namespace EmpireIdle.Infrastructure.Migrations
                 {
                     b.Navigation("TrainingOrders");
 
+                    b.Navigation("Units");
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.March", b =>
+                {
                     b.Navigation("Units");
                 });
 

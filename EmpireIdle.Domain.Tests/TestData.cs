@@ -33,9 +33,9 @@ internal static class TestData
         }
     };
 
-    /// <summary>Створює пороже село зі стандартними ресурсами й зонами.</summary>
-    public static Village CreateVillage(Guid? playerId = null)
-        => new(Guid.NewGuid(), playerId ?? Guid.NewGuid(), "Test Village", DefaultResources, DefaultZones);
+    /// <summary>Створює порожнє село зі стандартними ресурсами й зонами.</summary>
+    public static Village CreateVillage(Guid? playerId = null, int x = 0, int y = 0)
+        => new(Guid.NewGuid(), playerId ?? Guid.NewGuid(), "Test Village", DefaultResources, DefaultZones, x, y);
 
     /// <summary>Створює село зі стандартними ресурсами й зонами, ініціалізованими з вказаною кількістю ресурсів.</summary>
     public static Village CreateVillageWithResources(int resourceAmount = 0, Guid? playerId = null)
@@ -50,7 +50,7 @@ internal static class TestData
         {
             foreach (var resource in resourcesList)
             {
-                resource.Amount = resourceAmount;
+                resource.Add(resourceAmount);
             }
         }
 

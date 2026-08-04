@@ -7,6 +7,7 @@ using EmpireIdle.Infrastructure.Auth;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
@@ -100,8 +101,29 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
-
 builder.Services.AddScoped<ResourceTickJob>();
+builder.Services.AddScoped<TimerScanJob>();
+
+builder.Services.AddSingleton(sp => new TerrainGenerator(sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
+builder.Services.AddSingleton(sp =>
+    new SettlementPlacer(
+            sp.GetRequiredService<TerrainGenerator>(),
+            sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<GameConfig>>().Value;
+    return new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), config.Map, config.Monsters);
+});
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<GameConfig>>().Value;
+    return new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), config.Units);
+});
+
+builder.Services.AddScoped<MonsterSpawnJob>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer>();
 
 const string FrontendCors = "FrontendCors";
 builder.Services.AddCors(option =>
@@ -141,7 +163,8 @@ app.MapHub<GameHub>("/hubs/game");
 
 // Recurring job — тік ресурсів кожну хвилину
 RecurringJob.AddOrUpdate<ResourceTickJob>("resource-tick", job => job.RunAsync(), Cron.Minutely);
-RecurringJob.AddOrUpdate<ConstructionScanJob>("construction-scan", job => job.RunAsync(), Cron.Minutely);
+RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
+RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
 
 app.Run();
 

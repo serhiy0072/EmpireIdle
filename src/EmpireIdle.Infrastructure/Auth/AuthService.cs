@@ -1,6 +1,7 @@
-﻿using EmpireIdle.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+﻿using EmpireIdle.Domain.Entities;
+using EmpireIdle.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,7 +17,7 @@ namespace EmpireIdle.Infrastructure.Auth
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppDbContext _context;
-        private readonly JwtSettings _jwtSettings;      
+        private readonly JwtSettings _jwtSettings;
 
         public AuthService(UserManager<IdentityUser> userManager, AppDbContext context, IOptions<JwtSettings> jwtSettings)
         {
@@ -51,32 +52,33 @@ namespace EmpireIdle.Infrastructure.Auth
         /// <summary>
         /// Залогінити користувача і повернути JWT + refresh token.
         /// </summary>
-        public async Task<(string AccessToken, string RefreshToken)> LoginAsync(string email, string password)
+        public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> LoginAsync(string email, string password)
         {
-            var user = await _userManager.FindByEmailAsync(email) 
+            var user = await _userManager.FindByEmailAsync(email)
                 ?? throw new InvalidOperationException("Invalid email or password.");
 
             var validPassword = await _userManager.CheckPasswordAsync(user, password);
-            if(!validPassword)
+            if (!validPassword)
                 throw new InvalidOperationException("Invalid email or password.");
 
-            var accessToken = GenerateAccessToken(user);
+            var playerId = await GetPlayerIdAsync(user.Email!);
+            var accessToken = GenerateAccessToken(user, playerId);
             var refreshToken = await CreateRefreshTokenAsync(user.Id);
 
-            return (accessToken, refreshToken);
+            return (accessToken, refreshToken, playerId);
         }
 
         /// <summary>
         /// Оновити пару токенів за refresh token. Старий токен ревокується (ротація).
         /// </summary>
-        public async Task<(string AccessToken, string RefreshToken, string Email)> RefreshAsync(string refreshToken)
+        public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> RefreshAsync(string refreshToken)
         {
             var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken)
                 ?? throw new InvalidOperationException("Invalid refresh token.");
 
             // Спроба використати ревокнутий токен = можлива крадіжка.
             // Ревокуємо ВСІ токени користувача — змусить перелогінитись всюди.
-            if(storedToken.RevokedAt is not null)
+            if (storedToken.RevokedAt is not null)
             {
                 await RevokeAllUserTokensAsync(storedToken.UserId);
                 await _context.SaveChangesAsync();
@@ -105,8 +107,9 @@ namespace EmpireIdle.Infrastructure.Auth
 
             await _context.SaveChangesAsync();
 
-            var accessToken = GenerateAccessToken(user);
-            return (accessToken, newRefreshToken, user.Email!);
+            var playerId = await GetPlayerIdAsync(user.Email!);
+            var accessToken = GenerateAccessToken(user, playerId);
+            return (accessToken, newRefreshToken, playerId);
         }
 
         private async Task<string> CreateRefreshTokenAsync(string userId)
@@ -129,12 +132,12 @@ namespace EmpireIdle.Infrastructure.Auth
         private async Task RevokeAllUserTokensAsync(string userId)
         {
             var tokens = await _context.RefreshTokens.Where(rt => rt.UserId == userId && rt.RevokedAt == null).ToListAsync();
-            
-            foreach(var token in tokens)
-                token.RevokedAt = DateTime.UtcNow; 
+
+            foreach (var token in tokens)
+                token.RevokedAt = DateTime.UtcNow;
         }
 
-        private string GenerateAccessToken(IdentityUser user)
+        private string GenerateAccessToken(IdentityUser user, Guid playerId)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -144,7 +147,8 @@ namespace EmpireIdle.Infrastructure.Auth
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email!),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("playerId", playerId.ToString())
             };
 
             var token = new JwtSecurityToken(
@@ -163,6 +167,18 @@ namespace EmpireIdle.Infrastructure.Auth
             using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
+        }
+
+        /// <summary>Знаходить доменного гравця за email (міст Identity ↔ Domain).</summary>
+        private async Task<Guid> GetPlayerIdAsync(string email)
+        {
+            var normalized = email.Trim().ToLowerInvariant();
+
+            var player = await _context.Players.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Email == normalized)
+                ?? throw new InvalidOperationException("Player not found for this account.");
+
+            return player.Id;
         }
     }
 }

@@ -18,5 +18,17 @@
 
         /// <summary>Додає навчених юнітів у гарнізон.</summary>
         public void Add(int amount) => Count += amount;
+
+        /// <summary>Знімає юнітів із гарнізону.</summary>
+        public void Subtract(int amount)
+        {
+            if (amount < 0)
+                throw new InvalidOperationException("Amount to subtract cannot be negative.");
+
+            if (Count < amount)
+                throw new InvalidOperationException($"Not enough '{UnitType}': need {amount}, have {Count}.");
+
+            Count -= amount;
+        }
     }
 }

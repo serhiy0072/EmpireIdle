@@ -91,8 +91,8 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             // Arrange
             var village = TestData.CreateVillage();
-            village.Resources.Single(r => r.ResourceType == "gold").Amount = 100;
-            village.Resources.Single(r => r.ResourceType == "food").Amount = 10;
+            village.Resources.Single(r => r.ResourceType == "gold").Add(100);
+            village.Resources.Single(r => r.ResourceType == "food").Add(10);
 
             var cost = new List<ResourceCost>
             {

@@ -232,6 +232,98 @@
           "Speed": 4
         }
       }
+    ],
+    "Map": {
+      "Width": 1000,
+      "Height": 1000,
+      "TerrainSeed": 20260729,
+      "ServerLevel": 1,
+      "Terrains": [
+        {
+          "Type": "plain",
+          "Weight": 35,
+          "Passable": true,
+          "MoveCost": 1.0,
+          "Habitable": true
+        },
+        {
+          "Type": "forest",
+          "Weight": 22,
+          "Passable": true,
+          "MoveCost": 1.5,
+          "Habitable": true
+        },
+        {
+          "Type": "mountain",
+          "Weight": 18,
+          "Passable": true,
+          "MoveCost": 2.0,
+          "Habitable": true
+        },
+        {
+          "Type": "water",
+          "Weight": 13,
+          "Passable": false,
+          "MoveCost": 1.0,
+          "Habitable": false
+        },
+        {
+          "Type": "peaks",
+          "Weight": 7,
+          "Passable": false,
+          "MoveCost": 1.0,
+          "Habitable": false
+        },
+        {
+          "Type": "swamp",
+          "Weight": 5,
+          "Passable": true,
+          "MoveCost": 2.5,
+          "Habitable": false
+        }
+      ]
+    },
+    "Monsters": [
+      {
+        "Key": "wolf",
+        "DisplayName": "Wolf",
+        "MinLevel": 1,
+        "MaxLevel": 5,
+        "RequiresServerLevel": 0,
+        "BasePower": 100,
+        "PowerGrowth": 1.6,
+        "Rewards": [
+          {
+            "Resource": "food",
+            "Amount": 50
+          },
+          {
+            "Resource": "gold",
+            "Amount": 20
+          }
+        ],
+        "RewardGrowth": 1.5
+      },
+      {
+        "Key": "orc",
+        "DisplayName": "Orc Raider",
+        "MinLevel": 5,
+        "MaxLevel": 12,
+        "RequiresServerLevel": 3,
+        "BasePower": 800,
+        "PowerGrowth": 1.7,
+        "Rewards": [
+          {
+            "Resource": "iron",
+            "Amount": 80
+          },
+          {
+            "Resource": "gold",
+            "Amount": 100
+          }
+        ],
+        "RewardGrowth": 1.5
+      }
     ]
   }
 }

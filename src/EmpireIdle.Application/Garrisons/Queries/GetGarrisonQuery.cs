@@ -1,11 +1,12 @@
-﻿using EmpireIdle.Application.Interfaces;
+﻿using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using MediatR;
 
 namespace EmpireIdle.Application.Garrisons.Queries
 {
     /// <summary>Запит на отримання гарнізону гравця.</summary>
-    public record GetGarrisonQuery(Guid PlayerId) : IRequest<Garrison>;
+    public record GetGarrisonQuery(Guid PlayerId) : IRequest<Garrison>, IPlayerScopedRequest;
 
     public class GetGarrisonQueryHandler : IRequestHandler<GetGarrisonQuery, Garrison>
     {

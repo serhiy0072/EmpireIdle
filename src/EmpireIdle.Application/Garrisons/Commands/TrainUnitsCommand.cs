@@ -1,4 +1,5 @@
-﻿using EmpireIdle.Application.Interfaces;
+﻿using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -9,7 +10,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     /// <summary>
     /// Команда тренування партії юнітів (1–5) у казармах села гравця.
     /// </summary>
-    public record TrainUnitsCommand(Guid PlayerId, string UnitType, int Count) : IRequest;
+    public record TrainUnitsCommand(Guid PlayerId, string UnitType, int Count) : IRequest, IPlayerScopedRequest;
 
     /// <summary>
     /// Обробник TrainUnitsCommand: координує Village (списання вартості)

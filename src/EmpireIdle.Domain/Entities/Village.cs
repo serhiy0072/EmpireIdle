@@ -34,23 +34,31 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Всі ресурси села. Ключ — тип ресурсу.</summary>
         public IReadOnlyCollection<VillageResource> Resources => _resources;
 
+        /// <summary>Координата X на карті світу.</summary>
+        public int X { get; private set; }
+
+        /// <summary>Координата Y на карті світу.</summary>
+        public int Y { get; private set; }
+
         /// <summary>
         /// Створює нове село зі стартовим набором ресурсів (по нулю кожного).
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
         /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
         public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys,
-            IEnumerable<(string Type, int Slots)> zones, int serverId = 1) : base(id)
+            IEnumerable<(string Type, int Slots)> zones, int x, int y, int serverId = 1) : base(id)
         {
             PlayerId = playerId;
             Name = name;
             LastTickAt = DateTime.UtcNow;
             ServerId = serverId;
+            X = x;
+            Y = y;
 
             foreach (var key in resourceKeys)
-                _resources.Add(new VillageResource { VillageId = id, ResourceType = key, Amount = 0 });
+                _resources.Add(new VillageResource (id, key));
 
-            foreach (var(type, slots) in zones)
+            foreach (var (type, slots) in zones)
                 _zones.Add(new VillageZone(Guid.NewGuid(), id, type, slots));
         }
 
@@ -99,13 +107,14 @@ namespace EmpireIdle.Domain.Entities
             if (collected == 0)
                 return;// порожній буфер — не подія і не зміна стану
 
-            var resource = _resources.FirstOrDefault(r=> r.ResourceType == config.ProducesResource);
-            if(resource is null)
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
+            if (resource is null)
             {
-                resource = new VillageResource { VillageId = Id, ResourceType = config.ProducesResource, Amount = 0 };
+                resource = new VillageResource (Id, config.ProducesResource);
                 _resources.Add(resource);
             }
-            resource.Amount += collected;
+            resource.Add(collected);
+
 
             RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
         }
@@ -151,7 +160,7 @@ namespace EmpireIdle.Domain.Entities
                         throw new InvalidOperationException($"Not enough {line.Resource}: need {line.Amount}, have {res.Amount}.");
                 }
                 foreach (var line in config.Cost)
-                    _resources.First(r => r.ResourceType == line.Resource).Amount -= line.Amount;
+                    _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount);
             }
 
             var building = new Building(Guid.NewGuid(), Id, buildingType);
@@ -182,7 +191,7 @@ namespace EmpireIdle.Domain.Entities
             }
 
             foreach (var line in cost)
-                _resources.First(r => r.ResourceType == line.Resource).Amount -= line.Amount * multiplier;
+                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * multiplier);
         }
 
         /// <summary>
@@ -215,8 +224,7 @@ namespace EmpireIdle.Domain.Entities
             // Усе перевірено — тепер списуємо (жодного часткового списання при нестачі)
             foreach (var line in config.Cost)
             {
-                var need = line.Amount * building.Level.Value;
-                _resources.First(r => r.ResourceType == line.Resource).Amount -= need;
+                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * building.Level.Value);
             }
 
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
@@ -252,12 +260,12 @@ namespace EmpireIdle.Domain.Entities
         private void AddPopulation(int amount)
         {
             var population = _resources.FirstOrDefault(r => r.ResourceType == "population");
-            if(population is null)
+            if (population is null)
             {
-                population = new VillageResource { VillageId = Id, ResourceType = "population", Amount = 0 };
+                population = new VillageResource (Id, "population");
                 _resources.Add(population);
             }
-            population.Amount += amount;
+            population.Add(amount);
         }
     }
 }

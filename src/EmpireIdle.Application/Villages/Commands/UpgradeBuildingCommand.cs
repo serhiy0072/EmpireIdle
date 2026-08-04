@@ -1,4 +1,5 @@
-﻿using EmpireIdle.Application.Interfaces;
+﻿using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -9,7 +10,7 @@ namespace EmpireIdle.Application.Villages.Commands
     /// <summary>
     /// Команда апгрейду будівлі в селі гравця.
     /// </summary>
-    public record UpgradeBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest;
+    public record UpgradeBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest, IPlayerScopedRequest;
 
     /// <summary>
     /// Обробник команди UpgradeBuildingCommand.
