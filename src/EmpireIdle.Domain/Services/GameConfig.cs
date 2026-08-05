@@ -26,6 +26,8 @@
 
         /// <summary>Типи монстрів на карті.</summary>
         public List<MonsterConfig> Monsters { get; set; } = new();
+        /// <summary>Параметри бою.</summary>
+        public CombatConfig Combat { get; set; } = new();
     }
 
     /// <summary>Конфігурація одного типу ресурсу.</summary>
@@ -180,16 +182,48 @@
         /// <summary>Мінімальний рівень сервера, з якого тип з'являється на карті.</summary>
         public int RequiresServerLevel { get; set; }
 
-        /// <summary>Бойова сила на 1 рівні.</summary>
-        public int BasePower { get; set; }
+        /// <summary>Склад загону монстра на MinLevel.</summary>
+        public List<UnitStack> Units { get; set; } = new();
 
-        /// <summary>Коефіцієнт росту сили: BasePower × PowerGrowth^(рівень−1).</summary>
-        public double PowerGrowth { get; set; } = 1.5;
+        /// <summary>Коефіцієнт росту кількості юнітів з рівнем.</summary>
+        public double UnitGrowth { get; set; } = 1.5;
 
         /// <summary>Нагорода за перемогу на 1 рівні.</summary>
         public List<ResourceCost> Rewards { get; set; } = new();
 
         /// <summary>Коефіцієнт росту нагороди з рівнем.</summary>
         public double RewardGrowth { get; set; } = 1.5;
+    }
+    /// <summary>Склад загону: тип юніта і кількість.</summary>
+    public class UnitStack
+    {
+        public string UnitType { get; set; } = null!;
+        public int Count { get; set; }
+    }
+
+    /// <summary>Параметри бойової системи.</summary>
+    public class CombatConfig
+    {
+        /// <summary>Нижня межа випадкового множника.</summary>
+        public double RandomMin { get; set; } = 0.7;
+
+        /// <summary>Верхня межа випадкового множника.</summary>
+        public double RandomMax { get; set; } = 1.4;
+
+        /// <summary>Розкид нормального розподілу навколо 1.0.</summary>
+        public double RandomSigma { get; set; } = 0.15;
+
+        /// <summary>Бонуси типів юнітів на різній місцевості.</summary>
+        public List<TerrainBonus> TerrainBonuses { get; set; } = new();
+    }
+
+    /// <summary>Модифікатор сили типу юніта на певній місцевості.</summary>
+    public class TerrainBonus
+    {
+        public string Terrain { get; set; } = null!;
+        public string UnitType { get; set; } = null!;
+
+        /// <summary>Множник сили (1.25 = +25%).</summary>
+        public double Modifier { get; set; } = 1.0;
     }
 }
