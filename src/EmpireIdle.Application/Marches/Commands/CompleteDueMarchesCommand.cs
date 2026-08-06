@@ -18,6 +18,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapRepository _mapRepository;
         private readonly IMonsterRepository _monsterRepository;
+        private readonly IVillageRepository _villageRepository;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly CombatCalculator _combat;
         private readonly TerrainGenerator _terrain;
@@ -30,6 +31,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IUnitOfWork unitOfWork,
             IMapRepository mapRepository,
             IMonsterRepository monsterRepository,   
+            IVillageRepository villageRepository,
             MonsterArmyBuilder armyBuilder,
             CombatCalculator combat,
             TerrainGenerator terrain,
@@ -41,6 +43,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _unitOfWork = unitOfWork;
             _mapRepository = mapRepository;
             _monsterRepository = monsterRepository;
+            _villageRepository = villageRepository;
             _armyBuilder = armyBuilder;
             _combat = combat;
             _terrain = terrain;
@@ -124,7 +127,14 @@ namespace EmpireIdle.Application.Marches.Commands
                 if (cell is not null)
                     _mapRepository.Remove(cell);
 
-                // TODO (наступний крок): нагороди в село
+                var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
+
+                var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken);
+                if (garrison is not null)
+                {
+                    var village = await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken);
+                    village?.GrantResources(rewards);
+                }
             }
 
             _logger.LogInformation(

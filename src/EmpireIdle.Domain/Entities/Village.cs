@@ -267,6 +267,28 @@ namespace EmpireIdle.Domain.Entities
             }
             population.Add(amount);
         }
+
+        /// <summary>
+        /// Нараховує ресурси в село (нагорода за бій, подарунок тощо).
+        /// Невідомі ресурси створюються на льоту.
+        /// </summary>
+        public void GrantResources(List<ResourceCost> rewards)
+        {
+            foreach (var line in rewards)
+            {
+                if (line.Amount <= 0)
+                    continue;
+
+                var resource = _resources.FirstOrDefault(r => r.ResourceType == line.Resource);
+                if (resource is null)
+                {
+                    resource = new VillageResource(Id, line.Resource);
+                    _resources.Add(resource);
+                }
+
+                resource.Add(line.Amount);
+            }
+        }
     }
 }
 
