@@ -17,5 +17,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Зайняти клітину.</summary>
         Task AddAsync(MapCell cell, CancellationToken cancellationToken = default);
+
+        /// <summary>Звільнити клітину (окупант зник).</summary>
+        void Remove(MapCell cell);
     }
 }
