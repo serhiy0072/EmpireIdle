@@ -18,7 +18,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                 .WithOne()
                 .HasForeignKey(u => u.GarrisonId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Navigation(g => g.Units).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             builder.HasMany(g => g.TrainingOrders)
@@ -26,6 +25,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                 .HasForeignKey(o => o.GarrisonId)
                 .OnDelete(DeleteBehavior.Cascade);
             builder.Navigation(g=>g.TrainingOrders).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(g => g.Wounded)
+                .WithOne()
+                .HasForeignKey(w => w.GarrisonId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(g => g.Wounded).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             builder.Ignore(g => g.DomainEvents);
         }

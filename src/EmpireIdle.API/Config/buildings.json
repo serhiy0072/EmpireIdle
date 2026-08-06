@@ -159,6 +159,33 @@
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "water",
         "RequiresTownHallLevel": 0
+      },
+      {
+        "Key": "hospital",
+        "DisplayName": "Hospital",
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 300
+          },
+          {
+            "Resource": "wood",
+            "Amount": 200
+          },
+          {
+            "Resource": "food",
+            "Amount": 150
+          }
+        ],
+        "BaseStorage": 0,
+        "StorageGrowth": 1,
+        "BaseBuildMinutes": 10,
+        "BuildTimeGrowth": 1.5,
+        "AllowedZone": "plain",
+        "RequiresTownHallLevel": 3,
+        "WoundedCapacityPerLevel": 20
       }
     ]
   }

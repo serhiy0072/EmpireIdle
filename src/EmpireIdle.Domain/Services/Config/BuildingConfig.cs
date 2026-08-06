@@ -41,6 +41,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скільки населення додає кожен рівень цієї будівлі (0 — не житлова).</summary>
         public int PopulationPerLevel { get; set; }
 
+        /// <summary>Місткість поранених на рівень (0 — не госпіталь).</summary>
+        public int WoundedCapacityPerLevel { get; set; }
+
     }
 
 }

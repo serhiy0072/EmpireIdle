@@ -14,6 +14,15 @@
 
         /// <summary>Бонуси типів юнітів на різній місцевості.</summary>
         public List<TerrainBonus> TerrainBonuses { get; set; } = new();
+
+        /// <summary>Мінімальна частка поранених серед втрат.</summary>
+        public double WoundedShareMin { get; set; } = 0.4;
+
+        /// <summary>Максимальна частка поранених серед втрат.</summary>
+        public double WoundedShareMax { get; set; } = 0.6;
+
+        /// <summary>Частка втрат, яку можна відновити миттєво (за 200% вартості або gems).</summary>
+        public double InstantShare { get; set; } = 0.12;
     }
 
     /// <summary>Модифікатор сили типу юніта на певній місцевості.</summary>
