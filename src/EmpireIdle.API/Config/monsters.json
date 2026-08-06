@@ -1,0 +1,56 @@
+﻿{
+  "GameConfig": {
+    "Monsters": [
+      {
+        "Key": "wolf",
+        "DisplayName": "Wolf",
+        "MinLevel": 1,
+        "MaxLevel": 5,
+        "RequiresServerLevel": 0,
+        "Units": [
+          {
+            "UnitType": "infantry",
+            "Count": 8
+          }
+        ],
+        "UnitGrowth": 1.5,
+        "Rewards": [
+          {
+            "Resource": "food",
+            "Amount": 50
+          },
+          {
+            "Resource": "gold",
+            "Amount": 20
+          }
+        ],
+        "RewardGrowth": 1.5
+      },
+      {
+        "Key": "orc",
+        "DisplayName": "Orc Raider",
+        "MinLevel": 5,
+        "MaxLevel": 12,
+        "RequiresServerLevel": 2,
+        "Units": [
+          {
+            "UnitType": "infantry",
+            "Count": 25
+          }
+        ],
+        "UnitGrowth": 1.6,
+        "Rewards": [
+          {
+            "Resource": "iron",
+            "Amount": 80
+          },
+          {
+            "Resource": "gold",
+            "Amount": 100
+          }
+        ],
+        "RewardGrowth": 1.5
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "GameConfig": {
+    "Units": [
+      {
+        "Key": "infantry",
+        "DisplayName": "Infantry",
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 10
+          },
+          {
+            "Resource": "food",
+            "Amount": 5
+          },
+          {
+            "Resource": "population",
+            "Amount": 1
+          }
+        ],
+        "BaseTrainMinutes": 2,
+        "Stats": {
+          "Attack": 8,
+          "Defense": 12,
+          "Speed": 4
+        }
+      }
+    ]
+  }
+}

@@ -42,7 +42,15 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
+builder.Configuration
+    .AddJsonFile("game-config.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/zones.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
