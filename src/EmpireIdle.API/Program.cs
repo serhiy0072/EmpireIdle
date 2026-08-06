@@ -52,6 +52,7 @@ builder.Configuration
     .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true);
 
+builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig")); 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>()

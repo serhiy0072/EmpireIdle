@@ -1,0 +1,66 @@
+{
+  "GameConfig": {
+    "Combat": {
+      "RandomMin": 0.7,
+      "RandomMax": 1.4,
+      "RandomSigma": 0.15,
+      "TerrainBonuses": [
+        {
+          "Terrain": "plain",
+          "UnitType": "cavalry",
+          "Modifier": 1.25
+        },
+        {
+          "Terrain": "mountain",
+          "UnitType": "archer",
+          "Modifier": 1.25
+        },
+        {
+          "Terrain": "mountain",
+          "UnitType": "infantry",
+          "Modifier": 1.1
+        },
+        {
+          "Terrain": "mountain",
+          "UnitType": "cavalry",
+          "Modifier": 0.75
+        },
+        {
+          "Terrain": "forest",
+          "UnitType": "infantry",
+          "Modifier": 1.15
+        },
+        {
+          "Terrain": "forest",
+          "UnitType": "archer",
+          "Modifier": 0.85
+        },
+        {
+          "Terrain": "forest",
+          "UnitType": "cavalry",
+          "Modifier": 0.75
+        },
+        {
+          "Terrain": "water",
+          "UnitType": "infantry",
+          "Modifier": 1.2
+        },
+        {
+          "Terrain": "water",
+          "UnitType": "archer",
+          "Modifier": 1.1
+        },
+        {
+          "Terrain": "swamp",
+          "UnitType": "infantry",
+          "Modifier": 1.1
+        },
+        {
+          "Terrain": "swamp",
+          "UnitType": "cavalry",
+          "Modifier": 0.7
+        }
+      ]
+    }
+  }
+}
