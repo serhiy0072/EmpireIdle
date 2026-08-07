@@ -123,6 +123,7 @@ builder.Services.AddSingleton(new CombatCalculator(gameConfig.Combat, gameConfig
 builder.Services.AddSingleton(new MonsterArmyBuilder(gameConfig.Monsters));
 builder.Services.AddSingleton(new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
+builder.Services.AddSingleton(new SpeedUpCalculator(gameConfig.Monetization));
 
 builder.Services.AddScoped<MonsterSpawnJob>();
 

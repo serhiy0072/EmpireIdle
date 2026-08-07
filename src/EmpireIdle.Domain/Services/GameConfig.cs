@@ -28,5 +28,7 @@
         public List<MonsterConfig> Monsters { get; set; } = new();
         /// <summary>Параметри бою.</summary>
         public CombatConfig Combat { get; set; } = new();
+        /// <summary>Параметри монетизації.</summary>
+        public MonetizationConfig Monetization { get; set; } = new(); 
     }
 }

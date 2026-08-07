@@ -1,0 +1,9 @@
+{
+  "GameConfig": {
+    "Monetization": {
+      "SpeedUpGemsPerMinute": 2,
+      "SpeedUpMinGems": 1,
+      "InstantFinishThresholdMinutes": 5
+    }
+  }
+}
