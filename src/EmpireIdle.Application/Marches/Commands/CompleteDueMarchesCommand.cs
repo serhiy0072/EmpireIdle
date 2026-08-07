@@ -20,6 +20,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMapRepository _mapRepository;
         private readonly IMonsterRepository _monsterRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly IBattleReportRepository _battleReportRepository;
         private readonly GameConfig _gameConfig;
         private readonly CasualtySplitter _casualties;
         private readonly MonsterArmyBuilder _armyBuilder;
@@ -35,6 +36,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IMapRepository mapRepository,
             IMonsterRepository monsterRepository,   
             IVillageRepository villageRepository,
+            IBattleReportRepository battleReportRepository,
             IOptions<GameConfig> gameConfig,
             CasualtySplitter casualties,
             MonsterArmyBuilder armyBuilder,
@@ -49,6 +51,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _mapRepository = mapRepository;
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
+            _battleReportRepository = battleReportRepository;
             _casualties = casualties;
             _armyBuilder = armyBuilder;
             _combat = combat;
@@ -149,6 +152,26 @@ namespace EmpireIdle.Application.Marches.Commands
                 village?.GrantResources(rewards);
                 
             }
+
+            var report = new BattleReport(
+                Guid.NewGuid(),
+                village?.PlayerId ?? Guid.Empty,
+                march.Id,
+                march.TargetX, march.TargetY, terrain,
+                $"{monster.Type} (lvl {monster.Level})", monster.Level,
+                result.AttackerWon, result.AttackerPower, result.DefenderPower);
+
+            foreach (var (unitType, sent) in attackerArmy)
+            {
+                report.AddLine(
+                    unitType,
+                    sent,
+                    split.Wounded.GetValueOrDefault(unitType),
+                    split.Instant.GetValueOrDefault(unitType),
+                    split.Dead.GetValueOrDefault(unitType));
+            }
+
+            await _battleReportRepository.AddAsync(report, cancellationToken);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +

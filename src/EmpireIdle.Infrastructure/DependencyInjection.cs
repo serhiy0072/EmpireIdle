@@ -38,6 +38,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<DomainEventDispatchInterceptor>();
             services.AddScoped<IMonsterRepository, MonsterRepository>();
             services.AddScoped<IMarchRepository, MarchRepository>();
+            services.AddScoped<IBattleReportRepository, BattleReportRepository>();
 
             services.AddMediatR(cfg =>
                 {
