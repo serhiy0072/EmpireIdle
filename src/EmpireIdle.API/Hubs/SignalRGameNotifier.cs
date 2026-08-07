@@ -31,5 +31,9 @@ namespace EmpireIdle.API.Hubs
         {
             await _hubContext.Clients.Group(playerId.ToString()).SendAsync("UpgradeCompleted", new { buildingId, newLevel }, cancellationToken);
         }
+        /// <inheritdoc/>
+        public Task NotifyBattleFinishedAsync(Guid playerId, Guid reportId, bool won, string targetName, CancellationToken cancellationToken = default)
+            => _hubContext.Clients.User(playerId.ToString())
+                .SendAsync("BattleFinished", new { reportId, won, targetName }, cancellationToken);
     }
 }

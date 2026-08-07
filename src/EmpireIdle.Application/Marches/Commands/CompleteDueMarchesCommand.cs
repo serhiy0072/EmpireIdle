@@ -173,6 +173,8 @@ namespace EmpireIdle.Application.Marches.Commands
 
             await _battleReportRepository.AddAsync(report, cancellationToken);
 
+            march.RecordBattle(village?.PlayerId ?? Guid.Empty, report.Id, result.AttackerWon, report.TargetName);
+
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
                "losses — wounded {Wounded}, instant {Instant}, dead {Dead}",

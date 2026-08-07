@@ -1,8 +1,13 @@
-﻿
-namespace EmpireIdle.Domain.Events
+﻿namespace EmpireIdle.Domain.Events
 {
-    /// <summary>Подія: бій відбувся, результат відомий.</summary>
-    public record BattleFought(Guid VillageId, Guid PlayerId, Guid MarchId, bool AttakerWon, int TargetX, int TargetY, string TerrainType, Dictionary<string, int> AttakerLosses) : IDomainEvent
+    /// <summary>Подія: бій завершено, звіт сформовано.</summary>
+    public record BattleFought(
+        Guid GarrisonId,
+        Guid PlayerId,
+        Guid MarchId,
+        Guid ReportId,
+        bool Won,
+        string TargetName) : IDomainEvent
     {
         public DateTime OccurredAt { get; } = DateTime.UtcNow;
     }

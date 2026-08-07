@@ -56,5 +56,26 @@ namespace EmpireIdle.API.Controllers
             return Ok(new MapAreaResponse(minX, minY, maxX, maxY, terrain, occupants));
 
         }
+        /// <summary>
+        /// Деталі клітини: місцевість і хто на ній стоїть.
+        /// Для монстра показує склад загону — щоб напад був вибором, а не лотереєю.
+        /// </summary>
+        [HttpGet("cell/{x:int}/{y:int}")]
+        [ProducesResponseType(typeof(MapCellDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<MapCellDetailsResponse>> GetCell(int x, int y, CancellationToken cancellationToken)
+        {
+            if (!_terrain.IsInBounds(x, y))
+                throw new InvalidOperationException($"Cell ({x},{y}) is outside the map.");
+
+            var cell = _terrain.GetTerrain(ServerId, x, y);
+            var details = await _mediator.Send(new GetMapCellQuery(ServerId, x, y), cancellationToken);
+
+            return Ok(new MapCellDetailsResponse(
+                x, y,
+                cell.Type, cell.Passable, cell.Habitable, cell.MoveCost,
+                details?.OccupantType, details?.OccupantId, details?.OccupantName,
+                details?.MonsterLevel, details?.MonsterUnits));
+        }
     }
 }
