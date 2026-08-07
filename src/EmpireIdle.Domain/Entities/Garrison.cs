@@ -151,5 +151,14 @@ namespace EmpireIdle.Domain.Entities
 
             return healed;
         }
+
+        /// <summary>Прискорює замовлення тренування (speedup за gems).</summary>
+        public void ReduceTrainingTime(Guid orderId, TimeSpan reduction)
+        {
+            var order = _trainingOrders.FirstOrDefault(o => o.Id == orderId)
+                ?? throw new InvalidOperationException($"Training order {orderId} not found.");
+
+            order.Reduce(reduction);
+        }
     }
 }

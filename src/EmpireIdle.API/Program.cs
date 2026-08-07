@@ -50,7 +50,8 @@ builder.Configuration
     .AddJsonFile("Config/units.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true);
 
 builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));

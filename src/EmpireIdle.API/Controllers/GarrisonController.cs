@@ -63,5 +63,14 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new HealWoundedCommand(playerId, request.Units), cancellationToken);
             return NoContent();
         }
+
+        [HttpPost("{playerId:guid}/training/{orderId:guid}/speedup")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SpeedUpTraining(Guid playerId, Guid orderId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new SpeedUpTrainingCommand(playerId, orderId), cancellationToken);
+            return NoContent();
+        }
     }
 }

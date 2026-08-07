@@ -31,5 +31,14 @@ namespace EmpireIdle.API.Controllers
 
             return Created((string?)null, marchId);
         }
+
+        [HttpPost("{playerId:guid}/{marchId:guid}/speedup")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SpeedUpMarch(Guid playerId, Guid marchId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new SpeedUpMarchCommand(playerId, marchId), cancellationToken);
+            return NoContent();
+        }
     }
 }
