@@ -79,13 +79,13 @@
         /// Армія дійшла до цілі й розвертається додому.
         /// Бій відбувається окремо (фаза Combat) — тут лише рух.
         /// </summary>
-        public void TurnBack(TimeSpan returnDuration)
+        public void TurnBack(TimeSpan returnDuration, DateTime utcNow)
         {
             if (State != MarchState.Outbound)
                 throw new InvalidOperationException($"March {Id} is not outbound.");
 
             State = MarchState.Returning;
-            ArrivesAt = DateTime.UtcNow + returnDuration;
+            ArrivesAt = utcNow + returnDuration;
         }
 
         /// <summary>Армія повернулася додому — похід завершено.</summary>

@@ -41,6 +41,8 @@ namespace EmpireIdle.Application.Villages.Commands
             var total = 0;
             Guid? cursor = null;
 
+            var now = DateTime.UtcNow;
+
             while (true)
             {
                 var batch = await _villageRepository.GetBatchForTickAsync(cursor, BatchSize, cancellationToken);
@@ -48,7 +50,7 @@ namespace EmpireIdle.Application.Villages.Commands
                     break;
 
                 foreach (var village in batch)
-                    village.TickProduction(buildingConfigs);
+                    village.TickProduction(buildingConfigs, now);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 

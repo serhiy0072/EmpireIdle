@@ -69,9 +69,9 @@ namespace EmpireIdle.Domain.Entities
         /// Ресурси села змінюються лише при зборі (CollectFromBuilding).
         /// </summary>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig (Key → BuildingConfig).</param>
-        public void TickProduction(Dictionary<string, BuildingConfig> buildingConfigs)
+        public void TickProduction(Dictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
         {
-            var elapsed = DateTime.UtcNow - LastTickAt;
+            var elapsed = utcNow - LastTickAt;
 
             foreach (var building in _buildings)
             {
@@ -83,7 +83,7 @@ namespace EmpireIdle.Domain.Entities
                 building.AccumulateProduction(config.BaseProductionPerMinute, config.BaseStorage, config.StorageGrowth, elapsed);
             }
 
-            LastTickAt = DateTime.UtcNow;
+            LastTickAt = utcNow;
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
         /// <exception cref="InvalidOperationException">Якщо будівля або її конфіг не знайдені.</exception>
-        public void CollectFromBuilding(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs)
+        public void CollectFromBuilding(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
                 ?? throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
@@ -103,7 +103,7 @@ namespace EmpireIdle.Domain.Entities
             if (config.ProducesResource is null)
                 return; // невиробнича будівля — нічого збирати
 
-            var collected = building.Collect();
+            var collected = building.Collect(utcNow);
             if (collected == 0)
                 return;// порожній буфер — не подія і не зміна стану
 
@@ -199,7 +199,7 @@ namespace EmpireIdle.Domain.Entities
         /// списує ресурси та ставить будівлю в стан будівництва.
         /// Рівень підніметься при завершенні (CompleteDueConstructions).
         /// </summary>
-        public void BeginBuildingUpgrade(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs, int builderCount = 1)
+        public void BeginBuildingUpgrade(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, int builderCount = 1)
         {
             if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
                 throw new InvalidOperationException("All builders are busy");
@@ -228,7 +228,7 @@ namespace EmpireIdle.Domain.Entities
             }
 
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
-            building.BeginUpgrade(TimeSpan.FromMinutes(buildMinutes));
+            building.BeginUpgrade(TimeSpan.FromMinutes(buildMinutes), utcNow);
 
             RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
         }

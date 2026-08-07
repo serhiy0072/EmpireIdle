@@ -159,7 +159,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 march.Id,
                 march.TargetX, march.TargetY, terrain,
                 $"{monster.Type} (lvl {monster.Level})", monster.Level,
-                result.AttackerWon, result.AttackerPower, result.DefenderPower);
+                result.AttackerWon, result.AttackerPower, result.DefenderPower, DateTime.UtcNow);
 
             foreach (var (unitType, sent) in attackerArmy)
             {
@@ -192,7 +192,7 @@ namespace EmpireIdle.Application.Marches.Commands
             if (survivors.Count == 0 || survivors.Values.All(c => c <= 0))
             {
                 // Уся армія загинула — повертатись нікому
-                march.TurnBack(TimeSpan.Zero);
+                march.TurnBack(TimeSpan.Zero, DateTime.UtcNow);
                 march.Complete();
                 return;
             }
@@ -200,7 +200,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var backDuration = _calculator.CalculateDuration(
                 ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
 
-            march.TurnBack(backDuration);
+            march.TurnBack(backDuration, DateTime.UtcNow);
         }
         /// <summary>
         /// Вільних місць у Госпіталі: сума (рівень × місткість на рівень) мінус уже поранені.

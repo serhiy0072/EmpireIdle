@@ -32,7 +32,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
             var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
 
-            village.CollectFromBuilding(request.BuildingId, buildingConfigs);
+            village.CollectFromBuilding(request.BuildingId, buildingConfigs, DateTime.UtcNow);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

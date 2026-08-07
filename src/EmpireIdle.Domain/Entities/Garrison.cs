@@ -30,16 +30,16 @@ namespace EmpireIdle.Domain.Entities
         /// Ставить партію юнітів у чергу тренування.
         /// Інваріанти гарнізону: розмір партії 1–5, одне активне замовлення.
         /// </summary>
-        public void TrainUnits(string unitType, int count, TimeSpan trainDuration)
+        public void TrainUnits(string unitType, int count, TimeSpan trainDuration, DateTime utcNow)
         {
-            if(count < 1 || count > 5)
+            if (count < 1 || count > 5)
                 throw new InvalidOperationException("Training batch size must be between 1 and 5.");
 
             if (_trainingOrders.Any())
                 throw new InvalidOperationException("Barracks are already training a batch.");
 
             _trainingOrders.Add(new UnitTrainingOrder(
-                Guid.NewGuid(), Id, unitType, count, DateTime.UtcNow.Add(trainDuration)));
+                Guid.NewGuid(), Id, unitType, count, utcNow + trainDuration));
         }
 
         /// <summary>Завершує дозрілі замовлення: юніти йдуть у гарнізон.</summary>
@@ -47,7 +47,7 @@ namespace EmpireIdle.Domain.Entities
         {
             var due = _trainingOrders.Where(o => o.CompletesAt <= utcNow).ToList();
 
-            foreach(var order in due)
+            foreach (var order in due)
             {
                 var unit = _units.FirstOrDefault(u => u.UnitType == order.UnitType);
                 if (unit is null)

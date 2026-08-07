@@ -78,15 +78,12 @@ namespace EmpireIdle.Domain.Entities
             ProductionRemainder = StoredAmount < cap ? produced - whole : 0; // якщо буфер заповнений, дробову частину не переносимо
         }
 
-        /// <summary>
-        /// Збирає накопичене з буфера. Повертає зібрану кількість, обнуляє буфер,
-        /// оновлює час останнього збору.
-        /// </summary>
-        public int Collect()
+        /// <summary>Збирає накопичене з буфера. Повертає зібрану кількість.</summary>
+        public int Collect(DateTime utcNow)
         {
             var collected = StoredAmount;
             StoredAmount = 0;
-            LastCollectedAt = DateTime.UtcNow;
+            LastCollectedAt = utcNow;
             return collected;
         }
 
@@ -103,12 +100,12 @@ namespace EmpireIdle.Domain.Entities
         /// Розпочати апгрейд: будівля переходить у стан будівництва до вказаного часу.
         /// Рівень підніметься лише при завершенні (CompleteConstruction).
         /// </summary>
-        public void BeginUpgrade(TimeSpan duration)
+        public void BeginUpgrade(TimeSpan duration, DateTime utcNow)
         {
             if (IsUnderConstruction)
                 throw new InvalidOperationException($"Building {Id} is already under construction.");
 
-            ConstructionCompletesAt = DateTime.UtcNow + duration;
+            ConstructionCompletesAt = utcNow + duration;
         }
 
         /// <summary>
