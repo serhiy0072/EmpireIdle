@@ -3,6 +3,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.Application.Marches.Commands
 {
@@ -19,6 +20,8 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMapRepository _mapRepository;
         private readonly IMonsterRepository _monsterRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly GameConfig _gameConfig;
+        private readonly CasualtySplitter _casualties;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly CombatCalculator _combat;
         private readonly TerrainGenerator _terrain;
@@ -32,6 +35,8 @@ namespace EmpireIdle.Application.Marches.Commands
             IMapRepository mapRepository,
             IMonsterRepository monsterRepository,   
             IVillageRepository villageRepository,
+            IOptions<GameConfig> gameConfig,
+            CasualtySplitter casualties,
             MonsterArmyBuilder armyBuilder,
             CombatCalculator combat,
             TerrainGenerator terrain,
@@ -44,11 +49,13 @@ namespace EmpireIdle.Application.Marches.Commands
             _mapRepository = mapRepository;
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
+            _casualties = casualties;
             _armyBuilder = armyBuilder;
             _combat = combat;
             _terrain = terrain;
             _calculator = calculator;
             _logger = logger;
+            _gameConfig = gameConfig.Value;
         }
 
         public async Task Handle(CompleteDueMarchesCommand request, CancellationToken cancellationToken)
@@ -116,7 +123,18 @@ namespace EmpireIdle.Application.Marches.Commands
             var defenderArmy = _armyBuilder.BuildArmy(monster.Type, monster.Level);
             var result = _combat.Resolve(attackerArmy, defenderArmy, terrain);
 
+            var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken); 
+            var village = garrison is null
+                ? null
+                : await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken);
+
+            // Вільна місткість Госпіталю = сума рівнів × місткість на рівень − уже поранені
+            var woundedCapacity = CalculateWoundedCapacity(village, garrison);
+
+            var split = _casualties.Split(result.AttackerLosses, woundedCapacity);
+
             march.ApplyLosses(result.AttackerLosses);
+            garrison?.AdmitWounded(split.Wounded);
 
             if (result.AttackerWon)
             {
@@ -128,20 +146,17 @@ namespace EmpireIdle.Application.Marches.Commands
                     _mapRepository.Remove(cell);
 
                 var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
-
-                var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken);
-                if (garrison is not null)
-                {
-                    var village = await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken);
-                    village?.GrantResources(rewards);
-                }
+                village?.GrantResources(rewards);
+                
             }
 
             _logger.LogInformation(
-               "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0})",
+               "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
+               "losses — wounded {Wounded}, instant {Instant}, dead {Dead}",
                march.TargetX, march.TargetY, terrain,
                result.AttackerWon ? "won" : "lost",
-               result.AttackerPower, result.DefenderPower);
+               result.AttackerPower, result.DefenderPower,
+               split.Wounded.Values.Sum(), split.Instant.Values.Sum(), split.Dead.Values.Sum());
 
             TurnMarchBack(march, march.GetUnits());
         }
@@ -162,5 +177,25 @@ namespace EmpireIdle.Application.Marches.Commands
 
             march.TurnBack(backDuration);
         }
+        /// <summary>
+        /// Вільних місць у Госпіталі: сума (рівень × місткість на рівень) мінус уже поранені.
+        /// Немає Госпіталю — немає поранених, усі втрати безповоротні.
+        /// </summary>
+        private int CalculateWoundedCapacity(Village? village, Garrison? garrison)
+        {
+            if (village is null || garrison is null)
+                return 0;
+
+            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
+
+            var total = village.Buildings
+                .Where(b => !b.IsUnderConstruction)
+                .Sum(b => buildingConfigs.TryGetValue(b.Type, out var cfg)
+                    ? cfg.WoundedCapacityPerLevel * b.Level.Value
+                    : 0);
+
+            return Math.Max(0, total - garrison.WoundedCount);
+        }
+
     }
 }
