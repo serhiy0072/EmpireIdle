@@ -1,0 +1,22 @@
+{
+  "GameConfig": {
+    "Zones": [
+      {
+        "Type": "plain",
+        "Slots": 4
+      },
+      {
+        "Type": "forest",
+        "Slots": 3
+      },
+      {
+        "Type": "mountain",
+        "Slots": 3
+      },
+      {
+        "Type": "water",
+        "Slots": 2
+      }
+    ]
+  }
+}

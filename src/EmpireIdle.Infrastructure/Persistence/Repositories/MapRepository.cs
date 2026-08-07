@@ -37,5 +37,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         {
             await _context.MapCells.AddAsync(cell);
         }
+
+        /// <inheritdoc/>
+        public void Remove(MapCell cell) => _context.MapCells.Remove(cell);
     }
 }

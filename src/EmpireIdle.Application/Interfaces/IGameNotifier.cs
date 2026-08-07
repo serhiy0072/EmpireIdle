@@ -14,5 +14,8 @@
 
         /// <summary>Повідомити гравця про завершення апгрейду (новий рівень).</summary>
         Task NotifyUpgradeCompletedAsync(Guid playerId, Guid buildingId, int newLevel, CancellationToken cancellationToken = default);
+        /// <summary>Повідомити гравця про результат бою.</summary>
+        Task NotifyBattleFinishedAsync(Guid playerId, Guid reportId, bool won, string targetName, CancellationToken cancellationToken = default);
+
     }
 }

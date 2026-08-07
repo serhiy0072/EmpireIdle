@@ -13,5 +13,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Додати монстра.</summary>
         Task AddAsync(Monster monster, CancellationToken cancellationToken = default);
+
+        /// <summary>Прибрати монстра (вбитий).</summary>
+        void Remove(Monster monster);
     }
 }

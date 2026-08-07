@@ -16,5 +16,6 @@
     public record MapCellDetailsResponse(
         int X, int Y,
         string TerrainType, bool Passable, bool Habitable, double MoveCost,
-        string? OccupantType, Guid? OccupantId, string? OccupantName);
+        string? OccupantType, Guid? OccupantId, string? OccupantName,
+        int? MonsterLevel, Dictionary<string, int>? MonsterUnits);
 }

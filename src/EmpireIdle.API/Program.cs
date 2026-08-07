@@ -14,8 +14,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile("game-config.json", optional: false, reloadOnChange: true);
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -42,8 +40,17 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
+builder.Configuration
+    .AddJsonFile("game-config.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/zones.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true);
 
+builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>()
@@ -104,21 +111,16 @@ builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 builder.Services.AddScoped<ResourceTickJob>();
 builder.Services.AddScoped<TimerScanJob>();
 
-builder.Services.AddSingleton(sp => new TerrainGenerator(sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
-builder.Services.AddSingleton(sp =>
-    new SettlementPlacer(
-            sp.GetRequiredService<TerrainGenerator>(),
-            sp.GetRequiredService<IOptions<GameConfig>>().Value.Map));
-builder.Services.AddSingleton(sp =>
-{
-    var config = sp.GetRequiredService<IOptions<GameConfig>>().Value;
-    return new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), config.Map, config.Monsters);
-});
-builder.Services.AddSingleton(sp =>
-{
-    var config = sp.GetRequiredService<IOptions<GameConfig>>().Value;
-    return new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), config.Units);
-});
+var gameConfig = builder.Configuration.GetSection("GameConfig").Get<GameConfig>()
+    ?? throw new InvalidOperationException("GameConfig section is missing or invalid.");
+
+builder.Services.AddSingleton(new TerrainGenerator(gameConfig.Map));
+builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, gameConfig.Monsters));
+builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Units));
+builder.Services.AddSingleton(new CombatCalculator(gameConfig.Combat, gameConfig.Units));
+builder.Services.AddSingleton(new MonsterArmyBuilder(gameConfig.Monsters));
+builder.Services.AddSingleton(new CasualtySplitter(gameConfig.Combat));
+builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
 
 builder.Services.AddScoped<MonsterSpawnJob>();
 
@@ -131,7 +133,7 @@ builder.Services.AddCors(option =>
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials()
+.AllowCredentials()
 ));
 
 var app = builder.Build();
@@ -153,7 +155,7 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseExceptionHandler();
 
-app.UseCors("FrontendCors");
+app.UseCors(FrontendCors);
 
 app.UseAuthentication();
 app.UseAuthorization();

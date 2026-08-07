@@ -9,12 +9,15 @@ namespace EmpireIdle.Domain.Entities
     {
         private readonly List<VillageUnit> _units = new();
         private readonly List<UnitTrainingOrder> _trainingOrders = new();
+        private readonly List<WoundedUnit> _wounded = new();
 
         /// <summary>Село, якому належить гарнізон.</summary>
         public Guid VillageId { get; private set; }
 
         public IReadOnlyCollection<VillageUnit> Units => _units.AsReadOnly();
         public IReadOnlyCollection<UnitTrainingOrder> TrainingOrders => _trainingOrders.AsReadOnly();
+        /// <summary>Поранені в Госпіталі (тільки для читання).</summary>
+        public IReadOnlyCollection<WoundedUnit> Wounded => _wounded.AsReadOnly();
 
         public Garrison(Guid id, Guid villageId) : base(id)
         {
@@ -100,6 +103,53 @@ namespace EmpireIdle.Domain.Entities
                 }
                 unit.Add(count);
             }
+        }
+
+        /// <summary>Скільки поранених зараз лежить у Госпіталі.</summary>
+        public int WoundedCount => _wounded.Sum(w => w.Count);
+
+        /// <summary>Приймає поранених після бою (у межах вільної місткості).</summary>
+        public void AdmitWounded(IReadOnlyDictionary<string, int> wounded)
+        {
+            foreach (var (unitType, count) in wounded)
+            {
+                if (count <= 0)
+                    continue;
+
+                var stack = _wounded.FirstOrDefault(w => w.UnitType == unitType);
+                if (stack is null)
+                {
+                    stack = new WoundedUnit(Guid.NewGuid(), Id, unitType, 0);
+                    _wounded.Add(stack);
+                }
+                stack.Add(count);
+            }
+        }
+
+        /// <summary>
+        /// Виліковує поранених: вони повертаються в гарнізон.
+        /// </summary>
+        public Dictionary<string, int> HealWounded(IReadOnlyDictionary<string, int> toHeal)
+        {
+            var healed = new Dictionary<string, int>();
+
+            foreach (var (unitType, requested) in toHeal)
+            {
+                var stack = _wounded.FirstOrDefault(w => w.UnitType == unitType);
+                if (stack is null || requested <= 0)
+                    continue;
+
+                var count = Math.Min(requested, stack.Count);
+                stack.Reduce(count);
+                healed[unitType] = count;
+            }
+
+            _wounded.RemoveAll(w => w.Count <= 0);
+
+            if (healed.Count > 0)
+                ReceiveUnits(healed);
+
+            return healed;
         }
     }
 }

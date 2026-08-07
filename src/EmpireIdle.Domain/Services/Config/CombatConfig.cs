@@ -1,0 +1,37 @@
+﻿namespace EmpireIdle.Domain.Services
+{
+    /// <summary>Параметри бойової системи.</summary>
+    public class CombatConfig
+    {
+        /// <summary>Нижня межа випадкового множника.</summary>
+        public double RandomMin { get; set; } = 0.7;
+
+        /// <summary>Верхня межа випадкового множника.</summary>
+        public double RandomMax { get; set; } = 1.4;
+
+        /// <summary>Розкид нормального розподілу навколо 1.0.</summary>
+        public double RandomSigma { get; set; } = 0.15;
+
+        /// <summary>Бонуси типів юнітів на різній місцевості.</summary>
+        public List<TerrainBonus> TerrainBonuses { get; set; } = new();
+
+        /// <summary>Мінімальна частка поранених серед втрат.</summary>
+        public double WoundedShareMin { get; set; } = 0.4;
+
+        /// <summary>Максимальна частка поранених серед втрат.</summary>
+        public double WoundedShareMax { get; set; } = 0.6;
+
+        /// <summary>Частка втрат, яку можна відновити миттєво (за 200% вартості або gems).</summary>
+        public double InstantShare { get; set; } = 0.12;
+    }
+
+    /// <summary>Модифікатор сили типу юніта на певній місцевості.</summary>
+    public class TerrainBonus
+    {
+        public string Terrain { get; set; } = null!;
+        public string UnitType { get; set; } = null!;
+
+        /// <summary>Множник сили (1.25 = +25%).</summary>
+        public double Modifier { get; set; } = 1.0;
+    }
+}

@@ -27,5 +27,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         {
             await _context.Monsters.AddAsync(monster, cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public void Remove(Monster monster) => _context.Monsters.Remove(monster);
     }
 }

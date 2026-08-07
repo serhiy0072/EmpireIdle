@@ -1,0 +1,31 @@
+{
+  "GameConfig": {
+    "Resources": [
+      {
+        "Key": "gold",
+        "DisplayName": "Gold",
+        "Icon": "gold.svg"
+      },
+      {
+        "Key": "food",
+        "DisplayName": "Food",
+        "Icon": "food.svg"
+      },
+      {
+        "Key": "wood",
+        "DisplayName": "Wood",
+        "Icon": "wood.svg"
+      },
+      {
+        "Key": "iron",
+        "DisplayName": "Iron",
+        "Icon": "iron.svg"
+      },
+      {
+        "Key": "population",
+        "DisplayName": "Population",
+        "Icon": "population.svg"
+      }
+    ]
+  }
+}

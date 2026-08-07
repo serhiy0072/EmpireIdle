@@ -36,6 +36,7 @@ namespace EmpireIdle.API.Controllers
                 garrison.Id,
                 garrison.VillageId,
                 garrison.Units.Select(u => new UnitResponse(u.UnitType, u.Count)).ToList(),
+                garrison.Wounded.Select(w => new UnitResponse(w.UnitType, w.Count)).ToList(),
                 garrison.TrainingOrders.Select(o=> new TrainingOrderResponse(o.Id, o.UnitType, o.Count, o.CompletesAt)).ToList());
 
             return Ok(response);
@@ -50,6 +51,16 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> TrainUnits(Guid playerId, [FromBody] TrainUnitsRequest request, CancellationToken cancellationToken)
         {
             await _mediator.Send(new TrainUnitsCommand(playerId, request.UnitType, request.Count), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Вилікувати поранених юнітів.</summary>
+        [HttpPost("{playerId:guid}/units/heal")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> HealWounded(Guid playerId, [FromBody] HealWoundedRequest request, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new HealWoundedCommand(playerId, request.Units), cancellationToken);
             return NoContent();
         }
     }

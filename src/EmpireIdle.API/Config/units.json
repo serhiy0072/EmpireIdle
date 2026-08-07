@@ -1,0 +1,106 @@
+{
+  "GameConfig": {
+    "Units": [
+      {
+        "Key": "infantry",
+        "DisplayName": "Infantry",
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 10
+          },
+          {
+            "Resource": "food",
+            "Amount": 5
+          },
+          {
+            "Resource": "population",
+            "Amount": 1
+          }
+        ],
+        "BaseTrainMinutes": 2,
+        "Stats": {
+          "Attack": 8,
+          "Defense": 12,
+          "Speed": 4
+        }
+      },
+      {
+        "Key": "archer",
+        "DisplayName": "Archer",
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 15
+          },
+          {
+            "Resource": "wood",
+            "Amount": 10
+          },
+          {
+            "Resource": "population",
+            "Amount": 1
+          }
+        ],
+        "BaseTrainMinutes": 3,
+        "Stats": {
+          "Attack": 12,
+          "Defense": 6,
+          "Speed": 4
+        }
+      },
+      {
+        "Key": "cavalry",
+        "DisplayName": "Cavalry",
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 30
+          },
+          {
+            "Resource": "food",
+            "Amount": 20
+          },
+          {
+            "Resource": "iron",
+            "Amount": 10
+          },
+          {
+            "Resource": "population",
+            "Amount": 2
+          }
+        ],
+        "BaseTrainMinutes": 5,
+        "Stats": {
+          "Attack": 18,
+          "Defense": 10,
+          "Speed": 8
+        }
+      },
+      {
+        "Key": "siege",
+        "DisplayName": "Siege Engine",
+        "Cost": [
+          {
+            "Resource": "wood",
+            "Amount": 100
+          },
+          {
+            "Resource": "iron",
+            "Amount": 50
+          },
+          {
+            "Resource": "population",
+            "Amount": 3
+          }
+        ],
+        "BaseTrainMinutes": 15,
+        "Stats": {
+          "Attack": 40,
+          "Defense": 5,
+          "Speed": 1
+        }
+      }
+    ]
+  }
+}

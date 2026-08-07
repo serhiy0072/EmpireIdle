@@ -3,6 +3,7 @@ using System;
 using EmpireIdle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EmpireIdle.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260806145802_AddWoundedUnits")]
+    partial class AddWoundedUnits
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,91 +24,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("EmpireIdle.Domain.Entities.BattleReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<double>("AttackerPower")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("DefenderPower")
-                        .HasColumnType("double precision");
-
-                    b.Property<DateTime>("FoughtAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("MarchId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("TargetLevel")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TargetName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("TerrainType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<bool>("Won")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("X")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Y")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlayerId", "FoughtAt");
-
-                    b.ToTable("BattleReports", (string)null);
-                });
-
-            modelBuilder.Entity("EmpireIdle.Domain.Entities.BattleReportLine", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BattleReportId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Dead")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Instant")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Sent")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UnitType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("Wounded")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BattleReportId");
-
-                    b.ToTable("BattleReportLines", (string)null);
-                });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Building", b =>
                 {
@@ -754,15 +672,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("EmpireIdle.Domain.Entities.BattleReportLine", b =>
-                {
-                    b.HasOne("EmpireIdle.Domain.Entities.BattleReport", null)
-                        .WithMany("Lines")
-                        .HasForeignKey("BattleReportId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Building", b =>
                 {
                     b.HasOne("EmpireIdle.Domain.Entities.Village", null)
@@ -884,11 +793,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("EmpireIdle.Domain.Entities.BattleReport", b =>
-                {
-                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Garrison", b =>

@@ -96,6 +96,26 @@
 
             State = MarchState.Completed;
         }
+
+        /// <summary>
+        /// Застосовує втрати після бою: зменшує склад армії.
+        /// Загони, що загинули повністю, видаляються.
+        /// </summary>
+        public void ApplyLosses(IReadOnlyDictionary<string, int> losses)
+        {
+            foreach(var (unitType, lost) in losses)
+            {
+                var stack = _units.FirstOrDefault(u => u.UnitType == unitType);
+                if (stack is null || lost <= 0)
+                    continue;
+                stack.Reduce(lost);
+            }
+            _units.RemoveAll(u => u.Count <= 0);
+        }
+
+        /// <summary>Фіксує факт бою для сповіщення гравця.</summary>
+        public void RecordBattle(Guid playerId, Guid reportId, bool won, string targetName)
+            => RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName));
     }
 
     /// <summary>Загін у складі походу.</summary>
@@ -113,5 +133,11 @@
         }
 
         protected MarchUnit() { } // Для EF Core
+
+        /// <summary>Зменшує кількість юнітів у загоні (втрати в бою).</summary>
+        public void Reduce(int amount)
+        {
+            Count = Math.Max(0, Count - amount);
+        }
     }
 }
