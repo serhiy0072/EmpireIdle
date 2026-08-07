@@ -1,0 +1,70 @@
+{
+  "GameConfig": {
+    "Shop": {
+      "GemPacks": [
+        {
+          "Key": "pack_small",
+          "DisplayName": "Handful of Gems",
+          "Gems": 100,
+          "PriceUsdCents": 99,
+          "BonusPercent": 0
+        },
+        {
+          "Key": "pack_medium",
+          "DisplayName": "Pouch of Gems",
+          "Gems": 550,
+          "PriceUsdCents": 499,
+          "BonusPercent": 10
+        },
+        {
+          "Key": "pack_large",
+          "DisplayName": "Chest of Gems",
+          "Gems": 1200,
+          "PriceUsdCents": 999,
+          "BonusPercent": 20
+        },
+        {
+          "Key": "pack_huge",
+          "DisplayName": "Vault of Gems",
+          "Gems": 6500,
+          "PriceUsdCents": 4999,
+          "BonusPercent": 30
+        }
+      ],
+      "LootBoxes": [
+        {
+          "Key": "box_wooden",
+          "DisplayName": "Wooden Chest",
+          "PriceGems": 150,
+          "PityCount": 30,
+          "Drops": [
+            {
+              "Key": "resource_small",
+              "DisplayName": "Small resource cache",
+              "Rarity": "common",
+              "Weight": 60
+            },
+            {
+              "Key": "resource_large",
+              "DisplayName": "Large resource cache",
+              "Rarity": "rare",
+              "Weight": 25
+            },
+            {
+              "Key": "speedup_1h",
+              "DisplayName": "1 hour speedup",
+              "Rarity": "rare",
+              "Weight": 12
+            },
+            {
+              "Key": "equipment_basic",
+              "DisplayName": "Basic equipment",
+              "Rarity": "legendary",
+              "Weight": 3
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

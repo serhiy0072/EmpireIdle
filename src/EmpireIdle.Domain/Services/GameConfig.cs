@@ -29,6 +29,9 @@
         /// <summary>Параметри бою.</summary>
         public CombatConfig Combat { get; set; } = new();
         /// <summary>Параметри монетизації.</summary>
-        public MonetizationConfig Monetization { get; set; } = new(); 
+        public MonetizationConfig Monetization { get; set; } = new();
+
+        /// <summary>Параметри магазину.</summary>
+        public ShopConfig Shop { get; set; } = new();
     }
 }
