@@ -49,10 +49,13 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var config = _gameConfig.Units.FirstOrDefault(u => u.Key == request.UnitType)
                 ?? throw new InvalidOperationException($"Unknown unit type '{request.UnitType}'.");
 
+            if (config.RequiresBuilding is not null && !village.HasBuilding(config.RequiresBuilding))
+                throw new InvalidOperationException($"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.");
+
             village.ChargeCost(config.Cost, request.Count);
 
             garrison.TrainUnits(request.UnitType, request.Count,
-                TimeSpan.FromMinutes(config.BaseTrainMinutes * request.Count));
+                TimeSpan.FromMinutes(config.BaseTrainMinutes * request.Count), DateTime.UtcNow);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

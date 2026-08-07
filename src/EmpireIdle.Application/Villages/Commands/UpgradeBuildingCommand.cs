@@ -37,7 +37,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
             var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
 
-            village.BeginBuildingUpgrade(request.BuildingId, buildingConfigs);
+            village.BeginBuildingUpgrade(request.BuildingId, buildingConfigs, DateTime.UtcNow);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

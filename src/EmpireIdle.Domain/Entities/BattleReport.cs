@@ -34,7 +34,7 @@
         public BattleReport(Guid id, Guid playerId, Guid marchId,
             int x, int y, string terrainType,
             string targetName, int targetLevel,
-            bool won, double attackerPower, double defenderPower) : base(id)
+            bool won, double attackerPower, double defenderPower, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;
             MarchId = marchId;
@@ -46,7 +46,7 @@
             Won = won;
             AttackerPower = attackerPower;
             DefenderPower = defenderPower;
-            FoughtAt = DateTime.UtcNow;
+            FoughtAt = utcNow;
         }
 
         protected BattleReport() { } // Для EF Core

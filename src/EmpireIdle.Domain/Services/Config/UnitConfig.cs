@@ -9,6 +9,9 @@
         /// <summary>Відображувана назва.</summary>
         public string DisplayName { get; set; } = null!;
 
+        /// <summary>Будівля, потрібна для тренування; null — без вимог.</summary>
+        public string? RequiresBuilding { get; set; }
+
         /// <summary>Вартість тренування одного юніта.</summary>
         public List<ResourceCost> Cost { get; set; } = new();
 
@@ -20,5 +23,6 @@
         /// Config-driven: додав стат у JSON — код не змінюється.
         /// </summary>
         public Dictionary<string, double> Stats { get; set; } = new();
+
     }
 }

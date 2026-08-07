@@ -186,6 +186,32 @@
         "AllowedZone": "plain",
         "RequiresTownHallLevel": 3,
         "WoundedCapacityPerLevel": 20
+      },
+      {
+        "Key": "barracks",
+        "DisplayName": "Barracks",
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 250
+          },
+          {
+            "Resource": "wood",
+            "Amount": 200
+          },
+          {
+            "Resource": "iron",
+            "Amount": 100
+          }
+        ],
+        "BaseStorage": 0,
+        "StorageGrowth": 1,
+        "BaseBuildMinutes": 8,
+        "BuildTimeGrowth": 1.5,
+        "AllowedZone": "plain",
+        "RequiresTownHallLevel": 2
       }
     ]
   }

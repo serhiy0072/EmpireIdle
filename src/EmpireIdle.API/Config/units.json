@@ -23,7 +23,8 @@
           "Attack": 8,
           "Defense": 12,
           "Speed": 4
-        }
+        },
+        "RequiresBuilding": "barracks"
       },
       {
         "Key": "archer",
@@ -47,7 +48,8 @@
           "Attack": 12,
           "Defense": 6,
           "Speed": 4
-        }
+        },
+        "RequiresBuilding": "barracks"
       },
       {
         "Key": "cavalry",
@@ -75,7 +77,8 @@
           "Attack": 18,
           "Defense": 10,
           "Speed": 8
-        }
+        },
+        "RequiresBuilding": "barracks"
       },
       {
         "Key": "siege",
@@ -99,7 +102,8 @@
           "Attack": 40,
           "Defense": 5,
           "Speed": 1
-        }
+        },
+        "RequiresBuilding": "barracks"
       }
     ]
   }

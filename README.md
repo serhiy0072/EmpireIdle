@@ -1,8 +1,8 @@
 # 🏰 EmpireIdle
 
-Browser-based idle/empire builder game built with **ASP.NET Core (.NET 10)**, **Clean Architecture**, **DDD**, and **React** (frontend planned).
+Browser-based idle empire builder with city management, world map exploration, and PvE combat — built with **ASP.NET Core (.NET 10)**, **Clean Architecture**, **DDD**, and **CQRS**.
 
-Build villages, construct buildings, collect resources, and upgrade your empire — even while you're offline.
+Build your village across terrain zones, train armies, march across a 1000×1000 procedurally generated world, and fight monsters — even while you're offline.
 
 ## 🏗️ Architecture
 
@@ -23,40 +23,63 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
        │           │
 ┌──────┴───────────┴───────┐
 │       Application        │
-│  Use Cases / Services    │
+│  CQRS · MediatR          │
 └──────────┬───────────────┘
            │
 ┌──────────┴───────────────┐
 │          Domain           │
 │ Entities · Value Objects  │
-│ Events · Game Config      │
+│ Events · Services · Config│
 └──────────────────────────┘
 ```
 
 **Key patterns:** Clean Architecture, DDD (Aggregates, Value Objects, Domain Events), Repository + Unit of Work, CQRS with MediatR.
 
+## 💡 Design Highlights
+
+**Domain knows nothing about infrastructure.** Config and operations arrive as parameters, never through DI. `SettlementPlacer` takes a `Func<int,int,Task<bool>> isOccupied` delegate instead of a repository — so it's tested with a lambda, no mocks, no database.
+
+**Config-driven gameplay.** Resources, buildings, units, monsters, terrain and combat modifiers live in JSON. Change the config — change the game, no recompilation. The same backend could power a reskin (SpaceIdle, ZombieIdle).
+
+**Computed over stored.** Terrain for the 1000×1000 world isn't persisted — it's a deterministic function of `(serverId, x, y)` with a seed. Only occupied cells hit the database. Monster power and rewards are derived from type + level the same way.
+
+**Domain events via EF interceptor.** A `SaveChangesInterceptor` collects events from tracked aggregates *after* a successful commit and publishes them through MediatR — so a SignalR push never announces something the database rolled back.
+
+**Timers as recurring scans, not delayed jobs.** `CompletesAt` in the database is the single source of truth, so speeding up or cancelling is a field update — no job rescheduling, and the scanner self-heals after a restart.
+
+**IDOR protection by construction.** A MediatR behavior verifies that the `PlayerId` in any request matches the player in the JWT. New endpoints are protected automatically — you can't forget the check.
+
 ## 🛠️ Tech Stack
 
 - **Backend:** ASP.NET Core / .NET 10, EF Core, PostgreSQL
 - **Auth:** ASP.NET Identity, JWT with refresh token rotation
-- **CQRS:** MediatR (commands/queries, pipeline behaviors for logging + FluentValidation)
+- **CQRS:** MediatR (commands/queries, pipeline behaviors for logging, validation and player scope)
 - **Realtime:** SignalR (per-player groups, JWT auth over WebSocket)
 - **Background Jobs:** Hangfire with PostgreSQL storage
-- **Architecture:** Clean Architecture, DDD, Repository + UoW
+- **Testing:** xUnit (domain logic, deterministic time and terrain)
 - **API:** REST, Swagger/OpenAPI, ProblemDetails error handling
-- **Frontend:** React 19 + TypeScript + Vite + Tailwind (in progress — login page implemented, game UI pending)
+- **Frontend:** React 19 + TypeScript + Vite + Tailwind (in progress — login implemented, game UI pending)
 - **Monetization:** Stripe (planned)
-- **License:** AGPL-3.0
 
 ## 📦 Projects
 
 | Project | Responsibility |
 |---------|---------------|
-| `EmpireIdle.Domain` | Entities, Value Objects, Domain Events, Game Config |
-| `EmpireIdle.Application` | Use Cases (services), Repository interfaces |
-| `EmpireIdle.Infrastructure` | EF Core, PostgreSQL, Identity/JWT, Repository implementations, DI |
-| `EmpireIdle.API` | Controllers, DTOs, Auth, Hangfire config, Swagger, Middleware, SignalR Hub |
-| `EmpireIdle.Web` | React + TypeScript frontend (login implemented; village dashboard, SignalR client pending) |
+| `EmpireIdle.Domain` | Entities, Value Objects, Domain Events, domain services (terrain generation, combat, march timing, settlement placement), Game Config |
+| `EmpireIdle.Application` | CQRS commands/queries, MediatR pipeline behaviors, repository interfaces |
+| `EmpireIdle.Infrastructure` | EF Core, PostgreSQL, Identity/JWT, repository implementations, domain event interceptor, DI |
+| `EmpireIdle.API` | Controllers, DTOs, Auth, Hangfire jobs, Swagger, Middleware, SignalR Hub, game config files |
+| `EmpireIdle.Web` | React + TypeScript frontend (login implemented; game UI pending) |
+
+## 🎮 Game Systems
+
+**City building.** Terrain zones (plain / forest / mountain / water) with limited slots, buildings with production buffers and geometric storage growth, real-time construction with builder limits, town hall level gating, multi-resource costs.
+
+**Army.** Population from housing, batch training in barracks, garrison management, hospital with a three-bucket casualty system (wounded / instantly recoverable / permanently lost).
+
+**World map.** A 1000×1000 world with procedural terrain, monsters scaled by distance from the center, marches timed by `distance ÷ slowest unit speed × terrain difficulty`.
+
+**Combat.** Symmetric formula for PvE and future PvP, terrain modifiers per unit type (cavalry +25% on plains, archers +25% in mountains), normally distributed randomness, battle reports with per-unit casualty breakdown.
 
 ## 🚀 Getting Started
 
@@ -69,36 +92,36 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 ### Setup
 
 1. **Clone the repository:**
-   ```bash
+```bash
    git clone https://github.com/serhiy0072/EmpireIdle.git
    cd EmpireIdle
-   ```
+```
 
 2. **Create PostgreSQL database and user:**
-   ```sql
+```sql
    CREATE USER empireidle_user WITH PASSWORD 'your_password';
    CREATE DATABASE empireidle OWNER empireidle_user;
-   ```
+```
 
 3. **Configure secrets via User Secrets:**
-   ```bash
+```bash
    cd src/EmpireIdle.API
    dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=empireidle;Username=empireidle_user;Password=your_password"
    dotnet user-secrets set "JwtSettings:Secret" "your-very-long-random-secret-at-least-32-chars"
    dotnet user-secrets set "JwtSettings:Issuer" "EmpireIdle"
    dotnet user-secrets set "JwtSettings:Audience" "EmpireIdle.Players"
-   ```
+```
 
 4. **Apply migrations:**
-   ```bash
+```bash
    cd ../..
    dotnet ef database update --project src/EmpireIdle.Infrastructure --startup-project src/EmpireIdle.API
-   ```
+```
 
 5. **Run the API:**
-   ```bash
+```bash
    dotnet run --project src/EmpireIdle.API
-   ```
+```
 
 6. **Open in browser:**
    - Swagger UI: `http://localhost:5253/swagger`
@@ -110,87 +133,65 @@ Build villages, construct buildings, collect resources, and upgrade your empire 
 
 | Method | URL | Description |
 |--------|-----|-------------|
-| `POST` | `/api/auth/register` | Register player (IdentityUser + Village + Wallet), returns JWT |
+| `POST` | `/api/auth/register` | Register player (IdentityUser + Village + Garrison + Wallet), returns JWT |
 | `POST` | `/api/auth/login` | Authenticate, returns access + refresh tokens |
 | `POST` | `/api/auth/refresh` | Rotate tokens (with reuse detection) |
 
-### Game (requires JWT)
+### Village (requires JWT)
 
 | Method | URL | Description |
 |--------|-----|-------------|
-| `GET` | `/api/village/{playerId}` | Get village state with buildings and resources |
-| `POST` | `/api/village/{playerId}/buildings` | Build a new building |
-| `POST` | `/api/village/{playerId}/buildings/upgrade` | Upgrade a building |
+| `GET` | `/api/village/{playerId}` | Village state: buildings, resources, construction timers |
+| `POST` | `/api/village/{playerId}/buildings` | Construct a building (zone, slot and town hall checks) |
+| `POST` | `/api/village/{playerId}/buildings/{buildingId}/upgrade` | Start an upgrade |
+| `POST` | `/api/village/{playerId}/buildings/{buildingId}/collect` | Collect from a production buffer |
 
-### Example: Register
+### Garrison (requires JWT)
 
-```bash
-curl -X POST http://localhost:5253/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username": "player1", "email": "player1@example.com", "password": "Test12345"}'
-```
+| Method | URL | Description |
+|--------|-----|-------------|
+| `GET` | `/api/garrisons/{playerId}` | Units, wounded, active training orders |
+| `POST` | `/api/garrisons/{playerId}/units/train` | Queue a batch of 1–5 units |
+| `POST` | `/api/garrisons/{playerId}/units/heal` | Heal wounded units for half their cost |
 
-Response:
-```json
-{
-  "accessToken": "eyJhbGc...",
-  "refreshToken": "Xk7pQ9z...",
-  "playerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-}
-```
+### World Map (requires JWT)
 
-## 🎮 Game Mechanics
+| Method | URL | Description |
+|--------|-----|-------------|
+| `GET` | `/api/map?centerX&centerY&radius` | Terrain and occupants for a viewport (radius ≤ 25) |
+| `GET` | `/api/map/cell/{x}/{y}` | Cell details, including monster composition |
+| `POST` | `/api/marches/{playerId}` | Send an army to a target |
 
-- **Resource Tick:** Hangfire runs every minute, collecting resources from all villages based on building levels
-- **Building Upgrade:** Costs `BaseCost × current level` of the configured resource
-- **Production Formula:** `Level × BaseProductionPerMinute × elapsed minutes`
-- **Reskin Strategy:** Change `game-config.json` to create SpaceIdle, ZombieIdle, etc. — zero code changes
+### Battle Reports (requires JWT)
 
-### game-config.json
+| Method | URL | Description |
+|--------|-----|-------------|
+| `GET` | `/api/reports/{playerId}` | Recent battle reports with per-unit casualty breakdown |
+| `POST` | `/api/reports/{playerId}/{reportId}/read` | Mark a report as read |
 
-```json
-{
-  "GameConfig": {
-    "GameName": "EmpireIdle",
-    "Buildings": [
-      {
-        "Key": "farm",
-        "DisplayName": "Farm",
-        "ProducesResource": "gold",
-        "BaseProductionPerMinute": 10,
-        "CostResource": "gold",
-        "BaseCost": 100
-      }
-    ]
-  }
-}
-```
+## ⚙️ Background Jobs
 
-## 🔐 Authentication
-
-JWT-based auth with refresh token rotation:
-- Access tokens (short-lived, configurable lifetime)
-- Refresh tokens stored in PostgreSQL, single-use with rotation
-- **Reuse detection:** using a revoked refresh token revokes all user sessions (theft protection)
-- Game endpoints protected with `[Authorize]`
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| `resource-tick` | every minute | Accumulate production into building buffers |
+| `timer-scan` | every minute | Complete due constructions, trainings and marches |
+| `monster-spawn` | every 5 minutes | Maintain monster population across the map |
 
 ## 🗺️ Roadmap
 
-| Phase | Description | Status |
-|-------|------------|--------|
-| 1 | Clean Architecture + DDD Domain Model | ✅ |
-| 2 | EF Core, Hangfire, Game Logic, Building Upgrades | ✅ |
-| 3 | REST API Endpoints, Swagger, Error Handling | ✅ |
-| 4 | Authentication (ASP.NET Identity + JWT) | ✅ |
-| 5 | Realtime updates (SignalR) | ✅ |
-| 6 | CQRS + MediatR | ✅ |
-| 7 | Frontend (React + TypeScript) | 🔄 In progress |
-| 8 | Gems Economy (Quests, Rewards, Events) | ⏳ |
-| 9 | Monetization (Stripe) | ⏳ |
-| 10 | Chat System (SignalR) | ⏳ |
-| 11 | Player Trading (RabbitMQ) | ⏳ |
-| 12 | Docker + CI/CD | ⏳ |
-
-## 📄 License
-
-This project is licensed under the [AGPL-3.0 License](LICENSE). 
+- [x] Clean Architecture + DDD domain model
+- [x] Game logic (resources, buildings, Hangfire ticks)
+- [x] REST API, Swagger, ProblemDetails
+- [x] Authentication (Identity + JWT with refresh rotation)
+- [x] Realtime updates (SignalR)
+- [x] CQRS with MediatR
+- [x] Core hardening (buffers, storage caps, xUnit tests)
+- [x] Timed construction with builder limits
+- [x] Zones, building roster, town hall gating
+- [x] Units, garrison, training queue
+- [x] World map, monsters, marches
+- [x] Combat, casualties, hospital, battle reports
+- [ ] Production chains (ore → ingots → weapons)
+- [ ] Monetization (Stripe, gems, speedups)
+- [ ] Game UI (React)
+- [ ] Docker + CI/CD

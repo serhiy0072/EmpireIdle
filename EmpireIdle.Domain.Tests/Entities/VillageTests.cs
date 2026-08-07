@@ -23,7 +23,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             // Wait a bit to accumulate production
             System.Threading.Thread.Sleep(10);
-            village.TickProduction(configs); // накопичуємо ресурси у буфер будівлі
+            village.TickProduction(configs, DateTime.UtcNow); // накопичуємо ресурси у буфер будівлі
             var buffered = building.StoredAmount;
 
             // Skip the collection if nothing was produced (due to timing)
@@ -35,7 +35,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             }
 
             //Act
-            village.CollectFromBuilding(building.Id, configs);
+            village.CollectFromBuilding(building.Id, configs, DateTime.UtcNow);
 
             // Assert
             Assert.Equal(0, building.StoredAmount);
@@ -74,7 +74,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             village.AddBuilding("farm", configs);
             var building = village.Buildings.First();
 
-            village.BeginBuildingUpgrade(building.Id, configs);
+            village.BeginBuildingUpgrade(building.Id, configs, DateTime.UtcNow);
 
             Assert.True(building.IsUnderConstruction);
             Assert.NotNull(building.ConstructionCompletesAt);

@@ -28,18 +28,19 @@ namespace EmpireIdle.Application.Villages.Commands
 
         public async Task Handle(CompleteDueTimersCommand request, CancellationToken cancellationToken)
         {
-            var villages = await _villageRepository.GetAllAsync(cancellationToken);
-            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
             var now = DateTime.UtcNow;
+            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
+
+            var villages = await _villageRepository.GetWithDueConstructionsAsync(now, cancellationToken);
             var completed = 0;
 
             foreach (var village in villages)
                 completed += village.CompleteDueConstructions(now, buildingConfigs);
 
-            var garrisons = await _garrisonRepository.GetAllAsync(cancellationToken);
+            var garrisons = await _garrisonRepository.GetWithDueTrainingAsync(now, cancellationToken);
             var trained = 0;
 
-            foreach(var garrison in garrisons)
+            foreach (var garrison in garrisons)
                 trained += garrison.CompleteDueTraining(now);
 
             if (completed > 0 || trained > 0)
