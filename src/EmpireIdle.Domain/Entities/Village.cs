@@ -289,6 +289,10 @@ namespace EmpireIdle.Domain.Entities
                 resource.Add(line.Amount);
             }
         }
+
+        /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
+        public bool HasBuilding(string buildingType)
+            => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
     }
 }
 
