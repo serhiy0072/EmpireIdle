@@ -21,6 +21,8 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly ILogger<TickAllVillagesCommandHandler> _logger;
         private readonly GameConfig _gameConfig;
 
+        private const int BatchSize = 200;
+
         public TickAllVillagesCommandHandler(
             IVillageRepository villageRepository, 
             IUnitOfWork unitOfWork, 
@@ -35,20 +37,29 @@ namespace EmpireIdle.Application.Villages.Commands
 
         public async Task Handle(TickAllVillagesCommand request, CancellationToken cancellationToken)
         {
-            var villages = await _villageRepository.GetAllAsync(cancellationToken);
-
             var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
-            
-            _logger.LogInformation("Resource tick for {Count} villages", villages.Count);
+            var total = 0;
+            Guid? cursor = null;
 
-            foreach(var village in villages)
+            while (true)
             {
-                village.TickProduction(buildingConfigs);
+                var batch = await _villageRepository.GetBatchForTickAsync(cursor, BatchSize, cancellationToken);
+                if (batch.Count == 0)
+                    break;
+
+                foreach (var village in batch)
+                    village.TickProduction(buildingConfigs);
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                total += batch.Count;
+                cursor = batch[^1].Id;
+
+                if (batch.Count < BatchSize)
+                    break; // остання порція
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation("Resource tick completed for {Count} villages.", villages.Count);
+            _logger.LogInformation("Resource tick completed for {Count} villages", total);
         }
     }
 }

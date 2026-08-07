@@ -16,5 +16,7 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Знайти гарнізон за ідентифікатором.</summary>
         Task<Garrison?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        /// <summary>Гарнізони з простроченими замовленнями тренування.</summary>
+        Task<List<Garrison>> GetWithDueTrainingAsync(DateTime utcNow, CancellationToken cancellationToken = default);
     }
 }

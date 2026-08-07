@@ -44,5 +44,14 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .AsSplitQuery()
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 
+        /// <inheritdoc/>
+        public Task<List<Garrison>> GetWithDueTrainingAsync(DateTime utcNow, CancellationToken cancellationToken = default)
+            => _context.Garrisons
+            .Include(g => g.Units)
+            .Include(g => g.TrainingOrders)
+            .AsSplitQuery()
+            .Where(g => g.TrainingOrders.Any(o => o.CompletesAt <= utcNow))
+            .ToListAsync(cancellationToken);
+
     }
 }
