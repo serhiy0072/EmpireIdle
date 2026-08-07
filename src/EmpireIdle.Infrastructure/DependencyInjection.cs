@@ -39,13 +39,16 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IMonsterRepository, MonsterRepository>();
             services.AddScoped<IMarchRepository, MarchRepository>();
             services.AddScoped<IBattleReportRepository, BattleReportRepository>();
+            services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
 
             services.AddMediatR(cfg =>
                 {
                     cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly);
                     cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                    cfg.AddOpenBehavior(typeof(IdempotencyBehavior<,>));
                     cfg.AddOpenBehavior(typeof(PlayerScopeBehavior<,>));
                     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+
                 });
             services.AddValidatorsFromAssembly(typeof(IRepository<>).Assembly);
 

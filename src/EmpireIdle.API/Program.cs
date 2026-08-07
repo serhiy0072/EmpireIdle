@@ -24,6 +24,7 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Browser-based idle empire builder game API"
     });
 
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -38,6 +39,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
+    options.OperationFilter<EmpireIdle.API.Swagger.IdempotencyHeaderFilter>();
 });
 
 builder.Configuration
@@ -126,6 +128,7 @@ builder.Services.AddScoped<MonsterSpawnJob>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer>();
+builder.Services.AddScoped<IRequestContext, EmpireIdle.API.Services.RequestContext>();
 
 const string FrontendCors = "FrontendCors";
 builder.Services.AddCors(option =>

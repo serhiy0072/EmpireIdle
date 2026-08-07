@@ -14,7 +14,7 @@ namespace EmpireIdle.Application.Marches.Commands
         Guid PlayerId,
         MarchTargetType TargetType,
         Guid TargetId,
-        Dictionary<string, int> Units) : IRequest<Guid>, IPlayerScopedRequest;
+        Dictionary<string, int> Units) : IRequest<Guid>, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
     /// Обробник SendMarchCommand: знімає юнітів із гарнізону,

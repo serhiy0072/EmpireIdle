@@ -24,6 +24,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<Monster> Monsters => Set<Monster>();
         public DbSet<March> Marches => Set<March>();
         public DbSet<BattleReport> BattleReports => Set<BattleReport>();
+        public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

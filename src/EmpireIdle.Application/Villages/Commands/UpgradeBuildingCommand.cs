@@ -10,7 +10,7 @@ namespace EmpireIdle.Application.Villages.Commands
     /// <summary>
     /// Команда апгрейду будівлі в селі гравця.
     /// </summary>
-    public record UpgradeBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest, IPlayerScopedRequest;
+    public record UpgradeBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
     /// Обробник команди UpgradeBuildingCommand.

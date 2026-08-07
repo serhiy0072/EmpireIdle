@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace EmpireIdle.Application.Garrisons.Commands
 {
     /// <summary>Вилікувати поранених: вони повертаються в гарнізон за половину вартості юніта.</summary>
-    public record HealWoundedCommand(Guid PlayerId, Dictionary<string, int> Units) : IRequest, IPlayerScopedRequest;
+    public record HealWoundedCommand(Guid PlayerId, Dictionary<string, int> Units) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
 
     public class HealWoundedCommandHandler : IRequestHandler<HealWoundedCommand>
