@@ -11,5 +11,8 @@
 
         /// <summary>Скільки хвилин до кінця можна завершити безкоштовно (зручність UX).</summary>
         public int InstantFinishThresholdMinutes { get; set; } = 5;
+
+        /// <summary>Скільки gems коштує вилікувати одного пораненого.</summary>
+        public int HealGemsPerUnit { get; set; } = 1;
     }
 }

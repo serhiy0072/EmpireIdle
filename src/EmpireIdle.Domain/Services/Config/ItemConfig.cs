@@ -26,14 +26,8 @@
 
         // --- параметри за типами ---
 
-        /// <summary>speedup: на скільки хвилин скорочує таймер.</summary>
-        public int SpeedupMinutes { get; set; }
-
         /// <summary>resources: що і скільки додає.</summary>
         public List<ResourceCost> Resources { get; set; } = new();
-
-        /// <summary>healing: скількох поранених лікує.</summary>
-        public int HealCount { get; set; }
 
         /// <summary>boost: на що діє — production / attack / defense.</summary>
         public string? BoostTarget { get; set; }

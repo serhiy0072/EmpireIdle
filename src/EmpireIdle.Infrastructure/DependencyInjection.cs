@@ -1,5 +1,6 @@
 ﻿using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Inventory.Effects;
 using EmpireIdle.Application.Inventory.Services;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Persistence;
@@ -43,6 +44,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
             services.AddScoped<IInventoryRepository, InventoryRepository>();
             services.AddScoped<ItemGranter>();
+            services.AddScoped<IItemEffect, ResourceItemEffect>();
+            services.AddScoped<ItemEffectDispatcher>();
 
             services.AddMediatR(cfg =>
                 {

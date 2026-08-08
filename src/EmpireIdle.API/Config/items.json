@@ -2,33 +2,6 @@
   "GameConfig": {
     "Items": [
       {
-        "Key": "speedup_5m",
-        "DisplayName": "5 Minute Speedup",
-        "Description": "Скорочує активний таймер на 5 хвилин",
-        "Rarity": "common",
-        "Type": "speedup",
-        "IsStackable": true,
-        "SpeedupMinutes": 5
-      },
-      {
-        "Key": "speedup_1h",
-        "DisplayName": "1 Hour Speedup",
-        "Description": "Скорочує активний таймер на годину",
-        "Rarity": "common",
-        "Type": "speedup",
-        "IsStackable": true,
-        "SpeedupMinutes": 60
-      },
-      {
-        "Key": "speedup_8h",
-        "DisplayName": "8 Hour Speedup",
-        "Description": "Скорочує активний таймер на 8 годин",
-        "Rarity": "rare",
-        "Type": "speedup",
-        "IsStackable": true,
-        "SpeedupMinutes": 480
-      },
-      {
         "Key": "crate_wood_5000",
         "DisplayName": "Timber Crate",
         "Description": "Миттєво додає 5000 деревини",
@@ -67,15 +40,6 @@
             "Amount": 1000
           }
         ]
-      },
-      {
-        "Key": "medkit_small",
-        "DisplayName": "Field Medkit",
-        "Description": "Безкоштовно лікує до 20 поранених",
-        "Rarity": "common",
-        "Type": "healing",
-        "IsStackable": true,
-        "HealCount": 20
       },
       {
         "Key": "boost_production_2x_4h",
