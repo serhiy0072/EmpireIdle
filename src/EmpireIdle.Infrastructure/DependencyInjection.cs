@@ -1,15 +1,16 @@
-﻿using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Common.Behaviors;
+﻿using EmpireIdle.Application.Common.Behaviors;
+using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Inventory.Services;
+using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Persistence;
-using EmpireIdle.Infrastructure.Persistence.Repositories;
 using EmpireIdle.Infrastructure.Persistence.Interceptors;
+using EmpireIdle.Infrastructure.Persistence.Repositories;
+using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using EmpireIdle.Infrastructure.Auth;
-using Microsoft.AspNetCore.Identity;
-using FluentValidation;
-using MediatR;
 
 namespace EmpireIdle.Infrastructure
 {
@@ -40,6 +41,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IMarchRepository, MarchRepository>();
             services.AddScoped<IBattleReportRepository, BattleReportRepository>();
             services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
+            services.AddScoped<IInventoryRepository, InventoryRepository>();
+            services.AddScoped<ItemGranter>();
 
             services.AddMediatR(cfg =>
                 {
