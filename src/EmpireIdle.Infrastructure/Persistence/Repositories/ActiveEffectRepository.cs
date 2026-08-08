@@ -36,5 +36,19 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.ActiveEffects
             .Where(e => e.ExpiresAt <= utcNow)
             .ExecuteDeleteAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<Dictionary<Guid, double>> GetActiveMultipliersAsync(
+            IEnumerable<Guid> playerIds, EffectTarget target, DateTime utcNow, CancellationToken cancellationToken = default)
+        {
+            var ids = playerIds.ToList();
+
+            var effects = await _context.ActiveEffects
+                .AsNoTracking()
+                .Where(e => ids.Contains(e.PlayerId) && e.Target == target && e.ExpiresAt > utcNow)
+                .ToListAsync(cancellationToken);
+
+            return effects.ToDictionary(e => e.PlayerId, e => e.Multiplier);
+        }
     }
 }

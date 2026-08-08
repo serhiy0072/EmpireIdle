@@ -16,5 +16,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Прибрати прострочені ефекти (фонове очищення).</summary>
         Task<int> RemoveExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default);
+
+        /// <summary>Діючі множники для набору гравців одним запитом (для тіку).</summary>
+        Task<Dictionary<Guid, double>> GetActiveMultipliersAsync(IEnumerable<Guid> playerIds, EffectTarget target, DateTime utcNow, CancellationToken cancellationToken = default);
     }
 }

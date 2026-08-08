@@ -20,29 +20,28 @@ namespace EmpireIdle.Application.Villages.Commands
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IActiveEffectRepository _effectRepository;
         private readonly ILogger<TickAllVillagesCommandHandler> _logger;
         private readonly GameConfig _gameConfig;
-        private readonly EffectResolver _effectResolver;
 
         private const int BatchSize = 200;
 
         public TickAllVillagesCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<TickAllVillagesCommandHandler> logger, 
-            IOptions<GameConfig> gameConfig, EffectResolver effectResolver)
+            IOptions<GameConfig> gameConfig, IActiveEffectRepository effectRepository)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _gameConfig = gameConfig.Value;
-            _effectResolver = effectResolver;
+            _effectRepository = effectRepository;
         }
 
         public async Task Handle(TickAllVillagesCommand request, CancellationToken cancellationToken)
         {
+            var now = DateTime.UtcNow;
             var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
             var total = 0;
             Guid? cursor = null;
-
-            var now = DateTime.UtcNow;
 
             while (true)
             {
@@ -50,11 +49,13 @@ namespace EmpireIdle.Application.Villages.Commands
                 if (batch.Count == 0)
                     break;
 
+                // Один запит на весь батч замість запиту на кожне село
+                var multipliers = await _effectRepository.GetActiveMultipliersAsync(
+                    batch.Select(v => v.PlayerId), EffectTarget.Production, now, cancellationToken);
+
                 foreach (var village in batch)
                 {
-                    var multiplier = await _effectResolver.GetMultiplierAsync(
-                        village.PlayerId, EffectTarget.Production, now, cancellationToken);
-
+                    var multiplier = multipliers.GetValueOrDefault(village.PlayerId, 1.0);
                     village.TickProduction(buildingConfigs, now, multiplier);
                 }
 
@@ -64,7 +65,7 @@ namespace EmpireIdle.Application.Villages.Commands
                 cursor = batch[^1].Id;
 
                 if (batch.Count < BatchSize)
-                    break; // остання порція
+                    break;
             }
 
             _logger.LogInformation("Resource tick completed for {Count} villages", total);
