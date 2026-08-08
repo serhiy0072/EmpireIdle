@@ -1,7 +1,7 @@
 ﻿using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 
-namespace EmpireIdle.Application.Inventory.Services
+namespace EmpireIdle.Application.Common.Services
 {
     /// <summary>
     /// Видає предмети гравцю: стакові додає до наявного стеку,
