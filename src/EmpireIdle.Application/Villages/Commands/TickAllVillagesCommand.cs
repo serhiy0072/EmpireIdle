@@ -1,4 +1,6 @@
-﻿using EmpireIdle.Application.Interfaces;
+﻿using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -20,19 +22,18 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TickAllVillagesCommandHandler> _logger;
         private readonly GameConfig _gameConfig;
+        private readonly EffectResolver _effectResolver;
 
         private const int BatchSize = 200;
 
-        public TickAllVillagesCommandHandler(
-            IVillageRepository villageRepository, 
-            IUnitOfWork unitOfWork, 
-            ILogger<TickAllVillagesCommandHandler> logger, 
-            IOptions<GameConfig> gameConfig)
+        public TickAllVillagesCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<TickAllVillagesCommandHandler> logger, 
+            IOptions<GameConfig> gameConfig, EffectResolver effectResolver)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _gameConfig = gameConfig.Value;
+            _effectResolver = effectResolver;
         }
 
         public async Task Handle(TickAllVillagesCommand request, CancellationToken cancellationToken)
@@ -50,7 +51,12 @@ namespace EmpireIdle.Application.Villages.Commands
                     break;
 
                 foreach (var village in batch)
-                    village.TickProduction(buildingConfigs, now);
+                {
+                    var multiplier = await _effectResolver.GetMultiplierAsync(
+                        village.PlayerId, EffectTarget.Production, now, cancellationToken);
+
+                    village.TickProduction(buildingConfigs, now, multiplier);
+                }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 

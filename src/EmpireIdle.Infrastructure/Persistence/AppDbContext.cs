@@ -28,6 +28,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<LootBoxProgress> LootBoxProgress => Set<LootBoxProgress>();
         public DbSet<PlayerItem> PlayerItems => Set<PlayerItem>();
         public DbSet<EquipmentItem> EquipmentItems => Set<EquipmentItem>();
+        public DbSet<ActiveEffect> ActiveEffects => Set<ActiveEffect>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

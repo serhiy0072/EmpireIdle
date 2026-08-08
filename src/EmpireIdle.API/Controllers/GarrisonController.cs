@@ -60,7 +60,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> HealWounded(Guid playerId, [FromBody] HealWoundedRequest request, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new HealWoundedCommand(playerId, request.Units), cancellationToken);
+            await _mediator.Send(new HealWoundedCommand(playerId, request.Units, request.Payment), cancellationToken);
             return NoContent();
         }
 

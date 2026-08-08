@@ -14,16 +14,20 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGarrisonRepository _garrisonRepository;
+        private readonly IActiveEffectRepository _effectRepository;
         private readonly ILogger<CompleteDueTimersCommandHandler> _logger;
         private readonly GameConfig _gameConfig;
 
-        public CompleteDueTimersCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, IGarrisonRepository garrisonRepository, ILogger<CompleteDueTimersCommandHandler> logger, IOptions<GameConfig> gameConfig)
+        public CompleteDueTimersCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, IGarrisonRepository garrisonRepository, 
+                IActiveEffectRepository effectRepository, ILogger<CompleteDueTimersCommandHandler> logger, IOptions<GameConfig> gameConfig)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _garrisonRepository = garrisonRepository;
+            _effectRepository = effectRepository;
             _logger = logger;
             _gameConfig = gameConfig.Value;
+
         }
 
         public async Task Handle(CompleteDueTimersCommand request, CancellationToken cancellationToken)
@@ -48,6 +52,10 @@ namespace EmpireIdle.Application.Villages.Commands
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation("Completed {Constructions} constructions, {Trainings} trainings", completed, trained);
             }
+
+            var removed = await _effectRepository.RemoveExpiredAsync(now, cancellationToken);
+            if (removed > 0)
+                _logger.LogInformation("Removed {Count} expired effects", removed);
         }
     }
 }

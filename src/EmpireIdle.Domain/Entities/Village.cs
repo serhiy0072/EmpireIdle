@@ -69,7 +69,8 @@ namespace EmpireIdle.Domain.Entities
         /// Ресурси села змінюються лише при зборі (CollectFromBuilding).
         /// </summary>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig (Key → BuildingConfig).</param>
-        public void TickProduction(Dictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
+        /// <param name="productionMultiplier">Множник від активних бустів (1.0 — без бусту).</param>
+        public void TickProduction(Dictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, double productionMultiplier = 1.0)
         {
             var elapsed = utcNow - LastTickAt;
 
@@ -78,9 +79,10 @@ namespace EmpireIdle.Domain.Entities
                 if (!buildingConfigs.TryGetValue(building.Type, out var config))
                     continue;
                 if (config.ProducesResource is null)
-                    continue; // невиробнича будівля (Ратуша)
+                    continue;
 
-                building.AccumulateProduction(config.BaseProductionPerMinute, config.BaseStorage, config.StorageGrowth, elapsed);
+                var rate = (int)Math.Round(config.BaseProductionPerMinute * productionMultiplier);
+                building.AccumulateProduction(rate, config.BaseStorage, config.StorageGrowth, elapsed);
             }
 
             LastTickAt = utcNow;

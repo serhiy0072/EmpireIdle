@@ -36,9 +36,10 @@ namespace EmpireIdle.Domain.Services
             IReadOnlyDictionary<string, int> attacker,
             IReadOnlyDictionary<string, int> defender,
             string terrainType,
+            double attackerBonus = 1.0,
             double defenderBonus = 1.0)
         {
-            var attackerPower = CalculatePower(attacker, terrainType, isAttacker: true) * RollRandom();
+            var attackerPower = CalculatePower(attacker, terrainType, isAttacker: true) * attackerBonus * RollRandom();
             var defenderPower = CalculatePower(defender, terrainType, isAttacker: false) * defenderBonus * RollRandom();
 
             var attackerWon = attackerPower > defenderPower;
