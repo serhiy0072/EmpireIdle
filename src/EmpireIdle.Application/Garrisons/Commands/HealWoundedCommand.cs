@@ -58,12 +58,14 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
-            if (request.Payment == HealPaymentMethod.Gems)
-                await ChargeGemsAsync(request, cancellationToken);
-            else
-                ChargeResources(request, village);
-
             var healed = garrison.HealWounded(request.Units);
+            if (healed.Count == 0)
+                throw new InvalidOperationException("Nothing to heal.");
+
+            if (request.Payment == HealPaymentMethod.Gems)
+                await ChargeGemsAsync(healed, request.PlayerId, cancellationToken);
+            else
+                ChargeResources(healed, village);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -71,27 +73,24 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 healed.Values.Sum(), request.PlayerId, request.Payment);
         }
 
-        /// <summary>Списує gems: фіксована ціна за кожного пораненого.</summary>
-        private async Task ChargeGemsAsync(HealWoundedCommand request, CancellationToken cancellationToken)
+        /// <summary>Списує gems: фіксована ціна за кожного вилікуваного.</summary>
+        private async Task ChargeGemsAsync(IReadOnlyDictionary<string, int> healed, Guid playerId, CancellationToken cancellationToken)
         {
-            var total = request.Units.Values.Where(c => c > 0).Sum();
-            if (total == 0)
-                throw new InvalidOperationException("Nothing to heal.");
-
+            var total = healed.Values.Where(c => c > 0).Sum();
             var cost = total * _gameConfig.Monetization.HealGemsPerUnit;
 
-            var wallet = await _walletRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Wallet not found for player {request.PlayerId}.");
+            var wallet = await _walletRepository.GetByPlayerIdAsync(playerId, cancellationToken)
+                ?? throw new InvalidOperationException($"Wallet not found for player {playerId}.");
 
             wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units");
         }
 
         /// <summary>Списує ресурси: половина вартості створення юніта.</summary>
-        private void ChargeResources(HealWoundedCommand request, Domain.Entities.Village village)
+        private void ChargeResources(IReadOnlyDictionary<string, int> healed, Domain.Entities.Village village)
         {
             var cost = new List<ResourceCost>();
 
-            foreach (var (unitType, count) in request.Units)
+            foreach (var (unitType, count) in healed)
             {
                 if (count <= 0)
                     continue;
