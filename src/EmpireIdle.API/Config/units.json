@@ -4,7 +4,7 @@
       {
         "Key": "infantry",
         "DisplayName": "Infantry",
-        "RecoverCostGems": "1",
+        "RecoverCostGems": 1,
         "Cost": [
           {
             "Resource": "gold",
@@ -30,7 +30,7 @@
       {
         "Key": "archer",
         "DisplayName": "Archer",
-        "RecoverCostGems": "1",
+        "RecoverCostGems": 1,
         "Cost": [
           {
             "Resource": "gold",
@@ -56,7 +56,7 @@
       {
         "Key": "cavalry",
         "DisplayName": "Cavalry",
-        "RecoverCostGems": "1",
+        "RecoverCostGems": 1,
         "Cost": [
           {
             "Resource": "gold",
@@ -86,7 +86,7 @@
       {
         "Key": "siege",
         "DisplayName": "Siege Engine",
-        "RecoverCostGems": "1",
+        "RecoverCostGems": 1,
         "Cost": [
           {
             "Resource": "wood",
