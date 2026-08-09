@@ -22,7 +22,7 @@
         public double WoundedShareMax { get; set; } = 0.6;
 
         /// <summary>Частка втрат, яку можна відновити миттєво (за 200% вартості або gems).</summary>
-        public double InstantShare { get; set; } = 0.12;
+        public double RecoverableShare { get; set; } = 0.12;
     }
 
     /// <summary>Модифікатор сили типу юніта на певній місцевості.</summary>

@@ -1,4 +1,5 @@
 ﻿using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Queries;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -16,11 +17,13 @@ namespace EmpireIdle.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly GameConfig _gameConfig;
+        private readonly IActiveEffectRepository _effectRepository;
 
-        public InventoryController(IMediator mediator, IOptions<GameConfig> gameConfig)
+        public InventoryController(IMediator mediator, IOptions<GameConfig> gameConfig, IActiveEffectRepository effectRepository)
         {
             _mediator = mediator;
             _gameConfig = gameConfig.Value;
+            _effectRepository = effectRepository;
         }
 
         /// <summary>Вміст інвентаря з описами предметів із конфіга.</summary>
@@ -55,7 +58,9 @@ namespace EmpireIdle.API.Controllers
                     e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey))))
                 .ToList();
 
-            return Ok(new InventoryResponse(items, equipment));
+            var activeEffects = contents.ActiveEffects.Select(e => new ActiveEffectResponse(e.Target.ToString(), e.Multiplier, e.ExpiresAt, e.SourceItemKey)).ToList();
+
+            return Ok(new InventoryResponse(items, equipment, activeEffects));
         }
     }
 }

@@ -6,7 +6,7 @@
       "RandomSigma": 0.15,
       "WoundedShareMin": 0.4,
       "WoundedShareMax": 0.6,
-      "InstantShare": 0.12,
+      "RecoverableShare": 0.12,
       "TerrainBonuses": [
         {
           "Terrain": "plain",

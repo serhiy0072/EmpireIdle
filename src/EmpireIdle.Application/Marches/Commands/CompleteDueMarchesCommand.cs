@@ -60,6 +60,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _combat = combat;
             _terrain = terrain;
             _calculator = calculator;
+            _effectResolver = effectResolver;
             _logger = logger;
             _gameConfig = gameConfig.Value;
         }
@@ -174,7 +175,7 @@ namespace EmpireIdle.Application.Marches.Commands
                     unitType,
                     sent,
                     split.Wounded.GetValueOrDefault(unitType),
-                    split.Instant.GetValueOrDefault(unitType),
+                    split.Recoverable.GetValueOrDefault(unitType),
                     split.Dead.GetValueOrDefault(unitType));
             }
 
@@ -184,11 +185,11 @@ namespace EmpireIdle.Application.Marches.Commands
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
-               "losses — wounded {Wounded}, instant {Instant}, dead {Dead}",
+               "losses — wounded {Wounded}, recoverable {Recoverable}, dead {Dead}",
                march.TargetX, march.TargetY, terrain,
                result.AttackerWon ? "won" : "lost",
                result.AttackerPower, result.DefenderPower,
-               split.Wounded.Values.Sum(), split.Instant.Values.Sum(), split.Dead.Values.Sum());
+               split.Wounded.Values.Sum(), split.Recoverable.Values.Sum(), split.Dead.Values.Sum());
 
             TurnMarchBack(march, march.GetUnits());
         }

@@ -5,7 +5,7 @@ using System.Text;
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>Три кошики втрат після бою.</summary>
-    public record CasualtySplit(Dictionary<string, int> Wounded, Dictionary<string, int> Instant, Dictionary<string, int> Dead);
+    public record CasualtySplit(Dictionary<string, int> Wounded, Dictionary<string, int> Recoverable, Dictionary<string, int> Dead);
 
     /// <summary>
     /// Ділить бойові втрати на поранених (лікуються в Госпіталі),
@@ -28,7 +28,7 @@ namespace EmpireIdle.Domain.Services
         public CasualtySplit Split(IReadOnlyDictionary<string, int> losses, int woundedCapacity)
         {
             var wounded = new Dictionary<string, int>();
-            var instant = new Dictionary<string, int>();
+            var recoverable = new Dictionary<string, int>();
             var dead = new Dictionary<string, int>();
 
             var random = Random.Shared;
@@ -41,28 +41,28 @@ namespace EmpireIdle.Domain.Services
                 // Частка поранених — випадкова в межах конфіга
                 var woundedShare = _config.WoundedShareMin + random.NextDouble() * (_config.WoundedShareMax - _config.WoundedShareMin);
                 var woundedCount = (int)Math.Round(lost * woundedShare);
-                var instantCount = (int)Math.Round(lost * _config.InstantShare);
+                var recoverableCount = (int)Math.Round(lost * _config.RecoverableShare);
 
                 // Госпіталь не безмежний: скільки не влізло — гине
                 var admitted = Math.Min(woundedCount, remainingCapacity);
                 remainingCapacity -= admitted;
 
-                var deadCount = lost - admitted - instantCount;
+                var deadCount = lost - admitted - recoverableCount;
                 if (deadCount < 0)
                 {
-                    instantCount += deadCount; // зменшуємо миттєві втрати, якщо поранених більше, ніж залишилося
+                    recoverableCount += deadCount; // зменшуємо миттєві втрати, якщо поранених більше, ніж залишилося
                     deadCount = 0;
                 }
 
                 if (admitted > 0)
                     wounded[unitType] = admitted;
-                if(instantCount > 0)
-                    instant[unitType] = instantCount;
+                if(recoverableCount > 0)
+                    recoverable[unitType] = recoverableCount;
                 if(deadCount > 0)
                     dead[unitType] = deadCount;
             }
 
-            return new CasualtySplit(wounded, instant, dead);
+            return new CasualtySplit(wounded, recoverable, dead);
         }
     }
 }
