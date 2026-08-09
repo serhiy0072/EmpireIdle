@@ -52,8 +52,8 @@
         protected BattleReport() { } // Для EF Core
 
         /// <summary>Додає рядок звіту по типу юніта.</summary>
-        public void AddLine(string unitType, int sent, int wounded, int instant, int dead)
-            => _lines.Add(new BattleReportLine(Guid.NewGuid(), Id, unitType, sent, wounded, instant, dead));
+        public void AddLine(string unitType, int sent, int wounded, int recoverable, int dead)
+            => _lines.Add(new BattleReportLine(Guid.NewGuid(), Id, unitType, sent, wounded, recoverable, dead));
 
         /// <summary>Позначає звіт прочитаним.</summary>
         public void MarkAsRead() => IsRead = true;
@@ -68,19 +68,19 @@
         public int Sent { get; private set; }
 
         public int Wounded { get; private set; }    
-        public int Instant { get; private set; }
+        public int Recoverable { get; private set; }
         public int Dead { get; private set; }
 
         /// <summary>Скільки вціліло (без втрат).</summary>
-        public int Survived => Sent - Wounded - Instant - Dead;
+        public int Survived => Sent - Wounded - Recoverable - Dead;
 
-        public BattleReportLine(Guid id, Guid battleReportId, string unitType, int sent, int wounded, int instant, int dead) : base(id)
+        public BattleReportLine(Guid id, Guid battleReportId, string unitType, int sent, int wounded, int recoverable, int dead) : base(id)
         {
             BattleReportId = battleReportId;
             UnitType = unitType;
             Sent = sent;
             Wounded = wounded;
-            Instant = instant;
+            Recoverable = recoverable;
             Dead = dead;
         }
 

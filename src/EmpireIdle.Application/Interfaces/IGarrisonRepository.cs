@@ -18,5 +18,8 @@ namespace EmpireIdle.Application.Interfaces
         Task<Garrison?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
         /// <summary>Гарнізони з простроченими замовленнями тренування.</summary>
         Task<List<Garrison>> GetWithDueTrainingAsync(DateTime utcNow, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє прострочені стеки відновлюваних. Повертає кількість видалених рядків.</summary>
+        Task<int> PurgeExpiredRecoverableAsync(DateTime utcNow, CancellationToken cancellationToken);
     }
 }

@@ -26,7 +26,16 @@
 
         /// <summary>Типи монстрів на карті.</summary>
         public List<MonsterConfig> Monsters { get; set; } = new();
-        /// <summary>Параметри бою.</summary>
+        /// <summary>Параметри бою: рандом, терейн-модифікатори, частки кошиків втрат.</summary>
         public CombatConfig Combat { get; set; } = new();
+
+        /// <summary>Параметри монетизації: ціни speedup у gems.</summary>
+        public MonetizationConfig Monetization { get; set; } = new();
+
+        /// <summary>Асортимент офіційного магазину: пакети gems і лутбокси.</summary>
+        public ShopConfig Shop { get; set; } = new();
+
+        /// <summary>Усі типи предметів інвентаря.</summary>
+        public List<ItemConfig> Items { get; set; } = new();
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace EmpireIdle.API.DTOs
+﻿using EmpireIdle.Application.Garrisons.Commands;
+
+namespace EmpireIdle.API.DTOs
 {
-    public record HealWoundedRequest(Dictionary<string, int> Units);
+    public record HealWoundedRequest(Dictionary<string, int> Units, HealPaymentMethod Payment);
 }

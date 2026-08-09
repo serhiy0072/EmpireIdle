@@ -1,4 +1,5 @@
-﻿using EmpireIdle.Application.Interfaces;
+﻿using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -22,11 +23,13 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IBattleReportRepository _battleReportRepository;
         private readonly GameConfig _gameConfig;
+        private readonly CombatConfig _combatConfig;
         private readonly CasualtySplitter _casualties;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly CombatCalculator _combat;
         private readonly TerrainGenerator _terrain;
         private readonly MarchCalculator _calculator;
+        private readonly EffectResolver _effectResolver;
         private readonly ILogger<CompleteDueMarchesCommandHandler> _logger;
 
         public CompleteDueMarchesCommandHandler(
@@ -43,6 +46,7 @@ namespace EmpireIdle.Application.Marches.Commands
             CombatCalculator combat,
             TerrainGenerator terrain,
             MarchCalculator calculator,
+            EffectResolver effectResolver,
             ILogger<CompleteDueMarchesCommandHandler> logger)
         {
             _marchRepository = marchRepository;
@@ -57,8 +61,10 @@ namespace EmpireIdle.Application.Marches.Commands
             _combat = combat;
             _terrain = terrain;
             _calculator = calculator;
+            _effectResolver = effectResolver;
             _logger = logger;
             _gameConfig = gameConfig.Value;
+            _combatConfig = _gameConfig.Combat;
         }
 
         public async Task Handle(CompleteDueMarchesCommand request, CancellationToken cancellationToken)
@@ -124,12 +130,16 @@ namespace EmpireIdle.Application.Marches.Commands
             }
 
             var defenderArmy = _armyBuilder.BuildArmy(monster.Type, monster.Level);
-            var result = _combat.Resolve(attackerArmy, defenderArmy, terrain);
-
             var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken); 
             var village = garrison is null
                 ? null
                 : await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken);
+
+            var attackerBonus = village is null
+                ? 1.0
+                : await _effectResolver.GetMultiplierAsync(village.PlayerId, EffectTarget.Attack, DateTime.UtcNow, cancellationToken);
+
+            var result = _combat.Resolve(attackerArmy, defenderArmy, terrain, attackerBonus);
 
             // Вільна місткість Госпіталю = сума рівнів × місткість на рівень − уже поранені
             var woundedCapacity = CalculateWoundedCapacity(village, garrison);
@@ -167,21 +177,28 @@ namespace EmpireIdle.Application.Marches.Commands
                     unitType,
                     sent,
                     split.Wounded.GetValueOrDefault(unitType),
-                    split.Instant.GetValueOrDefault(unitType),
+                    split.Recoverable.GetValueOrDefault(unitType),
                     split.Dead.GetValueOrDefault(unitType));
             }
 
             await _battleReportRepository.AddAsync(report, cancellationToken);
 
+            // Відновлюваних кладемо окремим стеком: у кожного бою свій дедлайн викупу
+            if (garrison is not null && split.Recoverable.Count > 0)
+            {
+                var expiresAt = DateTime.UtcNow.AddHours(_combatConfig.RecoveryWindowHours);
+                garrison.AddRecoverable(split.Recoverable, report.Id, expiresAt);
+            }
+
             march.RecordBattle(village?.PlayerId ?? Guid.Empty, report.Id, result.AttackerWon, report.TargetName);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
-               "losses — wounded {Wounded}, instant {Instant}, dead {Dead}",
+               "losses — wounded {Wounded}, recoverable {Recoverable}, dead {Dead}",
                march.TargetX, march.TargetY, terrain,
                result.AttackerWon ? "won" : "lost",
                result.AttackerPower, result.DefenderPower,
-               split.Wounded.Values.Sum(), split.Instant.Values.Sum(), split.Dead.Values.Sum());
+               split.Wounded.Values.Sum(), split.Recoverable.Values.Sum(), split.Dead.Values.Sum());
 
             TurnMarchBack(march, march.GetUnits());
         }
@@ -197,8 +214,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 return;
             }
 
-            var backDuration = _calculator.CalculateDuration(
-                ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
+            var backDuration = _calculator.CalculateDuration(ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
 
             march.TurnBack(backDuration, DateTime.UtcNow);
         }

@@ -1,0 +1,79 @@
+{
+  "GameConfig": {
+    "Items": [
+      {
+        "Key": "crate_wood_5000",
+        "DisplayName": "Timber Crate",
+        "Description": "Миттєво додає 5000 деревини",
+        "Rarity": "common",
+        "Type": "resources",
+        "IsStackable": true,
+        "Resources": [
+          {
+            "Resource": "wood",
+            "Amount": 5000
+          }
+        ]
+      },
+      {
+        "Key": "crate_mixed_large",
+        "DisplayName": "Supply Crate",
+        "Description": "Набір ресурсів для розбудови",
+        "Rarity": "rare",
+        "Type": "resources",
+        "IsStackable": true,
+        "Resources": [
+          {
+            "Resource": "gold",
+            "Amount": 3000
+          },
+          {
+            "Resource": "wood",
+            "Amount": 3000
+          },
+          {
+            "Resource": "food",
+            "Amount": 2000
+          },
+          {
+            "Resource": "iron",
+            "Amount": 1000
+          }
+        ]
+      },
+      {
+        "Key": "boost_production_2x_4h",
+        "DisplayName": "Production Boost",
+        "Description": "Подвоює виробництво на 4 години",
+        "Rarity": "rare",
+        "Type": "boost",
+        "IsStackable": true,
+        "BoostTarget": "production",
+        "Multiplier": 2.0,
+        "DurationHours": 4
+      },
+      {
+        "Key": "boost_attack_25_1h",
+        "DisplayName": "War Banner",
+        "Description": "+25% до атаки на годину",
+        "Rarity": "rare",
+        "Type": "boost",
+        "IsStackable": true,
+        "BoostTarget": "attack",
+        "Multiplier": 1.25,
+        "DurationHours": 1
+      },
+      {
+        "Key": "boost_defense_25_8h",
+        "DisplayName": "Fortification Order",
+        "Description": "+25% до захисту на 8 годин",
+        "Rarity": "rare",
+        "Type": "boost",
+        "IsStackable": true,
+        "BoostTarget": "defense",
+        "Multiplier": 1.25,
+        "DurationHours": 8
+      }
+    ]
+  }
+}

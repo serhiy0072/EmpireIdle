@@ -10,7 +10,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     /// <summary>
     /// Команда тренування партії юнітів (1–5) у казармах села гравця.
     /// </summary>
-    public record TrainUnitsCommand(Guid PlayerId, string UnitType, int Count) : IRequest, IPlayerScopedRequest;
+    public record TrainUnitsCommand(Guid PlayerId, string UnitType, int Count) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
     /// Обробник TrainUnitsCommand: координує Village (списання вартості)

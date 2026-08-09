@@ -24,6 +24,12 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<Monster> Monsters => Set<Monster>();
         public DbSet<March> Marches => Set<March>();
         public DbSet<BattleReport> BattleReports => Set<BattleReport>();
+        public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+        public DbSet<LootBoxProgress> LootBoxProgress => Set<LootBoxProgress>();
+        public DbSet<PlayerItem> PlayerItems => Set<PlayerItem>();
+        public DbSet<EquipmentItem> EquipmentItems => Set<EquipmentItem>();
+        public DbSet<ActiveEffect> ActiveEffects => Set<ActiveEffect>();
+        public DbSet<RecoverableUnit> RecoverableUnits => Set<RecoverableUnit>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

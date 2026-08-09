@@ -36,7 +36,7 @@ namespace EmpireIdle.API.Controllers
                 r.DefenderPower, 
                 r.FoughtAt, 
                 r.IsRead,
-                r.Lines.Select(l => new BattleReportLineResponse(l.UnitType, l.Sent, l.Survived, l.Wounded, l.Instant, l.Dead)).ToList()))
+                r.Lines.Select(l => new BattleReportLineResponse(l.UnitType, l.Sent, l.Survived, l.Wounded, l.Recoverable, l.Dead)).ToList()))
                 .ToList();
 
             return Ok(respose);

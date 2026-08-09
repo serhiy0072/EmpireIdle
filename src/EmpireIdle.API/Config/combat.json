@@ -4,9 +4,10 @@
       "RandomMin": 0.7,
       "RandomMax": 1.4,
       "RandomSigma": 0.15,
+      "RecoveryWindowHours": 24,
       "WoundedShareMin": 0.4,
       "WoundedShareMax": 0.6,
-      "InstantShare": 0.12,
+      "RecoverableShare": 0.12,
       "TerrainBonuses": [
         {
           "Terrain": "plain",

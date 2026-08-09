@@ -116,6 +116,9 @@
         /// <summary>Фіксує факт бою для сповіщення гравця.</summary>
         public void RecordBattle(Guid playerId, Guid reportId, bool won, string targetName)
             => RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName));
+
+        /// <summary>Прискорює прибуття (speedup за gems).</summary>
+        public void Reduce(TimeSpan reduction) => ArrivesAt -= reduction;
     }
 
     /// <summary>Загін у складі походу.</summary>

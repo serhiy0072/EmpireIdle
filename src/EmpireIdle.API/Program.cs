@@ -24,6 +24,7 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Browser-based idle empire builder game API"
     });
 
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -38,6 +39,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
+    options.OperationFilter<EmpireIdle.API.Swagger.IdempotencyHeaderFilter>();
 });
 
 builder.Configuration
@@ -48,7 +50,9 @@ builder.Configuration
     .AddJsonFile("Config/units.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true);
 
 builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -121,11 +125,13 @@ builder.Services.AddSingleton(new CombatCalculator(gameConfig.Combat, gameConfig
 builder.Services.AddSingleton(new MonsterArmyBuilder(gameConfig.Monsters));
 builder.Services.AddSingleton(new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
+builder.Services.AddSingleton(new SpeedUpCalculator(gameConfig.Monetization));
 
 builder.Services.AddScoped<MonsterSpawnJob>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer>();
+builder.Services.AddScoped<IRequestContext, EmpireIdle.API.Services.RequestContext>();
 
 const string FrontendCors = "FrontendCors";
 builder.Services.AddCors(option =>

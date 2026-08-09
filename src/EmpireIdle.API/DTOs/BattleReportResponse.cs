@@ -21,6 +21,6 @@
         int Sent,
         int Survived,
         int Wounded,
-        int Instant,
+        int Recoverable,
         int Dead);
 }

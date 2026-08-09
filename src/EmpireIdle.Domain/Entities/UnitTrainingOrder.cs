@@ -17,5 +17,8 @@
         }
 
         protected UnitTrainingOrder() { } // Для EF Core
+
+        /// <summary>Зменшує час до завершення.</summary>
+        public void Reduce(TimeSpan reduction) => CompletesAt -= reduction;
     }
 }
