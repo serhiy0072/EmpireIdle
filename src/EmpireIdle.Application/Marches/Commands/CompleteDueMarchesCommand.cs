@@ -23,6 +23,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IBattleReportRepository _battleReportRepository;
         private readonly GameConfig _gameConfig;
+        private readonly CombatConfig _combatConfig;
         private readonly CasualtySplitter _casualties;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly CombatCalculator _combat;
@@ -63,6 +64,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _effectResolver = effectResolver;
             _logger = logger;
             _gameConfig = gameConfig.Value;
+            _combatConfig = _gameConfig.Combat;
         }
 
         public async Task Handle(CompleteDueMarchesCommand request, CancellationToken cancellationToken)
@@ -180,6 +182,13 @@ namespace EmpireIdle.Application.Marches.Commands
             }
 
             await _battleReportRepository.AddAsync(report, cancellationToken);
+
+            // Відновлюваних кладемо окремим стеком: у кожного бою свій дедлайн викупу
+            if (garrison is not null && split.Recoverable.Count > 0)
+            {
+                var expiresAt = DateTime.UtcNow.AddHours(_combatConfig.RecoveryWindowHours);
+                garrison.AddRecoverable(split.Recoverable, report.Id, expiresAt);
+            }
 
             march.RecordBattle(village?.PlayerId ?? Guid.Empty, report.Id, result.AttackerWon, report.TargetName);
 
