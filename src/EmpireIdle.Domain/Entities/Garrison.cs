@@ -10,6 +10,7 @@ namespace EmpireIdle.Domain.Entities
         private readonly List<VillageUnit> _units = new();
         private readonly List<UnitTrainingOrder> _trainingOrders = new();
         private readonly List<WoundedUnit> _wounded = new();
+        private readonly List<RecoverableUnit> _recoverable = new();
 
         /// <summary>Село, якому належить гарнізон.</summary>
         public Guid VillageId { get; private set; }
@@ -18,6 +19,8 @@ namespace EmpireIdle.Domain.Entities
         public IReadOnlyCollection<UnitTrainingOrder> TrainingOrders => _trainingOrders.AsReadOnly();
         /// <summary>Поранені в Госпіталі (тільки для читання).</summary>
         public IReadOnlyCollection<WoundedUnit> Wounded => _wounded.AsReadOnly();
+        /// <summary>Юніти, доступні для викупу за gems (тільки для читання).</summary>
+        public IReadOnlyCollection<RecoverableUnit> Recoverable => _recoverable.AsReadOnly();
 
         public Garrison(Guid id, Guid villageId) : base(id)
         {
@@ -159,6 +162,77 @@ namespace EmpireIdle.Domain.Entities
                 ?? throw new InvalidOperationException($"Training order {orderId} not found.");
 
             order.Reduce(reduction);
+        }
+        /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
+        public int RecoverableCount(DateTime utcNow)
+            => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
+
+        /// <summary>Записує відновлюваних після бою — окремим стеком зі своїм дедлайном.</summary>
+        public void AddRecoverable(IReadOnlyDictionary<string, int> units,
+            Guid battleReportId, DateTime expiresAt)
+        {
+            foreach (var (unitType, count) in units)
+            {
+                if (count <= 0)
+                    continue;
+
+                _recoverable.Add(new RecoverableUnit(
+                    Guid.NewGuid(), Id, battleReportId, unitType, count, expiresAt));
+            }
+        }
+
+        /// <summary>
+        /// Викуповує юнітів: вони повертаються в гарнізон.
+        /// Списує зі стеків у порядку найближчого дедлайну — щоб гравець не втратив те, що згорає першим.
+        /// </summary>
+        public Dictionary<string, int> RecoverUnits(
+            IReadOnlyDictionary<string, int> toRecover, DateTime utcNow)
+        {
+            var recovered = new Dictionary<string, int>();
+
+            foreach (var (unitType, requested) in toRecover)
+            {
+                if (requested <= 0)
+                    continue;
+
+                var remaining = requested;
+                var stacks = _recoverable
+                    .Where(r => r.UnitType == unitType && r.IsActive(utcNow))
+                    .OrderBy(r => r.ExpiresAt);
+
+                foreach (var stack in stacks)
+                {
+                    if (remaining <= 0)
+                        break;
+
+                    var taken = Math.Min(remaining, stack.Count);
+                    stack.Reduce(taken);
+                    remaining -= taken;
+                }
+
+                var total = requested - remaining;
+                if (total > 0)
+                    recovered[unitType] = total;
+            }
+
+            _recoverable.RemoveAll(r => r.Count <= 0);
+
+            if (recovered.Count > 0)
+                ReceiveUnits(recovered);
+
+            return recovered;
+        }
+
+        /// <summary>Прибирає прострочені стеки. Повертає кількість згорілих юнітів.</summary>
+        public int PurgeExpiredRecoverable(DateTime utcNow)
+        {
+            var expired = _recoverable.Where(r => !r.IsActive(utcNow)).ToList();
+            var burned = expired.Sum(r => r.Count);
+
+            foreach (var stack in expired)
+                _recoverable.Remove(stack);
+
+            return burned;
         }
     }
 }

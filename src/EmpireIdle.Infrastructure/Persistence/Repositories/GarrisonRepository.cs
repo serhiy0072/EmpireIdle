@@ -21,6 +21,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Include(g => g.Units)
             .Include(g => g.TrainingOrders)
             .Include(g => g.Wounded)
+            .Include(g => g.Recoverable)
             .AsSplitQuery()
             .FirstOrDefaultAsync(g => g.VillageId == villageId, cancellationToken);
 
@@ -30,6 +31,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Include(g => g.Units)
             .Include(g => g.TrainingOrders)
             .Include(g => g.Wounded)
+            .Include(g => g.Recoverable)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
 
@@ -44,6 +46,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Include(g => g.Units)
             .Include(g => g.TrainingOrders)
             .Include(g => g.Wounded)
+            .Include(g => g.Recoverable)
             .AsSplitQuery()
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 
@@ -53,6 +56,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Include(g => g.Units)
             .Include(g => g.TrainingOrders)
             .Include(g => g.Wounded)
+            .Include(g => g.Recoverable)
             .AsSplitQuery()
             .Where(g => g.TrainingOrders.Any(o => o.CompletesAt <= utcNow))
             .ToListAsync(cancellationToken);

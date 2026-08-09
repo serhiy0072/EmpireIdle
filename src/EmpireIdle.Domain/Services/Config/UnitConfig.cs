@@ -12,6 +12,9 @@
         /// <summary>Будівля, потрібна для тренування; null — без вимог.</summary>
         public string? RequiresBuilding { get; set; }
 
+        /// <summary>Ціна викупу одного юніта в gems.</summary>
+        public int RecoverCostGems { get; set; }
+
         /// <summary>Вартість тренування одного юніта.</summary>
         public List<ResourceCost> Cost { get; set; } = new();
 
