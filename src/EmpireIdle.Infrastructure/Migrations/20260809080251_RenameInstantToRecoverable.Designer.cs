@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EmpireIdle.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260809080251_Change Instant to Recoverable")]
+    [Migration("20260809080251_RenameInstantToRecoverable")]
     partial class ChangeInstanttoRecoverable
     {
         /// <inheritdoc />
