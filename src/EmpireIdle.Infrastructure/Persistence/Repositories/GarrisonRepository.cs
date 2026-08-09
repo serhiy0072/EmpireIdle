@@ -61,5 +61,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Where(g => g.TrainingOrders.Any(o => o.CompletesAt <= utcNow))
             .ToListAsync(cancellationToken);
 
+        /// <inheritdoc/>
+        public async Task<int> PurgeExpiredRecoverableAsync(DateTime utcNow, CancellationToken cancellationToken)
+        {
+            // Масове видалення в обхід агрегату: прострочений стек не породжує доменних подій,
+            // а вантажити всі гарнізони заради нього — зайвий трафік
+            return await _context.RecoverableUnits
+                .Where(r => r.ExpiresAt <= utcNow)
+                .ExecuteDeleteAsync(cancellationToken);
+        }
+
     }
 }

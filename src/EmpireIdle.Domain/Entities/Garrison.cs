@@ -222,17 +222,5 @@ namespace EmpireIdle.Domain.Entities
 
             return recovered;
         }
-
-        /// <summary>Прибирає прострочені стеки. Повертає кількість згорілих юнітів.</summary>
-        public int PurgeExpiredRecoverable(DateTime utcNow)
-        {
-            var expired = _recoverable.Where(r => !r.IsActive(utcNow)).ToList();
-            var burned = expired.Sum(r => r.Count);
-
-            foreach (var stack in expired)
-                _recoverable.Remove(stack);
-
-            return burned;
-        }
     }
 }
