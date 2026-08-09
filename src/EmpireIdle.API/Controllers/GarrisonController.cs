@@ -64,6 +64,16 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Викупити відновлюваних юнітів за gems.</summary>
+        [HttpPost("{playerId:guid}/units/recover")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RecoverUnits(Guid playerId, [FromBody] RecoverUnitsRequest request, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RecoverUnitsCommand(playerId, request.Units), cancellationToken);
+            return NoContent();
+        }
+
         [HttpPost("{playerId:guid}/training/{orderId:guid}/speedup")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
