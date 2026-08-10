@@ -28,24 +28,34 @@ namespace EmpireIdle.Application.Inventory.Effects
             var duration = TimeSpan.FromHours(config.DurationHours * context.Count);
             var existing = await _repository.GetAsync(context.PlayerId, target, cancellationToken);
 
-            if (existing is not null && existing.IsActive(context.UtcNow))
+            if (existing is null)
             {
-                // Той самий буст діє — продовжуємо час, множники не стакуються
-                existing.Extend(duration);
+                await _repository.AddAsync(
+                    new ActiveEffect(Guid.NewGuid(), context.PlayerId, target,config.Multiplier, context.UtcNow + duration, config.Key),
+                    cancellationToken);
                 return;
             }
 
-            if (existing is not null)
+            if (!existing.IsActive(context.UtcNow))
             {
-                // Прострочений ефект — перезапускаємо з новим множником
+                // Прострочений слот переиспользовуємо: множники не стакуються, бо запис один на ціль
                 existing.Restart(config.Multiplier, context.UtcNow + duration, config.Key);
                 return;
             }
 
-            await _repository.AddAsync(
-                new ActiveEffect(Guid.NewGuid(), context.PlayerId, target,
-                    config.Multiplier, context.UtcNow + duration, config.Key),
-                cancellationToken);
+            if (existing.IsFrom(config.Key))
+            {
+                // Той самий буст — просто довше
+                existing.Extend(duration);
+                return;
+            }
+
+            if (config.Multiplier <= existing.Multiplier)
+                throw new InvalidOperationException(
+                    $"A stronger {target} boost (×{existing.Multiplier}) is already active until {existing.ExpiresAt:u}.");
+
+            // Сильніший буст витісняє слабший; залишок часу слабкого згорає
+            existing.Restart(config.Multiplier, context.UtcNow + duration, config.Key);
         }
     }
 }

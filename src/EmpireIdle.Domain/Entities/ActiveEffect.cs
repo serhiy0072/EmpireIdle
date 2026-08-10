@@ -33,6 +33,9 @@
         /// <summary>Ключ предмета-джерела (для відображення й аналітики).</summary>
         public string SourceItemKey { get; private set; } = null!;
 
+        /// <summary>Чи цей ефект створено вказаним предметом.</summary>
+        public bool IsFrom(string itemKey) => SourceItemKey == itemKey;
+
         public ActiveEffect(Guid id, Guid playerId, EffectTarget target, double multiplier,
             DateTime expiresAt, string sourceItemKey) : base(id)
         {
