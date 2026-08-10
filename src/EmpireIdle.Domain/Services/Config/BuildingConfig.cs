@@ -51,6 +51,9 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public bool IsMainBuilding { get; set; }
 
+        /// <summary>Ключ ресурсу, який поповнює ця житлова будівля (null — не житлова).</summary>
+        public string? PopulationResource { get; set; }
+
     }
 
 }

@@ -172,8 +172,8 @@ namespace EmpireIdle.Domain.Entities
             var building = new Building(Guid.NewGuid(), Id, buildingType);
             _buildings.Add(building);
 
-            if (config.PopulationPerLevel > 0)
-                AddPopulation(config.PopulationPerLevel); //будівля 1-го рівня одразу дає населення
+            if (config.PopulationPerLevel > 0 && config.PopulationResource is not null)
+                AddPopulation(config.PopulationResource, config.PopulationPerLevel); //будівля 1-го рівня одразу дає населення
 
             return building.Id;
         }
@@ -253,8 +253,9 @@ namespace EmpireIdle.Domain.Entities
             {
                 building.CompleteConstruction();
 
-                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.PopulationPerLevel > 0)
-                    AddPopulation(config.PopulationPerLevel); //апгрейд житлової будівлі додає населення
+                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.PopulationPerLevel > 0 && config.PopulationResource is not null)
+                    AddPopulation(config.PopulationResource, config.PopulationPerLevel); //апгрейд житлової будівлі додає населення
+
 
                 RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
             }
@@ -262,16 +263,16 @@ namespace EmpireIdle.Domain.Entities
             return due.Count;
         }
 
-        /// <summary>Додає населення (від будівництва/апгрейду житлової будівлі).</summary>
-        private void AddPopulation(int amount)
+        /// <summary>Поповнює ресурс-місткість (від будівництва/апгрейду житлової будівлі).</summary>
+        private void AddPopulation(string resourceKey, int amount)
         {
-            var population = _resources.FirstOrDefault(r => r.ResourceType == "population");
-            if (population is null)
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey);
+            if (resource is null)
             {
-                population = new VillageResource (Id, "population");
-                _resources.Add(population);
+                resource = new VillageResource(Id, resourceKey);
+                _resources.Add(resource);
             }
-            population.Add(amount);
+            resource.Add(amount);
         }
 
         /// <summary>

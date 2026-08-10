@@ -49,6 +49,7 @@
         "BuildTimeGrowth": 1.4,
         "AllowedZone": "plain",
         "RequiresMainBuildingLevel": 0,
+        "PopulationResource": "population",
         "PopulationPerLevel": 5
       },
       {

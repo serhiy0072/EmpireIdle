@@ -24,7 +24,8 @@
       {
         "Key": "population",
         "DisplayName": "Population",
-        "Icon": "population.svg"
+        "Icon": "population.svg",
+        "IsCapacity": true
       }
     ]
   }

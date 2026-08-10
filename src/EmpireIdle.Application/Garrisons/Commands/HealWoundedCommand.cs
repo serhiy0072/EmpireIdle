@@ -98,10 +98,15 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 var config = _gameConfig.Units.FirstOrDefault(u => u.Key == unitType)
                     ?? throw new InvalidOperationException($"Unknown unit type '{unitType}'.");
 
+                var capacityResources = _gameConfig.Resources
+                    .Where(r => r.IsCapacity)
+                    .Select(r => r.Key)
+                    .ToHashSet();
+
                 foreach (var line in config.Cost)
                 {
-                    // Населення не витрачається повторно — юніт живий, лише поранений
-                    if (line.Resource == "population")
+                    // Місткість не витрачається повторно — юніт живий, лише поранений
+                    if (capacityResources.Contains(line.Resource))
                         continue;
 
                     var amount = (int)Math.Ceiling(line.Amount * count * HealCostFactor);
