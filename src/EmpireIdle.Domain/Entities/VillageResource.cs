@@ -21,18 +21,18 @@ namespace EmpireIdle.Domain.Entities
         public VillageResource() { } // Для EF Core
 
         /// <summary>Додає кількість ресурсу.</summary>
-        public void Add(int Ampunt)
+        public void Add(int amount)
         {
-            if (Amount < 0)
+            if (amount < 0)
                 throw new InvalidOperationException("Amount to add cannot be negative.");
 
-            Amount += Ampunt;
+            Amount += amount;
         }
 
         /// <summary>Списує кількість ресурсу. Кидає виняток, якщо не вистачає.</summary>
         public void Subtract(int amount)
         {
-            if (Amount < 0)
+            if (amount < 0)
                 throw new InvalidOperationException("Amount to subtract cannot be negative.");
 
             if (Amount < amount)
