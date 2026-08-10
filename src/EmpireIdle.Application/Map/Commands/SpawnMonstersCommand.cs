@@ -45,16 +45,22 @@ namespace EmpireIdle.Application.Map.Commands
 
             var spawned = 0;
 
+            // Клітини цього прогону ще не в БД: IsOccupiedAsync їх не побачить,
+            // і два монстри отримали б однакові координати → падіння на unique index
+            var reserved = new HashSet<(int X, int Y)>();
+
             for (var i = 0; i < missing; i++)
             {
                 var spot = await _spawner.TrySpawnAsync(
                     ServerId,
-                    (x, y) => _mapRepository.IsOccupiedAsync(ServerId, x, y, cancellationToken));
+                    async (x, y) => reserved.Contains((x, y))|| await _mapRepository.IsOccupiedAsync(ServerId, x, y, cancellationToken));
 
                 if (spot is null)
                     break; // місця не знайшлося — спробуємо наступного разу
 
                 var (type, level, x, y) = spot.Value;
+                reserved.Add((x, y));
+
                 var monster = new Monster(Guid.NewGuid(), ServerId, type, level, x, y);
 
                 await _monsterRepository.AddAsync(monster, cancellationToken);
