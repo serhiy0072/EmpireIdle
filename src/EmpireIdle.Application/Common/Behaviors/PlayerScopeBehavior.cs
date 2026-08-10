@@ -50,7 +50,7 @@ namespace EmpireIdle.Application.Common.Behaviors
                 throw new UnauthorizedAccessException("Request targets another player's data.");
             }
 
-            return next();
+            return next(cancellationToken);
         }
     }
 }
