@@ -19,7 +19,6 @@ namespace EmpireIdle.Infrastructure.Persistence
             _context = context;
         }
 
-
         /// <inheritdoc/>
         public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
         {
@@ -28,7 +27,6 @@ namespace EmpireIdle.Infrastructure.Persistence
 
             _transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         }
-
 
         /// <inheritdoc/>
         public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
@@ -40,7 +38,6 @@ namespace EmpireIdle.Infrastructure.Persistence
             await _transaction.DisposeAsync();
             _transaction = null;
         }
-
 
         //// <inheritdoc/>
         public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
@@ -58,5 +55,8 @@ namespace EmpireIdle.Infrastructure.Persistence
         {
             return await _context.SaveChangesAsync(cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public void DiscardChanges() => _context.ChangeTracker.Clear();
     }
 }

@@ -5,6 +5,8 @@ using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Text.RegularExpressions;
+using static System.Net.WebRequestMethods;
 
 namespace EmpireIdle.Application.Marches.Commands
 {
@@ -77,35 +79,48 @@ namespace EmpireIdle.Application.Marches.Commands
 
             var battles = 0;
             var returned = 0;
+            var failed = 0;
 
             foreach (var march in due)
             {
-                if (march.State == MarchState.Outbound)
+                try
                 {
-                    await ResolveBattleAsync(march, cancellationToken);
-                    battles++;
-                }
-                else if (march.State == MarchState.Returning)
-                {
-                    var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken);
-                    if (garrison is null)
+                    if (march.State == MarchState.Outbound)
                     {
-                        _logger.LogWarning("Garrison {GarrisonId} not found for march {MarchId}", march.GarrisonId, march.Id);
-                        continue;
+                        await ResolveBattleAsync(march, cancellationToken);
+                        battles++;
+                    }
+                    else if (march.State == MarchState.Returning)
+                    {
+                        var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken);
+                        if (garrison is null)
+                        {
+                            _logger.LogWarning("Garrison {GarrisonId} not found for march {MarchId}", march.GarrisonId, march.Id);
+                            continue;
+                        }
+
+                        var survivors = march.GetUnits();
+                        if (survivors.Count > 0)
+                            garrison.ReceiveUnits(survivors);
+
+                        march.Complete();
+                        returned++;
                     }
 
-                    var survivors = march.GetUnits();
-                    if(survivors.Count > 0)
-                        garrison.ReceiveUnits(survivors);
+                    // Зберігаємо помарш: збій на одному не має відкочувати решту батча
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // Викидаємо частковий стан впалого маршу, інакше він поїде з наступним SaveChanges
+                    _unitOfWork.DiscardChanges();
+                    failed++;
 
-                    march.Complete();
-                    returned++;
+                    _logger.LogError(ex, "Failed to process march {MarchId} (state {State})", march.Id, march.State);
                 }
             }
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation("Marches processed: {Arrived} arrived, {Returned} returned home", battles, returned);
+            if (failed > 0)
+                _logger.LogWarning("Marches skipped due to errors: {Failed}", failed);
         }
 
         /// <summary>Проводить бій на місці прибуття армії.</summary>
