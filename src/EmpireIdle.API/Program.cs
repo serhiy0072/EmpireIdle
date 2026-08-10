@@ -66,6 +66,9 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Items.Count > 0, "GameConfig.Items is empty — check Config/items.json.")
     .Validate(c => c.Shop.GemPacks.Count > 0, "GameConfig.Shop.GemPacks is empty — check Config/shop.json.")
     .Validate(c => c.Map.Terrains.Any(t => t.Weight > 0), "GameConfig.Map has no terrain with positive weight.")
+    .Validate(c => c.Buildings.Count(b => b.IsMainBuilding) == 1, "GameConfig must define exactly one main building.")
+    .Validate(c => c.StartingBuildings.Count > 0, "GameConfig.StartingBuildings is empty.")
+    .Validate(c => c.StartingBuildings.All(k => c.Buildings.Any(b => b.Key == k)), "GameConfig.StartingBuildings references a building key that does not exist.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
