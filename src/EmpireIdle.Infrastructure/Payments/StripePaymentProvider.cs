@@ -8,8 +8,6 @@ namespace EmpireIdle.Infrastructure.Payments
     /// <summary>Платіжний шлюз на Stripe Checkout.</summary>
     public class StripePaymentProvider : IPaymentProvider
     {
-        private const string CompletedEventType = "checkout.session.comleated";
-
         private readonly StripeSettings _settings;
 
         public StripePaymentProvider(IOptions<StripeSettings> settings)
@@ -64,14 +62,15 @@ namespace EmpireIdle.Infrastructure.Payments
             // Перевірка підпису: без неї будь-хто міг би надіслати «оплата пройшла»
             var stripeEvent = EventUtility.ConstructEvent(payload, signatureHeader, _settings.WebhookSecret);
 
-            if (stripeEvent.Type != CompletedEventType)
+            if (stripeEvent.Type != EventTypes.CheckoutSessionCompleted)
                 return new PaymentWebhookResult(IsPaymentCompleted: false, SessionId: null);
 
-            var session = stripeEvent.Data.Object as Session;
+            if (stripeEvent.Data.Object is not Session session)
+                throw new InvalidOperationException($"Event {stripeEvent.Id} of type {stripeEvent.Type} does not carry a Checkout Session.");
 
             return new PaymentWebhookResult(
-                IsPaymentCompleted: session?.PaymentStatus == "paid",
-                SessionId: session?.Id);
+                IsPaymentCompleted: session.PaymentStatus == "paid",
+                SessionId: session.Id);
         }
     }
 }
