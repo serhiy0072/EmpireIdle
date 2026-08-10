@@ -43,6 +43,19 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<EmpireIdle.API.Swagger.IdempotencyHeaderFilter>();
 });
 
+builder.Configuration
+    .AddJsonFile("game-config.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/zones.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true);
+
 builder.Services.AddOptions<GameConfig>()
     .Bind(builder.Configuration.GetSection("GameConfig"))
     .Validate(c => c.Resources.Count > 0, "GameConfig.Resources is empty — check Config/resources.json.")
@@ -55,7 +68,6 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Map.Terrains.Any(t => t.Weight > 0), "GameConfig.Map has no terrain with positive weight.")
     .ValidateOnStart();
 
-builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>()
