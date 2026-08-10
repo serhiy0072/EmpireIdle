@@ -7,6 +7,7 @@ using EmpireIdle.Infrastructure.Auth;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -92,7 +93,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Усе, що явно не позначене [AllowAnonymous], вимагає автентифікації.
+    // Забути [Authorize] на новому контролері тепер безпечно — за замовчуванням він закритий.
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
@@ -152,7 +160,7 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpireIdle API v1");
     });
-    app.MapHangfireDashboard("/hangfire");
+    app.MapHangfireDashboard("/hangfire").AllowAnonymous();
 }
 
 if (!app.Environment.IsDevelopment())
@@ -165,6 +173,7 @@ app.UseCors(FrontendCors);
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.MapHub<GameHub>("/hubs/game");
