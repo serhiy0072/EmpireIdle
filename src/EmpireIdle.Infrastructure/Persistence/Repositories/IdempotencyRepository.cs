@@ -1,6 +1,8 @@
 ﻿using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace EmpireIdle.Infrastructure.Persistence.Repositories
 {
@@ -8,22 +10,46 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
     public class IdempotencyRepository : IIdempotencyRepository
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<IdempotencyRepository> _logger;
 
-        public IdempotencyRepository(AppDbContext context)
+        public IdempotencyRepository(AppDbContext context, ILogger<IdempotencyRepository> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        /// <inheritdoc/>
         public Task<IdempotencyRecord?> FindAsync(Guid playerId, string key, CancellationToken cancellationToken = default)
             => _context.IdempotencyRecords
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.PlayerId == playerId && r.Key == key, cancellationToken);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.PlayerId == playerId && r.Key == key, cancellationToken);
 
-        /// <inheritdoc/>
-        public async Task AddAsync(IdempotencyRecord record, CancellationToken cancellationToken = default)
+        public async Task<bool> TryReserveAsync(IdempotencyRecord record, CancellationToken cancellationToken = default)
         {
-            await _context.IdempotencyRecords.AddAsync(record, cancellationToken);
+            // Окремий контекст: резерв має жити незалежно від транзакції самої операції.
+            // Інакше відкат операції зніс би і резерв — і два паралельні запити пройшли б обидва.
+            await using var scoped = new AppDbContext(
+                new DbContextOptionsBuilder<AppDbContext>()
+                    .UseNpgsql(_context.Database.GetConnectionString())
+                    .Options);
+
+            scoped.IdempotencyRecords.Add(record);
+
+            try
+            {
+                await scoped.SaveChangesAsync(cancellationToken);
+                return true;
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+            {
+                _logger.LogInformation("Idempotency key {Key} already reserved for player {PlayerId}.",
+                    record.Key, record.PlayerId);
+                return false;
+            }
         }
+
+        public Task ReleaseAsync(Guid recordId, CancellationToken cancellationToken = default)
+            => _context.IdempotencyRecords
+                .Where(r => r.Id == recordId)
+                .ExecuteDeleteAsync(cancellationToken);
     }
 }

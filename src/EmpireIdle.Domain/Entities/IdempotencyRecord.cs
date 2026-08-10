@@ -31,5 +31,9 @@ namespace EmpireIdle.Domain.Entities
         }
 
         protected IdempotencyRecord() { } // Для EF Core
+
+        // src/EmpireIdle.Domain/Entities/IdempotencyRecord.cs — додати метод
+        /// <summary>Фіксує результат після успішного виконання операції.</summary>
+        public void SetResponse(string? responseJson) => ResponseJson = responseJson;
     }
 }
