@@ -42,17 +42,17 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<EmpireIdle.API.Swagger.IdempotencyHeaderFilter>();
 });
 
-builder.Configuration
-    .AddJsonFile("game-config.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/zones.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true);
+builder.Services.AddOptions<GameConfig>()
+    .Bind(builder.Configuration.GetSection("GameConfig"))
+    .Validate(c => c.Resources.Count > 0, "GameConfig.Resources is empty — check Config/resources.json.")
+    .Validate(c => c.Buildings.Count > 0, "GameConfig.Buildings is empty — check Config/buildings.json.")
+    .Validate(c => c.Units.Count > 0, "GameConfig.Units is empty — check Config/units.json.")
+    .Validate(c => c.Zones.Count > 0, "GameConfig.Zones is empty — check Config/zones.json.")
+    .Validate(c => c.Monsters.Count > 0, "GameConfig.Monsters is empty — check Config/monsters.json.")
+    .Validate(c => c.Items.Count > 0, "GameConfig.Items is empty — check Config/items.json.")
+    .Validate(c => c.Shop.GemPacks.Count > 0, "GameConfig.Shop.GemPacks is empty — check Config/shop.json.")
+    .Validate(c => c.Map.Terrains.Any(t => t.Weight > 0), "GameConfig.Map has no terrain with positive weight.")
+    .ValidateOnStart();
 
 builder.Services.Configure<GameConfig>(builder.Configuration.GetSection("GameConfig"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
