@@ -77,7 +77,7 @@
                 h ^= h >> 13;
                 h *= 1274126177;
                 h ^= h >> 16;
-                return Math.Abs(h);
+                return h & 0x7FFFFFFF; 
             }
         }
     }
