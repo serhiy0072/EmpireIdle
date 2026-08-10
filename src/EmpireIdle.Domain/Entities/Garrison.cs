@@ -33,10 +33,10 @@ namespace EmpireIdle.Domain.Entities
         /// Ставить партію юнітів у чергу тренування.
         /// Інваріанти гарнізону: розмір партії 1–5, одне активне замовлення.
         /// </summary>
-        public void TrainUnits(string unitType, int count, TimeSpan trainDuration, DateTime utcNow)
+        public void TrainUnits(string unitType, int count, int maxBatchSize, TimeSpan trainDuration, DateTime utcNow)
         {
-            if (count < 1 || count > 5)
-                throw new InvalidOperationException("Training batch size must be between 1 and 5.");
+            if (count < 1 || count > maxBatchSize)
+                throw new InvalidOperationException($"Training batch size must be between 1 and {maxBatchSize}.");
 
             if (_trainingOrders.Any())
                 throw new InvalidOperationException("Barracks are already training a batch.");

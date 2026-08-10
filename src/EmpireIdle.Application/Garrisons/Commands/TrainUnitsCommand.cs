@@ -54,7 +54,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             village.ChargeCost(config.Cost, request.Count);
 
-            garrison.TrainUnits(request.UnitType, request.Count,
+            garrison.TrainUnits(request.UnitType, request.Count, _gameConfig.MaxTrainingBatchSize,
                 TimeSpan.FromMinutes(config.BaseTrainMinutes * request.Count), DateTime.UtcNow);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
