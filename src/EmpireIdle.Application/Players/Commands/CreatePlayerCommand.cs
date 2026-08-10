@@ -75,9 +75,9 @@ namespace EmpireIdle.Application.Players.Commands
             await _garrisonRepository.AddAsync(garrison, cancellationToken);
 
             var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
-            village.AddBuilding("townhall", buildingConfigs);
-            village.AddBuilding("farm", buildingConfigs);
-            // barracks додамо, коли з'явиться у ростері (фаза юнітів)
+
+            foreach (var buildingKey in _gameConfig.StartingBuildings)
+                village.AddBuilding(buildingKey, buildingConfigs);
 
             await _playerRepository.AddAsync(player, cancellationToken);
             await _villageRepository.AddAsync(village, cancellationToken);

@@ -25,7 +25,8 @@
         "BaseBuildMinutes": 5,
         "BuildTimeGrowth": 1.6,
         "AllowedZone": null,
-        "RequiresTownHallLevel": 0
+        "RequiresMainBuildingLevel": 0,
+        "IsMainBuilding": "true."
       },
       {
         "Key": "house",
@@ -47,7 +48,7 @@
         "BaseBuildMinutes": 3,
         "BuildTimeGrowth": 1.4,
         "AllowedZone": "plain",
-        "RequiresTownHallLevel": 0,
+        "RequiresMainBuildingLevel": 0,
         "PopulationPerLevel": 5
       },
       {
@@ -70,7 +71,7 @@
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "mountain",
-        "RequiresTownHallLevel": 0
+        "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "ironmine",
@@ -92,7 +93,7 @@
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "mountain",
-        "RequiresTownHallLevel": 0
+        "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "farm",
@@ -114,7 +115,7 @@
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "plain",
-        "RequiresTownHallLevel": 0
+        "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "sawmill",
@@ -136,7 +137,7 @@
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "forest",
-        "RequiresTownHallLevel": 0
+        "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "fishinghut",
@@ -158,7 +159,7 @@
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "water",
-        "RequiresTownHallLevel": 0
+        "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "hospital",
@@ -184,7 +185,7 @@
         "BaseBuildMinutes": 10,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "plain",
-        "RequiresTownHallLevel": 3,
+        "RequiresMainBuildingLevel": 3,
         "WoundedCapacityPerLevel": 20
       },
       {
@@ -211,7 +212,7 @@
         "BaseBuildMinutes": 8,
         "BuildTimeGrowth": 1.5,
         "AllowedZone": "plain",
-        "RequiresTownHallLevel": 2
+        "RequiresMainBuildingLevel": 2
       }
     ]
   }

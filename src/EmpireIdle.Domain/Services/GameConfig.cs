@@ -6,6 +6,13 @@
     /// </summary>
     public class GameConfig
     {
+        /// <summary>Будівлі, які отримує нове поселення (у порядку створення).</summary>
+        public List<string> StartingBuildings { get; set; } = new();
+
+        /// <summary>Максимальний розмір партії тренування.</summary>
+        public int MaxTrainingBatchSize { get; set; } = 5;
+
+
         /// <summary>Назва гри (наприклад "EmpireIdle", "SpaceIdle").</summary>
         public string GameName { get; set; } = null!;
 

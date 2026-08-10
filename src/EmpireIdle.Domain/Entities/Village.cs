@@ -131,11 +131,15 @@ namespace EmpireIdle.Domain.Entities
             if (!buildingConfigs.TryGetValue(buildingType, out var config))
                 throw new InvalidOperationException($"Unknown building type '{buildingType}'.");
 
-            // 1. Розблокування за рівнем Ратуші
-            var townHallLevel = _buildings.FirstOrDefault(b => b.Type == "townhall")?.Level.Value ?? 0;
-            if (townHallLevel < config.RequiresTownHallLevel)
+            // 1. Розблокування за рівнем головної будівлі (яка саме — вирішує конфіг)
+            var mainBuildingKey = buildingConfigs.Values.FirstOrDefault(c => c.IsMainBuilding)?.Key;
+            var mainBuildingLevel = mainBuildingKey is null
+                ? 0
+                : _buildings.FirstOrDefault(b => b.Type == mainBuildingKey)?.Level.Value ?? 0;
+
+            if (mainBuildingLevel < config.RequiresMainBuildingLevel)
                 throw new InvalidOperationException(
-                    $"Building '{buildingType}' requires town hall level {config.RequiresTownHallLevel}.");
+                    $"Building '{buildingType}' requires main building level {config.RequiresMainBuildingLevel}.");
 
             // 2. Зона: відповідність і вільний слот (null — поза зонами, без ліміту)
             if (config.AllowedZone is not null)

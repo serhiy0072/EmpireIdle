@@ -29,7 +29,7 @@ internal static class TestData
             BaseBuildMinutes = 5,
             BuildTimeGrowth = 1.5,
             AllowedZone = "plain",
-            RequiresTownHallLevel = 0
+            RequiresMainBuildingLevel = 0
         }
     };
 

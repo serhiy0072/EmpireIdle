@@ -32,17 +32,24 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Коефіцієнт росту часу апгрейду з рівнем: час = BaseBuildMinutes × BuildTimeGrowth^(рівень−1).</summary>
         public double BuildTimeGrowth { get; set; }
+
         /// <summary>Зона, у якій дозволено будувати; null — поза зонами (Ратуша, Стіни).</summary>
         public string? AllowedZone { get; set; }
 
-        /// <summary>Мінімальний рівень Ратуші для розблокування будівлі.</summary>
-        public int RequiresTownHallLevel { get; set; }
+        /// <summary>Мінімальний рівень головної будівлі для розблокування.</summary>
+        public int RequiresMainBuildingLevel { get; set; }
 
         /// <summary>Скільки населення додає кожен рівень цієї будівлі (0 — не житлова).</summary>
         public int PopulationPerLevel { get; set; }
 
         /// <summary>Місткість поранених на рівень (0 — не госпіталь).</summary>
         public int WoundedCapacityPerLevel { get; set; }
+
+        /// <summary>
+        /// Головна будівля поселення — її рівень гейтить розблокування решти.
+        /// Рівно одна на конфіг (townhall / command_center / bunker).
+        /// </summary>
+        public bool IsMainBuilding { get; set; }
 
     }
 
