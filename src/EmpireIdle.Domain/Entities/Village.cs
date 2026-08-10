@@ -32,7 +32,7 @@ namespace EmpireIdle.Domain.Entities
         public IReadOnlyCollection<Building> Buildings => _buildings.AsReadOnly();
 
         /// <summary>Всі ресурси села. Ключ — тип ресурсу.</summary>
-        public IReadOnlyCollection<VillageResource> Resources => _resources;
+        public IReadOnlyCollection<VillageResource> Resources => _resources.AsReadOnly();
 
         /// <summary>Координата X на карті світу.</summary>
         public int X { get; private set; }
