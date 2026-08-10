@@ -29,7 +29,7 @@ namespace EmpireIdle.Application.Common.Behaviors
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             if (request is not IIdempotentRequest || _requestContext.IdempotencyKey is not { } key || _currentPlayer.PlayerId is not { } playerId)
-                return await next();
+                return await next(cancellationToken);
 
             var requestType = typeof(TRequest).Name;
 
@@ -44,7 +44,7 @@ namespace EmpireIdle.Application.Common.Behaviors
                 return existing.ResponseJson is null ? default! : JsonSerializer.Deserialize<TResponse>(existing.ResponseJson)!;
             }
 
-            var response = await next();
+            var response = await next(cancellationToken;
 
             // Запис іде в ту саму транзакцію, що й сама операція:
             // або збережеться все разом, або нічого
