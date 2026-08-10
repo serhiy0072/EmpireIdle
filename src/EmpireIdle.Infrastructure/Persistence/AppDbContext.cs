@@ -30,6 +30,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<EquipmentItem> EquipmentItems => Set<EquipmentItem>();
         public DbSet<ActiveEffect> ActiveEffects => Set<ActiveEffect>();
         public DbSet<RecoverableUnit> RecoverableUnits => Set<RecoverableUnit>();
+        public DbSet<Payment> Payments => Set<Payment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

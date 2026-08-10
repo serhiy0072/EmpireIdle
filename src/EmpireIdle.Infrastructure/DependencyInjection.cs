@@ -3,6 +3,7 @@ using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
 using EmpireIdle.Infrastructure.Auth;
+using EmpireIdle.Infrastructure.Payments;
 using EmpireIdle.Infrastructure.Persistence;
 using EmpireIdle.Infrastructure.Persistence.Interceptors;
 using EmpireIdle.Infrastructure.Persistence.Repositories;
@@ -49,6 +50,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IActiveEffectRepository, ActiveEffectRepository>();
             services.AddScoped<IItemEffect, BoostItemEffect>();
             services.AddScoped<EffectResolver>();
+            services.Configure<StripeSettings>(configuration.GetSection(nameof(StripeSettings)));
+            services.AddScoped<IPaymentProvider, StripePaymentProvider>();
 
 
             services.AddMediatR(cfg =>
