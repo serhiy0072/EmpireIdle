@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;

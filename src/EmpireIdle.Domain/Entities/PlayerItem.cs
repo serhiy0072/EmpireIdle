@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
     /// Стаковий предмет в інвентарі гравця (розхідники).

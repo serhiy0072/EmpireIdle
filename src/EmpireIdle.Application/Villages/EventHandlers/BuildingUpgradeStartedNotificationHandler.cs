@@ -1,4 +1,4 @@
-﻿
+
 
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Interfaces;

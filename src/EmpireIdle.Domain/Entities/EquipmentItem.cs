@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Слот, у який вдягається спорядження.</summary>
     public enum EquipmentSlot

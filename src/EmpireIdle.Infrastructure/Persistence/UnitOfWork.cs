@@ -1,4 +1,4 @@
-﻿
+
 using EmpireIdle.Application.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;

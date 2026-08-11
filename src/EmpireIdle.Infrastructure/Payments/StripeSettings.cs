@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Infrastructure.Payments
+namespace EmpireIdle.Infrastructure.Payments
 {
     /// <summary>Налаштування Stripe. Ключі — лише через User Secrets.</summary>
     public class StripeSettings

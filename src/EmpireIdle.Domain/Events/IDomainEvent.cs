@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Events
+namespace EmpireIdle.Domain.Events
 {
     /// <summary>
     /// Маркерний інтерфейс для всіх доменних подій.

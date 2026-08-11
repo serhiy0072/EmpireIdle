@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
     /// <summary>Конфігурація одного типу юніта.</summary>
     public class UnitConfig

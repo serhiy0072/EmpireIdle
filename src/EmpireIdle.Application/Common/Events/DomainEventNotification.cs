@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Domain.Events;
+using EmpireIdle.Domain.Events;
 using MediatR;
 
 namespace EmpireIdle.Application.Common.Events

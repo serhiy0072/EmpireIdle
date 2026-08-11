@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
     /// <summary>
     /// Конфігурація гри. Визначає назви ресурсів, будівель та їх параметри.

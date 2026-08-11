@@ -1,4 +1,4 @@
-﻿public record GarrisonResponse(Guid Id, Guid VillageId, List<UnitResponse> Units, List<UnitResponse> Wounded, List<RecoverableUnitResponse> Recoverable, List<TrainingOrderResponse> TrainingOrders);
+public record GarrisonResponse(Guid Id, Guid VillageId, List<UnitResponse> Units, List<UnitResponse> Wounded, List<RecoverableUnitResponse> Recoverable, List<TrainingOrderResponse> TrainingOrders);
 public record UnitResponse(string UnitType, int Count);
 
 /// <summary>Стек, доступний до викупу; у кожного бою свій дедлайн.</summary>

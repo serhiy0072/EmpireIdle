@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

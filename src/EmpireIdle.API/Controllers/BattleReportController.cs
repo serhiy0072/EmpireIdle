@@ -1,4 +1,4 @@
-﻿using EmpireIdle.API.DTOs;
+using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Battles.Commands;
 using EmpireIdle.Application.Battles.Queries;
 using MediatR;

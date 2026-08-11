@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
     /// Звіт про бій — що гравець бачить після повернення армії.

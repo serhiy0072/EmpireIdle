@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Interfaces;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;

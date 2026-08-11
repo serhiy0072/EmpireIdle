@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Infrastructure.Auth;
+using EmpireIdle.Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>На що діє активний ефект.</summary>
     public enum EffectTarget

@@ -1,4 +1,4 @@
-﻿
+
 namespace EmpireIdle.API.DTOs
 {
     public record VillageResponse(Guid Id, string Name, DateTime LastTickAt,

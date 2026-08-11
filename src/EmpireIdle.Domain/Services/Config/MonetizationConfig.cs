@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
     /// <summary>Параметри монетизації.</summary>
     public class MonetizationConfig

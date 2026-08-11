@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
     /// <summary>
     /// Детермінований генератор місцевості для клітини карти.

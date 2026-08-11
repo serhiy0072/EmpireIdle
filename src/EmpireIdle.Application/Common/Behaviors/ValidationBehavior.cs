@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
 
 namespace EmpireIdle.Application.Common.Behaviors

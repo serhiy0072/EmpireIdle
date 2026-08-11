@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.ValueObjects
+namespace EmpireIdle.Domain.ValueObjects
 {
     /// <summary>
     /// Кількість coins (ігрова валюта). Value Object — незмінний.

@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Application.Inventory.Effects
+namespace EmpireIdle.Application.Inventory.Effects
 {
     /// <summary>Добирає й виконує ефект за типом предмета.</summary>
     public class ItemEffectDispatcher

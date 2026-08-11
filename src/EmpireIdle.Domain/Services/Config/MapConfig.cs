@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
 
     /// <summary>Параметри карти світу (per-server у майбутньому).</summary>

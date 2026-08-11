@@ -1,4 +1,4 @@
-﻿using EmpireIdle.API.DTOs;
+using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Players.Commands;
 using EmpireIdle.Infrastructure.Auth;

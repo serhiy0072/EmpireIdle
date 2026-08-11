@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.API.DTOs
+namespace EmpireIdle.API.DTOs
 {
     /// <summary>Звіт про бій із деталями по типах юнітів.</summary>
     public record BattleReportResponse(

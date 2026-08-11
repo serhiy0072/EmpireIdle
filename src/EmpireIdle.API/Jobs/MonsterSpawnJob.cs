@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Map.Commands;
+using EmpireIdle.Application.Map.Commands;
 using MediatR;
 
 namespace EmpireIdle.API.Jobs

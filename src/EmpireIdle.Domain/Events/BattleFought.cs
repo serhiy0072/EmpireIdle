@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Events
+namespace EmpireIdle.Domain.Events
 {
     /// <summary>Подія: бій завершено, звіт сформовано.</summary>
     public record BattleFought(

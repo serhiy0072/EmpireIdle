@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Application.Interfaces
+namespace EmpireIdle.Application.Interfaces
 {
     /// <summary>Метадані поточного HTTP-запиту, потрібні Application-шару.</summary>
     public interface IRequestContext

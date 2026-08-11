@@ -1,4 +1,4 @@
-﻿
+
 namespace EmpireIdle.Infrastructure.Auth
 {
     /// <summary>

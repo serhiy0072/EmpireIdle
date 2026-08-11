@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Поранені юніти в Госпіталі, що очікують лікування.</summary>
     public class WoundedUnit : Entity

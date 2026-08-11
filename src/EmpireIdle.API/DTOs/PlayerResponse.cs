@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.API.DTOs
+namespace EmpireIdle.API.DTOs
 {
     public record PlayerResponse(Guid PlayerId);
 }

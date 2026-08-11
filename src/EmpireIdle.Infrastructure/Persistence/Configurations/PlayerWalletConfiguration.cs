@@ -1,4 +1,4 @@
-﻿
+
 
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.ValueObjects;

@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Кількість юнітів певного типу в гарнізоні села.</summary>
     public class VillageUnit : Entity

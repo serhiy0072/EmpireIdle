@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
     /// <summary>Рахує вартість прискорення таймерів у gems.</summary>
     public class SpeedUpCalculator

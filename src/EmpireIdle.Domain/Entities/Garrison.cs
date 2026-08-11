@@ -1,4 +1,4 @@
-﻿
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>

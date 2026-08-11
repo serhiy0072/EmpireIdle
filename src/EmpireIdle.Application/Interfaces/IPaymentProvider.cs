@@ -1,4 +1,4 @@
-﻿
+
 namespace EmpireIdle.Application.Interfaces
 {
     /// <summary>Створена сесія оплати.</summary>

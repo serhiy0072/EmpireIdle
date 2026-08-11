@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Application.Interfaces
+namespace EmpireIdle.Application.Interfaces
 {
     /// <summary>
     /// Абстракція для real-time сповіщень гравцям.

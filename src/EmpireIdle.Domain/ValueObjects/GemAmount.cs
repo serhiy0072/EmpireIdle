@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.ValueObjects
+namespace EmpireIdle.Domain.ValueObjects
 {
     /// <summary>
     /// Кількість gems (преміум валюта). Value Object — незмінний.

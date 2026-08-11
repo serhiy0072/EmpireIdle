@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;

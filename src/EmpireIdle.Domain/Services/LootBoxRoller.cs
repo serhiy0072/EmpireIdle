@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
     /// <summary>Результат відкриття лутбокса.</summary>
     public record LootRollResult(LootDropConfig Drop, bool WasPity);

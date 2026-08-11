@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Common.Behaviors;
+using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;

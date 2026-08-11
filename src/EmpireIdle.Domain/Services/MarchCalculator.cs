@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
     /// <summary>
     /// Рахує час походу: відстань, швидкість найповільнішого юніта

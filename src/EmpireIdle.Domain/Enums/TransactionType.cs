@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Enums
+namespace EmpireIdle.Domain.Enums
 {
     /// <summary>Тип транзакції в гаманці гравця.</summary>
     public enum TransactionType

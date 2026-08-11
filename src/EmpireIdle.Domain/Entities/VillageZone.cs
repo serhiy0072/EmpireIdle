@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
     /// Зона села з обмеженою кількістю слотів під будівлі певного типу.

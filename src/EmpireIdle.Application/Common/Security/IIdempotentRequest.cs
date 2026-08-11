@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Application.Common.Security
+namespace EmpireIdle.Application.Common.Security
 {
     /// <summary>
     /// Позначає команду, яка має виконатись не більше одного разу

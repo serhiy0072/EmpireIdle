@@ -1,4 +1,4 @@
-﻿using EmpireIdle.API.DTOs;
+using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Map.Queries;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;

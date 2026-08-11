@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services
 {
     /// <summary>
     /// Підбирає монстрів для засіву карти: тип (за рівнем сервера),

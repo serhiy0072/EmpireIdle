@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Garrisons.Commands;
+using EmpireIdle.Application.Garrisons.Commands;
 
 namespace EmpireIdle.API.DTOs
 {

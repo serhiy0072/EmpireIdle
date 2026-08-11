@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
     /// Юніти, яких можна повернути в гарнізон за gems до спливання дедлайну.

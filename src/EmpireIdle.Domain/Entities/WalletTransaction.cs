@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Enums;
 
 namespace EmpireIdle.Domain.Entities
 {

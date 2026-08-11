@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;

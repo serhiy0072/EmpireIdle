@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.API.DTOs
+namespace EmpireIdle.API.DTOs
 {
     /// <summary>Ділянка карти: місцевість + зайняті клітини.</summary>
     public record MapAreaResponse(

@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace EmpireIdle.Application.Villages.Commands.Validators
 {

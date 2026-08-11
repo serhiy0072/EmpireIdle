@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;

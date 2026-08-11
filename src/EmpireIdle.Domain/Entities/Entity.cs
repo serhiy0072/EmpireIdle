@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Domain.Events;
+using EmpireIdle.Domain.Events;
 
 namespace EmpireIdle.Domain.Entities;
 

@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

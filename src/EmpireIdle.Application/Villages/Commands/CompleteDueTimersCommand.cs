@@ -1,4 +1,4 @@
-﻿
+
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;

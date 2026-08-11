@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.ValueObjects
+namespace EmpireIdle.Domain.ValueObjects
 {
     /// <summary>
     /// Рівень будівлі. Value Object — незмінний, не може бути нульовим або від'ємним.

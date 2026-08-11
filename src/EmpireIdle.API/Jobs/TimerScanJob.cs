@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Garrisons.Commands;
+using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Villages.Commands;
 using MediatR;

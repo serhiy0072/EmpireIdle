@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Активне замовлення на тренування юнітів у казармах.</summary>
     public class UnitTrainingOrder : Entity

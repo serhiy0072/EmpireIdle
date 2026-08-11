@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Entities;
 using System.Net.WebSockets;
 
 namespace EmpireIdle.Domain.Tests.Entities;

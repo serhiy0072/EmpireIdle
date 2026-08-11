@@ -1,4 +1,4 @@
-﻿using EmpireIdle.API.DTOs;
+using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Garrisons.Queries;
 using EmpireIdle.Domain.Services;

@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Application.Common.Security
+namespace EmpireIdle.Application.Common.Security
 {
     /// <summary>
     /// Запит, що працює з даними конкретного гравця.

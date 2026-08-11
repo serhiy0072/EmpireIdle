@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
     /// Прогрес гравця за конкретним типом лутбокса: лічильник відкриттів

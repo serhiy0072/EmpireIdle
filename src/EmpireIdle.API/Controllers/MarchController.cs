@@ -1,4 +1,4 @@
-﻿using EmpireIdle.API.DTOs;
+using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Marches.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

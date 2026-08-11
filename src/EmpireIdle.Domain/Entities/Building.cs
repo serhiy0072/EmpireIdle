@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Domain.ValueObjects;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
 {

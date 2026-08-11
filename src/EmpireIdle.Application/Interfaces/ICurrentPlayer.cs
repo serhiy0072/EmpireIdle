@@ -1,4 +1,4 @@
-﻿
+
 namespace EmpireIdle.Application.Interfaces
 {
     /// <summary>Гравець, від імені якого виконується поточний запит.</summary>

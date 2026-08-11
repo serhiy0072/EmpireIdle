@@ -1,4 +1,4 @@
-﻿namespace EmpireIdle.API.DTOs
+namespace EmpireIdle.API.DTOs
 {
     /// <summary>Інвентар гравця.</summary>
     public record InventoryResponse(List<InventoryItemResponse> Items, List<EquipmentResponse> Equipment, List<ActiveEffectResponse> ActiveEffects);
