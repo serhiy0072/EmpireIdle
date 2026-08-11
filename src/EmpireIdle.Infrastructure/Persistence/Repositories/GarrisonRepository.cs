@@ -25,6 +25,16 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .AsSplitQuery()
             .FirstOrDefaultAsync(g => g.VillageId == villageId, cancellationToken);
 
+        /// <inheritdoc/>
+        public Task<Garrison?> GetByVillageIdReadOnlyAsync(Guid villageId, CancellationToken cancellationToken = default)
+            => _context.Garrisons
+                .AsNoTracking()
+                .Include(g => g.Units)
+                .Include(g => g.TrainingOrders)
+                .Include(g => g.Wounded)
+                .Include(g => g.Recoverable)
+                .FirstOrDefaultAsync(g => g.VillageId == villageId, cancellationToken);
+
         /// <inheritdoc />
         public Task<List<Garrison>> GetAllAsync(CancellationToken cancellationToken)
             => _context.Garrisons
