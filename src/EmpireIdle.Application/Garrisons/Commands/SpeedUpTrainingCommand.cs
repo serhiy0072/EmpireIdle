@@ -16,6 +16,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentPlayer _currentPlayer;
         private readonly SpeedUpCalculator _calculator;
         private readonly ILogger<SpeedUpTrainingCommandHandler> _logger;
 
@@ -23,6 +24,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IPlayerWalletRepository walletRepository,
+            ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
             SpeedUpCalculator calculator,
             ILogger<SpeedUpTrainingCommandHandler> logger)
@@ -30,6 +32,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _walletRepository = walletRepository;
+            _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
             _logger = logger;
@@ -52,10 +55,13 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             if (cost > 0)
             {
-                var wallet = await _walletRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                    ?? throw new InvalidOperationException($"Wallet not found for player {request.PlayerId}.");
+                var userId = _currentPlayer.UserId
+                    ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-                wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}");
+                var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                    ?? throw new InvalidOperationException($"Wallet not found.");
+
+                wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId);
             }
 
             garrison.ReduceTrainingTime(order.Id, order.CompletesAt - now);

@@ -41,10 +41,10 @@ namespace EmpireIdle.API.Controllers
             try
             {
                 // 1. Identity user (валідація пароля, унікальність email)
-                await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
+                var userId = await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
 
                 // 2. Доменний Player + Village + Garrison + Wallet
-                await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email), cancellationToken);
+                await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email, userId), cancellationToken);
 
                 await _unitOfWork.CommitTransactionAsync(cancellationToken);
             }

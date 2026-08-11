@@ -30,6 +30,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IPlayerWalletRepository _walletRepository;
+        private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameConfig _gameConfig;
         private readonly ILogger<HealWoundedCommandHandler> _logger;
@@ -38,6 +39,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IPlayerWalletRepository walletRepository,
+            ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
             IOptions<GameConfig> gameConfig,
             ILogger<HealWoundedCommandHandler> logger)
@@ -45,6 +47,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _walletRepository = walletRepository;
+            _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _gameConfig = gameConfig.Value;
             _logger = logger;
@@ -79,10 +82,13 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var total = healed.Values.Where(c => c > 0).Sum();
             var cost = total * _gameConfig.Monetization.HealGemsPerUnit;
 
-            var wallet = await _walletRepository.GetByPlayerIdAsync(playerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Wallet not found for player {playerId}.");
+            var userId = _currentPlayer.UserId
+                ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-            wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units");
+            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                ?? throw new InvalidOperationException("Wallet not found.");
+
+            wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units", playerId);
         }
 
         /// <summary>Списує ресурси: половина вартості створення юніта.</summary>

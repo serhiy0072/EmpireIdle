@@ -6,5 +6,8 @@ namespace EmpireIdle.Application.Interfaces
     {
         /// <summary>Id гравця з токена; null — запит без автентифікації (фонові джоби).</summary>
         Guid? PlayerId { get; }
+
+        /// <summary>Ідентифікатор акаунта (IdentityUser.Id) з токена. Null поза HTTP-контекстом.</summary>
+        string? UserId { get; }
     }
 }

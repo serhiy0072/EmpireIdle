@@ -10,7 +10,8 @@ namespace EmpireIdle.Application.Players.Commands
     /// <summary>
     /// Команда створення нового гравця: Player + Village + PlayerWallet.
     /// </summary>
-    public record CreatePlayerCommand(string UserName, string Email) : IRequest<Guid>;
+    public record CreatePlayerCommand(string UserName, string Email, string UserId) : IRequest<Guid>;
+
 
     /// <summary>
     /// Обробник команди CreatePlayerCommand. Повертає Id створеного гравця.
@@ -60,7 +61,7 @@ namespace EmpireIdle.Application.Players.Commands
             var playerId = Guid.NewGuid();
 
             var player = new Player(playerId, request.UserName, email);
-            var wallet = new PlayerWallet(Guid.NewGuid(), playerId);
+            var wallet = new PlayerWallet(Guid.NewGuid(), request.UserId);
             var (x, y) = await _settlementPlacer.FindSpotAsync(
                 serverId: 1,
                 isOccupied: (cx, cy) => _mapRepository.IsOccupiedAsync(1, cx, cy, cancellationToken),

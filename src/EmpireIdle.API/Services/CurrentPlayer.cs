@@ -1,4 +1,6 @@
 using EmpireIdle.Application.Interfaces;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace EmpireIdle.API.Services
 {
@@ -19,6 +21,19 @@ namespace EmpireIdle.API.Services
             {
                 var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("playerId")?.Value;
                 return Guid.TryParse(claim, out var id) ? id : null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public string? UserId
+        {
+            get
+            {
+                var user = _httpContextAccessor.HttpContext?.User;
+
+                // JwtBearer за замовчуванням перемаповує `sub` у NameIdentifier
+                return user?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                    ?? user?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             }
         }
     }

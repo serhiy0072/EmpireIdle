@@ -21,6 +21,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IMarchRepository _marchRepository;
         private readonly IPlayerWalletRepository _walletRepository;
+        private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly SpeedUpCalculator _calculator;
         private readonly ILogger<SpeedUpMarchCommandHandler> _logger;
@@ -30,6 +31,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IGarrisonRepository garrisonRepository,
             IMarchRepository marchRepository,
             IPlayerWalletRepository walletRepository,
+            ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
             SpeedUpCalculator calculator,
             ILogger<SpeedUpMarchCommandHandler> logger)
@@ -38,6 +40,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
             _walletRepository = walletRepository;
+            _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
             _logger = logger;
@@ -63,10 +66,13 @@ namespace EmpireIdle.Application.Marches.Commands
 
             if (cost > 0)
             {
-                var wallet = await _walletRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                    ?? throw new InvalidOperationException($"Wallet not found for player {request.PlayerId}.");
+                var userId = _currentPlayer.UserId
+                    ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-                wallet.SpendGems(new GemAmount(cost), "Speed up march");
+                var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                    ?? throw new InvalidOperationException($"Wallet not found.");
+
+                wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId);
             }
 
             // Зсуваємо прибуття на «зараз»; бій або повернення відпрацює сканер

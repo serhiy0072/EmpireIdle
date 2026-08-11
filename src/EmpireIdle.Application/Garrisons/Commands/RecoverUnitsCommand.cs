@@ -17,6 +17,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IPlayerWalletRepository _walletRepository;
+        private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameConfig _gameConfig;
         private readonly ILogger<RecoverUnitsCommandHandler> _logger;
@@ -25,6 +26,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IPlayerWalletRepository walletRepository,
+            ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
             IOptions<GameConfig> gameConfig,
             ILogger<RecoverUnitsCommandHandler> logger)
@@ -32,6 +34,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _walletRepository = walletRepository;
+            _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _gameConfig = gameConfig.Value;
             _logger = logger;
@@ -53,11 +56,14 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             var cost = CalculateCost(recovered);
 
-            var wallet = await _walletRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Wallet not found for player {request.PlayerId}.");
+            var userId = _currentPlayer.UserId
+                ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
+
+            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                ?? throw new InvalidOperationException("Wallet not found.");
 
             // Кине виняток при нестачі gems — SaveChanges не дійде, стеки лишаться на місці
-            wallet.SpendGems(new GemAmount(cost), $"Recover {recovered.Values.Sum()} units");
+            wallet.SpendGems(new GemAmount(cost), $"Recover {recovered.Values.Sum()} units", request.PlayerId);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

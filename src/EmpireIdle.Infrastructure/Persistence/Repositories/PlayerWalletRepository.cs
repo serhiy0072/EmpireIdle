@@ -26,9 +26,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(pw =>  pw.Id == id, cancellationToken);
 
         /// <inheritdoc/>
-        public Task<PlayerWallet?> GetByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken = default)
+        public Task<PlayerWallet?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
             => _context.PlayerWallets
-            .Include(pw => pw.Transactions)
-            .FirstOrDefaultAsync(pw => pw.PlayerId == playerId, cancellationToken);
+                .Include(pw => pw.Transactions)
+                .FirstOrDefaultAsync(pw => pw.UserId == userId, cancellationToken);
     }
 }

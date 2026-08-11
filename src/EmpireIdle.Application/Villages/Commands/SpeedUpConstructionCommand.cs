@@ -18,17 +18,19 @@ namespace EmpireIdle.Application.Villages.Commands
 
         private readonly IVillageRepository _villageRepository;
         private readonly IPlayerWalletRepository _walletRepository;
+        private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly SpeedUpCalculator _calculator;
         private readonly GameConfig _gameConfig;
         private readonly ILogger<SpeedUpConstructionCommandHandler> _logger;
 
         public SpeedUpConstructionCommandHandler(
-            IVillageRepository villageRepository,IPlayerWalletRepository walletRepository,IUnitOfWork unitOfWork,
+            IVillageRepository villageRepository,IPlayerWalletRepository walletRepository, ICurrentPlayer currentPlayer, IUnitOfWork unitOfWork,
             SpeedUpCalculator calculator,IOptions<GameConfig> gameConfig,ILogger<SpeedUpConstructionCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _walletRepository = walletRepository;
+            _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
             _gameConfig = gameConfig.Value;
@@ -49,12 +51,15 @@ namespace EmpireIdle.Application.Villages.Commands
 
             var cost = _calculator.GetInstantFinishCost(building.ConstructionCompletesAt!.Value, now);
 
-            if(cost>0)
+            if (cost > 0)
             {
-                var wallet = await _walletRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                    ?? throw new InvalidOperationException($"Wallet not found for player {request.PlayerId}.");
+                var userId = _currentPlayer.UserId
+                    ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-                wallet.SpendGems(new GemAmount(cost), $"Speed up construction of {building.Type}");
+                var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                    ?? throw new InvalidOperationException("Wallet not found.");
+
+                wallet.SpendGems(new GemAmount(cost), $"Speed up construction of {building.Type}", request.PlayerId);
             }
 
             // Завершуємо одразу, не чекаючи сканера
