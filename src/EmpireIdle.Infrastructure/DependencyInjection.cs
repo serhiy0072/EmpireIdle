@@ -50,9 +50,10 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IActiveEffectRepository, ActiveEffectRepository>();
             services.AddScoped<IItemEffect, BoostItemEffect>();
             services.AddScoped<EffectResolver>();
-            services.Configure<StripeSettings>(configuration.GetSection(nameof(StripeSettings)));
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
 
+            services.Configure<StripeSettings>(configuration.GetSection(nameof(StripeSettings)));
 
             services.AddMediatR(cfg =>
                 {
