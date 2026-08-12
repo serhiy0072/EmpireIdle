@@ -8,6 +8,9 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Лутбокси за gems.</summary>
         public List<LootBoxConfig> LootBoxes { get; set; } = new();
+
+        /// <summary>Валюта пакетів gems у форматі ISO 4217 (usd, eur…).</summary>
+        public string Currency { get; set; } = "usd";
     }
 
     /// <summary>Пакет gems.</summary>
