@@ -14,6 +14,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         {
             builder.HasKey(p => p.Id);
 
+            builder.Property(p => p.UserId).IsRequired().HasMaxLength(450);
+            builder.HasIndex(p => p.UserId);
+
             builder.Property(p=>p.Username).IsRequired().HasMaxLength(50);
             builder.Property(p=>p.Email).IsRequired().HasMaxLength(200);
 

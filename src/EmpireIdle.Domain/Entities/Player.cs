@@ -5,6 +5,12 @@ namespace EmpireIdle.Domain.Entities
     /// </summary>
     public class Player : Entity
     {
+        /// <summary>
+        /// Акаунт-власник (IdentityUser.Id). Один акаунт може мати гравців на різних серверах,
+        /// але гаманець у них спільний — саме за цим полем його й шукають.
+        /// </summary>
+        public string UserId { get; private set; } = null!;
+
         /// <summary>Ім'я користувача.</summary>
         public string Username { get; private set; } = null!;
 
@@ -17,7 +23,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Дата реєстрації.</summary>
         public DateTime CreatedAt { get; private set; }
 
-        public Player(Guid id, string username, string email, int serverId = 1) : base(id)
+        public Player(Guid id, string userId, string username, string email, int serverId = 1) : base(id)
         {
             Username = username;
             Email = email;
