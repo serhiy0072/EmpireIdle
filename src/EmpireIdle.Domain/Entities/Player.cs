@@ -23,8 +23,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Дата реєстрації.</summary>
         public DateTime CreatedAt { get; private set; }
 
-        public Player(Guid id, string userId, string username, string email, int serverId = 1) : base(id)
+        public Player(Guid id, string username, string email, string userId, int serverId = 1) : base(id)
         {
+            UserId = userId;
             Username = username;
             Email = email;
             CreatedAt = DateTime.UtcNow;
