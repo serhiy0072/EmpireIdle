@@ -6,28 +6,28 @@
           "Key": "pack_small",
           "DisplayName": "Handful of Gems",
           "Gems": 100,
-          "PriceUsdCents": 99,
+          "PriceCents": 99,
           "BonusPercent": 0
         },
         {
           "Key": "pack_medium",
           "DisplayName": "Pouch of Gems",
           "Gems": 550,
-          "PriceUsdCents": 499,
+          "PriceCents": 499,
           "BonusPercent": 10
         },
         {
           "Key": "pack_large",
           "DisplayName": "Chest of Gems",
           "Gems": 1200,
-          "PriceUsdCents": 999,
+          "PriceCents": 999,
           "BonusPercent": 20
         },
         {
           "Key": "pack_huge",
           "DisplayName": "Vault of Gems",
           "Gems": 6500,
-          "PriceUsdCents": 4999,
+          "PriceCents": 4999,
           "BonusPercent": 30
         }
       ],

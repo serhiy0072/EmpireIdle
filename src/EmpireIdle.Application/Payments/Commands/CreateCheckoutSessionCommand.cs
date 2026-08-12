@@ -41,10 +41,10 @@ namespace EmpireIdle.Application.Payments.Commands
             var pack = _gameConfig.Shop.GemPacks.FirstOrDefault(p => p.Key == request.PackKey)
                 ?? throw new InvalidOperationException($"Gem pack '{request.PackKey}' not found.");
 
-            var session = await _paymentProvider.CreateSessionAsync(pack.Key, pack.DisplayName, pack.PriceUsdCents, _gameConfig.Shop.Currency, request.PlayerId, cancellationToken);
+            var session = await _paymentProvider.CreateSessionAsync(pack.Key, pack.DisplayName, pack.PriceCents, _gameConfig.Shop.Currency, request.PlayerId, cancellationToken);
 
             // Ціну й кількість gems фіксуємо тут: конфіг може змінитись до оплати
-            var payment = new Payment(Guid.NewGuid(), request.PlayerId, pack.Key, pack.Gems, pack.PriceUsdCents, _gameConfig.Shop.Currency, session.SessionId, now);
+            var payment = new Payment(Guid.NewGuid(), request.PlayerId, pack.Key, pack.Gems, pack.PriceCents, _gameConfig.Shop.Currency, session.SessionId, now);
 
             await _paymentRepository.AddAsync(payment, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
