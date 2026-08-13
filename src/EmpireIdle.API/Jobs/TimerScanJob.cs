@@ -11,7 +11,7 @@ namespace EmpireIdle.API.Jobs
         private readonly IMediator _mediator;
         public TimerScanJob(IMediator mediator) => _mediator = mediator;
 
-        // <summary>Один прогін за раз: перетин дав би подвійне нарахування.</summary>
+        /// <summary>Один прогін за раз: перетин дав би подвійне нарахування.</summary>
         [DisableConcurrentExecution(timeoutInSeconds: 300)]
         public async Task RunAsync()
         {

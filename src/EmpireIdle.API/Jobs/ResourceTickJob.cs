@@ -17,7 +17,7 @@ namespace EmpireIdle.API.Jobs
             _mediator = mediator;
         }
 
-        // <summary>Один прогін за раз: перетин дав би подвійне нарахування.</summary>
+        /// <summary>Один прогін за раз: перетин дав би подвійне нарахування.</summary>
         [DisableConcurrentExecution(timeoutInSeconds: 300)]
         public Task RunAsync() => _mediator.Send(new TickAllVillagesCommand());
     }

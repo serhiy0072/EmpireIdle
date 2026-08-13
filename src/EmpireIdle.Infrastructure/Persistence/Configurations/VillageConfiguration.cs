@@ -11,6 +11,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         {
             builder.HasKey(v => v.Id);
             builder.HasIndex(v => v.ServerId);
+            builder.HasIndex(v => v.PlayerId).IsUnique();
             builder.Ignore(v => v.DomainEvents);
 
             builder.Property(v => v.Name).IsRequired().HasMaxLength(100);
