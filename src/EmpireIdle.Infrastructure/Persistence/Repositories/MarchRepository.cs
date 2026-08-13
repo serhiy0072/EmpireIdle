@@ -29,6 +29,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public Task<March?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.Marches
+            .Include(m => m.Units)
+            .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
+
+        /// <inheritdoc/>
         public async Task AddAsync(March march, CancellationToken cancellationToken = default)
         {
             await _context.Marches.AddAsync(march, cancellationToken);

@@ -11,6 +11,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Походи, чий час прибуття настав.</summary>
         Task<List<March>> GetDueAsync(DateTime utcNow, CancellationToken cancellationToken = default);
 
+        /// <summary>Похід за ідентифікатором (із загонами).</summary>
+        Task<March?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
         /// <summary>Додати похід.</summary>
         Task AddAsync(March march, CancellationToken cancellationToken = default);
     }
