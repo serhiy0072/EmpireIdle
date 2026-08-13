@@ -1,9 +1,11 @@
-using System.Text.Json;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace EmpireIdle.Application.Common.Behaviors
 {
@@ -19,6 +21,8 @@ namespace EmpireIdle.Application.Common.Behaviors
         private readonly IRequestContext _requestContext;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<IdempotencyBehavior<TRequest, TResponse>> _logger;
+        private static readonly Regex IdempotencyKeyPattern =
+            new(@"^[A-Za-z0-9._-]{16,128}$", RegexOptions.Compiled);
 
         public IdempotencyBehavior( IIdempotencyRepository repository, ICurrentPlayer currentPlayer,
             IRequestContext requestContext, IUnitOfWork unitOfWork, ILogger<IdempotencyBehavior<TRequest, TResponse>> logger)
@@ -32,10 +36,18 @@ namespace EmpireIdle.Application.Common.Behaviors
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
-            if (request is not IIdempotentRequest || _requestContext.IdempotencyKey is not { } key|| _currentPlayer.PlayerId is not { } playerId)
-            {
+            if (request is not IIdempotentRequest)
                 return await next(cancellationToken);
-            }
+
+            if (_currentPlayer.PlayerId is not { } playerId)
+                throw new UnauthorizedAccessException("This operation requires an authenticated player.");
+
+            // Захист, який вимикається відсутністю заголовка, — не захист
+            if (_requestContext.IdempotencyKey is not { } key)
+                throw new ValidationException("Idempotency-Key header is required for this operation.");
+
+            if (!IdempotencyKeyPattern.IsMatch(key))
+                throw new ValidationException("Idempotency-Key must be 16–128 chars of [A-Za-z0-9._-].");
 
             var requestType = typeof(TRequest).Name;
 
@@ -80,9 +92,11 @@ namespace EmpireIdle.Application.Common.Behaviors
                     $"Idempotency key '{key}' was already used for a different operation.");
 
             // Резерв є, відповіді ще немає — операція виконується прямо зараз
-            if (record.ResponseJson is null && record.CreatedAt > DateTime.UtcNow.AddMinutes(-1))
-                throw new InvalidOperationException(
-                    $"Operation with idempotency key '{key}' is still in progress.");
+            if (record.ResponseJson is null)
+                return typeof(TResponse) == typeof(Unit)
+                    ? (TResponse)(object)Unit.Value
+                    : throw new InvalidOperationException(
+                        $"Idempotency record for key '{key}' has no stored response.");
 
             _logger.LogInformation("Idempotent replay of {RequestType} for player {PlayerId}",
                 requestType, record.PlayerId);
