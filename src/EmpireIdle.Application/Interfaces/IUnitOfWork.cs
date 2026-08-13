@@ -17,8 +17,5 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Відкотити транзакцію.</summary>
         Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>Скасовує незбережені зміни в трекері (після збою в межах батча).</summary>
-        void DiscardChanges();
     }
 }

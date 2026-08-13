@@ -55,8 +55,5 @@ namespace EmpireIdle.Infrastructure.Persistence
         {
             return await _context.SaveChangesAsync(cancellationToken);
         }
-
-        /// <inheritdoc/>
-        public void DiscardChanges() => _context.ChangeTracker.Clear();
     }
 }
