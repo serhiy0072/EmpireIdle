@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Villages.Commands;
+using Hangfire;
 using MediatR;
 
 namespace EmpireIdle.API.Jobs
@@ -16,6 +17,8 @@ namespace EmpireIdle.API.Jobs
             _mediator = mediator;
         }
 
-        public async Task RunAsync() => await _mediator.Send(new TickAllVillagesCommand());
+        // <summary>Один прогін за раз: перетин дав би подвійне нарахування.</summary>
+        [DisableConcurrentExecution(timeoutInSeconds: 300)]
+        public Task RunAsync() => _mediator.Send(new TickAllVillagesCommand());
     }
 }
