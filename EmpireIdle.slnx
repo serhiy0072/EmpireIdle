@@ -6,6 +6,7 @@
     <Project Path="src/EmpireIdle.Infrastructure/EmpireIdle.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="EmpireIdle.Api.Tests/EmpireIdle.Api.Tests.csproj" Id="d1c5e05c-0d84-419a-b83c-1f6572b3d3e7" />
     <Project Path="EmpireIdle.Domain.Tests/EmpireIdle.Domain.Tests.csproj" Id="49028f1d-9e7d-4fee-a7f3-8699f2e06cb2" />
   </Folder>
 </Solution>

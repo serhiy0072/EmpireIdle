@@ -200,3 +200,8 @@ RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync()
 
 app.Run();
 
+
+
+/// <summary>Точка входу — public для WebApplicationFactory у тестах.</summary>
+public partial class Program { }
+
