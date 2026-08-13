@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 
 namespace EmpireIdle.Api.Tests;
 
 /// <summary>Ловить помилки конфігурації та DI, які компілятор не бачить.</summary>
-public class StartupTests : IClassFixture<WebApplicationFactory<Program>>
+public class StartupTests : IClassFixture<WebApplicationFactory<global::Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly WebApplicationFactory<global::Program> _factory;
 
-    public StartupTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public StartupTests(WebApplicationFactory<global::Program> factory) => _factory = factory;
 
     [Fact]
     public void Application_Starts()
