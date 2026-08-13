@@ -38,20 +38,25 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
             services.AddScoped<IGarrisonRepository, GarrisonRepository>();
             services.AddScoped<IMapRepository, MapRepository>();
-            services.AddScoped<DomainEventDispatchInterceptor>();
             services.AddScoped<IMonsterRepository, MonsterRepository>();
             services.AddScoped<IMarchRepository, MarchRepository>();
             services.AddScoped<IBattleReportRepository, BattleReportRepository>();
             services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
             services.AddScoped<IInventoryRepository, InventoryRepository>();
-            services.AddScoped<ItemGranter>();
-            services.AddScoped<IItemEffect, ResourceItemEffect>();
-            services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<IActiveEffectRepository, ActiveEffectRepository>();
-            services.AddScoped<IItemEffect, BoostItemEffect>();
-            services.AddScoped<EffectResolver>();
-            services.AddScoped<IPaymentProvider, StripePaymentProvider>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
+
+            // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
+            services.AddScoped<IItemEffect, ResourceItemEffect>();
+            services.AddScoped<IItemEffect, BoostItemEffect>();
+            services.AddScoped<ItemEffectDispatcher>();
+            services.AddScoped<EffectResolver>();
+            services.AddScoped<ItemGranter>();
+
+            // Зовнішні сервіси
+            services.AddScoped<IPaymentProvider, StripePaymentProvider>();
+
+            services.AddScoped<DomainEventDispatchInterceptor>();
 
             services.Configure<StripeSettings>(configuration.GetSection(nameof(StripeSettings)));
 
