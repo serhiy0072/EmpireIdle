@@ -26,7 +26,7 @@
         "BuildTimeGrowth": 1.6,
         "AllowedZone": null,
         "RequiresMainBuildingLevel": 0,
-        "IsMainBuilding": "true."
+        "IsMainBuilding": true
       },
       {
         "Key": "house",

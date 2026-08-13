@@ -1,6 +1,7 @@
 {
   "GameConfig": {
-    "GameName": "EmpireIdle"
-       
+    "GameName": "EmpireIdle",
+    "StartingBuildings": [ "townhall", "farm" ],
+    "MaxTrainingBatchSize": 5
   }
 }
