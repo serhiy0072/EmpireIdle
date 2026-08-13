@@ -5,6 +5,7 @@ using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -12,7 +13,7 @@ namespace EmpireIdle.API.Controllers
     [ApiController]
     [Authorize]
     [Route("api/map")]
-    public class MapController : Controller
+    public class MapController : ControllerBase
     {
         private const int ServerId = 1; // мультисервер — post-MVP
 
@@ -31,7 +32,7 @@ namespace EmpireIdle.API.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(MapAreaResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<MapAreaResponse>> GetArea([FromQuery] int centerX, [FromQuery] int centerY, [FromQuery] int radius, CancellationToken cancellationToken)
+        public async Task<ActionResult<MapAreaResponse>> GetArea([FromQuery] int centerX, [FromQuery] int centerY, [FromQuery][Range(1, 30)] int radius, CancellationToken cancellationToken)
         {
             var occupiedCells = await _mediator.Send(new GetMapAreaQuery(ServerId, centerX, centerY, radius), cancellationToken);
 
