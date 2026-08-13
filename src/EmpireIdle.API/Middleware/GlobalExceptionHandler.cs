@@ -31,7 +31,7 @@ namespace EmpireIdle.API.Middleware
                     Instance = httpContext.Request.Path
                 };
 
-                httpContext.Response.StatusCode = StatusCodes.Status400BadRequest; ;
+                httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
                 await httpContext.Response.WriteAsJsonAsync(validationProblem, cancellationToken);
                 return true;
             }
@@ -44,12 +44,19 @@ namespace EmpireIdle.API.Middleware
                 _ => (StatusCodes.Status500InternalServerError, "Internal Server Error")
             };
 
+            // На 500 не віддаємо exception.Message: DbUpdateException містить імена
+            // таблиць і констрейнтів, NpgsqlException — деталі підключення
+            var detail = statusCode == StatusCodes.Status500InternalServerError
+                ? "An unexpected error occurred."
+                : exception.Message;
+
             var problemDetails = new ProblemDetails
             {
                 Status = statusCode,
                 Title = title,
-                Detail = exception.Message,
-                Instance = httpContext.Request.Path
+                Detail = detail,
+                Instance = httpContext.Request.Path,
+                Extensions = { ["traceId"] = httpContext.TraceIdentifier }
             };
 
             httpContext.Response.StatusCode = statusCode;
