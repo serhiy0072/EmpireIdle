@@ -11,9 +11,6 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Гарнізон для читання (без трекінгу) — для query-сценаріїв.</summary>
         Task<Garrison?> GetByVillageIdReadOnlyAsync(Guid villageId, CancellationToken cancellationToken = default);
 
-        /// <summary>Усі гарнізони (для сканера тренувань).</summary>
-        Task<List<Garrison>> GetAllAsync(CancellationToken cancellationToken = default);
-
         /// <summary>Додати новий гарнізон.</summary>
         Task AddAsync(Garrison garrison, CancellationToken cancellationToken = default);
 

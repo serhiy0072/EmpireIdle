@@ -46,14 +46,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(v => v.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
-        public Task<List<Village>> GetAllAsync(CancellationToken cancellationToken = default) 
-            => _context.Villages
-            .Include(v => v.Buildings)
-            .Include(v => v.Resources)
-            .AsSplitQuery()
-            .ToListAsync(cancellationToken);
-
-        /// <inheritdoc/>
         public Task<List<Village>> GetWithDueConstructionsAsync(DateTime utcNow, CancellationToken cancellationToken = default)
             => _context.Villages
             .Include(v => v.Buildings)

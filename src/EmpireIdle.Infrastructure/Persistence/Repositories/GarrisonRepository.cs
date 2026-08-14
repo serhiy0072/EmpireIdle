@@ -35,16 +35,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Include(g => g.Recoverable)
                 .FirstOrDefaultAsync(g => g.VillageId == villageId, cancellationToken);
 
-        /// <inheritdoc />
-        public Task<List<Garrison>> GetAllAsync(CancellationToken cancellationToken)
-            => _context.Garrisons
-            .Include(g => g.Units)
-            .Include(g => g.TrainingOrders)
-            .Include(g => g.Wounded)
-            .Include(g => g.Recoverable)
-            .AsSplitQuery()
-            .ToListAsync(cancellationToken);
-
         public async Task AddAsync(Garrison garrison, CancellationToken cancellationToken)
         {
             await _context.Garrisons.AddAsync(garrison, cancellationToken);
