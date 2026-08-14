@@ -69,13 +69,17 @@ namespace EmpireIdle.Application.Players.Commands
 
             var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village",
                 _gameConfig.Resources.Select(r => r.Key),
-                _gameConfig.Zones.Select(z => (z.Type, z.Slots)),
                 x, y);
+
+            village.GrantStartingResources(_gameConfig.StartingResources);
+
+            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
+
+            foreach (var buildingKey in _gameConfig.StartingBuildings)
+                village.AddBuilding(buildingKey, buildingConfigs);
 
             var garrison = new Garrison(Guid.NewGuid(), village.Id);
             await _garrisonRepository.AddAsync(garrison, cancellationToken);
-
-            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
 
             foreach (var buildingKey in _gameConfig.StartingBuildings)
                 village.AddBuilding(buildingKey, buildingConfigs);

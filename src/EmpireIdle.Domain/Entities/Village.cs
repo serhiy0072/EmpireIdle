@@ -11,10 +11,6 @@ namespace EmpireIdle.Domain.Entities
     {
         private readonly List<Building> _buildings = new();
         private readonly List<VillageResource> _resources = new();
-        private readonly List<VillageZone> _zones = new();
-
-        /// <summary>Зони села (тільки для читання).</summary>
-        public IReadOnlyCollection<VillageZone> Zones => _zones.AsReadOnly();
 
         /// <summary>Назва села.</summary>
         public string Name { get; private set; } = null!;
@@ -45,8 +41,7 @@ namespace EmpireIdle.Domain.Entities
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
         /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
-        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys,
-            IEnumerable<(string Type, int Slots)> zones, int x, int y, int serverId = 1) : base(id)
+        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int x, int y, int serverId = 1) : base(id)
         {
             PlayerId = playerId;
             Name = name;
@@ -56,10 +51,7 @@ namespace EmpireIdle.Domain.Entities
             Y = y;
 
             foreach (var key in resourceKeys)
-                _resources.Add(new VillageResource (id, key));
-
-            foreach (var (type, slots) in zones)
-                _zones.Add(new VillageZone(Guid.NewGuid(), id, type, slots));
+                _resources.Add(new VillageResource(id, key));
         }
 
         protected Village() { } // Для EF Core
@@ -112,7 +104,7 @@ namespace EmpireIdle.Domain.Entities
             var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
             if (resource is null)
             {
-                resource = new VillageResource (Id, config.ProducesResource);
+                resource = new VillageResource(Id, config.ProducesResource);
                 _resources.Add(resource);
             }
             resource.Add(collected);
@@ -141,33 +133,21 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException(
                     $"Building '{buildingType}' requires main building level {config.RequiresMainBuildingLevel}.");
 
-            // 2. Зона: відповідність і вільний слот (null — поза зонами, без ліміту)
-            if (config.AllowedZone is not null)
-            {
-                var zone = _zones.FirstOrDefault(z => z.Type == config.AllowedZone)
-                    ?? throw new InvalidOperationException($"Village has no '{config.AllowedZone}' zone.");
-
-                // Зайняті слоти = будівлі, чий тип належить цій зоні (за конфігом)
-                var used = _buildings.Count(b =>
-                    buildingConfigs.TryGetValue(b.Type, out var c) && c.AllowedZone == config.AllowedZone);
-
-                if (used >= zone.Slots)
-                    throw new InvalidOperationException($"No free slots in '{config.AllowedZone}' zone.");
-            }
-
-            // 3. Вартість: перша будівля типу безкоштовна, наступні — за конфігом
+            // 2. Унікальність: кожна будівля існує в селі в одному екземплярі
             if (_buildings.Any(b => b.Type == buildingType))
+                throw new InvalidOperationException($"'{buildingType}' is already built in village {Id}.");
+
+            // 3. Вартість: спершу перевіряємо все, потім списуємо — інакше можна
+            // списати частину й упасти на наступному ресурсі
+            foreach (var line in config.Cost)
             {
-                foreach (var line in config.Cost)
-                {
-                    var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                        ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
-                    if (res.Amount < line.Amount)
-                        throw new InvalidOperationException($"Not enough {line.Resource}: need {line.Amount}, have {res.Amount}.");
-                }
-                foreach (var line in config.Cost)
-                    _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount);
+                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
+                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
+                if (res.Amount < line.Amount)
+                    throw new InvalidOperationException($"Not enough {line.Resource}: need {line.Amount}, have {res.Amount}.");
             }
+            foreach (var line in config.Cost)
+                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount);
 
             var building = new Building(Guid.NewGuid(), Id, buildingType);
             _buildings.Add(building);
@@ -300,6 +280,18 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
         public bool HasBuilding(string buildingType)
             => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
+
+        /// <summary>Нараховує стартові ресурси при заснуванні поселення.</summary>
+        public void GrantStartingResources(IReadOnlyDictionary<string, int> amounts)
+        {
+            foreach (var (key, amount) in amounts)
+            {
+                var resource = _resources.FirstOrDefault(r => r.ResourceType == key)
+                    ?? throw new InvalidOperationException($"Village has no '{key}' resource.");
+
+                resource.Add(amount);
+            }
+        }
     }
 }
 

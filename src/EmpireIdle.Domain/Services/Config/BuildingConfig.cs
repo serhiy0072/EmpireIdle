@@ -33,9 +33,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Коефіцієнт росту часу апгрейду з рівнем: час = BaseBuildMinutes × BuildTimeGrowth^(рівень−1).</summary>
         public double BuildTimeGrowth { get; set; }
 
-        /// <summary>Зона, у якій дозволено будувати; null — поза зонами (Ратуша, Стіни).</summary>
-        public string? AllowedZone { get; set; }
-
         /// <summary>Мінімальний рівень головної будівлі для розблокування.</summary>
         public int RequiresMainBuildingLevel { get; set; }
 
@@ -53,6 +50,12 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Ключ ресурсу, який поповнює ця житлова будівля (null — не житлова).</summary>
         public string? PopulationResource { get; set; }
+
+        /// <summary>
+        /// Позиція будівлі на карті селища. Домен її не використовує —
+        /// це презентація, але тримається тут, щоб при reskin не синхронізувати два джерела.
+        /// </summary>
+        public BuildingPosition? Position { get; set; }
 
     }
 

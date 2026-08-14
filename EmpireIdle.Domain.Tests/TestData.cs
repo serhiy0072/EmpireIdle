@@ -28,14 +28,13 @@ internal static class TestData
             StorageGrowth = 1.3,
             BaseBuildMinutes = 5,
             BuildTimeGrowth = 1.5,
-            AllowedZone = "plain",
             RequiresMainBuildingLevel = 0
         }
     };
 
     /// <summary>Створює порожнє село зі стандартними ресурсами й зонами.</summary>
     public static Village CreateVillage(Guid? playerId = null, int x = 0, int y = 0)
-        => new(Guid.NewGuid(), playerId ?? Guid.NewGuid(), "Test Village", DefaultResources, DefaultZones, x, y);
+        => new(Guid.NewGuid(), playerId ?? Guid.NewGuid(), "Test Village", DefaultResources, x, y);
 
     /// <summary>Створює село зі стандартними ресурсами й зонами, ініціалізованими з вказаною кількістю ресурсів.</summary>
     public static Village CreateVillageWithResources(int resourceAmount = 0, Guid? playerId = null)

@@ -4,8 +4,13 @@
       {
         "Key": "townhall",
         "DisplayName": "Town Hall",
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
+        "IsMainBuilding": true,
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 50.0,
+          "Y": 30.0
+        },
+
         "Cost": [
           {
             "Resource": "gold",
@@ -20,19 +25,23 @@
             "Amount": 100
           }
         ],
-        "BaseStorage": 0,
-        "StorageGrowth": 1,
-        "BaseBuildMinutes": 5,
+        "BaseBuildMinutes": 0,
         "BuildTimeGrowth": 1.6,
-        "AllowedZone": null,
-        "RequiresMainBuildingLevel": 0,
-        "IsMainBuilding": true
+
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "StorageGrowth": 1.0
       },
       {
         "Key": "house",
         "DisplayName": "House",
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 60.0,
+          "Y": 30.0
+        },
+
         "Cost": [
           {
             "Resource": "gold",
@@ -43,20 +52,26 @@
             "Amount": 50
           }
         ],
-        "BaseStorage": 0,
-        "StorageGrowth": 1,
-        "BaseBuildMinutes": 3,
+        "BaseBuildMinutes": 1,
         "BuildTimeGrowth": 1.4,
-        "AllowedZone": "plain",
-        "RequiresMainBuildingLevel": 0,
+
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "StorageGrowth": 1.0,
+
         "PopulationResource": "population",
         "PopulationPerLevel": 5
       },
       {
         "Key": "goldmine",
         "DisplayName": "Goldmine",
-        "ProducesResource": "gold",
-        "BaseProductionPerMinute": 10,
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 70.0,
+          "Y": 30.0
+        },
+
         "Cost": [
           {
             "Resource": "gold",
@@ -67,62 +82,50 @@
             "Amount": 50
           }
         ],
-        "BaseStorage": 60,
-        "StorageGrowth": 1.3,
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
-        "AllowedZone": "mountain",
-        "RequiresMainBuildingLevel": 0
+
+        "ProducesResource": "gold",
+        "BaseProductionPerMinute": 10,
+        "BaseStorage": 60,
+        "StorageGrowth": 1.3
       },
       {
         "Key": "ironmine",
         "DisplayName": "Ironmine",
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 80.0,
+          "Y": 30.0
+        },
+
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 100
+          },
+          {
+            "Resource": "wood",
+            "Amount": 50
+          }
+        ],
+        "BaseBuildMinutes": 2,
+        "BuildTimeGrowth": 1.5,
+
         "ProducesResource": "iron",
         "BaseProductionPerMinute": 10,
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 100
-          },
-          {
-            "Resource": "wood",
-            "Amount": 50
-          }
-        ],
         "BaseStorage": 60,
-        "StorageGrowth": 1.3,
-        "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": 1.5,
-        "AllowedZone": "mountain",
-        "RequiresMainBuildingLevel": 0
-      },
-      {
-        "Key": "farm",
-        "DisplayName": "Farm",
-        "ProducesResource": "food",
-        "BaseProductionPerMinute": 10,
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 100
-          },
-          {
-            "Resource": "wood",
-            "Amount": 50
-          }
-        ],
-        "BaseStorage": 60,
-        "StorageGrowth": 1.3,
-        "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": 1.5,
-        "AllowedZone": "plain",
-        "RequiresMainBuildingLevel": 0
+        "StorageGrowth": 1.3
       },
       {
         "Key": "sawmill",
         "DisplayName": "Sawmill",
-        "ProducesResource": "wood",
-        "BaseProductionPerMinute": 8,
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 40.0,
+          "Y": 30.0
+        },
+
         "Cost": [
           {
             "Resource": "gold",
@@ -133,18 +136,50 @@
             "Amount": 50
           }
         ],
-        "BaseStorage": 80,
-        "StorageGrowth": 1.35,
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
-        "AllowedZone": "forest",
-        "RequiresMainBuildingLevel": 0
+
+        "ProducesResource": "wood",
+        "BaseProductionPerMinute": 8,
+        "BaseStorage": 80,
+        "StorageGrowth": 1.35
+      },
+      {
+        "Key": "farm",
+        "DisplayName": "Farm",
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 30.0,
+          "Y": 30.0
+        },
+
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 100
+          },
+          {
+            "Resource": "wood",
+            "Amount": 50
+          }
+        ],
+        "BaseBuildMinutes": 1,
+        "BuildTimeGrowth": 1.5,
+
+        "ProducesResource": "food",
+        "BaseProductionPerMinute": 10,
+        "BaseStorage": 60,
+        "StorageGrowth": 1.3
       },
       {
         "Key": "fishinghut",
         "DisplayName": "Fishing Hut",
-        "ProducesResource": "food",
-        "BaseProductionPerMinute": 10,
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 20.0,
+          "Y": 30.0
+        },
+
         "Cost": [
           {
             "Resource": "gold",
@@ -155,45 +190,23 @@
             "Amount": 50
           }
         ],
-        "BaseStorage": 80,
-        "StorageGrowth": 1.35,
         "BaseBuildMinutes": 2,
         "BuildTimeGrowth": 1.5,
-        "AllowedZone": "water",
-        "RequiresMainBuildingLevel": 0
-      },
-      {
-        "Key": "hospital",
-        "DisplayName": "Hospital",
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 300
-          },
-          {
-            "Resource": "wood",
-            "Amount": 200
-          },
-          {
-            "Resource": "food",
-            "Amount": 150
-          }
-        ],
-        "BaseStorage": 0,
-        "StorageGrowth": 1,
-        "BaseBuildMinutes": 10,
-        "BuildTimeGrowth": 1.5,
-        "AllowedZone": "plain",
-        "RequiresMainBuildingLevel": 3,
-        "WoundedCapacityPerLevel": 20
+
+        "ProducesResource": "food",
+        "BaseProductionPerMinute": 10,
+        "BaseStorage": 80,
+        "StorageGrowth": 1.35
       },
       {
         "Key": "barracks",
         "DisplayName": "Barracks",
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
+        "RequiresMainBuildingLevel": 2,
+        "Position": {
+          "X": 10.0,
+          "Y": 30.0
+        },
+
         "Cost": [
           {
             "Resource": "gold",
@@ -208,12 +221,46 @@
             "Amount": 100
           }
         ],
-        "BaseStorage": 0,
-        "StorageGrowth": 1,
         "BaseBuildMinutes": 8,
         "BuildTimeGrowth": 1.5,
-        "AllowedZone": "plain",
-        "RequiresMainBuildingLevel": 2
+
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "StorageGrowth": 1.0
+      },
+      {
+        "Key": "hospital",
+        "DisplayName": "Hospital",
+        "RequiresMainBuildingLevel": 3,
+        "Position": {
+          "X": 90.0,
+          "Y": 30.0
+        },
+
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 300
+          },
+          {
+            "Resource": "wood",
+            "Amount": 200
+          },
+          {
+            "Resource": "food",
+            "Amount": 150
+          }
+        ],
+        "BaseBuildMinutes": 10,
+        "BuildTimeGrowth": 1.5,
+
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "StorageGrowth": 1.0,
+
+        "WoundedCapacityPerLevel": 20
       }
     ]
   }

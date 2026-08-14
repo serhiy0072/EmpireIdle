@@ -2,6 +2,11 @@
   "GameConfig": {
     "GameName": "EmpireIdle",
     "StartingBuildings": [ "townhall", "farm" ],
-    "MaxTrainingBatchSize": 5
+    "MaxTrainingBatchSize": 5,
+    "StartingResources": {
+      "gold": 500,
+      "wood": 400,
+      "food": 300
+    }
   }
 }

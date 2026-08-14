@@ -22,9 +22,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Список типів будівель.</summary>
         public List<BuildingConfig> Buildings { get; set; } = new();
 
-        /// <summary>Список типів зон для будівель.</summary>
-        public List<ZoneConfig> Zones { get; set; } = new();
-
         /// <summary>Усі типи юнітів.</summary>
         public List<UnitConfig> Units { get; set; } = new();
 
@@ -44,5 +41,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Усі типи предметів інвентаря.</summary>
         public List<ItemConfig> Items { get; set; } = new();
+
+        /// <summary>Ресурси, з якими починає нове поселення. Ключ — тип ресурсу.</summary>
+        public Dictionary<string, int> StartingResources { get; set; } = new();
     }
 }
