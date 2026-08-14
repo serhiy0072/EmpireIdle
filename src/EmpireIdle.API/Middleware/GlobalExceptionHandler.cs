@@ -1,6 +1,7 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmpireIdle.API.Middleware
 {
@@ -41,13 +42,15 @@ namespace EmpireIdle.API.Middleware
                 InvalidOperationException => (StatusCodes.Status400BadRequest, "BadRequest"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 ArgumentException => (StatusCodes.Status400BadRequest, "Invalid Argument"),
+                DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "The resource was modified by another request. Retry with the current state."),
                 _ => (StatusCodes.Status500InternalServerError, "Internal Server Error")
             };
 
             // На 500 не віддаємо exception.Message: DbUpdateException містить імена
             // таблиць і констрейнтів, NpgsqlException — деталі підключення
-            var detail = statusCode == StatusCodes.Status500InternalServerError
-                ? "An unexpected error occurred."
+            var detail = statusCode is StatusCodes.Status500InternalServerError
+                                    or StatusCodes.Status409Conflict
+                ? title
                 : exception.Message;
 
             var problemDetails = new ProblemDetails
