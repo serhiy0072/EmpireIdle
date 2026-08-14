@@ -18,6 +18,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(m => m.Type).IsRequired().HasMaxLength(50);
             builder.HasIndex(m => m.ServerId);
 
+            builder.Property<uint>("Version").IsRowVersion();
+
             builder.Ignore(m => m.DomainEvents);
         }
     }

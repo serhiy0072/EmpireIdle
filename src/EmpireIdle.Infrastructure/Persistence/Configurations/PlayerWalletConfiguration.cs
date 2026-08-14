@@ -20,6 +20,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(pw => pw.GemBalance).HasConversion(g => g.Value, v => new GemAmount(v)).HasColumnName("GemBalance");
             builder.Property(pw => pw.CoinBalance).HasConversion(c => c.Value, v => new CoinAmount(v)).HasColumnName("CoinBalance");
             builder.Property(pw => pw.UserId).IsRequired().HasMaxLength(450);
+            builder.Property<uint>("Version").IsRowVersion();
             builder.HasIndex(pw => pw.UserId).IsUnique();
             builder.HasMany(pw => pw.Transactions).WithOne().HasForeignKey("WalletId").IsRequired();
 

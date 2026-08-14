@@ -17,6 +17,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(b => b.Type).IsRequired().HasMaxLength(50);
             builder.Property(b => b.Level).HasConversion(l=> l.Value, v=>new Domain.ValueObjects.BuildingLevel(v)).HasColumnName("Level");
+            builder.Property<uint>("Version").IsRowVersion();
         }
     }
 }

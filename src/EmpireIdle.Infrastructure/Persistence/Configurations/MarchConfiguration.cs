@@ -24,6 +24,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
             builder.Navigation(m => m.Units).UsePropertyAccessMode(PropertyAccessMode.Field);
 
+            builder.Property<uint>("Version").IsRowVersion();
+
             builder.Ignore(m => m.DomainEvents);
         }
     }

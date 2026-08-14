@@ -16,6 +16,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(p => p.PackKey).IsRequired().HasMaxLength(50);
             builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
             builder.Property(p => p.SessionId).IsRequired().HasMaxLength(255);
+            builder.Property<uint>("Version").IsRowVersion();
 
             // Вебхук знаходить платіж за SessionId — має бути унікальним і швидким
             builder.HasIndex(p => p.SessionId).IsUnique();
