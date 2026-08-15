@@ -41,7 +41,7 @@ namespace EmpireIdle.Application.Villages.Commands
             foreach (var village in villages)
                 completed += village.CompleteDueConstructions(now, buildingConfigs);
 
-            var garrisons = await _garrisonRepository.GetWithDueTrainingAsync(now, cancellationToken);
+            var garrisons = await _garrisonRepository.GetWithDueTrainingAsync(now, _gameConfig.ScanBatchSize, cancellationToken);
             var trained = 0;
 
             foreach (var garrison in garrisons)

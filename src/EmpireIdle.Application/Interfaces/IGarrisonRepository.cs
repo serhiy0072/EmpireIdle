@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Знайти гарнізон за ідентифікатором.</summary>
         Task<Garrison?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
         /// <summary>Гарнізони з простроченими замовленнями тренування.</summary>
-        Task<List<Garrison>> GetWithDueTrainingAsync(DateTime utcNow, CancellationToken cancellationToken = default);
+        Task<List<Garrison>> GetWithDueTrainingAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default);
 
         /// <summary>Видаляє прострочені стеки відновлюваних. Повертає кількість видалених рядків.</summary>
         Task<int> PurgeExpiredRecoverableAsync(DateTime utcNow, CancellationToken cancellationToken);

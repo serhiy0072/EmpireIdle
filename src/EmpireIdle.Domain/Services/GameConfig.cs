@@ -44,5 +44,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Ресурси, з якими починає нове поселення. Ключ — тип ресурсу.</summary>
         public Dictionary<string, int> StartingResources { get; set; } = new();
+
+        /// <summary>Скільки елементів обробляє фоновий сканер за один прогін.</summary>
+        public int ScanBatchSize { get; set; } = 500;
     }
 }

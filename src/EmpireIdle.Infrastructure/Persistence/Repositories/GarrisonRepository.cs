@@ -51,7 +51,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 
         /// <inheritdoc/>
-        public Task<List<Garrison>> GetWithDueTrainingAsync(DateTime utcNow, CancellationToken cancellationToken = default)
+        public Task<List<Garrison>> GetWithDueTrainingAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
             => _context.Garrisons
             .Include(g => g.Units)
             .Include(g => g.TrainingOrders)
@@ -59,6 +59,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Include(g => g.Recoverable)
             .AsSplitQuery()
             .Where(g => g.TrainingOrders.Any(o => o.CompletesAt <= utcNow))
+            .OrderBy(g => g.Id)
+            .Take(batchSize)
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>

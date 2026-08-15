@@ -22,10 +22,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<List<March>> GetDueAsync(DateTime utcNow, CancellationToken cancellationToken = default)
+        public Task<List<March>> GetDueAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
             => _context.Marches
-            .Include(m => m.Units)
+            .AsNoTracking()
             .Where(m => m.State != MarchState.Completed && m.ArrivesAt <= utcNow)
+            .OrderBy(m => m.ArrivesAt)
+            .Take(batchSize)
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
@@ -36,9 +38,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
         /// <inheritdoc/>
         public async Task AddAsync(March march, CancellationToken cancellationToken = default)
-        {
-            await _context.Marches.AddAsync(march, cancellationToken);
-        }
+            =>  await _context.Marches.AddAsync(march, cancellationToken);
+        
     }
 }
 

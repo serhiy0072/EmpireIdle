@@ -7,6 +7,7 @@
       "gold": 500,
       "wood": 400,
       "food": 300
-    }
+    },
+    "ScanBatchSize": 500
   }
 }

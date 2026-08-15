@@ -1,7 +1,9 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.Application.Marches.Commands
 {
@@ -12,21 +14,24 @@ namespace EmpireIdle.Application.Marches.Commands
     {
         private readonly IMarchRepository _marchRepository;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly GameConfig _gameConfig;
         private readonly ILogger<CompleteDueMarchesCommandHandler> _logger;
 
         public CompleteDueMarchesCommandHandler(
             IMarchRepository marchRepository,
             IServiceScopeFactory scopeFactory,
+            IOptions<GameConfig> gameConfig,
             ILogger<CompleteDueMarchesCommandHandler> logger)
         {
             _marchRepository = marchRepository;
             _scopeFactory = scopeFactory;
+            _gameConfig = gameConfig.Value;
             _logger = logger;
         }
 
         public async Task Handle(CompleteDueMarchesCommand request, CancellationToken cancellationToken)
         {
-            var due = await _marchRepository.GetDueAsync(DateTime.UtcNow, cancellationToken);
+            var due = await _marchRepository.GetDueAsync(DateTime.UtcNow, _gameConfig.ScanBatchSize, cancellationToken);
 
             if (due.Count == 0)
                 return;
