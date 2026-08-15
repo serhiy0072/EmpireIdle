@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace EmpireIdle.Application.Villages.Commands
 {
     /// <summary>Команда: зібрати накопичені ресурси з буфера будівлі.</summary>
-    public record CollectBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest, IPlayerScopedRequest;
+    public record CollectBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     public class CollectBuildingCommandHandler : IRequestHandler<CollectBuildingCommand>
     {
