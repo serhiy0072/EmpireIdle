@@ -1,6 +1,7 @@
+using EmpireIdle.Application.Inventory.Commands;
 using FluentValidation;
 
-namespace EmpireIdle.Application.Inventory.Commands.Validators
+namespace EmpireIdle.Application.Inventory.Validators
 {
     public sealed class UseItemCommandValidator : AbstractValidator<UseItemCommand>
     {

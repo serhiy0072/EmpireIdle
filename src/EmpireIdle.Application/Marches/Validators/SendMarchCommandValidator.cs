@@ -1,6 +1,7 @@
+using EmpireIdle.Application.Marches.Commands;
 using FluentValidation;
 
-namespace EmpireIdle.Application.Marches.Commands.Validators
+namespace EmpireIdle.Application.Marches.Validators
 {
     public sealed class SendMarchCommandValidator : AbstractValidator<SendMarchCommand>
     {

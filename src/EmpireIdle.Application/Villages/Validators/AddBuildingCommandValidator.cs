@@ -1,6 +1,7 @@
+using EmpireIdle.Application.Villages.Commands;
 using FluentValidation;
 
-namespace EmpireIdle.Application.Villages.Commands.Validators
+namespace EmpireIdle.Application.Villages.Validators
 {
     public sealed class AddBuildingCommandValidator : AbstractValidator<AddBuildingCommand>
     {

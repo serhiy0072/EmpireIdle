@@ -1,6 +1,7 @@
+using EmpireIdle.Application.Garrisons.Commands;
 using FluentValidation;
 
-namespace EmpireIdle.Application.Garrisons.Commands.Validators
+namespace EmpireIdle.Application.Garrisons.Validators
 {
     public sealed class TrainUnitsCommandValidator : AbstractValidator<TrainUnitsCommand>
     {
