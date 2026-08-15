@@ -71,6 +71,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.StartingResources.Keys.All(k => c.Resources.Any(r => r.Key == k)), "GameConfig.StartingResources references an unknown resource key.")
     .Validate(c => c.StartingBuildings.Count > 0, "GameConfig.StartingBuildings is empty.")
     .Validate(c => c.StartingBuildings.All(k => c.Buildings.Any(b => b.Key == k)), "GameConfig.StartingBuildings references a building key that does not exist.")
+    .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
