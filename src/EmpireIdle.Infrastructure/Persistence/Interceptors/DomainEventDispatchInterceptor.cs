@@ -1,34 +1,29 @@
-using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Events;
-using MediatR;
+using EmpireIdle.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Text.Json;
 
 namespace EmpireIdle.Infrastructure.Persistence.Interceptors
 {
     /// <summary>
-    /// EF Core interceptor, що публікує доменні події ПІСЛЯ успішного збереження змін.
-    /// Збирає події з усіх трекнутих агрегатів, очищує їх і публікує через MediatR.
+    /// Складає доменні події в Outbox ПЕРЕД збереженням — тобто в ту саму транзакцію,
+    /// що й зміна стану. Публікує їх окремий воркер.
     /// </summary>
     public class DomainEventDispatchInterceptor : SaveChangesInterceptor
     {
-        private readonly IPublisher _publisher;
-
-        public DomainEventDispatchInterceptor(IPublisher publisher)
-        {
-            _publisher = publisher; 
-        }
-
-        public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData,
+            InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
         {
             if (eventData.Context is not null)
-                await DispatchDomainEventsAsync(eventData.Context, cancellationToken);
+                WriteToOutbox(eventData.Context);
 
-            return await base.SavedChangesAsync(eventData, result, cancellationToken);
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
-        private async Task DispatchDomainEventsAsync(DbContext context, CancellationToken cancellationToken)
+        private static void WriteToOutbox(DbContext context)
         {
             var entitiesWithEvents = context.ChangeTracker
                 .Entries<Entity>()
@@ -36,23 +31,28 @@ namespace EmpireIdle.Infrastructure.Persistence.Interceptors
                 .Select(e => e.Entity)
                 .ToList();
 
-            var domainEvents = entitiesWithEvents
+            if (entitiesWithEvents.Count == 0)
+                return;
+
+            var utcNow = DateTime.UtcNow;
+
+            var messages = entitiesWithEvents
                 .SelectMany(e => e.DomainEvents)
+                .Select(domainEvent => new OutboxMessage
+                {
+                    Id = Guid.NewGuid(),
+                    Type = domainEvent.GetType().FullName!,
+                    Payload = JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
+                    OccurredAt = utcNow
+                })
                 .ToList();
 
-            // Спершу очищуємо, потім публікуємо: якщо handler знову викличе SaveChanges,
-            // ці ж події не опублікуються вдруге.
+            // Очищуємо до збереження: подія вже зафіксована в Outbox,
+            // повторний SaveChanges не має додати її вдруге
             foreach (var entity in entitiesWithEvents)
                 entity.ClearDomainEvents();
 
-            foreach (var domainEvent in domainEvents)
-                await _publisher.Publish(CreateNotification(domainEvent), cancellationToken);
-        }
-
-        private static INotification CreateNotification(IDomainEvent domainEvent)
-        {
-            var notificationType = typeof(DomainEventNotification<>).MakeGenericType(domainEvent.GetType());
-            return (INotification)Activator.CreateInstance(notificationType, domainEvent)!;
+            context.Set<OutboxMessage>().AddRange(messages);
         }
     }
 }

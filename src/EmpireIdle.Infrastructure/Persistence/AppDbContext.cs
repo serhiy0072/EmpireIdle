@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Auth;
+using EmpireIdle.Infrastructure.Persistence.Outbox;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,6 +32,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<ActiveEffect> ActiveEffects => Set<ActiveEffect>();
         public DbSet<RecoverableUnit> RecoverableUnits => Set<RecoverableUnit>();
         public DbSet<Payment> Payments => Set<Payment>();
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
