@@ -59,7 +59,15 @@ namespace EmpireIdle.Infrastructure.Auth
 
             var validPassword = await _userManager.CheckPasswordAsync(user, password);
             if (!validPassword)
+            {
+                await _userManager.AccessFailedAsync(user);
                 throw new InvalidOperationException("Invalid email or password.");
+            }
+
+            if (await _userManager.IsLockedOutAsync(user))
+                throw new InvalidOperationException("Account temporarily locked. Try again later.");
+
+            await _userManager.ResetAccessFailedCountAsync(user);
 
             var playerId = await GetPlayerIdAsync(user.Email!);
             var accessToken = GenerateAccessToken(user, playerId);
