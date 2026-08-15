@@ -1,5 +1,6 @@
 using EmpireIdle.API.Hubs;
 using EmpireIdle.API.Jobs;
+using EmpireIdle.API.Middleware;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
@@ -186,13 +187,15 @@ builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer
 builder.Services.AddScoped<IRequestContext, EmpireIdle.API.Services.RequestContext>();
 
 const string FrontendCors = "FrontendCors";
-builder.Services.AddCors(option =>
-    option.AddPolicy(FrontendCors, policy =>
-        policy.WithOrigins("http://localhost:5173")
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? throw new InvalidOperationException("Cors:AllowedOrigins is not configured.");
+
+builder.Services.AddCors(options =>
+    options.AddPolicy(FrontendCors, policy =>
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
-.AllowCredentials()
-));
+              .AllowCredentials()));
 
 var app = builder.Build();
 
@@ -204,7 +207,10 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpireIdle API v1");
     });
-    app.MapHangfireDashboard("/hangfire").AllowAnonymous();
+    app.MapHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = [new HangfireDashboardAuthorizationFilter()]
+    }).AllowAnonymous();
 }
 
 if (!app.Environment.IsDevelopment())
