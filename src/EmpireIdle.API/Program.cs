@@ -181,6 +181,7 @@ builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<T
 builder.Services.AddSingleton(new SpeedUpCalculator(gameConfig.Monetization));
 
 builder.Services.AddScoped<MonsterSpawnJob>();
+builder.Services.AddScoped<OutboxMaintenanceJob>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer>();
@@ -234,6 +235,7 @@ app.MapHub<GameHub>("/hubs/game");
 RecurringJob.AddOrUpdate<ResourceTickJob>("resource-tick", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
+RecurringJob.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.RunAsync(), Cron.Hourly);
 
 app.Run();
 

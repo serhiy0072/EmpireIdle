@@ -11,5 +11,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
 
         /// <summary>Після скількох невдач повідомлення відкладається назавжди.</summary>
         public int MaxAttempts { get; set; } = 5;
+
+        /// <summary>Скільки днів тримати оброблені повідомлення.</summary>
+        public int RetentionDays { get; set; } = 7;
     }
 }
