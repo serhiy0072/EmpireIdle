@@ -173,11 +173,11 @@ var gameConfig = builder.Configuration.GetSection("GameConfig").Get<GameConfig>(
     ?? throw new InvalidOperationException("GameConfig section is missing or invalid.");
 
 builder.Services.AddSingleton(sp => new GameCatalog(gameConfig));
-builder.Services.AddSingleton(new TerrainGenerator(gameConfig.Map));
+builder.Services.AddSingleton(sp => new TerrainGenerator(gameConfig.Map));
 builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(new CasualtySplitter(gameConfig.Combat));
+builder.Services.AddSingleton(sp => new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
-builder.Services.AddSingleton(new SpeedUpCalculator(gameConfig.Monetization));
+builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetization));
 builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
