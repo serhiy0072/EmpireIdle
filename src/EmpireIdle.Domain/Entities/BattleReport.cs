@@ -23,6 +23,9 @@ namespace EmpireIdle.Domain.Entities
         public double AttackerPower { get; private set; }
         public double DefenderPower { get; private set; }
 
+        /// <summary>Сід випадковості бою — дозволяє переграти й перевірити результат.</summary>
+        public int RandomSeed { get; private set; }
+
         public DateTime FoughtAt { get; private set; }
 
         /// <summary>Чи прочитано гравцем.</summary>
@@ -34,7 +37,7 @@ namespace EmpireIdle.Domain.Entities
         public BattleReport(Guid id, Guid playerId, Guid marchId,
             int x, int y, string terrainType,
             string targetName, int targetLevel,
-            bool won, double attackerPower, double defenderPower, DateTime utcNow) : base(id)
+            bool won, double attackerPower, double defenderPower, int randomSeed, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;
             MarchId = marchId;
@@ -46,6 +49,7 @@ namespace EmpireIdle.Domain.Entities
             Won = won;
             AttackerPower = attackerPower;
             DefenderPower = defenderPower;
+            RandomSeed = randomSeed;
             FoughtAt = utcNow;
         }
 

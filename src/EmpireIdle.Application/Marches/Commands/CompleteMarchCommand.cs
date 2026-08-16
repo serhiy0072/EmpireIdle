@@ -126,7 +126,10 @@ namespace EmpireIdle.Application.Marches.Commands
                 ? 1.0
                 : await _effectResolver.GetMultiplierAsync(village.PlayerId, EffectTarget.Attack, DateTime.UtcNow, cancellationToken);
 
-            var result = _combat.Resolve(attackerArmy, defenderArmy, terrain, attackerBonus);
+            // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
+            var seed = Random.Shared.Next();
+
+            var result = _combat.Resolve(attackerArmy, defenderArmy, terrain, seed, attackerBonus);
 
             // Вільна місткість Госпіталю = сума рівнів × місткість на рівень − уже поранені
             var woundedCapacity = CalculateWoundedCapacity(village, garrison);
@@ -155,7 +158,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 march.Id,
                 march.TargetX, march.TargetY, terrain,
                 $"{monster.Type} (lvl {monster.Level})", monster.Level,
-                result.AttackerWon, result.AttackerPower, result.DefenderPower, DateTime.UtcNow);
+                result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, DateTime.UtcNow);
 
             foreach (var (unitType, sent) in attackerArmy)
             {
