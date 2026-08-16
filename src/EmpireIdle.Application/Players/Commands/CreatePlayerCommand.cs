@@ -79,9 +79,6 @@ namespace EmpireIdle.Application.Players.Commands
             var garrison = new Garrison(Guid.NewGuid(), village.Id);
             await _garrisonRepository.AddAsync(garrison, cancellationToken);
 
-            foreach (var buildingKey in _catalog.Config.StartingBuildings)
-                village.AddBuilding(buildingKey, _catalog.Buildings);
-
             await _playerRepository.AddAsync(player, cancellationToken);
             await _villageRepository.AddAsync(village, cancellationToken);
             await _walletRepository.AddAsync(wallet, cancellationToken);
