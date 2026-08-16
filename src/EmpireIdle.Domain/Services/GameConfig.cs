@@ -6,6 +6,9 @@ namespace EmpireIdle.Domain.Services
     /// </summary>
     public class GameConfig
     {
+        /// <summary>Сервер, на який потрапляє новий гравець при реєстрації.</summary>
+        public int DefaultServerId { get; set; } = 1;
+
         /// <summary>Будівлі, які отримує нове поселення (у порядку створення).</summary>
         public List<string> StartingBuildings { get; set; } = new();
 

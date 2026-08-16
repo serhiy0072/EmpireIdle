@@ -54,22 +54,24 @@ namespace EmpireIdle.Application.Players.Commands
         {
             var email = request.Email.Trim().ToLowerInvariant();
 
-            var existing = await _playerRepository.GetByEmailAsync(email, cancellationToken);
-            if(existing is not null)
-                throw new InvalidOperationException($"Player with email '{email}' already exists.");
+            var serverId = _catalog.Config.DefaultServerId;
+
+            var existing = await _playerRepository.GetByUserIdAsync(request.UserId, serverId, cancellationToken);
+            if (existing is not null)
+                throw new InvalidOperationException($"Account already has a player on server {serverId}.");
 
             var playerId = Guid.NewGuid();
 
-            var player = new Player(playerId, request.UserName, email, request.UserId);
+            var player = new Player(playerId, request.UserName, email, request.UserId, serverId);
             var wallet = new PlayerWallet(Guid.NewGuid(), request.UserId);
             var (x, y) = await _settlementPlacer.FindSpotAsync(
-                serverId: 1,
+                serverId: serverId,
                 isOccupied: (cx, cy) => _mapRepository.IsOccupiedAsync(1, cx, cy, cancellationToken),
                 maxAttempts: 200);
 
             var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village",
                 _catalog.Resources.Keys,
-                x, y);
+                x, y, serverId);
 
             village.GrantStartingResources(_catalog.Config.StartingResources);
 
@@ -83,7 +85,7 @@ namespace EmpireIdle.Application.Players.Commands
             await _villageRepository.AddAsync(village, cancellationToken);
             await _walletRepository.AddAsync(wallet, cancellationToken);
             await _mapRepository.AddAsync(
-                new MapCell(Guid.NewGuid(), 1, x, y, MapOccupantType.Village, village.Id),
+                new MapCell(Guid.NewGuid(), serverId, x, y, MapOccupantType.Village, village.Id),
                 cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

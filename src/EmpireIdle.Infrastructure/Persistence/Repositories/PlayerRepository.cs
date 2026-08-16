@@ -26,5 +26,17 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<Player?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.Players.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<Player?> GetByUserIdAsync(string userId, int serverId, CancellationToken cancellationToken = default)
+            => _context.Players
+                .FirstOrDefaultAsync(p => p.UserId == userId && p.ServerId == serverId, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<Player>> GetAllByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+            => _context.Players
+                .AsNoTracking()
+                .OrderBy(p => p.ServerId)
+                .ToListAsync(cancellationToken);
     }
 }
