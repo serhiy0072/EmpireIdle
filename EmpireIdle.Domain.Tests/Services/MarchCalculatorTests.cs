@@ -40,8 +40,14 @@ namespace EmpireIdle.Domain.Tests.Services
             }
         };
 
+        private static GameCatalog Catalog() => new(new GameConfig
+        {
+            Units = Units(),
+            Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true }]
+        });
+
         private static MarchCalculator Calculator()
-            => new(new TerrainGenerator(MapConfig()), Units());
+            => new(new TerrainGenerator(MapConfig()), Catalog());
 
         /// <summary>Далі — довше: час зростає з відстанню.</summary>
         [Fact]
@@ -94,7 +100,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var army = new Dictionary<string, int> { ["infantry"] = 5 };
 
             var easyConfig = MapConfig();
-            var easy = new MarchCalculator(new TerrainGenerator(easyConfig), Units())
+            var easy = new MarchCalculator(new TerrainGenerator(easyConfig), Catalog())
                 .CalculateDuration(1, 10, 10, 60, 10, army);
 
             var hardConfig = MapConfig();
@@ -102,7 +108,7 @@ namespace EmpireIdle.Domain.Tests.Services
             {
                 new() { Type = "swamp", Weight = 100, Passable = true, MoveCost = 3.0, Habitable = false }
             };
-            var hard = new MarchCalculator(new TerrainGenerator(hardConfig), Units())
+            var hard = new MarchCalculator(new TerrainGenerator(hardConfig), Catalog())
                 .CalculateDuration(1, 10, 10, 60, 10, army);
 
             Assert.True(hard > easy, $"Rough terrain must slow the march: easy={easy}, hard={hard}");

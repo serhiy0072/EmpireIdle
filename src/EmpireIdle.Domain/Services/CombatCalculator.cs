@@ -1,4 +1,3 @@
-using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Domain.Services
 {
@@ -17,12 +16,13 @@ namespace EmpireIdle.Domain.Services
     public class CombatCalculator
     {
         private readonly CombatConfig _config;
-        private readonly List<UnitConfig> _unitConfigs;
+        private readonly GameCatalog _catalog;
 
-        public CombatCalculator(CombatConfig config, List<UnitConfig> unitConfigs)
+
+        public CombatCalculator(CombatConfig config, GameCatalog catalog)
         {
             _config = config;
-            _unitConfigs = unitConfigs;
+            _catalog = catalog;
         }
 
         /// <summary>
@@ -76,8 +76,7 @@ namespace EmpireIdle.Domain.Services
 
             foreach (var (unitType, count) in army)
             {
-                var config = _unitConfigs.FirstOrDefault(u => u.Key == unitType);
-                if (config is null || count <= 0)
+                if (!_catalog.Units.TryGetValue(unitType, out var config) || count <= 0)
                     continue;
 
                 // Атакувальник спирається на атаку, захисник — на захист

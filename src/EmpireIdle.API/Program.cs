@@ -75,6 +75,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .ValidateOnStart();
 
+
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>()
@@ -171,14 +172,15 @@ builder.Services.AddScoped<TimerScanJob>();
 var gameConfig = builder.Configuration.GetSection("GameConfig").Get<GameConfig>()
     ?? throw new InvalidOperationException("GameConfig section is missing or invalid.");
 
+builder.Services.AddSingleton(sp => new GameCatalog(gameConfig));
 builder.Services.AddSingleton(new TerrainGenerator(gameConfig.Map));
-builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, gameConfig.Monsters));
-builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Units));
-builder.Services.AddSingleton(new CombatCalculator(gameConfig.Combat, gameConfig.Units));
-builder.Services.AddSingleton(new MonsterArmyBuilder(gameConfig.Monsters));
+builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
 builder.Services.AddSingleton(new SpeedUpCalculator(gameConfig.Monetization));
+builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
 
 builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();

@@ -32,7 +32,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<HealWoundedCommandHandler> _logger;
 
         public HealWoundedCommandHandler(
@@ -41,7 +41,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IPlayerWalletRepository walletRepository,
             ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
-            IOptions<GameConfig> gameConfig,
+            GameCatalog catalog,
             ILogger<HealWoundedCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -49,7 +49,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -80,7 +80,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private async Task ChargeGemsAsync(IReadOnlyDictionary<string, int> healed, Guid playerId, CancellationToken cancellationToken)
         {
             var total = healed.Values.Where(c => c > 0).Sum();
-            var cost = total * _gameConfig.Monetization.HealGemsPerUnit;
+            var cost = total * _catalog.Config.Monetization.HealGemsPerUnit;
 
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
@@ -101,18 +101,13 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 if (count <= 0)
                     continue;
 
-                var config = _gameConfig.Units.FirstOrDefault(u => u.Key == unitType)
+                var config = _catalog.Unit(unitType)
                     ?? throw new InvalidOperationException($"Unknown unit type '{unitType}'.");
-
-                var capacityResources = _gameConfig.Resources
-                    .Where(r => r.IsCapacity)
-                    .Select(r => r.Key)
-                    .ToHashSet();
 
                 foreach (var line in config.Cost)
                 {
                     // Місткість не витрачається повторно — юніт живий, лише поранений
-                    if (capacityResources.Contains(line.Resource))
+                    if (_catalog.CapacityResourceKeys.Contains(line.Resource))
                         continue;
 
                     var amount = (int)Math.Ceiling(line.Amount * count * HealCostFactor);

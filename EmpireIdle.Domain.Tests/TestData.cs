@@ -11,10 +11,6 @@ internal static class TestData
     /// <summary>Стандартний набір ресурсів тестового села.</summary>
     public static readonly string[] DefaultResources = { "gold", "food", "wood", "iron" };
 
-    /// <summary>Стандартний набір зон тестового села.</summary>
-    public static readonly (string Type, int Slots)[] DefaultZones =
-        { ("plain", 4), ("forest", 3), ("mountain", 3), ("water", 2) };
-
     /// <summary>Мінімальний конфіг ферми для тестів (зона plain, без порога Ратуші).</summary>
     public static Dictionary<string, BuildingConfig> FarmConfigs(int baseCostFood = 100) => new()
     {
@@ -36,23 +32,11 @@ internal static class TestData
     public static Village CreateVillage(Guid? playerId = null, int x = 0, int y = 0)
         => new(Guid.NewGuid(), playerId ?? Guid.NewGuid(), "Test Village", DefaultResources, x, y);
 
-    /// <summary>Створює село зі стандартними ресурсами й зонами, ініціалізованими з вказаною кількістю ресурсів.</summary>
-    public static Village CreateVillageWithResources(int resourceAmount = 0, Guid? playerId = null)
+    /// <summary>Створює село з однаковою кількістю кожного ресурсу.</summary>
+    public static Village CreateVillageWithResources(int resourceAmount = 1000, Guid? playerId = null)
     {
         var village = CreateVillage(playerId);
-
-        // Manually update resource amounts using reflection
-        var resourcesField = village.GetType().GetField("_resources",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        if (resourcesField?.GetValue(village) is System.Collections.Generic.List<VillageResource> resourcesList)
-        {
-            foreach (var resource in resourcesList)
-            {
-                resource.Add(resourceAmount);
-            }
-        }
-
+        village.GrantStartingResources(DefaultResources.ToDictionary(r => r, _ => resourceAmount));
         return village;
     }
 }

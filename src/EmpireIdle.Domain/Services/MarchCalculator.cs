@@ -7,12 +7,12 @@ namespace EmpireIdle.Domain.Services
     public class MarchCalculator
     {
         private readonly TerrainGenerator _terrain;
-        private readonly List<UnitConfig> _unitConfigs;
+        private readonly GameCatalog _catalog;
 
-        public MarchCalculator(TerrainGenerator terrain, List<UnitConfig> unitConfigs)
+        public MarchCalculator(TerrainGenerator terrain, GameCatalog catalog)
         {
             _terrain = terrain;
-            _unitConfigs = unitConfigs;
+            _catalog = catalog;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace EmpireIdle.Domain.Services
 
             // Швидкість колони = швидкість найповільнішого юніта
             var speed = units.Keys
-                .Select(type => _unitConfigs.FirstOrDefault(u => u.Key == type))
+                .Select(type => _catalog.Units.GetValueOrDefault(type))
                 .Where(c => c is not null)
                 .Select(c => c!.Stats.GetValueOrDefault("Speed", 1.0))
                 .DefaultIfEmpty(1.0)

@@ -19,7 +19,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<RecoverUnitsCommandHandler> _logger;
 
         public RecoverUnitsCommandHandler(
@@ -28,7 +28,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IPlayerWalletRepository walletRepository,
             ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
-            IOptions<GameConfig> gameConfig,
+            GameCatalog catalog,
             ILogger<RecoverUnitsCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -36,7 +36,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -78,7 +78,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             foreach (var (unitType, count) in recovered)
             {
-                var config = _gameConfig.Units.FirstOrDefault(u => u.Key == unitType)
+                var config = _catalog.Unit(unitType)
                     ?? throw new InvalidOperationException($"Unknown unit type '{unitType}'.");
 
                 total += config.RecoverCostGems * count;

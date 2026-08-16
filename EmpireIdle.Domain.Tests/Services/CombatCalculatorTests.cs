@@ -17,16 +17,20 @@ namespace EmpireIdle.Domain.Tests.Services
                 RandomMax = 1.4
             };
 
-            var units = new List<UnitConfig>
+            var catalog = new GameCatalog(new GameConfig
             {
-                new()
-                {
-                    Key = "infantry",
-                    Stats = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 12 }
-                }
-            };
+                Units =
+                [
+                    new()
+                    {
+                        Key = "infantry",
+                        Stats = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 12 }
+                    }
+                ],
+                Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true }]
+            });
 
-            _calculator = new CombatCalculator(combatConfig, units);
+            _calculator = new CombatCalculator(combatConfig, catalog);
         }
 
         [Fact]

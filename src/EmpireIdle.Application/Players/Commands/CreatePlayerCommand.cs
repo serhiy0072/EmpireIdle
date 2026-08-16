@@ -26,7 +26,7 @@ namespace EmpireIdle.Application.Players.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreatePlayerCommand> _logger;
         private readonly SettlementPlacer _settlementPlacer;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
 
         public CreatePlayerCommandHandler(
             IPlayerRepository playerRepository, 
@@ -35,7 +35,7 @@ namespace EmpireIdle.Application.Players.Commands
             IGarrisonRepository garrisonRepository, 
             IUnitOfWork unitOfWork, 
             ILogger<CreatePlayerCommand> logger, 
-            IOptions<GameConfig> gameConfig,
+            GameCatalog catalog,
             SettlementPlacer settlementPlacer,
             IMapRepository mapRepository)
         {
@@ -45,7 +45,7 @@ namespace EmpireIdle.Application.Players.Commands
             _garrisonRepository = garrisonRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
             _settlementPlacer = settlementPlacer;
             _mapRepository = mapRepository;
         }
@@ -68,21 +68,19 @@ namespace EmpireIdle.Application.Players.Commands
                 maxAttempts: 200);
 
             var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village",
-                _gameConfig.Resources.Select(r => r.Key),
+                _catalog.Resources.Keys,
                 x, y);
 
-            village.GrantStartingResources(_gameConfig.StartingResources);
+            village.GrantStartingResources(_catalog.Config.StartingResources);
 
-            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
-
-            foreach (var buildingKey in _gameConfig.StartingBuildings)
-                village.AddBuilding(buildingKey, buildingConfigs);
+            foreach (var buildingKey in _catalog.Config.StartingBuildings)
+                village.AddBuilding(buildingKey, _catalog.Buildings);
 
             var garrison = new Garrison(Guid.NewGuid(), village.Id);
             await _garrisonRepository.AddAsync(garrison, cancellationToken);
 
-            foreach (var buildingKey in _gameConfig.StartingBuildings)
-                village.AddBuilding(buildingKey, buildingConfigs);
+            foreach (var buildingKey in _catalog.Config.StartingBuildings)
+                village.AddBuilding(buildingKey, _catalog.Buildings);
 
             await _playerRepository.AddAsync(player, cancellationToken);
             await _villageRepository.AddAsync(village, cancellationToken);

@@ -62,7 +62,7 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig (Key → BuildingConfig).</param>
         /// <param name="productionMultiplier">Множник від активних бустів (1.0 — без бусту).</param>
-        public void TickProduction(Dictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, double productionMultiplier = 1.0)
+        public void TickProduction(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, double productionMultiplier = 1.0)
         {
             var elapsed = utcNow - LastTickAt;
 
@@ -86,7 +86,7 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
         /// <exception cref="InvalidOperationException">Якщо будівля або її конфіг не знайдені.</exception>
-        public void CollectFromBuilding(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
+        public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
                 ?? throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
@@ -118,7 +118,7 @@ namespace EmpireIdle.Domain.Entities
         /// відповідність зоні, вільний слот, вартість (перша будівля типу безкоштовна).
         /// </summary>
         /// <returns>Id створеної будівлі.</returns>
-        public Guid AddBuilding(string buildingType, Dictionary<string, BuildingConfig> buildingConfigs)
+        public Guid AddBuilding(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
         {
             if (!buildingConfigs.TryGetValue(buildingType, out var config))
                 throw new InvalidOperationException($"Unknown building type '{buildingType}'.");
@@ -185,7 +185,7 @@ namespace EmpireIdle.Domain.Entities
         /// списує ресурси та ставить будівлю в стан будівництва.
         /// Рівень підніметься при завершенні (CompleteDueConstructions).
         /// </summary>
-        public void BeginBuildingUpgrade(Guid buildingId, Dictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, int builderCount = 1)
+        public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, int builderCount = 1)
         {
             if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
                 throw new InvalidOperationException("All builders are busy");
@@ -223,7 +223,7 @@ namespace EmpireIdle.Domain.Entities
         /// Завершує всі будівництва, чий час настав. Викликається сканером.
         /// Повертає кількість завершених (для логування).
         /// </summary>
-        public int CompleteDueConstructions(DateTime utcNow, Dictionary<string, BuildingConfig> buildingConfigs)
+        public int CompleteDueConstructions(DateTime utcNow, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
         {
             var due = _buildings
                 .Where(b => b.IsUnderConstruction && b.ConstructionCompletesAt <= utcNow)

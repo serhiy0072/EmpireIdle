@@ -1,15 +1,13 @@
-using EmpireIdle.Domain.Services;
-
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>Будує склад загону монстра за його типом і рівнем.</summary>
     public class MonsterArmyBuilder
     {
-        private readonly List<MonsterConfig> _configs;
+        private readonly GameCatalog _catalog;
 
-        public MonsterArmyBuilder(List<MonsterConfig> configs)
+        public MonsterArmyBuilder(GameCatalog catalog)
         {
-            _configs = configs;
+            _catalog = catalog;
         }
 
         /// <summary>
@@ -43,7 +41,8 @@ namespace EmpireIdle.Domain.Services
         }
 
         private MonsterConfig GetConfig(string monsterType)
-            => _configs.FirstOrDefault(m => m.Key == monsterType)
-                ?? throw new InvalidOperationException($"Unknown monster type '{monsterType}'.");
+            => _catalog.Monsters.TryGetValue(monsterType, out var config)
+                ? config
+                : throw new InvalidOperationException($"Unknown monster type '{monsterType}'.");
     }
 }

@@ -22,7 +22,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMonsterRepository _monsterRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IBattleReportRepository _battleReportRepository;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
         private readonly CasualtySplitter _casualties;
         private readonly MonsterArmyBuilder _armyBuilder;
@@ -40,7 +40,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IMonsterRepository monsterRepository,
             IVillageRepository villageRepository,
             IBattleReportRepository battleReportRepository,
-            IOptions<GameConfig> gameConfig,
+            GameCatalog catalog,
             CasualtySplitter casualties,
             MonsterArmyBuilder armyBuilder,
             CombatCalculator combat,
@@ -63,8 +63,8 @@ namespace EmpireIdle.Application.Marches.Commands
             _calculator = calculator;
             _effectResolver = effectResolver;
             _logger = logger;
-            _gameConfig = gameConfig.Value;
-            _combatConfig = _gameConfig.Combat;
+            _catalog = catalog;
+            _combatConfig = _catalog.Config.Combat;
         }
 
         public async Task Handle(CompleteMarchCommand request, CancellationToken cancellationToken)
@@ -218,7 +218,7 @@ namespace EmpireIdle.Application.Marches.Commands
             if (village is null || garrison is null)
                 return 0;
 
-            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
+            var buildingConfigs = _catalog.Buildings;
 
             var total = village.Buildings
                 .Where(b => !b.IsUnderConstruction)

@@ -8,13 +8,13 @@ namespace EmpireIdle.Domain.Services
     {
         private readonly TerrainGenerator _terrain;
         private readonly MapConfig _mapConfig;
-        private readonly List<MonsterConfig> _monsterConfigs;
+        private readonly GameCatalog _catalog;
 
-        public MonsterSpawner(TerrainGenerator terrain, MapConfig mapConfig, List<MonsterConfig> monsterConfigs)
+        public MonsterSpawner(TerrainGenerator terrain, MapConfig mapConfig, GameCatalog catalog)
         {
             _terrain = terrain;
             _mapConfig = mapConfig;
-            _monsterConfigs = monsterConfigs;
+            _catalog = catalog;
         }
 
         /// <summary>Скільки монстрів має бути на карті за поточної щільності.</summary>
@@ -33,7 +33,7 @@ namespace EmpireIdle.Domain.Services
             int maxAttempts = 50)
         {
             // Доступні типи: ті, що відкрились на поточному рівні світу
-            var available = _monsterConfigs
+            var available = _catalog.Monsters.Values
                 .Where(m => m.RequiresServerLevel <= _mapConfig.ServerLevel)
                 .ToList();
 

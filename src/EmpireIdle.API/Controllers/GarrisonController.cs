@@ -5,7 +5,6 @@ using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -18,12 +17,12 @@ namespace EmpireIdle.API.Controllers
     public class GarrisonController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
 
-        public GarrisonController(IMediator mediator, IOptions<GameConfig> gameConfig)
+        public GarrisonController(IMediator mediator, GameCatalog catalog)
         {
             _mediator = mediator;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
         }
 
         /// <summary>
@@ -96,6 +95,6 @@ namespace EmpireIdle.API.Controllers
 
         /// <summary>Ціна викупу одного юніта в gems.</summary>
         private int RecoverCost(string unitType)
-            => _gameConfig.Units.FirstOrDefault(u => u.Key == unitType)?.RecoverCostGems ?? 0;
+            => _catalog.Units.GetValueOrDefault(unitType)?.RecoverCostGems ?? 0;
     }
 }

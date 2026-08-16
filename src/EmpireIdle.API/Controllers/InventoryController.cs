@@ -5,7 +5,6 @@ using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -16,13 +15,13 @@ namespace EmpireIdle.API.Controllers
     public class InventoryController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
         private readonly IActiveEffectRepository _effectRepository;
 
-        public InventoryController(IMediator mediator, IOptions<GameConfig> gameConfig, IActiveEffectRepository effectRepository)
+        public InventoryController(IMediator mediator, GameCatalog catalog, IActiveEffectRepository effectRepository)
         {
             _mediator = mediator;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
             _effectRepository = effectRepository;
         }
 
@@ -34,13 +33,11 @@ namespace EmpireIdle.API.Controllers
         {
             var contents = await _mediator.Send(new GetInventoryQuery(playerId), cancellationToken);
 
-            var itemConfigs = _gameConfig.Items.ToDictionary(i => i.Key, i => i);
-
             var items = contents.Items
                 .Select(i =>
                 {
                     // Опис береться з конфіга; невідомий ключ показуємо як є
-                    var config = itemConfigs.GetValueOrDefault(i.ItemKey);
+                    var config = _catalog.Items.GetValueOrDefault(i.ItemKey);
                     return new InventoryItemResponse(
                         i.ItemKey,
                         config?.DisplayName ?? i.ItemKey,
