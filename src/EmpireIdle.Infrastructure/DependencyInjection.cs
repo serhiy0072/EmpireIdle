@@ -6,6 +6,7 @@ using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Payments;
 using EmpireIdle.Infrastructure.Persistence;
 using EmpireIdle.Infrastructure.Persistence.Interceptors;
+using EmpireIdle.Infrastructure.Persistence.Outbox;
 using EmpireIdle.Infrastructure.Persistence.Repositories;
 using FluentValidation;
 using MediatR;
@@ -59,6 +60,9 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<DomainEventDispatchInterceptor>();
 
             services.Configure<StripeSettings>(configuration.GetSection(nameof(StripeSettings)));
+
+            services.Configure<OutboxSettings>(configuration.GetSection("Outbox"));
+            services.AddHostedService<OutboxProcessor>();
 
             services.AddMediatR(cfg =>
                 {
