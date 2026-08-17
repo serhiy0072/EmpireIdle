@@ -9,6 +9,7 @@
       "food": 300
     },
     "ScanBatchSize": 500,
-    "DefaultServerId": 1
+    "DefaultServerId": 1,
+    "ActiveServerIds": [ 1 ]
   }
 }

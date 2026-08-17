@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Map.Queries;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
@@ -15,14 +16,14 @@ namespace EmpireIdle.API.Controllers
     [Route("api/map")]
     public class MapController : ControllerBase
     {
-        private const int ServerId = 1; // мультисервер — post-MVP
-
         private readonly IMediator _mediator;
+        private readonly IServerContext _serverContext;
         private readonly TerrainGenerator _terrain;
 
-        public MapController(IMediator mediator, TerrainGenerator terrain)
+        public MapController(IMediator mediator, IServerContext serverContext,TerrainGenerator terrain)
         {
             _mediator = mediator;
+            _serverContext = serverContext;
             _terrain = terrain;
         }
 
@@ -34,7 +35,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MapAreaResponse>> GetArea([FromQuery] int centerX, [FromQuery] int centerY, [FromQuery][Range(1, 30)] int radius, CancellationToken cancellationToken)
         {
-            var occupiedCells = await _mediator.Send(new GetMapAreaQuery(ServerId, centerX, centerY, radius), cancellationToken);
+            var occupiedCells = await _mediator.Send(new GetMapAreaQuery(_serverContext.ServerId, centerX, centerY, radius), cancellationToken);
 
             var minX = centerX - radius;
             var minY = centerY - radius;
@@ -48,7 +49,7 @@ namespace EmpireIdle.API.Controllers
                     if (!_terrain.IsInBounds(x, y))
                         continue;
 
-                    var cell = _terrain.GetTerrain(ServerId, x, y);
+                    var cell = _terrain.GetTerrain(_serverContext.ServerId, x, y);
                     terrain.Add(new MapTerrainCell(x, y, cell.Type, cell.Passable, cell.Habitable));
                 }
 
@@ -69,8 +70,8 @@ namespace EmpireIdle.API.Controllers
             if (!_terrain.IsInBounds(x, y))
                 throw new InvalidOperationException($"Cell ({x},{y}) is outside the map.");
 
-            var cell = _terrain.GetTerrain(ServerId, x, y);
-            var details = await _mediator.Send(new GetMapCellQuery(ServerId, x, y), cancellationToken);
+            var cell = _terrain.GetTerrain(_serverContext.ServerId, x, y);
+            var details = await _mediator.Send(new GetMapCellQuery(_serverContext.ServerId, x, y), cancellationToken);
 
             return Ok(new MapCellDetailsResponse(
                 x, y,

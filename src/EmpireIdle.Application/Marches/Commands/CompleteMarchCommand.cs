@@ -13,8 +13,6 @@ namespace EmpireIdle.Application.Marches.Commands
 
     public class CompleteMarchCommandHandler : IRequestHandler<CompleteMarchCommand>
     {
-        private const int ServerId = 1;
-
         private readonly IMarchRepository _marchRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IUnitOfWork _unitOfWork;
@@ -99,7 +97,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private async Task ResolveBattleAsync(March march, CancellationToken cancellationToken)
         {
             var attackerArmy = march.GetUnits();
-            var terrain = _terrain.GetTerrainType(ServerId, march.TargetX, march.TargetY);
+            var terrain = _terrain.GetTerrainType(march.ServerId, march.TargetX, march.TargetY);
 
             if (march.TargetType != MarchTargetType.Monster)
             {
@@ -204,7 +202,7 @@ namespace EmpireIdle.Application.Marches.Commands
             }
 
             var backDuration = _calculator.CalculateDuration(
-                ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
+                march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
 
             march.TurnBack(backDuration, DateTime.UtcNow);
         }

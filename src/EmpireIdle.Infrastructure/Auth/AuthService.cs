@@ -197,6 +197,7 @@ namespace EmpireIdle.Infrastructure.Auth
         private async Task<(Guid PlayerId, int ServerId)> GetPlayerAsync(string userId)
         {
             var players = await _context.Players
+                .IgnoreQueryFilters()
                 .AsNoTracking()
                 .Where(p => p.UserId == userId)
                 .OrderBy(p => p.ServerId)

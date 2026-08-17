@@ -50,5 +50,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Скільки елементів обробляє фоновий сканер за один прогін.</summary>
         public int ScanBatchSize { get; set; } = 500;
+
+        /// <summary>Активні світи. Фонові джоби проходять по кожному.</summary>
+        public List<int> ActiveServerIds { get; set; } = new() { 1 };
     }
 }

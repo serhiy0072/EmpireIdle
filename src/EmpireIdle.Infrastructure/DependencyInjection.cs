@@ -12,6 +12,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,11 +25,15 @@ namespace EmpireIdle.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // Database
-            services.AddDbContext<AppDbContext>((sp, options) =>
-                 options
+            // Один шлях створення контексту для всіх: DI-інжекція, фонові scope,
+            // окремі транзакції. EF Core ≥6: AddDbContextFactory реєструє
+            // і сам AppDbContext як scoped — окремий AddDbContext не потрібен.
+            services.AddDbContextFactory<AppDbContext>((sp, options) =>
+                options
+                    .ConfigureWarnings(w => w.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning))
                     .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
-                    .AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>()));
+                    .AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>()),
+                ServiceLifetime.Scoped);
 
             // Unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();

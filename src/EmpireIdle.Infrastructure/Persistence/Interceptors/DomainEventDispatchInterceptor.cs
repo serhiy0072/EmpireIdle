@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Interceptors
     /// </summary>
     public class DomainEventDispatchInterceptor : SaveChangesInterceptor
     {
+        private readonly IServerContext _serverContext;
+
+        public DomainEventDispatchInterceptor(IServerContext serverContext)
+            => _serverContext = serverContext;
+
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
             InterceptionResult<int> result,
@@ -23,7 +29,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Interceptors
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
-        private static void WriteToOutbox(DbContext context)
+        private void WriteToOutbox(DbContext context)
         {
             var entitiesWithEvents = context.ChangeTracker
                 .Entries<Entity>()
@@ -34,6 +40,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Interceptors
             if (entitiesWithEvents.Count == 0)
                 return;
 
+            // Читаємо ЛИШЕ коли є що писати: у scope без подій (наприклад,
+            // позначка ProcessedAt у воркері) сервер може бути не встановлений
+            var serverId = _serverContext.ServerId;
             var utcNow = DateTime.UtcNow;
 
             var messages = entitiesWithEvents
@@ -41,6 +50,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Interceptors
                 .Select(domainEvent => new OutboxMessage
                 {
                     Id = Guid.NewGuid(),
+                    ServerId = serverId,
                     Type = domainEvent.GetType().FullName!,
                     Payload = JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
                     OccurredAt = utcNow

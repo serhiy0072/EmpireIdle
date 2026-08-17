@@ -1,6 +1,8 @@
 using EmpireIdle.API.Hubs;
 using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Middleware;
+using EmpireIdle.API.Services;
+using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
@@ -10,7 +12,6 @@ using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
@@ -18,33 +19,9 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "EmpireIdle API",
-        Version = "v1",
-        Description = "Browser-based idle empire builder game API"
-    });
-
-
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Введи JWT токен (без слова Bearer)"
-    });
-
-    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-    {
-        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
-    });
-    options.OperationFilter<EmpireIdle.API.Swagger.IdempotencyHeaderFilter>();
-});
+// ═══════════════════════════════════════════════════════════════
+//  1. КОНФІГУРАЦІЯ
+// ═══════════════════════════════════════════════════════════════
 
 builder.Configuration
     .AddJsonFile("game-config.json", optional: false, reloadOnChange: true)
@@ -58,6 +35,7 @@ builder.Configuration
     .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true);
 
+// ValidateOnStart перетворює 
 builder.Services.AddOptions<GameConfig>()
     .Bind(builder.Configuration.GetSection("GameConfig"))
     .Validate(c => c.Resources.Count > 0, "GameConfig.Resources is empty — check Config/resources.json.")
@@ -73,13 +51,61 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.StartingBuildings.Count > 0, "GameConfig.StartingBuildings is empty.")
     .Validate(c => c.StartingBuildings.All(k => c.Buildings.Any(b => b.Key == k)), "GameConfig.StartingBuildings references a building key that does not exist.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
+    .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
+    .Validate(c => c.ActiveServerIds.Contains(c.DefaultServerId), "GameConfig.DefaultServerId is not in ActiveServerIds.")
     .ValidateOnStart();
-
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
+// Знімки конфігу для сінглтонів — читаються тут, використовуються нижче
+var gameConfig = builder.Configuration.GetSection("GameConfig").Get<GameConfig>()
+    ?? throw new InvalidOperationException("GameConfig section is missing or invalid.");
+
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>()
-        ?? throw new InvalidOperationException("JWT settings not configured.");
+    ?? throw new InvalidOperationException("JWT settings not configured.");
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("ConnectionString 'DefaultConnection' not found. Check User Secrets.");
+
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? throw new InvalidOperationException("Cors:AllowedOrigins is not configured.");
+
+// ═══════════════════════════════════════════════════════════════
+//  2. ДОМЕННІ СЕРВІСИ
+//  Усі через фабрику (sp => new ...): без цього об'єкт створюється
+//  в момент реєстрації й падає раніше за ValidateOnStart.
+// ═══════════════════════════════════════════════════════════════
+
+builder.Services.AddSingleton(sp => new GameCatalog(gameConfig));
+builder.Services.AddSingleton(sp => new TerrainGenerator(gameConfig.Map));
+builder.Services.AddSingleton(sp => new CasualtySplitter(gameConfig.Combat));
+builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetization));
+builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
+
+// ═══════════════════════════════════════════════════════════════
+//  3. ІНФРАСТРУКТУРА
+//  БД, репозиторії, Identity, MediatR, Outbox — усе в одному місці.
+// ═══════════════════════════════════════════════════════════════
+
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// ═══════════════════════════════════════════════════════════════
+//  4. КОНТЕКСТ ЗАПИТУ
+//  Хто робить запит і в якому світі. Читається з JWT-клеймів.
+// ═══════════════════════════════════════════════════════════════
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentPlayer, CurrentPlayer>();
+builder.Services.AddScoped<IRequestContext, RequestContext>();
+builder.Services.AddScoped<IServerContext, ServerContext>();
+
+// ═══════════════════════════════════════════════════════════════
+//  5. АУТЕНТИФІКАЦІЯ ТА АВТОРИЗАЦІЯ
+// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -95,7 +121,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
         };
 
-        // SignalR передає JWT через query string (?access_token=...)
+        // SignalR не вміє слати заголовки при handshake — токен приходить у query string
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -104,14 +130,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var path = context.HttpContext.Request.Path;
 
                 if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
-                {
                     context.Token = accessToken;
-                }
 
                 return Task.CompletedTask;
             }
         };
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    // Усе, що явно не позначене [AllowAnonymous], вимагає автентифікації.
+    // Забути [Authorize] на новому контролері тепер безпечно.
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  6. ЗАХИСТ ПЕРИМЕТРА
+// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -139,59 +176,7 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    // Усе, що явно не позначене [AllowAnonymous], вимагає автентифікації.
-    // Забути [Authorize] на новому контролері тепер безпечно — за замовчуванням він закритий.
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-        "ConnectionString 'DefaultConnection' not found. Check User Secrets.");
-
-builder.Services.AddInfrastructure(builder.Configuration);
-
-// Hangfire — використовує ту саму PostgreSQL базу
-builder.Services.AddHangfire(config =>
-    config.UsePostgreSqlStorage(options =>
-        options.UseNpgsqlConnection(connectionString)));
-builder.Services.AddHangfireServer();
-builder.Services.AddControllers();
-
-builder.Services.AddExceptionHandler<EmpireIdle.API.Middleware.GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
-
-builder.Services.AddSignalR();
-builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
-builder.Services.AddScoped<ResourceTickJob>();
-builder.Services.AddScoped<TimerScanJob>();
-
-var gameConfig = builder.Configuration.GetSection("GameConfig").Get<GameConfig>()
-    ?? throw new InvalidOperationException("GameConfig section is missing or invalid.");
-
-builder.Services.AddSingleton(sp => new GameCatalog(gameConfig));
-builder.Services.AddSingleton(sp => new TerrainGenerator(gameConfig.Map));
-builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(sp => new CasualtySplitter(gameConfig.Combat));
-builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
-builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetization));
-builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
-
-builder.Services.AddScoped<MonsterSpawnJob>();
-builder.Services.AddScoped<OutboxMaintenanceJob>();
-
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentPlayer, EmpireIdle.API.Services.CurrentPlayer>();
-builder.Services.AddScoped<IRequestContext, EmpireIdle.API.Services.RequestContext>();
-
 const string FrontendCors = "FrontendCors";
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? throw new InvalidOperationException("Cors:AllowedOrigins is not configured.");
 
 builder.Services.AddCors(options =>
     options.AddPolicy(FrontendCors, policy =>
@@ -200,40 +185,103 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials()));
 
+// ═══════════════════════════════════════════════════════════════
+//  7. ФОНОВІ ЗАДАЧІ
+//  Hangfire живе в тій самій PostgreSQL базі.
+// ═══════════════════════════════════════════════════════════════
+
+builder.Services.AddHangfire(config =>
+    config.UsePostgreSqlStorage(options =>
+        options.UseNpgsqlConnection(connectionString)));
+builder.Services.AddHangfireServer();
+
+// Раннер створює scope на кожен активний світ — без нього
+// query-фільтри не мають що застосувати у фоновому контексті
+builder.Services.AddScoped<ServerJobRunner>();
+builder.Services.AddScoped<ResourceTickJob>();
+builder.Services.AddScoped<TimerScanJob>();
+builder.Services.AddScoped<MonsterSpawnJob>();
+builder.Services.AddScoped<OutboxMaintenanceJob>();
+
+// ═══════════════════════════════════════════════════════════════
+//  8. ВЕБ-ШАР
+// ═══════════════════════════════════════════════════════════════
+
+builder.Services.AddControllers();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "EmpireIdle API",
+        Version = "v1",
+        Description = "Browser-based idle empire builder game API"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Введи JWT токен (без слова Bearer)"
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+
+    options.OperationFilter<IdempotencyHeaderFilter>();
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ═══════════════════════════════════════════════════════════════
+//  9. КОНВЕЄР ЗАПИТУ
+//  Порядок критичний: кожен наступний крок покладається на попередній.
+// ═══════════════════════════════════════════════════════════════
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpireIdle API v1");
-    });
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpireIdle API v1"));
+
+    // AllowAnonymous обходить FallbackPolicy — доступ вирішує сам фільтр
     app.MapHangfireDashboard("/hangfire", new DashboardOptions
     {
         Authorization = [new HangfireDashboardAuthorizationFilter()]
     }).AllowAnonymous();
 }
-
-if (!app.Environment.IsDevelopment())
+else
 {
     app.UseHttpsRedirection();
 }
-app.UseExceptionHandler();
 
+app.UseExceptionHandler();
 app.UseCors(FrontendCors);
 
+// Перед автентифікацією: відсіюємо ще до роботи з токеном
 app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.MapHub<GameHub>("/hubs/game");
 
-// Recurring job — тік ресурсів кожну хвилину
+// ═══════════════════════════════════════════════════════════════
+//  10. РОЗКЛАД ФОНОВИХ ЗАДАЧ
+// ═══════════════════════════════════════════════════════════════
+
 RecurringJob.AddOrUpdate<ResourceTickJob>("resource-tick", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
@@ -241,8 +289,5 @@ RecurringJob.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.
 
 app.Run();
 
-
-
 /// <summary>Точка входу — public для WebApplicationFactory у тестах.</summary>
 public partial class Program { }
-

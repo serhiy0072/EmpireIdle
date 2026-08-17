@@ -13,17 +13,20 @@ namespace EmpireIdle.Application.Marches.Commands
     {
         private readonly IMarchRepository _marchRepository;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
         private readonly ILogger<CompleteDueMarchesCommandHandler> _logger;
 
         public CompleteDueMarchesCommandHandler(
             IMarchRepository marchRepository,
             IServiceScopeFactory scopeFactory,
+            IServerContext serverContext,
             GameCatalog catalog,
             ILogger<CompleteDueMarchesCommandHandler> logger)
         {
             _marchRepository = marchRepository;
             _scopeFactory = scopeFactory;
+            _serverContext = serverContext;
             _catalog = catalog;
             _logger = logger;
         }
@@ -43,6 +46,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 // Свій scope = свій DbContext. Збій на одному фізично не може
                 // зачепити інші — на відміну від спільного ChangeTracker.
                 using var scope = _scopeFactory.CreateScope();
+                scope.ServiceProvider.GetRequiredService<IServerContext>().UseServer(_serverContext.ServerId);
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
                 try

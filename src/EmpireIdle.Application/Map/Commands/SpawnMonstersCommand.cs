@@ -6,12 +6,11 @@ using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Map.Commands
 {
-    /// <summary>Доповнює популяцію монстрів до цільової щільності.</summary>
-    public record SpawnMonstersCommand : IRequest;
+    /// <summary>Доповнює популяцію монстрів до цільової щільності на вказаному сервері.</summary>
+    public record SpawnMonstersCommand(int ServerId) : IRequest;
 
     public class SpawnMonstersCommandHandler : IRequestHandler<SpawnMonstersCommand>
     {
-        private const int ServerId = 1;          // мультисервер — post-MVP
         private const int MaxSpawnsPerRun = 50;  // не засівати всю карту одним прогоном
 
         private readonly IMonsterRepository _monsterRepository;
@@ -36,7 +35,7 @@ namespace EmpireIdle.Application.Map.Commands
 
         public async Task Handle(SpawnMonstersCommand request, CancellationToken cancellationToken)
         {
-            var current = await _monsterRepository.CountAsync(ServerId, cancellationToken);
+            var current = await _monsterRepository.CountAsync(request.ServerId, cancellationToken);
             var target = _spawner.GetTargetPopulation();
             var missing = Math.Min(target - current, MaxSpawnsPerRun);
 
@@ -52,8 +51,8 @@ namespace EmpireIdle.Application.Map.Commands
             for (var i = 0; i < missing; i++)
             {
                 var spot = await _spawner.TrySpawnAsync(
-                    ServerId,
-                    async (x, y) => reserved.Contains((x, y))|| await _mapRepository.IsOccupiedAsync(ServerId, x, y, cancellationToken));
+                    request.ServerId,
+                    async (x, y) => reserved.Contains((x, y))|| await _mapRepository.IsOccupiedAsync(request.ServerId, x, y, cancellationToken));
 
                 if (spot is null)
                     break; // місця не знайшлося — спробуємо наступного разу
@@ -61,11 +60,11 @@ namespace EmpireIdle.Application.Map.Commands
                 var (type, level, x, y) = spot.Value;
                 reserved.Add((x, y));
 
-                var monster = new Monster(Guid.NewGuid(), ServerId, type, level, x, y);
+                var monster = new Monster(Guid.NewGuid(), request.ServerId, type, level, x, y);
 
                 await _monsterRepository.AddAsync(monster, cancellationToken);
                 await _mapRepository.AddAsync(
-                    new MapCell(Guid.NewGuid(), ServerId, x, y, MapOccupantType.Monster, monster.Id),
+                    new MapCell(Guid.NewGuid(), request.ServerId, x, y, MapOccupantType.Monster, monster.Id),
                     cancellationToken);
 
                 spawned++;

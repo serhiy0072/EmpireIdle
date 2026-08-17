@@ -10,15 +10,11 @@ namespace EmpireIdle.API.Jobs
     /// </summary>
     public class ResourceTickJob
     {
-        private readonly IMediator _mediator;
+        private readonly ServerJobRunner _runner;
+        public ResourceTickJob(ServerJobRunner runner) => _runner = runner;
 
-        public ResourceTickJob(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
-
-        /// <summary>Один прогін за раз: перетин дав би подвійне нарахування.</summary>
         [DisableConcurrentExecution(timeoutInSeconds: 300)]
-        public Task RunAsync() => _mediator.Send(new TickAllVillagesCommand());
+        public Task RunAsync() => _runner.ForEachServerAsync((mediator, _) =>
+            mediator.Send(new TickAllVillagesCommand()));
     }
 }

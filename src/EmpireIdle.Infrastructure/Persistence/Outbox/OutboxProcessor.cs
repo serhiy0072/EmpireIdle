@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Common.Events;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -102,6 +103,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
 
             if (message is null)
                 return false;
+
+            // Підписники читатимуть відфільтровані сутності — світ має бути той самий,
+            // у якому подія сталася, а не той, у якому крутиться воркер
+            scope.ServiceProvider.GetRequiredService<IServerContext>().UseServer(message.ServerId);
 
             try
             {

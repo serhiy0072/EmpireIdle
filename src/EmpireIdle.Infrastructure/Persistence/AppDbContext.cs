@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Persistence.Outbox;
@@ -11,7 +12,10 @@ namespace EmpireIdle.Infrastructure.Persistence
     /// </summary>
     public class AppDbContext : IdentityDbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        private readonly IServerContext _serverContext;
+        public AppDbContext(DbContextOptions<AppDbContext> options, IServerContext serverContext) : base(options)
+            => _serverContext = serverContext;
+
 
         public DbSet<Player> Players => Set<Player>();
         public DbSet<Village> Villages => Set<Village>();
@@ -38,7 +42,14 @@ namespace EmpireIdle.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-            foreach(var entityType in modelBuilder.Model.GetEntityTypes())
+            // Міжсерверний витік стає структурно неможливим: фільтр застосовується
+            // до кожного запиту, забути його не можна.
+            modelBuilder.Entity<Player>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<Village>().HasQueryFilter(v => v.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<Monster>().HasQueryFilter(m => m.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<MapCell>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<March>().HasQueryFilter(m => m.ServerId == _serverContext.ServerId);
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
                     modelBuilder.Entity(entityType.ClrType).Ignore(nameof(Entity.DomainEvents));
