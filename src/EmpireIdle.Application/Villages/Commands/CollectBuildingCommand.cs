@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -13,25 +14,35 @@ namespace EmpireIdle.Application.Villages.Commands
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<CollectBuildingCommand> _logger;
+        private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
+        private readonly ILogger<CollectBuildingCommandHandler> _logger;
 
-        public CollectBuildingCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<CollectBuildingCommand> logger, GameCatalog catalog)
+        public CollectBuildingCommandHandler(
+            IVillageRepository villageRepository,
+            IUnitOfWork unitOfWork,
+            EffectResolver effectResolver,
+            GameCatalog catalog,
+            ILogger<CollectBuildingCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
-            _logger = logger;
+            _effectResolver = effectResolver;
             _catalog = catalog;
+            _logger = logger;
         }
 
         public async Task Handle(CollectBuildingCommand request, CancellationToken cancellationToken)
         {
+            var now = DateTime.UtcNow;
+
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            var buildingConfigs = _catalog.Buildings.ToDictionary(b => b.Key, b => b);
+            // Буфер рахується від останньої матеріалізації, тож потрібне вікно буста
+            var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
 
-            village.CollectFromBuilding(request.BuildingId, _catalog.Buildings, DateTime.UtcNow);
+            village.CollectFromBuilding(request.BuildingId, _catalog.Buildings, now, boost);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

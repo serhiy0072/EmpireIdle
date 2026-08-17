@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Application.Common.Services
 {
@@ -36,6 +37,18 @@ namespace EmpireIdle.Application.Common.Services
             return effects
                 .Where(e => e.IsActive(utcNow))
                 .ToDictionary(e => e.Target, e => e.Multiplier);
+        }
+
+        /// <summary>Вікно буста виробництва — для розрахунку буфера за минулий період.</summary>
+        public async Task<ProductionBoost> GetProductionBoostAsync(Guid playerId, DateTime utcNow,
+            CancellationToken cancellationToken = default)
+        {
+            var effect = await _repository.GetAsync(playerId, EffectTarget.Production, cancellationToken);
+
+            // Прострочений буст теж потрібен: він міг діяти частину періоду
+            return effect is null
+                ? ProductionBoost.None
+                : new ProductionBoost(effect.Multiplier, effect.StartedAt, effect.ExpiresAt);
         }
     }
 }

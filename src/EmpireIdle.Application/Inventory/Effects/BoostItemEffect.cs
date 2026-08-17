@@ -31,7 +31,7 @@ namespace EmpireIdle.Application.Inventory.Effects
             if (existing is null)
             {
                 await _repository.AddAsync(
-                    new ActiveEffect(Guid.NewGuid(), context.PlayerId, target,config.Multiplier, context.UtcNow + duration, config.Key),
+                    new ActiveEffect(Guid.NewGuid(), context.PlayerId, target,config.Multiplier, context.UtcNow, context.UtcNow + duration, config.Key),
                     cancellationToken);
                 return;
             }
@@ -39,7 +39,7 @@ namespace EmpireIdle.Application.Inventory.Effects
             if (!existing.IsActive(context.UtcNow))
             {
                 // Прострочений слот переиспользовуємо: множники не стакуються, бо запис один на ціль
-                existing.Restart(config.Multiplier, context.UtcNow + duration, config.Key);
+                existing.Restart(config.Multiplier, context.UtcNow, context.UtcNow + duration, config.Key);
                 return;
             }
 
@@ -55,7 +55,7 @@ namespace EmpireIdle.Application.Inventory.Effects
                     $"A stronger {target} boost (×{existing.Multiplier}) is already active until {existing.ExpiresAt:u}.");
 
             // Сильніший буст витісняє слабший; залишок часу слабкого згорає
-            existing.Restart(config.Multiplier, context.UtcNow + duration, config.Key);
+            existing.Restart(config.Multiplier, context.UtcNow, context.UtcNow + duration, config.Key);
         }
     }
 }

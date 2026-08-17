@@ -27,6 +27,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Множник (2.0 = подвоєння, 1.25 = +25%).</summary>
         public double Multiplier { get; private set; }
 
+        /// <summary>Момент активації. Потрібен для розрахунку буфера за минулий період.</summary>
+        public DateTime StartedAt { get; private set; }
+
         /// <summary>Коли ефект перестає діяти.</summary>
         public DateTime ExpiresAt { get; private set; }
 
@@ -37,12 +40,13 @@ namespace EmpireIdle.Domain.Entities
         public bool IsFrom(string itemKey) => SourceItemKey == itemKey;
 
         public ActiveEffect(Guid id, Guid playerId, EffectTarget target, double multiplier,
-            DateTime expiresAt, string sourceItemKey) : base(id)
+            DateTime startedAt, DateTime expiresAt, string sourceItemKey) : base(id)
         {
             if (multiplier <= 0)
                 throw new InvalidOperationException("Multiplier must be positive.");
 
             PlayerId = playerId;
+            StartedAt = startedAt;
             Target = target;
             Multiplier = multiplier;
             ExpiresAt = expiresAt;
@@ -58,12 +62,13 @@ namespace EmpireIdle.Domain.Entities
         public void Extend(TimeSpan duration) => ExpiresAt += duration;
 
         /// <summary>Перезапускає ефект із новим множником і часом.</summary>
-        public void Restart(double multiplier, DateTime expiresAt, string sourceItemKey)
+        public void Restart(double multiplier, DateTime startedAt, DateTime expiresAt, string sourceItemKey)
         {
             if (multiplier <= 0)
                 throw new InvalidOperationException("Multiplier must be positive.");
 
             Multiplier = multiplier;
+            StartedAt = startedAt;
             ExpiresAt = expiresAt;
             SourceItemKey = sourceItemKey;
         }

@@ -1,95 +1,154 @@
-using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Tests.Entities
 {
     public class VillageTests
     {
-        /// <summary>
-        /// Збір з буфера будівлі перекладає накопичене у ресурси села
-        /// і обнуляє буфер будівлі.
-        /// </summary>
+        /// <summary>Збір перекладає накопичене в ресурси села й обнуляє буфер.</summary>
         [Fact]
         public void CollectFromBuilding_ShouldMoveBufferIntoVillageResources()
         {
-            // Arrange
-            var village = TestData.CreateVillageWithResources(200);
-
+            var village = TestData.CreateVillageWithResources(1000);
             var configs = TestData.FarmConfigs();
 
             village.AddBuilding("farm", configs);
             var building = village.Buildings.Single();
 
-            // Wait a bit to accumulate production
-            System.Threading.Thread.Sleep(10);
-            village.TickProduction(configs, DateTime.UtcNow); // накопичуємо ресурси у буфер будівлі
-            var buffered = building.StoredAmount;
+            var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
+            var collectAt = building.LastAccruedAt.AddMinutes(5);
 
-            // Skip the collection if nothing was produced (due to timing)
-            if (buffered == 0)
-            {
-                // Just verify the infrastructure works
-                Assert.Equal(0, building.StoredAmount);
-                return;
-            }
+            village.CollectFromBuilding(building.Id, configs, collectAt, ProductionBoost.None);
 
-            //Act
-            village.CollectFromBuilding(building.Id, configs, DateTime.UtcNow);
-
-            // Assert
-            Assert.Equal(0, building.StoredAmount);
-            var food = village.Resources.Single(r => r.ResourceType == "food");
-            Assert.Equal(buffered, food.Amount);
-
+            Assert.Equal(0, building.AccruedAmount);
+            Assert.Equal(foodBefore + 50, village.Resources.Single(r => r.ResourceType == "food").Amount);
         }
-        /// <summary>
-        /// Додавання будівлі кладе її в колекцію Buildings із правильним VillageId.
-        /// </summary>
+
+        /// <summary>Збір із порожнього буфера — не подія: ресурси не змінюються.</summary>
         [Fact]
-        public void AddBuilding_ShouldPlaxeBuildgingVillage()
+        public void CollectFromBuilding_ShouldDoNothing_WhenBufferIsEmpty()
+        {
+            var village = TestData.CreateVillageWithResources(1000);
+            var configs = TestData.FarmConfigs();
+
+            village.AddBuilding("farm", configs);
+            var building = village.Buildings.Single();
+
+            var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
+
+            village.CollectFromBuilding(building.Id, configs, building.LastAccruedAt, ProductionBoost.None);
+
+            Assert.Equal(foodBefore, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        }
+
+        /// <summary>Додавання будівлі кладе її в колекцію з правильним VillageId.</summary>
+        [Fact]
+        public void AddBuilding_ShouldPlaceBuildingInVillage()
         {
             var village = TestData.CreateVillageWithResources(200);
-
             var configs = TestData.FarmConfigs();
 
             village.AddBuilding("farm", configs);
 
             Assert.Single(village.Buildings);
-            var building = village.Buildings.First();
-            Assert.Equal(village.Id, building.VillageId);
-
+            Assert.Equal(village.Id, village.Buildings.First().VillageId);
         }
 
-        /// <summary>
-        /// BeginBuildingUpgrade списує ресурси й ставить будівлю в стан будівництва.
-        /// </summary>
+        /// <summary>Кожна будівля унікальна — другу такого ж типу поставити не можна.</summary>
+        [Fact]
+        public void AddBuilding_ShouldRejectDuplicateType()
+        {
+            var village = TestData.CreateVillageWithResources(1000);
+            var configs = TestData.FarmConfigs();
+
+            village.AddBuilding("farm", configs);
+
+            Assert.Throws<InvalidOperationException>(() => village.AddBuilding("farm", configs));
+        }
+
+        /// <summary>Перша будівля вже не безкоштовна — вартість списується завжди.</summary>
+        [Fact]
+        public void AddBuilding_ShouldChargeCost()
+        {
+            var village = TestData.CreateVillageWithResources(200);
+            var configs = TestData.FarmConfigs();
+
+            village.AddBuilding("farm", configs);
+
+            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        }
+
+        /// <summary>Без ресурсів будівлю не поставити.</summary>
+        [Fact]
+        public void AddBuilding_ShouldReject_WhenResourcesAreInsufficient()
+        {
+            var village = TestData.CreateVillageWithResources(50);
+            var configs = TestData.FarmConfigs();
+
+            Assert.Throws<InvalidOperationException>(() => village.AddBuilding("farm", configs));
+            Assert.Empty(village.Buildings);
+        }
+
+        /// <summary>BeginBuildingUpgrade списує ресурси й ставить будівлю в стан будівництва.</summary>
         [Fact]
         public void BeginBuildingUpgrade_ShouldChargeCostAndStartConstruction()
         {
             var village = TestData.CreateVillageWithResources(300);
-
             var configs = TestData.FarmConfigs();
 
             village.AddBuilding("farm", configs);
             var building = village.Buildings.First();
 
-            village.BeginBuildingUpgrade(building.Id, configs, DateTime.UtcNow);
+            village.BeginBuildingUpgrade(building.Id, configs, DateTime.UtcNow, ProductionBoost.None);
 
             Assert.True(building.IsUnderConstruction);
             Assert.NotNull(building.ConstructionCompletesAt);
-            var food = village.Resources.Single(r => r.ResourceType == "food");
-            Assert.Equal(100, food.Amount); // 300 − 100 (будівництво) − 100 (апгрейд)
+            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        }
+
+        /// <summary>Апгрейд банкує вироблене до зупинки — воно не губиться.</summary>
+        [Fact]
+        public void BeginBuildingUpgrade_ShouldBankProductionBeforeFreezing()
+        {
+            var village = TestData.CreateVillageWithResources(300);
+            var configs = TestData.FarmConfigs();
+
+            village.AddBuilding("farm", configs);
+            var building = village.Buildings.First();
+
+            village.BeginBuildingUpgrade(building.Id, configs, building.LastAccruedAt.AddMinutes(4), ProductionBoost.None);
+
+            Assert.Equal(40, building.AccruedAmount);
+        }
+
+        /// <summary>Сканер завершує лише ті будівництва, чий час настав.</summary>
+        [Fact]
+        public void CompleteDueConstructions_ShouldRaiseLevelOnlyForDueBuildings()
+        {
+            var village = TestData.CreateVillageWithResources(300);
+            var configs = TestData.FarmConfigs();
+
+            village.AddBuilding("farm", configs);
+            var building = village.Buildings.First();
+            var startedAt = DateTime.UtcNow;
+
+            village.BeginBuildingUpgrade(building.Id, configs, startedAt, ProductionBoost.None);
+
+            Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs));
+            Assert.Equal(1, building.Level.Value);
+
+            Assert.Equal(1, village.CompleteDueConstructions(startedAt.AddMinutes(10), configs));
+            Assert.Equal(2, building.Level.Value);
+            Assert.False(building.IsUnderConstruction);
         }
 
         /// <summary>
-        /// ChargeCost списує всі позиції з множником; при нестачі одного ресурсу
-        /// не списується нічого (все або нічого).
+        /// ChargeCost списує все або нічого: при нестачі одного ресурсу
+        /// решта лишається недоторканою.
         /// </summary>
         [Fact]
         public void ChargeCost_ShouldNotChargeAnything_WhenOneResourceIsInsufficient()
         {
-            // Arrange
             var village = TestData.CreateVillage();
             village.Resources.Single(r => r.ResourceType == "gold").Add(100);
             village.Resources.Single(r => r.ResourceType == "food").Add(10);
@@ -100,9 +159,8 @@ namespace EmpireIdle.Domain.Tests.Entities
                 new() { Resource = "food", Amount = 50 } // не вистачає
             };
 
-            // Act + Assert
             Assert.Throws<InvalidOperationException>(() => village.ChargeCost(cost));
-            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "gold").Amount); // не списалось
+            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "gold").Amount);
         }
     }
 }

@@ -1,10 +1,26 @@
 using EmpireIdle.Domain.Entities;
-using System.Net.WebSockets;
+using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Tests.Entities;
 
 public class BuildingTests
 {
+    // farm: 10/хв, кап 60, ріст капу 1.3
+    private static readonly BuildingConfig Farm = TestData.FarmConfigs()["farm"];
+
+    private static Building CreateFarm() => new(Guid.NewGuid(), Guid.NewGuid(), "farm");
+
+    /// <summary>Піднімає рівень через реальний шлях: почати → завершити.</summary>
+    private static void RaiseLevel(Building building, int times, DateTime utcNow)
+    {
+        for (var i = 0; i < times; i++)
+        {
+            building.BeginUpgrade(Farm, TimeSpan.Zero, utcNow, ProductionBoost.None);
+            building.CompleteConstruction(utcNow);
+        }
+    }
+
     /// <summary>
     /// Кап буфера: BaseStorage × StorageGrowth^(рівень−1), округлення вниз.
     /// Рівень 1 — крайовий випадок: кап дорівнює базі.
@@ -15,78 +31,190 @@ public class BuildingTests
     [InlineData(3, 101)]  // 60 × 1.3^2 = 101.4 → 101
     public void GetStorageCap_ShouldGrowGeometrically_FromBaseAtLevelOne(int level, int expectedCap)
     {
-        // Arrange
-        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "farm");
-        for (int i = 1; i < level; i++)   // конструктор дає рівень 1; піднімаємо до потрібного
-            building.Upgrade();
+        var building = CreateFarm();
+        RaiseLevel(building, level - 1, building.LastAccruedAt);
 
-        // Act
-        var actual = building.GetStorageCap(60, 1.3);
+        Assert.Equal(expectedCap, building.GetStorageCap(60, 1.3));
+    }
 
-        // Assert
-        Assert.Equal(expectedCap, actual);
+    /// <summary>Буфер — лінійна функція часу. Жодних тіків не потрібно.</summary>
+    [Fact]
+    public void StoredAt_ShouldAccrueLinearly()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+
+        Assert.Equal(50, building.StoredAt(Farm, start.AddMinutes(5), ProductionBoost.None));
     }
 
     /// <summary>
-    /// Дробова частина виробітку не губиться між тіками: два тіки по 0.5 хвилини
-    /// мають дати той самий результат, що один тік на 1 хвилину.
+    /// Дрібний виробіток не губиться: обчислення одне від мітки часу,
+    /// а не сотні (int)-обрізань щохвилини.
     /// </summary>
     [Fact]
-    public void AccumulateProduction_ShouldCarryFractionalRemainder_BetweenTicks()
+    public void StoredAt_ShouldNotLoseSubUnitProduction()
     {
-        // Arrange
-        // farm 1 рівня: base=10/хв, storage=60, growth=1.3.
-        // Кап на 1 рівні = 60, тож 10 одиниць у нього поміщаються без обрізання.
-        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "farm");
-        var halfMinute = TimeSpan.FromSeconds(30);
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
 
-        // Act
-        // Два півхвилинні тіки: кожен виробляє 10 * 0.5 = 5.0 → по 5 у буфер.
-        building.AccumulateProduction(baseProductionPerMinute: 10, baseStorage: 60, storageGrowth: 1.3, elapsed: halfMinute);
-        building.AccumulateProduction(baseProductionPerMinute: 10, baseStorage: 60, storageGrowth: 1.3, elapsed: halfMinute);
+        Assert.Equal(5, building.StoredAt(Farm, start.AddSeconds(30), ProductionBoost.None));
+    }
 
-        // Assert
-        Assert.Equal(10, building.StoredAmount);
+    /// <summary>Понад кап нічого не накопичується — надлишок згорає.</summary>
+    [Fact]
+    public void StoredAt_ShouldCapAtStorageLimit()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+
+        Assert.Equal(60, building.StoredAt(Farm, start.AddHours(5), ProductionBoost.None));
+    }
+
+    /// <summary>Рівень множить ставку: 2 рівень виробляє вдвічі швидше.</summary>
+    [Fact]
+    public void StoredAt_ShouldScaleWithLevel()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+        RaiseLevel(building, 1, start);
+
+        // 2 рівень × 10/хв × 3 хв = 60, кап на 2 рівні 78 — не заважає
+        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(3), ProductionBoost.None));
+    }
+
+    /// <summary>Буст множить лише той відрізок, коли він реально діяв.</summary>
+    [Fact]
+    public void StoredAt_ShouldApplyBoostOnlyWithinItsWindow()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+
+        // 2 хв ×2 = 40, далі 2 хв ×1 = 20
+        var boost = new ProductionBoost(2.0, start, start.AddMinutes(2));
+
+        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(4), boost));
     }
 
     /// <summary>
-    /// Виробіток, що дає дробове значення, накопичує ціле у буфер,
-    /// а залишок переносить — тож він не зникає при (int)-обрізанні.
+    /// ГОЛОВНИЙ ТЕСТ ПРОТИ ЕКСПЛОЙТУ: буст, увімкнений у кінці періоду,
+    /// не множить весь накопичений раніше виробіток.
     /// </summary>
     [Fact]
-    public void AccumulateProduction_ShouldNotLoseSubUnitProduction_AcrossManyTicks()
+    public void StoredAt_ShouldNotApplyBoostRetroactively()
     {
-        // Arrange
-        // base=10/хв, тік = 6 секунд = 0.1 хв → виробіток за тік = 10 * 0.1 = 1.0.
-        // Але візьмемо base=7 → 7 * 0.1 = 0.7 за тік: жоден окремий тік не дає цілого!
-        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "farm");
-        var tick = TimeSpan.FromSeconds(6);
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
 
-        // Act: 10 тіків по 0.7 = 7.0 сумарно.
-        for(int i=0;i<10;i++)
-            building.AccumulateProduction(baseProductionPerMinute: 10, baseStorage: 60, storageGrowth: 1.3, elapsed: tick);
+        // Чекали 4 хв, на 4-й хвилині увімкнули ×2 і збираємо на 5-й
+        var boost = new ProductionBoost(2.0, start.AddMinutes(4), start.AddMinutes(64));
 
-        // Assert: без переносу залишку кожен тік давав би (int)0.7 = 0 → буфер 0 (баг).
-        // З переносом: 0.7,1.4,2.1,...,7.0 → буфер 7.
-        Assert.Equal(10, building.StoredAmount);
+        // 4 хв ×1 = 40, 1 хв ×2 = 20 → 60, а не 100
+        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(5), boost));
+    }
+
+    /// <summary>Буст, що скінчився до початку періоду, не впливає ні на що.</summary>
+    [Fact]
+    public void StoredAt_ShouldIgnoreBoostThatExpiredBeforePeriod()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+
+        var boost = new ProductionBoost(2.0, start.AddMinutes(-30), start.AddMinutes(-10));
+
+        Assert.Equal(50, building.StoredAt(Farm, start.AddMinutes(5), boost));
+    }
+
+    /// <summary>Під час будівництва виробництво зупинене.</summary>
+    [Fact]
+    public void StoredAt_ShouldFreezeDuringConstruction()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), start.AddMinutes(3), ProductionBoost.None);
+
+        // 30 накопичено до апгрейду; далі нічого, скільки б не минуло
+        Assert.Equal(30, building.StoredAt(Farm, start.AddMinutes(9), ProductionBoost.None));
     }
 
     /// <summary>
-    /// Буфер не перевищує кап: надлишок виробітку згорає, а залишок обнуляється.
+    /// Період будівництва не зараховується як виробіток —
+    /// і тим паче не за новою, вищою ставкою.
     /// </summary>
     [Fact]
-    public void AccumulateProduction_ShouldCapStorageLimit_AndDiscardOverflow()
+    public void CompleteConstruction_ShouldNotCreditTheConstructionPeriod()
     {
-        // Arrange: кап farm 1 рівня = 60. Заповнимо буфер майже до стелі тіком,
-        // що виробляє більше, ніж лишилось місця.
-        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "farm");
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
 
-        // 6 хвилин × 10/хв = 60 → рівно кап; додамо ще, щоб перевищити.
-        building.AccumulateProduction(10, 60, 1.3, TimeSpan.FromMinutes(10));
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), start.AddMinutes(3), ProductionBoost.None);
+        var completedAt = start.AddMinutes(13);
+        building.CompleteConstruction(completedAt);
 
-        //Assert
-        Assert.Equal(60, building.StoredAmount); //уперлось в стелю
-        Assert.Equal(0, building.ProductionRemainder); //залишок обнулено, надлишок згорів
+        // 30 до апгрейду + 2 рівень × 10/хв × 1 хв = 20
+        Assert.Equal(50, building.StoredAt(Farm, completedAt.AddMinutes(1), ProductionBoost.None));
+    }
 
+    /// <summary>Матеріалізація фіксує накопичене й зсуває мітку часу.</summary>
+    [Fact]
+    public void Materialize_ShouldBankProductionAndMoveMarker()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+        var at = start.AddMinutes(4);
+
+        building.Materialize(Farm, at, ProductionBoost.None);
+
+        Assert.Equal(40, building.AccruedAmount);
+        Assert.Equal(at, building.LastAccruedAt);
+    }
+
+    /// <summary>Збір повертає накопичене й обнуляє буфер.</summary>
+    [Fact]
+    public void Collect_ShouldReturnBufferAndReset()
+    {
+        var building = CreateFarm();
+        var at = building.LastAccruedAt.AddMinutes(5);
+
+        var collected = building.Collect(Farm, at, ProductionBoost.None);
+
+        Assert.Equal(50, collected);
+        Assert.Equal(0, building.AccruedAmount);
+        Assert.Equal(at, building.LastCollectedAt);
+    }
+
+    /// <summary>Повторний збір тієї ж миті дає нуль — подвійного нарахування немає.</summary>
+    [Fact]
+    public void Collect_ShouldReturnZero_WhenCalledTwiceAtTheSameMoment()
+    {
+        var building = CreateFarm();
+        var at = building.LastAccruedAt.AddMinutes(5);
+
+        building.Collect(Farm, at, ProductionBoost.None);
+
+        Assert.Equal(0, building.Collect(Farm, at, ProductionBoost.None));
+    }
+
+    /// <summary>Невиробнича будівля нічого не накопичує.</summary>
+    [Fact]
+    public void StoredAt_ShouldReturnZero_ForNonProducingBuilding()
+    {
+        var config = new BuildingConfig { Key = "townhall", ProducesResource = null, BaseStorage = 0, StorageGrowth = 1.0 };
+        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "townhall");
+
+        Assert.Equal(0, building.StoredAt(config, building.LastAccruedAt.AddHours(10), ProductionBoost.None));
+    }
+
+    /// <summary>Апгрейд не можна почати двічі.</summary>
+    [Fact]
+    public void BeginUpgrade_ShouldRejectSecondUpgrade()
+    {
+        var building = CreateFarm();
+        var now = building.LastAccruedAt;
+
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None));
     }
 }
