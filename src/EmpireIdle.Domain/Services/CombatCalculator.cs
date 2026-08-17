@@ -1,4 +1,3 @@
-using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Domain.Services
 {
@@ -17,12 +16,13 @@ namespace EmpireIdle.Domain.Services
     public class CombatCalculator
     {
         private readonly CombatConfig _config;
-        private readonly List<UnitConfig> _unitConfigs;
+        private readonly GameCatalog _catalog;
 
-        public CombatCalculator(CombatConfig config, List<UnitConfig> unitConfigs)
+
+        public CombatCalculator(CombatConfig config, GameCatalog catalog)
         {
             _config = config;
-            _unitConfigs = unitConfigs;
+            _catalog = catalog;
         }
 
         /// <summary>
@@ -31,16 +31,19 @@ namespace EmpireIdle.Domain.Services
         /// <param name="attacker">Склад атакувальника (тип → кількість).</param>
         /// <param name="defender">Склад захисника.</param>
         /// <param name="terrainType">Місцевість клітини бою.</param>
+        /// <param name="attackerBonus">Додатковий множник атакувальнику (бусти).</param>
         /// <param name="defenderBonus">Додатковий множник захиснику (стіни тощо).</param>
-        public BattleResult Resolve(
-            IReadOnlyDictionary<string, int> attacker,
-            IReadOnlyDictionary<string, int> defender,
-            string terrainType,
-            double attackerBonus = 1.0,
-            double defenderBonus = 1.0)
+        /// <param name="seed">
+        /// Сід випадковості. Зберігається у звіті — бій можна переграти
+        /// й отримати той самий результат.
+        /// </param>
+        public BattleResult Resolve(IReadOnlyDictionary<string, int> attacker, IReadOnlyDictionary<string, int> defender,
+            string terrainType, int seed, double attackerBonus = 1.0, double defenderBonus = 1.0)
         {
-            var attackerPower = CalculatePower(attacker, terrainType, isAttacker: true) * attackerBonus * RollRandom();
-            var defenderPower = CalculatePower(defender, terrainType, isAttacker: false) * defenderBonus * RollRandom();
+            var random = new Random(seed);
+
+            var attackerPower = CalculatePower(attacker, terrainType, isAttacker: true) * attackerBonus * RollRandom(random);
+            var defenderPower = CalculatePower(defender, terrainType, isAttacker: false) * defenderBonus * RollRandom(random);
 
             var attackerWon = attackerPower > defenderPower;
             var total = attackerPower + defenderPower;
@@ -63,15 +66,17 @@ namespace EmpireIdle.Domain.Services
                 ApplyLosses(defender, defenderLossRatio));
         }
 
-        /// <summary>Сила армії: сума статів загонів із терейн-модифікаторами.</summary>
-        private double CalculatePower(IReadOnlyDictionary<string, int> army, string terrainType, bool isAttacker)
+        /// <summary>
+        /// Сила армії: сума статів загонів із терейн-модифікаторами, без випадковості.
+        /// Публічний — прев'ю бою й реальний бій мусять рахувати однією формулою.
+        /// </summary>
+        public double CalculatePower(IReadOnlyDictionary<string, int> army, string terrainType, bool isAttacker)
         {
             var power = 0.0;
 
             foreach (var (unitType, count) in army)
             {
-                var config = _unitConfigs.FirstOrDefault(u => u.Key == unitType);
-                if (config is null || count <= 0)
+                if (!_catalog.Units.TryGetValue(unitType, out var config) || count <= 0)
                     continue;
 
                 // Атакувальник спирається на атаку, захисник — на захист
@@ -96,10 +101,8 @@ namespace EmpireIdle.Domain.Services
         /// Випадковий множник ~N(1.0, sigma), обрізаний межами конфіга.
         /// Box-Muller: перетворює рівномірний розподіл на нормальний.
         /// </summary>
-        private double RollRandom()
+        private double RollRandom(Random random)
         {
-            var random = Random.Shared;
-
             var u1 = 1.0 - random.NextDouble();
             var u2 = 1.0 - random.NextDouble();
             var normal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);

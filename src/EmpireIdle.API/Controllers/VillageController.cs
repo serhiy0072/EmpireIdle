@@ -6,7 +6,6 @@ using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -16,12 +15,12 @@ namespace EmpireIdle.API.Controllers
     public class VillageController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
 
-        public VillageController(IMediator mediator, IOptions<GameConfig> gameConfig)
+        public VillageController(IMediator mediator, GameCatalog catalog)
         {
             _mediator = mediator;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
         }
 
         /// <summary>
@@ -34,15 +33,13 @@ namespace EmpireIdle.API.Controllers
         {
             var village = await _mediator.Send(new GetVillageQuery(playerId), cancellationToken);
 
-            var buildingConfigMap = _gameConfig.Buildings.ToDictionary(bc => bc.Key);
-
             var response = new VillageResponse(
                 village.Id,
                 village.Name,
                 village.LastTickAt,
                 village.Buildings.Select(b =>
                 {
-                    var storageCap = buildingConfigMap.TryGetValue(b.Type, out var cfg)
+                    var storageCap = _catalog.Buildings.TryGetValue(b.Type, out var cfg)
                         ? b.GetStorageCap(cfg.BaseStorage, cfg.StorageGrowth)
                         : 0;
                     return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt, b.StoredAmount, storageCap, b.ConstructionCompletesAt, b.IsUnderConstruction);

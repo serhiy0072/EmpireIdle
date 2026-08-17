@@ -8,6 +8,8 @@
       "wood": 400,
       "food": 300
     },
-    "ScanBatchSize": 500
+    "ScanBatchSize": 500,
+    "DefaultServerId": 1,
+    "ActiveServerIds": [ 1 ]
   }
 }

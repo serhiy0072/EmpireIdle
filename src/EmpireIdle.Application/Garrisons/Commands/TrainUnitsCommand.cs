@@ -3,7 +3,6 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.Application.Garrisons.Commands
 {
@@ -22,20 +21,20 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TrainUnitsCommandHandler> _logger;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
 
         public TrainUnitsCommandHandler(
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IUnitOfWork unitOfWork,
             ILogger<TrainUnitsCommandHandler> logger,
-            IOptions<GameConfig> gameConfig)
+            GameCatalog catalog)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
         }
 
         public async Task Handle(TrainUnitsCommand request, CancellationToken cancellationToken)
@@ -46,7 +45,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
-            var config = _gameConfig.Units.FirstOrDefault(u => u.Key == request.UnitType)
+            var config = _catalog.Unit(request.UnitType)
                 ?? throw new InvalidOperationException($"Unknown unit type '{request.UnitType}'.");
 
             if (config.RequiresBuilding is not null && !village.HasBuilding(config.RequiresBuilding))
@@ -54,7 +53,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             village.ChargeCost(config.Cost, request.Count);
 
-            garrison.TrainUnits(request.UnitType, request.Count, _gameConfig.MaxTrainingBatchSize,
+            garrison.TrainUnits(request.UnitType, request.Count, _catalog.Config.MaxTrainingBatchSize,
                 TimeSpan.FromMinutes(config.BaseTrainMinutes * request.Count), DateTime.UtcNow);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

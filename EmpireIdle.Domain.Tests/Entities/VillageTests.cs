@@ -14,7 +14,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void CollectFromBuilding_ShouldMoveBufferIntoVillageResources()
         {
             // Arrange
-            var village = TestData.CreateVillage();
+            var village = TestData.CreateVillageWithResources(200);
 
             var configs = TestData.FarmConfigs();
 
@@ -49,7 +49,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void AddBuilding_ShouldPlaxeBuildgingVillage()
         {
-            var village = TestData.CreateVillage();
+            var village = TestData.CreateVillageWithResources(200);
 
             var configs = TestData.FarmConfigs();
 
@@ -67,7 +67,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void BeginBuildingUpgrade_ShouldChargeCostAndStartConstruction()
         {
-            var village = TestData.CreateVillageWithResources(200);
+            var village = TestData.CreateVillageWithResources(300);
 
             var configs = TestData.FarmConfigs();
 
@@ -79,7 +79,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.True(building.IsUnderConstruction);
             Assert.NotNull(building.ConstructionCompletesAt);
             var food = village.Resources.Single(r => r.ResourceType == "food");
-            Assert.Equal(100, food.Amount); // 200 - 100 = 100
+            Assert.Equal(100, food.Amount); // 300 − 100 (будівництво) − 100 (апгрейд)
         }
 
         /// <summary>

@@ -3,7 +3,6 @@ using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.Application.Marches.Commands
 {
@@ -14,24 +13,27 @@ namespace EmpireIdle.Application.Marches.Commands
     {
         private readonly IMarchRepository _marchRepository;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly GameConfig _gameConfig;
+        private readonly IServerContext _serverContext;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<CompleteDueMarchesCommandHandler> _logger;
 
         public CompleteDueMarchesCommandHandler(
             IMarchRepository marchRepository,
             IServiceScopeFactory scopeFactory,
-            IOptions<GameConfig> gameConfig,
+            IServerContext serverContext,
+            GameCatalog catalog,
             ILogger<CompleteDueMarchesCommandHandler> logger)
         {
             _marchRepository = marchRepository;
             _scopeFactory = scopeFactory;
-            _gameConfig = gameConfig.Value;
+            _serverContext = serverContext;
+            _catalog = catalog;
             _logger = logger;
         }
 
         public async Task Handle(CompleteDueMarchesCommand request, CancellationToken cancellationToken)
         {
-            var due = await _marchRepository.GetDueAsync(DateTime.UtcNow, _gameConfig.ScanBatchSize, cancellationToken);
+            var due = await _marchRepository.GetDueAsync(DateTime.UtcNow, _catalog.Config.ScanBatchSize, cancellationToken);
 
             if (due.Count == 0)
                 return;
@@ -44,6 +46,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 // Свій scope = свій DbContext. Збій на одному фізично не може
                 // зачепити інші — на відміну від спільного ChangeTracker.
                 using var scope = _scopeFactory.CreateScope();
+                scope.ServiceProvider.GetRequiredService<IServerContext>().UseServer(_serverContext.ServerId);
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
                 try

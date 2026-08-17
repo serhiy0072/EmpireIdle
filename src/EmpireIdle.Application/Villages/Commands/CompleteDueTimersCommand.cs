@@ -3,7 +3,6 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.Application.Villages.Commands
 {
@@ -16,32 +15,32 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IActiveEffectRepository _effectRepository;
         private readonly ILogger<CompleteDueTimersCommandHandler> _logger;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
 
         public CompleteDueTimersCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, IGarrisonRepository garrisonRepository, 
-                IActiveEffectRepository effectRepository, ILogger<CompleteDueTimersCommandHandler> logger, IOptions<GameConfig> gameConfig)
+                IActiveEffectRepository effectRepository, ILogger<CompleteDueTimersCommandHandler> logger, GameCatalog catalog)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _garrisonRepository = garrisonRepository;
             _effectRepository = effectRepository;
             _logger = logger;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
 
         }
 
         public async Task Handle(CompleteDueTimersCommand request, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
-            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
+            var buildingConfigs = _catalog.Buildings.ToDictionary(b => b.Key, b => b);
 
             var villages = await _villageRepository.GetWithDueConstructionsAsync(now, cancellationToken);
             var completed = 0;
 
             foreach (var village in villages)
-                completed += village.CompleteDueConstructions(now, buildingConfigs);
+                completed += village.CompleteDueConstructions(now, _catalog.Buildings);
 
-            var garrisons = await _garrisonRepository.GetWithDueTrainingAsync(now, _gameConfig.ScanBatchSize, cancellationToken);
+            var garrisons = await _garrisonRepository.GetWithDueTrainingAsync(now, _catalog.Config.ScanBatchSize, cancellationToken);
             var trained = 0;
 
             foreach (var garrison in garrisons)

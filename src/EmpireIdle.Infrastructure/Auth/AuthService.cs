@@ -69,8 +69,8 @@ namespace EmpireIdle.Infrastructure.Auth
 
             await _userManager.ResetAccessFailedCountAsync(user);
 
-            var playerId = await GetPlayerIdAsync(user.Email!);
-            var accessToken = GenerateAccessToken(user, playerId);
+            var (playerId, serverId) = await GetPlayerAsync(user.Id);
+            var accessToken = GenerateAccessToken(user, playerId, serverId);
             var refreshToken = await CreateRefreshTokenAsync(user.Id);
 
             return (accessToken, refreshToken, playerId);
@@ -115,8 +115,8 @@ namespace EmpireIdle.Infrastructure.Auth
 
             await _context.SaveChangesAsync();
 
-            var playerId = await GetPlayerIdAsync(user.Email!);
-            var accessToken = GenerateAccessToken(user, playerId);
+            var (playerId, serverId) = await GetPlayerAsync(user.Id);
+            var accessToken = GenerateAccessToken(user, playerId, serverId);
             return (accessToken, newRefreshToken, playerId);
         }
 
@@ -145,7 +145,7 @@ namespace EmpireIdle.Infrastructure.Auth
                 token.RevokedAt = DateTime.UtcNow;
         }
 
-        private string GenerateAccessToken(IdentityUser user, Guid playerId)
+        private string GenerateAccessToken(IdentityUser user, Guid playerId, int serverId)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -156,7 +156,8 @@ namespace EmpireIdle.Infrastructure.Auth
                 new Claim(JwtRegisteredClaimNames.Email, user.Email!),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("playerId", playerId.ToString())
+                new Claim("playerId", playerId.ToString()),
+                new Claim("serverId", serverId.ToString())
             };
 
             var token = new JwtSecurityToken(
@@ -187,6 +188,27 @@ namespace EmpireIdle.Infrastructure.Auth
                 ?? throw new InvalidOperationException("Player not found for this account.");
 
             return player.Id;
+        }
+
+        /// <summary>
+        /// Гравець акаунта. Поки сервер один — беремо єдиного;
+        /// коли з'являться кілька, тут буде вибір сервера з UI.
+        /// </summary>
+        private async Task<(Guid PlayerId, int ServerId)> GetPlayerAsync(string userId)
+        {
+            var players = await _context.Players
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .Where(p => p.UserId == userId)
+                .OrderBy(p => p.ServerId)
+                .Select(p => new { p.Id, p.ServerId })
+                .ToListAsync();
+
+            if (players.Count == 0)
+                throw new InvalidOperationException($"No player found for account {userId}.");
+
+            var player = players[0];
+            return (player.Id, player.ServerId);
         }
     }
 }

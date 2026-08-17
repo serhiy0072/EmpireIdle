@@ -20,6 +20,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
         /// <summary>Кількість спроб публікації.</summary>
         public int Attempts { get; set; }
 
+        /// <summary>Світ, у якому сталася подія. Потрібен підписникам із query-фільтрами.</summary>
+        public int ServerId { get; set; }
+
         /// <summary>Текст останньої помилки, якщо публікація впала.</summary>
         public string? Error { get; set; }
     }

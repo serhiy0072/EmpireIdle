@@ -23,16 +23,16 @@ namespace EmpireIdle.Application.Inventory.Commands
         private readonly IInventoryRepository _inventoryRepository;
         private readonly ItemEffectDispatcher _dispatcher;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<UseItemCommandHandler> _logger;
 
         public UseItemCommandHandler(IInventoryRepository inventoryRepository, ItemEffectDispatcher dispatcher,
-            IUnitOfWork unitOfWork, IOptions<GameConfig> gameConfig, ILogger<UseItemCommandHandler> logger)
+            IUnitOfWork unitOfWork, GameCatalog catalog, ILogger<UseItemCommandHandler> logger)
         {
             _inventoryRepository = inventoryRepository;
             _dispatcher = dispatcher;
             _unitOfWork = unitOfWork;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -41,7 +41,7 @@ namespace EmpireIdle.Application.Inventory.Commands
             if (request.Count < 1)
                 throw new InvalidOperationException("Count must be positive.");
 
-            var config = _gameConfig.Items.FirstOrDefault(i => i.Key == request.ItemKey)
+            var config = _catalog.Item(request.ItemKey)
                 ?? throw new InvalidOperationException($"Unknown item '{request.ItemKey}'.");
 
             var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, request.ItemKey, cancellationToken)

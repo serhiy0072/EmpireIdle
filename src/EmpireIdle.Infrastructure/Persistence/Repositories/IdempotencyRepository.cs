@@ -10,11 +10,16 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
     public class IdempotencyRepository : IIdempotencyRepository
     {
         private readonly AppDbContext _context;
+        private readonly IDbContextFactory<AppDbContext> _contextFactory;
         private readonly ILogger<IdempotencyRepository> _logger;
 
-        public IdempotencyRepository(AppDbContext context, ILogger<IdempotencyRepository> logger)
+        public IdempotencyRepository(
+            AppDbContext context,
+            IDbContextFactory<AppDbContext> contextFactory,
+            ILogger<IdempotencyRepository> logger)
         {
             _context = context;
+            _contextFactory = contextFactory;
             _logger = logger;
         }
 
@@ -27,10 +32,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         {
             // Окремий контекст: резерв має жити незалежно від транзакції самої операції.
             // Інакше відкат операції зніс би і резерв — і два паралельні запити пройшли б обидва.
-            await using var scoped = new AppDbContext(
-                new DbContextOptionsBuilder<AppDbContext>()
-                    .UseNpgsql(_context.Database.GetConnectionString())
-                    .Options);
+            await using var scoped = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             scoped.IdempotencyRecords.Add(record);
 

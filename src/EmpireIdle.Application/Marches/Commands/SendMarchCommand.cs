@@ -22,7 +22,6 @@ namespace EmpireIdle.Application.Marches.Commands
     /// </summary>
     public class SendMarchCommandHandler : IRequestHandler<SendMarchCommand, Guid>
     {
-        private const int ServerId = 1; // мультисервер — post-MVP
         private const int MaxActiveMarches = 3;
 
         private readonly IVillageRepository _villageRepository;
@@ -30,6 +29,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMarchRepository _marchRepository;
         private readonly IMonsterRepository _monsterRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerContext _serverContext;
         private readonly MarchCalculator _calculator;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
@@ -39,6 +39,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IMarchRepository marchRepository,
             IMonsterRepository monsterRepository,
             IUnitOfWork unitOfWork,
+            IServerContext serverContext,
             MarchCalculator calculator,
             ILogger<SendMarchCommandHandler> logger)
         {
@@ -46,6 +47,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
             _monsterRepository = monsterRepository;
+            _serverContext = serverContext;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
             _logger = logger;
@@ -70,10 +72,10 @@ namespace EmpireIdle.Application.Marches.Commands
             garrison.SendUnits(request.Units);
 
             var duration = _calculator.CalculateDuration(
-                ServerId, village.X, village.Y, targetX, targetY, request.Units);
+                _serverContext.ServerId, village.X, village.Y, targetX, targetY, request.Units);
 
             var march = new March(
-                Guid.NewGuid(), ServerId, garrison.Id,
+                Guid.NewGuid(), _serverContext.ServerId, garrison.Id,
                 village.X, village.Y, targetX, targetY,
                 request.TargetType, request.TargetId,
                 request.Units, DateTime.UtcNow + duration);

@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Map.Commands;
+using EmpireIdle.Domain.Services;
 using Hangfire;
 using MediatR;
 
@@ -8,10 +9,20 @@ namespace EmpireIdle.API.Jobs
     public class MonsterSpawnJob
     {
         private readonly IMediator _mediator;
-        public MonsterSpawnJob(IMediator mediator) => _mediator = mediator;
+        private readonly GameCatalog _catalog;
+
+        public MonsterSpawnJob(IMediator mediator, GameCatalog catalog)
+        {
+            _mediator = mediator;
+            _catalog = catalog;
+        }
 
         /// <summary>Один прогін за раз: перетин дав би подвійне нарахування.</summary>
         [DisableConcurrentExecution(timeoutInSeconds: 300)]
-        public Task RunAsync() => _mediator.Send(new SpawnMonstersCommand());
+        public async Task RunAsync()
+        {
+            foreach (var serverId in _catalog.Config.ActiveServerIds)
+                await _mediator.Send(new SpawnMonstersCommand(serverId));
+        }
     }
 }

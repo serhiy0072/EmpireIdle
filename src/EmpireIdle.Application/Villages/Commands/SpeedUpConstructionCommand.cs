@@ -4,8 +4,6 @@ using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Net.WebSockets;
 
 namespace EmpireIdle.Application.Villages.Commands
 {
@@ -21,19 +19,19 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly SpeedUpCalculator _calculator;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<SpeedUpConstructionCommandHandler> _logger;
 
         public SpeedUpConstructionCommandHandler(
-            IVillageRepository villageRepository,IPlayerWalletRepository walletRepository, ICurrentPlayer currentPlayer, IUnitOfWork unitOfWork,
-            SpeedUpCalculator calculator,IOptions<GameConfig> gameConfig,ILogger<SpeedUpConstructionCommandHandler> logger)
+            IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, ICurrentPlayer currentPlayer, IUnitOfWork unitOfWork,
+            SpeedUpCalculator calculator, GameCatalog catalog, ILogger<SpeedUpConstructionCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -43,10 +41,10 @@ namespace EmpireIdle.Application.Villages.Commands
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            var building = village.Buildings.FirstOrDefault(b=> b.Id == request.BuildingId)
+            var building = village.Buildings.FirstOrDefault(b => b.Id == request.BuildingId)
                 ?? throw new InvalidOperationException($"Building {request.BuildingId} not found.");
 
-            if(!building.IsUnderConstruction)
+            if (!building.IsUnderConstruction)
                 throw new InvalidOperationException("Building is not under construction.");
 
             var cost = _calculator.GetInstantFinishCost(building.ConstructionCompletesAt!.Value, now);
@@ -63,9 +61,9 @@ namespace EmpireIdle.Application.Villages.Commands
             }
 
             // Завершуємо одразу, не чекаючи сканера
-            var buildingsConfig = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
+            var buildingsConfig = _catalog.Buildings.ToDictionary(b => b.Key, b => b);
             building.ReduceConstructionTime(building.ConstructionCompletesAt.Value - now);
-            village.CompleteDueConstructions(now, buildingsConfig);
+            village.CompleteDueConstructions(now, _catalog.Buildings);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -21,16 +21,16 @@ namespace EmpireIdle.Application.Payments.Commands
         private readonly IPaymentProvider _paymentProvider;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<CreateCheckoutSessionCommandHandler> _logger;
 
         public CreateCheckoutSessionCommandHandler(IPaymentProvider paymentProvider, IPaymentRepository paymentRepository, IUnitOfWork unitOfWork, 
-                IOptions<GameConfig> gameConfig, ILogger<CreateCheckoutSessionCommandHandler> logger)
+                GameCatalog catalog, ILogger<CreateCheckoutSessionCommandHandler> logger)
         {
             _paymentProvider = paymentProvider;
             _paymentRepository = paymentRepository;
             _unitOfWork = unitOfWork;
-            _gameConfig = gameConfig.Value;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -38,13 +38,13 @@ namespace EmpireIdle.Application.Payments.Commands
         {
             var now = DateTime.UtcNow;
 
-            var pack = _gameConfig.Shop.GemPacks.FirstOrDefault(p => p.Key == request.PackKey)
+            var pack = _catalog.Config.Shop.GemPacks.FirstOrDefault(p => p.Key == request.PackKey)
                 ?? throw new InvalidOperationException($"Gem pack '{request.PackKey}' not found.");
 
-            var session = await _paymentProvider.CreateSessionAsync(pack.Key, pack.DisplayName, pack.PriceCents, _gameConfig.Shop.Currency, request.PlayerId, cancellationToken);
+            var session = await _paymentProvider.CreateSessionAsync(pack.Key, pack.DisplayName, pack.PriceCents, _catalog.Config.Shop.Currency, request.PlayerId, cancellationToken);
 
             // Ціну й кількість gems фіксуємо тут: конфіг може змінитись до оплати
-            var payment = new Payment(Guid.NewGuid(), request.PlayerId, pack.Key, pack.Gems, pack.PriceCents, _gameConfig.Shop.Currency, session.SessionId, now);
+            var payment = new Payment(Guid.NewGuid(), request.PlayerId, pack.Key, pack.Gems, pack.PriceCents, _catalog.Config.Shop.Currency, session.SessionId, now);
 
             await _paymentRepository.AddAsync(payment, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

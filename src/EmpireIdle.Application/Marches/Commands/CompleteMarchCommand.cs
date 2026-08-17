@@ -13,8 +13,6 @@ namespace EmpireIdle.Application.Marches.Commands
 
     public class CompleteMarchCommandHandler : IRequestHandler<CompleteMarchCommand>
     {
-        private const int ServerId = 1;
-
         private readonly IMarchRepository _marchRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IUnitOfWork _unitOfWork;
@@ -22,7 +20,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMonsterRepository _monsterRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IBattleReportRepository _battleReportRepository;
-        private readonly GameConfig _gameConfig;
+        private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
         private readonly CasualtySplitter _casualties;
         private readonly MonsterArmyBuilder _armyBuilder;
@@ -40,7 +38,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IMonsterRepository monsterRepository,
             IVillageRepository villageRepository,
             IBattleReportRepository battleReportRepository,
-            IOptions<GameConfig> gameConfig,
+            GameCatalog catalog,
             CasualtySplitter casualties,
             MonsterArmyBuilder armyBuilder,
             CombatCalculator combat,
@@ -63,8 +61,8 @@ namespace EmpireIdle.Application.Marches.Commands
             _calculator = calculator;
             _effectResolver = effectResolver;
             _logger = logger;
-            _gameConfig = gameConfig.Value;
-            _combatConfig = _gameConfig.Combat;
+            _catalog = catalog;
+            _combatConfig = _catalog.Config.Combat;
         }
 
         public async Task Handle(CompleteMarchCommand request, CancellationToken cancellationToken)
@@ -99,7 +97,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private async Task ResolveBattleAsync(March march, CancellationToken cancellationToken)
         {
             var attackerArmy = march.GetUnits();
-            var terrain = _terrain.GetTerrainType(ServerId, march.TargetX, march.TargetY);
+            var terrain = _terrain.GetTerrainType(march.ServerId, march.TargetX, march.TargetY);
 
             if (march.TargetType != MarchTargetType.Monster)
             {
@@ -126,7 +124,10 @@ namespace EmpireIdle.Application.Marches.Commands
                 ? 1.0
                 : await _effectResolver.GetMultiplierAsync(village.PlayerId, EffectTarget.Attack, DateTime.UtcNow, cancellationToken);
 
-            var result = _combat.Resolve(attackerArmy, defenderArmy, terrain, attackerBonus);
+            // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
+            var seed = Random.Shared.Next();
+
+            var result = _combat.Resolve(attackerArmy, defenderArmy, terrain, seed, attackerBonus);
 
             // Вільна місткість Госпіталю = сума рівнів × місткість на рівень − уже поранені
             var woundedCapacity = CalculateWoundedCapacity(village, garrison);
@@ -155,7 +156,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 march.Id,
                 march.TargetX, march.TargetY, terrain,
                 $"{monster.Type} (lvl {monster.Level})", monster.Level,
-                result.AttackerWon, result.AttackerPower, result.DefenderPower, DateTime.UtcNow);
+                result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, DateTime.UtcNow);
 
             foreach (var (unitType, sent) in attackerArmy)
             {
@@ -201,7 +202,7 @@ namespace EmpireIdle.Application.Marches.Commands
             }
 
             var backDuration = _calculator.CalculateDuration(
-                ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
+                march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
 
             march.TurnBack(backDuration, DateTime.UtcNow);
         }
@@ -215,7 +216,7 @@ namespace EmpireIdle.Application.Marches.Commands
             if (village is null || garrison is null)
                 return 0;
 
-            var buildingConfigs = _gameConfig.Buildings.ToDictionary(b => b.Key, b => b);
+            var buildingConfigs = _catalog.Buildings;
 
             var total = village.Buildings
                 .Where(b => !b.IsUnderConstruction)

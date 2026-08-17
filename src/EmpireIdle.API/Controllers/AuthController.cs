@@ -1,6 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Players.Commands;
+using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Persistence;
 using MediatR;
@@ -21,13 +22,17 @@ namespace EmpireIdle.API.Controllers
         private readonly IPlayerRepository _playerRepository;
         private readonly IMediator _mediator;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerContext _serverContext;
+        private readonly GameCatalog _catalog;
 
-        public AuthController(AuthService authService, IPlayerRepository playerRepository, IMediator mediator, IUnitOfWork unitOfWork)
+        public AuthController(AuthService authService, IPlayerRepository playerRepository, IMediator mediator, IUnitOfWork unitOfWork, IServerContext serverContext, GameCatalog catalog)
         {
             _authService = authService;
             _playerRepository = playerRepository;
             _mediator = mediator;
             _unitOfWork = unitOfWork;
+            _serverContext = serverContext;
+            _catalog = catalog;
         }
 
         /// <summary>
@@ -44,6 +49,9 @@ namespace EmpireIdle.API.Controllers
             {
                 // 1. Identity user (валідація пароля, унікальність email)
                 var userId = await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
+
+                // Реєстрація анонімна — світ беремо з конфіга
+                _serverContext.UseServer(_catalog.Config.DefaultServerId);
 
                 // 2. Доменний Player + Village + Garrison + Wallet
                 await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email, userId), cancellationToken);
