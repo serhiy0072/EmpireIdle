@@ -217,4 +217,17 @@ public class BuildingTests
         Assert.Throws<InvalidOperationException>(() =>
             building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None));
     }
+
+    /// <summary>
+    /// На високих рівнях геометричний кап виходить за межі int.
+    /// Без обрізання каст дав би від'ємне число, і буфер завмер би назавжди.
+    /// </summary>
+    [Fact]
+    public void GetStorageCap_ShouldClampInsteadOfOverflowing()
+    {
+        var building = CreateFarm();
+        RaiseLevel(building, 99, building.LastAccruedAt);
+
+        Assert.Equal(int.MaxValue, building.GetStorageCap(60, 1.3));
+    }
 }

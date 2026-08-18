@@ -50,9 +50,15 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>
         /// Максимальна місткість буфера для поточного рівня:
         /// BaseStorage × StorageGrowth^(рівень − 1), округлення вниз.
+        /// Обрізається до int.MaxValue: геометричний ріст переповнює int
+        /// близько 65–70 рівня, і кап стає від'ємним — буфер більше не накопичується.
         /// </summary>
         public int GetStorageCap(int baseStorage, double storageGrowth)
-            => (int)(baseStorage * Math.Pow(storageGrowth, Level.Value - 1));
+        {
+            var cap = baseStorage * Math.Pow(storageGrowth, Level.Value - 1);
+
+            return cap >= int.MaxValue ? int.MaxValue : (int)cap;
+        }
 
         /// <summary>
         /// Скільки в буфері на вказаний момент. Чиста функція — стан не змінює.

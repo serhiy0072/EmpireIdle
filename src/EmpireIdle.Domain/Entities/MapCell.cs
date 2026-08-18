@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Що займає клітину карти.</summary>
