@@ -2,6 +2,8 @@ using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
+using EmpireIdle.Application.Rewards;
+using EmpireIdle.Application.Rewards.Granters;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Payments;
 using EmpireIdle.Infrastructure.Persistence;
@@ -58,6 +60,12 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
+
+            // Нагороди — той самий патерн: усі реалізації + диспетчер за типом
+            services.AddScoped<IRewardGranter, GemRewardGranter>();
+            services.AddScoped<IRewardGranter, ResourceRewardGranter>();
+            services.AddScoped<IRewardGranter, ItemRewardGranter>();
+            services.AddScoped<RewardDispatcher>();
 
             // Зовнішні сервіси
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();

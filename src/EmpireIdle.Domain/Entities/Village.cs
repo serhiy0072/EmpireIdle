@@ -281,6 +281,21 @@ namespace EmpireIdle.Domain.Entities
                     building.Materialize(config, utcNow, boost);
             }
         }
+
+        /// <summary>
+        /// Нараховує ресурс від нагороди. Повертає, скільки реально зараховано:
+        /// надлишок понад кап складу згорає.
+        /// </summary>
+        public int GrantResource(string resourceKey, int amount)
+        {
+            if (amount <= 0)
+                return 0;
+
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
+                ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
+
+            resource.Add(amount);
+            return amount;
+        }
     }
 }
-
