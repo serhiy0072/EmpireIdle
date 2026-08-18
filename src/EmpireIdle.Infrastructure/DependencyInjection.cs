@@ -41,18 +41,19 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Repositories
+            services.AddScoped<IActiveEffectRepository, ActiveEffectRepository>();
+            services.AddScoped<IBattleReportRepository, BattleReportRepository>();
             services.AddScoped<IVillageRepository, VillageRepository>();
-            services.AddScoped<IPlayerRepository, PlayerRepository>();
-            services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
             services.AddScoped<IGarrisonRepository, GarrisonRepository>();
+            services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
+            services.AddScoped<IInventoryRepository, InventoryRepository>();
             services.AddScoped<IMapRepository, MapRepository>();
             services.AddScoped<IMonsterRepository, MonsterRepository>();
             services.AddScoped<IMarchRepository, MarchRepository>();
-            services.AddScoped<IBattleReportRepository, BattleReportRepository>();
-            services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
-            services.AddScoped<IInventoryRepository, InventoryRepository>();
-            services.AddScoped<IActiveEffectRepository, ActiveEffectRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<IPlayerRepository, PlayerRepository>();
+            services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
+            services.AddScoped<IQuestRepository, QuestRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
