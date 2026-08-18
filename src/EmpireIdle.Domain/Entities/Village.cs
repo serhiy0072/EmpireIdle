@@ -266,6 +266,21 @@ namespace EmpireIdle.Domain.Entities
                 resource.Add(amount);
             }
         }
+
+        /// <summary>
+        /// Фіксує буфери всіх виробничих будівель на поточний момент.
+        /// Викликається перед зміною множника: інакше вироблене за старим
+        /// бустом порахувалося б за новим (або без нього).
+        /// </summary>
+        public void MaterializeProduction(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost)
+        {
+            foreach (var building in _buildings)
+            {
+                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.ProducesResource is not null)
+                    building.Materialize(config, utcNow, boost);
+            }
+        }
     }
 }
 

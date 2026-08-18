@@ -162,5 +162,24 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Throws<InvalidOperationException>(() => village.ChargeCost(cost));
             Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "gold").Amount);
         }
+
+        /// <summary>Фіксація буфера перед зміною буста не втрачає вироблене.</summary>
+        [Fact]
+        public void MaterializeProduction_ShouldBankAccruedAmountForAllBuildings()
+        {
+            var village = TestData.CreateVillageWithResources(1000);
+            var configs = TestData.FarmConfigs();
+
+            village.AddBuilding("farm", configs);
+            var building = village.Buildings.Single();
+            var start = building.LastAccruedAt;
+
+            // 4 хв під бустом ×1.5 = 60
+            var boost = new ProductionBoost(1.5, start, start.AddHours(1));
+            village.MaterializeProduction(configs, start.AddMinutes(4), boost);
+
+            Assert.Equal(60, building.AccruedAmount);
+            Assert.Equal(start.AddMinutes(4), building.LastAccruedAt);
+        }
     }
 }

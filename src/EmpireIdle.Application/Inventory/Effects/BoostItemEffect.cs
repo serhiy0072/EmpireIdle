@@ -1,5 +1,7 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Application.Inventory.Effects
 {
@@ -9,10 +11,14 @@ namespace EmpireIdle.Application.Inventory.Effects
         public string ItemType => "boost";
 
         private readonly IActiveEffectRepository _repository;
+        private readonly IVillageRepository _villageRepository;
+        private readonly GameCatalog _catalog;
 
-        public BoostItemEffect(IActiveEffectRepository repository)
+        public BoostItemEffect(IActiveEffectRepository repository, IVillageRepository villageRepository, GameCatalog catalog)
         {
             _repository = repository;
+            _villageRepository = villageRepository;
+            _catalog = catalog;
         }
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
@@ -30,22 +36,28 @@ namespace EmpireIdle.Application.Inventory.Effects
 
             if (existing is null)
             {
+                if (target == EffectTarget.Production)
+                    await MaterializeProductionAsync(context, null, cancellationToken);
+
                 await _repository.AddAsync(
-                    new ActiveEffect(Guid.NewGuid(), context.PlayerId, target,config.Multiplier, context.UtcNow, context.UtcNow + duration, config.Key),
+                    new ActiveEffect(Guid.NewGuid(), context.PlayerId, target, config.Multiplier,
+                        context.UtcNow, context.UtcNow + duration, config.Key),
                     cancellationToken);
                 return;
             }
 
             if (!existing.IsActive(context.UtcNow))
             {
-                // Прострочений слот переиспользовуємо: множники не стакуються, бо запис один на ціль
+                if (target == EffectTarget.Production)
+                    await MaterializeProductionAsync(context, existing, cancellationToken);
+
                 existing.Restart(config.Multiplier, context.UtcNow, context.UtcNow + duration, config.Key);
                 return;
             }
 
             if (existing.IsFrom(config.Key))
             {
-                // Той самий буст — просто довше
+                // Той самий буст — множник і StartedAt не змінюються, фіксувати нічого
                 existing.Extend(duration);
                 return;
             }
@@ -54,8 +66,29 @@ namespace EmpireIdle.Application.Inventory.Effects
                 throw new InvalidOperationException(
                     $"A stronger {target} boost (×{existing.Multiplier}) is already active until {existing.ExpiresAt:u}.");
 
+            if (target == EffectTarget.Production)
+                await MaterializeProductionAsync(context, existing, cancellationToken);
+
             // Сильніший буст витісняє слабший; залишок часу слабкого згорає
             existing.Restart(config.Multiplier, context.UtcNow, context.UtcNow + duration, config.Key);
+        }
+
+        /// <summary>
+        /// Фіксує накопичене за чинним бустом, перш ніж множник зміниться.
+        /// Тільки для Production — решта цілей на буфер не впливає.
+        /// </summary>
+        private async Task MaterializeProductionAsync(ItemUsageContext context, ActiveEffect? current,
+            CancellationToken cancellationToken)
+        {
+            var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken);
+            if (village is null)
+                return;
+
+            var boost = current is null
+                ? ProductionBoost.None
+                : new ProductionBoost(current.Multiplier, current.StartedAt, current.ExpiresAt);
+
+            village.MaterializeProduction(_catalog.Buildings, context.UtcNow, boost);
         }
     }
 }
