@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
 {
@@ -20,9 +21,6 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Ідентифікатор власника.</summary>
         public Guid PlayerId { get; private set; }
-
-        /// <summary>Час останнього нарахування ресурсів.</summary>
-        public DateTime LastTickAt { get; private set; }
 
         /// <summary>Будівлі села (тільки для читання).</summary>
         public IReadOnlyCollection<Building> Buildings => _buildings.AsReadOnly();
@@ -45,7 +43,6 @@ namespace EmpireIdle.Domain.Entities
         {
             PlayerId = playerId;
             Name = name;
-            LastTickAt = DateTime.UtcNow;
             ServerId = serverId;
             X = x;
             Y = y;
@@ -57,36 +54,13 @@ namespace EmpireIdle.Domain.Entities
         protected Village() { } // Для EF Core
 
         /// <summary>
-        /// Тік виробництва: кожна будівля накопичує виробіток у власний буфер (до капу).
-        /// Ресурси села змінюються лише при зборі (CollectFromBuilding).
-        /// </summary>
-        /// <param name="buildingConfigs">Конфігурації будівель з GameConfig (Key → BuildingConfig).</param>
-        /// <param name="productionMultiplier">Множник від активних бустів (1.0 — без бусту).</param>
-        public void TickProduction(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, double productionMultiplier = 1.0)
-        {
-            var elapsed = utcNow - LastTickAt;
-
-            foreach (var building in _buildings)
-            {
-                if (!buildingConfigs.TryGetValue(building.Type, out var config))
-                    continue;
-                if (config.ProducesResource is null)
-                    continue;
-
-                var rate = (int)Math.Round(config.BaseProductionPerMinute * productionMultiplier);
-                building.AccumulateProduction(rate, config.BaseStorage, config.StorageGrowth, elapsed);
-            }
-
-            LastTickAt = utcNow;
-        }
-
-        /// <summary>
         /// Збирає накопичене з буфера будівлі у ресурси села.
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
         /// <exception cref="InvalidOperationException">Якщо будівля або її конфіг не знайдені.</exception>
-        public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
+        public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
                 ?? throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
@@ -95,9 +69,9 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
 
             if (config.ProducesResource is null)
-                return; // невиробнича будівля — нічого збирати
+                return;
 
-            var collected = building.Collect(utcNow);
+            var collected = building.Collect(config, utcNow, boost);
             if (collected == 0)
                 return;// порожній буфер — не подія і не зміна стану
 
@@ -185,7 +159,7 @@ namespace EmpireIdle.Domain.Entities
         /// списує ресурси та ставить будівлю в стан будівництва.
         /// Рівень підніметься при завершенні (CompleteDueConstructions).
         /// </summary>
-        public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, int builderCount = 1)
+        public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, ProductionBoost boost, int builderCount = 1)
         {
             if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
                 throw new InvalidOperationException("All builders are busy");
@@ -214,7 +188,7 @@ namespace EmpireIdle.Domain.Entities
             }
 
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
-            building.BeginUpgrade(TimeSpan.FromMinutes(buildMinutes), utcNow);
+            building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost);
 
             RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
         }
@@ -231,7 +205,7 @@ namespace EmpireIdle.Domain.Entities
 
             foreach (var building in due)
             {
-                building.CompleteConstruction();
+                building.CompleteConstruction(utcNow);
 
                 if (buildingConfigs.TryGetValue(building.Type, out var config) && config.PopulationPerLevel > 0 && config.PopulationResource is not null)
                     AddPopulation(config.PopulationResource, config.PopulationPerLevel); //апгрейд житлової будівлі додає населення
@@ -290,6 +264,21 @@ namespace EmpireIdle.Domain.Entities
                     ?? throw new InvalidOperationException($"Village has no '{key}' resource.");
 
                 resource.Add(amount);
+            }
+        }
+
+        /// <summary>
+        /// Фіксує буфери всіх виробничих будівель на поточний момент.
+        /// Викликається перед зміною множника: інакше вироблене за старим
+        /// бустом порахувалося б за новим (або без нього).
+        /// </summary>
+        public void MaterializeProduction(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost)
+        {
+            foreach (var building in _buildings)
+            {
+                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.ProducesResource is not null)
+                    building.Materialize(config, utcNow, boost);
             }
         }
     }

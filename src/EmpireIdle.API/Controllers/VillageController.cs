@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
@@ -16,11 +17,13 @@ namespace EmpireIdle.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly GameCatalog _catalog;
+        private readonly EffectResolver _effectResolver;
 
-        public VillageController(IMediator mediator, GameCatalog catalog)
+        public VillageController(IMediator mediator, GameCatalog catalog, EffectResolver effectResolver)
         {
             _mediator = mediator;
             _catalog = catalog;
+            _effectResolver = effectResolver;
         }
 
         /// <summary>
@@ -31,18 +34,24 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetVillage(Guid playerId, CancellationToken cancellationToken)
         {
+            var now = DateTime.UtcNow;
+
             var village = await _mediator.Send(new GetVillageQuery(playerId), cancellationToken);
+
+            var boost = await _effectResolver.GetProductionBoostAsync(playerId, now, cancellationToken);
 
             var response = new VillageResponse(
                 village.Id,
                 village.Name,
-                village.LastTickAt,
                 village.Buildings.Select(b =>
                 {
-                    var storageCap = _catalog.Buildings.TryGetValue(b.Type, out var cfg)
-                        ? b.GetStorageCap(cfg.BaseStorage, cfg.StorageGrowth)
-                        : 0;
-                    return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt, b.StoredAmount, storageCap, b.ConstructionCompletesAt, b.IsUnderConstruction);
+                    if (!_catalog.Buildings.TryGetValue(b.Type, out var cfg))
+                        return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt, 0, 0, b.ConstructionCompletesAt, b.IsUnderConstruction);
+
+                    return new BuildingResponse(b.Id, b.Type, b.Level.Value, b.LastCollectedAt,
+                        b.StoredAt(cfg, now, boost),
+                        b.GetStorageCap(cfg.BaseStorage, cfg.StorageGrowth),
+                        b.ConstructionCompletesAt, b.IsUnderConstruction);
                 }).ToList(),
                 village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount)).ToList());
 

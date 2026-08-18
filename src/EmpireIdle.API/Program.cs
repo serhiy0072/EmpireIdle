@@ -198,7 +198,6 @@ builder.Services.AddHangfireServer();
 // Раннер створює scope на кожен активний світ — без нього
 // query-фільтри не мають що застосувати у фоновому контексті
 builder.Services.AddScoped<ServerJobRunner>();
-builder.Services.AddScoped<ResourceTickJob>();
 builder.Services.AddScoped<TimerScanJob>();
 builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();
@@ -282,7 +281,6 @@ app.MapHub<GameHub>("/hubs/game");
 //  10. РОЗКЛАД ФОНОВИХ ЗАДАЧ
 // ═══════════════════════════════════════════════════════════════
 
-RecurringJob.AddOrUpdate<ResourceTickJob>("resource-tick", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
 RecurringJob.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.RunAsync(), Cron.Hourly);
