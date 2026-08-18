@@ -1,0 +1,26 @@
+{
+  "GameConfig": {
+    "Quests": [
+      {
+        "Key": "intro_townhall_2",
+        "DisplayName": "Розбудова",
+        "Scope": "Personal",
+        "Window": "Chain",
+        "Objectives": [
+          {
+            "Type": "BuildingUpgradeCompleted",
+            "Target": "townhall",
+            "Count": 2,
+            "Mode": "Threshold"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 20
+          }
+        ]
+      }
+    ]
+  }
+}

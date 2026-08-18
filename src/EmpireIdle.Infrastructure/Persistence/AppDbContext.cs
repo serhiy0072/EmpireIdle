@@ -37,6 +37,9 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<RecoverableUnit> RecoverableUnits => Set<RecoverableUnit>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+        public DbSet<QuestProgress> QuestProgress => Set<QuestProgress>();
+        public DbSet<ServerQuestProgress> ServerQuestProgress => Set<ServerQuestProgress>();
+        public DbSet<ServerQuestContribution> ServerQuestContributions => Set<ServerQuestContribution>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +52,8 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<Monster>().HasQueryFilter(m => m.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<MapCell>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<March>().HasQueryFilter(m => m.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ServerQuestProgress>().HasQueryFilter(q => q.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ServerQuestContribution>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(Entity).IsAssignableFrom(entityType.ClrType))

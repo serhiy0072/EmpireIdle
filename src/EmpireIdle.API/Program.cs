@@ -33,7 +33,8 @@ builder.Configuration
     .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true);
 
 // ValidateOnStart перетворює 
 builder.Services.AddOptions<GameConfig>()
@@ -53,6 +54,10 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
     .Validate(c => c.ActiveServerIds.Contains(c.DefaultServerId), "GameConfig.DefaultServerId is not in ActiveServerIds.")
+    .Validate(c => c.Quests.Count > 0, "GameConfig.Quests is empty — check Config/quests.json.")
+    .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
+    .Validate(c => c.Quests.Select(q => q.Key).Distinct().Count() == c.Quests.Count, "GameConfig.Quests has duplicate keys.")
+    .Validate(c => c.Quests.All(q => q.Prerequisite is null || c.Quests.Any(p => p.Key == q.Prerequisite)), "A quest references a prerequisite that does not exist.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
