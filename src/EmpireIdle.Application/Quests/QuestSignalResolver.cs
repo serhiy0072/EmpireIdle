@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Events;
+using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Quests
 {
@@ -11,9 +12,13 @@ namespace EmpireIdle.Application.Quests
     public class QuestSignalResolver
     {
         private readonly IVillageRepository _villageRepository;
+        private readonly ILogger<QuestSignalResolver> _logger;
 
-        public QuestSignalResolver(IVillageRepository villageRepository)
-            => _villageRepository = villageRepository;
+        public QuestSignalResolver(IVillageRepository villageRepository, ILogger<QuestSignalResolver> logger)
+        {
+            _villageRepository = villageRepository;
+            _logger = logger;
+        }
 
         public async Task<QuestSignal?> ResolveAsync(IDomainEvent domainEvent, CancellationToken cancellationToken)
             => domainEvent switch
@@ -45,9 +50,13 @@ namespace EmpireIdle.Application.Quests
         {
             var village = await _villageRepository.GetByIdAsync(villageId, cancellationToken);
 
-            return village is null
-                ? null
-                : new QuestSignal(village.PlayerId, eventType, target, increment, null);
+            if (village is null)
+            {
+                _logger.LogWarning("Quest signal dropped: village {VillageId} not found.", villageId);
+                return null;
+            }
+
+            return new QuestSignal(village.PlayerId, eventType, target, increment, null);
         }
     }
 }

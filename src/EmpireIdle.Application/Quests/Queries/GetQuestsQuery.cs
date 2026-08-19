@@ -40,8 +40,10 @@ namespace EmpireIdle.Application.Quests.Queries
             var progressByKey = (await _questRepository.GetAllAsync(request.PlayerId, cancellationToken))
                 .ToDictionary(p => p.QuestKey);
 
-            var claimed = progressByKey.Values
-                .Where(p => p.State == QuestState.Claimed)
+            // Ланцюжок відкривається завершенням, а не клеймом — незабрана
+            // нагорода не має ховати наступний квест від гравця
+            var unlocked = progressByKey.Values
+                .Where(p => p.State != QuestState.InProgress)
                 .Select(p => p.QuestKey)
                 .ToHashSet();
 
@@ -49,8 +51,7 @@ namespace EmpireIdle.Application.Quests.Queries
 
             foreach (var config in _catalog.Quests.Values.Where(c => c.Scope == QuestScope.Personal))
             {
-                // Не показуємо те, чого гравець ще не відкрив або що вже поза вікном
-                if (config.Prerequisite is not null && !claimed.Contains(config.Prerequisite))
+                if (config.Prerequisite is not null && !unlocked.Contains(config.Prerequisite))
                     continue;
 
                 if (config.ActiveFrom is { } from && now < from)

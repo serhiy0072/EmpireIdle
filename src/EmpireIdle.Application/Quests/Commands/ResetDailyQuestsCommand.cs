@@ -40,15 +40,29 @@ namespace EmpireIdle.Application.Quests.Commands
             if (dailyKeys.Count == 0)
                 return;
 
-            var stale = await _questRepository.GetByKeysAsync(dailyKeys, now.Date, cancellationToken);
+            var total = 0;
 
-            foreach (var progress in stale)
-                progress.Reset(_catalog.Quest(progress.QuestKey).Objectives.Select(o => o.Count), now);
+            while (true)
+            {
+                var stale = await _questRepository.GetStaleDailyAsync(
+                    dailyKeys, now.Date, _catalog.Config.ScanBatchSize, cancellationToken);
 
-            if (stale.Count > 0)
+                if (stale.Count == 0)
+                    break;
+
+                foreach (var progress in stale)
+                    if (_catalog.Quests.TryGetValue(progress.QuestKey, out var config))
+                        progress.Reset(config.Objectives.Select(o => o.Count), now);
+
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+                total += stale.Count;
 
-            _logger.LogInformation("Daily quests reset: {Count}", stale.Count);
+                // Батч менший за ліміт означає, що черга вичерпана
+                if (stale.Count < _catalog.Config.ScanBatchSize)
+                    break;
+            }
+
+            _logger.LogInformation("Daily quests reset: {Count}", total);
         }
     }
 }

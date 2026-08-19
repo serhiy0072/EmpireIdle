@@ -11,8 +11,14 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Увесь прогрес гравця — для списку квестів і перевірки пререквізитів.</summary>
         Task<List<QuestProgress>> GetAllAsync(Guid playerId, CancellationToken cancellationToken = default);
 
-        /// <summary>Прогрес дейліків, який стартував до вказаної доби — тобто застарів.</summary>
-        Task<List<QuestProgress>> GetByKeysAsync(IReadOnlySet<string> questKeys, DateTime startedBefore,
-            CancellationToken cancellationToken = default);
+        /// <summary>Прогрес гравця по вказаних квестах — для трекера, замість завантаження всього.</summary>
+        Task<List<QuestProgress>> GetByKeysAsync(Guid playerId, IReadOnlySet<string> questKeys, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Застарілі дейліки поточного світу, не більше <paramref name="batchSize"/>.
+        /// Фільтр по світу застосовує query-фільтр.
+        /// </summary>
+        Task<List<QuestProgress>> GetStaleDailyAsync(IReadOnlySet<string> questKeys, DateTime startedBefore,
+            int batchSize, CancellationToken cancellationToken = default);
     }
 }
