@@ -95,6 +95,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException($"March {Id} is not returning.");
 
             State = MarchState.Completed;
+            RaiseDomainEvent(new Events.MarchReturned(Id, GarrisonId));
         }
 
         /// <summary>
