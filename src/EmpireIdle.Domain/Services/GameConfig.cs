@@ -53,5 +53,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Активні світи. Фонові джоби проходять по кожному.</summary>
         public List<int> ActiveServerIds { get; set; } = new() { 1 };
+
+        /// <summary>Квести з Config/quests.json — усі гілки: intro, military, milestones, daily, server.</summary>
+        public List<QuestConfig> Quests { get; set; } = new();
     }
 }

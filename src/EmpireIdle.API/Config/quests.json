@@ -1,0 +1,302 @@
+{
+  "GameConfig": {
+    "Quests": [
+      {
+        "Key": "intro_farm",
+        "DisplayName": "Перший урожай",
+        "Window": "Chain",
+        "Objectives": [
+          {
+            "Type": "BuildingCollected",
+            "Target": "food",
+            "Count": 50,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 10
+          }
+        ]
+      },
+      {
+        "Key": "intro_townhall_2",
+        "DisplayName": "Розбудова",
+        "Window": "Chain",
+        "Prerequisite": "intro_farm",
+        "Objectives": [
+          {
+            "Type": "BuildingUpgradeCompleted",
+            "Target": "townhall",
+            "Count": 2,
+            "Mode": "Threshold"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 20
+          }
+        ]
+      },
+      {
+        "Key": "intro_townhall_3",
+        "DisplayName": "Серце поселення",
+        "Window": "Chain",
+        "Prerequisite": "intro_townhall_2",
+        "Objectives": [
+          {
+            "Type": "BuildingUpgradeCompleted",
+            "Target": "townhall",
+            "Count": 3,
+            "Mode": "Threshold"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 30
+          },
+          {
+            "Type": "Resource",
+            "Key": "wood",
+            "Amount": 300
+          }
+        ]
+      },
+      {
+        "Key": "intro_barracks",
+        "DisplayName": "Час озброюватись",
+        "Window": "Chain",
+        "Prerequisite": "intro_townhall_3",
+        "Objectives": [
+          {
+            "Type": "BuildingUpgradeCompleted",
+            "Target": "barracks",
+            "Count": 1,
+            "Mode": "Threshold"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 40
+          }
+        ]
+      },
+      {
+        "Key": "military_first_squad",
+        "DisplayName": "Перший загін",
+        "Window": "Chain",
+        "Prerequisite": "intro_barracks",
+        "Objectives": [
+          {
+            "Type": "UnitsTrained",
+            "Target": "infantry",
+            "Count": 5,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 30
+          }
+        ]
+      },
+      {
+        "Key": "military_first_blood",
+        "DisplayName": "Бойове хрещення",
+        "Window": "Chain",
+        "Prerequisite": "military_first_squad",
+        "Objectives": [
+          {
+            "Type": "MonsterDefeated",
+            "Count": 1,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 50
+          }
+        ]
+      },
+      {
+        "Key": "intro_townhall_5",
+        "DisplayName": "Столиця",
+        "Window": "Chain",
+        "Prerequisite": "military_first_blood",
+        "Objectives": [
+          {
+            "Type": "BuildingUpgradeCompleted",
+            "Target": "townhall",
+            "Count": 5,
+            "Mode": "Threshold"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 100
+          },
+          {
+            "Type": "Item",
+            "Key": "boost_production_1h",
+            "Count": 1
+          }
+        ]
+      },
+
+      {
+        "Key": "milestone_townhall_10",
+        "DisplayName": "Віха: Ратуша 10",
+        "Window": "Chain",
+        "Objectives": [
+          {
+            "Type": "BuildingUpgradeCompleted",
+            "Target": "townhall",
+            "Count": 10,
+            "Mode": "Threshold"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 150
+          }
+        ]
+      },
+      {
+        "Key": "milestone_monsters_10",
+        "DisplayName": "Віха: 10 монстрів",
+        "Window": "Chain",
+        "Objectives": [
+          {
+            "Type": "MonsterDefeated",
+            "Count": 10,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 60
+          }
+        ]
+      },
+      {
+        "Key": "milestone_monsters_50",
+        "DisplayName": "Віха: 50 монстрів",
+        "Window": "Chain",
+        "Prerequisite": "milestone_monsters_10",
+        "Objectives": [
+          {
+            "Type": "MonsterDefeated",
+            "Count": 50,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 150
+          }
+        ]
+      },
+
+      {
+        "Key": "daily_collect",
+        "DisplayName": "Щоденний збір",
+        "Window": "Daily",
+        "Objectives": [
+          {
+            "Type": "BuildingCollected",
+            "Count": 500,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 10
+          }
+        ]
+      },
+      {
+        "Key": "daily_train",
+        "DisplayName": "Поповнення",
+        "Window": "Daily",
+        "Objectives": [
+          {
+            "Type": "UnitsTrained",
+            "Count": 10,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 12
+          }
+        ]
+      },
+      {
+        "Key": "daily_hunt",
+        "DisplayName": "Полювання",
+        "Window": "Daily",
+        "Objectives": [
+          {
+            "Type": "MonsterDefeated",
+            "Count": 3,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 15
+          }
+        ]
+      },
+      {
+        "Key": "daily_upgrade",
+        "DisplayName": "Розвиток",
+        "Window": "Daily",
+        "Objectives": [
+          {
+            "Type": "BuildingUpgradeCompleted",
+            "Count": 1,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 12
+          }
+        ]
+      },
+      {
+        "Key": "daily_spend",
+        "DisplayName": "Інвестиція",
+        "Window": "Daily",
+        "Objectives": [
+          {
+            "Type": "GemsSpent",
+            "Count": 20,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 6
+          }
+        ]
+      }
+    ]
+  }
+}

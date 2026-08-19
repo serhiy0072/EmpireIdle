@@ -4,6 +4,8 @@ using EmpireIdle.API.Middleware;
 using EmpireIdle.API.Services;
 using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Rewards;
+using EmpireIdle.Application.Rewards.Granters;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
@@ -19,9 +21,7 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ═══════════════════════════════════════════════════════════════
 //  1. КОНФІГУРАЦІЯ
-// ═══════════════════════════════════════════════════════════════
 
 builder.Configuration
     .AddJsonFile("game-config.json", optional: false, reloadOnChange: true)
@@ -33,7 +33,8 @@ builder.Configuration
     .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true);
 
 // ValidateOnStart перетворює 
 builder.Services.AddOptions<GameConfig>()
@@ -53,6 +54,15 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
     .Validate(c => c.ActiveServerIds.Contains(c.DefaultServerId), "GameConfig.DefaultServerId is not in ActiveServerIds.")
+    .Validate(c => c.Quests.Count > 0, "GameConfig.Quests is empty — check Config/quests.json.")
+    .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
+    .Validate(c => c.Quests.Select(q => q.Key).Distinct().Count() == c.Quests.Count, "GameConfig.Quests has duplicate keys.")
+    .Validate(c => c.Quests.All(q => q.Prerequisite is null || c.Quests.Any(p => p.Key == q.Prerequisite)), "A quest references a prerequisite that does not exist.")
+    .Validate(c => c.Quests.SelectMany(q => q.Rewards).All(r => r.Type != "Resource" || r.Key is not null), "A resource reward is missing its Key.")
+    .Validate(c => c.Quests.SelectMany(q => q.Rewards)
+        .Where(r => r.Type == "Resource").All(r => c.Resources.Any(res => res.Key == r.Key)), "A quest reward references an unknown resource.")
+    .Validate(c => c.Quests.SelectMany(q => q.Rewards)
+        .Where(r => r.Type == "Item").All(r => c.Items.Any(i => i.Key == r.Key)), "A quest reward references an unknown item.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -70,11 +80,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? throw new InvalidOperationException("Cors:AllowedOrigins is not configured.");
 
-// ═══════════════════════════════════════════════════════════════
 //  2. ДОМЕННІ СЕРВІСИ
 //  Усі через фабрику (sp => new ...): без цього об'єкт створюється
 //  в момент реєстрації й падає раніше за ValidateOnStart.
-// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddSingleton(sp => new GameCatalog(gameConfig));
 builder.Services.AddSingleton(sp => new TerrainGenerator(gameConfig.Map));
@@ -86,26 +94,20 @@ builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<Ter
 builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
 
-// ═══════════════════════════════════════════════════════════════
 //  3. ІНФРАСТРУКТУРА
 //  БД, репозиторії, Identity, MediatR, Outbox — усе в одному місці.
-// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// ═══════════════════════════════════════════════════════════════
 //  4. КОНТЕКСТ ЗАПИТУ
 //  Хто робить запит і в якому світі. Читається з JWT-клеймів.
-// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentPlayer, CurrentPlayer>();
 builder.Services.AddScoped<IRequestContext, RequestContext>();
 builder.Services.AddScoped<IServerContext, ServerContext>();
 
-// ═══════════════════════════════════════════════════════════════
 //  5. АУТЕНТИФІКАЦІЯ ТА АВТОРИЗАЦІЯ
-// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -146,9 +148,7 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
-// ═══════════════════════════════════════════════════════════════
 //  6. ЗАХИСТ ПЕРИМЕТРА
-// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -185,10 +185,8 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials()));
 
-// ═══════════════════════════════════════════════════════════════
 //  7. ФОНОВІ ЗАДАЧІ
 //  Hangfire живе в тій самій PostgreSQL базі.
-// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddHangfire(config =>
     config.UsePostgreSqlStorage(options =>
@@ -201,10 +199,9 @@ builder.Services.AddScoped<ServerJobRunner>();
 builder.Services.AddScoped<TimerScanJob>();
 builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();
+builder.Services.AddScoped<DailyQuestResetJob>();
 
-// ═══════════════════════════════════════════════════════════════
 //  8. ВЕБ-ШАР
-// ═══════════════════════════════════════════════════════════════
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -243,10 +240,8 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// ═══════════════════════════════════════════════════════════════
 //  9. КОНВЕЄР ЗАПИТУ
 //  Порядок критичний: кожен наступний крок покладається на попередній.
-// ═══════════════════════════════════════════════════════════════
 
 if (app.Environment.IsDevelopment())
 {
@@ -277,13 +272,12 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<GameHub>("/hubs/game");
 
-// ═══════════════════════════════════════════════════════════════
 //  10. РОЗКЛАД ФОНОВИХ ЗАДАЧ
-// ═══════════════════════════════════════════════════════════════
 
 RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
 RecurringJob.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.RunAsync(), Cron.Hourly);
+RecurringJob.AddOrUpdate<DailyQuestResetJob>("daily-quest-reset", job => job.RunAsync(), Cron.Daily);
 
 app.Run();
 

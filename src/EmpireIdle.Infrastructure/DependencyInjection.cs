@@ -1,7 +1,12 @@
 using EmpireIdle.Application.Common.Behaviors;
+using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
+using EmpireIdle.Application.Quests;
+using EmpireIdle.Application.Rewards;
+using EmpireIdle.Application.Rewards.Granters;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Payments;
 using EmpireIdle.Infrastructure.Persistence;
@@ -39,18 +44,19 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Repositories
+            services.AddScoped<IActiveEffectRepository, ActiveEffectRepository>();
+            services.AddScoped<IBattleReportRepository, BattleReportRepository>();
             services.AddScoped<IVillageRepository, VillageRepository>();
-            services.AddScoped<IPlayerRepository, PlayerRepository>();
-            services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
             services.AddScoped<IGarrisonRepository, GarrisonRepository>();
+            services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
+            services.AddScoped<IInventoryRepository, InventoryRepository>();
             services.AddScoped<IMapRepository, MapRepository>();
             services.AddScoped<IMonsterRepository, MonsterRepository>();
             services.AddScoped<IMarchRepository, MarchRepository>();
-            services.AddScoped<IBattleReportRepository, BattleReportRepository>();
-            services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
-            services.AddScoped<IInventoryRepository, InventoryRepository>();
-            services.AddScoped<IActiveEffectRepository, ActiveEffectRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<IPlayerRepository, PlayerRepository>();
+            services.AddScoped<IPlayerWalletRepository, PlayerWalletRepository>();
+            services.AddScoped<IQuestRepository, QuestRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
@@ -58,6 +64,31 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
+
+            // Нагороди — той самий патерн: усі реалізації + диспетчер за типом
+            services.AddScoped<IRewardGranter, GemRewardGranter>();
+            services.AddScoped<IRewardGranter, ResourceRewardGranter>();
+            services.AddScoped<IRewardGranter, ItemRewardGranter>();
+            services.AddScoped<RewardDispatcher>();
+
+            // Квести
+            services.AddScoped<QuestSignalResolver>();
+            services.AddScoped<QuestProgressTracker>();
+
+            // Закриті типи хендлера — MediatR не вміє резолвити відкритий генерик
+            // для вкладеної нотифікації, тому реєструємо їх рефлексією
+            var eventTypes = typeof(IDomainEvent).Assembly
+                .GetTypes()
+                .Where(t => typeof(IDomainEvent).IsAssignableFrom(t) && t is { IsAbstract: false, IsInterface: false });
+
+            foreach (var eventType in eventTypes)
+            {
+                var notification = typeof(DomainEventNotification<>).MakeGenericType(eventType);
+                var handlerInterface = typeof(INotificationHandler<>).MakeGenericType(notification);
+                var handlerImplementation = typeof(QuestProgressHandler<>).MakeGenericType(eventType);
+
+                services.AddScoped(handlerInterface, handlerImplementation);
+            }
 
             // Зовнішні сервіси
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();
