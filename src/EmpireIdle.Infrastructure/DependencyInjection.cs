@@ -1,9 +1,12 @@
 using EmpireIdle.Application.Common.Behaviors;
+using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
+using EmpireIdle.Application.Quests;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Granters;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Payments;
 using EmpireIdle.Infrastructure.Persistence;
@@ -67,6 +70,25 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IRewardGranter, ResourceRewardGranter>();
             services.AddScoped<IRewardGranter, ItemRewardGranter>();
             services.AddScoped<RewardDispatcher>();
+
+            // Квести
+            services.AddScoped<QuestSignalResolver>();
+            services.AddScoped<QuestProgressTracker>();
+
+            // Закриті типи хендлера — MediatR не вміє резолвити відкритий генерик
+            // для вкладеної нотифікації, тому реєструємо їх рефлексією
+            var eventTypes = typeof(IDomainEvent).Assembly
+                .GetTypes()
+                .Where(t => typeof(IDomainEvent).IsAssignableFrom(t) && t is { IsAbstract: false, IsInterface: false });
+
+            foreach (var eventType in eventTypes)
+            {
+                var notification = typeof(DomainEventNotification<>).MakeGenericType(eventType);
+                var handlerInterface = typeof(INotificationHandler<>).MakeGenericType(notification);
+                var handlerImplementation = typeof(QuestProgressHandler<>).MakeGenericType(eventType);
+
+                services.AddScoped(handlerInterface, handlerImplementation);
+            }
 
             // Зовнішні сервіси
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();
