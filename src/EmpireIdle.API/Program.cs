@@ -199,6 +199,7 @@ builder.Services.AddScoped<ServerJobRunner>();
 builder.Services.AddScoped<TimerScanJob>();
 builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();
+builder.Services.AddScoped<DailyQuestResetJob>();
 
 //  8. ВЕБ-ШАР
 
@@ -276,6 +277,7 @@ app.MapHub<GameHub>("/hubs/game");
 RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
 RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
 RecurringJob.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.RunAsync(), Cron.Hourly);
+RecurringJob.AddOrUpdate<DailyQuestResetJob>("daily-quest-reset", job => job.RunAsync(), Cron.Daily);
 
 app.Run();
 
