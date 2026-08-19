@@ -33,6 +33,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Include(g => g.TrainingOrders)
                 .Include(g => g.Wounded)
                 .Include(g => g.Recoverable)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(g => g.VillageId == villageId, cancellationToken);
 
         public async Task AddAsync(Garrison garrison, CancellationToken cancellationToken)
