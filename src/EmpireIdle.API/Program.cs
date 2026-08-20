@@ -64,6 +64,9 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Quests.SelectMany(q => q.Rewards.Select(r => (q.Key, r)))
         .Where(x => x.r.Type == "Item")
         .All(x => c.Items.Any(i => i.Key == x.r.Key)), "A quest reward references an unknown item — check Item keys in Config/quests.json against Config/items.json.")
+    .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
+    .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1,
+        "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));

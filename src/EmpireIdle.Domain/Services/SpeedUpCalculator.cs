@@ -11,22 +11,24 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Ціна миттєвого завершення: скільки gems коштує «зняти» решту часу.
+        /// Ціна прискорення в gems. Крива сублінійна: подвоєння часу
+        /// дає приблизно +68% ціни, тож довгі таймери лишаються в межах
+        /// одного пакета, а короткі майже безкоштовні.
         /// </summary>
-        /// <param name="completesAt">Момент завершення.</param>
-        /// <param name="utcNow">Поточний час.</param>
-        public int GetInstantFinishCost(DateTime completesAt, DateTime utcNow)
+        public int GetInstantFinishCost(DateTime completesAt, DateTime now)
         {
-            var remaining = completesAt - utcNow;
+            var remaining = completesAt - now;
 
             if (remaining <= TimeSpan.Zero)
                 return 0;
 
-            // Останні хвилини — безкоштовно: не змушуємо платити за дрібницю
-            if (remaining.TotalMinutes <= _config.InstantFinishThresholdMinutes)
+            var minutes = remaining.TotalMinutes;
+
+            if (minutes <= _config.InstantFinishThresholdMinutes)
                 return 0;
 
-            var cost = (int)Math.Ceiling(remaining.TotalMinutes * _config.SpeedUpGemsPerMinute);
+            var cost = (int)Math.Ceiling(_config.SpeedUpFactor * Math.Pow(minutes, _config.SpeedUpExponent));
+
             return Math.Max(_config.SpeedUpMinGems, cost);
         }
     }
