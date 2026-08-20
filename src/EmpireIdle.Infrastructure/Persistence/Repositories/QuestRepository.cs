@@ -34,12 +34,20 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public async Task AddAsync(QuestProgress progress, CancellationToken cancellationToken = default)
             => await _context.QuestProgress.AddAsync(progress, cancellationToken);
 
+        public Task<List<QuestProgress>> GetByKeysAsync(Guid playerId, IReadOnlySet<string> questKeys, CancellationToken cancellationToken = default)
+             => _context.QuestProgress
+                .Include(q => q.Objectives)
+                .Where(q => q.PlayerId == playerId && questKeys.Contains(q.QuestKey))
+                .ToListAsync(cancellationToken);
+
         /// <inheritdoc/>
-        public Task<List<QuestProgress>> GetByKeysAsync(IReadOnlySet<string> questKeys, DateTime startedBefore,
-            CancellationToken cancellationToken = default)
+        public Task<List<QuestProgress>> GetStaleDailyAsync(IReadOnlySet<string> questKeys, DateTime startedBefore,
+            int batchSize, CancellationToken cancellationToken = default)
             => _context.QuestProgress
                 .Include(q => q.Objectives)
                 .Where(q => questKeys.Contains(q.QuestKey) && q.StartedAt < startedBefore)
+                .OrderBy(q => q.Id)
+                .Take(batchSize)
                 .ToListAsync(cancellationToken);
     }
 }

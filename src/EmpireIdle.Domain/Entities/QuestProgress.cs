@@ -12,6 +12,7 @@ namespace EmpireIdle.Domain.Entities
     {
         private readonly List<QuestObjectiveProgress> _objectives = new();
 
+        public int ServerId { get; private set; }
         public Guid PlayerId { get; private set; }
         public string QuestKey { get; private set; } = null!;
         public QuestState State { get; private set; }
@@ -20,12 +21,20 @@ namespace EmpireIdle.Domain.Entities
         public DateTime? CompletedAt { get; private set; }
         public DateTime? ClaimedAt { get; private set; }
 
+        /// <summary>
+        /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
+        /// правились лише дочірні рядки — інакше токен паралелізму на корені
+        /// не спрацював би, бо EF не оновив би рядок кореня.
+        /// </summary>
+        public DateTime UpdatedAt { get; private set; }
+
         public IReadOnlyCollection<QuestObjectiveProgress> Objectives => _objectives.AsReadOnly();
 
-        public QuestProgress(Guid id, Guid playerId, string questKey, IEnumerable<int> requiredCounts, DateTime utcNow)
-            : base(id)
+        public QuestProgress(Guid id, Guid playerId, int serverId, string questKey,
+            IEnumerable<int> requiredCounts, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;
+            ServerId = serverId;
             QuestKey = questKey;
             State = QuestState.InProgress;
             StartedAt = utcNow;
@@ -45,6 +54,7 @@ namespace EmpireIdle.Domain.Entities
 
             Objective(objectiveIndex).Add(amount);
             TryComplete(utcNow);
+            Touch();
         }
 
         /// <summary>
@@ -58,6 +68,7 @@ namespace EmpireIdle.Domain.Entities
 
             Objective(objectiveIndex).RaiseTo(current);
             TryComplete(utcNow);
+            Touch();
         }
 
         /// <summary>Забрати нагороду. Ідемпотентно: повторний виклик нічого не робить.</summary>
@@ -69,22 +80,27 @@ namespace EmpireIdle.Domain.Entities
             State = QuestState.Claimed;
             ClaimedAt = utcNow;
 
+            Touch();
             return true;
         }
 
-        /// <summary>Скидає прогрес для Window=Daily.</summary>
+        /// <summary>
+        /// Скидає прогрес для Window=Daily. Лічильники обнуляються на місці —
+        /// видалення й вставка рядків із тим самим складеним ключем
+        /// дали б конфлікт у межах одного SaveChanges.
+        /// </summary>
         public void Reset(IEnumerable<int> requiredCounts, DateTime utcNow)
         {
-            _objectives.Clear();
+            var required = requiredCounts.ToList();
 
-            var index = 0;
-            foreach (var required in requiredCounts)
-                _objectives.Add(new QuestObjectiveProgress(Id, index++, required));
+            for (var i = 0; i < _objectives.Count; i++)
+                _objectives[i].ResetTo(i < required.Count ? required[i] : _objectives[i].Required);
 
             State = QuestState.InProgress;
             StartedAt = utcNow;
             CompletedAt = null;
             ClaimedAt = null;
+            Touch();
         }
 
         private QuestObjectiveProgress Objective(int index)
@@ -101,5 +117,7 @@ namespace EmpireIdle.Domain.Entities
 
             RaiseDomainEvent(new QuestCompleted(PlayerId, QuestKey));
         }
+
+        private void Touch() => UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -11,6 +11,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.ToTable("Garrisons");
             builder.HasKey(g => g.Id);
             builder.Property(g => g.Id).ValueGeneratedNever();
+            builder.Property(g => g.UpdatedAt).IsRequired();
+            builder.Property<uint>("Version").IsRowVersion();
 
             builder.HasIndex(g => g.VillageId).IsUnique();
 

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Application.Rewards

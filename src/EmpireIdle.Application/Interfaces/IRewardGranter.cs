@@ -1,6 +1,6 @@
 using EmpireIdle.Domain.Services;
 
-namespace EmpireIdle.Application.Rewards
+namespace EmpireIdle.Application.Interfaces
 {
     /// <summary>Контекст видачі нагороди.</summary>
     /// <param name="PlayerId">Кому видаємо.</param>

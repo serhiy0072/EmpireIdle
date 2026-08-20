@@ -14,6 +14,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(m => m.State).HasConversion<int>();
             builder.Property(m => m.TargetType).HasConversion<int>();
+            builder.Property(m => m.UpdatedAt).IsRequired();
 
             builder.HasIndex(m => m.GarrisonId);
             builder.HasIndex(m => new { m.State, m.ArrivesAt }); // сканер шукає дозрілі

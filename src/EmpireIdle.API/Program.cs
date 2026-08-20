@@ -61,8 +61,9 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Quests.SelectMany(q => q.Rewards).All(r => r.Type != "Resource" || r.Key is not null), "A resource reward is missing its Key.")
     .Validate(c => c.Quests.SelectMany(q => q.Rewards)
         .Where(r => r.Type == "Resource").All(r => c.Resources.Any(res => res.Key == r.Key)), "A quest reward references an unknown resource.")
-    .Validate(c => c.Quests.SelectMany(q => q.Rewards)
-        .Where(r => r.Type == "Item").All(r => c.Items.Any(i => i.Key == r.Key)), "A quest reward references an unknown item.")
+    .Validate(c => c.Quests.SelectMany(q => q.Rewards.Select(r => (q.Key, r)))
+        .Where(x => x.r.Type == "Item")
+        .All(x => c.Items.Any(i => i.Key == x.r.Key)), "A quest reward references an unknown item — check Item keys in Config/quests.json against Config/items.json.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));

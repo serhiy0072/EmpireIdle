@@ -12,6 +12,9 @@ namespace EmpireIdle.Domain.Entities
         private readonly List<WoundedUnit> _wounded = new();
         private readonly List<RecoverableUnit> _recoverable = new();
 
+        /// <summary>Скільки поранених зараз лежить у Госпіталі.</summary>
+        public int WoundedCount => _wounded.Sum(w => w.Count);
+
         /// <summary>Село, якому належить гарнізон.</summary>
         public Guid VillageId { get; private set; }
 
@@ -21,6 +24,13 @@ namespace EmpireIdle.Domain.Entities
         public IReadOnlyCollection<WoundedUnit> Wounded => _wounded.AsReadOnly();
         /// <summary>Юніти, доступні для викупу за gems (тільки для читання).</summary>
         public IReadOnlyCollection<RecoverableUnit> Recoverable => _recoverable.AsReadOnly();
+
+        /// <summary>
+        /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
+        /// правились лише дочірні рядки — інакше токен паралелізму на корені
+        /// не спрацював би, бо EF не оновив би рядок кореня.
+        /// </summary>
+        public DateTime UpdatedAt { get; private set; }
 
         public Garrison(Guid id, Guid villageId) : base(id)
         {
@@ -62,6 +72,10 @@ namespace EmpireIdle.Domain.Entities
                 _trainingOrders.Remove(order);
                 RaiseDomainEvent(new Events.UnitsTrained(Id, VillageId, order.UnitType, order.Count));
             }
+
+            if (due.Count > 0)
+                Touch();
+
             return due.Count;
         }
 
@@ -89,6 +103,8 @@ namespace EmpireIdle.Domain.Entities
 
             foreach (var (unitType, count) in units)
                 _units.First(u => u.UnitType == unitType).Subtract(count);
+
+            Touch();
         }
 
         /// <summary>Повертає юнітів у гарнізон (після походу).</summary>
@@ -107,10 +123,8 @@ namespace EmpireIdle.Domain.Entities
                 }
                 unit.Add(count);
             }
+            Touch();
         }
-
-        /// <summary>Скільки поранених зараз лежить у Госпіталі.</summary>
-        public int WoundedCount => _wounded.Sum(w => w.Count);
 
         /// <summary>Приймає поранених після бою (у межах вільної місткості).</summary>
         public void AdmitWounded(IReadOnlyDictionary<string, int> wounded)
@@ -128,6 +142,7 @@ namespace EmpireIdle.Domain.Entities
                 }
                 stack.Add(count);
             }
+            Touch();
         }
 
         /// <summary>
@@ -153,6 +168,7 @@ namespace EmpireIdle.Domain.Entities
             if (healed.Count > 0)
                 ReceiveUnits(healed);
 
+            Touch();
             return healed;
         }
 
@@ -165,8 +181,7 @@ namespace EmpireIdle.Domain.Entities
             order.Reduce(reduction);
         }
         /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
-        public int RecoverableCount(DateTime utcNow)
-            => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
+        public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
 
         /// <summary>Записує відновлюваних після бою — окремим стеком зі своїм дедлайном.</summary>
         public void AddRecoverable(IReadOnlyDictionary<string, int> units,
@@ -177,17 +192,16 @@ namespace EmpireIdle.Domain.Entities
                 if (count <= 0)
                     continue;
 
-                _recoverable.Add(new RecoverableUnit(
-                    Guid.NewGuid(), Id, battleReportId, unitType, count, expiresAt));
+                _recoverable.Add(new RecoverableUnit(Guid.NewGuid(), Id, battleReportId, unitType, count, expiresAt));
             }
+            Touch();
         }
 
         /// <summary>
         /// Викуповує юнітів: вони повертаються в гарнізон.
         /// Списує зі стеків у порядку найближчого дедлайну — щоб гравець не втратив те, що згорає першим.
         /// </summary>
-        public Dictionary<string, int> RecoverUnits(
-            IReadOnlyDictionary<string, int> toRecover, DateTime utcNow)
+        public Dictionary<string, int> RecoverUnits(IReadOnlyDictionary<string, int> toRecover, DateTime utcNow)
         {
             var recovered = new Dictionary<string, int>();
 
@@ -221,7 +235,10 @@ namespace EmpireIdle.Domain.Entities
             if (recovered.Count > 0)
                 ReceiveUnits(recovered);
 
+            Touch();
             return recovered;
         }
+
+        private void Touch() => UpdatedAt = DateTime.UtcNow;
     }
 }

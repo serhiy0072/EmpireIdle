@@ -29,5 +29,12 @@ namespace EmpireIdle.Domain.Entities
             if (current > Amount)
                 Amount = current;
         }
+
+        /// <summary>Обнуляє лічильник і оновлює потрібну кількість із конфіга.</summary>
+        internal void ResetTo(int required)
+        {
+            Amount = 0;
+            Required = required;
+        }
     }
 }

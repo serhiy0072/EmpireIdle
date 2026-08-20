@@ -4,28 +4,29 @@ using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Logging;
 
-namespace EmpireIdle.Application.Quests
+namespace EmpireIdle.Application.Quests.Tracking
 {
     /// <summary>
     /// Просуває прогрес квестів за сигналом події.
     /// Прогрес створюється лениво — рядок з'являється при першому влучанні,
     /// а не для кожного квесту кожному гравцю.
+    /// Не зберігає: транзакцією володіє той, хто її відкрив (OutboxProcessor).
     /// </summary>
     public class QuestProgressTracker
     {
         private readonly IQuestRepository _questRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
         private readonly ILogger<QuestProgressTracker> _logger;
 
         public QuestProgressTracker(
             IQuestRepository questRepository,
-            IUnitOfWork unitOfWork,
+            IServerContext serverContext,
             GameCatalog catalog,
             ILogger<QuestProgressTracker> logger)
         {
             _questRepository = questRepository;
-            _unitOfWork = unitOfWork;
+            _serverContext = serverContext;
             _catalog = catalog;
             _logger = logger;
         }
@@ -40,29 +41,32 @@ namespace EmpireIdle.Application.Quests
             if (candidates.Count == 0)
                 return;
 
-            var existing = (await _questRepository.GetAllAsync(signal.PlayerId, cancellationToken))
-                .ToDictionary(p => p.QuestKey);
-
-            var claimed = existing.Values
-                .Where(p => p.State == QuestState.Claimed)
-                .Select(p => p.QuestKey)
+            // Читаємо лише кандидатів і їхні пререквізити — решта прогресу нам не потрібна
+            var keys = candidates.Select(c => c.Key)
+                .Concat(candidates.Where(c => c.Prerequisite is not null).Select(c => c.Prerequisite!))
                 .ToHashSet();
 
-            var touched = false;
+            var loaded = (await _questRepository.GetByKeysAsync(signal.PlayerId, keys, cancellationToken))
+                .ToDictionary(p => p.QuestKey);
 
             foreach (var config in candidates)
             {
-                // Квест за замкненим пререквізитом не починається
-                if (config.Prerequisite is not null && !claimed.Contains(config.Prerequisite))
+                // Ланцюжок відкривається завершенням, а не клеймом:
+                // незабрана нагорода не має блокувати прогресію
+                if (config.Prerequisite is not null &&
+                    (!loaded.TryGetValue(config.Prerequisite, out var previous) ||
+                     previous.State == QuestState.InProgress))
                     continue;
 
-                if (!existing.TryGetValue(config.Key, out var progress))
+                if (!loaded.TryGetValue(config.Key, out var progress))
                 {
-                    progress = new QuestProgress(Guid.NewGuid(), signal.PlayerId, config.Key,
-                        config.Objectives.Select(o => o.Count), utcNow);
+                    progress = new QuestProgress(Guid.NewGuid(), signal.PlayerId, _serverContext.ServerId,
+                        config.Key, config.Objectives.Select(o => o.Count), utcNow);
 
                     await _questRepository.AddAsync(progress, cancellationToken);
-                    existing[config.Key] = progress;
+                    loaded[config.Key] = progress;
+
+                    _logger.LogDebug("Quest {QuestKey} started for player {PlayerId}", config.Key, signal.PlayerId);
                 }
 
                 if (progress.State != QuestState.InProgress)
@@ -84,13 +88,8 @@ namespace EmpireIdle.Application.Quests
                     {
                         progress.Advance(i, signal.Increment, utcNow);
                     }
-
-                    touched = true;
                 }
             }
-
-            if (touched)
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         /// <summary>Ціль реагує на подію, якщо збігся тип і (за наявності) уточнення.</summary>

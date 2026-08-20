@@ -37,7 +37,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {context.PlayerId}.");
 
-            var granted = village.GrantResource(key, context.Reward.Amount);
+            var granted = village.GrantResource(key, context.Reward.Amount, _catalog.Buildings);
 
             if (granted < context.Reward.Amount)
                 _logger.LogInformation(

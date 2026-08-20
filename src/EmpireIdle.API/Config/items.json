@@ -73,6 +73,17 @@
         "BoostTarget": "defense",
         "Multiplier": 1.25,
         "DurationHours": 8
+      },
+      {
+        "Key": "boost_production_1h",
+        "DisplayName": "Harvest Rush",
+        "Description": "Подвоює виробництво на годину",
+        "Rarity": "common",
+        "Type": "boost",
+        "IsStackable": true,
+        "BoostTarget": "production",
+        "Multiplier": 2.0,
+        "DurationHours": 1
       }
     ]
   }

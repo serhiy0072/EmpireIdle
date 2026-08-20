@@ -35,6 +35,13 @@ namespace EmpireIdle.Domain.Entities
         public int Y { get; private set; }
 
         /// <summary>
+        /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
+        /// правились лише дочірні рядки — інакше токен паралелізму на корені
+        /// не спрацював би, бо EF не оновив би рядок кореня.
+        /// </summary>
+        public DateTime UpdatedAt { get; private set; }
+
+        /// <summary>
         /// Створює нове село зі стартовим набором ресурсів (по нулю кожного).
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
@@ -85,6 +92,7 @@ namespace EmpireIdle.Domain.Entities
 
 
             RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
+            Touch();
         }
 
         /// <summary>
@@ -129,6 +137,7 @@ namespace EmpireIdle.Domain.Entities
             if (config.PopulationPerLevel > 0 && config.PopulationResource is not null)
                 AddPopulation(config.PopulationResource, config.PopulationPerLevel); //будівля 1-го рівня одразу дає населення
 
+            Touch();
             return building.Id;
         }
 
@@ -152,6 +161,8 @@ namespace EmpireIdle.Domain.Entities
 
             foreach (var line in cost)
                 _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * multiplier);
+
+            Touch();
         }
 
         /// <summary>
@@ -191,6 +202,7 @@ namespace EmpireIdle.Domain.Entities
             building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost);
 
             RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
+            Touch();
         }
 
         /// <summary>
@@ -214,6 +226,7 @@ namespace EmpireIdle.Domain.Entities
                 RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
             }
 
+            Touch();
             return due.Count;
         }
 
@@ -249,6 +262,7 @@ namespace EmpireIdle.Domain.Entities
 
                 resource.Add(line.Amount);
             }
+            Touch();
         }
 
         /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
@@ -265,6 +279,7 @@ namespace EmpireIdle.Domain.Entities
 
                 resource.Add(amount);
             }
+            Touch();
         }
 
         /// <summary>
@@ -280,13 +295,14 @@ namespace EmpireIdle.Domain.Entities
                 if (buildingConfigs.TryGetValue(building.Type, out var config) && config.ProducesResource is not null)
                     building.Materialize(config, utcNow, boost);
             }
+            Touch();
         }
 
         /// <summary>
         /// Нараховує ресурс від нагороди. Повертає, скільки реально зараховано:
-        /// надлишок понад кап складу згорає.
+        /// надлишок понад сумарний кап складів згорає.
         /// </summary>
-        public int GrantResource(string resourceKey, int amount)
+        public int GrantResource(string resourceKey, int amount, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
         {
             if (amount <= 0)
                 return 0;
@@ -294,8 +310,22 @@ namespace EmpireIdle.Domain.Entities
             var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
                 ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
 
-            resource.Add(amount);
-            return amount;
+            // Кап — сума складів будівель, що виробляють цей ресурс.
+            // Коли з'явиться warehouse (GDD §17.4), формула зміниться на його місткість.
+            var cap = _buildings
+                .Where(b => buildingConfigs.TryGetValue(b.Type, out var c) && c.ProducesResource == resourceKey)
+                .Sum(b => b.GetStorageCap(
+                    buildingConfigs[b.Type].BaseStorage, buildingConfigs[b.Type].StorageGrowth));
+
+            var granted = Math.Max(0, Math.Min(amount, cap - resource.Amount));
+
+            if (granted > 0)
+                resource.Add(granted);
+
+            Touch();
+            return granted;
         }
+
+        private void Touch() => UpdatedAt = DateTime.UtcNow;
     }
 }

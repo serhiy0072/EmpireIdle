@@ -1,4 +1,4 @@
-namespace EmpireIdle.Application.Quests
+namespace EmpireIdle.Application.Quests.Tracking
 {
     /// <summary>
     /// Доменна подія, зведена до вигляду, зрозумілого квестам.

@@ -54,6 +54,7 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<March>().HasQueryFilter(m => m.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<ServerQuestProgress>().HasQueryFilter(q => q.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<ServerQuestContribution>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<QuestProgress>().HasQueryFilter(q => q.ServerId == _serverContext.ServerId);
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(Entity).IsAssignableFrom(entityType.ClrType))

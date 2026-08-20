@@ -49,6 +49,13 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Склад армії (тільки для читання).</summary>
         public IReadOnlyCollection<MarchUnit> Units => _units.AsReadOnly();
 
+        /// <summary>
+        /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
+        /// правились лише дочірні рядки — інакше токен паралелізму на корені
+        /// не спрацював би, бо EF не оновив би рядок кореня.
+        /// </summary>
+        public DateTime UpdatedAt { get; private set; }
+
         public March(Guid id, int serverId, Guid garrisonId,
             int originX, int originY, int targetX, int targetY,
             MarchTargetType targetType, Guid targetId,
@@ -72,8 +79,7 @@ namespace EmpireIdle.Domain.Entities
         protected March() { } // Для EF Core
 
         /// <summary>Склад армії у вигляді словника (для повернення в гарнізон).</summary>
-        public Dictionary<string, int> GetUnits()
-            => _units.ToDictionary(u => u.UnitType, u => u.Count);
+        public Dictionary<string, int> GetUnits()  => _units.ToDictionary(u => u.UnitType, u => u.Count);
 
         /// <summary>
         /// Армія дійшла до цілі й розвертається додому.
@@ -86,6 +92,8 @@ namespace EmpireIdle.Domain.Entities
 
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
+
+            Touch();
         }
 
         /// <summary>Армія повернулася додому — похід завершено.</summary>
@@ -96,6 +104,8 @@ namespace EmpireIdle.Domain.Entities
 
             State = MarchState.Completed;
             RaiseDomainEvent(new Events.MarchReturned(Id, GarrisonId));
+
+            Touch();
         }
 
         /// <summary>
@@ -104,7 +114,7 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void ApplyLosses(IReadOnlyDictionary<string, int> losses)
         {
-            foreach(var (unitType, lost) in losses)
+            foreach (var (unitType, lost) in losses)
             {
                 var stack = _units.FirstOrDefault(u => u.UnitType == unitType);
                 if (stack is null || lost <= 0)
@@ -112,14 +122,25 @@ namespace EmpireIdle.Domain.Entities
                 stack.Reduce(lost);
             }
             _units.RemoveAll(u => u.Count <= 0);
+
+            Touch();
         }
 
         /// <summary>Фіксує факт бою для сповіщення гравця.</summary>
         public void RecordBattle(Guid playerId, Guid reportId, bool won, string targetName)
-            => RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName));
+        {
+            RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName));
+            Touch();
+        }
 
         /// <summary>Прискорює прибуття (speedup за gems).</summary>
-        public void Reduce(TimeSpan reduction) => ArrivesAt -= reduction;
+        public void ReduceTravelTime(TimeSpan reduction)
+        {
+            ArrivesAt -= reduction;
+            Touch();
+        }
+
+        private void Touch() => UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>Загін у складі походу.</summary>

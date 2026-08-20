@@ -3,6 +3,7 @@ using System;
 using EmpireIdle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EmpireIdle.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260819211950_QuestConcurrencyToken")]
+    partial class QuestConcurrencyToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,12 +49,6 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<int>("Target")
                         .HasColumnType("integer");
-
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -258,15 +255,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.Property<Guid>("VillageId")
                         .HasColumnType("uuid");
 
@@ -403,9 +391,6 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<int>("TargetY")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -592,12 +577,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
 
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.HasKey("Id");
 
                     b.HasIndex("PlayerId", "ItemKey")
@@ -619,9 +598,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("GemBalance")
                         .HasColumnType("integer")
                         .HasColumnName("GemBalance");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -689,9 +665,6 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<int>("State")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -761,12 +734,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
 
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ServerId", "QuestKey", "Amount")
@@ -803,12 +770,6 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<long>("Total")
                         .HasColumnType("bigint");
-
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -863,9 +824,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("X")
                         .HasColumnType("integer");
 
@@ -893,12 +851,6 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<int>("Amount")
                         .HasColumnType("integer");
-
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
 
                     b.HasKey("VillageId", "ResourceType");
 
