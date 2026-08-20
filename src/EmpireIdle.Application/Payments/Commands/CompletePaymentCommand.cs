@@ -17,28 +17,37 @@ namespace EmpireIdle.Application.Payments.Commands
         private readonly IPaymentRepository _paymentRepository;
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly IPlayerRepository _playerRepository;
+        private readonly IServerContext _serverContext;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CompletePaymentCommandHandler> _logger;
 
-        public CompletePaymentCommandHandler(IPaymentRepository paymentRepository,IPlayerWalletRepository walletRepository,IPlayerRepository playerRepository,
-            IUnitOfWork unitOfWork,ILogger<CompletePaymentCommandHandler> logger)
+        public CompletePaymentCommandHandler(
+            IPaymentRepository paymentRepository,
+            IPlayerWalletRepository walletRepository,
+            IPlayerRepository playerRepository,
+            IServerContext serverContext,
+            IUnitOfWork unitOfWork,
+            ILogger<CompletePaymentCommandHandler> logger)
         {
             _paymentRepository = paymentRepository;
             _walletRepository = walletRepository;
             _playerRepository = playerRepository;
+            _serverContext = serverContext;
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
         public async Task Handle(CompletePaymentCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
-
             var payment = await _paymentRepository.GetBySessionIdAsync(request.SessionId, cancellationToken)
                 ?? throw new InvalidOperationException($"Payment for session '{request.SessionId}' not found.");
 
+            // Вебхук анонімний — світ відновлюємо з платежу ПЕРЕД будь-яким читанням
+            // відфільтрованих сутностей, інакше query-фільтр на Player кине
+            _serverContext.UseServer(payment.ServerId);
+
             // Stripe надсилає вебхук повторно, доки не отримає 200 — другий раз нічого не нараховуємо
-            if (!payment.Complete(now))
+            if (!payment.Complete(DateTime.UtcNow))
             {
                 _logger.LogInformation("Payment {PaymentId} already completed, webhook ignored.", payment.Id);
                 return;

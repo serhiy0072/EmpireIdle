@@ -43,10 +43,17 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Коли підтверджено; null — ще ні.</summary>
         public DateTime? CompletedAt { get; private set; }
 
-        public Payment(Guid id, Guid playerId, string packKey, int gems,
+        /// <summary>
+        /// Світ, у якому зроблено покупку. Вебхук анонімний і не має токена,
+        /// тож контекст для query-фільтрів відновлюється звідси.
+        /// </summary>
+        public int ServerId { get; private set; }
+
+        public Payment(Guid id, Guid playerId, int serverId, string packKey, int gems,
             int amountCents, string currency, string sessionId, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;
+            ServerId = serverId;
             PackKey = packKey;
             Gems = gems;
             AmountCents = amountCents;
