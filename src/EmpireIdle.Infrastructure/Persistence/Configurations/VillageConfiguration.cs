@@ -14,6 +14,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasIndex(v => v.PlayerId).IsUnique();
             builder.Ignore(v => v.DomainEvents);
 
+            builder.Property(v => v.UpdatedAt).IsRequired();
             builder.Property(v => v.Name).IsRequired().HasMaxLength(100);
             builder.HasMany(v => v.Resources).WithOne().HasForeignKey("VillageId").IsRequired();
             builder.HasMany(v => v.Buildings).WithOne().HasForeignKey(b => b.VillageId);

@@ -14,6 +14,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(e => e.Target).HasConversion<int>();
             builder.Property(e => e.SourceItemKey).IsRequired().HasMaxLength(50);
+            builder.Property<uint>("Version").IsRowVersion();
 
             // Один активний ефект на ціль у межах гравця — повторний буст продовжує наявний
             builder.HasIndex(e => new { e.PlayerId, e.Target }).IsUnique();

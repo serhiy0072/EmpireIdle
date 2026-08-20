@@ -13,6 +13,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(q => q.QuestKey).IsRequired().HasMaxLength(50);
             builder.Property<uint>("Version").IsRowVersion();
+            builder.Property(q => q.UpdatedAt).IsRequired();
 
             // Один запис на квест у гравця — гарантія проти дублювання при гонці
             builder.HasIndex(q => new { q.PlayerId, q.QuestKey }).IsUnique();

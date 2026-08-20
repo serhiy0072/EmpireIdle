@@ -21,12 +21,18 @@ public class PlayerWallet : Entity
     /// <summary>Баланс gems (преміум валюта, купується за реальні гроші).</summary>
     public GemAmount GemBalance { get; private set; } = null!;
 
-
     /// <summary>Баланс coins (ігрова валюта, заробляється в грі).</summary>
     public CoinAmount CoinBalance { get; private set; } = null!;
 
     /// <summary>Історія транзакцій (тільки для читання).</summary>
     public IReadOnlyCollection<WalletTransaction> Transactions => _transactions.AsReadOnly();
+
+    /// <summary>
+    /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
+    /// правились лише дочірні рядки — інакше токен паралелізму на корені
+    /// не спрацював би, бо EF не оновив би рядок кореня.
+    /// </summary>
+    public DateTime UpdatedAt { get; private set; }
 
     public PlayerWallet(Guid id, string userId) : base(id)
     {
@@ -50,6 +56,7 @@ public class PlayerWallet : Entity
             Guid.NewGuid(), Id, TransactionType.GemPurchase, amount.Value, reference));
 
         RaiseDomainEvent(new GemsPurchased(notifyPlayerId, amount, GemBalance));
+        Touch();
     }
 
     /// <summary>
@@ -65,7 +72,9 @@ public class PlayerWallet : Entity
             Guid.NewGuid(), Id, TransactionType.GemSpend, -amount.Value, description));
 
         RaiseDomainEvent(new GemsSpent(notifyPlayerId, amount, GemBalance, description));
+        Touch();
     }
 
+    private void Touch() => UpdatedAt = DateTime.UtcNow;
 }
 

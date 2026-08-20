@@ -21,6 +21,13 @@ namespace EmpireIdle.Domain.Entities
         public DateTime? CompletedAt { get; private set; }
         public DateTime? ClaimedAt { get; private set; }
 
+        /// <summary>
+        /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
+        /// правились лише дочірні рядки — інакше токен паралелізму на корені
+        /// не спрацював би, бо EF не оновив би рядок кореня.
+        /// </summary>
+        public DateTime UpdatedAt { get; private set; }
+
         public IReadOnlyCollection<QuestObjectiveProgress> Objectives => _objectives.AsReadOnly();
 
         public QuestProgress(Guid id, Guid playerId, int serverId, string questKey,
@@ -47,6 +54,7 @@ namespace EmpireIdle.Domain.Entities
 
             Objective(objectiveIndex).Add(amount);
             TryComplete(utcNow);
+            Touch();
         }
 
         /// <summary>
@@ -60,6 +68,7 @@ namespace EmpireIdle.Domain.Entities
 
             Objective(objectiveIndex).RaiseTo(current);
             TryComplete(utcNow);
+            Touch();
         }
 
         /// <summary>Забрати нагороду. Ідемпотентно: повторний виклик нічого не робить.</summary>
@@ -71,6 +80,7 @@ namespace EmpireIdle.Domain.Entities
             State = QuestState.Claimed;
             ClaimedAt = utcNow;
 
+            Touch();
             return true;
         }
 
@@ -90,6 +100,7 @@ namespace EmpireIdle.Domain.Entities
             StartedAt = utcNow;
             CompletedAt = null;
             ClaimedAt = null;
+            Touch();
         }
 
         private QuestObjectiveProgress Objective(int index)
@@ -106,5 +117,7 @@ namespace EmpireIdle.Domain.Entities
 
             RaiseDomainEvent(new QuestCompleted(PlayerId, QuestKey));
         }
+
+        private void Touch() => UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -12,6 +12,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Ignore(c => c.DomainEvents);
 
             builder.Property(c => c.QuestKey).IsRequired().HasMaxLength(50);
+            builder.Property<uint>("Version").IsRowVersion();
 
             builder.HasIndex(c => new { c.ServerId, c.QuestKey, c.PlayerId }).IsUnique();
 
