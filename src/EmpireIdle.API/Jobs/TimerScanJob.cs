@@ -11,11 +11,16 @@ namespace EmpireIdle.API.Jobs
         public TimerScanJob(ServerJobRunner runner) => _runner = runner;
 
         [DisableConcurrentExecution(timeoutInSeconds: 300)]
-        public Task RunAsync() => _runner.ForEachServerAsync(nameof(DailyQuestResetJob), async (mediator, _) =>
+        public async Task RunAsync()
         {
-            await mediator.Send(new CompleteDueTimersCommand());
-            await mediator.Send(new CompleteDueMarchesCommand());
-            await mediator.Send(new PurgeExpiredRecoverableCommand());
-        });
+            await _runner.ForEachServerAsync(nameof(CompleteDueTimersCommand), (mediator, _) =>
+                mediator.Send(new CompleteDueTimersCommand()));
+
+            await _runner.ForEachServerAsync(nameof(CompleteDueMarchesCommand), (mediator, _) =>
+                mediator.Send(new CompleteDueMarchesCommand()));
+
+            await _runner.ForEachServerAsync(nameof(PurgeExpiredRecoverableCommand), (mediator, _) =>
+                mediator.Send(new PurgeExpiredRecoverableCommand()));
+        }
     }
 }
