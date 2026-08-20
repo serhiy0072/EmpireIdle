@@ -76,7 +76,7 @@ namespace EmpireIdle.Application.Marches.Commands
             }
 
             // Зсуваємо прибуття на «зараз»; бій або повернення відпрацює сканер
-            march.Reduce(march.ArrivesAt - now);
+            march.ReduceTravelTime(march.ArrivesAt - now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
