@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Api.Tests.Infrastructure;
 
@@ -25,6 +26,12 @@ public class TestApiFactory : WebApplicationFactory<global::Program>
             // вони чіпають ті самі рядки й дають фальшиві конфлікти
             services.RemoveAll<IHostedService>();
         });
+
+        // Показує згенерований SQL разом зі значеннями параметрів —
+        // без цього конфлікт xmin неможливо діагностувати
+        builder.ConfigureLogging(logging => logging
+            .AddConsole()
+            .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information));
     }
 
     /// <summary>Створює схему один раз перед тестами.</summary>
