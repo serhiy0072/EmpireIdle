@@ -3,7 +3,8 @@ using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
-using EmpireIdle.Application.Quests;
+using EmpireIdle.Application.Quests.Tracking;
+using EmpireIdle.Application.Quests.Tracking.Mappers;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Granters;
 using EmpireIdle.Domain.Events;
@@ -74,6 +75,14 @@ namespace EmpireIdle.Infrastructure
             // Квести
             services.AddScoped<QuestSignalResolver>();
             services.AddScoped<QuestProgressTracker>();
+
+            // Мапери подій 
+            services.AddScoped<IQuestSignalMapper, BuildingUpgradeCompletedMapper>();
+            services.AddScoped<IQuestSignalMapper, BuildingCollectedMapper>();
+            services.AddScoped<IQuestSignalMapper, MonsterDefeatedMapper>();
+            services.AddScoped<IQuestSignalMapper, BattleFoughtMapper>();
+            services.AddScoped<IQuestSignalMapper, GemsSpentMapper>();
+            services.AddScoped<IQuestSignalMapper, UnitsTrainedMapper>();
 
             // Закриті типи хендлера — MediatR не вміє резолвити відкритий генерик
             // для вкладеної нотифікації, тому реєструємо їх рефлексією

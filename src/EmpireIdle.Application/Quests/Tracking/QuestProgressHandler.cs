@@ -3,7 +3,7 @@ using EmpireIdle.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace EmpireIdle.Application.Quests
+namespace EmpireIdle.Application.Quests.Tracking
 {
     /// <summary>
     /// Підписник на будь-яку доменну подію. Один узагальнений клас замість
