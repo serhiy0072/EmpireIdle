@@ -179,7 +179,9 @@ namespace EmpireIdle.Domain.Entities
                 ?? throw new InvalidOperationException($"Training order {orderId} not found.");
 
             order.Reduce(reduction);
+            Touch();
         }
+
         /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
         public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
 
