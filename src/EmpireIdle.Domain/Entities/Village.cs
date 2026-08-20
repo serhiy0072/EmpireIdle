@@ -284,9 +284,9 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Нараховує ресурс від нагороди. Повертає, скільки реально зараховано:
-        /// надлишок понад кап складу згорає.
+        /// надлишок понад сумарний кап складів згорає.
         /// </summary>
-        public int GrantResource(string resourceKey, int amount)
+        public int GrantResource(string resourceKey, int amount, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
         {
             if (amount <= 0)
                 return 0;
@@ -294,8 +294,19 @@ namespace EmpireIdle.Domain.Entities
             var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
                 ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
 
-            resource.Add(amount);
-            return amount;
+            // Кап — сума складів будівель, що виробляють цей ресурс.
+            // Коли з'явиться warehouse (GDD §17.4), формула зміниться на його місткість.
+            var cap = _buildings
+                .Where(b => buildingConfigs.TryGetValue(b.Type, out var c) && c.ProducesResource == resourceKey)
+                .Sum(b => b.GetStorageCap(
+                    buildingConfigs[b.Type].BaseStorage, buildingConfigs[b.Type].StorageGrowth));
+
+            var granted = Math.Max(0, Math.Min(amount, cap - resource.Amount));
+
+            if (granted > 0)
+                resource.Add(granted);
+
+            return granted;
         }
     }
 }
