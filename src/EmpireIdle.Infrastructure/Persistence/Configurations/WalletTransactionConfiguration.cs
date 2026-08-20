@@ -12,6 +12,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<WalletTransaction> builder)
         {
             builder.HasKey(t => t.Id);
+            builder.Property(t => t.Id).ValueGeneratedNever();
 
             builder.Property(t => t.Reference).IsRequired().HasMaxLength(200);
             builder.Property(t => t.Amount).IsRequired();
