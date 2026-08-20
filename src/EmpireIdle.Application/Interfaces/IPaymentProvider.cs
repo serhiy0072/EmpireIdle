@@ -25,7 +25,6 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>
         /// Перевіряє підпис вебхука й розбирає його вміст.
-        /// Кидає виняток, якщо підпис недійсний.
         /// </summary>
         /// <param name="payload">Сире тіло запиту.</param>
         /// <param name="signatureHeader">Заголовок із підписом.</param>

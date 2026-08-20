@@ -1,9 +1,9 @@
+using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Payments.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stripe;
 
 namespace EmpireIdle.API.Controllers;
 
@@ -54,7 +54,7 @@ public class PaymentsController : ControllerBase
 
             return Ok();
         }
-        catch (StripeException ex)
+        catch (InvalidWebhookSignatureException ex)
         {
             // Невалідний підпис — ретрай не допоможе, це або атака, або зламаний секрет
             _logger.LogWarning(ex, "Rejected Stripe webhook: signature validation failed.");
@@ -67,5 +67,4 @@ public class PaymentsController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
-
 }

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Interfaces;
 using Microsoft.Extensions.Options;
 using Stripe;
@@ -59,9 +60,19 @@ namespace EmpireIdle.Infrastructure.Payments
         /// <inheritdoc/>
         public PaymentWebhookResult ParseWebhook(string payload, string signatureHeader)
         {
-            // Перевірка підпису: без неї будь-хто міг би надіслати «оплата пройшла»
-            var stripeEvent = EventUtility.ConstructEvent(payload, signatureHeader, _settings.WebhookSecret);
+            Stripe.Event stripeEvent;
 
+            try
+            {
+                // Перевірка підпису: без неї будь-хто міг би надіслати «оплата пройшла»
+                stripeEvent = EventUtility.ConstructEvent(payload, signatureHeader, _settings.WebhookSecret);
+            }
+            catch (StripeException ex)
+            {
+                throw new InvalidWebhookSignatureException("Stripe webhook signature validation failed.", ex);
+            }
+
+            // Не наша подія — не помилка: віддаємо 200, щоб Stripe не ретраїв
             if (stripeEvent.Type != EventTypes.CheckoutSessionCompleted)
                 return new PaymentWebhookResult(IsPaymentCompleted: false, SessionId: null);
 
