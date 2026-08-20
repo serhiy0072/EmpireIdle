@@ -32,6 +32,7 @@ namespace EmpireIdle.API.Jobs
             var cutoff = DateTime.UtcNow.AddDays(-_settings.RetentionDays);
 
             var deleted = await _context.OutboxMessages
+                .IgnoreQueryFilters()
                 .Where(m => m.ProcessedAt != null && m.ProcessedAt < cutoff)
                 .ExecuteDeleteAsync();
 

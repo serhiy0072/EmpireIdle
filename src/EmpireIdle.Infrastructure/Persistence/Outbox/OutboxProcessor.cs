@@ -64,7 +64,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
             using (var scope = _scopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                // Сканер бачить усі світи: сервер конкретного повідомлення
+                // встановлюється нижче, у ProcessOneAsync
                 ids = await context.OutboxMessages
+                    .IgnoreQueryFilters()
                     .AsNoTracking()
                     .Where(m => m.ProcessedAt == null && m.Attempts < _settings.MaxAttempts)
                     .OrderBy(m => m.OccurredAt)
@@ -147,6 +150,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             await context.OutboxMessages
+                .IgnoreQueryFilters()
                 .Where(m => m.Id == id)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(m => m.Attempts, m => m.Attempts + 1)
