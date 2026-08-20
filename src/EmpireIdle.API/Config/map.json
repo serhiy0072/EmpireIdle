@@ -1,10 +1,11 @@
 {
   "GameConfig": {
     "Map": {
-      "Width": 1000,
-      "Height": 1000,
+      "Width": 300,
+      "Height": 300,
       "TerrainSeed": 20260729,
       "ServerLevel": 1,
+      "CellsPerMonster": 30,
       "Terrains": [
         {
           "Type": "plain",
