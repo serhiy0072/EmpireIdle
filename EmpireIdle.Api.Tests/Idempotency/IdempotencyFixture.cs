@@ -1,7 +1,7 @@
 using EmpireIdle.Api.Tests.Infrastructure;
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Infrastructure.Persistence;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
