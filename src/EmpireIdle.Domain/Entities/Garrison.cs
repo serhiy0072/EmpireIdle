@@ -1,4 +1,6 @@
 
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
@@ -46,10 +48,10 @@ namespace EmpireIdle.Domain.Entities
         public void TrainUnits(string unitType, int count, int maxBatchSize, TimeSpan trainDuration, DateTime utcNow)
         {
             if (count < 1 || count > maxBatchSize)
-                throw new InvalidOperationException($"Training batch size must be between 1 and {maxBatchSize}.");
+                throw new RequirementNotMetException($"Training batch size must be between 1 and {maxBatchSize}.");
 
             if (_trainingOrders.Any())
-                throw new InvalidOperationException("Barracks are already training a batch.");
+                throw new InvalidStateException("Barracks are already training a batch.");
 
             _trainingOrders.Add(new UnitTrainingOrder(
                 Guid.NewGuid(), Id, unitType, count, utcNow + trainDuration));
@@ -86,19 +88,19 @@ namespace EmpireIdle.Domain.Entities
         public void SendUnits(IReadOnlyDictionary<string, int> units)
         {
             if (units.Count == 0)
-                throw new InvalidOperationException("Cannot send an empty army.");
+                throw new RequirementNotMetException("Cannot send an empty army.");
 
             // Спершу перевіряємо ВСІ позиції — щоб не зняти частину і впасти
             foreach (var (unitType, count) in units)
             {
                 if (count < 1)
-                    throw new InvalidOperationException($"Invalid unit count for '{unitType}'.");
+                    throw new RequirementNotMetException($"Invalid unit count for '{unitType}'.");
 
                 var unit = _units.FirstOrDefault(u => u.UnitType == unitType)
-                    ?? throw new InvalidOperationException($"No '{unitType}' units in garrison.");
+                     ?? throw new NotEnoughResourcesException(unitType, count, 0);
 
                 if (unit.Count < count)
-                    throw new InvalidOperationException($"Not enough '{unitType}': need {count}, have {unit.Count}.");
+                    throw new NotEnoughResourcesException(unitType, count, unit.Count);
             }
 
             foreach (var (unitType, count) in units)
@@ -176,7 +178,7 @@ namespace EmpireIdle.Domain.Entities
         public void ReduceTrainingTime(Guid orderId, TimeSpan reduction)
         {
             var order = _trainingOrders.FirstOrDefault(o => o.Id == orderId)
-                ?? throw new InvalidOperationException($"Training order {orderId} not found.");
+                 ?? throw new EntityNotFoundException("Training order", orderId);
 
             order.Reduce(reduction);
             Touch();
