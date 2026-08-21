@@ -21,8 +21,6 @@ public class PlayerWallet : Entity
     /// <summary>Баланс gems (преміум валюта, купується за реальні гроші).</summary>
     public GemAmount GemBalance { get; private set; } = null!;
 
-    /// <summary>Баланс coins (ігрова валюта, заробляється в грі).</summary>
-    public CoinAmount CoinBalance { get; private set; } = null!;
 
     /// <summary>Історія транзакцій (тільки для читання).</summary>
     public IReadOnlyCollection<WalletTransaction> Transactions => _transactions.AsReadOnly();
@@ -38,7 +36,6 @@ public class PlayerWallet : Entity
     {
         UserId = userId;
         GemBalance = GemAmount.Zero;
-        CoinBalance = CoinAmount.Zero;
     }
 
     protected PlayerWallet() { } // для EF Core
