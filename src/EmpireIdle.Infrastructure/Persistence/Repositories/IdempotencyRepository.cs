@@ -6,7 +6,12 @@ using Npgsql;
 
 namespace EmpireIdle.Infrastructure.Persistence.Repositories
 {
-    /// <summary>Репозиторій записів ідемпотентності (EF Core).</summary>
+    /// <summary>
+    /// Репозиторій записів ідемпотентності (EF Core).
+    /// Усі мутації йдуть через окремий контекст із фабрики: запис про резерв
+    /// має пережити відкат транзакції самої операції, інакше два паралельні
+    /// запити пройшли б обидва.
+    /// </summary>
     public class IdempotencyRepository : IIdempotencyRepository
     {
         private readonly AppDbContext _context;
@@ -23,15 +28,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             _logger = logger;
         }
 
+        /// <inheritdoc/>
         public Task<IdempotencyRecord?> FindAsync(Guid playerId, string key, CancellationToken cancellationToken = default)
             => _context.IdempotencyRecords
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.PlayerId == playerId && r.Key == key, cancellationToken);
 
+        /// <inheritdoc/>
         public async Task<bool> TryReserveAsync(IdempotencyRecord record, CancellationToken cancellationToken = default)
         {
-            // Окремий контекст: резерв має жити незалежно від транзакції самої операції.
-            // Інакше відкат операції зніс би і резерв — і два паралельні запити пройшли б обидва.
             await using var scoped = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             scoped.IdempotencyRecords.Add(record);
@@ -49,20 +54,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task ReleaseAsync(Guid recordId, CancellationToken cancellationToken = default)
-        {
-            await using var scoped = await _contextFactory.CreateDbContextAsync(cancellationToken);
-
-            await scoped.IdempotencyRecords
-                .Where(r => r.Id == recordId)
-                .ExecuteDeleteAsync(cancellationToken);
-        }
-
         /// <inheritdoc/>
         public async Task CompleteAsync(Guid recordId, string? responseJson, CancellationToken cancellationToken = default)
         {
-            // Окремий контекст — той самий шлях, що й резервував. Запис не трекається
-            // scoped-контекстом, тому SaveChanges на UnitOfWork його не бачить.
             await using var scoped = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             var affected = await scoped.IdempotencyRecords
@@ -73,6 +67,18 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
             if (affected == 0)
                 _logger.LogWarning("Idempotency record {RecordId} vanished before its response was stored.", recordId);
+        }
+
+        /// <inheritdoc/>
+        public async Task ReleaseAsync(Guid recordId, CancellationToken cancellationToken = default)
+        {
+            // Теж окремий контекст: операція впала, транзакція scoped-контексту
+            // може бути приречена — видалення в ній просто відкотилось би разом з нею.
+            await using var scoped = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+            await scoped.IdempotencyRecords
+                .Where(r => r.Id == recordId)
+                .ExecuteDeleteAsync(cancellationToken);
         }
 
         /// <inheritdoc/>

@@ -18,8 +18,9 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>
         /// Дописує відповідь до вже зарезервованого запису.
+        /// Окремий контекст — той самий, що резервував: запис не трекається
+        /// scoped-контекстом, тож SaveChanges на UnitOfWork його не бачить.
         /// </summary>
-        /// <param name="recordId">Id резерву, створеного <see cref="TryReserveAsync"/>.</param>
         Task CompleteAsync(Guid recordId, string? responseJson, CancellationToken cancellationToken = default);
 
         /// <summary>

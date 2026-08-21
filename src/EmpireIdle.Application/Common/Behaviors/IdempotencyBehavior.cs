@@ -3,7 +3,8 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel.DataAnnotations;
+using FluentValidation;
+using FluentValidation.Results;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -52,10 +53,14 @@ namespace EmpireIdle.Application.Common.Behaviors
 
             // Захист, який вимикається відсутністю заголовка, — не захист
             if (_requestContext.IdempotencyKey is not { } key)
-                throw new ValidationException("Idempotency-Key header is required for this operation.");
+                throw new ValidationException([
+                    new ValidationFailure("Idempotency-Key",
+                        "Idempotency-Key header is required for this operation.")]);
 
             if (!IdempotencyKeyPattern.IsMatch(key))
-                throw new ValidationException("Idempotency-Key must be 16–128 chars of [A-Za-z0-9._-].");
+                throw new ValidationException([
+                    new ValidationFailure("Idempotency-Key",
+                        "Idempotency-Key must be 16–128 chars of [A-Za-z0-9._-].")]);
 
             var requestType = typeof(TRequest).Name;
 
