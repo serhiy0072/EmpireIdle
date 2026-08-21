@@ -1,6 +1,7 @@
 using EmpireIdle.Api.Tests.Infrastructure;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -82,6 +83,63 @@ public class OptimisticLockingTests : IAsyncLifetime
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => contextB.SaveChangesAsync());
     }
 
+    /// <summary>
+    /// Дзеркало гарнізонного тесту для села. GrantResources міняє лише
+    /// VillageResources — рядок Villages оновлюється тільки через Touch().
+    /// До коміта 83da803 (токен на корені) другий SaveChanges мовчки проходив.
+    /// </summary>
+    [Fact]
+    public async Task Village_ShouldDetectConflict_WhenOnlyChildRowsChanged()
+    {
+        var villageId = await SeedVillageAsync();
+
+        await using var contextA = CreateContext();
+        await using var contextB = CreateContext();
+
+        var villageA = await LoadVillageAsync(contextA, villageId);
+        var villageB = await LoadVillageAsync(contextB, villageId);
+
+        var reward = new List<ResourceCost> { new() { Resource = "gold", Amount = 50 } };
+
+        villageA.GrantResources(reward, DateTime.UtcNow);
+        villageB.GrantResources(reward, DateTime.UtcNow);
+
+        await contextA.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => contextB.SaveChangesAsync());
+    }
+
+    /// <summary>
+    /// Інваріант «одна будівля кожного типу» тримається лише перевіркою в AddBuilding:
+    /// унікальності (VillageId, Type) в БД немає. Токен на корені — єдине,
+    /// що серіалізує два паралельні AddBuilding одного типу.
+    /// </summary>
+    [Fact]
+    public async Task Village_ShouldRejectConcurrentDuplicateBuilding()
+    {
+        var villageId = await SeedVillageAsync();
+        var buildings = _factory.Services.GetRequiredService<GameCatalog>().Buildings;
+
+        await using var contextA = CreateContext();
+        await using var contextB = CreateContext();
+
+        var villageA = await LoadVillageAsync(contextA, villageId);
+        var villageB = await LoadVillageAsync(contextB, villageId);
+
+        // Обидва бачать село без ферми й обидва проходять перевірку унікальності
+        villageA.AddBuilding("farm", buildings, DateTime.UtcNow);
+        villageB.AddBuilding("farm", buildings, DateTime.UtcNow);
+
+        await contextA.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => contextB.SaveChangesAsync());
+
+        await using var verify = CreateContext();
+        var final = await LoadVillageAsync(verify, villageId);
+
+        Assert.Single(final.Buildings, b => b.Type == "farm");
+    }
+
     private AppDbContext CreateContext()
     {
         var scope = _factory.Services.CreateScope();
@@ -107,5 +165,30 @@ public class OptimisticLockingTests : IAsyncLifetime
         await context.SaveChangesAsync();
 
         return garrison.Id;
+    }
+    private static Task<Village> LoadVillageAsync(AppDbContext context, Guid id)
+    => context.Villages
+        .Include(v => v.Buildings)
+        .Include(v => v.Resources)
+        .AsSplitQuery()
+        .FirstAsync(v => v.Id == id);
+
+    private async Task<Guid> SeedVillageAsync()
+    {
+        await using var context = CreateContext();
+
+        var village = new Village(
+            Guid.NewGuid(), Guid.NewGuid(), "Concurrency Test",
+            ["gold", "food", "wood", "iron", "population"], x: 5, y: 5);
+
+        // Ферма коштує 100 gold + 50 wood — з запасом, щоб ChargeCost не був причиною падіння
+        village.GrantStartingResources(
+            new Dictionary<string, int> { ["gold"] = 1000, ["wood"] = 1000, ["food"] = 1000, ["iron"] = 1000 },
+            DateTime.UtcNow);
+
+        context.Villages.Add(village);
+        await context.SaveChangesAsync();
+
+        return village.Id;
     }
 }
