@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 using System.Text.Json;
 using AwesomeAssertions;
 using EmpireIdle.Application.Common.Behaviors;
@@ -232,7 +232,6 @@ public class IdempotencyBehaviorTests
     }
 
     // ---------- Key validation ----------
-
     [Fact]
     public async Task Handle_ShouldReject_WhenHeaderIsMissing()
     {
@@ -242,8 +241,11 @@ public class IdempotencyBehaviorTests
 
         var act = async () => await behavior.Handle(new PayCommand(10), Handler(), CancellationToken.None);
 
-        await act.Should().ThrowAsync<ValidationException>()
-            .WithMessage("*Idempotency-Key header is required*");
+        // PropertyName має збігатися з іменем заголовка: GlobalExceptionHandler
+        // групує Errors саме по ньому, і це те, що клієнт побачить у відповіді
+        (await act.Should().ThrowAsync<ValidationException>())
+            .Which.Errors.Should().ContainSingle()
+            .Which.PropertyName.Should().Be("Idempotency-Key");
     }
 
     [Theory]
