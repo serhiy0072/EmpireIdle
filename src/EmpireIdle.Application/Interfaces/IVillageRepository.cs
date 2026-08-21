@@ -15,7 +15,5 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Села, у яких є будівництва з простроченим часом завершення.</summary>
         Task<List<Village>> GetWithDueConstructionsAsync(DateTime utcNow, CancellationToken cancellationToken = default);
 
-        /// <summary>Села порціями для тіку виробництва (пагінація за Id).</summary>
-        Task<List<Village>> GetBatchForTickAsync(Guid? afterId, int batchSize, CancellationToken cancellationToken = default);
     }
 }

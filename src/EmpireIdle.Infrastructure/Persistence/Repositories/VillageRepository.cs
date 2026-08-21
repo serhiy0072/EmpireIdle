@@ -55,14 +55,5 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Where(v => v.Buildings.Any(b => b.ConstructionCompletesAt != null && b.ConstructionCompletesAt <= utcNow))
             .ToListAsync(cancellationToken);
 
-        /// <inheritdoc/>
-        public Task<List<Village>> GetBatchForTickAsync(Guid? afterId, int batchSize, CancellationToken cancellationToken = default)
-            => _context.Villages
-            .Include(v => v.Buildings)
-            .AsSplitQuery()
-            .Where(v => afterId == null || v.Id > afterId)
-            .OrderBy(v => v.Id)
-            .Take(batchSize)
-            .ToListAsync(cancellationToken);
     }
 }
