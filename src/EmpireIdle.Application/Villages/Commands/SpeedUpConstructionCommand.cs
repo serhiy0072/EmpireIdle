@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
@@ -44,10 +45,10 @@ namespace EmpireIdle.Application.Villages.Commands
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
             var building = village.Buildings.FirstOrDefault(b => b.Id == request.BuildingId)
-                ?? throw new InvalidOperationException($"Building {request.BuildingId} not found.");
+                ?? throw new EntityNotFoundException("Building", request.BuildingId);
 
             if (!building.IsUnderConstruction)
-                throw new InvalidOperationException("Building is not under construction.");
+                throw new InvalidStateException($"Building {request.BuildingId} is not under construction.");
 
             var cost = _calculator.GetInstantFinishCost(building.ConstructionCompletesAt!.Value, now);
 

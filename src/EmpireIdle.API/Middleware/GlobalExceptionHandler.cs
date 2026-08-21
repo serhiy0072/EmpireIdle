@@ -40,6 +40,7 @@ namespace EmpireIdle.API.Middleware
 
             var (statusCode, title) = exception switch
             {
+                EntityNotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
                 DomainException => (StatusCodes.Status400BadRequest, "Domain Rule Violated"),
                 InvalidOperationException => (StatusCodes.Status400BadRequest, "BadRequest"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
