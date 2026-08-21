@@ -12,7 +12,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasKey(o => o.Id);
             builder.Property(o => o.Id).ValueGeneratedNever();
             builder.Property(o => o.UnitType).IsRequired().HasMaxLength(50);
-            builder.HasIndex(o => o.CompletesAt); // сканер шукає дозрілі
+            builder.HasIndex(o => new { o.CompletesAt, o.GarrisonId });
         }
     }
 }

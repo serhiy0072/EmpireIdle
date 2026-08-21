@@ -14,6 +14,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         {
             builder.HasKey(b => b.Id);
             builder.Property(b => b.Id).ValueGeneratedNever(); // ключ завжди ставить домен, не БД/EF
+            // Сканер щохвилини робить EXISTS по цій колонці. Композитний — щоб join
+            // назад на село брався з того ж індексу; частковий — бо будівель
+            // у процесі будівництва завжди мала частка
+            builder.HasIndex(b => new { b.ConstructionCompletesAt, b.VillageId })
+                   .HasFilter("\"ConstructionCompletesAt\" IS NOT NULL");
 
             builder.Property(b => b.Type).IsRequired().HasMaxLength(50);
             builder.Property(b => b.Level).HasConversion(l=> l.Value, v=>new Domain.ValueObjects.BuildingLevel(v)).HasColumnName("Level");
