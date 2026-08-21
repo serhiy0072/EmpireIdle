@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
@@ -60,7 +61,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var marches = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
 
             var march = marches.FirstOrDefault(m => m.Id == request.MarchId)
-                ?? throw new InvalidOperationException($"Active march {request.MarchId} not found.");
+                ?? throw new EntityNotFoundException($"Active", request.MarchId);
 
             var cost = _calculator.GetInstantFinishCost(march.ArrivesAt, now);
 

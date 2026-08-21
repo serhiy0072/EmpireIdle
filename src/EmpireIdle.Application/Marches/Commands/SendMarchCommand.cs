@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -64,7 +65,7 @@ namespace EmpireIdle.Application.Marches.Commands
             // Ліміт одночасних походів
             var active = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
             if (active.Count >= MaxActiveMarches)
-                throw new InvalidOperationException($"Cannot send more than {MaxActiveMarches} marches at once.");
+                throw new RequirementNotMetException($"Cannot send more than {MaxActiveMarches} marches at once.");
 
             var (targetX, targetY) = await ResolveTargetAsync(request, cancellationToken);
 
@@ -97,16 +98,16 @@ namespace EmpireIdle.Application.Marches.Commands
             {
                 case MarchTargetType.Monster:
                     var monster = await _monsterRepository.GetByIdAsync(request.TargetId, cancellationToken)
-                        ?? throw new InvalidOperationException($"Monster {request.TargetId} not found.");
+                        ?? throw new EntityNotFoundException($"Monster", request.TargetId);
                     return (monster.X, monster.Y);
 
                 case MarchTargetType.Village:
                     var target = await _villageRepository.GetByIdAsync(request.TargetId, cancellationToken)
-                        ?? throw new InvalidOperationException($"Village {request.TargetId} not found.");
+                        ?? throw new EntityNotFoundException($"Village", request.TargetId);
                     return (target.X, target.Y);
 
                 default:
-                    throw new InvalidOperationException($"Unsupported target type '{request.TargetType}'.");
+                    throw new RequirementNotMetException($"Unsupported target type '{request.TargetType}'.");
             }
         }
     }
