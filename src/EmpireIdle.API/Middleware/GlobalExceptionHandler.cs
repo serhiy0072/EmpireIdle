@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,7 @@ namespace EmpireIdle.API.Middleware
 
             var (statusCode, title) = exception switch
             {
+                DomainException => (StatusCodes.Status400BadRequest, "Domain Rule Violated"),
                 InvalidOperationException => (StatusCodes.Status400BadRequest, "BadRequest"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 ArgumentException => (StatusCodes.Status400BadRequest, "Invalid Argument"),
