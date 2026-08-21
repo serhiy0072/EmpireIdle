@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -46,10 +47,10 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
             var config = _catalog.Unit(request.UnitType)
-                ?? throw new InvalidOperationException($"Unknown unit type '{request.UnitType}'.");
+                ?? throw new EntityNotFoundException($"Unit type", request.UnitType);
 
             if (config.RequiresBuilding is not null && !village.HasBuilding(config.RequiresBuilding))
-                throw new InvalidOperationException($"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.");
+                throw new RequirementNotMetException($"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.");
 
             village.ChargeCost(config.Cost, DateTime.UtcNow, request.Count);
 

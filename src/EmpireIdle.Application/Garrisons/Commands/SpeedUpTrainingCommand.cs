@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
@@ -49,7 +50,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
             var order = garrison.TrainingOrders.FirstOrDefault(o => o.Id == request.OrderId)
-                ?? throw new InvalidOperationException($"Training order {request.OrderId} not found.");
+                ?? throw new EntityNotFoundException($"Training order", request.OrderId);
 
             var cost = _calculator.GetInstantFinishCost(order.CompletesAt, now);
 

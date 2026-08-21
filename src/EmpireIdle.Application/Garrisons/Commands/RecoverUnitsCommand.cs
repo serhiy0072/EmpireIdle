@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
@@ -52,7 +53,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             // бо частина могла згоріти по дедлайну між показом екрана і натисканням кнопки
             var recovered = garrison.RecoverUnits(request.Units, DateTime.UtcNow);
             if (recovered.Count == 0)
-                throw new InvalidOperationException("Nothing to recover.");
+                throw new InvalidStateException("Nothing to recover.");
 
             var cost = CalculateCost(recovered);
 
@@ -79,7 +80,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             foreach (var (unitType, count) in recovered)
             {
                 var config = _catalog.Unit(unitType)
-                    ?? throw new InvalidOperationException($"Unknown unit type '{unitType}'.");
+                    ?? throw new EntityNotFoundException($"Unit type", unitType);
 
                 total += config.RecoverCostGems * count;
             }

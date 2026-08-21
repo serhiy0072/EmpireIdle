@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
@@ -63,7 +64,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             var healed = garrison.HealWounded(request.Units);
             if (healed.Count == 0)
-                throw new InvalidOperationException("Nothing to heal.");
+                throw new InvalidStateException("Nothing to heal.");
 
             if (request.Payment == HealPaymentMethod.Gems)
                 await ChargeGemsAsync(healed, request.PlayerId, cancellationToken);
@@ -102,7 +103,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                     continue;
 
                 var config = _catalog.Unit(unitType)
-                    ?? throw new InvalidOperationException($"Unknown unit type '{unitType}'.");
+                    ?? throw new EntityNotFoundException($"Unit type", unitType);
 
                 foreach (var line in config.Cost)
                 {
