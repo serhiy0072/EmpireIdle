@@ -21,7 +21,7 @@ namespace EmpireIdle.Application.Marches.Commands
     /// Обробник SendMarchCommand: знімає юнітів із гарнізону,
     /// рахує час дороги й ставить похід у дорогу.
     /// </summary>
-    public class SendMarchCommandHandler : IRequestHandler<SendMarchCommand, Guid>
+    public sealed class SendMarchCommandHandler : IRequestHandler<SendMarchCommand, Guid>
     {
         private const int MaxActiveMarches = 3;
 

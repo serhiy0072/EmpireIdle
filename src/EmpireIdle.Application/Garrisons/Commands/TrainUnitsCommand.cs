@@ -16,7 +16,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     /// Обробник TrainUnitsCommand: координує Village (списання вартості)
     /// та Garrison (постановка в чергу тренування) в одній транзакції.
     /// </summary>
-    internal class TrainUnitsCommandHandler : IRequestHandler<TrainUnitsCommand>
+    internal sealed class TrainUnitsCommandHandler : IRequestHandler<TrainUnitsCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;

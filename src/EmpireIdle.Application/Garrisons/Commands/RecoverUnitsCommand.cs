@@ -13,7 +13,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     public record RecoverUnitsCommand(Guid PlayerId, Dictionary<string, int> Units)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    public class RecoverUnitsCommandHandler : IRequestHandler<RecoverUnitsCommand>
+    public sealed class RecoverUnitsCommandHandler : IRequestHandler<RecoverUnitsCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;

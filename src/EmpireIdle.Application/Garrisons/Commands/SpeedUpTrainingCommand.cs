@@ -11,7 +11,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     /// <summary>Миттєво завершити тренування за gems.</summary>
     public record SpeedUpTrainingCommand(Guid PlayerId, Guid OrderId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    public class SpeedUpTrainingCommandHandler : IRequestHandler<SpeedUpTrainingCommand>
+    public sealed class SpeedUpTrainingCommandHandler : IRequestHandler<SpeedUpTrainingCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;

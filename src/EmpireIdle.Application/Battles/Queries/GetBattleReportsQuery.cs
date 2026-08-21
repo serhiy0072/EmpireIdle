@@ -8,7 +8,7 @@ namespace EmpireIdle.Application.Battles.Queries
     /// <summary>Останні звіти про бої гравця.</summary>
     public record GetBattleReportsQuery(Guid PlayerId, int Take = 20) : IRequest<List<BattleReport>>, IPlayerScopedRequest;
 
-    public class GetBattleReportsQueryHandler : IRequestHandler<GetBattleReportsQuery, List<BattleReport>>
+    public sealed class GetBattleReportsQueryHandler : IRequestHandler<GetBattleReportsQuery, List<BattleReport>>
     {
         private const int MaxTake = 50;
 

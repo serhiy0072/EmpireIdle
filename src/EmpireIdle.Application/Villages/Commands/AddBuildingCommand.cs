@@ -14,7 +14,7 @@ namespace EmpireIdle.Application.Villages.Commands
     /// <summary>
     /// Обробник команди AddBuildingCommand. Повертає Id створеної будівлі.
     /// </summary>
-    public class AddBuildingCommandHandler : IRequestHandler<AddBuildingCommand, Guid>
+    public sealed class AddBuildingCommandHandler : IRequestHandler<AddBuildingCommand, Guid>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;

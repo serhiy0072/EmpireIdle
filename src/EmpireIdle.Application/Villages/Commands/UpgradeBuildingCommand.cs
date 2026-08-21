@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Villages.Commands
     /// <summary>
     /// Обробник команди UpgradeBuildingCommand.
     /// </summary>
-    public class UpgradeBuildingCommandHandler : IRequestHandler<UpgradeBuildingCommand>
+    public sealed class UpgradeBuildingCommandHandler : IRequestHandler<UpgradeBuildingCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;

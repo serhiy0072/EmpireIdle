@@ -9,7 +9,7 @@ namespace EmpireIdle.Application.Map.Commands
     /// <summary>Доповнює популяцію монстрів до цільової щільності на вказаному сервері.</summary>
     public record SpawnMonstersCommand(int ServerId) : IRequest;
 
-    public class SpawnMonstersCommandHandler : IRequestHandler<SpawnMonstersCommand>
+    public sealed class SpawnMonstersCommandHandler : IRequestHandler<SpawnMonstersCommand>
     {
         private const int MaxSpawnsPerRun = 50;  // не засівати всю карту одним прогоном
 

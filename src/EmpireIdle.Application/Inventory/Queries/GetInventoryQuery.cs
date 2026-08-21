@@ -11,7 +11,7 @@ namespace EmpireIdle.Application.Inventory.Queries
     /// <summary>Запит на інвентар гравця.</summary>
     public record GetInventoryQuery(Guid PlayerId) : IRequest<InventoryContents>, IPlayerScopedRequest;
 
-    public class GetInventoryQueryHandler : IRequestHandler<GetInventoryQuery, InventoryContents>
+    public sealed class GetInventoryQueryHandler : IRequestHandler<GetInventoryQuery, InventoryContents>
     {
         private readonly IInventoryRepository _repository;
         private readonly IActiveEffectRepository _effectRepository;

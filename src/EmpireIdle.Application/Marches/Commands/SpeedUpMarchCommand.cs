@@ -16,7 +16,7 @@ namespace EmpireIdle.Application.Marches.Commands
     /// Обробник SpeedUpMarchCommand: списує gems і зсуває час прибуття на «зараз».
     /// Сам бій відбудеться найближчим проходом сканера.
     /// </summary>
-    public class SpeedUpMarchCommandHandler : IRequestHandler<SpeedUpMarchCommand>
+    public sealed class SpeedUpMarchCommandHandler : IRequestHandler<SpeedUpMarchCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;

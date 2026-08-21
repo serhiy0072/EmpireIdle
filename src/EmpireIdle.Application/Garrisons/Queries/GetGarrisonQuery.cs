@@ -8,7 +8,7 @@ namespace EmpireIdle.Application.Garrisons.Queries
     /// <summary>Запит на отримання гарнізону гравця.</summary>
     public record GetGarrisonQuery(Guid PlayerId) : IRequest<Garrison>, IPlayerScopedRequest;
 
-    public class GetGarrisonQueryHandler : IRequestHandler<GetGarrisonQuery, Garrison>
+    public sealed class GetGarrisonQueryHandler : IRequestHandler<GetGarrisonQuery, Garrison>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;

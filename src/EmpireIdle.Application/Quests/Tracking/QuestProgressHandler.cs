@@ -9,7 +9,7 @@ namespace EmpireIdle.Application.Quests.Tracking
     /// Підписник на будь-яку доменну подію. Один узагальнений клас замість
     /// окремого хендлера на кожен тип — закриті типи реєструються рефлексією.
     /// </summary>
-    public class QuestProgressHandler<TEvent> : INotificationHandler<DomainEventNotification<TEvent>>
+    public sealed class QuestProgressHandler<TEvent> : INotificationHandler<DomainEventNotification<TEvent>>
         where TEvent : IDomainEvent
     {
         private readonly QuestSignalResolver _resolver;

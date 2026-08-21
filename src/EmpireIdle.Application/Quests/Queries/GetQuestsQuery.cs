@@ -24,7 +24,7 @@ namespace EmpireIdle.Application.Quests.Queries
     /// <summary>Ціль квесту з прогресом.</summary>
     public record QuestObjectiveView(string Type, string? Target, int Amount, int Required);
 
-    public class GetQuestsQueryHandler : IRequestHandler<GetQuestsQuery, List<QuestView>>
+    public sealed class GetQuestsQueryHandler : IRequestHandler<GetQuestsQuery, List<QuestView>>
     {
         private readonly IQuestRepository _questRepository;
         private readonly IVillageRepository _villageRepository;

@@ -12,7 +12,7 @@ namespace EmpireIdle.Application.Payments.Commands
     /// Викликається лише з вебхука — не має IPlayerScopedRequest,
     /// бо власника визначає збережений Payment, а не токен.
     /// </summary>
-    public class CompletePaymentCommandHandler : IRequestHandler<CompletePaymentCommand>
+    public sealed class CompletePaymentCommandHandler : IRequestHandler<CompletePaymentCommand>
     {
         private readonly IPaymentRepository _paymentRepository;
         private readonly IPlayerWalletRepository _walletRepository;

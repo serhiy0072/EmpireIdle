@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Payments.Commands
     /// Обробник: фіксує Pending-платіж і повертає посилання на Stripe Checkout.
     /// Gems нараховуються не тут, а вебхуком — повернення гравця на сайт нічого не доводить.
     /// </summary>
-    public class CreateCheckoutSessionCommandHandler : IRequestHandler<CreateCheckoutSessionCommand, string>
+    public sealed class CreateCheckoutSessionCommandHandler : IRequestHandler<CreateCheckoutSessionCommand, string>
     {
         private readonly IPaymentProvider _paymentProvider;
         private readonly IPaymentRepository _paymentRepository;

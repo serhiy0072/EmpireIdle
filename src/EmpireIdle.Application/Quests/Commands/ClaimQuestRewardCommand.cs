@@ -18,7 +18,7 @@ namespace EmpireIdle.Application.Quests.Commands
     /// Перехід стану йде ПЕРЕД видачею — якщо квест уже забраний,
     /// нагорода не видається взагалі.
     /// </summary>
-    public class ClaimQuestRewardCommandHandler : IRequestHandler<ClaimQuestRewardCommand>
+    public sealed class ClaimQuestRewardCommandHandler : IRequestHandler<ClaimQuestRewardCommand>
     {
         private readonly IQuestRepository _questRepository;
         private readonly RewardDispatcher _rewards;

@@ -14,7 +14,7 @@ namespace EmpireIdle.Application.Villages.Queries
     /// <summary>
     /// Обробник запиту GetVillageQuery.
     /// </summary>
-    public class GetVillageQueryHandler : IRequestHandler<GetVillageQuery, Village>
+    public sealed class GetVillageQueryHandler : IRequestHandler<GetVillageQuery, Village>
     {
         private readonly IVillageRepository _villageRepository;
         public GetVillageQueryHandler(IVillageRepository villageRepository)

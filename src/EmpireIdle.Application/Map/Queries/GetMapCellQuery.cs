@@ -11,7 +11,7 @@ namespace EmpireIdle.Application.Map.Queries
     /// <summary>Хто стоїть на клітині.</summary>
     public record GetMapCellQuery(int ServerId, int X, int Y) : IRequest<MapCellOccupant?>;
 
-    public class GetMapCellQueryHandler : IRequestHandler<GetMapCellQuery, MapCellOccupant?>
+    public sealed class GetMapCellQueryHandler : IRequestHandler<GetMapCellQuery, MapCellOccupant?>
     {
         private readonly IMapRepository _mapRepository;
         private readonly IMonsterRepository _monsterRepository;

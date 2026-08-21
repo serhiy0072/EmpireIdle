@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Players.Commands
     /// <summary>
     /// Обробник команди CreatePlayerCommand. Повертає Id створеного гравця.
     /// </summary>
-    public class CreatePlayerCommandHandler : IRequestHandler<CreatePlayerCommand, Guid>
+    public sealed class CreatePlayerCommandHandler : IRequestHandler<CreatePlayerCommand, Guid>
     {
         private readonly IPlayerRepository _playerRepository;
         private readonly IVillageRepository _villageRepository;

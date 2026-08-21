@@ -9,7 +9,7 @@ namespace EmpireIdle.Application.Quests.Commands
     /// <summary>Обнуляє прогрес квестів із Window=Daily. Викликається о 00:00 UTC.</summary>
     public record ResetDailyQuestsCommand : IRequest;
 
-    public class ResetDailyQuestsCommandHandler : IRequestHandler<ResetDailyQuestsCommand>
+    public sealed class ResetDailyQuestsCommandHandler : IRequestHandler<ResetDailyQuestsCommand>
     {
         private readonly IQuestRepository _questRepository;
         private readonly IUnitOfWork _unitOfWork;

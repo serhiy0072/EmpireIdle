@@ -23,7 +23,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     public record HealWoundedCommand(Guid PlayerId, Dictionary<string, int> Units, HealPaymentMethod Payment)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    public class HealWoundedCommandHandler : IRequestHandler<HealWoundedCommand>
+    public sealed class HealWoundedCommandHandler : IRequestHandler<HealWoundedCommand>
     {
         /// <summary>Лікування ресурсами коштує половину вартості нового юніта.</summary>
         private const double HealCostFactor = 0.5;

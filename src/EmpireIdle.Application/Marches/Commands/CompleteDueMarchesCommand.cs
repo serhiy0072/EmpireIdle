@@ -9,7 +9,7 @@ namespace EmpireIdle.Application.Marches.Commands
     /// <summary>Знаходить походи, що дозріли, і обробляє кожен в окремому scope.</summary>
     public record CompleteDueMarchesCommand : IRequest;
 
-    public class CompleteDueMarchesCommandHandler : IRequestHandler<CompleteDueMarchesCommand>
+    public sealed class CompleteDueMarchesCommandHandler : IRequestHandler<CompleteDueMarchesCommand>
     {
         private readonly IMarchRepository _marchRepository;
         private readonly IServiceScopeFactory _scopeFactory;

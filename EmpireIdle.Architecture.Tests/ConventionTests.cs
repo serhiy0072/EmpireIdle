@@ -16,7 +16,7 @@ public class ConventionTests
     private static readonly Assembly DomainAssembly = typeof(Village).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(IRepository<>).Assembly;
 
-    [Fact(Skip = "29 хендлерів незапечатані — знімається комітом refactor(application): seal request handlers")]
+    [Fact]
     public void RequestHandlers_ShouldBeSealed()
     {
         var result = Types.InAssembly(ApplicationAssembly)

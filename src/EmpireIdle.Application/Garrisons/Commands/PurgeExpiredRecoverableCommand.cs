@@ -7,7 +7,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     /// <summary>Прибирає стеки відновлюваних, у яких сплив дедлайн викупу.</summary>
     public record PurgeExpiredRecoverableCommand : IRequest;
 
-    public class PurgeExpiredRecoverableCommandHandler : IRequestHandler<PurgeExpiredRecoverableCommand>
+    public sealed class PurgeExpiredRecoverableCommandHandler : IRequestHandler<PurgeExpiredRecoverableCommand>
     {
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly ILogger<PurgeExpiredRecoverableCommandHandler> _logger;

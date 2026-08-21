@@ -11,7 +11,7 @@ namespace EmpireIdle.Application.Marches.Commands
     /// <summary>Обробляє один похід, чий час прибуття настав.</summary>
     public record CompleteMarchCommand(Guid MarchId) : IRequest;
 
-    public class CompleteMarchCommandHandler : IRequestHandler<CompleteMarchCommand>
+    public sealed class CompleteMarchCommandHandler : IRequestHandler<CompleteMarchCommand>
     {
         private readonly IMarchRepository _marchRepository;
         private readonly IGarrisonRepository _garrisonRepository;

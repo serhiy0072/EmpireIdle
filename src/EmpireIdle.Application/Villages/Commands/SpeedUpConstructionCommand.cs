@@ -12,7 +12,7 @@ namespace EmpireIdle.Application.Villages.Commands
     public record SpeedUpConstructionCommand(Guid PlayerId, Guid BuildingId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    public class SpeedUpConstructionCommandHandler : IRequestHandler<SpeedUpConstructionCommand>
+    public sealed class SpeedUpConstructionCommandHandler : IRequestHandler<SpeedUpConstructionCommand>
     {
 
         private readonly IVillageRepository _villageRepository;

@@ -7,7 +7,7 @@ namespace EmpireIdle.Application.Map.Queries
     /// <summary>Зайняті клітини у вікні навколо центру.</summary>
     public record GetMapAreaQuery(int ServerId, int CenterX, int CenterY, int Radius) : IRequest<List<MapCell>>;
 
-    public class GetMapAreaQueryHandler : IRequestHandler<GetMapAreaQuery, List<MapCell>>
+    public sealed class GetMapAreaQueryHandler : IRequestHandler<GetMapAreaQuery, List<MapCell>>
     {
         private const int MaxRadius = 25; // 51×51 клітин — щоб не вивантажити пів світу
 

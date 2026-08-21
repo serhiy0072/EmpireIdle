@@ -19,7 +19,7 @@ namespace EmpireIdle.Application.Inventory.Commands
     /// <summary>
     /// Обробник UseItemCommand: застосовує ефект предмета й списує його з інвентаря.
     /// </summary>
-    public class UseItemCommandHandler : IRequestHandler<UseItemCommand>
+    public sealed class UseItemCommandHandler : IRequestHandler<UseItemCommand>
     {
         private readonly IInventoryRepository _inventoryRepository;
         private readonly ItemEffectDispatcher _dispatcher;
