@@ -16,20 +16,20 @@ public class ConventionTests
     private static readonly Assembly DomainAssembly = typeof(Village).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(IRepository<>).Assembly;
 
-    //[Fact]
-    //public void RequestHandlers_ShouldBeSealed()
-    //{
-    //    var result = Types.InAssembly(ApplicationAssembly)
-    //        .That()
-    //        .ImplementInterface(typeof(MediatR.IRequestHandler<>))
-    //        .Or()
-    //        .ImplementInterface(typeof(MediatR.IRequestHandler<,>))
-    //        .Should()
-    //        .BeSealed()
-    //        .GetResult();
+    [Fact(Skip = "29 хендлерів незапечатані — знімається комітом refactor(application): seal request handlers")]
+    public void RequestHandlers_ShouldBeSealed()
+    {
+        var result = Types.InAssembly(ApplicationAssembly)
+            .That()
+            .ImplementInterface(typeof(MediatR.IRequestHandler<>))
+            .Or()
+            .ImplementInterface(typeof(MediatR.IRequestHandler<,>))
+            .Should()
+            .BeSealed()
+            .GetResult();
 
-    //    result.FailingTypeNames.Should().BeNullOrEmpty();
-    //}
+        result.FailingTypeNames.Should().BeNullOrEmpty();
+    }
 
     [Fact]
     public void RequestHandlers_ShouldHaveHandlerSuffix()

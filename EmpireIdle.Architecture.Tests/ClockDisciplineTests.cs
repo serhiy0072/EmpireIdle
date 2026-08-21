@@ -47,18 +47,18 @@ public class ClockDisciplineTests
             "опусти AllowedDirectClockCalls до фактичного значення");
     }
 
-    //[Fact]
-    //public void ApiControllers_ShouldNotReadTheClock()
-    //{
-    //    // Контролер, який знає котра година, майже завжди рахує щось,
-    //    // що мало б рахуватись у хендлері
-    //    var offenders = ScanSources()
-    //        .Where(o => o.Contains("/Controllers/", StringComparison.Ordinal))
-    //        .ToList();
+    [Fact(Skip = "2 виклики годинника в контролерах — знімається при переносі розрахунку в хендлер")]
+    public void ApiControllers_ShouldNotReadTheClock()
+    {
+        // Контролер, який знає котра година, майже завжди рахує щось,
+        // що мало б рахуватись у хендлері
+        var offenders = ScanSources()
+            .Where(o => o.Contains("/Controllers/", StringComparison.Ordinal))
+            .ToList();
 
-    //    offenders.Should().BeEmpty(
-    //        "час читає хендлер, не транспортний шар:\n" + string.Join('\n', offenders));
-    //}
+        offenders.Should().BeEmpty(
+            "час читає хендлер, не транспортний шар:\n" + string.Join('\n', offenders));
+    }
 
     private static List<string> ScanSources()
     {
