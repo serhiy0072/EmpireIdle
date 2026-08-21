@@ -1,10 +1,11 @@
+using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
-using MediatR;
-using Microsoft.Extensions.Logging;
 using FluentValidation;
 using FluentValidation.Results;
+using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -113,15 +114,13 @@ namespace EmpireIdle.Application.Common.Behaviors
         private TResponse Replay(IdempotencyRecord record, string key, string requestType)
         {
             if (record.RequestType != requestType)
-                throw new InvalidOperationException(
-                    $"Idempotency key '{key}' was already used for a different operation.");
+                throw new IdempotencyKeyReusedException(key);
 
             // Резерв є, відповіді ще немає — операція виконується прямо зараз і могла
             // ще впасти. Успіх тут був би брехнею навіть для команд без результату:
             // Unit.Value означає «зроблено», а воно не зроблено.
             if (record.ResponseJson is null)
-                throw new InvalidOperationException(
-                    $"Operation for idempotency key '{key}' is still in progress. Retry shortly.");
+                throw new OperationInProgressException(key);
 
             _logger.LogInformation("Idempotent replay of {RequestType} for player {PlayerId}",
                 requestType, record.PlayerId);
