@@ -41,11 +41,11 @@ namespace EmpireIdle.API.Middleware
 
             var (statusCode, title) = exception switch
             {
+                AuthenticationFailedException => (StatusCodes.Status401Unauthorized, "Authentication Failed"),
                 EntityNotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
-                OperationInProgressException => (StatusCodes.Status409Conflict, "Operation In Progress"),
                 IdempotencyKeyReusedException => (StatusCodes.Status422UnprocessableEntity, "Idempotency Key Reused"),
+                OperationInProgressException => (StatusCodes.Status409Conflict, "Operation In Progress"),
                 DomainException => (StatusCodes.Status400BadRequest, "Domain Rule Violated"),
-                InvalidOperationException => (StatusCodes.Status400BadRequest, "BadRequest"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 ArgumentException => (StatusCodes.Status400BadRequest, "Invalid Argument"),
                 DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "The resource was modified by another request. Retry with the current state."),

@@ -1,14 +1,15 @@
-using FluentValidation;
-using System.Text.Json;
 using AwesomeAssertions;
 using EmpireIdle.Application.Common.Behaviors;
+using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
+using System.Text.Json;
 
 namespace EmpireIdle.Application.Tests.Common;
 
@@ -163,7 +164,7 @@ public class IdempotencyBehaviorTests
 
         var act = async () => await behavior.Handle(new PayCommand(10), Handler(), CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should().ThrowAsync<IdempotencyKeyReusedException>()
             .WithMessage("*already used for a different operation*");
     }
 
@@ -179,7 +180,7 @@ public class IdempotencyBehaviorTests
 
         var act = async () => await behavior.Handle(new PayCommand(10), Handler(), CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should().ThrowAsync<OperationInProgressException>()
             .WithMessage("*still in progress*");
     }
 

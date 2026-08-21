@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 
@@ -63,7 +64,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             village.AddBuilding("farm", configs, DateTime.UtcNow);
 
-            Assert.Throws<InvalidOperationException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
+            Assert.Throws<AlreadyExistsException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
         }
 
         /// <summary>Перша будівля вже не безкоштовна — вартість списується завжди.</summary>
@@ -85,7 +86,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(50);
             var configs = TestData.FarmConfigs();
 
-            Assert.Throws<InvalidOperationException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
+            Assert.Throws<NotEnoughResourcesException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
             Assert.Empty(village.Buildings);
         }
 
@@ -160,7 +161,7 @@ namespace EmpireIdle.Domain.Tests.Entities
                 new() { Resource = "food", Amount = 50 } // не вистачає
             };
 
-            Assert.Throws<InvalidOperationException>(() => village.ChargeCost(cost, DateTime.UtcNow));
+            Assert.Throws<NotEnoughResourcesException>(() => village.ChargeCost(cost, DateTime.UtcNow));
             Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "gold").Amount);
         }
 

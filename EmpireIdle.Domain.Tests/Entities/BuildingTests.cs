@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 
@@ -214,7 +215,7 @@ public class BuildingTests
 
         building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None);
 
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<InvalidStateException>(() =>
             building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None));
     }
 

@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Tests.Entities
 {
@@ -34,7 +35,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
 
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<RequirementNotMetException>(() =>
                 garrison.TrainUnits("infantry", count, 5, TimeSpan.FromMinutes(1), DateTime.UtcNow));
         }
 
@@ -47,7 +48,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
             garrison.TrainUnits("infantry", 2, 5, TimeSpan.FromMinutes(4), DateTime.UtcNow);
 
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<InvalidStateException>(() =>
                 garrison.TrainUnits("archer", 1, 5, TimeSpan.FromMinutes(2), DateTime.UtcNow));
         }
 
@@ -128,7 +129,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.TrainUnits("infantry", 2, 5, TimeSpan.FromMinutes(4), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<NotEnoughResourcesException>(() =>
                 garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 5 }));
 
             Assert.Equal(2, garrison.Units.Single().Count); // нічого не зняли

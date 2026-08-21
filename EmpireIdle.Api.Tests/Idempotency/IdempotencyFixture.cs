@@ -212,7 +212,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
 
         var response = await _client.SendAsync(upgrade);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity,
             "один ключ не можна перевикористати для іншої команди");
     }
 
@@ -269,5 +269,19 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
 
         records.Should().Be(1, "два паралельні запити не мають створити два записи");
         responses.Should().Contain(r => r.StatusCode == HttpStatusCode.NoContent);
+    }
+    [Fact]
+    public async Task Speeding_up_a_building_that_does_not_exist_returns_404()
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Post, $"/api/village/{_playerId}/buildings/{Guid.NewGuid()}/speedup");
+
+        request.Headers.Add("Idempotency-Key", NewKey());
+
+        var response = await _client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "невідомий id — не помилка сервера; без цього тесту наступний "
+            + "?? throw new InvalidOperationException мовчки поїде в 500");
     }
 }

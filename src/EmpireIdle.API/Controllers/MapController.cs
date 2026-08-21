@@ -2,6 +2,7 @@ using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Map.Queries;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -68,7 +69,7 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<MapCellDetailsResponse>> GetCell(int x, int y, CancellationToken cancellationToken)
         {
             if (!_terrain.IsInBounds(x, y))
-                throw new InvalidOperationException($"Cell ({x},{y}) is outside the map.");
+                throw new RequirementNotMetException($"Cell ({x},{y}) is outside the map.");
 
             var cell = _terrain.GetTerrain(_serverContext.ServerId, x, y);
             var details = await _mediator.Send(new GetMapCellQuery(_serverContext.ServerId, x, y), cancellationToken);

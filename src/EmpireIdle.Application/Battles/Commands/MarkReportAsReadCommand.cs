@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
 using MediatR;
 
 namespace EmpireIdle.Application.Battles.Commands
@@ -21,7 +22,7 @@ namespace EmpireIdle.Application.Battles.Commands
         public async Task Handle(MarkReportAsReadCommand request, CancellationToken cancellationToken)
         {
             var report = await _repository.GetByIdAsync(request.ReportId, cancellationToken)
-                ?? throw new InvalidOperationException($"Report {request.ReportId} not found.");
+                ?? throw new EntityNotFoundException("Report", request.ReportId);
 
             // Другий рубіж захисту: PlayerScopeBehavior перевіряє PlayerId у команді,
             // але сам звіт теж має належати цьому гравцю

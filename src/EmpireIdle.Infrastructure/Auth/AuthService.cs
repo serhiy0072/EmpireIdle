@@ -1,4 +1,6 @@
+using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +45,7 @@ namespace EmpireIdle.Infrastructure.Auth
             if (!result.Succeeded)
             {
                 var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-                throw new InvalidOperationException($"Registration failed: {errors}");
+                throw new RequirementNotMetException($"Registration failed: {errors}");
             }
 
             return user.Id;
@@ -55,16 +57,16 @@ namespace EmpireIdle.Infrastructure.Auth
         public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> LoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email)
-                ?? throw new InvalidOperationException("Invalid email or password.");
+                ?? throw new AuthenticationFailedException("Invalid email or password.");
 
             if (await _userManager.IsLockedOutAsync(user))
-                throw new InvalidOperationException("Account temporarily locked. Try again later.");
+                throw new UnauthorizedAccessException("Account temporarily locked. Try again later.");
 
             var validPassword = await _userManager.CheckPasswordAsync(user, password);
             if (!validPassword)
             {
                 await _userManager.AccessFailedAsync(user);
-                throw new InvalidOperationException("Invalid email or password.");
+                throw new UnauthorizedAccessException("Invalid email or password.");
             }
 
             await _userManager.ResetAccessFailedCountAsync(user);
@@ -82,7 +84,7 @@ namespace EmpireIdle.Infrastructure.Auth
         public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> RefreshAsync(string refreshToken)
         {
             var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken)
-                ?? throw new InvalidOperationException("Invalid refresh token.");
+                ?? throw new AuthenticationFailedException("Invalid refresh token.");
 
             // Спроба використати ревокнутий токен = можлива крадіжка.
             // Ревокуємо ВСІ токени користувача — змусить перелогінитись всюди.
@@ -90,11 +92,11 @@ namespace EmpireIdle.Infrastructure.Auth
             {
                 await RevokeAllUserTokensAsync(storedToken.UserId);
                 await _context.SaveChangesAsync();
-                throw new InvalidOperationException("Token reuse detected. All sessions revoked.");
+                throw new AuthenticationFailedException("Token reuse detected. All sessions revoked.");
             }
 
             if (!storedToken.IsActive)
-                throw new InvalidOperationException("Refresh token expired.");
+                throw new AuthenticationFailedException("Token reuse detected. All sessions revoked.");
 
             var user = await _userManager.FindByIdAsync(storedToken.UserId)
                 ?? throw new InvalidOperationException("User not found.");
