@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Слот, у який вдягається спорядження.</summary>
@@ -60,7 +62,7 @@ namespace EmpireIdle.Domain.Entities
         public void EquipTo(Guid heroId)
         {
             if (EquippedByHeroId is not null)
-                throw new InvalidOperationException($"Equipment {Id} is already equipped.");
+                throw new InvalidStateException($"Equipment {Id} is already equipped.");
 
             EquippedByHeroId = heroId;
         }

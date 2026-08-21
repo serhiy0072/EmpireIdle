@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 
@@ -114,7 +115,7 @@ namespace EmpireIdle.Domain.Entities
         public void BeginUpgrade(BuildingConfig config, TimeSpan duration, DateTime utcNow, ProductionBoost boost)
         {
             if (IsUnderConstruction)
-                throw new InvalidOperationException($"Building {Id} is already under construction.");
+                throw new InvalidStateException($"Building {Id} is already under construction.");
 
             // Банкуємо вироблене ДО зупинки: під час будівництва виробництва немає,
             // і без цього накопичене за попередній період загубилось би
@@ -134,7 +135,7 @@ namespace EmpireIdle.Domain.Entities
         public void CompleteConstruction(DateTime utcNow)
         {
             if (!IsUnderConstruction)
-                throw new InvalidOperationException($"Building {Id} is not under construction.");
+                throw new InvalidStateException($"Building {Id} is not under construction.");
 
             Level = Level.Next();
             ConstructionCompletesAt = null;
@@ -145,7 +146,7 @@ namespace EmpireIdle.Domain.Entities
         public void ReduceConstructionTime(TimeSpan reduction)
         {
             if (!IsUnderConstruction)
-                throw new InvalidOperationException($"Building {Id} is not under construction.");
+                throw new InvalidStateException($"Building {Id} is not under construction.");
 
             ConstructionCompletesAt -= reduction;
         }

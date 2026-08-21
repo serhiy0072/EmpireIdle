@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
@@ -42,7 +44,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException("Amount to consume must be positive.");
 
             if (Count < amount)
-                throw new InvalidOperationException($"Not enough '{ItemKey}': need {amount}, have {Count}.");
+                throw new NotEnoughResourcesException(ItemKey, amount, Count);
 
             Count -= amount;
         }

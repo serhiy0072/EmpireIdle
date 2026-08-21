@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.ValueObjects
 {
     /// <summary>
@@ -20,11 +22,11 @@ namespace EmpireIdle.Domain.ValueObjects
 
         public GemAmount Add(GemAmount other) => new(Value + other.Value);
 
-        public GemAmount Subtract(GemAmount other)
+        public GemAmount Subtract(GemAmount amount)
         {
-            if (other.Value > Value)
-                throw new InvalidOperationException("Недостатньо gems.");
-            return new(Value - other.Value);
+            if (amount.Value > Value)
+                throw new NotEnoughResourcesException("gems", amount.Value, Value);
+            return new(Value - amount.Value);
         }
 
         public override string ToString() => Value.ToString();

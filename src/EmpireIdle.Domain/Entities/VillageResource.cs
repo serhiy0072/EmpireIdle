@@ -1,4 +1,6 @@
 
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
@@ -36,7 +38,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException("Amount to subtract cannot be negative.");
 
             if (Amount < amount)
-                throw new InvalidOperationException($"Not enough {ResourceType}: need {amount}, have {Amount}.");
+                throw new NotEnoughResourcesException(ResourceType, amount, Amount);
 
             Amount -= amount;
         }

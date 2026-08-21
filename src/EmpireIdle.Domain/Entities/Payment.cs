@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Стан платежу.</summary>
@@ -84,7 +86,7 @@ namespace EmpireIdle.Domain.Entities
         public void Fail()
         {
             if (Status == PaymentStatus.Completed)
-                throw new InvalidOperationException($"Payment {Id} is already completed.");
+                throw new InvalidStateException($"Payment {Id} is already completed.");
 
             Status = PaymentStatus.Failed;
         }

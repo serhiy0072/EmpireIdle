@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Стан походу.</summary>
@@ -88,7 +90,7 @@ namespace EmpireIdle.Domain.Entities
         public void TurnBack(TimeSpan returnDuration, DateTime utcNow)
         {
             if (State != MarchState.Outbound)
-                throw new InvalidOperationException($"March {Id} is not outbound.");
+                throw new InvalidStateException($"March {Id} is not outbound.");
 
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
@@ -100,7 +102,7 @@ namespace EmpireIdle.Domain.Entities
         public void Complete()
         {
             if (State != MarchState.Returning)
-                throw new InvalidOperationException($"March {Id} is not returning.");
+                throw new InvalidStateException($"March {Id} is not returning.");
 
             State = MarchState.Completed;
             RaiseDomainEvent(new Events.MarchReturned(Id, GarrisonId));

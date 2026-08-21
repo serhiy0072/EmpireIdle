@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>Кількість юнітів певного типу в гарнізоні села.</summary>
@@ -26,7 +28,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException("Amount to subtract cannot be negative.");
 
             if (Count < amount)
-                throw new InvalidOperationException($"Not enough '{UnitType}': need {amount}, have {Count}.");
+                throw new NotEnoughResourcesException(UnitType, amount, Count);
 
             Count -= amount;
         }
