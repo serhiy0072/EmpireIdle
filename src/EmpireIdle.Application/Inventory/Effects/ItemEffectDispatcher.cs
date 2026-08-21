@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Application.Inventory.Effects
 {
     /// <summary>Добирає й виконує ефект за типом предмета.</summary>
@@ -14,7 +16,7 @@ namespace EmpireIdle.Application.Inventory.Effects
         public Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
         {
             if (!_effects.TryGetValue(context.Config.Type, out var effect))
-                throw new InvalidOperationException($"Item type '{context.Config.Type}' cannot be used.");
+                throw new RequirementNotMetException($"Item type '{context.Config.Type}' cannot be used.");
 
             return effect.ApplyAsync(context, cancellationToken);
         }

@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -58,7 +59,7 @@ namespace EmpireIdle.Application.Players.Commands
 
             var existing = await _playerRepository.GetByUserIdAsync(request.UserId, serverId, cancellationToken);
             if (existing is not null)
-                throw new InvalidOperationException($"Account already has a player on server {serverId}.");
+                throw new AlreadyExistsException("Player on server", serverId.ToString());
 
             var playerId = Guid.NewGuid();
 

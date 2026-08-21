@@ -2,6 +2,7 @@ using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -46,16 +47,14 @@ namespace EmpireIdle.Application.Quests.Commands
             var config = _catalog.Quest(request.QuestKey);
 
             if (config.Scope != QuestScope.Personal)
-                throw new InvalidOperationException(
-                    $"Quest '{request.QuestKey}' is server-scoped — its rewards are granted on completion.");
+                throw new RequirementNotMetException($"Quest '{request.QuestKey}' is server-scoped — its rewards are granted on completion.");
 
             var progress = await _questRepository.GetAsync(request.PlayerId, request.QuestKey, cancellationToken)
-                ?? throw new InvalidOperationException($"Quest '{request.QuestKey}' has not been started.");
+                ?? throw new EntityNotFoundException("Quest progress", request.QuestKey);
 
             // Claim повертає false, якщо квест не завершений або вже забраний
             if (!progress.Claim(now))
-                throw new InvalidOperationException(
-                    $"Quest '{request.QuestKey}' is not claimable (state: {progress.State}).");
+                throw new InvalidStateException($"Quest '{request.QuestKey}' is not claimable (state: {progress.State}).");
 
             await _rewards.GrantAllAsync(request.PlayerId, config.Rewards, $"quest:{request.QuestKey}", now, cancellationToken);
 

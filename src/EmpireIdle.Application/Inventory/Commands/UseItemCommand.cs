@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -39,13 +40,13 @@ namespace EmpireIdle.Application.Inventory.Commands
         public async Task Handle(UseItemCommand request, CancellationToken cancellationToken)
         {
             if (request.Count < 1)
-                throw new InvalidOperationException("Count must be positive.");
+                throw new RequirementNotMetException("Count must be positive.");
 
             var config = _catalog.Item(request.ItemKey)
-                ?? throw new InvalidOperationException($"Unknown item '{request.ItemKey}'.");
+                ?? throw new EntityNotFoundException("Item", request.ItemKey);
 
             var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, request.ItemKey, cancellationToken)
-                ?? throw new InvalidOperationException($"Item '{request.ItemKey}' not found in inventory.");
+                ?? throw new EntityNotFoundException("Item in inventory", request.ItemKey);
 
             // Ефект застосовуємо ДО списання: якщо він неможливий, предмет не згорить
             var context = new ItemUsageContext(

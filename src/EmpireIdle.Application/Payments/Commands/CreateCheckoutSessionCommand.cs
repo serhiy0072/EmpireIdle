@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -41,7 +42,7 @@ namespace EmpireIdle.Application.Payments.Commands
             var now = DateTime.UtcNow;
 
             var pack = _catalog.Config.Shop.GemPacks.FirstOrDefault(p => p.Key == request.PackKey)
-                ?? throw new InvalidOperationException($"Gem pack '{request.PackKey}' not found.");
+                ?? throw new EntityNotFoundException("Gem pack", request.PackKey);
 
             var session = await _paymentProvider.CreateSessionAsync(
                 pack.Key, pack.DisplayName, pack.PriceCents, _catalog.Config.Shop.Currency, request.PlayerId, cancellationToken);
