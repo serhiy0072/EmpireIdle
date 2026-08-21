@@ -48,7 +48,7 @@ public class ClockDisciplineTests
             "опусти AllowedDirectClockCalls до фактичного значення");
     }
 
-    [Fact(Skip = "2 виклики годинника в контролерах — знімається при переносі розрахунку в хендлер")]
+    [Fact]
     public void ApiControllers_ShouldNotReadTheClock()
     {
         // Контролер, який знає котра година, майже завжди рахує щось,
