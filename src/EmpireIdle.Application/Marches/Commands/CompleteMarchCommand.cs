@@ -147,7 +147,7 @@ namespace EmpireIdle.Application.Marches.Commands
                     _mapRepository.Remove(cell);
 
                 var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
-                village.GrantResources(rewards);
+                village.GrantResources(rewards, DateTime.UtcNow);
             }
 
             var report = new BattleReport(

@@ -20,24 +20,26 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly SpeedUpCalculator _calculator;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<SpeedUpConstructionCommandHandler> _logger;
 
         public SpeedUpConstructionCommandHandler(
             IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, ICurrentPlayer currentPlayer, IUnitOfWork unitOfWork,
-            SpeedUpCalculator calculator, GameCatalog catalog, ILogger<SpeedUpConstructionCommandHandler> logger)
+            SpeedUpCalculator calculator, GameCatalog catalog, TimeProvider timeProvider, ILogger<SpeedUpConstructionCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
+            _timeProvider = timeProvider;
             _catalog = catalog;
             _logger = logger;
         }
 
         public async Task Handle(SpeedUpConstructionCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 

@@ -27,7 +27,7 @@ namespace EmpireIdle.Application.Inventory.Effects
                 .Select(r => new ResourceCost { Resource = r.Resource, Amount = r.Amount * context.Count })
                 .ToList();
 
-            village.GrantResources(rewards);
+            village.GrantResources(rewards, DateTime.UtcNow);
         }
     }
 }

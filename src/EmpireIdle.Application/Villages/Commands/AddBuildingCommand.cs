@@ -20,12 +20,15 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AddBuildingCommandHandler> _logger;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
 
-        public AddBuildingCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<AddBuildingCommandHandler> logger, GameCatalog catalog)
+        public AddBuildingCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, ILogger<AddBuildingCommandHandler> logger,
+            TimeProvider timeProvider, GameCatalog catalog)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _timeProvider = timeProvider;
             _catalog = catalog;
         }
 
@@ -36,7 +39,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
             var buildingConfigs = _catalog.Buildings.ToDictionary(b => b.Key, b => b);
 
-            var buildingId = village.AddBuilding(request.BuildingType, _catalog.Buildings);
+            var buildingId = village.AddBuilding(request.BuildingType, _catalog.Buildings, _timeProvider.GetUtcNow().UtcDateTime);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

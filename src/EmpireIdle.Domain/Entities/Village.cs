@@ -92,7 +92,7 @@ namespace EmpireIdle.Domain.Entities
 
 
             RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace EmpireIdle.Domain.Entities
         /// відповідність зоні, вільний слот, вартість (перша будівля типу безкоштовна).
         /// </summary>
         /// <returns>Id створеної будівлі.</returns>
-        public Guid AddBuilding(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        public Guid AddBuilding(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
         {
             if (!buildingConfigs.TryGetValue(buildingType, out var config))
                 throw new InvalidOperationException($"Unknown building type '{buildingType}'.");
@@ -137,7 +137,7 @@ namespace EmpireIdle.Domain.Entities
             if (config.PopulationPerLevel > 0 && config.PopulationResource is not null)
                 AddPopulation(config.PopulationResource, config.PopulationPerLevel); //будівля 1-го рівня одразу дає населення
 
-            Touch();
+            Touch(utcNow);
             return building.Id;
         }
 
@@ -146,8 +146,9 @@ namespace EmpireIdle.Domain.Entities
         /// потім списує (все або нічого — без часткового списання).
         /// </summary>
         /// <param name="cost">Позиції вартості (ресурс → кількість за одиницю).</param>
+        /// <param name="utcNow">Час операції — фіксує момент мутації агрегату.</param>
         /// <param name="multiplier">Множник (кількість юнітів, рівень будівлі тощо).</param>
-        public void ChargeCost(List<ResourceCost> cost, int multiplier = 1)
+        public void ChargeCost(List<ResourceCost> cost, DateTime utcNow, int multiplier = 1)
         {
             foreach (var line in cost)
             {
@@ -162,7 +163,7 @@ namespace EmpireIdle.Domain.Entities
             foreach (var line in cost)
                 _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * multiplier);
 
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
@@ -202,7 +203,7 @@ namespace EmpireIdle.Domain.Entities
             building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost);
 
             RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
@@ -226,7 +227,7 @@ namespace EmpireIdle.Domain.Entities
                 RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
             }
 
-            Touch();
+            Touch(utcNow);
             return due.Count;
         }
 
@@ -246,7 +247,7 @@ namespace EmpireIdle.Domain.Entities
         /// Нараховує ресурси в село (нагорода за бій, подарунок тощо).
         /// Невідомі ресурси створюються на льоту.
         /// </summary>
-        public void GrantResources(List<ResourceCost> rewards)
+        public void GrantResources(List<ResourceCost> rewards, DateTime utcNow)
         {
             foreach (var line in rewards)
             {
@@ -262,7 +263,7 @@ namespace EmpireIdle.Domain.Entities
 
                 resource.Add(line.Amount);
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
@@ -270,7 +271,7 @@ namespace EmpireIdle.Domain.Entities
             => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
 
         /// <summary>Нараховує стартові ресурси при заснуванні поселення.</summary>
-        public void GrantStartingResources(IReadOnlyDictionary<string, int> amounts)
+        public void GrantStartingResources(IReadOnlyDictionary<string, int> amounts, DateTime utcNow)
         {
             foreach (var (key, amount) in amounts)
             {
@@ -279,7 +280,7 @@ namespace EmpireIdle.Domain.Entities
 
                 resource.Add(amount);
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
@@ -295,14 +296,14 @@ namespace EmpireIdle.Domain.Entities
                 if (buildingConfigs.TryGetValue(building.Type, out var config) && config.ProducesResource is not null)
                     building.Materialize(config, utcNow, boost);
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
         /// Нараховує ресурс від нагороди. Повертає, скільки реально зараховано:
         /// надлишок понад сумарний кап складів згорає.
         /// </summary>
-        public int GrantResource(string resourceKey, int amount, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        public int GrantResource(string resourceKey, int amount, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
         {
             if (amount <= 0)
                 return 0;
@@ -322,10 +323,10 @@ namespace EmpireIdle.Domain.Entities
             if (granted > 0)
                 resource.Add(granted);
 
-            Touch();
+            Touch(utcNow);
             return granted;
         }
 
-        private void Touch() => UpdatedAt = DateTime.UtcNow;
+        private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
     }
 }

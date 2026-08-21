@@ -36,7 +36,7 @@ internal static class TestData
     public static Village CreateVillageWithResources(int resourceAmount = 1000, Guid? playerId = null)
     {
         var village = CreateVillage(playerId);
-        village.GrantStartingResources(DefaultResources.ToDictionary(r => r, _ => resourceAmount));
+        village.GrantStartingResources(DefaultResources.ToDictionary(r => r, _ => resourceAmount), DateTime.UtcNow);
         return village;
     }
 }

@@ -51,7 +51,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             if (config.RequiresBuilding is not null && !village.HasBuilding(config.RequiresBuilding))
                 throw new InvalidOperationException($"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.");
 
-            village.ChargeCost(config.Cost, request.Count);
+            village.ChargeCost(config.Cost, DateTime.UtcNow, request.Count);
 
             garrison.TrainUnits(request.UnitType, request.Count, _catalog.Config.MaxTrainingBatchSize,
                 TimeSpan.FromMinutes(config.BaseTrainMinutes * request.Count), DateTime.UtcNow);

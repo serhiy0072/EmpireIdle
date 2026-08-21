@@ -16,6 +16,7 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<CollectBuildingCommandHandler> _logger;
 
         public CollectBuildingCommandHandler(
@@ -23,18 +24,20 @@ namespace EmpireIdle.Application.Villages.Commands
             IUnitOfWork unitOfWork,
             EffectResolver effectResolver,
             GameCatalog catalog,
+            TimeProvider timeProvider,
             ILogger<CollectBuildingCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _effectResolver = effectResolver;
             _catalog = catalog;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task Handle(CollectBuildingCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");

@@ -120,7 +120,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 }
             }
 
-            village.ChargeCost(cost);
+            village.ChargeCost(cost, DateTime.UtcNow);
         }
     }
 }

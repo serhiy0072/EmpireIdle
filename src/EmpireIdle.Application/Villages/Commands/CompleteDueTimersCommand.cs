@@ -16,14 +16,16 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IActiveEffectRepository _effectRepository;
         private readonly ILogger<CompleteDueTimersCommandHandler> _logger;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
 
         public CompleteDueTimersCommandHandler(IVillageRepository villageRepository, IUnitOfWork unitOfWork, IGarrisonRepository garrisonRepository, 
-                IActiveEffectRepository effectRepository, ILogger<CompleteDueTimersCommandHandler> logger, GameCatalog catalog)
+                IActiveEffectRepository effectRepository, ILogger<CompleteDueTimersCommandHandler> logger, GameCatalog catalog, TimeProvider timeProvider)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _garrisonRepository = garrisonRepository;
             _effectRepository = effectRepository;
+            _timeProvider = timeProvider;
             _logger = logger;
             _catalog = catalog;
 
@@ -31,7 +33,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
         public async Task Handle(CompleteDueTimersCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var buildingConfigs = _catalog.Buildings.ToDictionary(b => b.Key, b => b);
 
             var villages = await _villageRepository.GetWithDueConstructionsAsync(now, cancellationToken);

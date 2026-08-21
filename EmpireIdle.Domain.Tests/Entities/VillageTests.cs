@@ -12,7 +12,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(1000);
             var configs = TestData.FarmConfigs();
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
             var building = village.Buildings.Single();
 
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
@@ -31,7 +31,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(1000);
             var configs = TestData.FarmConfigs();
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
             var building = village.Buildings.Single();
 
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
@@ -48,7 +48,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(200);
             var configs = TestData.FarmConfigs();
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
 
             Assert.Single(village.Buildings);
             Assert.Equal(village.Id, village.Buildings.First().VillageId);
@@ -61,9 +61,9 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(1000);
             var configs = TestData.FarmConfigs();
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
 
-            Assert.Throws<InvalidOperationException>(() => village.AddBuilding("farm", configs));
+            Assert.Throws<InvalidOperationException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
         }
 
         /// <summary>Перша будівля вже не безкоштовна — вартість списується завжди.</summary>
@@ -73,7 +73,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(200);
             var configs = TestData.FarmConfigs();
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
 
             Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "food").Amount);
         }
@@ -85,7 +85,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(50);
             var configs = TestData.FarmConfigs();
 
-            Assert.Throws<InvalidOperationException>(() => village.AddBuilding("farm", configs));
+            Assert.Throws<InvalidOperationException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
             Assert.Empty(village.Buildings);
         }
 
@@ -95,11 +95,12 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var village = TestData.CreateVillageWithResources(300);
             var configs = TestData.FarmConfigs();
+            var now = DateTime.UtcNow;
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, now);
             var building = village.Buildings.First();
 
-            village.BeginBuildingUpgrade(building.Id, configs, DateTime.UtcNow, ProductionBoost.None);
+            village.BeginBuildingUpgrade(building.Id, configs, now, ProductionBoost.None);
 
             Assert.True(building.IsUnderConstruction);
             Assert.NotNull(building.ConstructionCompletesAt);
@@ -113,7 +114,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(300);
             var configs = TestData.FarmConfigs();
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
             var building = village.Buildings.First();
 
             village.BeginBuildingUpgrade(building.Id, configs, building.LastAccruedAt.AddMinutes(4), ProductionBoost.None);
@@ -128,7 +129,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(300);
             var configs = TestData.FarmConfigs();
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
             var building = village.Buildings.First();
             var startedAt = DateTime.UtcNow;
 
@@ -159,7 +160,7 @@ namespace EmpireIdle.Domain.Tests.Entities
                 new() { Resource = "food", Amount = 50 } // не вистачає
             };
 
-            Assert.Throws<InvalidOperationException>(() => village.ChargeCost(cost));
+            Assert.Throws<InvalidOperationException>(() => village.ChargeCost(cost, DateTime.UtcNow));
             Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "gold").Amount);
         }
 
@@ -170,7 +171,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillageWithResources(1000);
             var configs = TestData.FarmConfigs();
 
-            village.AddBuilding("farm", configs);
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
             var building = village.Buildings.Single();
             var start = building.LastAccruedAt;
 

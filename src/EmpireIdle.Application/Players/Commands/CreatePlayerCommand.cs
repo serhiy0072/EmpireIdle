@@ -73,10 +73,10 @@ namespace EmpireIdle.Application.Players.Commands
                 _catalog.Resources.Keys,
                 x, y, serverId);
 
-            village.GrantStartingResources(_catalog.Config.StartingResources);
+            village.GrantStartingResources(_catalog.Config.StartingResources, DateTime.UtcNow);
 
             foreach (var buildingKey in _catalog.Config.StartingBuildings)
-                village.AddBuilding(buildingKey, _catalog.Buildings);
+                village.AddBuilding(buildingKey, _catalog.Buildings, DateTime.UtcNow);
 
             var garrison = new Garrison(Guid.NewGuid(), village.Id);
             await _garrisonRepository.AddAsync(garrison, cancellationToken);

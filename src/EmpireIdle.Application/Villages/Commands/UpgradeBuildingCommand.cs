@@ -21,25 +21,28 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<UpgradeBuildingCommandHandler> _logger;
 
         public UpgradeBuildingCommandHandler(
             IVillageRepository villageRepository,
             IUnitOfWork unitOfWork,
             EffectResolver effectResolver,
+            TimeProvider timeProvider,
             GameCatalog catalog,
             ILogger<UpgradeBuildingCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _effectResolver = effectResolver;
+            _timeProvider = timeProvider;
             _catalog = catalog;
             _logger = logger;
         }
 
         public async Task Handle(UpgradeBuildingCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
