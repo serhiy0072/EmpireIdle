@@ -1,0 +1,81 @@
+# .github/workflows/dotnet.yml
+name: build-and-test
+
+on:
+  push:
+    branches: [main, 'phase/**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  # head_ref || ref_name замість ref: інакше push у phase/* з відкритим PR
+  # дає ДВА повні прогони (push + pull_request), обидва з Testcontainers.
+  # Так вони потрапляють в одну групу.
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  # На main не скасовуємо: проміжний коміт лишився б без статусу білду
+  # (а це саме те, що пропустило зламаний ServerJobRunner).
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore EmpireIdle.slnx
+
+      # TreatWarningsAsErrors тільки в CI: локально попередження не мають блокувати роботу
+      - name: Build
+        run: dotnet build EmpireIdle.slnx --no-restore --configuration Release
+
+      # Domain + Application + Architecture — без Docker, біжать завжди
+      - name: Unit tests
+        run: >
+          dotnet test EmpireIdle.slnx --no-build --configuration Release
+          --filter "FullyQualifiedName!~EmpireIdle.Api.Tests"
+          --logger "trx;LogFileName=unit.trx"
+          --collect:"XPlat Code Coverage"
+
+      # Api.Tests піднімають Testcontainers — потрібен Docker, доступний на ubuntu-latest
+      - name: Integration tests
+        run: >
+          dotnet test EmpireIdle.Api.Tests/EmpireIdle.Api.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=integration.trx"
+          --collect:"XPlat Code Coverage"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/**'
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/EmpireIdle.Web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/EmpireIdle.Web/package-lock.json
+
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
