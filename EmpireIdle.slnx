@@ -8,6 +8,7 @@
   <Folder Name="/tests/">
     <Project Path="EmpireIdle.Api.Tests/EmpireIdle.Api.Tests.csproj" Id="d1c5e05c-0d84-419a-b83c-1f6572b3d3e7" />
     <Project Path="EmpireIdle.Application.Tests/EmpireIdle.Application.Tests.csproj" Id="4f2887f2-5c5e-4080-b897-dc7231ae4dc9" />
+    <Project Path="EmpireIdle.Architecture.Tests/EmpireIdle.Architecture.Tests.csproj" Id="8b6eeba2-aac7-413f-b20e-8a81fad55e27" />
     <Project Path="EmpireIdle.Domain.Tests/EmpireIdle.Domain.Tests.csproj" Id="49028f1d-9e7d-4fee-a7f3-8699f2e06cb2" />
   </Folder>
 </Solution>
