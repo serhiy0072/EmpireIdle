@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Events;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 
@@ -65,13 +66,16 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
-        /// <exception cref="InvalidOperationException">Якщо будівля або її конфіг не знайдені.</exception>
+        /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
+        /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
         public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
             DateTime utcNow, ProductionBoost boost)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
-                ?? throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
+                ?? throw new EntityNotFoundException("Building", buildingId);
 
+            // Не доменне правило: будівля вже стоїть, а конфіг її типу зник —
+            // це битий конфіг, і має бути 500, а не 400
             if (!buildingConfigs.TryGetValue(building.Type, out var config))
                 throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
 
@@ -100,10 +104,14 @@ namespace EmpireIdle.Domain.Entities
         /// відповідність зоні, вільний слот, вартість (перша будівля типу безкоштовна).
         /// </summary>
         /// <returns>Id створеної будівлі.</returns>
+        /// <exception cref="EntityNotFoundException">Невідомий тип будівлі.</exception>
+        /// <exception cref="RequirementNotMetException">Не вистачає рівня головної будівлі.</exception>
+        /// <exception cref="AlreadyExistsException">Будівля цього типу вже стоїть.</exception>
+        /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public Guid AddBuilding(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
         {
             if (!buildingConfigs.TryGetValue(buildingType, out var config))
-                throw new InvalidOperationException($"Unknown building type '{buildingType}'.");
+                throw new EntityNotFoundException("Building type", buildingType);
 
             // 1. Розблокування за рівнем головної будівлі (яка саме — вирішує конфіг)
             var mainBuildingKey = buildingConfigs.Values.FirstOrDefault(c => c.IsMainBuilding)?.Key;
@@ -112,21 +120,22 @@ namespace EmpireIdle.Domain.Entities
                 : _buildings.FirstOrDefault(b => b.Type == mainBuildingKey)?.Level.Value ?? 0;
 
             if (mainBuildingLevel < config.RequiresMainBuildingLevel)
-                throw new InvalidOperationException(
+                throw new RequirementNotMetException(
                     $"Building '{buildingType}' requires main building level {config.RequiresMainBuildingLevel}.");
 
             // 2. Унікальність: кожна будівля існує в селі в одному екземплярі
             if (_buildings.Any(b => b.Type == buildingType))
-                throw new InvalidOperationException($"'{buildingType}' is already built in village {Id}.");
+                throw new AlreadyExistsException("Building", buildingType);
 
             // 3. Вартість: спершу перевіряємо все, потім списуємо — інакше можна
             // списати частину й упасти на наступному ресурсі
             foreach (var line in config.Cost)
             {
+                // Ресурс із конфіга вартості, якого немає в селі — битий конфіг, не дія гравця
                 var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
                     ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
                 if (res.Amount < line.Amount)
-                    throw new InvalidOperationException($"Not enough {line.Resource}: need {line.Amount}, have {res.Amount}.");
+                    throw new NotEnoughResourcesException(line.Resource, line.Amount, res.Amount);
             }
             foreach (var line in config.Cost)
                 _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount);
@@ -148,6 +157,7 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="cost">Позиції вартості (ресурс → кількість за одиницю).</param>
         /// <param name="utcNow">Час операції — фіксує момент мутації агрегату.</param>
         /// <param name="multiplier">Множник (кількість юнітів, рівень будівлі тощо).</param>
+        /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public void ChargeCost(List<ResourceCost> cost, DateTime utcNow, int multiplier = 1)
         {
             foreach (var line in cost)
@@ -157,7 +167,7 @@ namespace EmpireIdle.Domain.Entities
                     ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
 
                 if (res.Amount < need)
-                    throw new InvalidOperationException($"Not enough {line.Resource}: need {need}, have {res.Amount}.");
+                    throw new NotEnoughResourcesException(line.Resource, need, res.Amount);
             }
 
             foreach (var line in cost)
@@ -171,13 +181,16 @@ namespace EmpireIdle.Domain.Entities
         /// списує ресурси та ставить будівлю в стан будівництва.
         /// Рівень підніметься при завершенні (CompleteDueConstructions).
         /// </summary>
+        /// <exception cref="RequirementNotMetException">Усі будівельники зайняті.</exception>
+        /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
+        /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, ProductionBoost boost, int builderCount = 1)
         {
             if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
-                throw new InvalidOperationException("All builders are busy");
+                throw new RequirementNotMetException("All builders are busy.");
 
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId) ??
-                throw new InvalidOperationException($"Building {buildingId} not found in village {Id}.");
+                throw new EntityNotFoundException("Building", buildingId);
 
             if (!buildingConfigs.TryGetValue(building.Type, out var config))
                 throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
@@ -190,7 +203,7 @@ namespace EmpireIdle.Domain.Entities
                     ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
 
                 if (res.Amount < need)
-                    throw new InvalidOperationException($"Not enough {line.Resource}: need {need}, have {res.Amount}.");
+                    throw new NotEnoughResourcesException(line.Resource, need, res.Amount);
             }
 
             // Усе перевірено — тепер списуємо (жодного часткового списання при нестачі)
@@ -275,6 +288,7 @@ namespace EmpireIdle.Domain.Entities
         {
             foreach (var (key, amount) in amounts)
             {
+                // Ключ приходить із конфіга, не від гравця — розбіжність означає битий конфіг
                 var resource = _resources.FirstOrDefault(r => r.ResourceType == key)
                     ?? throw new InvalidOperationException($"Village has no '{key}' resource.");
 

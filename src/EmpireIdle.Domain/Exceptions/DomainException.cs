@@ -32,7 +32,7 @@ namespace EmpireIdle.Domain.Exceptions
     public sealed class AlreadyExistsException : DomainException
     {
         public AlreadyExistsException(string what, string key)
-            : base($"'{key}' already exists: {what}.") { }
+            : base($"{what} '{key}' already exists.") { }
     }
 
     /// <summary>Не виконана передумова: рівень, розблокування, вільний слот.</summary>
