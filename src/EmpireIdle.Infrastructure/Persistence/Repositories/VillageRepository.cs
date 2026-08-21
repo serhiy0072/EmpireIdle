@@ -46,14 +46,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(v => v.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
-        public Task<List<Village>> GetWithDueConstructionsAsync(DateTime utcNow, CancellationToken cancellationToken = default)
-            => _context.Villages
-            .Include(v => v.Buildings)
-            .Include(v => v.Resources)
-            .AsSplitQuery()
-            // Тягнемо лише ті села, де є що завершувати
-            .Where(v => v.Buildings.Any(b => b.ConstructionCompletesAt != null && b.ConstructionCompletesAt <= utcNow))
-            .ToListAsync(cancellationToken);
-
+        public async Task<IReadOnlyList<Guid>> GetIdsWithDueConstructionsAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
+            => await _context.Villages
+                .AsNoTracking()
+                .Where(v => v.Buildings.Any(b => b.ConstructionCompletesAt != null && b.ConstructionCompletesAt <= utcNow))
+                .OrderBy(v => v.Id)
+                .Take(batchSize)
+                .Select(v => v.Id)
+                .ToListAsync(cancellationToken);
     }
 }

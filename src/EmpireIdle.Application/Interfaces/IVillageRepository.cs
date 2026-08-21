@@ -12,8 +12,8 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Знайти село за ідентифікатором гравця для читання (без трекінгу).</summary>
         Task<Village?> GetByPlayerIdReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default);
 
-        /// <summary>Села, у яких є будівництва з простроченим часом завершення.</summary>
-        Task<List<Village>> GetWithDueConstructionsAsync(DateTime utcNow, CancellationToken cancellationToken = default);
+        /// <summary>Id сіл, де є завершені будівництва. Без сутностей: обробка йде в іншому scope.</summary>
+        Task<IReadOnlyList<Guid>> GetIdsWithDueConstructionsAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default);
 
     }
 }

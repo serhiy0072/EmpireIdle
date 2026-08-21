@@ -52,16 +52,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 
         /// <inheritdoc/>
-        public Task<List<Garrison>> GetWithDueTrainingAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
-            => _context.Garrisons
-            .Include(g => g.Units)
-            .Include(g => g.TrainingOrders)
-            .Include(g => g.Wounded)
-            .Include(g => g.Recoverable)
-            .AsSplitQuery()
+        public async Task<IReadOnlyList<Guid>> GetIdsWithDueTrainingAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
+            => await _context.Garrisons
+            .AsNoTracking()
             .Where(g => g.TrainingOrders.Any(o => o.CompletesAt <= utcNow))
             .OrderBy(g => g.Id)
             .Take(batchSize)
+            .Select(g => g.Id)
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
@@ -73,6 +70,5 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Where(r => r.ExpiresAt <= utcNow)
                 .ExecuteDeleteAsync(cancellationToken);
         }
-
     }
 }
