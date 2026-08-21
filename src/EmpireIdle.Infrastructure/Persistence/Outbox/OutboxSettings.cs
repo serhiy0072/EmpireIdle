@@ -14,5 +14,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
 
         /// <summary>Скільки днів тримати оброблені повідомлення.</summary>
         public int RetentionDays { get; set; } = 7;
+
+        /// <summary>Скільки годин чекати, перш ніж вважати резерв ідемпотентності покинутим і стерти його.</summary>
+        public int StaleReservationHours { get; set; } = 24;
     }
 }

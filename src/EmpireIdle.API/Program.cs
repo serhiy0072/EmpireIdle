@@ -99,6 +99,7 @@ builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService
 builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
 //  3. ІНФРАСТРУКТУРА
 //  БД, репозиторії, Identity, MediatR, Outbox — усе в одному місці.

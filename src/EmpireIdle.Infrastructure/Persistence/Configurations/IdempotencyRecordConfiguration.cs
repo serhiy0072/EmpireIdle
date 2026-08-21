@@ -19,7 +19,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasIndex(r => new { r.PlayerId, r.Key }).IsUnique();
 
             // Для періодичної чистки старих записів
-            builder.HasIndex(r => r.CreatedAt);
+            builder.HasIndex(r => r.CreatedAt).HasFilter("\"ResponseJson\" IS NULL");
 
             builder.Ignore(r => r.DomainEvents);
         }

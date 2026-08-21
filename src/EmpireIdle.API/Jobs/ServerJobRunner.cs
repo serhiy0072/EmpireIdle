@@ -14,7 +14,7 @@ namespace EmpireIdle.API.Jobs
         private readonly ILogger<ServerJobRunner> _logger;
         private readonly GameCatalog _catalog;
 
-        public ServerJobRunner(IServiceScopeFactory scopeFactory, ILogger<ServerJobRunner> logger GameCatalog catalog)
+        public ServerJobRunner(IServiceScopeFactory scopeFactory, ILogger<ServerJobRunner> logger, GameCatalog catalog)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
