@@ -15,6 +15,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Ignore(v => v.DomainEvents);
 
             builder.Property(v => v.UpdatedAt).IsRequired();
+            // Touch() піднімає UpdatedAt навіть при зміні лише дочірніх рядків —
+            // без токена на корені той механізм ні на що не впливає, і два
+            // паралельні AddBuilding вставляють дві однакові будівлі
+            builder.Property<uint>("Version").IsRowVersion();
+
             builder.Property(v => v.Name).IsRequired().HasMaxLength(100);
             builder.HasMany(v => v.Resources).WithOne().HasForeignKey("VillageId").IsRequired();
             builder.HasMany(v => v.Buildings).WithOne().HasForeignKey(b => b.VillageId);
