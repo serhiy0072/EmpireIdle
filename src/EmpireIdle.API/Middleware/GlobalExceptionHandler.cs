@@ -39,6 +39,7 @@ namespace EmpireIdle.API.Middleware
 
             var (statusCode, title) = exception switch
             {
+                System.ComponentModel.DataAnnotations.ValidationException => (StatusCodes.Status400BadRequest, "Validation Failed"),
                 InvalidOperationException => (StatusCodes.Status400BadRequest, "BadRequest"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 ArgumentException => (StatusCodes.Status400BadRequest, "Invalid Argument"),
