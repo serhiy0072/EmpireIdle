@@ -115,14 +115,14 @@ namespace EmpireIdle.Application.Marches.Commands
             }
 
             var defenderArmy = _armyBuilder.BuildArmy(monster.Type, monster.Level);
-            var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken);
-            var village = garrison is null
-                ? null
-                : await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken);
 
-            var attackerBonus = village is null
-                ? 1.0
-                : await _effectResolver.GetMultiplierAsync(village.PlayerId, EffectTarget.Attack, DateTime.UtcNow, cancellationToken);
+            var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken)
+                 ?? throw new InvalidOperationException($"Garrison {march.GarrisonId} not found for march {march.Id}.");
+
+            var village = await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken)
+                ?? throw new InvalidOperationException($"Village {garrison.VillageId} not found for garrison {garrison.Id}.");
+
+            var attackerBonus = await _effectResolver.GetMultiplierAsync(village.PlayerId, EffectTarget.Attack, DateTime.UtcNow, cancellationToken);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
             var seed = Random.Shared.Next();
@@ -135,7 +135,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var split = _casualties.Split(result.AttackerLosses, woundedCapacity);
 
             march.ApplyLosses(result.AttackerLosses);
-            garrison?.AdmitWounded(split.Wounded);
+            garrison.AdmitWounded(split.Wounded);
 
             if (result.AttackerWon)
             {
@@ -147,12 +147,12 @@ namespace EmpireIdle.Application.Marches.Commands
                     _mapRepository.Remove(cell);
 
                 var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
-                village?.GrantResources(rewards);
+                village.GrantResources(rewards);
             }
 
             var report = new BattleReport(
                 Guid.NewGuid(),
-                village?.PlayerId ?? Guid.Empty,
+                village.PlayerId,
                 march.Id,
                 march.TargetX, march.TargetY, terrain,
                 $"{monster.Type} (lvl {monster.Level})", monster.Level,
@@ -171,13 +171,13 @@ namespace EmpireIdle.Application.Marches.Commands
             await _battleReportRepository.AddAsync(report, cancellationToken);
 
             // Відновлюваних кладемо окремим стеком: у кожного бою свій дедлайн викупу
-            if (garrison is not null && split.Recoverable.Count > 0)
+            if (split.Recoverable.Count > 0)
             {
                 var expiresAt = DateTime.UtcNow.AddHours(_combatConfig.RecoveryWindowHours);
                 garrison.AddRecoverable(split.Recoverable, report.Id, expiresAt);
             }
 
-            march.RecordBattle(village?.PlayerId ?? Guid.Empty, report.Id, result.AttackerWon, report.TargetName);
+            march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, report.TargetName);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
@@ -211,7 +211,7 @@ namespace EmpireIdle.Application.Marches.Commands
         /// Вільних місць у Госпіталі: сума (рівень × місткість на рівень) мінус уже поранені.
         /// Немає Госпіталю — немає поранених, усі втрати безповоротні.
         /// </summary>
-        private int CalculateWoundedCapacity(Village? village, Garrison? garrison)
+        private int CalculateWoundedCapacity(Village village, Garrison garrison)
         {
             if (village is null || garrison is null)
                 return 0;
