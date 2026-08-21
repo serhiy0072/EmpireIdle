@@ -10,7 +10,7 @@ namespace EmpireIdle.Application.Villages.Commands
     /// <summary>Команда: зібрати накопичені ресурси з буфера будівлі.</summary>
     public record CollectBuildingCommand(Guid PlayerId, Guid BuildingId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    public class CollectBuildingCommandHandler : IRequestHandler<CollectBuildingCommand>
+    public sealed class CollectBuildingCommandHandler : IRequestHandler<CollectBuildingCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
