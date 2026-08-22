@@ -19,6 +19,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.BattleReports
             .AsNoTracking()
             .Include(r => r.Lines)
+            .AsSplitQuery()
             .Where(r => r.PlayerId == playerId)
             .OrderByDescending(r => r.FoughtAt)
             .Take(take)
@@ -28,6 +29,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<BattleReport?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.BattleReports
             .Include(r => r.Lines)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
         /// <inheritdoc/>

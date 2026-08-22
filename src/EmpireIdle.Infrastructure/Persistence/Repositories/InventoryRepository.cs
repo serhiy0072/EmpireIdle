@@ -29,6 +29,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<List<EquipmentItem>> GetEquipmentAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.EquipmentItems
             .Include(e => e.Stats)
+            .AsSplitQuery()
             .Where(e => e.PlayerId == playerId)
             .ToListAsync(cancellationToken);
 
@@ -36,6 +37,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<EquipmentItem?> GetEquipmentByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.EquipmentItems
             .Include(e => e.Stats)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
         /// <inheritdoc/>

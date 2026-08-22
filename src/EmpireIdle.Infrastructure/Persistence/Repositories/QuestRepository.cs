@@ -15,18 +15,21 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<QuestProgress?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.QuestProgress
                 .Include(q => q.Objectives)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
 
         /// <inheritdoc/>
         public Task<QuestProgress?> GetAsync(Guid playerId, string questKey, CancellationToken cancellationToken = default)
             => _context.QuestProgress
                 .Include(q => q.Objectives)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(q => q.PlayerId == playerId && q.QuestKey == questKey, cancellationToken);
 
         /// <inheritdoc/>
         public Task<List<QuestProgress>> GetAllAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.QuestProgress
                 .Include(q => q.Objectives)
+                .AsSplitQuery()
                 .Where(q => q.PlayerId == playerId)
                 .ToListAsync(cancellationToken);
 
@@ -37,6 +40,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<List<QuestProgress>> GetByKeysAsync(Guid playerId, IReadOnlySet<string> questKeys, CancellationToken cancellationToken = default)
              => _context.QuestProgress
                 .Include(q => q.Objectives)
+                .AsSplitQuery()
                 .Where(q => q.PlayerId == playerId && questKeys.Contains(q.QuestKey))
                 .ToListAsync(cancellationToken);
 
@@ -45,6 +49,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             int batchSize, CancellationToken cancellationToken = default)
             => _context.QuestProgress
                 .Include(q => q.Objectives)
+                .AsSplitQuery()
                 .Where(q => questKeys.Contains(q.QuestKey) && q.StartedAt < startedBefore)
                 .OrderBy(q => q.Id)
                 .Take(batchSize)
