@@ -23,6 +23,7 @@ namespace EmpireIdle.Application.Quests.Commands
         private readonly IQuestRepository _questRepository;
         private readonly RewardDispatcher _rewards;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly ILogger<ClaimQuestRewardCommandHandler> _logger;
 
@@ -31,18 +32,20 @@ namespace EmpireIdle.Application.Quests.Commands
             RewardDispatcher rewards,
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
+            TimeProvider timeProvider,
             ILogger<ClaimQuestRewardCommandHandler> logger)
         {
             _questRepository = questRepository;
             _rewards = rewards;
             _unitOfWork = unitOfWork;
+            _timeProvider = timeProvider;
             _catalog = catalog;
             _logger = logger;
         }
 
         public async Task Handle(ClaimQuestRewardCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var config = _catalog.Quest(request.QuestKey);
 

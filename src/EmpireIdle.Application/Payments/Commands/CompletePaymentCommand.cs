@@ -19,6 +19,7 @@ namespace EmpireIdle.Application.Payments.Commands
         private readonly IPlayerRepository _playerRepository;
         private readonly IServerContext _serverContext;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<CompletePaymentCommandHandler> _logger;
 
         public CompletePaymentCommandHandler(
@@ -27,6 +28,7 @@ namespace EmpireIdle.Application.Payments.Commands
             IPlayerRepository playerRepository,
             IServerContext serverContext,
             IUnitOfWork unitOfWork,
+            TimeProvider timeProvider,
             ILogger<CompletePaymentCommandHandler> logger)
         {
             _paymentRepository = paymentRepository;
@@ -34,11 +36,13 @@ namespace EmpireIdle.Application.Payments.Commands
             _playerRepository = playerRepository;
             _serverContext = serverContext;
             _unitOfWork = unitOfWork;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task Handle(CompletePaymentCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var payment = await _paymentRepository.GetBySessionIdAsync(request.SessionId, cancellationToken)
                 ?? throw new InvalidOperationException($"Payment for session '{request.SessionId}' not found.");
 
@@ -47,7 +51,7 @@ namespace EmpireIdle.Application.Payments.Commands
             _serverContext.UseServer(payment.ServerId);
 
             // Stripe надсилає вебхук повторно, доки не отримає 200 — другий раз нічого не нараховуємо
-            if (!payment.Complete(DateTime.UtcNow))
+            if (!payment.Complete(now))
             {
                 _logger.LogInformation("Payment {PaymentId} already completed, webhook ignored.", payment.Id);
                 return;

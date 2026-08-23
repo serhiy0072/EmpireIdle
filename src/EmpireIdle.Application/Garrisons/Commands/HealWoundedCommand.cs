@@ -59,6 +59,8 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
         public async Task Handle(HealWoundedCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
@@ -72,7 +74,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             if (request.Payment == HealPaymentMethod.Gems)
                 await ChargeGemsAsync(healed, request.PlayerId, cancellationToken);
             else
-                ChargeResources(healed, village);
+                ChargeResources(healed, village, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -96,7 +98,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         }
 
         /// <summary>Списує ресурси: половина вартості створення юніта.</summary>
-        private void ChargeResources(IReadOnlyDictionary<string, int> healed, Domain.Entities.Village village)
+        private void ChargeResources(IReadOnlyDictionary<string, int> healed, Domain.Entities.Village village, DateTime utcNow)
         {
             var cost = new List<ResourceCost>();
 
@@ -120,7 +122,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 }
             }
 
-            village.ChargeCost(cost, DateTime.UtcNow);
+            village.ChargeCost(cost, utcNow);
         }
     }
 }

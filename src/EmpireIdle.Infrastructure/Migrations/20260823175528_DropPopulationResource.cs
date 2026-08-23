@@ -12,7 +12,7 @@ namespace EmpireIdle.Infrastructure.Migrations
         {
             migrationBuilder.Sql("""
                 DELETE FROM "VillageResources" WHERE "ResourceType" = 'population';
-                """);ц
+                """);
 
         }
 

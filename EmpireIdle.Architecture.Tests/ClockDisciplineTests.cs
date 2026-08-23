@@ -20,7 +20,7 @@ public class ClockDisciplineTests
     /// Останнє вимірювання: 60. Зріз Villages лічильник не зрушив — виклики
     /// переїхали з домену в хендлери. Наступний зріз: доменні події (−10).
     /// </summary>
-    private const int AllowedDirectClockCalls = 60;
+    private const int AllowedDirectClockCalls = 30;
 
     private static readonly Regex DirectClockCall =
         new(@"\bDateTime\s*\.\s*(UtcNow|Now|Today)\b", RegexOptions.Compiled);

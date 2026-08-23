@@ -23,23 +23,25 @@ namespace EmpireIdle.Application.Payments.Commands
         private readonly IPaymentRepository _paymentRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerContext _serverContext;
+        private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly ILogger<CreateCheckoutSessionCommandHandler> _logger;
 
         public CreateCheckoutSessionCommandHandler(IPaymentProvider paymentProvider, IPaymentRepository paymentRepository, IUnitOfWork unitOfWork,
-                IServerContext serverContext, GameCatalog catalog, ILogger<CreateCheckoutSessionCommandHandler> logger)
+                IServerContext serverContext, GameCatalog catalog, TimeProvider timeProvider, ILogger<CreateCheckoutSessionCommandHandler> logger)
         {
             _paymentProvider = paymentProvider;
             _paymentRepository = paymentRepository;
             _unitOfWork = unitOfWork;
             _serverContext = serverContext;
+            _timeProvider = timeProvider;
             _catalog = catalog;
             _logger = logger;
         }
 
         public async Task<string> Handle(CreateCheckoutSessionCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var pack = _catalog.Config.Shop.GemPacks.FirstOrDefault(p => p.Key == request.PackKey)
                 ?? throw new EntityNotFoundException("Gem pack", request.PackKey);

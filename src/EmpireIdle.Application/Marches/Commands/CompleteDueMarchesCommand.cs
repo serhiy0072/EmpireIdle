@@ -14,6 +14,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMarchRepository _marchRepository;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IServerContext _serverContext;
+        private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly ILogger<CompleteDueMarchesCommandHandler> _logger;
 
@@ -21,6 +22,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IMarchRepository marchRepository,
             IServiceScopeFactory scopeFactory,
             IServerContext serverContext,
+            TimeProvider timeProvider,
             GameCatalog catalog,
             ILogger<CompleteDueMarchesCommandHandler> logger)
         {
@@ -28,12 +30,15 @@ namespace EmpireIdle.Application.Marches.Commands
             _scopeFactory = scopeFactory;
             _serverContext = serverContext;
             _catalog = catalog;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task Handle(CompleteDueMarchesCommand request, CancellationToken cancellationToken)
         {
-            var due = await _marchRepository.GetDueAsync(DateTime.UtcNow, _catalog.Config.ScanBatchSize, cancellationToken);
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
+            var due = await _marchRepository.GetDueAsync(now, _catalog.Config.ScanBatchSize, cancellationToken);
 
             if (due.Count == 0)
                 return;

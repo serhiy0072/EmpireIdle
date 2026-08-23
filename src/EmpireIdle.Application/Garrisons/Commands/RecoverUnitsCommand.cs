@@ -21,6 +21,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<RecoverUnitsCommandHandler> _logger;
 
         public RecoverUnitsCommandHandler(
@@ -29,6 +30,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IPlayerWalletRepository walletRepository,
             ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
+            TimeProvider timeProvider,
             GameCatalog catalog,
             ILogger<RecoverUnitsCommandHandler> logger)
         {
@@ -38,11 +40,14 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _catalog = catalog;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task Handle(RecoverUnitsCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
@@ -51,7 +56,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             // Спершу забираємо зі стеків — платимо рівно за те, що реально повернулось,
             // бо частина могла згоріти по дедлайну між показом екрана і натисканням кнопки
-            var recovered = garrison.RecoverUnits(request.Units, DateTime.UtcNow);
+            var recovered = garrison.RecoverUnits(request.Units, now);
             if (recovered.Count == 0)
                 throw new InvalidStateException("Nothing to recover.");
 

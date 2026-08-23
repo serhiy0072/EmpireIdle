@@ -14,25 +14,27 @@ namespace EmpireIdle.Application.Quests.Tracking
     {
         private readonly QuestSignalResolver _resolver;
         private readonly QuestProgressTracker _tracker;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<QuestProgressHandler<TEvent>> _logger;
 
-        public QuestProgressHandler(QuestSignalResolver resolver, QuestProgressTracker tracker,
-            ILogger<QuestProgressHandler<TEvent>> logger)
+        public QuestProgressHandler(QuestSignalResolver resolver, QuestProgressTracker tracker, TimeProvider timeProvider, ILogger<QuestProgressHandler<TEvent>> logger)
         {
             _resolver = resolver;
             _tracker = tracker;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task Handle(DomainEventNotification<TEvent> notification, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var signal = await _resolver.ResolveAsync(notification.DomainEvent, cancellationToken);
 
             // Подія не бере участі в квестах — не помилка
             if (signal is null)
                 return;
 
-            await _tracker.TrackAsync(signal, DateTime.UtcNow, cancellationToken);
+            await _tracker.TrackAsync(signal, now, cancellationToken);
         }
     }
 }

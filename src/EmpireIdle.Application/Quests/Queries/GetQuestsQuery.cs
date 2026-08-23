@@ -30,21 +30,23 @@ namespace EmpireIdle.Application.Quests.Queries
         private readonly IVillageRepository _villageRepository;
         private readonly IServerContext _serverContext;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
 
         public GetQuestsQueryHandler(IQuestRepository questRepository, IVillageRepository villageRepository, IServerContext serverContext,
-            IUnitOfWork unitOfWork, GameCatalog catalog)
+            IUnitOfWork unitOfWork, TimeProvider timeProvider, GameCatalog catalog)
         {
             _questRepository = questRepository;
             _villageRepository = villageRepository;
             _serverContext = serverContext;
             _unitOfWork = unitOfWork;
+            _timeProvider = timeProvider;
             _catalog = catalog;
         }
 
         public async Task<List<QuestView>> Handle(GetQuestsQuery request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var progressByKey = (await _questRepository.GetAllAsync(request.PlayerId, cancellationToken))
                 .ToDictionary(p => p.QuestKey);

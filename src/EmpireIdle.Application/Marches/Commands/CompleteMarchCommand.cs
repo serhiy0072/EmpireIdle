@@ -20,6 +20,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMonsterRepository _monsterRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IBattleReportRepository _battleReportRepository;
+        private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
         private readonly CasualtySplitter _casualties;
@@ -39,6 +40,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IVillageRepository villageRepository,
             IBattleReportRepository battleReportRepository,
             GameCatalog catalog,
+            TimeProvider timeProvider,
             CasualtySplitter casualties,
             MonsterArmyBuilder armyBuilder,
             CombatCalculator combat,
@@ -59,6 +61,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _combat = combat;
             _terrain = terrain;
             _calculator = calculator;
+            _timeProvider = timeProvider;
             _effectResolver = effectResolver;
             _logger = logger;
             _catalog = catalog;
@@ -67,6 +70,8 @@ namespace EmpireIdle.Application.Marches.Commands
 
         public async Task Handle(CompleteMarchCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             var march = await _marchRepository.GetByIdAsync(request.MarchId, cancellationToken);
 
             // Марш міг обробити паралельний прогін сканера
@@ -75,7 +80,7 @@ namespace EmpireIdle.Application.Marches.Commands
 
             if (march.State == MarchState.Outbound)
             {
-                await ResolveBattleAsync(march, cancellationToken);
+                await ResolveBattleAsync(march, now, cancellationToken);
             }
             else if (march.State == MarchState.Returning)
             {
@@ -94,7 +99,7 @@ namespace EmpireIdle.Application.Marches.Commands
         }
 
         /// <summary>Проводить бій на місці прибуття армії.</summary>
-        private async Task ResolveBattleAsync(March march, CancellationToken cancellationToken)
+        private async Task ResolveBattleAsync(March march, DateTime utcNow, CancellationToken cancellationToken)
         {
             var attackerArmy = march.GetUnits();
             var terrain = _terrain.GetTerrainType(march.ServerId, march.TargetX, march.TargetY);
@@ -102,7 +107,7 @@ namespace EmpireIdle.Application.Marches.Commands
             if (march.TargetType != MarchTargetType.Monster)
             {
                 // PvP — окрема фаза; поки армія просто розвертається
-                TurnMarchBack(march, attackerArmy);
+                TurnMarchBack(march, attackerArmy, utcNow);
                 return;
             }
 
@@ -110,7 +115,7 @@ namespace EmpireIdle.Application.Marches.Commands
             if (monster is null)
             {
                 // Ціль уже вбита кимось іншим — повертаємось без бою
-                TurnMarchBack(march, attackerArmy);
+                TurnMarchBack(march, attackerArmy, utcNow);
                 return;
             }
 
@@ -122,7 +127,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var village = await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village {garrison.VillageId} not found for garrison {garrison.Id}.");
 
-            var attackerBonus = await _effectResolver.GetMultiplierAsync(village.PlayerId, EffectTarget.Attack, DateTime.UtcNow, cancellationToken);
+            var attackerBonus = await _effectResolver.GetMultiplierAsync(village.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
             var seed = Random.Shared.Next();
@@ -147,7 +152,7 @@ namespace EmpireIdle.Application.Marches.Commands
                     _mapRepository.Remove(cell);
 
                 var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
-                village.GrantResources(rewards, DateTime.UtcNow);
+                village.GrantResources(rewards, utcNow);
             }
 
             var report = new BattleReport(
@@ -156,7 +161,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 march.Id,
                 march.TargetX, march.TargetY, terrain,
                 $"{monster.Type} (lvl {monster.Level})", monster.Level,
-                result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, DateTime.UtcNow);
+                result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
 
             foreach (var (unitType, sent) in attackerArmy)
             {
@@ -173,7 +178,7 @@ namespace EmpireIdle.Application.Marches.Commands
             // Відновлюваних кладемо окремим стеком: у кожного бою свій дедлайн викупу
             if (split.Recoverable.Count > 0)
             {
-                var expiresAt = DateTime.UtcNow.AddHours(_combatConfig.RecoveryWindowHours);
+                var expiresAt = utcNow.AddHours(_combatConfig.RecoveryWindowHours);
                 garrison.AddRecoverable(split.Recoverable, report.Id, expiresAt);
             }
 
@@ -187,16 +192,16 @@ namespace EmpireIdle.Application.Marches.Commands
                result.AttackerPower, result.DefenderPower,
                split.Wounded.Values.Sum(), split.Recoverable.Values.Sum(), split.Dead.Values.Sum());
 
-            TurnMarchBack(march, march.GetUnits());
+            TurnMarchBack(march, march.GetUnits(), utcNow);
         }
 
         /// <summary>Розвертає похід додому (або завершує, якщо армія загинула).</summary>
-        private void TurnMarchBack(March march, IReadOnlyDictionary<string, int> survivors)
+        private void TurnMarchBack(March march, IReadOnlyDictionary<string, int> survivors, DateTime utcNow)
         {
             if (survivors.Count == 0 || survivors.Values.All(c => c <= 0))
             {
                 // Уся армія загинула — повертатись нікому
-                march.TurnBack(TimeSpan.Zero, DateTime.UtcNow);
+                march.TurnBack(TimeSpan.Zero, utcNow);
                 march.Complete();
                 return;
             }
@@ -204,7 +209,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var backDuration = _calculator.CalculateDuration(
                 march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
 
-            march.TurnBack(backDuration, DateTime.UtcNow);
+            march.TurnBack(backDuration, utcNow);
         }
 
         /// <summary>

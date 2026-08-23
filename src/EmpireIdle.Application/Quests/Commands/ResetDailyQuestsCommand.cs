@@ -13,6 +13,7 @@ namespace EmpireIdle.Application.Quests.Commands
     {
         private readonly IQuestRepository _questRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly ILogger<ResetDailyQuestsCommandHandler> _logger;
 
@@ -20,17 +21,19 @@ namespace EmpireIdle.Application.Quests.Commands
             IQuestRepository questRepository,
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
+            TimeProvider timeProvider,
             ILogger<ResetDailyQuestsCommandHandler> logger)
         {
             _questRepository = questRepository;
             _unitOfWork = unitOfWork;
+            _timeProvider = timeProvider;
             _catalog = catalog;
             _logger = logger;
         }
 
         public async Task Handle(ResetDailyQuestsCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var dailyKeys = _catalog.Quests.Values
                 .Where(q => q.Window == QuestWindow.Daily)
