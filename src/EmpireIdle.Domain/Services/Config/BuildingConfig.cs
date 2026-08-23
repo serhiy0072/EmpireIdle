@@ -36,9 +36,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Мінімальний рівень головної будівлі для розблокування.</summary>
         public int RequiresMainBuildingLevel { get; set; }
 
-        /// <summary>Скільки населення додає кожен рівень цієї будівлі (0 — не житлова).</summary>
-        public int PopulationPerLevel { get; set; }
-
         /// <summary>Місткість поранених на рівень (0 — не госпіталь).</summary>
         public int WoundedCapacityPerLevel { get; set; }
 
@@ -47,9 +44,6 @@ namespace EmpireIdle.Domain.Services
         /// Рівно одна на конфіг (townhall / command_center / bunker).
         /// </summary>
         public bool IsMainBuilding { get; set; }
-
-        /// <summary>Ключ ресурсу, який поповнює ця житлова будівля (null — не житлова).</summary>
-        public string? PopulationResource { get; set; }
 
         /// <summary>
         /// Позиція будівлі на карті селища. Домен її не використовує —

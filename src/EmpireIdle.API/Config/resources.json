@@ -20,12 +20,6 @@
         "Key": "iron",
         "DisplayName": "Iron",
         "Icon": "iron.svg"
-      },
-      {
-        "Key": "population",
-        "DisplayName": "Population",
-        "Icon": "population.svg",
-        "IsCapacity": true
       }
     ]
   }

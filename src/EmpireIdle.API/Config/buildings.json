@@ -58,10 +58,7 @@
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "StorageGrowth": 1.0,
-
-        "PopulationResource": "population",
-        "PopulationPerLevel": 5
+        "StorageGrowth": 1.0
       },
       {
         "Key": "goldmine",

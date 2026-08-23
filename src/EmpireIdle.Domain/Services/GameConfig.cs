@@ -56,5 +56,13 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Квести з Config/quests.json — усі гілки: intro, military, milestones, daily, server.</summary>
         public List<QuestConfig> Quests { get; set; } = new();
+
+        // <summary>
+        /// Скільки юнітів гарнізон може тримати на кожен рівень будівлі, що гейтить юніта (казарми, стайня).
+        /// У ліміт входять юніти в гарнізоні та в черзі тренування.
+        /// Не входять: юніти в маршах (зняті з гарнізону), поранені
+        /// й відновлювані (не б'ються).
+        /// </summary>
+        public int ArmyCapacityPerBarracksLevel { get; set; }
     }
 }

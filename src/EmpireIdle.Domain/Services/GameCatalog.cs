@@ -18,9 +18,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Ключ головної будівлі — гейт для решти.</summary>
         public string MainBuildingKey { get; }
 
-        /// <summary>Ресурси-місткості (населення) — не списуються повторно при лікуванні.</summary>
-        public IReadOnlySet<string> CapacityResourceKeys { get; }
-
         public GameCatalog(GameConfig config)
         {
             Config = config;
@@ -32,7 +29,6 @@ namespace EmpireIdle.Domain.Services
             Items = config.Items.ToDictionary(i => i.Key);
             Quests = config.Quests.ToDictionary(q => q.Key);
             MainBuildingKey = config.Buildings.Single(b => b.IsMainBuilding).Key;
-            CapacityResourceKeys = config.Resources.Where(r => r.IsCapacity).Select(r => r.Key).ToHashSet();
         }
 
         /// <summary>Будівля за ключем або виняток із зрозумілим текстом.</summary>

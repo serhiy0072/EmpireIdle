@@ -13,10 +13,6 @@
           {
             "Resource": "food",
             "Amount": 5
-          },
-          {
-            "Resource": "population",
-            "Amount": 1
           }
         ],
         "BaseTrainMinutes": 2,
@@ -39,10 +35,6 @@
           {
             "Resource": "wood",
             "Amount": 10
-          },
-          {
-            "Resource": "population",
-            "Amount": 1
           }
         ],
         "BaseTrainMinutes": 3,
@@ -69,10 +61,6 @@
           {
             "Resource": "iron",
             "Amount": 10
-          },
-          {
-            "Resource": "population",
-            "Amount": 2
           }
         ],
         "BaseTrainMinutes": 5,
@@ -95,10 +83,6 @@
           {
             "Resource": "iron",
             "Amount": 50
-          },
-          {
-            "Resource": "population",
-            "Amount": 3
           }
         ],
         "BaseTrainMinutes": 15,

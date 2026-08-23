@@ -43,15 +43,29 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Ставить партію юнітів у чергу тренування.
-        /// Інваріанти гарнізону: розмір партії 1–5, одне активне замовлення.
+        /// Інваріанти: розмір партії, одне активне замовлення, ліміт армії.
         /// </summary>
-        public void TrainUnits(string unitType, int count, int maxBatchSize, TimeSpan trainDuration, DateTime utcNow)
+        /// <param name="armyCapacity">
+        /// Скільки юнітів гарнізон може тримати. Рахується від рівня казарм.
+        /// Юніти в маршах у ліміт не входять: вони вже зняті з гарнізону, і
+        /// перевіряти їх означало б тягнути в агрегат чужий стан.
+        /// </param>
+        public void TrainUnits(string unitType, int count, int maxBatchSize, int armyCapacity,
+            TimeSpan trainDuration, DateTime utcNow)
         {
             if (count < 1 || count > maxBatchSize)
                 throw new RequirementNotMetException($"Training batch size must be between 1 and {maxBatchSize}.");
 
             if (_trainingOrders.Any())
                 throw new InvalidStateException("Barracks are already training a batch.");
+
+            // Черга рахується разом із гарнізоном — інакше ліміт обходиться
+            // послідовними замовленнями до завершення першого
+            var occupied = _units.Sum(u => u.Count) + _trainingOrders.Sum(o => o.Count);
+
+            if (occupied + count > armyCapacity)
+                throw new RequirementNotMetException(
+                    $"Army capacity exceeded: {occupied} of {armyCapacity} used, requested {count}.");
 
             _trainingOrders.Add(new UnitTrainingOrder(
                 Guid.NewGuid(), Id, unitType, count, utcNow + trainDuration));

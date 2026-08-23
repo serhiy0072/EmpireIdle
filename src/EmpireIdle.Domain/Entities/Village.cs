@@ -143,9 +143,6 @@ namespace EmpireIdle.Domain.Entities
             var building = new Building(Guid.NewGuid(), Id, buildingType);
             _buildings.Add(building);
 
-            if (config.PopulationPerLevel > 0 && config.PopulationResource is not null)
-                AddPopulation(config.PopulationResource, config.PopulationPerLevel); //будівля 1-го рівня одразу дає населення
-
             Touch(utcNow);
             return building.Id;
         }
@@ -232,28 +229,11 @@ namespace EmpireIdle.Domain.Entities
             foreach (var building in due)
             {
                 building.CompleteConstruction(utcNow);
-
-                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.PopulationPerLevel > 0 && config.PopulationResource is not null)
-                    AddPopulation(config.PopulationResource, config.PopulationPerLevel); //апгрейд житлової будівлі додає населення
-
-
                 RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
             }
 
             Touch(utcNow);
             return due.Count;
-        }
-
-        /// <summary>Поповнює ресурс-місткість (від будівництва/апгрейду житлової будівлі).</summary>
-        private void AddPopulation(string resourceKey, int amount)
-        {
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey);
-            if (resource is null)
-            {
-                resource = new VillageResource(Id, resourceKey);
-                _resources.Add(resource);
-            }
-            resource.Add(amount);
         }
 
         /// <summary>

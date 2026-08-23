@@ -33,6 +33,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly ILogger<HealWoundedCommandHandler> _logger;
 
@@ -42,6 +43,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IPlayerWalletRepository walletRepository,
             ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
+            TimeProvider timeProvider,
             GameCatalog catalog,
             ILogger<HealWoundedCommandHandler> logger)
         {
@@ -50,6 +52,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
+            _timeProvider = timeProvider;
             _catalog = catalog;
             _logger = logger;
         }
@@ -107,10 +110,6 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
                 foreach (var line in config.Cost)
                 {
-                    // Місткість не витрачається повторно — юніт живий, лише поранений
-                    if (_catalog.CapacityResourceKeys.Contains(line.Resource))
-                        continue;
-
                     var amount = (int)Math.Ceiling(line.Amount * count * HealCostFactor);
                     var existing = cost.FirstOrDefault(c => c.Resource == line.Resource);
 

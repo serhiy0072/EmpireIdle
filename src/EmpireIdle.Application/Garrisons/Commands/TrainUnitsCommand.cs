@@ -21,6 +21,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<TrainUnitsCommandHandler> _logger;
         private readonly GameCatalog _catalog;
 
@@ -28,18 +29,22 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IUnitOfWork unitOfWork,
+            TimeProvider timeProvider,
             ILogger<TrainUnitsCommandHandler> logger,
             GameCatalog catalog)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _unitOfWork = unitOfWork;
+            _timeProvider = timeProvider;
             _logger = logger;
             _catalog = catalog;
         }
 
         public async Task Handle(TrainUnitsCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
@@ -49,19 +54,29 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var config = _catalog.Unit(request.UnitType)
                 ?? throw new EntityNotFoundException($"Unit type", request.UnitType);
 
-            if (config.RequiresBuilding is not null && !village.HasBuilding(config.RequiresBuilding))
-                throw new RequirementNotMetException($"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.");
+            if (config.RequiresBuilding is null)
+                throw new InvalidOperationException($"Unit '{request.UnitType}' has no training building configured.");
 
-            village.ChargeCost(config.Cost, DateTime.UtcNow, request.Count);
+            // Рівень будівлі визначає ліміт армії, тому потрібна сама будівля, а не факт її наявності.
+            // Та, що в процесі будівництва, не рахується — інакше замовлення можна зробити наперед.
+            var trainingBuilding = village.Buildings
+                .FirstOrDefault(b => b.Type == config.RequiresBuilding && !b.IsUnderConstruction)
+                ?? throw new RequirementNotMetException(
+                    $"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.");
+
+            var armyCapacity = trainingBuilding.Level.Value * _catalog.Config.ArmyCapacityPerBarracksLevel;
+
+            village.ChargeCost(config.Cost, now, request.Count);
 
             garrison.TrainUnits(request.UnitType, request.Count, _catalog.Config.MaxTrainingBatchSize,
-                TimeSpan.FromMinutes(config.BaseTrainMinutes * request.Count), DateTime.UtcNow);
+                armyCapacity, TimeSpan.FromMinutes(config.BaseTrainMinutes * request.Count), now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Training {Count} x {UnitType} started for village {VillageId} (player {PlayerId})",
-                request.Count, request.UnitType, village.Id, request.PlayerId);
+                "Training {Count} x {UnitType} started for village {VillageId} (player {PlayerId}), capacity {Used}/{Capacity}",
+                request.Count, request.UnitType, village.Id, request.PlayerId,
+                garrison.Units.Sum(u => u.Count), armyCapacity);
         }
     }
 }
