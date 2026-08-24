@@ -31,7 +31,7 @@
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "StorageGrowth": 1.0
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "house",
@@ -58,7 +58,7 @@
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "StorageGrowth": 1.0
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "goldmine",
@@ -85,7 +85,7 @@
         "ProducesResource": "gold",
         "BaseProductionPerMinute": 10,
         "BaseStorage": 60,
-        "StorageGrowth": 1.3
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "ironmine",
@@ -112,7 +112,7 @@
         "ProducesResource": "iron",
         "BaseProductionPerMinute": 10,
         "BaseStorage": 60,
-        "StorageGrowth": 1.3
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "sawmill",
@@ -139,7 +139,7 @@
         "ProducesResource": "wood",
         "BaseProductionPerMinute": 8,
         "BaseStorage": 80,
-        "StorageGrowth": 1.35
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "farm",
@@ -166,7 +166,7 @@
         "ProducesResource": "food",
         "BaseProductionPerMinute": 10,
         "BaseStorage": 60,
-        "StorageGrowth": 1.3
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "fishinghut",
@@ -193,7 +193,7 @@
         "ProducesResource": "food",
         "BaseProductionPerMinute": 10,
         "BaseStorage": 80,
-        "StorageGrowth": 1.35
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "barracks",
@@ -224,7 +224,7 @@
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "StorageGrowth": 1.0
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "hospital",
@@ -255,8 +255,7 @@
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "StorageGrowth": 1.0,
-
+        "UpgradeCostGrowth": 1.45,
         "WoundedCapacityPerLevel": 20
       },
       {
@@ -271,7 +270,8 @@
             "Amount": 150
           }
         ],
-        "RequiresMainBuildingLevel": 0
+        "RequiresMainBuildingLevel": 0,
+        "UpgradeCostGrowth": 1.45
       },
       {
         "Key": "bank",
@@ -285,7 +285,8 @@
             "Amount": 200
           }
         ],
-        "RequiresMainBuildingLevel": 2
+        "RequiresMainBuildingLevel": 2,
+        "UpgradeCostGrowth": 1.45
       }
     ]
   }

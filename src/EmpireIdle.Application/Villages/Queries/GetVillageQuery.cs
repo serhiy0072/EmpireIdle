@@ -77,7 +77,7 @@ namespace EmpireIdle.Application.Villages.Queries
 
                 return new BuildingView(b.Id, b.Type, b.Level.Value, b.LastCollectedAt,
                     b.StoredAt(config, now, boost),
-                    b.GetStorageCap(config.BaseStorage, config.StorageGrowth),
+                    b.GetStorageCap(config.BaseStorage),
                     b.ConstructionCompletesAt, b.IsUnderConstruction);
             }).ToList();
 

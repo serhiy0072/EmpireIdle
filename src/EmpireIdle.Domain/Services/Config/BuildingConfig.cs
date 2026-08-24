@@ -24,9 +24,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Базова місткість буфера будівлі на 1 рівні.</summary>
         public int BaseStorage { get; set; }
 
-        /// <summary>Коефіцієнт росту місткості з рівнем. Формула: BaseStorage * StorageGrowth^(рівень-1).</summary>
-        public double StorageGrowth { get; set; }
-
         /// <summary>Базовий час апгрейду на 1 рівні, хвилин.</summary>
         public int BaseBuildMinutes { get; set; }
 
@@ -56,6 +53,14 @@ namespace EmpireIdle.Domain.Services
         /// Склад тримає базові ресурси, банк — золото.
         /// </summary>
         public List<string>? StoresResources { get; set; }
+
+        /// <summary>
+        /// Коефіцієнт росту вартості апгрейду: вартість = Cost × UpgradeCostGrowth^(рівень−1).
+        /// Тримати нижчим за BuildTimeGrowth — тоді вузьке горло плавно
+        /// мігрує з ресурсів на час, і прискорення продаються природно.
+        /// </summary>
+        public double UpgradeCostGrowth { get; set; }
+
     }
 
 }

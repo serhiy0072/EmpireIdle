@@ -49,17 +49,10 @@ namespace EmpireIdle.Domain.Entities
         protected Building() { } // Для EF Core
 
         /// <summary>
-        /// Максимальна місткість буфера для поточного рівня:
-        /// BaseStorage × StorageGrowth^(рівень − 1), округлення вниз.
-        /// Обрізається до int.MaxValue: геометричний ріст переповнює int
-        /// близько 65–70 рівня, і кап стає від'ємним — буфер більше не накопичується.
+        /// Місткість буфера для поточного рівня. Лінійна від рівня —
+        /// разом із лінійним виробітком це тримає буфер сталим у годинах.
         /// </summary>
-        public int GetStorageCap(int baseStorage, double storageGrowth)
-        {
-            var cap = baseStorage * Math.Pow(storageGrowth, Level.Value - 1);
-
-            return cap >= int.MaxValue ? int.MaxValue : (int)cap;
-        }
+        public int GetStorageCap(int baseStorage) => ProgressionCurves.BufferCap(baseStorage, Level.Value);
 
         /// <summary>
         /// Скільки в буфері на вказаний момент. Чиста функція — стан не змінює.
@@ -71,7 +64,7 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="boost">Вікно дії буста виробництва.</param>
         public int StoredAt(BuildingConfig config, DateTime utcNow, ProductionBoost boost)
         {
-            var cap = GetStorageCap(config.BaseStorage, config.StorageGrowth);
+            var cap = GetStorageCap(config.BaseStorage);
 
             // Під час будівництва виробництво зупинене; невиробнича будівля не накопичує
             if (IsUnderConstruction || config.ProducesResource is null || utcNow <= LastAccruedAt)

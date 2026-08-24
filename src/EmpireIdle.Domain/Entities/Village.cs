@@ -202,7 +202,7 @@ namespace EmpireIdle.Domain.Entities
             // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
             foreach (var line in config.Cost)
             {
-                var need = line.Amount * building.Level.Value;
+                var need = ProgressionCurves.UpgradeCost(line.Amount, building.Level.Value, config.UpgradeCostGrowth);
                 var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
                     ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
 
@@ -213,7 +213,8 @@ namespace EmpireIdle.Domain.Entities
             // Усе перевірено — тепер списуємо (жодного часткового списання при нестачі)
             foreach (var line in config.Cost)
             {
-                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * building.Level.Value);
+                _resources.First(r => r.ResourceType == line.Resource)
+                    .Subtract(ProgressionCurves.UpgradeCost(line.Amount, building.Level.Value, config.UpgradeCostGrowth));
             }
 
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
@@ -313,13 +314,7 @@ namespace EmpireIdle.Domain.Entities
             var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
                 ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
 
-            // Кап — сума складів будівель, що виробляють цей ресурс.
-            // Коли з'явиться warehouse (GDD §17.4), формула зміниться на його місткість.
-            var cap = _buildings
-                .Where(b => buildingConfigs.TryGetValue(b.Type, out var c) && c.ProducesResource == resourceKey)
-                .Sum(b => b.GetStorageCap(
-                    buildingConfigs[b.Type].BaseStorage, buildingConfigs[b.Type].StorageGrowth));
-
+            var cap = StorageCapFor(resourceKey, buildingConfigs);
             var granted = Math.Max(0, Math.Min(amount, cap - resource.Amount));
 
             if (granted > 0)
