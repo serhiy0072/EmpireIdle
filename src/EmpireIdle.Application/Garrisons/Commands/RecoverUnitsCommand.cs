@@ -69,7 +69,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 ?? throw new InvalidOperationException("Wallet not found.");
 
             // Кине виняток при нестачі gems — SaveChanges не дійде, стеки лишаться на місці
-            wallet.SpendGems(new GemAmount(cost), $"Recover {recovered.Values.Sum()} units", request.PlayerId);
+            wallet.SpendGems(new GemAmount(cost), $"Recover {recovered.Values.Sum()} units", request.PlayerId, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

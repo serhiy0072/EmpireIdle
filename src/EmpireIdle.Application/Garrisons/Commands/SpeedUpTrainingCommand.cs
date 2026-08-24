@@ -65,7 +65,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
                     ?? throw new InvalidOperationException($"Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId);
+                wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId, now);
             }
 
             garrison.ReduceTrainingTime(order.Id, order.CompletesAt - now);

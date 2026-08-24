@@ -63,7 +63,7 @@ namespace EmpireIdle.Application.Payments.Commands
             var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
                 ?? throw new InvalidOperationException($"Wallet not found for player {payment.PlayerId}.");
 
-            wallet.AddGems(new GemAmount(payment.Gems), payment.SessionId, payment.PlayerId);
+            wallet.AddGems(new GemAmount(payment.Gems), payment.SessionId, payment.PlayerId, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

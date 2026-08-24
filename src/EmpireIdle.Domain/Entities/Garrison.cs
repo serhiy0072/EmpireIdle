@@ -86,7 +86,7 @@ namespace EmpireIdle.Domain.Entities
                 }
                 unit.Add(order.Count);
                 _trainingOrders.Remove(order);
-                RaiseDomainEvent(new Events.UnitsTrained(Id, VillageId, order.UnitType, order.Count));
+                RaiseDomainEvent(new Events.UnitsTrained(Id, VillageId, order.UnitType, order.Count, utcNow));
             }
 
             if (due.Count > 0)

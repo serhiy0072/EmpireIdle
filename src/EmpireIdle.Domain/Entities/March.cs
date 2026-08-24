@@ -99,13 +99,13 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>Армія повернулася додому — похід завершено.</summary>
-        public void Complete()
+        public void Complete(DateTime utcNow)
         {
             if (State != MarchState.Returning)
                 throw new InvalidStateException($"March {Id} is not returning.");
 
             State = MarchState.Completed;
-            RaiseDomainEvent(new Events.MarchReturned(Id, GarrisonId));
+            RaiseDomainEvent(new Events.MarchReturned(Id, GarrisonId, utcNow));
 
             Touch();
         }
@@ -129,9 +129,9 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>Фіксує факт бою для сповіщення гравця.</summary>
-        public void RecordBattle(Guid playerId, Guid reportId, bool won, string targetName)
+        public void RecordBattle(Guid playerId, Guid reportId, bool won, string targetName, DateTime utcNow)
         {
-            RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName));
+            RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName, utcNow));
             Touch();
         }
 

@@ -95,7 +95,7 @@ namespace EmpireIdle.Domain.Entities
             resource.Add(collected);
 
 
-            RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
+            RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount, utcNow));
             Touch(utcNow);
         }
 
@@ -181,7 +181,8 @@ namespace EmpireIdle.Domain.Entities
         /// <exception cref="RequirementNotMetException">Усі будівельники зайняті.</exception>
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
-        public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, ProductionBoost boost, int builderCount = 1)
+        public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost, int builderCount = 1)
         {
             if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
                 throw new RequirementNotMetException("All builders are busy.");
@@ -212,7 +213,8 @@ namespace EmpireIdle.Domain.Entities
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
             building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost);
 
-            RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
+            RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id,
+                building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value, utcNow));
             Touch(utcNow);
         }
 
@@ -229,7 +231,7 @@ namespace EmpireIdle.Domain.Entities
             foreach (var building in due)
             {
                 building.CompleteConstruction(utcNow);
-                RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
+                RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level, utcNow));
             }
 
             Touch(utcNow);

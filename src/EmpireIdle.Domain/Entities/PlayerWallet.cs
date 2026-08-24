@@ -46,13 +46,13 @@ public class PlayerWallet : Entity
     /// <param name="amount">Кількість gems.</param>
     /// <param name="reference">ID платежу в Stripe для idempotency.</param>
     /// <param name="notifyPlayerId">Гравець, у чию SignalR-групу піде подія про баланс.</param>
-    public void AddGems(GemAmount amount, string reference, Guid notifyPlayerId)
+    public void AddGems(GemAmount amount, string reference, Guid notifyPlayerId, DateTime utcNow)
     {
         GemBalance = GemBalance.Add(amount);
         _transactions.Add(new WalletTransaction(
             Guid.NewGuid(), Id, TransactionType.GemPurchase, amount.Value, reference));
 
-        RaiseDomainEvent(new GemsPurchased(notifyPlayerId, amount, GemBalance));
+        RaiseDomainEvent(new GemsPurchased(notifyPlayerId, amount, GemBalance, utcNow));
         Touch();
     }
 
@@ -62,13 +62,13 @@ public class PlayerWallet : Entity
     /// <param name="amount">Кількість gems.</param>
     /// <param name="description">Опис покупки.</param>
     /// <param name="notifyPlayerId">Гравець, у чию SignalR-групу піде подія про баланс.</param>
-    public void SpendGems(GemAmount amount, string description, Guid notifyPlayerId)
+    public void SpendGems(GemAmount amount, string description, Guid notifyPlayerId, DateTime utcNow)
     {
         GemBalance = GemBalance.Subtract(amount);
         _transactions.Add(new WalletTransaction(
             Guid.NewGuid(), Id, TransactionType.GemSpend, -amount.Value, description));
 
-        RaiseDomainEvent(new GemsSpent(notifyPlayerId, amount, GemBalance, description));
+        RaiseDomainEvent(new GemsSpent(notifyPlayerId, amount, GemBalance, description, utcNow));
         Touch();
     }
 

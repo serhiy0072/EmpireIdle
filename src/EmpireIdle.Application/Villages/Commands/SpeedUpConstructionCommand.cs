@@ -60,7 +60,7 @@ namespace EmpireIdle.Application.Villages.Commands
                 var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
                     ?? throw new InvalidOperationException("Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), $"Speed up construction of {building.Type}", request.PlayerId);
+                wallet.SpendGems(new GemAmount(cost), $"Speed up construction of {building.Type}", request.PlayerId, now);
             }
 
             // Завершуємо одразу, не чекаючи сканера

@@ -92,7 +92,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 if (survivors.Count > 0)
                     garrison.ReceiveUnits(survivors);
 
-                march.Complete();
+                march.Complete(now);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -182,7 +182,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 garrison.AddRecoverable(split.Recoverable, report.Id, expiresAt);
             }
 
-            march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, report.TargetName);
+            march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, report.TargetName, utcNow);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
@@ -202,7 +202,7 @@ namespace EmpireIdle.Application.Marches.Commands
             {
                 // Уся армія загинула — повертатись нікому
                 march.TurnBack(TimeSpan.Zero, utcNow);
-                march.Complete();
+                march.Complete(utcNow);
                 return;
             }
 

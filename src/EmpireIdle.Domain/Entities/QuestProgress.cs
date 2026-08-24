@@ -115,7 +115,7 @@ namespace EmpireIdle.Domain.Entities
             State = QuestState.Completed;
             CompletedAt = utcNow;
 
-            RaiseDomainEvent(new QuestCompleted(PlayerId, QuestKey));
+            RaiseDomainEvent(new QuestCompleted(PlayerId, QuestKey, utcNow));
         }
 
         private void Touch() => UpdatedAt = DateTime.UtcNow;

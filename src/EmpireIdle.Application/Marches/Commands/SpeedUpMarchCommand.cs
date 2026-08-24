@@ -76,7 +76,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
                     ?? throw new InvalidOperationException($"Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId);
+                wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId, now);
             }
 
             // Зсуваємо прибуття на «зараз»; бій або повернення відпрацює сканер

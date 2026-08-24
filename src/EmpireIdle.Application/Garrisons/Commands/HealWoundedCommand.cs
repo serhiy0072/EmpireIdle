@@ -72,7 +72,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 throw new InvalidStateException("Nothing to heal.");
 
             if (request.Payment == HealPaymentMethod.Gems)
-                await ChargeGemsAsync(healed, request.PlayerId, cancellationToken);
+                await ChargeGemsAsync(healed, request.PlayerId, now, cancellationToken);
             else
                 ChargeResources(healed, village, now);
 
@@ -83,7 +83,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         }
 
         /// <summary>Списує gems: фіксована ціна за кожного вилікуваного.</summary>
-        private async Task ChargeGemsAsync(IReadOnlyDictionary<string, int> healed, Guid playerId, CancellationToken cancellationToken)
+        private async Task ChargeGemsAsync(IReadOnlyDictionary<string, int> healed, Guid playerId, DateTime utcNow, CancellationToken cancellationToken)
         {
             var total = healed.Values.Where(c => c > 0).Sum();
             var cost = total * _catalog.Config.Monetization.HealGemsPerUnit;
@@ -94,7 +94,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
                 ?? throw new InvalidOperationException("Wallet not found.");
 
-            wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units", playerId);
+            wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units", playerId, utcNow);
         }
 
         /// <summary>Списує ресурси: половина вартості створення юніта.</summary>
