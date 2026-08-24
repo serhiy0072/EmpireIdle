@@ -9,9 +9,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Сервер, на який потрапляє новий гравець при реєстрації.</summary>
         public int DefaultServerId { get; set; } = 1;
 
-        /// <summary>Будівлі, які отримує нове поселення (у порядку створення).</summary>
-        public List<string> StartingBuildings { get; set; } = new();
-
         /// <summary>Максимальний розмір партії тренування.</summary>
         public int MaxTrainingBatchSize { get; set; } = 5;
 

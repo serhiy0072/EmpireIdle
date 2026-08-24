@@ -80,7 +80,8 @@ namespace EmpireIdle.Application.Players.Commands
 
             village.GrantStartingResources(_catalog.Config.StartingResources, now);
 
-            foreach (var buildingKey in _catalog.Config.StartingBuildings)
+            // Селище створюється повним: усі будівлі 1 рівня, недоступні під туманом
+            foreach (var buildingKey in _catalog.Buildings.Keys)
                 village.AddBuilding(buildingKey, _catalog.Buildings, now);
 
             var garrison = new Garrison(Guid.NewGuid(), village.Id);

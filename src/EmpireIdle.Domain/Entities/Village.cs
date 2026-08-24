@@ -106,45 +106,20 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Створює будівлю, перевіривши інваріанти: розблокування Ратушею,
-        /// відповідність зоні, вільний слот, вартість (перша будівля типу безкоштовна).
+        /// Ставить будівлю 1 рівня. Системна операція, не дія гравця:
+        /// селище створюється повним, а нові типи розкочуються на всі села одразу.
+        /// Вартості немає — гравець платить лише за апгрейди.
         /// </summary>
         /// <returns>Id створеної будівлі.</returns>
         /// <exception cref="EntityNotFoundException">Невідомий тип будівлі.</exception>
-        /// <exception cref="RequirementNotMetException">Не вистачає рівня головної будівлі.</exception>
         /// <exception cref="AlreadyExistsException">Будівля цього типу вже стоїть.</exception>
-        /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public Guid AddBuilding(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
         {
-            if (!buildingConfigs.TryGetValue(buildingType, out var config))
+            if (!buildingConfigs.ContainsKey(buildingType))
                 throw new EntityNotFoundException("Building type", buildingType);
 
-            // 1. Розблокування за рівнем головної будівлі (яка саме — вирішує конфіг)
-            var mainBuildingKey = buildingConfigs.Values.FirstOrDefault(c => c.IsMainBuilding)?.Key;
-            var mainBuildingLevel = mainBuildingKey is null
-                ? 0
-                : _buildings.FirstOrDefault(b => b.Type == mainBuildingKey)?.Level.Value ?? 0;
-
-            if (mainBuildingLevel < config.RequiresMainBuildingLevel)
-                throw new RequirementNotMetException(
-                    $"Building '{buildingType}' requires main building level {config.RequiresMainBuildingLevel}.");
-
-            // 2. Унікальність: кожна будівля існує в селі в одному екземплярі
             if (_buildings.Any(b => b.Type == buildingType))
                 throw new AlreadyExistsException("Building", buildingType);
-
-            // 3. Вартість: спершу перевіряємо все, потім списуємо — інакше можна
-            // списати частину й упасти на наступному ресурсі
-            foreach (var line in config.Cost)
-            {
-                // Ресурс із конфіга вартості, якого немає в селі — битий конфіг, не дія гравця
-                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
-                if (res.Amount < line.Amount)
-                    throw new NotEnoughResourcesException(line.Resource, line.Amount, res.Amount);
-            }
-            foreach (var line in config.Cost)
-                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount);
 
             var building = new Building(Guid.NewGuid(), Id, buildingType);
             _buildings.Add(building);
@@ -400,6 +375,25 @@ namespace EmpireIdle.Domain.Entities
             if (lagging.Count > 0)
                 throw new RequirementNotMetException(
                     $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.");
+        }
+
+        /// <summary>
+        /// Чи відкрита будівля гравцю. Під туманом вона фізично існує й може
+        /// навіть будуватись, але гравець її не бачить і не взаємодіє.
+        ///
+        /// Стан не зберігається: це функція від рівня ратуші й конфіга.
+        /// Зберігати означало б тримати похідне значення, яке розсинхронізується
+        /// з конфігом при першому ж ребалансі порогів.
+        /// </summary>
+        public bool IsUnlocked(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            string mainBuildingKey)
+        {
+            if (!buildingConfigs.TryGetValue(buildingType, out var config))
+                return false;
+
+            var townhall = _buildings.FirstOrDefault(b => b.Type == mainBuildingKey);
+
+            return townhall is not null && config.RequiresMainBuildingLevel <= townhall.Level.Value;
         }
     }
 }
