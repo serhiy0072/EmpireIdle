@@ -22,20 +22,18 @@ public class BuildingTests
         }
     }
 
-    /// <summary>
-    /// Кап буфера: BaseStorage × StorageGrowth^(рівень−1), округлення вниз.
-    /// Рівень 1 — крайовий випадок: кап дорівнює базі.
-    /// </summary>
+    /// <summary>Місткість буфера лінійна: BaseStorage × рівень.</summary>
     [Theory]
-    [InlineData(1, 60)]   // 60 × 1.3^0 = 60
-    [InlineData(2, 78)]   // 60 × 1.3^1 = 78
-    [InlineData(3, 101)]  // 60 × 1.3^2 = 101.4 → 101
-    public void GetStorageCap_ShouldGrowGeometrically_FromBaseAtLevelOne(int level, int expectedCap)
+    [InlineData(1, 60)]
+    [InlineData(2, 120)]
+    [InlineData(3, 180)]
+    [InlineData(4, 240)]
+    public void GetStorageCap_ShouldGrowLinearly_FromBaseAtLevelOne(int level, int expectedCap)
     {
         var building = CreateFarm();
         RaiseLevel(building, level - 1, building.LastAccruedAt);
 
-        Assert.Equal(expectedCap, building.GetStorageCap(60, 1.3));
+        Assert.Equal(expectedCap, building.GetStorageCap(60));
     }
 
     /// <summary>Буфер — лінійна функція часу. Жодних тіків не потрібно.</summary>
@@ -200,7 +198,7 @@ public class BuildingTests
     [Fact]
     public void StoredAt_ShouldReturnZero_ForNonProducingBuilding()
     {
-        var config = new BuildingConfig { Key = "townhall", ProducesResource = null, BaseStorage = 0, StorageGrowth = 1.0 };
+        var config = new BuildingConfig { Key = "townhall", ProducesResource = null, BaseStorage = 0 };
         var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "townhall");
 
         Assert.Equal(0, building.StoredAt(config, building.LastAccruedAt.AddHours(10), ProductionBoost.None));
@@ -220,8 +218,8 @@ public class BuildingTests
     }
 
     /// <summary>
-    /// На високих рівнях геометричний кап виходить за межі int.
-    /// Без обрізання каст дав би від'ємне число, і буфер завмер би назавжди.
+    /// Лінійний ріст переповнює int лише на абсурдних числах, але кламп лишається:
+    /// базова місткість приходить із конфіга, а його редагують руками.
     /// </summary>
     [Fact]
     public void GetStorageCap_ShouldClampInsteadOfOverflowing()
@@ -229,6 +227,6 @@ public class BuildingTests
         var building = CreateFarm();
         RaiseLevel(building, 99, building.LastAccruedAt);
 
-        Assert.Equal(int.MaxValue, building.GetStorageCap(60, 1.3));
+        Assert.Equal(int.MaxValue, building.GetStorageCap(int.MaxValue / 10));
     }
 }

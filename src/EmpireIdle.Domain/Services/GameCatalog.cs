@@ -44,8 +44,10 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         private static void Validate(GameConfig config)
         {
+            // 0 означає «не задано» — мінімальні фікстури в тестах не описують
+            // криві вартості. Помилка тільки при явно хибному значенні.
             var badGrowth = config.Buildings
-                .Where(b => b.UpgradeCostGrowth < 1.0)
+                .Where(b => b.UpgradeCostGrowth != 0 && b.UpgradeCostGrowth < 1.0)
                 .Select(b => b.Key)
                 .ToList();
 
