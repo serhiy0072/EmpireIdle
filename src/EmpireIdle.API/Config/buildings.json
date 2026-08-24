@@ -258,6 +258,34 @@
         "StorageGrowth": 1.0,
 
         "WoundedCapacityPerLevel": 20
+      },
+      {
+        "Key": "warehouse",
+        "StoresResources": [ "wood", "iron", "food" ],
+        "BaseStorage": 2000,
+        "BaseBuildMinutes": 20,
+        "BuildTimeGrowth": 1.55,
+        "Cost": [
+          {
+            "Resource": "wood",
+            "Amount": 150
+          }
+        ],
+        "RequiresMainBuildingLevel": 0
+      },
+      {
+        "Key": "bank",
+        "StoresResources": [ "gold" ],
+        "BaseStorage": 2000,
+        "BaseBuildMinutes": 25,
+        "BuildTimeGrowth": 1.55,
+        "Cost": [
+          {
+            "Resource": "wood",
+            "Amount": 200
+          }
+        ],
+        "RequiresMainBuildingLevel": 2
       }
     ]
   }

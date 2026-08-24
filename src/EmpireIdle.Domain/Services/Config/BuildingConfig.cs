@@ -51,6 +51,11 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public BuildingPosition? Position { get; set; }
 
+        /// <summary>
+        /// Які ресурси зберігає ця будівля. Порожньо для невиробничих.
+        /// Склад тримає базові ресурси, банк — золото.
+        /// </summary>
+        public List<string>? StoresResources { get; set; }
     }
 
 }

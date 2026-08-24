@@ -108,6 +108,7 @@ namespace EmpireIdle.Domain.Entities
             return collected;
         }
 
+
         /// <summary>
         /// Розпочати апгрейд: будівля переходить у стан будівництва до вказаного часу.
         /// Рівень підніметься лише при завершенні (CompleteConstruction).

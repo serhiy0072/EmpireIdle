@@ -62,10 +62,13 @@ namespace EmpireIdle.Domain.Entities
         protected Village() { } // Для EF Core
 
         /// <summary>
-        /// Збирає накопичене з буфера будівлі у ресурси села.
+        /// Переносить накопичене з буфера будівлі у сховище села.
+        /// Буфер спорожнюється повністю; те, що не вмістилось у сховище, згорає.
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
+        /// <param name="utcNow">Момент збору.</param>
+        /// <param name="boost">Вікно дії буста виробництва.</param>
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
         public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
@@ -84,7 +87,7 @@ namespace EmpireIdle.Domain.Entities
 
             var collected = building.Collect(config, utcNow, boost);
             if (collected == 0)
-                return;// порожній буфер — не подія і не зміна стану
+                return; // порожній буфер — не подія і не зміна стану
 
             var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
             if (resource is null)
@@ -92,10 +95,13 @@ namespace EmpireIdle.Domain.Entities
                 resource = new VillageResource(Id, config.ProducesResource);
                 _resources.Add(resource);
             }
-            resource.Add(collected);
 
+            // Склад приймає скільки влізе, решта згорає
+            var cap = StorageCapFor(config.ProducesResource, buildingConfigs);
+            var accepted = resource.AddUpTo(collected, cap);
 
-            RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount, utcNow));
+            RaiseDomainEvent(new Events.BuildingCollected(
+                Id, PlayerId, building.Id, config.ProducesResource, accepted, resource.Amount, utcNow));
             Touch(utcNow);
         }
 
@@ -321,6 +327,27 @@ namespace EmpireIdle.Domain.Entities
 
             Touch(utcNow);
             return granted;
+        }
+
+        /// <summary>
+        /// Місткість сховища для ресурсу. Золото зберігається в банку,
+        /// решта — на складі: два різні сховища, два різні рівні.
+        /// Будівля під будівництвом місткості не дає.
+        /// </summary>
+        public int StorageCapFor(string resourceKey, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        {
+            var storageKey = buildingConfigs.Values
+                .FirstOrDefault(c => c.StoresResources?.Contains(resourceKey) == true)?.Key;
+
+            if (storageKey is null)
+                return int.MaxValue;
+
+            var storage = _buildings.FirstOrDefault(b => b.Type == storageKey && !b.IsUnderConstruction);
+
+            if (storage is null || !buildingConfigs.TryGetValue(storageKey, out var storageConfig))
+                return 0;
+
+            return storageConfig.BaseStorage * storage.Level.Value;
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
