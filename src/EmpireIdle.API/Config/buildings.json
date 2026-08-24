@@ -10,7 +10,6 @@
           "X": 50.0,
           "Y": 30.0
         },
-
         "Cost": [
           {
             "Resource": "gold",
@@ -27,10 +26,106 @@
         ],
         "BaseBuildMinutes": 0,
         "BuildTimeGrowth": 1.6,
-
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "warehouse",
+        "DisplayName": "Warehouse",
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 40.0,
+          "Y": 30.0
+        },
+        "StoresResources": [ "wood", "iron", "food" ],
+        "Cost": [
+          {
+            "Resource": "wood",
+            "Amount": 150
+          }
+        ],
+        "BaseBuildMinutes": 20,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 2000,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "farm",
+        "DisplayName": "Farm",
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 30.0,
+          "Y": 40.0
+        },
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 100
+          },
+          {
+            "Resource": "wood",
+            "Amount": 60
+          }
+        ],
+        "BaseBuildMinutes": 2,
+        "BuildTimeGrowth": 1.5,
+        "ProducesResource": "food",
+        "BaseProductionPerMinute": 10,
+        "BaseStorage": 600,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "sawmill",
+        "DisplayName": "Sawmill",
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 30.0,
+          "Y": 50.0
+        },
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 120
+          },
+          {
+            "Resource": "wood",
+            "Amount": 40
+          }
+        ],
+        "BaseBuildMinutes": 3,
+        "BuildTimeGrowth": 1.5,
+        "ProducesResource": "wood",
+        "BaseProductionPerMinute": 8,
+        "BaseStorage": 800,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "goldmine",
+        "DisplayName": "Gold Mine",
+        "RequiresMainBuildingLevel": 0,
+        "Position": {
+          "X": 70.0,
+          "Y": 30.0
+        },
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 100
+          },
+          {
+            "Resource": "wood",
+            "Amount": 50
+          }
+        ],
+        "BaseBuildMinutes": 2,
+        "BuildTimeGrowth": 1.5,
+        "ProducesResource": "gold",
+        "BaseProductionPerMinute": 10,
+        "BaseStorage": 600,
         "UpgradeCostGrowth": 1.45
       },
       {
@@ -41,7 +136,6 @@
           "X": 60.0,
           "Y": 30.0
         },
-
         "Cost": [
           {
             "Resource": "gold",
@@ -54,156 +148,19 @@
         ],
         "BaseBuildMinutes": 1,
         "BuildTimeGrowth": 1.4,
-
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
         "UpgradeCostGrowth": 1.45
       },
       {
-        "Key": "goldmine",
-        "DisplayName": "Goldmine",
-        "RequiresMainBuildingLevel": 0,
-        "Position": {
-          "X": 70.0,
-          "Y": 30.0
-        },
-
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 100
-          },
-          {
-            "Resource": "wood",
-            "Amount": 50
-          }
-        ],
-        "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": 1.5,
-
-        "ProducesResource": "gold",
-        "BaseProductionPerMinute": 10,
-        "BaseStorage": 60,
-        "UpgradeCostGrowth": 1.45
-      },
-      {
-        "Key": "ironmine",
-        "DisplayName": "Ironmine",
-        "RequiresMainBuildingLevel": 0,
-        "Position": {
-          "X": 80.0,
-          "Y": 30.0
-        },
-
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 100
-          },
-          {
-            "Resource": "wood",
-            "Amount": 50
-          }
-        ],
-        "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": 1.5,
-
-        "ProducesResource": "iron",
-        "BaseProductionPerMinute": 10,
-        "BaseStorage": 60,
-        "UpgradeCostGrowth": 1.45
-      },
-      {
-        "Key": "sawmill",
-        "DisplayName": "Sawmill",
-        "RequiresMainBuildingLevel": 0,
-        "Position": {
-          "X": 40.0,
-          "Y": 30.0
-        },
-
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 100
-          },
-          {
-            "Resource": "wood",
-            "Amount": 50
-          }
-        ],
-        "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": 1.5,
-
-        "ProducesResource": "wood",
-        "BaseProductionPerMinute": 8,
-        "BaseStorage": 80,
-        "UpgradeCostGrowth": 1.45
-      },
-      {
-        "Key": "farm",
-        "DisplayName": "Farm",
-        "RequiresMainBuildingLevel": 0,
-        "Position": {
-          "X": 30.0,
-          "Y": 30.0
-        },
-
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 100
-          },
-          {
-            "Resource": "wood",
-            "Amount": 50
-          }
-        ],
-        "BaseBuildMinutes": 1,
-        "BuildTimeGrowth": 1.5,
-
-        "ProducesResource": "food",
-        "BaseProductionPerMinute": 10,
-        "BaseStorage": 60,
-        "UpgradeCostGrowth": 1.45
-      },
-      {
-        "Key": "fishinghut",
-        "DisplayName": "Fishing Hut",
-        "RequiresMainBuildingLevel": 0,
-        "Position": {
-          "X": 20.0,
-          "Y": 30.0
-        },
-
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 100
-          },
-          {
-            "Resource": "wood",
-            "Amount": 50
-          }
-        ],
-        "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": 1.5,
-
-        "ProducesResource": "food",
-        "BaseProductionPerMinute": 10,
-        "BaseStorage": 80,
-        "UpgradeCostGrowth": 1.45
-      },
-      {
         "Key": "barracks",
         "DisplayName": "Barracks",
-        "RequiresMainBuildingLevel": 2,
+        "RequiresMainBuildingLevel": 1,
         "Position": {
-          "X": 10.0,
-          "Y": 30.0
+          "X": 60.0,
+          "Y": 50.0
         },
-
         "Cost": [
           {
             "Resource": "gold",
@@ -214,13 +171,114 @@
             "Amount": 200
           },
           {
-            "Resource": "iron",
+            "Resource": "food",
             "Amount": 100
           }
         ],
-        "BaseBuildMinutes": 8,
+        "BaseBuildMinutes": 30,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "bank",
+        "DisplayName": "Bank",
+        "RequiresMainBuildingLevel": 1,
+        "Position": {
+          "X": 40.0,
+          "Y": 20.0
+        },
+        "StoresResources": [ "gold" ],
+        "Cost": [
+          {
+            "Resource": "wood",
+            "Amount": 200
+          },
+          {
+            "Resource": "gold",
+            "Amount": 150
+          }
+        ],
+        "BaseBuildMinutes": 25,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 2000,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "heroeshall",
+        "DisplayName": "Hall of Heroes",
+        "RequiresMainBuildingLevel": 2,
+        "Position": {
+          "X": 50.0,
+          "Y": 45.0
+        },
+        "HeroSlotsPerLevel": 1,
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 300
+          },
+          {
+            "Resource": "wood",
+            "Amount": 200
+          }
+        ],
+        "BaseBuildMinutes": 35,
+        "BuildTimeGrowth": 1.6,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "ironmine",
+        "DisplayName": "Iron Mine",
+        "RequiresMainBuildingLevel": 2,
+        "Position": {
+          "X": 70.0,
+          "Y": 40.0
+        },
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 150
+          },
+          {
+            "Resource": "wood",
+            "Amount": 100
+          }
+        ],
+        "BaseBuildMinutes": 4,
         "BuildTimeGrowth": 1.5,
-
+        "ProducesResource": "iron",
+        "BaseProductionPerMinute": 8,
+        "BaseStorage": 600,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "lootshop",
+        "DisplayName": "Trading Post",
+        "RequiresMainBuildingLevel": 3,
+        "Position": {
+          "X": 35.0,
+          "Y": 15.0
+        },
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 350
+          },
+          {
+            "Resource": "wood",
+            "Amount": 250
+          }
+        ],
+        "BaseBuildMinutes": 40,
+        "BuildTimeGrowth": 1.6,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
@@ -231,10 +289,10 @@
         "DisplayName": "Hospital",
         "RequiresMainBuildingLevel": 3,
         "Position": {
-          "X": 90.0,
-          "Y": 30.0
+          "X": 60.0,
+          "Y": 40.0
         },
-
+        "WoundedCapacityPerLevel": 20,
         "Cost": [
           {
             "Resource": "gold",
@@ -242,50 +300,254 @@
           },
           {
             "Resource": "wood",
-            "Amount": 200
-          },
-          {
-            "Resource": "food",
-            "Amount": 150
+            "Amount": 250
           }
         ],
-        "BaseBuildMinutes": 10,
-        "BuildTimeGrowth": 1.5,
-
+        "BaseBuildMinutes": 35,
+        "BuildTimeGrowth": 1.55,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45,
-        "WoundedCapacityPerLevel": 20
-      },
-      {
-        "Key": "warehouse",
-        "StoresResources": [ "wood", "iron", "food" ],
-        "BaseStorage": 2000,
-        "BaseBuildMinutes": 20,
-        "BuildTimeGrowth": 1.55,
-        "Cost": [
-          {
-            "Resource": "wood",
-            "Amount": 150
-          }
-        ],
-        "RequiresMainBuildingLevel": 0,
         "UpgradeCostGrowth": 1.45
       },
       {
-        "Key": "bank",
-        "StoresResources": [ "gold" ],
-        "BaseStorage": 2000,
-        "BaseBuildMinutes": 25,
+        "Key": "market",
+        "DisplayName": "Market",
+        "RequiresMainBuildingLevel": 4,
+        "Position": {
+          "X": 30.0,
+          "Y": 25.0
+        },
+        "MarketSlotsPerLevel": 2,
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 400
+          },
+          {
+            "Resource": "wood",
+            "Amount": 300
+          }
+        ],
+        "BaseBuildMinutes": 45,
         "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "wall",
+        "DisplayName": "Wall",
+        "RequiresMainBuildingLevel": 4,
+        "Position": {
+          "X": 50.0,
+          "Y": 60.0
+        },
+        "DefenceBonusPerLevel": 0.03,
         "Cost": [
           {
             "Resource": "wood",
+            "Amount": 300
+          },
+          {
+            "Resource": "iron",
             "Amount": 200
           }
         ],
-        "RequiresMainBuildingLevel": 2,
+        "BaseBuildMinutes": 40,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "stable",
+        "DisplayName": "Stable",
+        "RequiresMainBuildingLevel": 5,
+        "Position": {
+          "X": 70.0,
+          "Y": 50.0
+        },
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 400
+          },
+          {
+            "Resource": "wood",
+            "Amount": 300
+          },
+          {
+            "Resource": "food",
+            "Amount": 200
+          }
+        ],
+        "BaseBuildMinutes": 50,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "builderhut",
+        "DisplayName": "Builder's Hut",
+        "RequiresMainBuildingLevel": 5,
+        "Position": {
+          "X": 50.0,
+          "Y": 20.0
+        },
+        "BuilderSlotsPerLevel": 1,
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 400
+          },
+          {
+            "Resource": "wood",
+            "Amount": 300
+          }
+        ],
+        "BaseBuildMinutes": 45,
+        "BuildTimeGrowth": 1.6,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "embassy",
+        "DisplayName": "Embassy",
+        "RequiresMainBuildingLevel": 6,
+        "Position": {
+          "X": 20.0,
+          "Y": 30.0
+        },
+        "ReinforcementSlotsPerLevel": 50,
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 500
+          },
+          {
+            "Resource": "wood",
+            "Amount": 400
+          },
+          {
+            "Resource": "iron",
+            "Amount": 200
+          }
+        ],
+        "BaseBuildMinutes": 60,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "scouttower",
+        "DisplayName": "Scout Tower",
+        "RequiresMainBuildingLevel": 6,
+        "Position": {
+          "X": 40.0,
+          "Y": 60.0
+        },
+        "ScoutRangePerLevel": 5,
+        "Cost": [
+          {
+            "Resource": "wood",
+            "Amount": 350
+          },
+          {
+            "Resource": "iron",
+            "Amount": 150
+          }
+        ],
+        "BaseBuildMinutes": 45,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "forge",
+        "DisplayName": "Forge",
+        "RequiresMainBuildingLevel": 7,
+        "Position": {
+          "X": 65.0,
+          "Y": 60.0
+        },
+        "WeaponUpgradeSlotsPerLevel": 1,
+        "Cost": [
+          {
+            "Resource": "iron",
+            "Amount": 400
+          },
+          {
+            "Resource": "wood",
+            "Amount": 300
+          }
+        ],
+        "BaseBuildMinutes": 60,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "fishinghut",
+        "DisplayName": "Fishing Hut",
+        "RequiresMainBuildingLevel": 7,
+        "Position": {
+          "X": 20.0,
+          "Y": 45.0
+        },
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 180
+          },
+          {
+            "Resource": "wood",
+            "Amount": 120
+          }
+        ],
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.5,
+        "ProducesResource": "food",
+        "BaseProductionPerMinute": 10,
+        "BaseStorage": 600,
+        "UpgradeCostGrowth": 1.45
+      },
+      {
+        "Key": "beastpen",
+        "DisplayName": "Beast Pen",
+        "RequiresMainBuildingLevel": 8,
+        "Position": {
+          "X": 80.0,
+          "Y": 45.0
+        },
+        "BeastCapacityPerLevel": 2,
+        "Cost": [
+          {
+            "Resource": "wood",
+            "Amount": 400
+          },
+          {
+            "Resource": "food",
+            "Amount": 300
+          }
+        ],
+        "BaseBuildMinutes": 55,
+        "BuildTimeGrowth": 1.55,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
         "UpgradeCostGrowth": 1.45
       }
     ]
