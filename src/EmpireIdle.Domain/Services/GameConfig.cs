@@ -64,5 +64,11 @@ namespace EmpireIdle.Domain.Services
         /// й відновлювані (не б'ються).
         /// </summary>
         public int ArmyCapacityPerBarracksLevel { get; set; }
+
+        /// <summary>
+        /// Скільки рівнів будівель відкриває один рівень сервера.
+        /// Стеля ратуші = ServerLevel × BuildingLevelsPerTier.
+        /// </summary>
+        public int BuildingLevelsPerTier { get; set; } = 10;
     }
 }

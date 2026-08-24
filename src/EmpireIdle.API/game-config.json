@@ -11,6 +11,7 @@
     "ScanBatchSize": 500,
     "ArmyCapacityPerBarracksLevel": 50,
     "DefaultServerId": 1,
-    "ActiveServerIds": [ 1 ]
+    "ActiveServerIds": [ 1 ],
+    "BuildingLevelsPerTier": 10
   }
 }

@@ -188,7 +188,8 @@ namespace EmpireIdle.Domain.Entities
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            DateTime utcNow, ProductionBoost boost, int builderCount = 1)
+            DateTime utcNow, ProductionBoost boost, string mainBuildingKey, int serverLevel, int levelsPerTier,
+            int builderCount = 1)
         {
             if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
                 throw new RequirementNotMetException("All builders are busy.");
@@ -198,6 +199,8 @@ namespace EmpireIdle.Domain.Entities
 
             if (!buildingConfigs.TryGetValue(building.Type, out var config))
                 throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
+
+            EnsureTierAllows(building, config, buildingConfigs, mainBuildingKey, serverLevel, levelsPerTier);
 
             // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
             foreach (var line in config.Cost)
@@ -346,5 +349,57 @@ namespace EmpireIdle.Domain.Entities
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
+
+        /// <summary>
+        /// Перевіряє три незалежні умови апгрейду.
+        ///
+        /// A. Стеля від рівня сервера — контент відкривається для всіх одночасно.
+        /// B. Темп усередині тіру (тільки ратуша) — за межу тіру не пускаємо,
+        ///    поки решта селища не підтягнулась. Будівлі під туманом не рахуються:
+        ///    інакше гравець мусив би прокачати те, чого ще не бачить.
+        /// C. Рівномірність — жодна будівля не переростає ратушу.
+        ///
+        /// Будівля в процесі апгрейду рахується за ПОТОЧНИМ рівнем: інакше
+        /// можна запустити десять апгрейдів одночасно й обійти умову B.
+        /// </summary>
+        private void EnsureTierAllows(Building building, BuildingConfig config,
+            IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            string mainBuildingKey, int serverLevel, int levelsPerTier)
+        {
+            var targetLevel = building.Level.Value + 1;
+            var isMainBuilding = building.Type == mainBuildingKey;
+
+            // A
+            var ceiling = serverLevel * levelsPerTier;
+            if (targetLevel > ceiling)
+                throw new RequirementNotMetException(
+                    $"Server level {serverLevel} allows buildings up to level {ceiling}.");
+
+            var townhall = _buildings.FirstOrDefault(b => b.Type == mainBuildingKey)
+                ?? throw new InvalidOperationException($"Village {Id} has no '{mainBuildingKey}'.");
+
+            // C
+            if (!isMainBuilding && targetLevel > townhall.Level.Value)
+                throw new RequirementNotMetException(
+                    $"'{building.Type}' cannot exceed main building level {townhall.Level.Value}.");
+
+            // B — лише на межі тіру
+            if (!isMainBuilding || building.Level.Value % levelsPerTier != 0)
+                return;
+
+            var required = building.Level.Value;
+
+            var lagging = _buildings
+                .Where(b => b.Type != mainBuildingKey
+                            && buildingConfigs.TryGetValue(b.Type, out var c)
+                            && c.RequiresMainBuildingLevel <= townhall.Level.Value
+                            && b.Level.Value < required)
+                .Select(b => b.Type)
+                .ToList();
+
+            if (lagging.Count > 0)
+                throw new RequirementNotMetException(
+                    $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.");
+        }
     }
 }
