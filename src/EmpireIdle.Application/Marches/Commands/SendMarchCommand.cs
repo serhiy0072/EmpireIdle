@@ -75,7 +75,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var (targetX, targetY) = await ResolveTargetAsync(request, cancellationToken);
 
             // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
-            garrison.SendUnits(request.Units);
+            garrison.SendUnits(request.Units, now);
 
             var duration = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, targetX, targetY, request.Units);

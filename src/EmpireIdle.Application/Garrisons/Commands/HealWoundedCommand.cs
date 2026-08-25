@@ -67,7 +67,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
-            var healed = garrison.HealWounded(request.Units);
+            var healed = garrison.HealWounded(request.Units, now);
             if (healed.Count == 0)
                 throw new InvalidStateException("Nothing to heal.");
 

@@ -90,7 +90,7 @@ namespace EmpireIdle.Domain.Entities
             }
 
             if (due.Count > 0)
-                Touch();
+                Touch(utcNow);
 
             return due.Count;
         }
@@ -99,7 +99,7 @@ namespace EmpireIdle.Domain.Entities
         /// Знімає юнітів із гарнізону для походу.
         /// </summary>
         /// <param name="units">Тип юніта → кількість.</param>
-        public void SendUnits(IReadOnlyDictionary<string, int> units)
+        public void SendUnits(IReadOnlyDictionary<string, int> units, DateTime utcNow)
         {
             if (units.Count == 0)
                 throw new RequirementNotMetException("Cannot send an empty army.");
@@ -120,11 +120,11 @@ namespace EmpireIdle.Domain.Entities
             foreach (var (unitType, count) in units)
                 _units.First(u => u.UnitType == unitType).Subtract(count);
 
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Повертає юнітів у гарнізон (після походу).</summary>
-        public void ReceiveUnits(IReadOnlyDictionary<string, int> units)
+        public void ReceiveUnits(IReadOnlyDictionary<string, int> units, DateTime utcNow)
         {
             foreach (var (unitType, count) in units)
             {
@@ -139,11 +139,11 @@ namespace EmpireIdle.Domain.Entities
                 }
                 unit.Add(count);
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Приймає поранених після бою (у межах вільної місткості).</summary>
-        public void AdmitWounded(IReadOnlyDictionary<string, int> wounded)
+        public void AdmitWounded(IReadOnlyDictionary<string, int> wounded, DateTime utcNow)
         {
             foreach (var (unitType, count) in wounded)
             {
@@ -158,13 +158,13 @@ namespace EmpireIdle.Domain.Entities
                 }
                 stack.Add(count);
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
         /// Виліковує поранених: вони повертаються в гарнізон.
         /// </summary>
-        public Dictionary<string, int> HealWounded(IReadOnlyDictionary<string, int> toHeal)
+        public Dictionary<string, int> HealWounded(IReadOnlyDictionary<string, int> toHeal, DateTime utcNow)
         {
             var healed = new Dictionary<string, int>();
 
@@ -182,28 +182,27 @@ namespace EmpireIdle.Domain.Entities
             _wounded.RemoveAll(w => w.Count <= 0);
 
             if (healed.Count > 0)
-                ReceiveUnits(healed);
+                ReceiveUnits(healed, utcNow);
 
-            Touch();
+            Touch(utcNow);
             return healed;
         }
 
         /// <summary>Прискорює замовлення тренування (speedup за gems).</summary>
-        public void ReduceTrainingTime(Guid orderId, TimeSpan reduction)
+        public void ReduceTrainingTime(Guid orderId, TimeSpan reduction, DateTime utcNow)
         {
             var order = _trainingOrders.FirstOrDefault(o => o.Id == orderId)
                  ?? throw new EntityNotFoundException("Training order", orderId);
 
             order.Reduce(reduction);
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
         public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
 
         /// <summary>Записує відновлюваних після бою — окремим стеком зі своїм дедлайном.</summary>
-        public void AddRecoverable(IReadOnlyDictionary<string, int> units,
-            Guid battleReportId, DateTime expiresAt)
+        public void AddRecoverable(IReadOnlyDictionary<string, int> units, Guid battleReportId, DateTime expiresAt, DateTime utcNow)
         {
             foreach (var (unitType, count) in units)
             {
@@ -212,7 +211,7 @@ namespace EmpireIdle.Domain.Entities
 
                 _recoverable.Add(new RecoverableUnit(Guid.NewGuid(), Id, battleReportId, unitType, count, expiresAt));
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
@@ -251,12 +250,12 @@ namespace EmpireIdle.Domain.Entities
             _recoverable.RemoveAll(r => r.Count <= 0);
 
             if (recovered.Count > 0)
-                ReceiveUnits(recovered);
+                ReceiveUnits(recovered, utcNow);
 
-            Touch();
+            Touch(utcNow);
             return recovered;
         }
 
-        private void Touch() => UpdatedAt = DateTime.UtcNow;
+        private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
     }
 }

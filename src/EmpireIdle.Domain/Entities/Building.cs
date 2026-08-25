@@ -37,13 +37,13 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Чи триває апгрейд будівлі (виробництво на цей час зупинене).</summary>
         public bool IsUnderConstruction => ConstructionCompletesAt is not null;
 
-        public Building(Guid id, Guid villageId, string type) : base(id)
+        public Building(Guid id, Guid villageId, string type, DateTime utcNow) : base(id)
         {
             VillageId = villageId;
             Type = type;
             Level = BuildingLevel.Initial;
-            LastCollectedAt = DateTime.UtcNow;
-            LastAccruedAt = DateTime.UtcNow;
+            LastCollectedAt = utcNow;
+            LastAccruedAt = utcNow;
         }
 
         protected Building() { } // Для EF Core

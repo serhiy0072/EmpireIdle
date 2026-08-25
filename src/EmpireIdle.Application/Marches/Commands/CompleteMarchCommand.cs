@@ -90,7 +90,7 @@ namespace EmpireIdle.Application.Marches.Commands
 
                 var survivors = march.GetUnits();
                 if (survivors.Count > 0)
-                    garrison.ReceiveUnits(survivors);
+                    garrison.ReceiveUnits(survivors, now);
 
                 march.Complete(now);
             }
@@ -139,8 +139,8 @@ namespace EmpireIdle.Application.Marches.Commands
 
             var split = _casualties.Split(result.AttackerLosses, woundedCapacity);
 
-            march.ApplyLosses(result.AttackerLosses);
-            garrison.AdmitWounded(split.Wounded);
+            march.ApplyLosses(result.AttackerLosses, utcNow);
+            garrison.AdmitWounded(split.Wounded, utcNow);
 
             if (result.AttackerWon)
             {
@@ -179,7 +179,7 @@ namespace EmpireIdle.Application.Marches.Commands
             if (split.Recoverable.Count > 0)
             {
                 var expiresAt = utcNow.AddHours(_combatConfig.RecoveryWindowHours);
-                garrison.AddRecoverable(split.Recoverable, report.Id, expiresAt);
+                garrison.AddRecoverable(split.Recoverable, report.Id, expiresAt, utcNow);
             }
 
             march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, report.TargetName, utcNow);

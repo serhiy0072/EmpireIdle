@@ -95,7 +95,7 @@ namespace EmpireIdle.Domain.Entities
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
 
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Армія повернулася додому — похід завершено.</summary>
@@ -107,14 +107,14 @@ namespace EmpireIdle.Domain.Entities
             State = MarchState.Completed;
             RaiseDomainEvent(new Events.MarchReturned(Id, GarrisonId, utcNow));
 
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
         /// Застосовує втрати після бою: зменшує склад армії.
         /// Загони, що загинули повністю, видаляються.
         /// </summary>
-        public void ApplyLosses(IReadOnlyDictionary<string, int> losses)
+        public void ApplyLosses(IReadOnlyDictionary<string, int> losses, DateTime utcNow)
         {
             foreach (var (unitType, lost) in losses)
             {
@@ -125,24 +125,24 @@ namespace EmpireIdle.Domain.Entities
             }
             _units.RemoveAll(u => u.Count <= 0);
 
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Фіксує факт бою для сповіщення гравця.</summary>
         public void RecordBattle(Guid playerId, Guid reportId, bool won, string targetName, DateTime utcNow)
         {
             RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName, utcNow));
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Прискорює прибуття (speedup за gems).</summary>
-        public void ReduceTravelTime(TimeSpan reduction)
+        public void ReduceTravelTime(TimeSpan reduction, DateTime utcNow)
         {
             ArrivesAt -= reduction;
-            Touch();
+            Touch(utcNow);
         }
 
-        private void Touch() => UpdatedAt = DateTime.UtcNow;
+        private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
     }
 
     /// <summary>Загін у складі походу.</summary>

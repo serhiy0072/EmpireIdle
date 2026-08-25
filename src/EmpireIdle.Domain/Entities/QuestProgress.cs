@@ -54,7 +54,7 @@ namespace EmpireIdle.Domain.Entities
 
             Objective(objectiveIndex).Add(amount);
             TryComplete(utcNow);
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace EmpireIdle.Domain.Entities
 
             Objective(objectiveIndex).RaiseTo(current);
             TryComplete(utcNow);
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Забрати нагороду. Ідемпотентно: повторний виклик нічого не робить.</summary>
@@ -80,7 +80,7 @@ namespace EmpireIdle.Domain.Entities
             State = QuestState.Claimed;
             ClaimedAt = utcNow;
 
-            Touch();
+            Touch(utcNow);
             return true;
         }
 
@@ -100,7 +100,7 @@ namespace EmpireIdle.Domain.Entities
             StartedAt = utcNow;
             CompletedAt = null;
             ClaimedAt = null;
-            Touch();
+            Touch(utcNow);
         }
 
         private QuestObjectiveProgress Objective(int index)
@@ -118,6 +118,6 @@ namespace EmpireIdle.Domain.Entities
             RaiseDomainEvent(new QuestCompleted(PlayerId, QuestKey, utcNow));
         }
 
-        private void Touch() => UpdatedAt = DateTime.UtcNow;
+        private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
     }
 }

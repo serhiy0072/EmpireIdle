@@ -10,7 +10,7 @@ public class BuildingTests
     // farm: 10/хв, кап 60, ріст капу 1.3
     private static readonly BuildingConfig Farm = TestData.FarmConfigs()["farm"];
 
-    private static Building CreateFarm() => new(Guid.NewGuid(), Guid.NewGuid(), "farm");
+    private static Building CreateFarm() => new(Guid.NewGuid(), Guid.NewGuid(), "farm", DateTime.UtcNow);
 
     /// <summary>Піднімає рівень через реальний шлях: почати → завершити.</summary>
     private static void RaiseLevel(Building building, int times, DateTime utcNow)
@@ -199,7 +199,7 @@ public class BuildingTests
     public void StoredAt_ShouldReturnZero_ForNonProducingBuilding()
     {
         var config = new BuildingConfig { Key = "townhall", ProducesResource = null, BaseStorage = 0 };
-        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "townhall");
+        var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "townhall", DateTime.UtcNow);
 
         Assert.Equal(0, building.StoredAt(config, building.LastAccruedAt.AddHours(10), ProductionBoost.None));
     }

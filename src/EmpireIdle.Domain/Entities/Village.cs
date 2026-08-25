@@ -121,7 +121,7 @@ namespace EmpireIdle.Domain.Entities
             if (_buildings.Any(b => b.Type == buildingType))
                 throw new AlreadyExistsException("Building", buildingType);
 
-            var building = new Building(Guid.NewGuid(), Id, buildingType);
+            var building = new Building(Guid.NewGuid(), Id, buildingType, utcNow);
             _buildings.Add(building);
 
             Touch(utcNow);

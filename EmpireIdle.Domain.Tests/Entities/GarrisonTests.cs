@@ -116,7 +116,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.TrainUnits("infantry", 5, 5, 100, TimeSpan.FromMinutes(10), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
 
-            garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 });
+            garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 }, DateTime.UtcNow);
 
             Assert.Equal(2, garrison.Units.Single().Count);
         }
@@ -130,7 +130,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
             Assert.Throws<NotEnoughResourcesException>(() =>
-                garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 5 }));
+                garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 5 }, DateTime.UtcNow));
 
             Assert.Equal(2, garrison.Units.Single().Count); // нічого не зняли
         }
@@ -144,8 +144,8 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
 
             var army = new Dictionary<string, int> { ["infantry"] = 3 };
-            garrison.SendUnits(army);
-            garrison.ReceiveUnits(army);
+            garrison.SendUnits(army, DateTime.UtcNow);
+            garrison.ReceiveUnits(army, DateTime.UtcNow);
 
             Assert.Equal(5, garrison.Units.Single().Count); // усі повернулись
         }

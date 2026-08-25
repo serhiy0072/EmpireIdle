@@ -68,7 +68,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId, now);
             }
 
-            garrison.ReduceTrainingTime(order.Id, order.CompletesAt - now);
+            garrison.ReduceTrainingTime(order.Id, order.CompletesAt - now, now);
             garrison.CompleteDueTraining(now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

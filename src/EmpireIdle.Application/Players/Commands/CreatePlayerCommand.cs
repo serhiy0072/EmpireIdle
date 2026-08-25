@@ -67,7 +67,7 @@ namespace EmpireIdle.Application.Players.Commands
 
             var playerId = Guid.NewGuid();
 
-            var player = new Player(playerId, request.UserName, email, request.UserId, serverId);
+            var player = new Player(playerId, request.UserName, email, request.UserId, now, serverId);
             var wallet = new PlayerWallet(Guid.NewGuid(), request.UserId);
             var (x, y) = await _settlementPlacer.FindSpotAsync(
                 serverId: serverId,
