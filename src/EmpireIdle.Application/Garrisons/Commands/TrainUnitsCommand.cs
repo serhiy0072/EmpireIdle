@@ -64,6 +64,10 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 ?? throw new RequirementNotMetException(
                     $"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.");
 
+            if (trainingBuilding.Level.Value < config.RequiresBuildingLevel)
+                throw new RequirementNotMetException(
+                    $"Training '{request.UnitType}' requires '{config.RequiresBuilding}' at level {config.RequiresBuildingLevel}.");
+
             var armyCapacity = trainingBuilding.Level.Value * _catalog.Config.ArmyCapacityPerBarracksLevel;
 
             village.ChargeCost(config.Cost, now, request.Count);

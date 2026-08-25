@@ -21,7 +21,8 @@
           "Defense": 12,
           "Speed": 4
         },
-        "RequiresBuilding": "barracks"
+        "RequiresBuilding": "barracks",
+        "RequiresBuildingLevel" :  1
       },
       {
         "Key": "archer",
@@ -43,7 +44,8 @@
           "Defense": 6,
           "Speed": 4
         },
-        "RequiresBuilding": "barracks"
+        "RequiresBuilding": "barracks",
+        "RequiresBuildingLevel": 3
       },
       {
         "Key": "cavalry",
@@ -69,7 +71,8 @@
           "Defense": 10,
           "Speed": 8
         },
-        "RequiresBuilding": "barracks"
+        "RequiresBuilding": "stable",
+        "RequiresBuildingLevel": 1
       },
       {
         "Key": "siege",
@@ -91,7 +94,8 @@
           "Defense": 5,
           "Speed": 1
         },
-        "RequiresBuilding": "barracks"
+        "RequiresBuilding": "barracks",
+        "RequiresBuildingLevel": 6
       }
     ]
   }

@@ -395,5 +395,21 @@ namespace EmpireIdle.Domain.Entities
 
             return townhall is not null && config.RequiresMainBuildingLevel <= townhall.Level.Value;
         }
+
+        /// <summary>
+        /// Множник до сили оборони від укріплень. 1.0 — стін немає.
+        /// Рахується від селища, а не з гарнізону: стіни належать місту,
+        /// і підкріплення клану ними теж прикриті.
+        /// </summary>
+        public double DefenceMultiplier(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        {
+            var bonus = _buildings
+                .Where(b => !b.IsUnderConstruction
+                            && buildingConfigs.TryGetValue(b.Type, out var c)
+                            && c.DefenceBonusPerLevel > 0)
+                .Sum(b => buildingConfigs[b.Type].DefenceBonusPerLevel * b.Level.Value);
+
+            return 1.0 + bonus;
+        }
     }
 }
