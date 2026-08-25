@@ -4,61 +4,29 @@ using AwesomeAssertions;
 namespace EmpireIdle.Architecture.Tests;
 
 /// <summary>
-/// Храповик під міграцію на TimeProvider.
+/// Прямих викликів годинника в src немає.
 ///
-/// Зараз у проєкті 60 прямих DateTime.UtcNow — виправити їх одним комітом
-/// нереально, а мігрувати без захисту означає, що нові файли додаватимуть нові.
-/// Тест фіксує стелю й опускає її з кожним зрізом: Villages → Garrisons →
-/// Marches → Quests → Payments. Число тільки зменшується.
+/// Час приходить із TimeProvider у хендлери й сервіси, а в домен — параметром
+/// методу. Причина не в чистоті: поведінка, прив'язана до DateTime.UtcNow,
+/// не тестується інакше як через Thread.Sleep, а операція, що читає годинник
+/// двічі, отримує два різні моменти й дає плаваючі результати.
 ///
-/// Коли дійде до нуля — замінити на Should().Be(0) і видалити лічильник.
+/// Раніше тут був храповик зі стелею 60 — міграцію завершено, і правило
+/// стало абсолютним.
 /// </summary>
 public class ClockDisciplineTests
 {
-    /// <summary>
-    /// Стеля. ЗМЕНШУВАТИ при кожному зрізі міграції, ніколи не збільшувати.
-    /// Останнє вимірювання: 60. Зріз Villages лічильник не зрушив — виклики
-    /// переїхали з домену в хендлери. Наступний зріз: доменні події (−10).
-    /// </summary>
-    private const int AllowedDirectClockCalls = 0;
-
     private static readonly Regex DirectClockCall =
         new(@"\bDateTime\s*\.\s*(UtcNow|Now|Today)\b", RegexOptions.Compiled);
 
     [Fact]
-    public void DirectClockCalls_ShouldNotGrow()
+    public void DirectClockCalls_ShouldNotExist()
     {
         var offenders = ScanSources();
 
-        offenders.Count.Should().BeLessThanOrEqualTo(AllowedDirectClockCalls,
-            $"нові прямі виклики годинника заборонені. Знайдено {offenders.Count}, " +
-            $"стеля {AllowedDirectClockCalls}. Використай TimeProvider:\n" +
-            string.Join('\n', offenders.Take(15)));
-    }
-
-    [Fact]
-    public void Ceiling_ShouldBeTightened_WhenMigrationProgresses()
-    {
-        // Ловить забуте оновлення константи: якщо зріз мігрували, а стелю не опустили,
-        // наступний файл знову зможе додати UtcNow непоміченим
-        var actual = ScanSources().Count;
-
-        actual.Should().BeGreaterThan(AllowedDirectClockCalls - 5,
-            $"фактичних викликів {actual} при стелі {AllowedDirectClockCalls} — " +
-            "опусти AllowedDirectClockCalls до фактичного значення");
-    }
-
-    [Fact]
-    public void ApiControllers_ShouldNotReadTheClock()
-    {
-        // Контролер, який знає котра година, майже завжди рахує щось,
-        // що мало б рахуватись у хендлері
-        var offenders = ScanSources()
-            .Where(o => o.Contains("/Controllers/", StringComparison.Ordinal))
-            .ToList();
-
         offenders.Should().BeEmpty(
-            "час читає хендлер, не транспортний шар:\n" + string.Join('\n', offenders));
+            "час береться з TimeProvider або приходить параметром. Знайдено:\n"
+            + string.Join('\n', offenders));
     }
 
     private static List<string> ScanSources()
@@ -72,7 +40,7 @@ public class ClockDisciplineTests
         {
             var normalised = file.Replace('\\', '/');
 
-            // Міграції генерує EF, обжʼєкти й біни — не наш код
+            // Міграції генерує EF, obj і bin — не наш код
             if (normalised.Contains("/Migrations/", StringComparison.Ordinal)
                 || normalised.Contains("/obj/", StringComparison.Ordinal)
                 || normalised.Contains("/bin/", StringComparison.Ordinal))
