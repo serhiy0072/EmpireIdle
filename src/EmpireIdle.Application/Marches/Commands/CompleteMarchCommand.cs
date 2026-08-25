@@ -23,12 +23,11 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
-        private readonly CasualtySplitter _casualties;
         private readonly MonsterArmyBuilder _armyBuilder;
-        private readonly CombatCalculator _combat;
         private readonly TerrainGenerator _terrain;
         private readonly MarchCalculator _calculator;
         private readonly EffectResolver _effectResolver;
+        private readonly BattleResolver _resolver;
         private readonly ILogger<CompleteMarchCommandHandler> _logger;
 
         public CompleteMarchCommandHandler(
@@ -41,12 +40,11 @@ namespace EmpireIdle.Application.Marches.Commands
             IBattleReportRepository battleReportRepository,
             GameCatalog catalog,
             TimeProvider timeProvider,
-            CasualtySplitter casualties,
             MonsterArmyBuilder armyBuilder,
-            CombatCalculator combat,
             TerrainGenerator terrain,
             MarchCalculator calculator,
             EffectResolver effectResolver,
+            BattleResolver resolver,
             ILogger<CompleteMarchCommandHandler> logger)
         {
             _marchRepository = marchRepository;
@@ -56,15 +54,14 @@ namespace EmpireIdle.Application.Marches.Commands
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
             _battleReportRepository = battleReportRepository;
-            _casualties = casualties;
             _armyBuilder = armyBuilder;
-            _combat = combat;
             _terrain = terrain;
             _calculator = calculator;
             _timeProvider = timeProvider;
             _effectResolver = effectResolver;
             _logger = logger;
             _catalog = catalog;
+            _resolver = resolver;
             _combatConfig = _catalog.Config.Combat;
         }
 
@@ -132,12 +129,15 @@ namespace EmpireIdle.Application.Marches.Commands
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
             var seed = Random.Shared.Next();
 
-            var result = _combat.Resolve(attackerArmy, defenderArmy, terrain, seed, attackerBonus);
-
             // Вільна місткість Госпіталю = сума рівнів × місткість на рівень − уже поранені
             var woundedCapacity = CalculateWoundedCapacity(village, garrison);
 
-            var split = _casualties.Split(result.AttackerLosses, woundedCapacity);
+            // Монстр стін не має, тому бонус захисника лишається нейтральним
+            var outcome = _resolver.Resolve(attackerArmy, defenderArmy, terrain, seed,
+                attackerBonus, defenderBonus: 1.0, woundedCapacity);
+
+            var result = outcome.Battle;
+            var split = outcome.AttackerCasualties;
 
             march.ApplyLosses(result.AttackerLosses, utcNow);
             garrison.AdmitWounded(split.Wounded, utcNow);

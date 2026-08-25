@@ -20,18 +20,14 @@ namespace EmpireIdle.Domain.Services
             _config = config;
         }
 
-        /// <summary>
-        /// Розподіляє втрати по кошиках.
-        /// </summary>
-        /// <param name="losses">Загальні втрати (тип → кількість).</param>
-        /// <param name="woundedCapacity">Вільна місткість Госпіталю; надлишок поранених гине.</param>
-        public CasualtySplit Split(IReadOnlyDictionary<string, int> losses, int woundedCapacity)
+        /// <param name="seed">Сід розподілу — робить розкладку втрат відтворюваною.</param>
+        public CasualtySplit Split(IReadOnlyDictionary<string, int> losses, int woundedCapacity, int seed)
         {
             var wounded = new Dictionary<string, int>();
             var recoverable = new Dictionary<string, int>();
             var dead = new Dictionary<string, int>();
 
-            var random = Random.Shared;
+            var random = new Random(seed);
             var remainingCapacity = Math.Max(0, woundedCapacity);
             foreach (var(unitType, lost) in losses)
             {
