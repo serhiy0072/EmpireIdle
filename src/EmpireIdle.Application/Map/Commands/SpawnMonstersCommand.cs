@@ -38,7 +38,7 @@ namespace EmpireIdle.Application.Map.Commands
 
         public async Task Handle(SpawnMonstersCommand request, CancellationToken cancellationToken)
         {
-            var now = _timeProvider.GetUtcNow().DateTime;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var current = await _monsterRepository.CountAsync(request.ServerId, cancellationToken);
             var target = _spawner.GetTargetPopulation();
             var missing = Math.Min(target - current, MaxSpawnsPerRun);
