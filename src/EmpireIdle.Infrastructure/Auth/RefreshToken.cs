@@ -15,6 +15,6 @@ namespace EmpireIdle.Infrastructure.Auth
         public DateTime? RevokedAt { get; set; }
         public string? ReplacedByToken { get; set; }
 
-        public bool IsActive => RevokedAt is null && DateTime.UtcNow < ExpiresAt;
+        public bool IsActiveAt(DateTime utcNow) => RevokedAt is null && utcNow < ExpiresAt;
     }
 }
