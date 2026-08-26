@@ -279,13 +279,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<GameHub>("/hubs/game");
 
-//  10. РОЗКЛАД ФОНОВИХ ЗАДАЧ
-
-RecurringJob.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
-RecurringJob.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
-RecurringJob.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.RunAsync(), Cron.Hourly);
-RecurringJob.AddOrUpdate<DailyQuestResetJob>("daily-quest-reset", job => job.RunAsync(), Cron.Daily);
-
 app.Run();
 
 /// <summary>Точка входу — public для WebApplicationFactory у тестах.</summary>
