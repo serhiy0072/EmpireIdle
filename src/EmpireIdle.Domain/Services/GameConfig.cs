@@ -9,9 +9,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Сервер, на який потрапляє новий гравець при реєстрації.</summary>
         public int DefaultServerId { get; set; } = 1;
 
-        /// <summary>Будівлі, які отримує нове поселення (у порядку створення).</summary>
-        public List<string> StartingBuildings { get; set; } = new();
-
         /// <summary>Максимальний розмір партії тренування.</summary>
         public int MaxTrainingBatchSize { get; set; } = 5;
 
@@ -56,5 +53,19 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Квести з Config/quests.json — усі гілки: intro, military, milestones, daily, server.</summary>
         public List<QuestConfig> Quests { get; set; } = new();
+
+        // <summary>
+        /// Скільки юнітів гарнізон може тримати на кожен рівень будівлі, що гейтить юніта (казарми, стайня).
+        /// У ліміт входять юніти в гарнізоні та в черзі тренування.
+        /// Не входять: юніти в маршах (зняті з гарнізону), поранені
+        /// й відновлювані (не б'ються).
+        /// </summary>
+        public int ArmyCapacityPerBarracksLevel { get; set; }
+
+        /// <summary>
+        /// Скільки рівнів будівель відкриває один рівень сервера.
+        /// Стеля ратуші = ServerLevel × BuildingLevelsPerTier.
+        /// </summary>
+        public int BuildingLevelsPerTier { get; set; } = 10;
     }
 }

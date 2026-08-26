@@ -1,7 +1,6 @@
 {
   "GameConfig": {
     "GameName": "EmpireIdle",
-    "StartingBuildings": [ "townhall", "farm" ],
     "MaxTrainingBatchSize": 5,
     "StartingResources": {
       "gold": 500,
@@ -9,7 +8,9 @@
       "food": 300
     },
     "ScanBatchSize": 500,
+    "ArmyCapacityPerBarracksLevel": 50,
     "DefaultServerId": 1,
-    "ActiveServerIds": [ 1 ]
+    "ActiveServerIds": [ 1 ],
+    "BuildingLevelsPerTier": 10
   }
 }

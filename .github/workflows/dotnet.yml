@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
@@ -48,15 +48,21 @@ jobs:
 
       # Api.Tests піднімають Testcontainers — потрібен Docker, доступний на ubuntu-latest
       - name: Integration tests
+        env:
+          Jwt__Key: ci-only-signing-key-not-a-secret-min-32-chars
+          Jwt__Issuer: EmpireIdle.Tests
+          Jwt__Audience: EmpireIdle.Tests
+          ConnectionStrings__DefaultConnection: "Host=localhost;Database=placeholder"
+          Cors__AllowedOrigins__0: http://localhost:5173
         run: >
-          dotnet test EmpireIdle.Api.Tests/EmpireIdle.Api.Tests.csproj
+          dotnet test tests/EmpireIdle.Api.Tests/EmpireIdle.Api.Tests.csproj
           --no-build --configuration Release
           --logger "trx;LogFileName=integration.trx"
           --collect:"XPlat Code Coverage"
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-results
           path: '**/TestResults/**'
@@ -68,9 +74,9 @@ jobs:
         working-directory: src/EmpireIdle.Web
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm

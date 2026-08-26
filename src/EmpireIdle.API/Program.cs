@@ -51,8 +51,6 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Buildings.Count(b => b.IsMainBuilding) == 1, "GameConfig must define exactly one main building.")
     .Validate(c => c.StartingResources.Count > 0, "GameConfig.StartingResources is empty.")
     .Validate(c => c.StartingResources.Keys.All(k => c.Resources.Any(r => r.Key == k)), "GameConfig.StartingResources references an unknown resource key.")
-    .Validate(c => c.StartingBuildings.Count > 0, "GameConfig.StartingBuildings is empty.")
-    .Validate(c => c.StartingBuildings.All(k => c.Buildings.Any(b => b.Key == k)), "GameConfig.StartingBuildings references a building key that does not exist.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
     .Validate(c => c.ActiveServerIds.Contains(c.DefaultServerId), "GameConfig.DefaultServerId is not in ActiveServerIds.")
@@ -100,6 +98,7 @@ builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<Ter
 builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+builder.Services.AddSingleton<BattleResolver>();
 
 //  3. ІНФРАСТРУКТУРА
 //  БД, репозиторії, Identity, MediatR, Outbox — усе в одному місці.
@@ -207,6 +206,7 @@ builder.Services.AddScoped<TimerScanJob>();
 builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();
 builder.Services.AddScoped<DailyQuestResetJob>();
+builder.Services.AddHostedService<RecurringJobScheduler>();
 
 //  8. ВЕБ-ШАР
 

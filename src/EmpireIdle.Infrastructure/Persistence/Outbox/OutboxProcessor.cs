@@ -26,12 +26,14 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
 
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly OutboxSettings _settings;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<OutboxProcessor> _logger;
 
-        public OutboxProcessor(IServiceScopeFactory scopeFactory, IOptions<OutboxSettings> settings, ILogger<OutboxProcessor> logger)
+        public OutboxProcessor(IServiceScopeFactory scopeFactory, IOptions<OutboxSettings> settings, TimeProvider timeProvider, ILogger<OutboxProcessor> logger)
         {
             _scopeFactory = scopeFactory;
             _settings = settings.Value;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
@@ -89,6 +91,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
 
         private async Task<bool> ProcessesOneAsync(Guid id, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var publisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
@@ -125,7 +128,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
                 // комітяться разом із позначкою "оброблено"
                 await publisher.Publish(notification, cancellationToken);
 
-                message.ProcessedAt = DateTime.UtcNow;
+                message.ProcessedAt = now;
                 await context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 

@@ -29,7 +29,7 @@ namespace EmpireIdle.Domain.Services
 
             var cost = (int)Math.Ceiling(_config.SpeedUpFactor * Math.Pow(minutes, _config.SpeedUpExponent));
 
-            return Math.Max(_config.SpeedUpMinGems, cost);
+            return cost;
         }
     }
 }

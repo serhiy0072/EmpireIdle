@@ -13,10 +13,6 @@
           {
             "Resource": "food",
             "Amount": 5
-          },
-          {
-            "Resource": "population",
-            "Amount": 1
           }
         ],
         "BaseTrainMinutes": 2,
@@ -25,7 +21,8 @@
           "Defense": 12,
           "Speed": 4
         },
-        "RequiresBuilding": "barracks"
+        "RequiresBuilding": "barracks",
+        "RequiresBuildingLevel" :  1
       },
       {
         "Key": "archer",
@@ -39,10 +36,6 @@
           {
             "Resource": "wood",
             "Amount": 10
-          },
-          {
-            "Resource": "population",
-            "Amount": 1
           }
         ],
         "BaseTrainMinutes": 3,
@@ -51,7 +44,8 @@
           "Defense": 6,
           "Speed": 4
         },
-        "RequiresBuilding": "barracks"
+        "RequiresBuilding": "barracks",
+        "RequiresBuildingLevel": 3
       },
       {
         "Key": "cavalry",
@@ -69,10 +63,6 @@
           {
             "Resource": "iron",
             "Amount": 10
-          },
-          {
-            "Resource": "population",
-            "Amount": 2
           }
         ],
         "BaseTrainMinutes": 5,
@@ -81,7 +71,8 @@
           "Defense": 10,
           "Speed": 8
         },
-        "RequiresBuilding": "barracks"
+        "RequiresBuilding": "stable",
+        "RequiresBuildingLevel": 1
       },
       {
         "Key": "siege",
@@ -95,10 +86,6 @@
           {
             "Resource": "iron",
             "Amount": 50
-          },
-          {
-            "Resource": "population",
-            "Amount": 3
           }
         ],
         "BaseTrainMinutes": 15,
@@ -107,7 +94,8 @@
           "Defense": 5,
           "Speed": 1
         },
-        "RequiresBuilding": "barracks"
+        "RequiresBuilding": "barracks",
+        "RequiresBuildingLevel": 6
       }
     ]
   }

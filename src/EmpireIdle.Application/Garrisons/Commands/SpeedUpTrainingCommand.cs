@@ -18,6 +18,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentPlayer _currentPlayer;
+        private readonly TimeProvider _timeProvider;
         private readonly SpeedUpCalculator _calculator;
         private readonly ILogger<SpeedUpTrainingCommandHandler> _logger;
 
@@ -27,6 +28,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IPlayerWalletRepository walletRepository,
             ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
+            TimeProvider timeProvider,
             SpeedUpCalculator calculator,
             ILogger<SpeedUpTrainingCommandHandler> logger)
         {
@@ -35,13 +37,14 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
+            _timeProvider = timeProvider;
             _calculator = calculator;
             _logger = logger;
         }
 
         public async Task Handle(SpeedUpTrainingCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
@@ -62,10 +65,10 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
                     ?? throw new InvalidOperationException($"Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId);
+                wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId, now);
             }
 
-            garrison.ReduceTrainingTime(order.Id, order.CompletesAt - now);
+            garrison.ReduceTrainingTime(order.Id, order.CompletesAt - now, now);
             garrison.CompleteDueTraining(now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

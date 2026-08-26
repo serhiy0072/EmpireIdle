@@ -14,9 +14,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Interceptors
     public class DomainEventDispatchInterceptor : SaveChangesInterceptor
     {
         private readonly IServerContext _serverContext;
+        private readonly TimeProvider _timeProvider;
 
-        public DomainEventDispatchInterceptor(IServerContext serverContext)
-            => _serverContext = serverContext;
+        public DomainEventDispatchInterceptor(IServerContext serverContext, TimeProvider timeProvider)
+        {
+            _serverContext = serverContext;
+            _timeProvider = timeProvider;
+        }
 
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
@@ -43,7 +47,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Interceptors
             // Читаємо ЛИШЕ коли є що писати: у scope без подій (наприклад,
             // позначка ProcessedAt у воркері) сервер може бути не встановлений
             var serverId = _serverContext.ServerId;
-            var utcNow = DateTime.UtcNow;
+            var utcNow = _timeProvider.GetUtcNow().UtcDateTime;
 
             var messages = entitiesWithEvents
                 .SelectMany(e => e.DomainEvents)

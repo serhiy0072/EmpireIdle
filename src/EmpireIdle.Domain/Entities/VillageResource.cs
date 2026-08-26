@@ -42,5 +42,21 @@ namespace EmpireIdle.Domain.Entities
 
             Amount -= amount;
         }
+
+        /// <summary>
+        /// Додає ресурс у межах місткості сховища. Повертає, скільки реально
+        /// зараховано: надлишок згорає — це і є причина качати склад.
+        /// </summary>
+        /// <param name="cap">Місткість сховища для цього ресурсу.</param>
+        public int AddUpTo(int amount, int cap)
+        {
+            if (amount < 0)
+                throw new InvalidOperationException("Amount to add cannot be negative.");
+
+            var accepted = Math.Max(0, Math.Min(amount, cap - Amount));
+            Amount += accepted;
+
+            return accepted;
+        }
     }
 }

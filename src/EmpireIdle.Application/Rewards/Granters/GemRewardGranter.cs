@@ -8,11 +8,13 @@ namespace EmpireIdle.Application.Rewards.Granters
     {
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly IPlayerRepository _playerRepository;
+        private readonly TimeProvider _timeProvider;
 
-        public GemRewardGranter(IPlayerWalletRepository walletRepository, IPlayerRepository playerRepository)
+        public GemRewardGranter(IPlayerWalletRepository walletRepository, IPlayerRepository playerRepository, TimeProvider timeProvider)
         {
             _walletRepository = walletRepository;
             _playerRepository = playerRepository;
+            _timeProvider = timeProvider;
         }
 
         /// <inheritdoc/>
@@ -21,6 +23,8 @@ namespace EmpireIdle.Application.Rewards.Granters
         /// <inheritdoc/>
         public async Task GrantAsync(RewardContext context, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             // Гаманець належить акаунту, а не гравцю — потрібен перехід через Player
             var player = await _playerRepository.GetByIdAsync(context.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Player {context.PlayerId} not found.");
@@ -28,7 +32,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
                 ?? throw new InvalidOperationException($"Wallet not found for player {context.PlayerId}.");
 
-            wallet.AddGems(new GemAmount(context.Reward.Amount), context.Reference, context.PlayerId);
+            wallet.AddGems(new GemAmount(context.Reward.Amount), context.Reference, context.PlayerId, now);
         }
     }
 }

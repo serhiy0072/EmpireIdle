@@ -33,6 +33,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly ILogger<HealWoundedCommandHandler> _logger;
 
@@ -42,6 +43,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IPlayerWalletRepository walletRepository,
             ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
+            TimeProvider timeProvider,
             GameCatalog catalog,
             ILogger<HealWoundedCommandHandler> logger)
         {
@@ -50,26 +52,29 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
+            _timeProvider = timeProvider;
             _catalog = catalog;
             _logger = logger;
         }
 
         public async Task Handle(HealWoundedCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
             var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
-            var healed = garrison.HealWounded(request.Units);
+            var healed = garrison.HealWounded(request.Units, now);
             if (healed.Count == 0)
                 throw new InvalidStateException("Nothing to heal.");
 
             if (request.Payment == HealPaymentMethod.Gems)
-                await ChargeGemsAsync(healed, request.PlayerId, cancellationToken);
+                await ChargeGemsAsync(healed, request.PlayerId, now, cancellationToken);
             else
-                ChargeResources(healed, village);
+                ChargeResources(healed, village, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -78,7 +83,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         }
 
         /// <summary>Списує gems: фіксована ціна за кожного вилікуваного.</summary>
-        private async Task ChargeGemsAsync(IReadOnlyDictionary<string, int> healed, Guid playerId, CancellationToken cancellationToken)
+        private async Task ChargeGemsAsync(IReadOnlyDictionary<string, int> healed, Guid playerId, DateTime utcNow, CancellationToken cancellationToken)
         {
             var total = healed.Values.Where(c => c > 0).Sum();
             var cost = total * _catalog.Config.Monetization.HealGemsPerUnit;
@@ -89,11 +94,11 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
                 ?? throw new InvalidOperationException("Wallet not found.");
 
-            wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units", playerId);
+            wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units", playerId, utcNow);
         }
 
         /// <summary>Списує ресурси: половина вартості створення юніта.</summary>
-        private void ChargeResources(IReadOnlyDictionary<string, int> healed, Domain.Entities.Village village)
+        private void ChargeResources(IReadOnlyDictionary<string, int> healed, Domain.Entities.Village village, DateTime utcNow)
         {
             var cost = new List<ResourceCost>();
 
@@ -107,10 +112,6 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
                 foreach (var line in config.Cost)
                 {
-                    // Місткість не витрачається повторно — юніт живий, лише поранений
-                    if (_catalog.CapacityResourceKeys.Contains(line.Resource))
-                        continue;
-
                     var amount = (int)Math.Ceiling(line.Amount * count * HealCostFactor);
                     var existing = cost.FirstOrDefault(c => c.Resource == line.Resource);
 
@@ -121,7 +122,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 }
             }
 
-            village.ChargeCost(cost, DateTime.UtcNow);
+            village.ChargeCost(cost, utcNow);
         }
     }
 }

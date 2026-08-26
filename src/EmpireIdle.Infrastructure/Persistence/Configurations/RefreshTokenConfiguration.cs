@@ -16,8 +16,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasIndex(rt => rt.Token).IsUnique();
             builder.HasIndex(rt => rt.UserId);
 
-            builder.Ignore(rt => rt.IsActive);
-
             builder.ToTable("RefreshTokens");
         }
     }

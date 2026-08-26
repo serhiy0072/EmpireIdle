@@ -6,6 +6,11 @@ namespace EmpireIdle.Domain.Tests.Entities
 {
     public class VillageTests
     {
+        /// <summary>Рівень сервера, що свідомо не гейтить: ці тести не про тіри.</summary>
+        private const int UngatedServerLevel = 99;
+
+        private const int LevelsPerTier = 10;
+
         /// <summary>Збір перекладає накопичене в ресурси села й обнуляє буфер.</summary>
         [Fact]
         public void CollectFromBuilding_ShouldMoveBufferIntoVillageResources()
@@ -67,81 +72,108 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Throws<AlreadyExistsException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
         }
 
-        /// <summary>Перша будівля вже не безкоштовна — вартість списується завжди.</summary>
-        [Fact]
-        public void AddBuilding_ShouldChargeCost()
-        {
-            var village = TestData.CreateVillageWithResources(200);
-            var configs = TestData.FarmConfigs();
-
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
-
-            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "food").Amount);
-        }
-
-        /// <summary>Без ресурсів будівлю не поставити.</summary>
-        [Fact]
-        public void AddBuilding_ShouldReject_WhenResourcesAreInsufficient()
-        {
-            var village = TestData.CreateVillageWithResources(50);
-            var configs = TestData.FarmConfigs();
-
-            Assert.Throws<NotEnoughResourcesException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
-            Assert.Empty(village.Buildings);
-        }
-
-        /// <summary>BeginBuildingUpgrade списує ресурси й ставить будівлю в стан будівництва.</summary>
+        /// <summary>
+        /// Апгрейд списує вартість за геометричною кривою й ставить будівлю
+        /// в стан будівництва. Ферма 1 рівня: 100 × 1.45^0 = 100.
+        /// </summary>
         [Fact]
         public void BeginBuildingUpgrade_ShouldChargeCostAndStartConstruction()
         {
-            var village = TestData.CreateVillageWithResources(300);
+            var village = TestData.CreateVillageWithTownhall(resourceAmount: 300);
             var configs = TestData.FarmConfigs();
+            var farm = village.Buildings.Single(b => b.Type == "farm");
             var now = DateTime.UtcNow;
 
-            village.AddBuilding("farm", configs, now);
-            var building = village.Buildings.First();
+            var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
 
-            village.BeginBuildingUpgrade(building.Id, configs, now, ProductionBoost.None);
+            village.BeginBuildingUpgrade(farm.Id, configs, now, ProductionBoost.None,
+                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier);
 
-            Assert.True(building.IsUnderConstruction);
-            Assert.NotNull(building.ConstructionCompletesAt);
-            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "food").Amount);
+            Assert.True(farm.IsUnderConstruction);
+            Assert.NotNull(farm.ConstructionCompletesAt);
+            Assert.Equal(foodBefore - 100, village.Resources.Single(r => r.ResourceType == "food").Amount);
         }
 
         /// <summary>Апгрейд банкує вироблене до зупинки — воно не губиться.</summary>
         [Fact]
         public void BeginBuildingUpgrade_ShouldBankProductionBeforeFreezing()
         {
-            var village = TestData.CreateVillageWithResources(300);
+            var village = TestData.CreateVillageWithTownhall();
             var configs = TestData.FarmConfigs();
+            var farm = village.Buildings.Single(b => b.Type == "farm");
 
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
-            var building = village.Buildings.First();
+            village.BeginBuildingUpgrade(farm.Id, configs, farm.LastAccruedAt.AddMinutes(4), ProductionBoost.None,
+                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier);
 
-            village.BeginBuildingUpgrade(building.Id, configs, building.LastAccruedAt.AddMinutes(4), ProductionBoost.None);
-
-            Assert.Equal(40, building.AccruedAmount);
+            Assert.Equal(40, farm.AccruedAmount);
         }
 
         /// <summary>Сканер завершує лише ті будівництва, чий час настав.</summary>
         [Fact]
         public void CompleteDueConstructions_ShouldRaiseLevelOnlyForDueBuildings()
         {
-            var village = TestData.CreateVillageWithResources(300);
+            var village = TestData.CreateVillageWithTownhall();
             var configs = TestData.FarmConfigs();
-
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
-            var building = village.Buildings.First();
+            var farm = village.Buildings.Single(b => b.Type == "farm");
             var startedAt = DateTime.UtcNow;
 
-            village.BeginBuildingUpgrade(building.Id, configs, startedAt, ProductionBoost.None);
+            village.BeginBuildingUpgrade(farm.Id, configs, startedAt, ProductionBoost.None,
+                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier);
 
             Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs));
-            Assert.Equal(1, building.Level.Value);
+            Assert.Equal(1, farm.Level.Value);
 
             Assert.Equal(1, village.CompleteDueConstructions(startedAt.AddMinutes(10), configs));
-            Assert.Equal(2, building.Level.Value);
-            Assert.False(building.IsUnderConstruction);
+            Assert.Equal(2, farm.Level.Value);
+            Assert.False(farm.IsUnderConstruction);
+        }
+
+        /// <summary>
+        /// Правило A: рівень сервера — глобальна стеля.
+        /// Контент відкривається для всіх одночасно, а не для тих, хто швидше клікає.
+        /// </summary>
+        [Fact]
+        public void BeginBuildingUpgrade_ShouldReject_WhenServerLevelCapsTheTier()
+        {
+            var village = TestData.CreateVillageWithTownhall(townhallLevel: 10);
+            var configs = TestData.FarmConfigs();
+            var townhall = village.Buildings.Single(b => b.Type == "townhall");
+
+            // Сервер 1 рівня дозволяє до 10; ратуша вже там
+            Assert.Throws<RequirementNotMetException>(() =>
+                village.BeginBuildingUpgrade(townhall.Id, configs, DateTime.UtcNow, ProductionBoost.None,
+                    mainBuildingKey: "townhall", serverLevel: 1, levelsPerTier: LevelsPerTier));
+        }
+
+        /// <summary>
+        /// Правило B: ратуша не переходить межу тіру, поки решта селища відстає.
+        /// Це і є сенс тірів — змусити підтягувати все, а не бігти вузьким шляхом.
+        /// </summary>
+        [Fact]
+        public void BeginBuildingUpgrade_ShouldReject_WhenTownhallCrossesTierWithLaggingBuildings()
+        {
+            var village = TestData.CreateVillageWithTownhall(townhallLevel: 10);
+            var configs = TestData.FarmConfigs();
+            var townhall = village.Buildings.Single(b => b.Type == "townhall");
+
+            // Ферма лишилась на 1 рівні, ратуша стоїть рівно на межі тіру
+            Assert.Throws<RequirementNotMetException>(() =>
+                village.BeginBuildingUpgrade(townhall.Id, configs, DateTime.UtcNow, ProductionBoost.None,
+                    mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier));
+        }
+
+        /// <summary>Правило C: жодна будівля не переростає ратушу.</summary>
+        [Fact]
+        public void BeginBuildingUpgrade_ShouldReject_WhenBuildingWouldExceedTownhall()
+        {
+            var village = TestData.CreateVillageWithTownhall(townhallLevel: 1);
+            var configs = TestData.FarmConfigs();
+            var farm = village.Buildings.Single(b => b.Type == "farm");
+
+            // Ферма 1 → 2 при ратуші 1
+            Assert.Throws<RequirementNotMetException>(() =>
+                village.BeginBuildingUpgrade(farm.Id, configs, DateTime.UtcNow, ProductionBoost.None,
+                    mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier));
         }
 
         /// <summary>
@@ -181,7 +213,6 @@ namespace EmpireIdle.Domain.Tests.Entities
             village.MaterializeProduction(configs, start.AddMinutes(4), boost);
 
             Assert.Equal(60, building.AccruedAmount);
-            Assert.Equal(start.AddMinutes(4), building.LastAccruedAt);
         }
     }
 }

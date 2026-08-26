@@ -11,12 +11,6 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Іконка для фронтенду.</summary>
         public string Icon { get; set; } = null!;
-
-        /// <summary>
-        /// Ресурс-місткість (населення): витрачається при створенні юніта,
-        /// але не стягується повторно при лікуванні — юніт живий, лише поранений.
-        /// </summary>
-        public bool IsCapacity { get; set; }
     }
 
     /// <summary>Одна складова вартості — скільки якого ресурсу.</summary>
