@@ -15,10 +15,19 @@ namespace EmpireIdle.Application.Interfaces
         Task<List<QuestProgress>> GetByKeysAsync(Guid playerId, IReadOnlySet<string> questKeys, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Застарілі дейліки поточного світу, не більше <paramref name="batchSize"/>.
+        /// Застарілі дейліки одного гравця. Без batchSize: у гравця їх одиниці,
+        /// і всі мають скинутись за один прохід — інакше частина лишиться до завтра.
         /// Фільтр по світу застосовує query-фільтр.
         /// </summary>
-        Task<List<QuestProgress>> GetStaleDailyAsync(IReadOnlySet<string> questKeys, DateTime startedBefore,
-            int batchSize, CancellationToken cancellationToken = default);
+        Task<List<QuestProgress>> GetStaleDailyForPlayerAsync(Guid playerId, IReadOnlySet<string> questKeys,
+            DateTime startedBefore, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Id гравців, у яких є дейліки, розпочаті до вказаної дати.
+        /// Distinct: у гравця кілька дейліків, а обробляється він один раз.
+        /// </summary>
+        Task<IReadOnlyList<Guid>> GetPlayerIdsWithStaleDailyAsync(
+            IReadOnlySet<string> questKeys, DateTime startedBefore, int batchSize,
+            CancellationToken cancellationToken = default);
     }
 }
