@@ -194,10 +194,20 @@ builder.Services.AddCors(options =>
 //  7. ФОНОВІ ЗАДАЧІ
 //  Hangfire живе в тій самій PostgreSQL базі.
 
-builder.Services.AddHangfire(config =>
-    config.UsePostgreSqlStorage(options =>
-        options.UseNpgsqlConnection(connectionString)));
-builder.Services.AddHangfireServer();
+// Hangfire живе в тій самій PostgreSQL базі.
+//
+// У тестах не піднімається взагалі: Hangfire кешує LoggerFactory у статичному
+// GlobalJobFilters, а WebApplicationFactory будує хост двічі — статика від
+// першого хоста переживає його disposal і падає ObjectDisposedException.
+// Прибрати IHostedService недостатньо: падає резолвер IJobFilterProvider.
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddHangfire(config =>
+        config.UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString)));
+
+    builder.Services.AddHangfireServer();
+    builder.Services.AddHostedService<RecurringJobScheduler>();
+}
 
 // Раннер створює scope на кожен активний світ — без нього
 // query-фільтри не мають що застосувати у фоновому контексті

@@ -19,6 +19,7 @@ public class TestApiFactory : WebApplicationFactory<global::Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
 
         // ConfigureTestServices, а не ConfigureServices: у minimal hosting колбеки
