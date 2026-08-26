@@ -24,21 +24,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
       - name: Restore
         run: dotnet restore EmpireIdle.slnx
 
-      # TreatWarningsAsErrors тільки в CI: локально попередження не мають блокувати роботу
       - name: Build
         run: dotnet build EmpireIdle.slnx --no-restore --configuration Release
 
-      # Domain + Application + Architecture — без Docker, біжать завжди
+      # Domain + Application + Architecture — без Docker і без хоста, біжать завжди
       - name: Unit tests
         run: >
           dotnet test EmpireIdle.slnx --no-build --configuration Release
@@ -46,23 +45,29 @@ jobs:
           --logger "trx;LogFileName=unit.trx"
           --collect:"XPlat Code Coverage"
 
-      # Api.Tests піднімають Testcontainers — потрібен Docker, доступний на ubuntu-latest
+      # Api.Tests піднімають реальний хост через WebApplicationFactory, тому їм
+      # потрібен той самий конфіг, що й застосунку. Локально він у User Secrets,
+      # у CI — тут. Ключ підписує токени лише в тестовому процесі, який живе
+      # секунди й не має даних, тому секретом його робити нема сенсу.
+      #
+      # Рядок підключення — заглушка: TestApiFactory підмінить його на
+      # контейнерний, але Program перевіряє наявність на старті.
       - name: Integration tests
         env:
-          Jwt__Key: ci-only-signing-key-not-a-secret-min-32-chars
-          Jwt__Issuer: EmpireIdle.Tests
-          Jwt__Audience: EmpireIdle.Tests
+          JwtSettings__Secret: ci-only-signing-key-not-a-secret-min-32-chars-long
+          JwtSettings__Issuer: EmpireIdle.Tests
+          JwtSettings__Audience: EmpireIdle.Tests
           ConnectionStrings__DefaultConnection: "Host=localhost;Database=placeholder"
           Cors__AllowedOrigins__0: http://localhost:5173
         run: >
-          dotnet test tests/EmpireIdle.Api.Tests/EmpireIdle.Api.Tests.csproj
+          dotnet test EmpireIdle.Api.Tests/EmpireIdle.Api.Tests.csproj
           --no-build --configuration Release
           --logger "trx;LogFileName=integration.trx"
           --collect:"XPlat Code Coverage"
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: '**/TestResults/**'
@@ -74,9 +79,9 @@ jobs:
         working-directory: src/EmpireIdle.Web
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
