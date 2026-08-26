@@ -7,8 +7,7 @@ namespace EmpireIdle.Domain.Events
         Guid MarchId,
         Guid ReportId,
         bool Won,
-        string TargetName) : IDomainEvent
-    {
-        public DateTime OccurredAt { get; } = DateTime.UtcNow;
-    }
+        string TargetName,
+        DateTime OccurredAt) : IDomainEvent;
+
 }

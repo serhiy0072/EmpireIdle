@@ -17,6 +17,7 @@ namespace EmpireIdle.Application.Map.Commands
         private readonly IMapRepository _mapRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly MonsterSpawner _spawner;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<SpawnMonstersCommandHandler> _logger;
 
         public SpawnMonstersCommandHandler(
@@ -24,17 +25,20 @@ namespace EmpireIdle.Application.Map.Commands
             IMapRepository mapRepository,
             IUnitOfWork unitOfWork,
             MonsterSpawner spawner,
+            TimeProvider timeProvider,
             ILogger<SpawnMonstersCommandHandler> logger)
         {
             _monsterRepository = monsterRepository;
             _mapRepository = mapRepository;
             _unitOfWork = unitOfWork;
             _spawner = spawner;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task Handle(SpawnMonstersCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var current = await _monsterRepository.CountAsync(request.ServerId, cancellationToken);
             var target = _spawner.GetTargetPopulation();
             var missing = Math.Min(target - current, MaxSpawnsPerRun);
@@ -60,7 +64,7 @@ namespace EmpireIdle.Application.Map.Commands
                 var (type, level, x, y) = spot.Value;
                 reserved.Add((x, y));
 
-                var monster = new Monster(Guid.NewGuid(), request.ServerId, type, level, x, y);
+                var monster = new Monster(Guid.NewGuid(), request.ServerId, type, level, x, y, now);
 
                 await _monsterRepository.AddAsync(monster, cancellationToken);
                 await _mapRepository.AddAsync(

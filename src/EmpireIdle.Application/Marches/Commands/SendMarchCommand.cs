@@ -31,6 +31,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMonsterRepository _monsterRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerContext _serverContext;
+        private readonly TimeProvider _timeProvider;
         private readonly MarchCalculator _calculator;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
@@ -41,6 +42,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IMonsterRepository monsterRepository,
             IUnitOfWork unitOfWork,
             IServerContext serverContext,
+            TimeProvider timeProvider,
             MarchCalculator calculator,
             ILogger<SendMarchCommandHandler> logger)
         {
@@ -51,11 +53,14 @@ namespace EmpireIdle.Application.Marches.Commands
             _serverContext = serverContext;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task<Guid> Handle(SendMarchCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
@@ -70,7 +75,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var (targetX, targetY) = await ResolveTargetAsync(request, cancellationToken);
 
             // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
-            garrison.SendUnits(request.Units);
+            garrison.SendUnits(request.Units, now);
 
             var duration = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, targetX, targetY, request.Units);
@@ -79,7 +84,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 Guid.NewGuid(), _serverContext.ServerId, garrison.Id,
                 village.X, village.Y, targetX, targetY,
                 request.TargetType, request.TargetId,
-                request.Units, DateTime.UtcNow + duration);
+                request.Units, now + duration);
 
             await _marchRepository.AddAsync(march, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

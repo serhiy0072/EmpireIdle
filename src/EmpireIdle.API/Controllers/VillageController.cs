@@ -38,19 +38,6 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Побудувати нову будівлю в селі гравця.
-        /// </summary>
-        [HttpPost("{playerId:guid}/buildings")]
-        [ProducesResponseType(typeof(PlayerResponse), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> AddBuilding(Guid playerId, [FromBody] AddBuildingRequest request, CancellationToken cancellationToken)
-        {
-            var buildingId = await _mediator.Send(new AddBuildingCommand(playerId, request.BuildingType), cancellationToken);
-
-            return CreatedAtAction(nameof(GetVillage), new { playerId }, new PlayerResponse(buildingId));
-        }
-
-        /// <summary>
         /// Покращити будівлю в селі гравця.
         /// </summary>
         [HttpPost("{playerId:guid}/buildings/{buildingId:guid}/upgrade")]

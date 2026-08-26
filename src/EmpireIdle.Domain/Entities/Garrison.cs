@@ -34,24 +34,45 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
-        public Garrison(Guid id, Guid villageId) : base(id)
+        /// <summary>
+        /// Світ, якому належить гарнізон. Дублює ServerId села навмисно:
+        /// query-фільтр застосовується до кореня агрегату, а не через навігацію.
+        /// </summary>
+        public int ServerId { get; private set; }
+
+        public Garrison(Guid id, Guid villageId, int serverId) : base(id)
         {
             VillageId = villageId;
+            ServerId = serverId;
         }
 
         protected Garrison() { } // Для EF Core
 
         /// <summary>
         /// Ставить партію юнітів у чергу тренування.
-        /// Інваріанти гарнізону: розмір партії 1–5, одне активне замовлення.
+        /// Інваріанти: розмір партії, одне активне замовлення, ліміт армії.
         /// </summary>
-        public void TrainUnits(string unitType, int count, int maxBatchSize, TimeSpan trainDuration, DateTime utcNow)
+        /// <param name="armyCapacity">
+        /// Скільки юнітів гарнізон може тримати. Рахується від рівня казарм.
+        /// Юніти в маршах у ліміт не входять: вони вже зняті з гарнізону, і
+        /// перевіряти їх означало б тягнути в агрегат чужий стан.
+        /// </param>
+        public void TrainUnits(string unitType, int count, int maxBatchSize, int armyCapacity,
+            TimeSpan trainDuration, DateTime utcNow)
         {
             if (count < 1 || count > maxBatchSize)
                 throw new RequirementNotMetException($"Training batch size must be between 1 and {maxBatchSize}.");
 
             if (_trainingOrders.Any())
                 throw new InvalidStateException("Barracks are already training a batch.");
+
+            // Черга рахується разом із гарнізоном — інакше ліміт обходиться
+            // послідовними замовленнями до завершення першого
+            var occupied = _units.Sum(u => u.Count) + _trainingOrders.Sum(o => o.Count);
+
+            if (occupied + count > armyCapacity)
+                throw new RequirementNotMetException(
+                    $"Army capacity exceeded: {occupied} of {armyCapacity} used, requested {count}.");
 
             _trainingOrders.Add(new UnitTrainingOrder(
                 Guid.NewGuid(), Id, unitType, count, utcNow + trainDuration));
@@ -72,11 +93,11 @@ namespace EmpireIdle.Domain.Entities
                 }
                 unit.Add(order.Count);
                 _trainingOrders.Remove(order);
-                RaiseDomainEvent(new Events.UnitsTrained(Id, VillageId, order.UnitType, order.Count));
+                RaiseDomainEvent(new Events.UnitsTrained(Id, VillageId, order.UnitType, order.Count, utcNow));
             }
 
             if (due.Count > 0)
-                Touch();
+                Touch(utcNow);
 
             return due.Count;
         }
@@ -85,7 +106,7 @@ namespace EmpireIdle.Domain.Entities
         /// Знімає юнітів із гарнізону для походу.
         /// </summary>
         /// <param name="units">Тип юніта → кількість.</param>
-        public void SendUnits(IReadOnlyDictionary<string, int> units)
+        public void SendUnits(IReadOnlyDictionary<string, int> units, DateTime utcNow)
         {
             if (units.Count == 0)
                 throw new RequirementNotMetException("Cannot send an empty army.");
@@ -106,11 +127,11 @@ namespace EmpireIdle.Domain.Entities
             foreach (var (unitType, count) in units)
                 _units.First(u => u.UnitType == unitType).Subtract(count);
 
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Повертає юнітів у гарнізон (після походу).</summary>
-        public void ReceiveUnits(IReadOnlyDictionary<string, int> units)
+        public void ReceiveUnits(IReadOnlyDictionary<string, int> units, DateTime utcNow)
         {
             foreach (var (unitType, count) in units)
             {
@@ -125,11 +146,11 @@ namespace EmpireIdle.Domain.Entities
                 }
                 unit.Add(count);
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Приймає поранених після бою (у межах вільної місткості).</summary>
-        public void AdmitWounded(IReadOnlyDictionary<string, int> wounded)
+        public void AdmitWounded(IReadOnlyDictionary<string, int> wounded, DateTime utcNow)
         {
             foreach (var (unitType, count) in wounded)
             {
@@ -144,13 +165,13 @@ namespace EmpireIdle.Domain.Entities
                 }
                 stack.Add(count);
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
         /// Виліковує поранених: вони повертаються в гарнізон.
         /// </summary>
-        public Dictionary<string, int> HealWounded(IReadOnlyDictionary<string, int> toHeal)
+        public Dictionary<string, int> HealWounded(IReadOnlyDictionary<string, int> toHeal, DateTime utcNow)
         {
             var healed = new Dictionary<string, int>();
 
@@ -168,28 +189,27 @@ namespace EmpireIdle.Domain.Entities
             _wounded.RemoveAll(w => w.Count <= 0);
 
             if (healed.Count > 0)
-                ReceiveUnits(healed);
+                ReceiveUnits(healed, utcNow);
 
-            Touch();
+            Touch(utcNow);
             return healed;
         }
 
         /// <summary>Прискорює замовлення тренування (speedup за gems).</summary>
-        public void ReduceTrainingTime(Guid orderId, TimeSpan reduction)
+        public void ReduceTrainingTime(Guid orderId, TimeSpan reduction, DateTime utcNow)
         {
             var order = _trainingOrders.FirstOrDefault(o => o.Id == orderId)
                  ?? throw new EntityNotFoundException("Training order", orderId);
 
             order.Reduce(reduction);
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
         public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
 
         /// <summary>Записує відновлюваних після бою — окремим стеком зі своїм дедлайном.</summary>
-        public void AddRecoverable(IReadOnlyDictionary<string, int> units,
-            Guid battleReportId, DateTime expiresAt)
+        public void AddRecoverable(IReadOnlyDictionary<string, int> units, Guid battleReportId, DateTime expiresAt, DateTime utcNow)
         {
             foreach (var (unitType, count) in units)
             {
@@ -198,7 +218,7 @@ namespace EmpireIdle.Domain.Entities
 
                 _recoverable.Add(new RecoverableUnit(Guid.NewGuid(), Id, battleReportId, unitType, count, expiresAt));
             }
-            Touch();
+            Touch(utcNow);
         }
 
         /// <summary>
@@ -237,12 +257,12 @@ namespace EmpireIdle.Domain.Entities
             _recoverable.RemoveAll(r => r.Count <= 0);
 
             if (recovered.Count > 0)
-                ReceiveUnits(recovered);
+                ReceiveUnits(recovered, utcNow);
 
-            Touch();
+            Touch(utcNow);
             return recovered;
         }
 
-        private void Touch() => UpdatedAt = DateTime.UtcNow;
+        private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
     }
 }

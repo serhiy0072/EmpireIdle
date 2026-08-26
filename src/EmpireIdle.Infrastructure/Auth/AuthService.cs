@@ -20,12 +20,14 @@ namespace EmpireIdle.Infrastructure.Auth
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppDbContext _context;
         private readonly JwtSettings _jwtSettings;
+        private readonly TimeProvider _timeProvider;
 
-        public AuthService(UserManager<IdentityUser> userManager, AppDbContext context, IOptions<JwtSettings> jwtSettings)
+        public AuthService(UserManager<IdentityUser> userManager, AppDbContext context, IOptions<JwtSettings> jwtSettings, TimeProvider timeProvider)
         {
             _userManager = userManager;
             _context = context;
             _jwtSettings = jwtSettings.Value;
+            _timeProvider = timeProvider;
         }
 
         /// <summary>
@@ -56,6 +58,7 @@ namespace EmpireIdle.Infrastructure.Auth
         /// </summary>
         public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> LoginAsync(string email, string password)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var user = await _userManager.FindByEmailAsync(email)
                 ?? throw new AuthenticationFailedException("Invalid email or password.");
 
@@ -72,7 +75,7 @@ namespace EmpireIdle.Infrastructure.Auth
             await _userManager.ResetAccessFailedCountAsync(user);
 
             var (playerId, serverId) = await GetPlayerAsync(user.Id);
-            var accessToken = GenerateAccessToken(user, playerId, serverId);
+            var accessToken = GenerateAccessToken(user, playerId, serverId, now);
             var refreshToken = await CreateRefreshTokenAsync(user.Id);
 
             return (accessToken, refreshToken, playerId);
@@ -83,6 +86,7 @@ namespace EmpireIdle.Infrastructure.Auth
         /// </summary>
         public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> RefreshAsync(string refreshToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken)
                 ?? throw new AuthenticationFailedException("Invalid refresh token.");
 
@@ -90,12 +94,12 @@ namespace EmpireIdle.Infrastructure.Auth
             // Ревокуємо ВСІ токени користувача — змусить перелогінитись всюди.
             if (storedToken.RevokedAt is not null)
             {
-                await RevokeAllUserTokensAsync(storedToken.UserId);
+                await RevokeAllUserTokensAsync(storedToken.UserId, now);
                 await _context.SaveChangesAsync();
                 throw new AuthenticationFailedException("Token reuse detected. All sessions revoked.");
             }
 
-            if (!storedToken.IsActive)
+            if (!storedToken.IsActiveAt(now))
                 throw new AuthenticationFailedException("Token reuse detected. All sessions revoked.");
 
             var user = await _userManager.FindByIdAsync(storedToken.UserId)
@@ -103,7 +107,7 @@ namespace EmpireIdle.Infrastructure.Auth
 
             // Ротація: ревокуємо старий, створюємо новий
             var newRefreshToken = GenerateRefreshTokenString();
-            storedToken.RevokedAt = DateTime.UtcNow;
+            storedToken.RevokedAt = now;
             storedToken.ReplacedByToken = newRefreshToken;
 
             _context.RefreshTokens.Add(new RefreshToken
@@ -111,19 +115,20 @@ namespace EmpireIdle.Infrastructure.Auth
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
                 Token = newRefreshToken,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays)
+                CreatedAt = now,
+                ExpiresAt = now.AddDays(_jwtSettings.RefreshTokenExpirationDays)
             });
 
             await _context.SaveChangesAsync();
 
             var (playerId, serverId) = await GetPlayerAsync(user.Id);
-            var accessToken = GenerateAccessToken(user, playerId, serverId);
+            var accessToken = GenerateAccessToken(user, playerId, serverId, now);
             return (accessToken, newRefreshToken, playerId);
         }
 
         private async Task<string> CreateRefreshTokenAsync(string userId)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var token = GenerateRefreshTokenString();
 
             _context.RefreshTokens.Add(new RefreshToken
@@ -131,23 +136,23 @@ namespace EmpireIdle.Infrastructure.Auth
                 Id = Guid.NewGuid(),
                 UserId = userId,
                 Token = token,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays)
+                CreatedAt = now,
+                ExpiresAt = now.AddDays(_jwtSettings.RefreshTokenExpirationDays)
             });
 
             await _context.SaveChangesAsync();
             return token;
         }
 
-        private async Task RevokeAllUserTokensAsync(string userId)
+        private async Task RevokeAllUserTokensAsync(string userId, DateTime utcNow)
         {
             var tokens = await _context.RefreshTokens.Where(rt => rt.UserId == userId && rt.RevokedAt == null).ToListAsync();
 
             foreach (var token in tokens)
-                token.RevokedAt = DateTime.UtcNow;
+                token.RevokedAt = utcNow;
         }
 
-        private string GenerateAccessToken(IdentityUser user, Guid playerId, int serverId)
+        private string GenerateAccessToken(IdentityUser user, Guid playerId, int serverId, DateTime utcNow)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -166,7 +171,7 @@ namespace EmpireIdle.Infrastructure.Auth
                 issuer: _jwtSettings.Issuer,
                 audience: _jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+                expires: utcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

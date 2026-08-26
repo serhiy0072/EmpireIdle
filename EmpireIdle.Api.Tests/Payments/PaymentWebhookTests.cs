@@ -102,7 +102,9 @@ public class PaymentWebhookTests : IAsyncLifetime
             id: playerId,
             username: $"player-{playerId:N}",
             email: $"{playerId:N}@test.local",
+            utcNow: DateTime.UtcNow,
             userId: userId,
+
             serverId: ServerId));
 
         context.PlayerWallets.Add(new PlayerWallet(Guid.NewGuid(), userId));

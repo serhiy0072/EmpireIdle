@@ -15,11 +15,13 @@ namespace EmpireIdle.Application.Inventory.Queries
     {
         private readonly IInventoryRepository _repository;
         private readonly IActiveEffectRepository _effectRepository;
+        private readonly TimeProvider _timeProvider;
 
-        public GetInventoryQueryHandler(IInventoryRepository repository, IActiveEffectRepository effectRepository)
+        public GetInventoryQueryHandler(IInventoryRepository repository, IActiveEffectRepository effectRepository, TimeProvider timeProvider)
         {
             _repository = repository;
             _effectRepository = effectRepository;
+            _timeProvider = timeProvider;
         }
 
         public async Task<InventoryContents> Handle(GetInventoryQuery request, CancellationToken cancellationToken)
@@ -28,7 +30,7 @@ namespace EmpireIdle.Application.Inventory.Queries
             var equipment = await _repository.GetEquipmentAsync(request.PlayerId, cancellationToken);
 
             // Прострочені відсіюємо тут: фонове очищення не гарантує миттєвості
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var effects = (await _effectRepository.GetByPlayerAsync(request.PlayerId, cancellationToken))
                 .Where(e => e.IsActive(now))
                 .ToList();

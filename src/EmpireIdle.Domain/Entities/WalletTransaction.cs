@@ -24,14 +24,13 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Час транзакції.</summary>
         public DateTime CreatedAt { get; private set; }
 
-        public WalletTransaction(Guid id, Guid walletId, TransactionType type,
-            int amount, string reference) : base(id)
+        public WalletTransaction(Guid id, Guid walletId, TransactionType type, int amount, string reference, DateTime utcNow) : base(id)
         {
             WalletId = walletId;
             Type = type;
             Amount = amount;
             Reference = reference;
-            CreatedAt = DateTime.UtcNow;
+            CreatedAt = utcNow;
         }
 
         protected WalletTransaction() { } // для EF Core

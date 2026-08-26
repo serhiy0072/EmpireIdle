@@ -25,20 +25,24 @@ namespace EmpireIdle.Application.Inventory.Commands
         private readonly ItemEffectDispatcher _dispatcher;
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<UseItemCommandHandler> _logger;
 
         public UseItemCommandHandler(IInventoryRepository inventoryRepository, ItemEffectDispatcher dispatcher,
-            IUnitOfWork unitOfWork, GameCatalog catalog, ILogger<UseItemCommandHandler> logger)
+            IUnitOfWork unitOfWork, GameCatalog catalog, TimeProvider timeProvider, ILogger<UseItemCommandHandler> logger)
         {
             _inventoryRepository = inventoryRepository;
             _dispatcher = dispatcher;
             _unitOfWork = unitOfWork;
             _catalog = catalog;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task Handle(UseItemCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             if (request.Count < 1)
                 throw new RequirementNotMetException("Count must be positive.");
 
@@ -50,7 +54,7 @@ namespace EmpireIdle.Application.Inventory.Commands
 
             // Ефект застосовуємо ДО списання: якщо він неможливий, предмет не згорить
             var context = new ItemUsageContext(
-                request.PlayerId, config, request.Count, request.TargetId, DateTime.UtcNow);
+                request.PlayerId, config, request.Count, request.TargetId, now);
 
             await _dispatcher.ApplyAsync(context, cancellationToken);
 

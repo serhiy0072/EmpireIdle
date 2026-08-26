@@ -5,6 +5,8 @@ namespace EmpireIdle.Domain.Tests.Entities
 {
     public class GarrisonTests
     {
+        private int ServerId { get; set; } = 1;
+
         /// <summary>
         /// Тренування ставить замовлення в чергу з коректним часом завершення,
         /// юніти в гарнізоні ще не з'являються.
@@ -13,10 +15,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void TrainUnits_ShouldQueueOrder_WithoutAddingUnitsImmediately()
         {
             // Arrange
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
 
             // Act
-            garrison.TrainUnits("infantry", 3, 5, TimeSpan.FromMinutes(6), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
 
             // Assert
             var order = Assert.Single(garrison.TrainingOrders);
@@ -33,10 +35,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         [InlineData(6)]
         public void TrainUnits_ShouldRejectInvalidBatchSize(int count)
         {
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
 
             Assert.Throws<RequirementNotMetException>(() =>
-                garrison.TrainUnits("infantry", count, 5, TimeSpan.FromMinutes(1), DateTime.UtcNow));
+                garrison.TrainUnits("infantry", count, 5, 100, TimeSpan.FromMinutes(1), DateTime.UtcNow));
         }
 
         /// <summary>
@@ -45,11 +47,11 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void TrainUnits_ShouldRejectSecondOrder_WhileFirstIsActive()
         {
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
-            garrison.TrainUnits("infantry", 2, 5, TimeSpan.FromMinutes(4), DateTime.UtcNow);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            garrison.TrainUnits("infantry", 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
 
             Assert.Throws<InvalidStateException>(() =>
-                garrison.TrainUnits("archer", 1, 5, TimeSpan.FromMinutes(2), DateTime.UtcNow));
+                garrison.TrainUnits("archer", 1, 5, 100, TimeSpan.FromMinutes(2), DateTime.UtcNow));
         }
 
         /// <summary>
@@ -60,8 +62,8 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void CompleteDueTraining_ShouldMoveUnitsToGarrison()
         {
             // Arrange: замовлення на 3 юніти, що дозріє через 6 хв
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
-            garrison.TrainUnits("infantry", 3, 5, TimeSpan.FromMinutes(6), DateTime.UtcNow);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            garrison.TrainUnits("infantry", 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
 
             // Act: сканер приходить через 10 хв — час минув
             var completed = garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(10));
@@ -80,8 +82,8 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void CompleteDueTraining_ShouldIgnoreOrder_WhenTimeNotReached()
         {
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
-            garrison.TrainUnits("infantry", 2, 5, TimeSpan.FromMinutes(30), DateTime.UtcNow);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            garrison.TrainUnits("infantry", 2, 5, 100, TimeSpan.FromMinutes(30), DateTime.UtcNow);
 
             var completed = garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
@@ -97,12 +99,12 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void CompleteDueTraining_ShouldStackUnitsOfSameType()
         {
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
 
-            garrison.TrainUnits("infantry", 2, 5, TimeSpan.FromMinutes(4), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
-            garrison.TrainUnits("infantry", 3, 5, TimeSpan.FromMinutes(6), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(10));
 
             var unit = Assert.Single(garrison.Units);
@@ -112,11 +114,11 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void SendUnits_ShouldRemoveUnitsFromGarrison()
         {
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
-            garrison.TrainUnits("infantry", 5, 5, TimeSpan.FromMinutes(10), DateTime.UtcNow);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            garrison.TrainUnits("infantry", 5, 5, 100, TimeSpan.FromMinutes(10), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
 
-            garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 });
+            garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 }, DateTime.UtcNow);
 
             Assert.Equal(2, garrison.Units.Single().Count);
         }
@@ -125,12 +127,12 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void SendUnits_ShouldThrow_WhenNotEnoughUnits()
         {
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
-            garrison.TrainUnits("infantry", 2, 5, TimeSpan.FromMinutes(4), DateTime.UtcNow);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            garrison.TrainUnits("infantry", 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
             Assert.Throws<NotEnoughResourcesException>(() =>
-                garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 5 }));
+                garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 5 }, DateTime.UtcNow));
 
             Assert.Equal(2, garrison.Units.Single().Count); // нічого не зняли
         }
@@ -139,15 +141,28 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void ReceiveUnits_ShouldReturnUnitsToGarrison()
         {
-            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
-            garrison.TrainUnits("infantry", 5, 5, TimeSpan.FromMinutes(10), DateTime.UtcNow);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            garrison.TrainUnits("infantry", 5, 5, 100, TimeSpan.FromMinutes(10), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
 
             var army = new Dictionary<string, int> { ["infantry"] = 3 };
-            garrison.SendUnits(army);
-            garrison.ReceiveUnits(army);
+            garrison.SendUnits(army, DateTime.UtcNow);
+            garrison.ReceiveUnits(army, DateTime.UtcNow);
 
             Assert.Equal(5, garrison.Units.Single().Count); // усі повернулись
+        }
+
+        [Fact]
+        public void TrainUnits_ShouldReject_WhenArmyCapacityExceeded()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            garrison.TrainUnits("infantry", 5, 10, armyCapacity:6, TimeSpan.FromMinutes(10), DateTime.UtcNow);
+            garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
+
+            // 5 у гарнізоні + 2 в замовленні > 6
+            Assert.Throws<RequirementNotMetException>(() =>
+                garrison.TrainUnits("infantry", 2, 10, 6, TimeSpan.FromMinutes(4), DateTime.UtcNow.AddMinutes(11)));
         }
     }
 }

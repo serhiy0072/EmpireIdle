@@ -22,14 +22,14 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Коли з'явився (для аналітики й майбутнього деспавну).</summary>
         public DateTime SpawnedAt { get; private set; }
 
-        public Monster(Guid id, int serverId, string type, int level, int x, int y) : base(id)
+        public Monster(Guid id, int serverId, string type, int level, int x, int y, DateTime utcNow) : base(id)
         {
             ServerId = serverId;
             Type = type;
             Level = level;
             X = x;
             Y = y;
-            SpawnedAt = DateTime.UtcNow;
+            SpawnedAt = utcNow;
         }
 
         protected Monster() { } // Для EF Core

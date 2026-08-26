@@ -10,19 +10,21 @@ namespace EmpireIdle.Application.Garrisons.Commands
     public sealed class PurgeExpiredRecoverableCommandHandler : IRequestHandler<PurgeExpiredRecoverableCommand>
     {
         private readonly IGarrisonRepository _garrisonRepository;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<PurgeExpiredRecoverableCommandHandler> _logger;
 
-        public PurgeExpiredRecoverableCommandHandler(
-            IGarrisonRepository garrisonRepository,
+        public PurgeExpiredRecoverableCommandHandler(IGarrisonRepository garrisonRepository, TimeProvider timeProvider,
             ILogger<PurgeExpiredRecoverableCommandHandler> logger)
         {
             _garrisonRepository = garrisonRepository;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         public async Task Handle(PurgeExpiredRecoverableCommand request, CancellationToken cancellationToken)
         {
-            var removed = await _garrisonRepository.PurgeExpiredRecoverableAsync(DateTime.UtcNow, cancellationToken);
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+            var removed = await _garrisonRepository.PurgeExpiredRecoverableAsync(now, cancellationToken);
 
             if (removed > 0)
                 _logger.LogInformation("Purged {Count} expired recoverable stacks", removed);

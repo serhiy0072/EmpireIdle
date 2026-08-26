@@ -44,8 +44,8 @@ public class OptimisticLockingTests : IAsyncLifetime
         var garrisonA = await LoadAsync(contextA, garrisonId);
         var garrisonB = await LoadAsync(contextB, garrisonId);
 
-        garrisonA.SendUnits(new Dictionary<string, int> { ["infantry"] = 10 });
-        garrisonB.SendUnits(new Dictionary<string, int> { ["infantry"] = 10 });
+        garrisonA.SendUnits(new Dictionary<string, int> { ["infantry"] = 10 }, DateTime.UtcNow);
+        garrisonB.SendUnits(new Dictionary<string, int> { ["infantry"] = 10 }, DateTime.UtcNow);
 
         await contextA.SaveChangesAsync();
 
@@ -75,8 +75,8 @@ public class OptimisticLockingTests : IAsyncLifetime
 
         // SendUnits міняє тільки VillageUnit.Count — рядок Garrisons
         // оновиться лише завдяки Touch()
-        garrisonA.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 });
-        garrisonB.SendUnits(new Dictionary<string, int> { ["infantry"] = 4 });
+        garrisonA.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 }, DateTime.UtcNow);
+        garrisonB.SendUnits(new Dictionary<string, int> { ["infantry"] = 4 }, DateTime.UtcNow);
 
         await contextA.SaveChangesAsync();
 
@@ -158,8 +158,8 @@ public class OptimisticLockingTests : IAsyncLifetime
     {
         await using var context = CreateContext();
 
-        var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
-        garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = infantry });
+        var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), 1);
+        garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = infantry }, DateTime.UtcNow);
 
         context.Garrisons.Add(garrison);
         await context.SaveChangesAsync();

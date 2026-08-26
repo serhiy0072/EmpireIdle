@@ -14,7 +14,6 @@ public class SpeedUpCalculatorTests
     {
         SpeedUpFactor = 1.2,
         SpeedUpExponent = 0.75,
-        SpeedUpMinGems = 1,
         InstantFinishThresholdMinutes = 5
     });
 

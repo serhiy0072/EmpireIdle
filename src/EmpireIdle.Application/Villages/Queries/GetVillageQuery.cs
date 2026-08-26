@@ -31,7 +31,8 @@ namespace EmpireIdle.Application.Villages.Queries
         int StoredAmount,
         int StorageCap,
         DateTime? ConstructionCompletesAt,
-        bool IsUnderConstruction);
+        bool IsUnderConstruction,
+        bool IsUnlocked);
 
     /// <summary>Ресурс села.</summary>
     public record ResourceView(string ResourceType, int Amount);
@@ -69,16 +70,34 @@ namespace EmpireIdle.Application.Villages.Queries
 
             var buildings = village.Buildings.Select(b =>
             {
+                var isUnlocekd = village.IsUnlocked(b.Type, _catalog.Buildings, _catalog.MainBuildingKey);
+
                 // Тип без конфіга означає битий конфіг, але падати на GET села зайве:
                 // гравець побачить будівлю з нульовим буфером, решта відповіді ціла
                 if (!_catalog.Buildings.TryGetValue(b.Type, out var config))
-                    return new BuildingView(b.Id, b.Type, b.Level.Value, b.LastCollectedAt,
-                        StoredAmount: 0, StorageCap: 0, b.ConstructionCompletesAt, b.IsUnderConstruction);
+                {
+                    return new BuildingView(
+                        b.Id,
+                        b.Type,
+                        b.Level.Value,
+                        b.LastCollectedAt,
+                        StoredAmount: 0,
+                        StorageCap: 0,
+                        b.ConstructionCompletesAt,
+                        b.IsUnderConstruction,
+                        isUnlocekd);
+                }
 
-                return new BuildingView(b.Id, b.Type, b.Level.Value, b.LastCollectedAt,
+                return new BuildingView(
+                    b.Id,
+                    b.Type,
+                    b.Level.Value,
+                    b.LastCollectedAt,
                     b.StoredAt(config, now, boost),
-                    b.GetStorageCap(config.BaseStorage, config.StorageGrowth),
-                    b.ConstructionCompletesAt, b.IsUnderConstruction);
+                    b.GetStorageCap(config.BaseStorage),
+                    b.ConstructionCompletesAt,
+                    b.IsUnderConstruction,
+                    isUnlocekd);
             }).ToList();
 
             var resources = village.Resources

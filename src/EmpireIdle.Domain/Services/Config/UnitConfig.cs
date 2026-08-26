@@ -22,6 +22,13 @@ namespace EmpireIdle.Domain.Services
         public int BaseTrainMinutes { get; set; }
 
         /// <summary>
+        /// Мінімальний рівень будівлі з RequiresBuilding.
+        /// Рівень, а не сама наявність: інакше казарма 1 рівня відкриває
+        /// всю армію одразу, і качати її немає причин.
+        /// </summary>
+        public int RequiresBuildingLevel { get; set; } = 1;
+
+        /// <summary>
         /// Бойові стати: ключ → значення (Attack, Defense, Speed…).
         /// Config-driven: додав стат у JSON — код не змінюється.
         /// </summary>

@@ -24,6 +24,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IPlayerWalletRepository _walletRepository;
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TimeProvider _timeProvider;
         private readonly SpeedUpCalculator _calculator;
         private readonly ILogger<SpeedUpMarchCommandHandler> _logger;
 
@@ -34,6 +35,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IPlayerWalletRepository walletRepository,
             ICurrentPlayer currentPlayer,
             IUnitOfWork unitOfWork,
+            TimeProvider timeProvider,
             SpeedUpCalculator calculator,
             ILogger<SpeedUpMarchCommandHandler> logger)
         {
@@ -42,6 +44,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _marchRepository = marchRepository;
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
+            _timeProvider = timeProvider;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
             _logger = logger;
@@ -49,7 +52,7 @@ namespace EmpireIdle.Application.Marches.Commands
 
         public async Task Handle(SpeedUpMarchCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
@@ -73,11 +76,11 @@ namespace EmpireIdle.Application.Marches.Commands
                 var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
                     ?? throw new InvalidOperationException($"Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId);
+                wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId, now);
             }
 
             // Зсуваємо прибуття на «зараз»; бій або повернення відпрацює сканер
-            march.ReduceTravelTime(march.ArrivesAt - now);
+            march.ReduceTravelTime(march.ArrivesAt - now, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

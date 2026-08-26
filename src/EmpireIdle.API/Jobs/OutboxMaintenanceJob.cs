@@ -15,6 +15,7 @@ namespace EmpireIdle.API.Jobs
     {
         private readonly AppDbContext _context;
         private readonly OutboxSettings _settings;
+        private readonly TimeProvider _timeProvider;
         private readonly IIdempotencyRepository _idempotency;
         private readonly ILogger<OutboxMaintenanceJob> _logger;
 
@@ -22,18 +23,20 @@ namespace EmpireIdle.API.Jobs
             AppDbContext context,
             IOptions<OutboxSettings> settings,
             IIdempotencyRepository idempotency,
+            TimeProvider timeProvider,
             ILogger<OutboxMaintenanceJob> logger)
         {
             _context = context;
             _settings = settings.Value;
             _idempotency = idempotency;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
         [DisableConcurrentExecution(timeoutInSeconds: 300)]
         public async Task RunAsync()
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var cutoff = now.AddDays(-_settings.RetentionDays);
             var staleCutoff = now.AddHours(-_settings.StaleReservationHours);
 

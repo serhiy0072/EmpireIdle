@@ -62,10 +62,13 @@ namespace EmpireIdle.Domain.Entities
         protected Village() { } // Для EF Core
 
         /// <summary>
-        /// Збирає накопичене з буфера будівлі у ресурси села.
+        /// Переносить накопичене з буфера будівлі у сховище села.
+        /// Буфер спорожнюється повністю; те, що не вмістилось у сховище, згорає.
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
+        /// <param name="utcNow">Момент збору.</param>
+        /// <param name="boost">Вікно дії буста виробництва.</param>
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
         public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
@@ -84,7 +87,7 @@ namespace EmpireIdle.Domain.Entities
 
             var collected = building.Collect(config, utcNow, boost);
             if (collected == 0)
-                return;// порожній буфер — не подія і не зміна стану
+                return; // порожній буфер — не подія і не зміна стану
 
             var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
             if (resource is null)
@@ -92,59 +95,34 @@ namespace EmpireIdle.Domain.Entities
                 resource = new VillageResource(Id, config.ProducesResource);
                 _resources.Add(resource);
             }
-            resource.Add(collected);
 
+            // Склад приймає скільки влізе, решта згорає
+            var cap = StorageCapFor(config.ProducesResource, buildingConfigs);
+            var accepted = resource.AddUpTo(collected, cap);
 
-            RaiseDomainEvent(new Events.BuildingCollected(Id, PlayerId, building.Id, config.ProducesResource, collected, resource.Amount));
+            RaiseDomainEvent(new Events.BuildingCollected(
+                Id, PlayerId, building.Id, config.ProducesResource, accepted, resource.Amount, utcNow));
             Touch(utcNow);
         }
 
         /// <summary>
-        /// Створює будівлю, перевіривши інваріанти: розблокування Ратушею,
-        /// відповідність зоні, вільний слот, вартість (перша будівля типу безкоштовна).
+        /// Ставить будівлю 1 рівня. Системна операція, не дія гравця:
+        /// селище створюється повним, а нові типи розкочуються на всі села одразу.
+        /// Вартості немає — гравець платить лише за апгрейди.
         /// </summary>
         /// <returns>Id створеної будівлі.</returns>
         /// <exception cref="EntityNotFoundException">Невідомий тип будівлі.</exception>
-        /// <exception cref="RequirementNotMetException">Не вистачає рівня головної будівлі.</exception>
         /// <exception cref="AlreadyExistsException">Будівля цього типу вже стоїть.</exception>
-        /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public Guid AddBuilding(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
         {
-            if (!buildingConfigs.TryGetValue(buildingType, out var config))
+            if (!buildingConfigs.ContainsKey(buildingType))
                 throw new EntityNotFoundException("Building type", buildingType);
 
-            // 1. Розблокування за рівнем головної будівлі (яка саме — вирішує конфіг)
-            var mainBuildingKey = buildingConfigs.Values.FirstOrDefault(c => c.IsMainBuilding)?.Key;
-            var mainBuildingLevel = mainBuildingKey is null
-                ? 0
-                : _buildings.FirstOrDefault(b => b.Type == mainBuildingKey)?.Level.Value ?? 0;
-
-            if (mainBuildingLevel < config.RequiresMainBuildingLevel)
-                throw new RequirementNotMetException(
-                    $"Building '{buildingType}' requires main building level {config.RequiresMainBuildingLevel}.");
-
-            // 2. Унікальність: кожна будівля існує в селі в одному екземплярі
             if (_buildings.Any(b => b.Type == buildingType))
                 throw new AlreadyExistsException("Building", buildingType);
 
-            // 3. Вартість: спершу перевіряємо все, потім списуємо — інакше можна
-            // списати частину й упасти на наступному ресурсі
-            foreach (var line in config.Cost)
-            {
-                // Ресурс із конфіга вартості, якого немає в селі — битий конфіг, не дія гравця
-                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
-                if (res.Amount < line.Amount)
-                    throw new NotEnoughResourcesException(line.Resource, line.Amount, res.Amount);
-            }
-            foreach (var line in config.Cost)
-                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount);
-
-            var building = new Building(Guid.NewGuid(), Id, buildingType);
+            var building = new Building(Guid.NewGuid(), Id, buildingType, utcNow);
             _buildings.Add(building);
-
-            if (config.PopulationPerLevel > 0 && config.PopulationResource is not null)
-                AddPopulation(config.PopulationResource, config.PopulationPerLevel); //будівля 1-го рівня одразу дає населення
 
             Touch(utcNow);
             return building.Id;
@@ -184,7 +162,9 @@ namespace EmpireIdle.Domain.Entities
         /// <exception cref="RequirementNotMetException">Усі будівельники зайняті.</exception>
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
-        public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, ProductionBoost boost, int builderCount = 1)
+        public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost, string mainBuildingKey, int serverLevel, int levelsPerTier,
+            int builderCount = 1)
         {
             if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
                 throw new RequirementNotMetException("All builders are busy.");
@@ -195,10 +175,12 @@ namespace EmpireIdle.Domain.Entities
             if (!buildingConfigs.TryGetValue(building.Type, out var config))
                 throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
 
+            EnsureTierAllows(building, config, buildingConfigs, mainBuildingKey, serverLevel, levelsPerTier);
+
             // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
             foreach (var line in config.Cost)
             {
-                var need = line.Amount * building.Level.Value;
+                var need = ProgressionCurves.UpgradeCost(line.Amount, building.Level.Value, config.UpgradeCostGrowth);
                 var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
                     ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
 
@@ -209,13 +191,15 @@ namespace EmpireIdle.Domain.Entities
             // Усе перевірено — тепер списуємо (жодного часткового списання при нестачі)
             foreach (var line in config.Cost)
             {
-                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * building.Level.Value);
+                _resources.First(r => r.ResourceType == line.Resource)
+                    .Subtract(ProgressionCurves.UpgradeCost(line.Amount, building.Level.Value, config.UpgradeCostGrowth));
             }
 
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
             building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost);
 
-            RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id, building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value));
+            RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id,
+                building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value, utcNow));
             Touch(utcNow);
         }
 
@@ -232,28 +216,11 @@ namespace EmpireIdle.Domain.Entities
             foreach (var building in due)
             {
                 building.CompleteConstruction(utcNow);
-
-                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.PopulationPerLevel > 0 && config.PopulationResource is not null)
-                    AddPopulation(config.PopulationResource, config.PopulationPerLevel); //апгрейд житлової будівлі додає населення
-
-
-                RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level));
+                RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level, utcNow));
             }
 
             Touch(utcNow);
             return due.Count;
-        }
-
-        /// <summary>Поповнює ресурс-місткість (від будівництва/апгрейду житлової будівлі).</summary>
-        private void AddPopulation(string resourceKey, int amount)
-        {
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey);
-            if (resource is null)
-            {
-                resource = new VillageResource(Id, resourceKey);
-                _resources.Add(resource);
-            }
-            resource.Add(amount);
         }
 
         /// <summary>
@@ -325,13 +292,7 @@ namespace EmpireIdle.Domain.Entities
             var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
                 ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
 
-            // Кап — сума складів будівель, що виробляють цей ресурс.
-            // Коли з'явиться warehouse (GDD §17.4), формула зміниться на його місткість.
-            var cap = _buildings
-                .Where(b => buildingConfigs.TryGetValue(b.Type, out var c) && c.ProducesResource == resourceKey)
-                .Sum(b => b.GetStorageCap(
-                    buildingConfigs[b.Type].BaseStorage, buildingConfigs[b.Type].StorageGrowth));
-
+            var cap = StorageCapFor(resourceKey, buildingConfigs);
             var granted = Math.Max(0, Math.Min(amount, cap - resource.Amount));
 
             if (granted > 0)
@@ -341,6 +302,114 @@ namespace EmpireIdle.Domain.Entities
             return granted;
         }
 
+        /// <summary>
+        /// Місткість сховища для ресурсу. Золото зберігається в банку,
+        /// решта — на складі: два різні сховища, два різні рівні.
+        /// Будівля під будівництвом місткості не дає.
+        /// </summary>
+        public int StorageCapFor(string resourceKey, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        {
+            var storageKey = buildingConfigs.Values
+                .FirstOrDefault(c => c.StoresResources?.Contains(resourceKey) == true)?.Key;
+
+            if (storageKey is null)
+                return int.MaxValue;
+
+            var storage = _buildings.FirstOrDefault(b => b.Type == storageKey && !b.IsUnderConstruction);
+
+            if (storage is null || !buildingConfigs.TryGetValue(storageKey, out var storageConfig))
+                return 0;
+
+            return storageConfig.BaseStorage * storage.Level.Value;
+        }
+
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
+
+        /// <summary>
+        /// Перевіряє три незалежні умови апгрейду.
+        ///
+        /// A. Стеля від рівня сервера — контент відкривається для всіх одночасно.
+        /// B. Темп усередині тіру (тільки ратуша) — за межу тіру не пускаємо,
+        ///    поки решта селища не підтягнулась. Будівлі під туманом не рахуються:
+        ///    інакше гравець мусив би прокачати те, чого ще не бачить.
+        /// C. Рівномірність — жодна будівля не переростає ратушу.
+        ///
+        /// Будівля в процесі апгрейду рахується за ПОТОЧНИМ рівнем: інакше
+        /// можна запустити десять апгрейдів одночасно й обійти умову B.
+        /// </summary>
+        private void EnsureTierAllows(Building building, BuildingConfig config,
+            IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            string mainBuildingKey, int serverLevel, int levelsPerTier)
+        {
+            var targetLevel = building.Level.Value + 1;
+            var isMainBuilding = building.Type == mainBuildingKey;
+
+            // A
+            var ceiling = serverLevel * levelsPerTier;
+            if (targetLevel > ceiling)
+                throw new RequirementNotMetException(
+                    $"Server level {serverLevel} allows buildings up to level {ceiling}.");
+
+            var townhall = _buildings.FirstOrDefault(b => b.Type == mainBuildingKey)
+                ?? throw new InvalidOperationException($"Village {Id} has no '{mainBuildingKey}'.");
+
+            // C
+            if (!isMainBuilding && targetLevel > townhall.Level.Value)
+                throw new RequirementNotMetException(
+                    $"'{building.Type}' cannot exceed main building level {townhall.Level.Value}.");
+
+            // B — лише на межі тіру
+            if (!isMainBuilding || building.Level.Value % levelsPerTier != 0)
+                return;
+
+            var required = building.Level.Value;
+
+            var lagging = _buildings
+                .Where(b => b.Type != mainBuildingKey
+                            && buildingConfigs.TryGetValue(b.Type, out var c)
+                            && c.RequiresMainBuildingLevel <= townhall.Level.Value
+                            && b.Level.Value < required)
+                .Select(b => b.Type)
+                .ToList();
+
+            if (lagging.Count > 0)
+                throw new RequirementNotMetException(
+                    $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.");
+        }
+
+        /// <summary>
+        /// Чи відкрита будівля гравцю. Під туманом вона фізично існує й може
+        /// навіть будуватись, але гравець її не бачить і не взаємодіє.
+        ///
+        /// Стан не зберігається: це функція від рівня ратуші й конфіга.
+        /// Зберігати означало б тримати похідне значення, яке розсинхронізується
+        /// з конфігом при першому ж ребалансі порогів.
+        /// </summary>
+        public bool IsUnlocked(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            string mainBuildingKey)
+        {
+            if (!buildingConfigs.TryGetValue(buildingType, out var config))
+                return false;
+
+            var townhall = _buildings.FirstOrDefault(b => b.Type == mainBuildingKey);
+
+            return townhall is not null && config.RequiresMainBuildingLevel <= townhall.Level.Value;
+        }
+
+        /// <summary>
+        /// Множник до сили оборони від укріплень. 1.0 — стін немає.
+        /// Рахується від селища, а не з гарнізону: стіни належать місту,
+        /// і підкріплення клану ними теж прикриті.
+        /// </summary>
+        public double DefenceMultiplier(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        {
+            var bonus = _buildings
+                .Where(b => !b.IsUnderConstruction
+                            && buildingConfigs.TryGetValue(b.Type, out var c)
+                            && c.DefenceBonusPerLevel > 0)
+                .Sum(b => buildingConfigs[b.Type].DefenceBonusPerLevel * b.Level.Value);
+
+            return 1.0 + bonus;
+        }
     }
 }

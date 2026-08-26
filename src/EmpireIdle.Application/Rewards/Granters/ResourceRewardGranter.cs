@@ -12,13 +12,14 @@ namespace EmpireIdle.Application.Rewards.Granters
     {
         private readonly IVillageRepository _villageRepository;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<ResourceRewardGranter> _logger;
 
-        public ResourceRewardGranter(IVillageRepository villageRepository, GameCatalog catalog,
-            ILogger<ResourceRewardGranter> logger)
+        public ResourceRewardGranter(IVillageRepository villageRepository, GameCatalog catalog, TimeProvider timeProvider, ILogger<ResourceRewardGranter> logger)
         {
             _villageRepository = villageRepository;
             _catalog = catalog;
+            _timeProvider = timeProvider;
             _logger = logger;
         }
 
@@ -28,6 +29,8 @@ namespace EmpireIdle.Application.Rewards.Granters
         /// <inheritdoc/>
         public async Task GrantAsync(RewardContext context, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
             var key = context.Reward.Key
                 ?? throw new InvalidOperationException($"Resource reward from '{context.Reference}' has no Key.");
 
@@ -37,7 +40,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {context.PlayerId}.");
 
-            var granted = village.GrantResource(key, context.Reward.Amount, _catalog.Buildings, DateTime.UtcNow);
+            var granted = village.GrantResource(key, context.Reward.Amount, _catalog.Buildings, now);
 
             if (granted < context.Reward.Amount)
                 _logger.LogInformation(

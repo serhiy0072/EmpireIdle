@@ -26,16 +26,18 @@ namespace EmpireIdle.Application.Players.Commands
         private readonly IMapRepository _mapRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreatePlayerCommand> _logger;
+        private readonly TimeProvider _timeProvider;
         private readonly SettlementPlacer _settlementPlacer;
         private readonly GameCatalog _catalog;
 
         public CreatePlayerCommandHandler(
-            IPlayerRepository playerRepository, 
-            IVillageRepository villageRepository, 
-            IPlayerWalletRepository walletRepository, 
-            IGarrisonRepository garrisonRepository, 
-            IUnitOfWork unitOfWork, 
-            ILogger<CreatePlayerCommand> logger, 
+            IPlayerRepository playerRepository,
+            IVillageRepository villageRepository,
+            IPlayerWalletRepository walletRepository,
+            IGarrisonRepository garrisonRepository,
+            IUnitOfWork unitOfWork,
+            ILogger<CreatePlayerCommand> logger,
+            TimeProvider timeProvider,
             GameCatalog catalog,
             SettlementPlacer settlementPlacer,
             IMapRepository mapRepository)
@@ -47,12 +49,14 @@ namespace EmpireIdle.Application.Players.Commands
             _unitOfWork = unitOfWork;
             _logger = logger;
             _catalog = catalog;
+            _timeProvider = timeProvider;
             _settlementPlacer = settlementPlacer;
             _mapRepository = mapRepository;
         }
 
         public async Task<Guid> Handle(CreatePlayerCommand request, CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var email = request.Email.Trim().ToLowerInvariant();
 
             var serverId = _catalog.Config.DefaultServerId;
@@ -63,7 +67,7 @@ namespace EmpireIdle.Application.Players.Commands
 
             var playerId = Guid.NewGuid();
 
-            var player = new Player(playerId, request.UserName, email, request.UserId, serverId);
+            var player = new Player(playerId, request.UserName, email, request.UserId, now, serverId);
             var wallet = new PlayerWallet(Guid.NewGuid(), request.UserId);
             var (x, y) = await _settlementPlacer.FindSpotAsync(
                 serverId: serverId,
@@ -74,12 +78,13 @@ namespace EmpireIdle.Application.Players.Commands
                 _catalog.Resources.Keys,
                 x, y, serverId);
 
-            village.GrantStartingResources(_catalog.Config.StartingResources, DateTime.UtcNow);
+            village.GrantStartingResources(_catalog.Config.StartingResources, now);
 
-            foreach (var buildingKey in _catalog.Config.StartingBuildings)
-                village.AddBuilding(buildingKey, _catalog.Buildings, DateTime.UtcNow);
+            // Селище створюється повним: усі будівлі 1 рівня, недоступні під туманом
+            foreach (var buildingKey in _catalog.Buildings.Keys)
+                village.AddBuilding(buildingKey, _catalog.Buildings, now);
 
-            var garrison = new Garrison(Guid.NewGuid(), village.Id);
+            var garrison = new Garrison(Guid.NewGuid(), village.Id, village.ServerId);
             await _garrisonRepository.AddAsync(garrison, cancellationToken);
 
             await _playerRepository.AddAsync(player, cancellationToken);
