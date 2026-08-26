@@ -1,6 +1,7 @@
 using EmpireIdle.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -20,10 +21,17 @@ public class TestApiFactory : WebApplicationFactory<global::Program>
     {
         builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
 
-        builder.ConfigureServices(services =>
+        // ConfigureTestServices, а не ConfigureServices: у minimal hosting колбеки
+        // IWebHostBuilder виконуються ДО реєстрацій із Program, тому RemoveAll
+        // прибирав би те, що AddHangfireServer і AddHostedService додають потім.
+        builder.ConfigureTestServices(services =>
         {
-            // OutboxProcessor і Hangfire у тестах паралелізму лише заважають:
-            // вони чіпають ті самі рядки й дають фальшиві конфлікти
+            // Hangfire-сервер, RecurringJobScheduler і OutboxProcessor у тестах
+            // лише заважають: вони чіпають ті самі рядки й дають фальшиві конфлікти.
+            //
+            // Плюс Hangfire кешує LoggerFactory у статичному GlobalJobFilters,
+            // а WebApplicationFactory будує хост двічі — другий раз статика
+            // тримає вже задиспоужений і падає ObjectDisposedException.
             services.RemoveAll<IHostedService>();
         });
 
