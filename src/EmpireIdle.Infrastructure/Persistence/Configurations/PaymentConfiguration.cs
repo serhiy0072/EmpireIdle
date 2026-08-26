@@ -21,7 +21,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             // Вебхук знаходить платіж за SessionId — має бути унікальним і швидким
             builder.HasIndex(p => p.SessionId).IsUnique();
             builder.HasIndex(p => new { p.PlayerId, p.CreatedAt });
-            builder.HasIndex(p => p.ServerId);
 
             builder.Ignore(p => p.DomainEvents);
         }
