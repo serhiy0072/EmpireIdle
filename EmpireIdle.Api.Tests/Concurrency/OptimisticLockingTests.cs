@@ -158,7 +158,7 @@ public class OptimisticLockingTests : IAsyncLifetime
     {
         await using var context = CreateContext();
 
-        var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid());
+        var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), 1);
         garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = infantry }, DateTime.UtcNow);
 
         context.Garrisons.Add(garrison);

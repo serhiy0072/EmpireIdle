@@ -34,9 +34,16 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
-        public Garrison(Guid id, Guid villageId) : base(id)
+        /// <summary>
+        /// Світ, якому належить гарнізон. Дублює ServerId села навмисно:
+        /// query-фільтр застосовується до кореня агрегату, а не через навігацію.
+        /// </summary>
+        public int ServerId { get; private set; }
+
+        public Garrison(Guid id, Guid villageId, int serverId) : base(id)
         {
             VillageId = villageId;
+            ServerId = serverId;
         }
 
         protected Garrison() { } // Для EF Core

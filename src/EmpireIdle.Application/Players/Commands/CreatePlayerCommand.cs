@@ -84,7 +84,7 @@ namespace EmpireIdle.Application.Players.Commands
             foreach (var buildingKey in _catalog.Buildings.Keys)
                 village.AddBuilding(buildingKey, _catalog.Buildings, now);
 
-            var garrison = new Garrison(Guid.NewGuid(), village.Id);
+            var garrison = new Garrison(Guid.NewGuid(), village.Id, village.ServerId);
             await _garrisonRepository.AddAsync(garrison, cancellationToken);
 
             await _playerRepository.AddAsync(player, cancellationToken);
