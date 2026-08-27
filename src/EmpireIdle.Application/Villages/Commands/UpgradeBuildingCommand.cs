@@ -50,7 +50,7 @@ namespace EmpireIdle.Application.Villages.Commands
             // Апгрейд зупиняє виробництво — буфер треба зафіксувати за поточним множником
             var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
 
-            village.BeginBuildingUpgrade(request.BuildingId, _catalog.Buildings, now, boost, _catalog.MainBuildingKey,
+            village.BeginBuildingUpgrade(request.BuildingId, _catalog.Buildings, now, boost, _catalog.MainBuildingKey, _catalog.Config.Map.ServerLevel,
                 _catalog.Config.Map.ServerLevel, _catalog.Config.BuildingLevelsPerTier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

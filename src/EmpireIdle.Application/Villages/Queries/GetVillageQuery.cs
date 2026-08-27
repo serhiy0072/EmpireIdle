@@ -46,17 +46,20 @@ namespace EmpireIdle.Application.Villages.Queries
         private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly WorldGeometry _geometry;
 
         public GetVillageQueryHandler(
             IVillageRepository villageRepository,
             EffectResolver effectResolver,
             GameCatalog catalog,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            WorldGeometry geometry)
         {
             _villageRepository = villageRepository;
             _effectResolver = effectResolver;
             _catalog = catalog;
             _timeProvider = timeProvider;
+            _geometry = geometry;
         }
 
         public async Task<VillageView> Handle(GetVillageQuery request, CancellationToken cancellationToken)
@@ -88,12 +91,14 @@ namespace EmpireIdle.Application.Villages.Queries
                         isUnlocekd);
                 }
 
+                var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, _catalog.Config.Map.ServerLevel);
+
                 return new BuildingView(
                     b.Id,
                     b.Type,
                     b.Level.Value,
                     b.LastCollectedAt,
-                    b.StoredAt(config, now, boost),
+                    b.StoredAt(config, now, boost, locationMultiplier),
                     b.GetStorageCap(config.BaseStorage),
                     b.ConstructionCompletesAt,
                     b.IsUnderConstruction,

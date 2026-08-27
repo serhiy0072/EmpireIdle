@@ -72,7 +72,7 @@ namespace EmpireIdle.Domain.Entities
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
         public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            DateTime utcNow, ProductionBoost boost)
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
                 ?? throw new EntityNotFoundException("Building", buildingId);
@@ -85,7 +85,7 @@ namespace EmpireIdle.Domain.Entities
             if (config.ProducesResource is null)
                 return;
 
-            var collected = building.Collect(config, utcNow, boost);
+            var collected = building.Collect(config, utcNow, boost, locationMultiplier);
             if (collected == 0)
                 return; // порожній буфер — не подія і не зміна стану
 
@@ -163,7 +163,7 @@ namespace EmpireIdle.Domain.Entities
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            DateTime utcNow, ProductionBoost boost, string mainBuildingKey, int serverLevel, int levelsPerTier,
+            DateTime utcNow, ProductionBoost boost, string mainBuildingKey, int serverLevel, int levelsPerTier, double locationMultiplier,
             int builderCount = 1)
         {
             if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
@@ -196,7 +196,7 @@ namespace EmpireIdle.Domain.Entities
             }
 
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
-            building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost);
+            building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost, locationMultiplier);
 
             RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id,
                 building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value, utcNow));
@@ -270,12 +270,12 @@ namespace EmpireIdle.Domain.Entities
         /// бустом порахувалося б за новим (або без нього).
         /// </summary>
         public void MaterializeProduction(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            DateTime utcNow, ProductionBoost boost)
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             foreach (var building in _buildings)
             {
                 if (buildingConfigs.TryGetValue(building.Type, out var config) && config.ProducesResource is not null)
-                    building.Materialize(config, utcNow, boost);
+                    building.Materialize(config, utcNow, boost, locationMultiplier);
             }
             Touch(utcNow);
         }

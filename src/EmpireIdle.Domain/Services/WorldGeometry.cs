@@ -1,19 +1,14 @@
 namespace EmpireIdle.Domain.Services
 {
-    /// <summary>Кільце карти, від центру назовні.</summary>
-    public enum MapRing
-    {
-        Centre = 0,
-        Middle = 1,
-        Outskirts = 2
-    }
-
     /// <summary>
     /// Геометрія світу: кільця, туман, множники виробітку.
     ///
     /// Усе — чисті функції від координат і рівня сервера. У БД нічого не
     /// зберігається: кільце клітини завжди можна порахувати, а збережене
     /// значення розійшлося б із конфігом при першому ж ребалансі.
+    ///
+    /// Межі задані частками радіуса, а не клітинами: «центр — п'ята частина
+    /// радіуса» лишається правдою на будь-якому розмірі карти.
     /// </summary>
     public class WorldGeometry
     {
@@ -23,6 +18,9 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Радіус карти в клітинах.</summary>
         public int Radius => Math.Min(_map.Width, _map.Height) / 2;
+
+        /// <summary>Скільки кілець описано в конфізі.</summary>
+        public int RingCount => _map.Geometry.RingMultipliers.Count;
 
         /// <summary>Центр карти.</summary>
         public (int X, int Y) Centre => (_map.Width / 2, _map.Height / 2);
@@ -39,29 +37,43 @@ namespace EmpireIdle.Domain.Services
             return Math.Max(Math.Abs(x - cx), Math.Abs(y - cy));
         }
 
-        /// <summary>Кільце, у якому лежить клітина при заданому рівні сервера.</summary>
-        public MapRing RingAt(int x, int y, int serverLevel)
+        /// <summary>
+        /// Індекс кільця: 0 — центральне, RingCount−1 — зовнішнє.
+        /// Індекс, а не enum: кількість кілець задається конфігом,
+        /// і четверте не має вимагати зміни коду.
+        /// </summary>
+        public int RingAt(int x, int y, int serverLevel)
         {
             var distance = DistanceToCentre(x, y);
             var growth = LevelProgress(serverLevel);
+            var boundaries = _map.Geometry.RingBoundaries;
 
-            var centre = Scale(_map.Geometry.CentreShare, growth);
-            var middle = Scale(_map.Geometry.MiddleShare, growth);
+            for (var ring = 0; ring < boundaries.Count; ring++)
+            {
+                if (distance <= Scale(boundaries[ring], growth))
+                    return ring;
+            }
 
-            if (distance <= centre) return MapRing.Centre;
-            if (distance <= middle) return MapRing.Middle;
+            // Останнє кільце — все, що далі за останню межу
+            return RingCount - 1;
+        }
 
-            return MapRing.Outskirts;
+        /// <summary>
+        /// Близькість до центру: 1.0 у центральному кільці, 0.0 у зовнішньому.
+        /// Живе тут, а не у споживачів: кількість кілець — властивість геометрії,
+        /// і додавання четвертого не має ламати спавнер чи будь-кого ще.
+        /// </summary>
+        public double Proximity(int x, int y, int serverLevel)
+        {
+            if (RingCount <= 1)
+                return 1.0;
+
+            return 1.0 - (double)RingAt(x, y, serverLevel) / (RingCount - 1);
         }
 
         /// <summary>Множник виробітку для клітини.</summary>
         public double ProductionMultiplierAt(int x, int y, int serverLevel)
-        {
-            var ring = (int)RingAt(x, y, serverLevel);
-            var multipliers = _map.Geometry.RingMultipliers;
-
-            return ring < multipliers.Count ? multipliers[ring] : 1.0;
-        }
+            => _map.Geometry.RingMultipliers[RingAt(x, y, serverLevel)];
 
         /// <summary>
         /// Найдальша відстань, на якій дозволено селитись. Росте з рівнем сервера:

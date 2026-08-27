@@ -90,17 +90,22 @@ namespace EmpireIdle.Domain.Services
 
             var geometry = config.Map.Geometry;
 
-            if (geometry.CentreShare <= 0 || geometry.CentreShare >= geometry.MiddleShare || geometry.MiddleShare > 1.0)
+            if (geometry.RingBoundaries.Count != geometry.RingMultipliers.Count - 1)
                 throw new InvalidOperationException(
-                    "Map geometry requires 0 < CentreShare < MiddleShare ≤ 1.");
+                    "RingBoundaries needs exactly one entry fewer than RingMultipliers: "
+                    + "the last ring is everything beyond the last boundary.");
 
-            if (geometry.FogMinShare <= 0 || geometry.FogMinShare > geometry.FogMaxShare || geometry.FogMaxShare > 1.0)
-                throw new InvalidOperationException(
-                    "Map geometry requires 0 < FogMinShare ≤ FogMaxShare ≤ 1.");
+            if (geometry.RingBoundaries.Count == 0 || geometry.RingBoundaries[0] <= 0)
+                throw new InvalidOperationException("The innermost ring boundary must be greater than 0.");
 
-            if (geometry.RingMultipliers.Count < 3)
-                throw new InvalidOperationException(
-                    "RingMultipliers needs one value per ring (centre, middle, outskirts).");
+            if (geometry.RingBoundaries[^1] > 1.0)
+                throw new InvalidOperationException("Ring boundaries are shares of the radius and cannot exceed 1.0.");
+
+            for (var i = 1; i < geometry.RingBoundaries.Count; i++)
+            {
+                if (geometry.RingBoundaries[i] <= geometry.RingBoundaries[i - 1])
+                    throw new InvalidOperationException("Ring boundaries must increase outward.");
+            }
         }
 
         /// <summary>Будівля за ключем або виняток із зрозумілим текстом.</summary>

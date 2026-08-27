@@ -14,12 +14,14 @@ namespace EmpireIdle.Application.Inventory.Effects
         private readonly IActiveEffectRepository _repository;
         private readonly IVillageRepository _villageRepository;
         private readonly GameCatalog _catalog;
+        private readonly WorldGeometry _geometry;
 
-        public BoostItemEffect(IActiveEffectRepository repository, IVillageRepository villageRepository, GameCatalog catalog)
+        public BoostItemEffect(IActiveEffectRepository repository, IVillageRepository villageRepository, GameCatalog catalog, WorldGeometry geometry)
         {
             _repository = repository;
             _villageRepository = villageRepository;
             _catalog = catalog;
+            _geometry = geometry;
         }
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
@@ -88,7 +90,9 @@ namespace EmpireIdle.Application.Inventory.Effects
                 ? ProductionBoost.None
                 : new ProductionBoost(current.Multiplier, current.StartedAt, current.ExpiresAt);
 
-            village.MaterializeProduction(_catalog.Buildings, context.UtcNow, boost);
+            var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, _catalog.Config.Map.ServerLevel);
+
+            village.MaterializeProduction(_catalog.Buildings, context.UtcNow, boost, locationMultiplier);
         }
     }
 }

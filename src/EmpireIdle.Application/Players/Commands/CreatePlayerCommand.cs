@@ -71,6 +71,7 @@ namespace EmpireIdle.Application.Players.Commands
             var wallet = new PlayerWallet(Guid.NewGuid(), request.UserId);
             var (x, y) = await _settlementPlacer.FindSpotAsync(
                 serverId: serverId,
+                serverLevel: _catalog.Config.Map.ServerLevel,
                 isOccupied: (cx, cy) => _mapRepository.IsOccupiedAsync(1, cx, cy, cancellationToken),
                 maxAttempts: 200);
 

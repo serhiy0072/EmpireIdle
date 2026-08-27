@@ -58,11 +58,17 @@ namespace EmpireIdle.Domain.Services
     /// </summary>
     public class MapGeometryConfig
     {
-        /// <summary>Частка радіуса, яку займає центральне кільце на МАКСИМАЛЬНОМУ рівні сервера.</summary>
-        public double CentreShare { get; set; } = 0.20;
+        /// <summary>
+        /// Зовнішні межі кілець як частки радіуса, від центру назовні,
+        /// на МАКСИМАЛЬНОМУ рівні сервера.
+        ///
+        /// На одну менше за RingMultipliers: останнє кільце — все, що далі
+        /// за останню межу, окремої межі для нього не треба.
+        /// </summary>
+        public List<double> RingBoundaries { get; set; } = new();
 
-        /// <summary>Зовнішня межа середнього кільця на максимальному рівні.</summary>
-        public double MiddleShare { get; set; } = 0.50;
+        /// <summary>Множник виробітку за кільцями, від центру назовні.</summary>
+        public List<double> RingMultipliers { get; set; } = new();
 
         /// <summary>На скільки кільця вужчі на першому рівні відносно максимального.</summary>
         public double RingsAtFirstLevel { get; set; } = 0.40;
@@ -72,8 +78,5 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Доступна частка на максимальному рівні.</summary>
         public double FogMaxShare { get; set; } = 1.0;
-
-        /// <summary>Множник виробітку за кільцями, від центру назовні.</summary>
-        public List<double> RingMultipliers { get; set; } = new() { 2.0, 1.4, 1.0 };
     }
 }

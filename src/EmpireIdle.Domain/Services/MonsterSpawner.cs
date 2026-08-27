@@ -9,17 +9,30 @@ namespace EmpireIdle.Domain.Services
         private readonly TerrainGenerator _terrain;
         private readonly MapConfig _mapConfig;
         private readonly GameCatalog _catalog;
+        private readonly WorldGeometry _geometry;
 
-        public MonsterSpawner(TerrainGenerator terrain, MapConfig mapConfig, GameCatalog catalog)
+        public MonsterSpawner(TerrainGenerator terrain, MapConfig mapConfig, GameCatalog catalog, WorldGeometry geometry)
         {
             _terrain = terrain;
             _mapConfig = mapConfig;
             _catalog = catalog;
+            _geometry = geometry;
         }
 
-        /// <summary>Скільки монстрів має бути на карті за поточної щільності.</summary>
+        /// <summary>
+        /// Скільки монстрів має бути на карті за поточної щільності.
+        ///
+        /// Рахується від ВІДКРИТОЇ площі, не від повної: на першому рівні
+        /// сервера доступно близько 16% карти, і щільність у зоні, куди
+        /// гравці мають доступ, була б у шість разів вищою за задуману.
+        /// </summary>
         public int GetTargetPopulation()
-            => _mapConfig.Width * _mapConfig.Height / Math.Max(1, _mapConfig.CellsPerMonster);
+        {
+            var boundary = _geometry.SettlementBoundary(_mapConfig.ServerLevel);
+            var side = boundary * 2 + 1;
+
+            return side * side / Math.Max(1, _mapConfig.CellsPerMonster);
+        }
 
         /// <summary>
         /// Підбирає параметри одного монстра.
@@ -41,11 +54,13 @@ namespace EmpireIdle.Domain.Services
                 return null;
 
             var random = Random.Shared;
+            var (cx, cy) = _geometry.Centre;
+            var boundary = _geometry.SettlementBoundary(_mapConfig.ServerLevel);
 
             for (var attempt = 0; attempt < maxAttempts; attempt++)
             {
-                var x = random.Next(_mapConfig.Width);
-                var y = random.Next(_mapConfig.Height);
+                var x = cx + random.Next(-boundary, boundary + 1);
+                var y = cy + random.Next(-boundary, boundary + 1);
 
                 if (!_terrain.IsHabitable(serverId, x, y))
                     continue;
@@ -63,25 +78,21 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Рівень залежить від близькості до центру карти: край — слабкі,
-        /// центр — сильні. Невеликий розкид, щоб сусідні монстри відрізнялись.
+        /// Рівень залежить від кільця: околиці — слабкі, центр — сильні.
+        /// Рахується від кільця, а не від евклідової відстані: інакше монстр
+        /// у куті центрального кільця був би слабшим за монстра на осі,
+        /// хоч гравець бачить їх в одній зоні.
         /// </summary>
         private int PickLevel(MonsterConfig config, int x, int y, Random random)
         {
-            var centerX = _mapConfig.Width / 2.0;
-            var centerY = _mapConfig.Height / 2.0;
+            var proximity = _geometry.Proximity(x, y, _mapConfig.ServerLevel);
 
-            var dx = (x - centerX) / centerX;   // −1..1
-            var dy = (y - centerY) / centerY;
-            var distance = Math.Min(1.0, Math.Sqrt(dx * dx + dy * dy)); // 0 = центр, 1 = край
-
-            // Чим ближче до центру, тим вища частка діапазону рівнів
-            var proximity = 1.0 - distance;
             var span = config.MaxLevel - config.MinLevel;
             var level = config.MinLevel + (int)Math.Round(span * proximity);
 
-            // ±1 розкид, у межах діапазону типу
+            // ±1 розкид, щоб сусідні монстри відрізнялись
             level += random.Next(-1, 2);
+
             return Math.Clamp(level, config.MinLevel, config.MaxLevel);
         }
     }
