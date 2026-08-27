@@ -24,7 +24,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
             var collectAt = building.LastAccruedAt.AddMinutes(5);
 
-            village.CollectFromBuilding(building.Id, configs, collectAt, ProductionBoost.None);
+            village.CollectFromBuilding(building.Id, configs, collectAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(0, building.AccruedAmount);
             Assert.Equal(foodBefore + 50, village.Resources.Single(r => r.ResourceType == "food").Amount);
@@ -42,7 +42,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
 
-            village.CollectFromBuilding(building.Id, configs, building.LastAccruedAt, ProductionBoost.None);
+            village.CollectFromBuilding(building.Id, configs, building.LastAccruedAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(foodBefore, village.Resources.Single(r => r.ResourceType == "food").Amount);
         }
@@ -87,7 +87,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
 
             village.BeginBuildingUpgrade(farm.Id, configs, now, ProductionBoost.None,
-                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier);
+                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
 
             Assert.True(farm.IsUnderConstruction);
             Assert.NotNull(farm.ConstructionCompletesAt);
@@ -103,7 +103,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var farm = village.Buildings.Single(b => b.Type == "farm");
 
             village.BeginBuildingUpgrade(farm.Id, configs, farm.LastAccruedAt.AddMinutes(4), ProductionBoost.None,
-                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier);
+                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
 
             Assert.Equal(40, farm.AccruedAmount);
         }
@@ -118,7 +118,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var startedAt = DateTime.UtcNow;
 
             village.BeginBuildingUpgrade(farm.Id, configs, startedAt, ProductionBoost.None,
-                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier);
+                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
 
             Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs));
             Assert.Equal(1, farm.Level.Value);
@@ -142,7 +142,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             // Сервер 1 рівня дозволяє до 10; ратуша вже там
             Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(townhall.Id, configs, DateTime.UtcNow, ProductionBoost.None,
-                    mainBuildingKey: "townhall", serverLevel: 1, levelsPerTier: LevelsPerTier));
+                    mainBuildingKey: "townhall", serverLevel: 1, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             // Ферма лишилась на 1 рівні, ратуша стоїть рівно на межі тіру
             Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(townhall.Id, configs, DateTime.UtcNow, ProductionBoost.None,
-                    mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier));
+                    mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
         }
 
         /// <summary>Правило C: жодна будівля не переростає ратушу.</summary>
@@ -173,7 +173,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             // Ферма 1 → 2 при ратуші 1
             Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(farm.Id, configs, DateTime.UtcNow, ProductionBoost.None,
-                    mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier));
+                    mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
         }
 
         /// <summary>
@@ -210,7 +210,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             // 4 хв під бустом ×1.5 = 60
             var boost = new ProductionBoost(1.5, start, start.AddHours(1));
-            village.MaterializeProduction(configs, start.AddMinutes(4), boost);
+            village.MaterializeProduction(configs, start.AddMinutes(4), boost, 1.0);
 
             Assert.Equal(60, building.AccruedAmount);
         }

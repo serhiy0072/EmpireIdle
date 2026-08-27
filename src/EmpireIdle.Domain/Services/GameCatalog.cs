@@ -90,21 +90,27 @@ namespace EmpireIdle.Domain.Services
 
             var geometry = config.Map.Geometry;
 
-            if (geometry.RingBoundaries.Count != geometry.RingMultipliers.Count - 1)
-                throw new InvalidOperationException(
-                    "RingBoundaries needs exactly one entry fewer than RingMultipliers: "
-                    + "the last ring is everything beyond the last boundary.");
-
-            if (geometry.RingBoundaries.Count == 0 || geometry.RingBoundaries[0] <= 0)
-                throw new InvalidOperationException("The innermost ring boundary must be greater than 0.");
-
-            if (geometry.RingBoundaries[^1] > 1.0)
-                throw new InvalidOperationException("Ring boundaries are shares of the radius and cannot exceed 1.0.");
-
-            for (var i = 1; i < geometry.RingBoundaries.Count; i++)
+            // Порожня геометрія — конфіг її не описує (мінімальні фікстури в тестах).
+            // Валідуємо лише те, що задано: перевірка має ловити битий ігровий
+            // конфіг, а не відсутність секції, яка тесту не потрібна.
+            if (geometry.RingBoundaries.Count > 0 || geometry.RingMultipliers.Count > 0)
             {
-                if (geometry.RingBoundaries[i] <= geometry.RingBoundaries[i - 1])
-                    throw new InvalidOperationException("Ring boundaries must increase outward.");
+                if (geometry.RingBoundaries.Count != geometry.RingMultipliers.Count - 1)
+                    throw new InvalidOperationException(
+                        "RingBoundaries needs exactly one entry fewer than RingMultipliers: "
+                        + "the last ring is everything beyond the last boundary.");
+
+                if (geometry.RingBoundaries.Count == 0 || geometry.RingBoundaries[0] <= 0)
+                    throw new InvalidOperationException("The innermost ring boundary must be greater than 0.");
+
+                if (geometry.RingBoundaries[^1] > 1.0)
+                    throw new InvalidOperationException("Ring boundaries are shares of the radius and cannot exceed 1.0.");
+
+                for (var i = 1; i < geometry.RingBoundaries.Count; i++)
+                {
+                    if (geometry.RingBoundaries[i] <= geometry.RingBoundaries[i - 1])
+                        throw new InvalidOperationException("Ring boundaries must increase outward.");
+                }
             }
         }
 

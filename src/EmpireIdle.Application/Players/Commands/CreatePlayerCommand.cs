@@ -72,7 +72,7 @@ namespace EmpireIdle.Application.Players.Commands
             var (x, y) = await _settlementPlacer.FindSpotAsync(
                 serverId: serverId,
                 serverLevel: _catalog.Config.Map.ServerLevel,
-                isOccupied: (cx, cy) => _mapRepository.IsOccupiedAsync(1, cx, cy, cancellationToken),
+                isOccupied: (cx, cy) => _mapRepository.IsOccupiedAsync(serverId, cx, cy, cancellationToken),
                 maxAttempts: 200);
 
             var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village",
