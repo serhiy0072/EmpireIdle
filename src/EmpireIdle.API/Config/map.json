@@ -6,6 +6,15 @@
       "TerrainSeed": 20260729,
       "ServerLevel": 1,
       "CellsPerMonster": 30,
+      "MaxServerLevel": 3,
+      "Geometry": {
+        "CentreShare": 0.20,
+        "MiddleShare": 0.50,
+        "RingsAtFirstLevel": 0.40,
+        "FogMinShare": 0.40,
+        "FogMaxShare": 1.0,
+        "RingMultipliers": [ 2.0, 1.4, 1.0 ]
+      },
       "Terrains": [
         {
           "Type": "plain",

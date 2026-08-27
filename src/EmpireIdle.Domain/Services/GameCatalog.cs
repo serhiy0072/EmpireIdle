@@ -87,6 +87,20 @@ namespace EmpireIdle.Domain.Services
             if (unstored.Count > 0)
                 throw new InvalidOperationException(
                     $"Produced resources have no storage building: {string.Join(", ", unstored)}.");
+
+            var geometry = config.Map.Geometry;
+
+            if (geometry.CentreShare <= 0 || geometry.CentreShare >= geometry.MiddleShare || geometry.MiddleShare > 1.0)
+                throw new InvalidOperationException(
+                    "Map geometry requires 0 < CentreShare < MiddleShare ≤ 1.");
+
+            if (geometry.FogMinShare <= 0 || geometry.FogMinShare > geometry.FogMaxShare || geometry.FogMaxShare > 1.0)
+                throw new InvalidOperationException(
+                    "Map geometry requires 0 < FogMinShare ≤ FogMaxShare ≤ 1.");
+
+            if (geometry.RingMultipliers.Count < 3)
+                throw new InvalidOperationException(
+                    "RingMultipliers needs one value per ring (centre, middle, outskirts).");
         }
 
         /// <summary>Будівля за ключем або виняток із зрозумілим текстом.</summary>
