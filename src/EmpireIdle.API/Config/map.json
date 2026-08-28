@@ -13,6 +13,11 @@
         "FogMinShare": 0.40,
         "FogMaxShare": 1.0
       },
+      "Evolution": {
+        "DensityThreshold": 0.35,
+        "MaturityMarginLevels": 2,
+        "MinDaysBetweenLevels": 45
+      },
       "Terrains": [
         {
           "Type": "plain",

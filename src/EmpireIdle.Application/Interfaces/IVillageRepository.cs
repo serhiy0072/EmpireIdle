@@ -15,5 +15,14 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Id сіл, де є завершені будівництва. Без сутностей: обробка йде в іншому scope.</summary>
         Task<IReadOnlyList<Guid>> GetIdsWithDueConstructionsAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Медіана рівня головної будівлі серед сіл поточного світу.
+        /// Медіана, а не середнє: мертві акаунти з ратушею 1 рівня
+        /// тягнули б середнє вниз і блокували ріст живого світу.
+        /// </summary>
+        Task<int> GetMedianMainBuildingLevelAsync(string mainBuildingKey, CancellationToken cancellationToken = default);
+
+        /// <summary>Скільки сіл у поточному світі.</summary>
+        Task<int> CountAsync(CancellationToken cancellationToken = default);
     }
 }

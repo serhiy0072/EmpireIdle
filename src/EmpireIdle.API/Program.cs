@@ -217,6 +217,7 @@ builder.Services.AddScoped<TimerScanJob>();
 builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();
 builder.Services.AddScoped<DailyQuestResetJob>();
+builder.Services.AddScoped<ServerEvolutionJob>();
 
 //  8. ВЕБ-ШАР
 
