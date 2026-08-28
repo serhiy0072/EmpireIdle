@@ -85,7 +85,7 @@ internal static class TestData
     {
         for (var i = 0; i < times; i++)
         {
-            building.BeginUpgrade(config, TimeSpan.Zero, utcNow, ProductionBoost.None);
+            building.BeginUpgrade(config, TimeSpan.Zero, utcNow, ProductionBoost.None, locationMultiplier: 1.0);
             building.CompleteConstruction(utcNow);
         }
     }

@@ -30,11 +30,4 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Коефіцієнт росту нагороди з рівнем.</summary>
         public double RewardGrowth { get; set; } = 1.5;
     }
-
-    /// <summary>Склад загону: тип юніта і кількість.</summary>
-    public class UnitStack
-    {
-        public string UnitType { get; set; } = null!;
-        public int Count { get; set; }
-    }
 }

@@ -40,6 +40,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<QuestProgress> QuestProgress => Set<QuestProgress>();
         public DbSet<ServerQuestProgress> ServerQuestProgress => Set<ServerQuestProgress>();
         public DbSet<ServerQuestContribution> ServerQuestContributions => Set<ServerQuestContribution>();
+        public DbSet<Server> Servers => Set<Server>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

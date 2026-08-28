@@ -43,20 +43,26 @@ namespace EmpireIdle.Application.Villages.Queries
     public sealed class GetVillageQueryHandler : IRequestHandler<GetVillageQuery, VillageView>
     {
         private readonly IVillageRepository _villageRepository;
+        private readonly IServerRepository _serverRepository;
         private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly WorldGeometry _geometry;
 
         public GetVillageQueryHandler(
             IVillageRepository villageRepository,
+            IServerRepository serverRepository,
             EffectResolver effectResolver,
             GameCatalog catalog,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            WorldGeometry geometry)
         {
             _villageRepository = villageRepository;
+            _serverRepository = serverRepository;
             _effectResolver = effectResolver;
             _catalog = catalog;
             _timeProvider = timeProvider;
+            _geometry = geometry;
         }
 
         public async Task<VillageView> Handle(GetVillageQuery request, CancellationToken cancellationToken)
@@ -67,6 +73,8 @@ namespace EmpireIdle.Application.Villages.Queries
                 ?? throw new InvalidOperationException($"Village for player with ID {request.PlayerId} not found.");
 
             var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
+
+            var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
 
             var buildings = village.Buildings.Select(b =>
             {
@@ -88,12 +96,14 @@ namespace EmpireIdle.Application.Villages.Queries
                         isUnlocekd);
                 }
 
+                var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
+
                 return new BuildingView(
                     b.Id,
                     b.Type,
                     b.Level.Value,
                     b.LastCollectedAt,
-                    b.StoredAt(config, now, boost),
+                    b.StoredAt(config, now, boost, locationMultiplier),
                     b.GetStorageCap(config.BaseStorage),
                     b.ConstructionCompletesAt,
                     b.IsUnderConstruction,

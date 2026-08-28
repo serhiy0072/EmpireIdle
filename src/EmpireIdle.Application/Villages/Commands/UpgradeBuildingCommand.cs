@@ -19,24 +19,30 @@ namespace EmpireIdle.Application.Villages.Commands
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerRepository _serverRepository;
         private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly WorldGeometry _geometry;
         private readonly ILogger<UpgradeBuildingCommandHandler> _logger;
 
         public UpgradeBuildingCommandHandler(
             IVillageRepository villageRepository,
             IUnitOfWork unitOfWork,
+            IServerRepository serverRepository,
             EffectResolver effectResolver,
             TimeProvider timeProvider,
             GameCatalog catalog,
+            WorldGeometry geometry,
             ILogger<UpgradeBuildingCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
+            _serverRepository = serverRepository;
             _effectResolver = effectResolver;
             _timeProvider = timeProvider;
             _catalog = catalog;
+            _geometry = geometry;
             _logger = logger;
         }
 
@@ -50,8 +56,11 @@ namespace EmpireIdle.Application.Villages.Commands
             // Апгрейд зупиняє виробництво — буфер треба зафіксувати за поточним множником
             var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
 
-            village.BeginBuildingUpgrade(request.BuildingId, _catalog.Buildings, now, boost, _catalog.MainBuildingKey,
-                _catalog.Config.Map.ServerLevel, _catalog.Config.BuildingLevelsPerTier);
+            var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
+            var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
+
+            village.BeginBuildingUpgrade(request.BuildingId, _catalog.Buildings, now, boost,
+                _catalog.MainBuildingKey, serverLevel, _catalog.Config.BuildingLevelsPerTier, locationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

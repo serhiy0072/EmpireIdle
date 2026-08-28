@@ -84,7 +84,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             foreach (var (unitType, count) in recovered)
             {
-                var config = _catalog.Unit(unitType)
+                var config = _catalog.FindUnit(unitType)
                     ?? throw new EntityNotFoundException($"Unit type", unitType);
 
                 total += config.RecoverCostGems * count;

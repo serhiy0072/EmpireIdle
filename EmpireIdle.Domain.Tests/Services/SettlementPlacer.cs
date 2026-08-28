@@ -26,12 +26,13 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var config = Config();
             var terrain = new TerrainGenerator(config);
-            var placer = new SettlementPlacer(terrain, config);
+            var geometry = new WorldGeometry(config); 
+            var placer = new SettlementPlacer(terrain, geometry);
 
             // 50 спроб поспіль — щоб зловити випадковість
             for (var i = 0; i < 50; i++)
             {
-                var (x, y) = await placer.FindSpotAsync(1, (_, _) => Task.FromResult(false));
+                var (x, y) = await placer.FindSpotAsync(1, serverLevel: 1, (_, _) => Task.FromResult(false));
 
                 Assert.True(terrain.IsHabitable(1, x, y),
                     $"Village placed on non-habitable terrain '{terrain.GetTerrainType(1, x, y)}' at ({x},{y}).");
@@ -44,11 +45,12 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var config = Config();
             var terrain = new TerrainGenerator(config);
-            var placer = new SettlementPlacer(terrain, config);
+            var geometry = new WorldGeometry(config); 
+            var placer = new SettlementPlacer(terrain, geometry);
 
             for (var i = 0; i < 50; i++)
             {
-                var (x, y) = await placer.FindSpotAsync(1, (_, _) => Task.FromResult(false));
+                var (x, y) = await placer.FindSpotAsync(1, serverLevel: 1, (_, _) => Task.FromResult(false));
 
                 Assert.True(terrain.IsInBounds(x, y), $"Coordinates ({x},{y}) are outside the map.");
             }
@@ -60,14 +62,15 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var config = Config();
             var terrain = new TerrainGenerator(config);
-            var placer = new SettlementPlacer(terrain, config);
+            var geometry = new WorldGeometry(config); 
+            var placer = new SettlementPlacer(terrain, geometry);
 
             var occupied = new HashSet<(int, int)>();
 
             // Заселяємо 20 сіл підряд, кожне наступне бачить попередні як зайняті
             for (var i = 0; i < 20; i++)
             {
-                var (x, y) = await placer.FindSpotAsync(1,
+                var (x, y) = await placer.FindSpotAsync(1, serverLevel: 1,
                     (cx, cy) => Task.FromResult(occupied.Contains((cx, cy))));
 
                 Assert.DoesNotContain((x, y), occupied);
@@ -85,11 +88,12 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var config = Config();
             var terrain = new TerrainGenerator(config);
-            var placer = new SettlementPlacer(terrain, config);
+            var geometry = new WorldGeometry(config); 
+            var placer = new SettlementPlacer(terrain, geometry);
 
             // усе зайнято
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                placer.FindSpotAsync(1, (_, _) => Task.FromResult(true), maxAttempts: 10));
+                placer.FindSpotAsync(1, serverLevel: 1, (_, _) => Task.FromResult(true), maxAttempts: 10));
         }
     }
 }

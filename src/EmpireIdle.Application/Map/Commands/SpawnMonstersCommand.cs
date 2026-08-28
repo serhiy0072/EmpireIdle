@@ -16,6 +16,7 @@ namespace EmpireIdle.Application.Map.Commands
         private readonly IMonsterRepository _monsterRepository;
         private readonly IMapRepository _mapRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerRepository _serverRepository;
         private readonly MonsterSpawner _spawner;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<SpawnMonstersCommandHandler> _logger;
@@ -24,6 +25,7 @@ namespace EmpireIdle.Application.Map.Commands
             IMonsterRepository monsterRepository,
             IMapRepository mapRepository,
             IUnitOfWork unitOfWork,
+            IServerRepository serverRepository,
             MonsterSpawner spawner,
             TimeProvider timeProvider,
             ILogger<SpawnMonstersCommandHandler> logger)
@@ -31,6 +33,7 @@ namespace EmpireIdle.Application.Map.Commands
             _monsterRepository = monsterRepository;
             _mapRepository = mapRepository;
             _unitOfWork = unitOfWork;
+            _serverRepository = serverRepository;
             _spawner = spawner;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -40,7 +43,8 @@ namespace EmpireIdle.Application.Map.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var current = await _monsterRepository.CountAsync(request.ServerId, cancellationToken);
-            var target = _spawner.GetTargetPopulation();
+            var serverLevel = await _serverRepository.GetLevelAsync(request.ServerId, cancellationToken);
+            var target = _spawner.GetTargetPopulation(serverLevel);
             var missing = Math.Min(target - current, MaxSpawnsPerRun);
 
             if (missing <= 0)
@@ -55,7 +59,7 @@ namespace EmpireIdle.Application.Map.Commands
             for (var i = 0; i < missing; i++)
             {
                 var spot = await _spawner.TrySpawnAsync(
-                    request.ServerId,
+                    request.ServerId, serverLevel, 
                     async (x, y) => reserved.Contains((x, y))|| await _mapRepository.IsOccupiedAsync(request.ServerId, x, y, cancellationToken));
 
                 if (spot is null)

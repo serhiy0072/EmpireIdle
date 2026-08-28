@@ -20,6 +20,18 @@ namespace EmpireIdle.Domain.Services
         public IReadOnlyDictionary<string, ItemConfig> Items { get; }
         public IReadOnlyDictionary<string, QuestConfig> Quests { get; }
 
+        /// <summary>
+        /// Юніт за ключем, що прийшов від гравця. null означає «такого немає» —
+        /// викликач сам вирішує, це 404 чи щось інше.
+        ///
+        /// Окремо від Unit(), який кидає: там ключ береться з наших даних,
+        /// і його відсутність означає поломку розгортання, тобто 500.
+        /// </summary>
+        public UnitConfig? FindUnit(string key) => Units.GetValueOrDefault(key);
+
+        /// <inheritdoc cref="FindUnit"/>
+        public ItemConfig? FindItem(string key) => Items.GetValueOrDefault(key);
+
         /// <summary>Ключ головної будівлі — гейт для решти.</summary>
         public string MainBuildingKey { get; }
 
@@ -87,6 +99,31 @@ namespace EmpireIdle.Domain.Services
             if (unstored.Count > 0)
                 throw new InvalidOperationException(
                     $"Produced resources have no storage building: {string.Join(", ", unstored)}.");
+
+            var geometry = config.Map.Geometry;
+
+            // Порожня геометрія — конфіг її не описує (мінімальні фікстури в тестах).
+            // Валідуємо лише те, що задано: перевірка має ловити битий ігровий
+            // конфіг, а не відсутність секції, яка тесту не потрібна.
+            if (geometry.RingBoundaries.Count > 0 || geometry.RingMultipliers.Count > 0)
+            {
+                if (geometry.RingBoundaries.Count != geometry.RingMultipliers.Count - 1)
+                    throw new InvalidOperationException(
+                        "RingBoundaries needs exactly one entry fewer than RingMultipliers: "
+                        + "the last ring is everything beyond the last boundary.");
+
+                if (geometry.RingBoundaries.Count == 0 || geometry.RingBoundaries[0] <= 0)
+                    throw new InvalidOperationException("The innermost ring boundary must be greater than 0.");
+
+                if (geometry.RingBoundaries[^1] > 1.0)
+                    throw new InvalidOperationException("Ring boundaries are shares of the radius and cannot exceed 1.0.");
+
+                for (var i = 1; i < geometry.RingBoundaries.Count; i++)
+                {
+                    if (geometry.RingBoundaries[i] <= geometry.RingBoundaries[i - 1])
+                        throw new InvalidOperationException("Ring boundaries must increase outward.");
+                }
+            }
         }
 
         /// <summary>Будівля за ключем або виняток із зрозумілим текстом.</summary>

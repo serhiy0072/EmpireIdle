@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -19,7 +20,19 @@ public class TestApiFactory : WebApplicationFactory<global::Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Testing вимикає Hangfire: він кешує LoggerFactory у статиці,
+        // а WebApplicationFactory будує хост двічі
         builder.UseEnvironment("Testing");
+
+        // UseSetting, а не appsettings.Testing.json чи ConfigureAppConfiguration:
+        // обидва застосовуються ПІСЛЯ того, як Program прочитав конфігурацію
+        // й кинув на відсутньому JwtSettings. UseSetting кладе значення
+        // в конфігурацію хоста до запуску Program.
+        builder.UseSetting("JwtSettings:Secret", "not-a-secret-integration-tests-only-do-not-reuse");
+        builder.UseSetting("JwtSettings:Issuer", "EmpireIdle.Tests");
+        builder.UseSetting("JwtSettings:Audience", "EmpireIdle.Tests");
+        builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:5173");
+
         builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
 
         // ConfigureTestServices, а не ConfigureServices: у minimal hosting колбеки

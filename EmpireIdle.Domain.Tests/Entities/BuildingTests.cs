@@ -17,7 +17,7 @@ public class BuildingTests
     {
         for (var i = 0; i < times; i++)
         {
-            building.BeginUpgrade(Farm, TimeSpan.Zero, utcNow, ProductionBoost.None);
+            building.BeginUpgrade(Farm, TimeSpan.Zero, utcNow, ProductionBoost.None, locationMultiplier: 1.0);
             building.CompleteConstruction(utcNow);
         }
     }
@@ -43,7 +43,7 @@ public class BuildingTests
         var building = CreateFarm();
         var start = building.LastAccruedAt;
 
-        Assert.Equal(50, building.StoredAt(Farm, start.AddMinutes(5), ProductionBoost.None));
+        Assert.Equal(50, building.StoredAt(Farm, start.AddMinutes(5), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public class BuildingTests
         var building = CreateFarm();
         var start = building.LastAccruedAt;
 
-        Assert.Equal(5, building.StoredAt(Farm, start.AddSeconds(30), ProductionBoost.None));
+        Assert.Equal(5, building.StoredAt(Farm, start.AddSeconds(30), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>Понад кап нічого не накопичується — надлишок згорає.</summary>
@@ -66,7 +66,7 @@ public class BuildingTests
         var building = CreateFarm();
         var start = building.LastAccruedAt;
 
-        Assert.Equal(60, building.StoredAt(Farm, start.AddHours(5), ProductionBoost.None));
+        Assert.Equal(60, building.StoredAt(Farm, start.AddHours(5), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>Рівень множить ставку: 2 рівень виробляє вдвічі швидше.</summary>
@@ -78,7 +78,7 @@ public class BuildingTests
         RaiseLevel(building, 1, start);
 
         // 2 рівень × 10/хв × 3 хв = 60, кап на 2 рівні 78 — не заважає
-        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(3), ProductionBoost.None));
+        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(3), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>Буст множить лише той відрізок, коли він реально діяв.</summary>
@@ -91,7 +91,7 @@ public class BuildingTests
         // 2 хв ×2 = 40, далі 2 хв ×1 = 20
         var boost = new ProductionBoost(2.0, start, start.AddMinutes(2));
 
-        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(4), boost));
+        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(4), boost, locationMultiplier: 1.0));
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public class BuildingTests
         var boost = new ProductionBoost(2.0, start.AddMinutes(4), start.AddMinutes(64));
 
         // 4 хв ×1 = 40, 1 хв ×2 = 20 → 60, а не 100
-        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(5), boost));
+        Assert.Equal(60, building.StoredAt(Farm, start.AddMinutes(5), boost, locationMultiplier: 1.0));
     }
 
     /// <summary>Буст, що скінчився до початку періоду, не впливає ні на що.</summary>
@@ -120,7 +120,7 @@ public class BuildingTests
 
         var boost = new ProductionBoost(2.0, start.AddMinutes(-30), start.AddMinutes(-10));
 
-        Assert.Equal(50, building.StoredAt(Farm, start.AddMinutes(5), boost));
+        Assert.Equal(50, building.StoredAt(Farm, start.AddMinutes(5), boost, locationMultiplier: 1.0));
     }
 
     /// <summary>Під час будівництва виробництво зупинене.</summary>
@@ -130,10 +130,10 @@ public class BuildingTests
         var building = CreateFarm();
         var start = building.LastAccruedAt;
 
-        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), start.AddMinutes(3), ProductionBoost.None);
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), start.AddMinutes(3), ProductionBoost.None, locationMultiplier: 1.0);
 
         // 30 накопичено до апгрейду; далі нічого, скільки б не минуло
-        Assert.Equal(30, building.StoredAt(Farm, start.AddMinutes(9), ProductionBoost.None));
+        Assert.Equal(30, building.StoredAt(Farm, start.AddMinutes(9), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>
@@ -146,12 +146,12 @@ public class BuildingTests
         var building = CreateFarm();
         var start = building.LastAccruedAt;
 
-        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), start.AddMinutes(3), ProductionBoost.None);
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), start.AddMinutes(3), ProductionBoost.None, locationMultiplier: 1.0);
         var completedAt = start.AddMinutes(13);
         building.CompleteConstruction(completedAt);
 
         // 30 до апгрейду + 2 рівень × 10/хв × 1 хв = 20
-        Assert.Equal(50, building.StoredAt(Farm, completedAt.AddMinutes(1), ProductionBoost.None));
+        Assert.Equal(50, building.StoredAt(Farm, completedAt.AddMinutes(1), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>Матеріалізація фіксує накопичене й зсуває мітку часу.</summary>
@@ -162,7 +162,7 @@ public class BuildingTests
         var start = building.LastAccruedAt;
         var at = start.AddMinutes(4);
 
-        building.Materialize(Farm, at, ProductionBoost.None);
+        building.Materialize(Farm, at, ProductionBoost.None, locationMultiplier: 1.0);
 
         Assert.Equal(40, building.AccruedAmount);
         Assert.Equal(at, building.LastAccruedAt);
@@ -175,7 +175,7 @@ public class BuildingTests
         var building = CreateFarm();
         var at = building.LastAccruedAt.AddMinutes(5);
 
-        var collected = building.Collect(Farm, at, ProductionBoost.None);
+        var collected = building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0);
 
         Assert.Equal(50, collected);
         Assert.Equal(0, building.AccruedAmount);
@@ -189,9 +189,9 @@ public class BuildingTests
         var building = CreateFarm();
         var at = building.LastAccruedAt.AddMinutes(5);
 
-        building.Collect(Farm, at, ProductionBoost.None);
+        building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0);
 
-        Assert.Equal(0, building.Collect(Farm, at, ProductionBoost.None));
+        Assert.Equal(0, building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>Невиробнича будівля нічого не накопичує.</summary>
@@ -201,7 +201,7 @@ public class BuildingTests
         var config = new BuildingConfig { Key = "townhall", ProducesResource = null, BaseStorage = 0 };
         var building = new Building(Guid.NewGuid(), Guid.NewGuid(), "townhall", DateTime.UtcNow);
 
-        Assert.Equal(0, building.StoredAt(config, building.LastAccruedAt.AddHours(10), ProductionBoost.None));
+        Assert.Equal(0, building.StoredAt(config, building.LastAccruedAt.AddHours(10), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>Апгрейд не можна почати двічі.</summary>
@@ -211,10 +211,10 @@ public class BuildingTests
         var building = CreateFarm();
         var now = building.LastAccruedAt;
 
-        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None);
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None, locationMultiplier: 1.0);
 
         Assert.Throws<InvalidStateException>(() =>
-            building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None));
+            building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -58,6 +59,28 @@ namespace EmpireIdle.API.Controllers
             var activeEffects = contents.ActiveEffects.Select(e => new ActiveEffectResponse(e.Target.ToString(), e.Multiplier, e.ExpiresAt, e.SourceItemKey)).ToList();
 
             return Ok(new InventoryResponse(items, equipment, activeEffects));
+        }
+
+        /// <summary>
+        /// Використати предмет. Ідемпотентна операція — потрібен заголовок Idempotency-Key.
+        /// </summary>
+        /// <remarks>
+        /// TargetX/TargetY потрібні предметам, що діють на клітину карти (телепорт).
+        /// Валідність координат перевіряє ефект: контролер лише транспорт.
+        /// </remarks>
+        [HttpPost("{playerId:guid}/use")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> UseItem(Guid playerId, [FromBody] UseItemRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new UseItemCommand(
+                playerId, request.ItemKey, request.Count, request.TargetId,
+                request.TargetX, request.TargetY), cancellationToken);
+
+            return NoContent();
         }
     }
 }

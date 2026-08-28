@@ -54,5 +54,32 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Take(batchSize)
                 .Select(v => v.Id)
                 .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<int> GetMedianMainBuildingLevelAsync(string mainBuildingKey,
+            CancellationToken cancellationToken = default)
+        {
+            var levels = _context.Buildings
+                .AsNoTracking()
+                .Where(b => b.Type == mainBuildingKey)
+                .Select(b => b.Level.Value);
+
+            var count = await levels.CountAsync(cancellationToken);
+
+            if (count == 0)
+                return 0;
+
+            // OrderBy + Skip, а не PERCENTILE_CONT: тягне один рядок
+            // і не прив'язує репозиторій до діалекту Postgres
+            return await levels
+                .OrderBy(level => level)
+                .Skip(count / 2)
+                .Take(1)
+                .FirstAsync(cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task<int> CountAsync(CancellationToken cancellationToken = default)
+            => _context.Villages.AsNoTracking().CountAsync(cancellationToken);
     }
 }

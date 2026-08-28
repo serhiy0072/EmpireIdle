@@ -84,6 +84,14 @@
         "BoostTarget": "production",
         "Multiplier": 2.0,
         "DurationHours": 1
+      },
+      {
+        "Key": "teleport",
+        "DisplayName": "Teleport",
+        "Description": "Переносить поселення на обрану вільну клітину",
+        "Rarity": "rare",
+        "Type": "teleport",
+        "IsStackable": true
       }
     ]
   }

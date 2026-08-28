@@ -10,9 +10,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Висота карти в клітинах.</summary>
         public int Height { get; set; } = 1000;
 
-        /// <summary>Рівень світу: гейтить появу типів монстрів (тимчасово з конфіга).</summary>
-        public int ServerLevel { get; set; } = 1;
-
         /// <summary>Скільки клітин карти припадає на одного монстра (щільність спавну).</summary>
         public int CellsPerMonster { get; set; } = 500;
 
@@ -21,24 +18,14 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Типи місцевості з їхніми вагами та властивостями.</summary>
         public List<TerrainConfig> Terrains { get; set; } = new();
-    }
 
-    /// <summary>Тип місцевості: частота появи та ігрові властивості клітини.</summary>
-    public class TerrainConfig
-    {
-        /// <summary>Ключ типу (plain, forest, water…).</summary>
-        public string Type { get; set; } = null!;
+        /// <summary>Скільки рівнів може мати сервер. Останній — максимальна геометрія.</summary>
+        public int MaxServerLevel { get; set; } = 3;
 
-        /// <summary>Відносна частота появи на карті.</summary>
-        public int Weight { get; set; }
+        /// <summary>Межі кілець і туману як частки радіуса карти.</summary>
+        public MapGeometryConfig Geometry { get; set; } = new();
 
-        /// <summary>Чи може армія проходити через клітину.</summary>
-        public bool Passable { get; set; } = true;
-
-        /// <summary>Множник часу проходу (1.0 — звичайний, 2.0 — удвічі повільніше).</summary>
-        public double MoveCost { get; set; } = 1.0;
-
-        /// <summary>Чи можна розміщувати село або монстра.</summary>
-        public bool Habitable { get; set; } = true;
+        /// <summary>Правила росту рівня світу.</summary>
+        public ServerEvolutionConfig Evolution { get; set; } = new();
     }
 }

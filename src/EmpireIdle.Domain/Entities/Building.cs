@@ -59,10 +59,15 @@ namespace EmpireIdle.Domain.Entities
         /// Інтервал ділиться на «під бустом» і «без буста», бо буст міг
         /// початись або скінчитись усередині періоду.
         /// </summary>
-        /// <param name="config">Конфіг будівлі (ставка, місткість, ріст місткості).</param>
+        /// <param name="config">Конфіг будівлі (ставка виробництва, базова місткість).</param>
         /// <param name="utcNow">Момент, на який рахуємо.</param>
         /// <param name="boost">Вікно дії буста виробництва.</param>
-        public int StoredAt(BuildingConfig config, DateTime utcNow, ProductionBoost boost)
+        /// <param name="locationMultiplier">
+        /// Множник від кільця карти. Скаляр, а не вікно як буст: при зміні рівня
+        /// сервера виробництво всіх сіл матеріалізується, тому в межах періоду
+        /// між матеріалізаціями кільце змінитись не може.
+        /// </param>
+        public int StoredAt(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             var cap = GetStorageCap(config.BaseStorage);
 
@@ -73,26 +78,27 @@ namespace EmpireIdle.Domain.Entities
             var totalMinutes = (utcNow - LastAccruedAt).TotalMinutes;
             var boostedMinutes = boost.OverlapMinutes(LastAccruedAt, utcNow);
 
-            var ratePerMinute = Level.Value * config.BaseProductionPerMinute;
+            var ratePerMinute = Level.Value * config.BaseProductionPerMinute * locationMultiplier;
             var produced = ratePerMinute * (boostedMinutes * boost.Multiplier + (totalMinutes - boostedMinutes));
 
             return Math.Min(AccruedAmount + (int)produced, cap);
         }
 
         /// <summary>
-        /// Згортає обчислений виробіток у збережений буфер.
-        /// Викликається перед кожною зміною швидкості: апгрейд, збір.
+        /// Фіксує накопичене на вказаний момент. Викликається перед зміною
+        /// множника — буста або кільця карти — щоб вироблене за старим
+        /// не порахувалось за новим.
         /// </summary>
-        public void Materialize(BuildingConfig config, DateTime utcNow, ProductionBoost boost)
+        public void Materialize(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
-            AccruedAmount = StoredAt(config, utcNow, boost);
+            AccruedAmount = StoredAt(config, utcNow, boost, locationMultiplier);
             LastAccruedAt = utcNow;
         }
 
         /// <summary>Забирає накопичене з буфера. Повертає зібрану кількість.</summary>
-        public int Collect(BuildingConfig config, DateTime utcNow, ProductionBoost boost)
+        public int Collect(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
-            var collected = StoredAt(config, utcNow, boost);
+            var collected = StoredAt(config, utcNow, boost, locationMultiplier);
 
             AccruedAmount = 0;
             LastAccruedAt = utcNow;
@@ -106,14 +112,15 @@ namespace EmpireIdle.Domain.Entities
         /// Розпочати апгрейд: будівля переходить у стан будівництва до вказаного часу.
         /// Рівень підніметься лише при завершенні (CompleteConstruction).
         /// </summary>
-        public void BeginUpgrade(BuildingConfig config, TimeSpan duration, DateTime utcNow, ProductionBoost boost)
+        public void BeginUpgrade(BuildingConfig config, TimeSpan duration, DateTime utcNow, ProductionBoost boost,
+            double locationMultiplier)
         {
             if (IsUnderConstruction)
                 throw new InvalidStateException($"Building {Id} is already under construction.");
 
             // Банкуємо вироблене ДО зупинки: під час будівництва виробництва немає,
             // і без цього накопичене за попередній період загубилось би
-            Materialize(config, utcNow, boost);
+            Materialize(config, utcNow, boost, locationMultiplier);
 
             ConstructionCompletesAt = utcNow + duration;
         }

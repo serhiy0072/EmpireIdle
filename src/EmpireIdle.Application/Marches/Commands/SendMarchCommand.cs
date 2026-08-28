@@ -84,7 +84,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 Guid.NewGuid(), _serverContext.ServerId, garrison.Id,
                 village.X, village.Y, targetX, targetY,
                 request.TargetType, request.TargetId,
-                request.Units, now + duration);
+                request.Units, now + duration, now);
 
             await _marchRepository.AddAsync(march, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -25,6 +25,7 @@ namespace EmpireIdle.Application.Players.Commands
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IMapRepository _mapRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerRepository _serverRepository;
         private readonly ILogger<CreatePlayerCommand> _logger;
         private readonly TimeProvider _timeProvider;
         private readonly SettlementPlacer _settlementPlacer;
@@ -36,6 +37,7 @@ namespace EmpireIdle.Application.Players.Commands
             IPlayerWalletRepository walletRepository,
             IGarrisonRepository garrisonRepository,
             IUnitOfWork unitOfWork,
+            IServerRepository serverRepository,
             ILogger<CreatePlayerCommand> logger,
             TimeProvider timeProvider,
             GameCatalog catalog,
@@ -47,6 +49,7 @@ namespace EmpireIdle.Application.Players.Commands
             _walletRepository = walletRepository;
             _garrisonRepository = garrisonRepository;
             _unitOfWork = unitOfWork;
+            _serverRepository = serverRepository;
             _logger = logger;
             _catalog = catalog;
             _timeProvider = timeProvider;
@@ -69,9 +72,11 @@ namespace EmpireIdle.Application.Players.Commands
 
             var player = new Player(playerId, request.UserName, email, request.UserId, now, serverId);
             var wallet = new PlayerWallet(Guid.NewGuid(), request.UserId);
+
             var (x, y) = await _settlementPlacer.FindSpotAsync(
                 serverId: serverId,
-                isOccupied: (cx, cy) => _mapRepository.IsOccupiedAsync(1, cx, cy, cancellationToken),
+                serverLevel: await _serverRepository.GetLevelAsync(serverId, cancellationToken),
+                isOccupied: (cx, cy) => _mapRepository.IsOccupiedAsync(serverId, cx, cy, cancellationToken),
                 maxAttempts: 200);
 
             var village = new Village(Guid.NewGuid(), playerId, $"{request.UserName}'s Village",

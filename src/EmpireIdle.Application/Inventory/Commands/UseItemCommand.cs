@@ -13,7 +13,7 @@ namespace EmpireIdle.Application.Inventory.Commands
     /// Використати предмет з інвентаря.
     /// TargetId — необов'язкова ціль (для предметів, що діють на конкретний об'єкт).
     /// </summary>
-    public record UseItemCommand(Guid PlayerId, string ItemKey, int Count, Guid? TargetId)
+    public record UseItemCommand(Guid PlayerId, string ItemKey, int Count, Guid? TargetId, int? TargetX = null, int? TargetY = null)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
@@ -46,7 +46,7 @@ namespace EmpireIdle.Application.Inventory.Commands
             if (request.Count < 1)
                 throw new RequirementNotMetException("Count must be positive.");
 
-            var config = _catalog.Item(request.ItemKey)
+            var config = _catalog.FindItem(request.ItemKey)
                 ?? throw new EntityNotFoundException("Item", request.ItemKey);
 
             var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, request.ItemKey, cancellationToken)
@@ -54,7 +54,8 @@ namespace EmpireIdle.Application.Inventory.Commands
 
             // Ефект застосовуємо ДО списання: якщо він неможливий, предмет не згорить
             var context = new ItemUsageContext(
-                request.PlayerId, config, request.Count, request.TargetId, now);
+                request.PlayerId, config, request.Count, request.TargetId, now,
+                request.TargetX, request.TargetY);
 
             await _dispatcher.ApplyAsync(context, cancellationToken);
 

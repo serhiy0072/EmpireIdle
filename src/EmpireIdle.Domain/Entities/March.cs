@@ -48,6 +48,13 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Коли армія прибуде в поточну точку призначення.</summary>
         public DateTime ArrivesAt { get; private set; }
 
+        /// <summary>
+        /// Коли армія вийшла. Потрібне для розвороту після переїзду поселення:
+        /// зворотний час дорівнює вже пройденому, а не відстані до нових координат —
+        /// інакше телепорт у центр робив би далекі походи безкоштовними.
+        /// </summary>
+        public DateTime DepartedAt { get; private set; }
+
         /// <summary>Склад армії (тільки для читання).</summary>
         public IReadOnlyCollection<MarchUnit> Units => _units.AsReadOnly();
 
@@ -58,10 +65,8 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
-        public March(Guid id, int serverId, Guid garrisonId,
-            int originX, int originY, int targetX, int targetY,
-            MarchTargetType targetType, Guid targetId,
-            IReadOnlyDictionary<string, int> units, DateTime arrivesAt) : base(id)
+        public March(Guid id, int serverId, Guid garrisonId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
+            Guid targetId, IReadOnlyDictionary<string, int> units, DateTime arrivesAt, DateTime departedAt) : base(id)
         {
             ServerId = serverId;
             GarrisonId = garrisonId;
@@ -73,6 +78,7 @@ namespace EmpireIdle.Domain.Entities
             TargetId = targetId;
             State = MarchState.Outbound;
             ArrivesAt = arrivesAt;
+            DepartedAt = departedAt;
 
             foreach (var (unitType, count) in units)
                 _units.Add(new MarchUnit(Guid.NewGuid(), id, unitType, count));
@@ -81,7 +87,7 @@ namespace EmpireIdle.Domain.Entities
         protected March() { } // Для EF Core
 
         /// <summary>Склад армії у вигляді словника (для повернення в гарнізон).</summary>
-        public Dictionary<string, int> GetUnits()  => _units.ToDictionary(u => u.UnitType, u => u.Count);
+        public Dictionary<string, int> GetUnits() => _units.ToDictionary(u => u.UnitType, u => u.Count);
 
         /// <summary>
         /// Армія дійшла до цілі й розвертається додому.
@@ -94,6 +100,28 @@ namespace EmpireIdle.Domain.Entities
 
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Рідне поселення переїхало — армія розвертається до нових координат.
+        /// Зворотний час дорівнює вже пройденому: скільки йшла, стільки й вертатиметься.
+        ///
+        /// Тільки для Outbound: марш, що вже повертається, віддає юнітів у гарнізон,
+        /// а гарнізон прив'язаний до села, не до клітини — переїзд його не стосується.
+        /// </summary>
+        public void RecallAfterRelocation(int originX, int originY, DateTime utcNow)
+        {
+            if (State != MarchState.Outbound)
+                return;
+
+            var travelled = utcNow - DepartedAt;
+
+            OriginX = originX;
+            OriginY = originY;
+            State = MarchState.Returning;
+            ArrivesAt = utcNow + travelled;
 
             Touch(utcNow);
         }
@@ -143,28 +171,5 @@ namespace EmpireIdle.Domain.Entities
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
-    }
-
-    /// <summary>Загін у складі походу.</summary>
-    public class MarchUnit : Entity
-    {
-        public Guid MarchId { get; private set; }
-        public string UnitType { get; private set; } = null!;
-        public int Count { get; private set; }
-
-        public MarchUnit(Guid id, Guid marchId, string unitType, int count) : base(id)
-        {
-            MarchId = marchId;
-            UnitType = unitType;
-            Count = count;
-        }
-
-        protected MarchUnit() { } // Для EF Core
-
-        /// <summary>Зменшує кількість юнітів у загоні (втрати в бою).</summary>
-        public void Reduce(int amount)
-        {
-            Count = Math.Max(0, Count - amount);
-        }
     }
 }

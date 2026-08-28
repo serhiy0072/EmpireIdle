@@ -384,6 +384,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime>("ArrivesAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("DepartedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("GarrisonId")
                         .HasColumnType("uuid");
 
@@ -742,6 +745,42 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.HasIndex("GarrisonId", "ExpiresAt");
 
                     b.ToTable("RecoverableUnits", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.Server", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("LevelRaisedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Servers", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ServerQuestContribution", b =>

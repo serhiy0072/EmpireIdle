@@ -94,9 +94,10 @@ builder.Services.AddSingleton(sp => new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetization));
 builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>(), sp.GetRequiredService<WorldGeometry>()));
 builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map));
+builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<WorldGeometry>()));
+builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<BattleResolver>();
 
@@ -216,6 +217,7 @@ builder.Services.AddScoped<TimerScanJob>();
 builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();
 builder.Services.AddScoped<DailyQuestResetJob>();
+builder.Services.AddScoped<ServerEvolutionJob>();
 
 //  8. ВЕБ-ШАР
 
