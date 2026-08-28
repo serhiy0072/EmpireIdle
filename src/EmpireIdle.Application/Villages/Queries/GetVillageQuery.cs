@@ -43,6 +43,7 @@ namespace EmpireIdle.Application.Villages.Queries
     public sealed class GetVillageQueryHandler : IRequestHandler<GetVillageQuery, VillageView>
     {
         private readonly IVillageRepository _villageRepository;
+        private readonly IServerRepository _serverRepository;
         private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
@@ -50,12 +51,14 @@ namespace EmpireIdle.Application.Villages.Queries
 
         public GetVillageQueryHandler(
             IVillageRepository villageRepository,
+            IServerRepository serverRepository,
             EffectResolver effectResolver,
             GameCatalog catalog,
             TimeProvider timeProvider,
             WorldGeometry geometry)
         {
             _villageRepository = villageRepository;
+            _serverRepository = serverRepository;
             _effectResolver = effectResolver;
             _catalog = catalog;
             _timeProvider = timeProvider;
@@ -70,6 +73,8 @@ namespace EmpireIdle.Application.Villages.Queries
                 ?? throw new InvalidOperationException($"Village for player with ID {request.PlayerId} not found.");
 
             var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
+
+            var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
 
             var buildings = village.Buildings.Select(b =>
             {
@@ -91,7 +96,7 @@ namespace EmpireIdle.Application.Villages.Queries
                         isUnlocekd);
                 }
 
-                var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, _catalog.Config.Map.ServerLevel);
+                var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
 
                 return new BuildingView(
                     b.Id,

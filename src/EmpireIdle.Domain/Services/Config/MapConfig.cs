@@ -10,9 +10,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Висота карти в клітинах.</summary>
         public int Height { get; set; } = 1000;
 
-        /// <summary>Рівень світу: гейтить появу типів монстрів (тимчасово з конфіга).</summary>
-        public int ServerLevel { get; set; } = 1;
-
         /// <summary>Скільки клітин карти припадає на одного монстра (щільність спавну).</summary>
         public int CellsPerMonster { get; set; } = 500;
 

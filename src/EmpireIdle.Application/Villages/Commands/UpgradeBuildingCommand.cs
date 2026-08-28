@@ -19,29 +19,29 @@ namespace EmpireIdle.Application.Villages.Commands
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerRepository _serverRepository;
         private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
-        private readonly IServerRepository _serverRepository;
         private readonly WorldGeometry _geometry;
         private readonly ILogger<UpgradeBuildingCommandHandler> _logger;
 
         public UpgradeBuildingCommandHandler(
             IVillageRepository villageRepository,
             IUnitOfWork unitOfWork,
+            IServerRepository serverRepository,
             EffectResolver effectResolver,
             TimeProvider timeProvider,
             GameCatalog catalog,
-            IServerRepository serverRepository,
             WorldGeometry geometry,
-        ILogger<UpgradeBuildingCommandHandler> logger)
+            ILogger<UpgradeBuildingCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
+            _serverRepository = serverRepository;
             _effectResolver = effectResolver;
             _timeProvider = timeProvider;
             _catalog = catalog;
-            _serverRepository = serverRepository;
             _geometry = geometry;
             _logger = logger;
         }

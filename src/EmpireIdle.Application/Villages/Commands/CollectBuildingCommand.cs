@@ -14,6 +14,7 @@ namespace EmpireIdle.Application.Villages.Commands
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerRepository _serverRepository;
         private readonly EffectResolver _effectResolver;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
@@ -24,6 +25,7 @@ namespace EmpireIdle.Application.Villages.Commands
         public CollectBuildingCommandHandler(
             IVillageRepository villageRepository,
             IUnitOfWork unitOfWork,
+            IServerRepository serverRepository,
             EffectResolver effectResolver,
             GameCatalog catalog,
             TimeProvider timeProvider,
@@ -32,6 +34,7 @@ namespace EmpireIdle.Application.Villages.Commands
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
+            _serverRepository = serverRepository;
             _effectResolver = effectResolver;
             _catalog = catalog;
             _timeProvider = timeProvider;
@@ -49,7 +52,9 @@ namespace EmpireIdle.Application.Villages.Commands
             // Буфер рахується від останньої матеріалізації, тож потрібне вікно буста
             var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
 
-            var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, _catalog.Config.Map.ServerLevel);
+            var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
+
+            var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
 
             village.CollectFromBuilding(request.BuildingId, _catalog.Buildings, now, boost, locationMultiplier);
 

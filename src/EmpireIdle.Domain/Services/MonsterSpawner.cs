@@ -26,9 +26,9 @@ namespace EmpireIdle.Domain.Services
         /// сервера доступно близько 16% карти, і щільність у зоні, куди
         /// гравці мають доступ, була б у шість разів вищою за задуману.
         /// </summary>
-        public int GetTargetPopulation()
+        public int GetTargetPopulation(int serverLevel)
         {
-            var boundary = _geometry.SettlementBoundary(_mapConfig.ServerLevel);
+            var boundary = _geometry.SettlementBoundary(serverLevel);
             var side = boundary * 2 + 1;
 
             return side * side / Math.Max(1, _mapConfig.CellsPerMonster);
@@ -40,14 +40,11 @@ namespace EmpireIdle.Domain.Services
         /// <param name="serverId">Світ.</param>
         /// <param name="isOccupied">Перевірка зайнятості клітини (звертається до БД).</param>
         /// <returns>null, якщо вільного місця не знайшлося.</returns>
-        public async Task<(string Type, int Level, int X, int Y)?> TrySpawnAsync(
-            int serverId,
-            Func<int, int, Task<bool>> isOccupied,
-            int maxAttempts = 50)
+        public async Task<(string Type, int Level, int X, int Y)?> TrySpawnAsync(int serverId, int serverLevel, Func<int, int, Task<bool>> isOccupied, int maxAttempts = 50)
         {
             // Доступні типи: ті, що відкрились на поточному рівні світу
             var available = _catalog.Monsters.Values
-                .Where(m => m.RequiresServerLevel <= _mapConfig.ServerLevel)
+                .Where(m => m.RequiresServerLevel <= serverLevel)
                 .ToList();
 
             if (available.Count == 0)
@@ -55,7 +52,7 @@ namespace EmpireIdle.Domain.Services
 
             var random = Random.Shared;
             var (cx, cy) = _geometry.Centre;
-            var boundary = _geometry.SettlementBoundary(_mapConfig.ServerLevel);
+            var boundary = _geometry.SettlementBoundary(serverLevel);
 
             for (var attempt = 0; attempt < maxAttempts; attempt++)
             {
@@ -69,7 +66,7 @@ namespace EmpireIdle.Domain.Services
                     continue;
 
                 var config = available[random.Next(available.Count)];
-                var level = PickLevel(config, x, y, random);
+                var level = PickLevel(config, x, y, random,serverLevel);
 
                 return (config.Key, level, x, y);
             }
@@ -83,9 +80,9 @@ namespace EmpireIdle.Domain.Services
         /// у куті центрального кільця був би слабшим за монстра на осі,
         /// хоч гравець бачить їх в одній зоні.
         /// </summary>
-        private int PickLevel(MonsterConfig config, int x, int y, Random random)
+        private int PickLevel(MonsterConfig config, int x, int y, Random random, int serverLevel)
         {
-            var proximity = _geometry.Proximity(x, y, _mapConfig.ServerLevel);
+            var proximity = _geometry.Proximity(x, y, serverLevel);
 
             var span = config.MaxLevel - config.MinLevel;
             var level = config.MinLevel + (int)Math.Round(span * proximity);
