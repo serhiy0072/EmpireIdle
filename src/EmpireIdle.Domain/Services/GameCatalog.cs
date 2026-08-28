@@ -20,6 +20,18 @@ namespace EmpireIdle.Domain.Services
         public IReadOnlyDictionary<string, ItemConfig> Items { get; }
         public IReadOnlyDictionary<string, QuestConfig> Quests { get; }
 
+        /// <summary>
+        /// Юніт за ключем, що прийшов від гравця. null означає «такого немає» —
+        /// викликач сам вирішує, це 404 чи щось інше.
+        ///
+        /// Окремо від Unit(), який кидає: там ключ береться з наших даних,
+        /// і його відсутність означає поломку розгортання, тобто 500.
+        /// </summary>
+        public UnitConfig? FindUnit(string key) => Units.GetValueOrDefault(key);
+
+        /// <inheritdoc cref="FindUnit"/>
+        public ItemConfig? FindItem(string key) => Items.GetValueOrDefault(key);
+
         /// <summary>Ключ головної будівлі — гейт для решти.</summary>
         public string MainBuildingKey { get; }
 

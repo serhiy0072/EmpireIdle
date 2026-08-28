@@ -51,7 +51,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
-            var config = _catalog.Unit(request.UnitType)
+            var config = _catalog.FindUnit(request.UnitType)
                 ?? throw new EntityNotFoundException($"Unit type", request.UnitType);
 
             if (config.RequiresBuilding is null)

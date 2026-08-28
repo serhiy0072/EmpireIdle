@@ -107,7 +107,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 if (count <= 0)
                     continue;
 
-                var config = _catalog.Unit(unitType)
+                var config = _catalog.FindUnit(unitType)
                     ?? throw new EntityNotFoundException($"Unit type", unitType);
 
                 foreach (var line in config.Cost)
