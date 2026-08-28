@@ -411,5 +411,23 @@ namespace EmpireIdle.Domain.Entities
 
             return 1.0 + bonus;
         }
+
+        /// <summary>
+        /// Переносить поселення на нову клітину.
+        ///
+        /// Буфери мають бути зафіксовані ДО виклику: множник кільця залежить
+        /// від координат, і без фіксації накопичене на околиці порахувалось би
+        /// за центральним множником.
+        /// </summary>
+        public void RelocateTo(int x, int y, DateTime utcNow)
+        {
+            if (X == x && Y == y)
+                throw new RequirementNotMetException("The village is already on that cell.");
+
+            X = x;
+            Y = y;
+
+            Touch(utcNow);
+        }
     }
 }

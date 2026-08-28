@@ -63,6 +63,7 @@ namespace EmpireIdle.Infrastructure
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
             services.AddScoped<IItemEffect, BoostItemEffect>();
+            services.AddScoped<IItemEffect, TeleportItemEffect>();
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
