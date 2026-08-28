@@ -69,12 +69,16 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Підвищує рівень світу на один.
+        ///
+        /// Закритий світ теж розвивається: закриття реєстрації означає
+        /// «новачків не беремо», а не «зупинилися». Його гравці мають дійти
+        /// до стелі так само, як усі.
         /// </summary>
         /// <param name="maxLevel">Стеля з конфіга карти.</param>
-        /// <exception cref="InvalidStateException">Світ уже на стелі або не активний.</exception>
+        /// <exception cref="InvalidStateException">Світ згортається або вже на стелі.</exception>
         public void RaiseLevel(int maxLevel, DateTime utcNow)
         {
-            if (State != ServerState.Active)
+            if (State is ServerState.Sunset or ServerState.Archived)
                 throw new InvalidStateException($"Server {Id} is {State} and does not evolve.");
 
             if (Level >= maxLevel)

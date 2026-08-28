@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -47,7 +48,9 @@ namespace EmpireIdle.Application.Servers.Commands
 
             var server = await _serverRepository.GetByIdAsync(request.ServerId, cancellationToken);
 
-            if (server is null || !server.AcceptsNewPlayers && server.Level >= _catalog.Config.Map.MaxServerLevel)
+            if (server is null
+                || server.State is ServerState.Sunset or ServerState.Archived
+                || (!server.AcceptsNewPlayers && server.Level >= _catalog.Config.Map.MaxServerLevel))
                 return;
 
             var evolution = _catalog.Config.Map.Evolution;
@@ -85,10 +88,10 @@ namespace EmpireIdle.Application.Servers.Commands
         /// <summary>Строк — нижня межа: без нього обидва рівні могли б стрибнути поспіль.</summary>
         private static bool CanRaiseLevel(Domain.Entities.Server server, ServerEvolutionConfig evolution, DateTime now)
         {
-            if (server.Level >= 1 && server.LevelRaisedAt is null)
-                return now - server.CreatedAt >= TimeSpan.FromDays(evolution.MinDaysBetweenLevels);
+            // Світ, що ще не піднімався, відлічує строк від створення
+            var since = server.LevelRaisedAt ?? server.CreatedAt;
 
-            return now - server.LevelRaisedAt!.Value >= TimeSpan.FromDays(evolution.MinDaysBetweenLevels);
+            return now - since >= TimeSpan.FromDays(evolution.MinDaysBetweenLevels);
         }
 
         private async Task<bool> IsMatureAsync(Domain.Entities.Server server, ServerEvolutionConfig evolution,
