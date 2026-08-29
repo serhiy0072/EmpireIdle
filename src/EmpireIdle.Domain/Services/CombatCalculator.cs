@@ -1,4 +1,6 @@
 
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>Результат бою.</summary>
@@ -89,6 +91,29 @@ namespace EmpireIdle.Domain.Services
             }
 
             return power;
+        }
+
+        /// <summary>
+        /// Смуга шансів за співвідношенням сил. Та сама CalculatePower, що й у бою —
+        /// друга формула означала б, що прев'ю розійдеться з реальністю
+        /// на першому ж ребалансі.
+        /// </summary>
+        public BattleOdds EstimateOdds(double attackerPower, double defenderPower)
+        {
+            // Захисник без сили — бій формальність
+            if (defenderPower <= 0)
+                return BattleOdds.Overwhelming;
+
+            var ratio = attackerPower / defenderPower;
+            var thresholds = _config.PreviewOddsThresholds;
+
+            for (var band = 0; band < thresholds.Count; band++)
+            {
+                if (ratio >= thresholds[band])
+                    return (BattleOdds)band;
+            }
+
+            return (BattleOdds)thresholds.Count;
         }
 
         /// <summary>Множник типу юніта на місцевості (1.0 — без бонусу).</summary>

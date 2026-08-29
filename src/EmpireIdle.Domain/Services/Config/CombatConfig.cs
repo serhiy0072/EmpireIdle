@@ -26,15 +26,12 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Частка втрат, яку можна відновити миттєво (за 200% вартості або gems).</summary>
         public double RecoverableShare { get; set; } = 0.12;
-    }
 
-    /// <summary>Модифікатор сили типу юніта на певній місцевості.</summary>
-    public class TerrainBonus
-    {
-        public string Terrain { get; set; } = null!;
-        public string UnitType { get; set; } = null!;
-
-        /// <summary>Множник сили (1.25 = +25%).</summary>
-        public double Modifier { get; set; } = 1.0;
+        /// <summary>
+        /// Пороги співвідношення сил для прев'ю, від найвищого до найнижчого.
+        /// Гравець бачить смугу, не число: точний відсоток розкрив би формулу,
+        /// а невизначеність — те, що продає буст перед боєм.
+        /// </summary>
+        public List<double> PreviewOddsThresholds { get; set; } = new() { 2.5, 1.3, 0.8, 0.4 };
     }
 }

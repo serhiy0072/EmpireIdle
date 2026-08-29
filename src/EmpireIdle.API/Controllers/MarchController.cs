@@ -1,5 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Marches.Commands;
+using EmpireIdle.Application.Marches.Queries;
+using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +41,24 @@ namespace EmpireIdle.API.Controllers
         {
             await _mediator.Send(new SpeedUpMarchCommand(playerId, marchId), cancellationToken);
             return NoContent();
+        }
+
+        /// <summary>
+        /// Оцінка бою до відправки. Повертає смугу шансів, не числа:
+        /// точне співвідношення сил гравцю не показується.
+        /// </summary>
+        [HttpPost("{playerId:guid}/preview")]
+        [ProducesResponseType(typeof(BattlePreviewResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<BattlePreviewResult>> PreviewBattle(Guid playerId,
+            [FromBody] SendMarchRequest request, CancellationToken cancellationToken)
+        {
+            var preview = await _mediator.Send(
+                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.Units),
+                cancellationToken);
+
+            return Ok(preview);
         }
     }
 }
