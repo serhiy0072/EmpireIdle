@@ -209,6 +209,7 @@ builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();
 builder.Services.AddScoped<DailyQuestResetJob>();
 builder.Services.AddScoped<ServerEvolutionJob>();
+builder.Services.AddScoped<RatingRecalculationJob>();
 
 //  8. ВЕБ-ШАР
 

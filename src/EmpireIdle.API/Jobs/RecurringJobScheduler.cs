@@ -25,6 +25,7 @@ namespace EmpireIdle.API.Jobs
             _manager.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.RunAsync(), Cron.Hourly);
             _manager.AddOrUpdate<DailyQuestResetJob>("daily-quest-reset", job => job.RunAsync(), Cron.Daily);
             _manager.AddOrUpdate<ServerEvolutionJob>("server-evolution", job => job.RunAsync(), Cron.Daily);
+            _manager.AddOrUpdate<RatingRecalculationJob>("rating-recalculation", job => job.RunAsync(), Cron.Hourly);
 
             return Task.CompletedTask;
         }
