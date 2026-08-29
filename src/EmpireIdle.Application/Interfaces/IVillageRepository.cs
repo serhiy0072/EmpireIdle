@@ -24,5 +24,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Скільки сіл у поточному світі.</summary>
         Task<int> CountAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Усі села світу з будівлями — для годинного перерахунку рейтингу.</summary>
+        Task<List<Village>> GetAllWithBuildingsAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -17,5 +17,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public async Task AddAsync(PlayerPower power, CancellationToken cancellationToken = default)
             => await _context.PlayerPowers.AddAsync(power, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<PlayerPower>> GetAllAsync(CancellationToken cancellationToken = default)
+            => _context.PlayerPowers.AsNoTracking().ToListAsync(cancellationToken);
     }
 }
