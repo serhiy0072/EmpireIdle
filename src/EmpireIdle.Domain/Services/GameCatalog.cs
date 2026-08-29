@@ -124,6 +124,18 @@ namespace EmpireIdle.Domain.Services
                         throw new InvalidOperationException("Ring boundaries must increase outward.");
                 }
             }
+
+            var rating = config.Rating;
+            var weightSum = rating.PowerWeight + rating.DevelopmentWeight + rating.ActivityWeight;
+
+            // Ваги — частки рейтингу, тому сума має бути одиницею: інакше
+            // «максимальний рейтинг» перестає бути передбачуваним числом
+            if (Math.Abs(weightSum - 1.0) > 0.001)
+                throw new InvalidOperationException(
+                    $"Rating weights must sum to 1.0, got {weightSum:F3}.");
+
+            if (rating.PowerReference <= 0 || rating.DevelopmentReference <= 0 || rating.ActivityReference <= 0)
+                throw new InvalidOperationException("Rating references must be positive.");
         }
 
         /// <summary>Будівля за ключем або виняток із зрозумілим текстом.</summary>

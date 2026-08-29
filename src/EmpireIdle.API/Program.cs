@@ -34,7 +34,8 @@ builder.Configuration
     .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true);
 
 // ValidateOnStart перетворює 
 builder.Services.AddOptions<GameConfig>()
@@ -67,6 +68,11 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1,
         "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
+    .Validate(c => Math.Abs(c.Rating.PowerWeight + c.Rating.DevelopmentWeight + c.Rating.ActivityWeight - 1.0) < 0.001,
+        "GameConfig.Rating weights must sum to 1.0 — otherwise the maximum rating stops being a predictable number.")
+    .Validate(c => c.Rating.PowerReference > 0 && c.Rating.DevelopmentReference > 0 && c.Rating.ActivityReference > 0,
+        "GameConfig.Rating references must be positive — they are the denominators of normalisation.")
+    .Validate(c => c.Rating.Scale > 0, "GameConfig.Rating.Scale must be positive.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));

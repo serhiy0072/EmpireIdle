@@ -60,6 +60,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IQuestRepository, QuestRepository>();
             services.AddScoped<IServerRepository, ServerRepository>();
             services.AddScoped<IPlayerPowerRepository, PlayerPowerRepository>();
+            services.AddScoped<IPlayerRatingRepository, PlayerRatingRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();

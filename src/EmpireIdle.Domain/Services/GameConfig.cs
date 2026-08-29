@@ -67,5 +67,14 @@ namespace EmpireIdle.Domain.Services
         /// Стеля ратуші = ServerLevel × BuildingLevelsPerTier.
         /// </summary>
         public int BuildingLevelsPerTier { get; set; } = 10;
+
+        /// <summary>
+        /// Ваги й орієнтири серверного рейтингу.
+        ///
+        /// Окремо від Combat, бо рейтинг не бере участі в бою: він міряє
+        /// становище гравця у світі, а не результат сутички. Змішувати їх
+        /// означало б, що ребаланс статів юнітів чіпає лідерборд.
+        /// </summary>
+        public RatingConfig Rating { get; set; } = new();
     }
 }
