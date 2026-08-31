@@ -210,6 +210,7 @@ builder.Services.AddScoped<OutboxMaintenanceJob>();
 builder.Services.AddScoped<DailyQuestResetJob>();
 builder.Services.AddScoped<ServerEvolutionJob>();
 builder.Services.AddScoped<RatingRecalculationJob>();
+builder.Services.AddScoped<ServerQuestTotalsJob>();
 
 //  8. ВЕБ-ШАР
 
