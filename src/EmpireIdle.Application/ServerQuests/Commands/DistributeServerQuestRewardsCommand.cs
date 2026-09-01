@@ -65,18 +65,20 @@ namespace EmpireIdle.Application.ServerQuests.Commands
             for (var index = 0; index < ranked.Count; index++)
             {
                 var contribution = ranked[index];
+                var rank = index + 1;
 
                 // Позначаємо ДО видачі: повторний прогін джоба після збою
                 // всередині циклу не має видати нагороду вдруге
-                if (!contribution.MarkRewarded(now))
+                if (!contribution.MarkRewarded(rank, now))
                     continue;
 
-                var tier = FindTier(config, rank: index + 1);
+                var tier = FindTier(config, rank);
 
                 if (tier is null)
                     continue;
 
-                await _rewards.GrantAllAsync(contribution.PlayerId, tier.Rewards, request.QuestKey, now, cancellationToken);
+                await _rewards.GrantAllAsync(
+                    contribution.PlayerId, tier.Rewards, request.QuestKey, now, cancellationToken);
 
                 granted++;
             }

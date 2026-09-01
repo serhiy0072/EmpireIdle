@@ -17,5 +17,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Повідомити гравця про результат бою.</summary>
         Task NotifyBattleFinishedAsync(Guid playerId, Guid reportId, bool won, string targetName, CancellationToken cancellationToken = default);
 
+        /// <summary>Повідомити гравця про нагороду за серверний квест і його ранг.</summary>
+        Task NotifyServerQuestRewardedAsync(Guid playerId, string questKey, int rank, long contribution,
+            CancellationToken cancellationToken = default);
+
     }
 }

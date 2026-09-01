@@ -46,5 +46,18 @@ namespace EmpireIdle.Domain.Entities
             RewardedAt = utcNow;
             return true;
         }
+
+        /// <summary>Фіксує видачу нагороди. Повторний виклик нічого не змінює.</summary>
+        public bool MarkRewarded(int rank, DateTime utcNow)
+        {
+            if (RewardedAt is not null)
+                return false;
+
+            RewardedAt = utcNow;
+
+            RaiseDomainEvent(new Events.ServerQuestRewarded(PlayerId, QuestKey, rank, Amount, utcNow));
+
+            return true;
+        }
     }
 }

@@ -50,7 +50,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<List<ServerQuestContribution>> GetRankedAsync(string questKey,
             CancellationToken cancellationToken = default)
             => _context.ServerQuestContributions
-                .AsNoTracking()
                 .Where(c => c.QuestKey == questKey && c.Amount > 0)
                 .OrderByDescending(c => c.Amount)
                 .ThenBy(c => c.LastContributedAt)
