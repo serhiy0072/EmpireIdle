@@ -8,6 +8,7 @@
       "WoundedShareMin": 0.4,
       "WoundedShareMax": 0.6,
       "RecoverableShare": 0.12,
+      "PreviewOddsThresholds": [ 2.5, 1.3, 0.8, 0.4 ],
       "TerrainBonuses": [
         {
           "Terrain": "plain",
