@@ -16,22 +16,31 @@ namespace EmpireIdle.Application.Quests.Tracking
     {
         private readonly IQuestRepository _questRepository;
         private readonly IServerContext _serverContext;
+        private readonly IServerQuestRepository _serverQuestRepository;
         private readonly GameCatalog _catalog;
         private readonly ILogger<QuestProgressTracker> _logger;
 
         public QuestProgressTracker(
             IQuestRepository questRepository,
             IServerContext serverContext,
+            IServerQuestRepository serverQuestRepository,
             GameCatalog catalog,
             ILogger<QuestProgressTracker> logger)
         {
             _questRepository = questRepository;
             _serverContext = serverContext;
+            _serverQuestRepository = serverQuestRepository;
             _catalog = catalog;
             _logger = logger;
         }
 
         public async Task TrackAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            await TrackPersonalAsync(signal, utcNow, cancellationToken);
+            await TrackServerAsync(signal, utcNow, cancellationToken);
+        }
+
+        public async Task TrackPersonalAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
         {
             var candidates = _catalog.Quests.Values
                 .Where(q => q.Scope == QuestScope.Personal && IsOpen(q, utcNow))
@@ -92,6 +101,52 @@ namespace EmpireIdle.Application.Quests.Tracking
             }
         }
 
+        /// <summary>
+        /// Записує внесок у серверні квести.
+        ///
+        /// Пишемо лише у свій рядок гравця — спільний Total збирає джоб.
+        /// Інкрементувати його тут означало б зробити один рядок точкою
+        /// конкуренції для всього світу.
+        /// </summary>
+        private async Task TrackServerAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            var candidates = _catalog.Quests.Values
+                .Where(q => q.Scope == QuestScope.Server && IsOpen(q, utcNow))
+                .Where(q => q.Objectives.Any(o => Matches(o, signal)))
+                .ToList();
+
+            foreach (var config in candidates)
+            {
+                var progress = await _serverQuestRepository.GetProgressAsync(config.Key, cancellationToken);
+
+                // Завершений квест внесків більше не приймає
+                if (progress is not null && progress.State != QuestState.InProgress)
+                    continue;
+
+                // Порогові цілі в серверних квестах не мають сенсу: внесок
+                // накопичується від усіх, а поточний стан належить одному гравцю
+                var amount = config.Objectives
+                    .Where(o => Matches(o, signal) && o.Mode != ObjectiveMode.Threshold)
+                    .Sum(_ => (long)signal.Increment);
+
+                if (amount <= 0)
+                    continue;
+
+                var contribution = await _serverQuestRepository.GetContributionAsync(
+                    config.Key, signal.PlayerId, cancellationToken);
+
+                if (contribution is null)
+                {
+                    contribution = new ServerQuestContribution(
+                        Guid.NewGuid(), _serverContext.ServerId, config.Key, signal.PlayerId);
+
+                    await _serverQuestRepository.AddContributionAsync(contribution, cancellationToken);
+                }
+
+                contribution.Add(amount, utcNow);
+            }
+        }
+
         /// <summary>Ціль реагує на подію, якщо збігся тип і (за наявності) уточнення.</summary>
         private static bool Matches(QuestObjectiveConfig objective, QuestSignal signal)
             => objective.Type == signal.EventType
@@ -101,5 +156,7 @@ namespace EmpireIdle.Application.Quests.Tracking
         private static bool IsOpen(QuestConfig config, DateTime utcNow)
             => (config.ActiveFrom is not { } from || utcNow >= from)
                && (config.ActiveTo is not { } to || utcNow <= to);
+
+
     }
 }
