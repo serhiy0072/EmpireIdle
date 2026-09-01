@@ -123,14 +123,15 @@ namespace EmpireIdle.Application.Quests.Tracking
                 if (progress is not null && progress.State != QuestState.InProgress)
                     continue;
 
+                // Одна подія — один внесок, скільки б цілей на неї не реагувало.
                 // Порогові цілі в серверних квестах не мають сенсу: внесок
                 // накопичується від усіх, а поточний стан належить одному гравцю
-                var amount = config.Objectives
-                    .Where(o => Matches(o, signal) && o.Mode != ObjectiveMode.Threshold)
-                    .Sum(_ => (long)signal.Increment);
+                var matches = config.Objectives.Any(o => Matches(o, signal) && o.Mode != ObjectiveMode.Threshold);
 
-                if (amount <= 0)
+                if (!matches || signal.Increment <= 0)
                     continue;
+
+                var amount = (long)signal.Increment;
 
                 var contribution = await _serverQuestRepository.GetContributionAsync(
                     config.Key, signal.PlayerId, cancellationToken);
