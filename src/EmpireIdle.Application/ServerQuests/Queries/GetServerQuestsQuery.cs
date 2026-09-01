@@ -56,8 +56,8 @@ namespace EmpireIdle.Application.ServerQuests.Queries
                 // квест показується з нульовим підсумком, а не ховається
                 var target = progress?.Target ?? config.Objectives.Sum(o => (long)o.Count);
 
-                var ranked = await _questRepository.GetRankedAsync(config.Key, cancellationToken);
-                var index = ranked.FindIndex(c => c.PlayerId == request.PlayerId);
+                var (rank, amount) = await _questRepository.GetPlayerRankAsync(
+                    config.Key, request.PlayerId, cancellationToken);
 
                 views.Add(new ServerQuestView(
                     config.Key,
@@ -66,8 +66,8 @@ namespace EmpireIdle.Application.ServerQuests.Queries
                     target,
                     progress?.State ?? QuestState.InProgress,
                     progress?.CompletedAt,
-                    index >= 0 ? ranked[index].Amount : 0,
-                    index >= 0 ? index + 1 : 0));
+                    amount,
+                    rank));
             }
 
             return views;

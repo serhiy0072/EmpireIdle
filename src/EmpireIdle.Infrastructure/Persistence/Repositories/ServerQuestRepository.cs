@@ -73,6 +73,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.QuestKey == questKey && c.PlayerId == playerId, cancellationToken);
 
+            // Без внеску рангу немає — нуль, а не перше місце знизу
             if (mine is null || mine.Amount <= 0)
                 return (0, 0);
 
