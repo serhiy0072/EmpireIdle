@@ -80,12 +80,6 @@ namespace EmpireIdle.Domain.Services
         public int WoundedCapacityPerLevel { get; set; }
 
         /// <summary>
-        /// Скільки будівельників додає кожен рівень (0 — не хата будівельника).
-        /// Визначає, скільки апгрейдів можна вести одночасно.
-        /// </summary>
-        public int BuilderSlotsPerLevel { get; set; }
-
-        /// <summary>
         /// Частка бонусу до оборони за рівень стін, наприклад 0.03 = +3%.
         /// Множиться на рівень і додається захиснику в бойовій формулі.
         /// </summary>
