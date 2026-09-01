@@ -21,6 +21,7 @@ namespace EmpireIdle.Application.ServerQuests.Commands
         private readonly IServerQuestRepository _questRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerContext _serverContext;
+        private readonly IMediator _mediator;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<UpdateServerQuestTotalsCommandHandler> _logger;
@@ -29,6 +30,7 @@ namespace EmpireIdle.Application.ServerQuests.Commands
             IServerQuestRepository questRepository,
             IUnitOfWork unitOfWork,
             IServerContext serverContext,
+            IMediator mediator,
             GameCatalog catalog,
             TimeProvider timeProvider,
             ILogger<UpdateServerQuestTotalsCommandHandler> logger)
@@ -36,6 +38,7 @@ namespace EmpireIdle.Application.ServerQuests.Commands
             _questRepository = questRepository;
             _unitOfWork = unitOfWork;
             _serverContext = serverContext;
+            _mediator = mediator;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -60,6 +63,15 @@ namespace EmpireIdle.Application.ServerQuests.Commands
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // Шукаємо завершені квести з невиданими нагородами, а не лише
+            // щойно завершені: збій між збереженням і видачею інакше лишив би
+            // нагороди нероздаими назавжди — наступний прогін їх не побачив би,
+            // бо квест уже не InProgress
+            var pending = await _questRepository.GetCompletedWithPendingRewardsAsync(cancellationToken);
+
+            foreach (var questKey in pending)
+                await _mediator.Send(new DistributeServerQuestRewardsCommand(questKey), cancellationToken);
         }
 
         private async Task EnsureProgressRowsAsync(CancellationToken cancellationToken)

@@ -13,6 +13,15 @@ namespace EmpireIdle.Domain.Entities
         public long Amount { get; private set; }
         public DateTime LastContributedAt { get; private set; }
 
+        /// <summary>
+        /// Коли гравцю видали нагороду за цей квест. null — ще не видавали.
+        ///
+        /// Позначка на внеску, а не окрема таблиця: видача одноразова
+        /// й прив'язана рівно до цього рядка, а повторний прогін джоба
+        /// має її пропустити.
+        /// </summary>
+        public DateTime? RewardedAt { get; private set; }
+
         public ServerQuestContribution(Guid id, int serverId, string questKey, Guid playerId) : base(id)
         {
             ServerId = serverId;
@@ -26,6 +35,16 @@ namespace EmpireIdle.Domain.Entities
         {
             Amount += amount;
             LastContributedAt = utcNow;
+        }
+
+        /// <summary>Фіксує видачу нагороди. Повторний виклик нічого не змінює.</summary>
+        public bool MarkRewarded(DateTime utcNow)
+        {
+            if (RewardedAt is not null)
+                return false;
+
+            RewardedAt = utcNow;
+            return true;
         }
     }
 }

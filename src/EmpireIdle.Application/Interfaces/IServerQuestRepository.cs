@@ -31,5 +31,12 @@ namespace EmpireIdle.Application.Interfaces
         /// </summary>
         Task<List<ServerQuestContribution>> GetRankedAsync(string questKey,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Ключі завершених квестів, у яких лишились невидані нагороди.
+        /// Потрібно, бо збій між завершенням і видачею інакше лишив би
+        /// нагороди нероздаими назавжди.
+        /// </summary>
+        Task<List<string>> GetCompletedWithPendingRewardsAsync(CancellationToken cancellationToken = default);
     }
 }
