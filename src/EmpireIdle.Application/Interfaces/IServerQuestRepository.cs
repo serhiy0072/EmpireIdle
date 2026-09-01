@@ -38,5 +38,13 @@ namespace EmpireIdle.Application.Interfaces
         /// нагороди нероздаими назавжди.
         /// </summary>
         Task<List<string>> GetCompletedWithPendingRewardsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Ранг гравця й розмір його внеску, без завантаження решти.
+        /// Рахує в базі: тягнути всі внески світу заради позиції одного
+        /// гравця означало б тисячу рядків на кожен відкритий екран квестів.
+        /// </summary>
+        Task<(int Rank, long Amount)> GetPlayerRankAsync(string questKey, Guid playerId,
+            CancellationToken cancellationToken = default);
     }
 }

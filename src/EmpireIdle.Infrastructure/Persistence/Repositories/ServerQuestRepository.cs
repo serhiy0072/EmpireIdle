@@ -65,5 +65,28 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                     .Any(c => c.QuestKey == p.QuestKey && c.Amount > 0 && c.RewardedAt == null))
                 .Select(p => p.QuestKey)
                 .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<(int Rank, long Amount)> GetPlayerRankAsync(string questKey, Guid playerId,
+            CancellationToken cancellationToken = default)
+        {
+            var mine = await _context.ServerQuestContributions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.QuestKey == questKey && c.PlayerId == playerId, cancellationToken);
+
+            if (mine is null || mine.Amount <= 0)
+                return (0, 0);
+
+            // Вище стоять ті, хто вніс більше, або стільки ж, але раніше —
+            // той самий порядок, за яким роздаються нагороди
+            var above = await _context.ServerQuestContributions
+                .AsNoTracking()
+                .CountAsync(c => c.QuestKey == questKey && c.Amount > 0
+                    && (c.Amount > mine.Amount
+                        || (c.Amount == mine.Amount && c.LastContributedAt < mine.LastContributedAt)),
+                    cancellationToken);
+
+            return (above + 1, mine.Amount);
+        }
     }
 }
