@@ -1,0 +1,20 @@
+{
+  "GameConfig": {
+    "Rating": {
+      "PowerWeight": 0.55,
+      "DevelopmentWeight": 0.25,
+      "ActivityWeight": 0.20,
+
+      "PowerReference": 50000,
+      "DevelopmentReference": 300,
+      "ActivityReference": 5000,
+
+      "Scale": 10000,
+
+      "PointsPerMonster": 5,
+      "PointsPerBattleWon": 10,
+      "PointsPerQuest": 20,
+      "PointsPerContribution": 1
+    }
+  }
+}

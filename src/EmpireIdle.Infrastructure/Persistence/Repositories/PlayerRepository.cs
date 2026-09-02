@@ -38,5 +38,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .OrderBy(p => p.ServerId)
                 .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> playerIds,
+            CancellationToken cancellationToken = default)
+            => await _context.Players
+                .AsNoTracking()
+                .Where(p => playerIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.Username, cancellationToken);
     }
 }

@@ -34,7 +34,7 @@ namespace EmpireIdle.Application.Quests.Tracking
             if (signal is null)
                 return;
 
-            await _tracker.TrackAsync(signal, now, cancellationToken);
+            await _tracker.TrackPersonalAsync(signal, now, cancellationToken);
         }
     }
 }

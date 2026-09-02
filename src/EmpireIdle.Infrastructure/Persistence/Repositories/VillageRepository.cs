@@ -81,5 +81,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _context.Villages.AsNoTracking().CountAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<Village>> GetAllWithBuildingsAsync(CancellationToken cancellationToken = default)
+            => _context.Villages
+                .AsNoTracking()
+                .Include(v => v.Buildings)
+                .AsSplitQuery()
+                .ToListAsync(cancellationToken);
     }
 }

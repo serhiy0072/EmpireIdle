@@ -155,20 +155,16 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Розпочати апгрейд будівлі: перевіряє ліміт будівельників і вартість,
-        /// списує ресурси та ставить будівлю в стан будівництва.
-        /// Рівень підніметься при завершенні (CompleteDueConstructions).
+        /// Починає апгрейд будівлі.
+        ///
+        /// Черги будівельників немає навмисно: 20 будівель до 30 рівня
+        /// послідовно — це роки, скільки б будівельників не було.
+        /// Обмежують ресурси, а не кількість одночасних будівництв.
         /// </summary>
-        /// <exception cref="RequirementNotMetException">Усі будівельники зайняті.</exception>
-        /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
-        /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            DateTime utcNow, ProductionBoost boost, string mainBuildingKey, int serverLevel, int levelsPerTier, double locationMultiplier,
-            int builderCount = 1)
+            DateTime utcNow, ProductionBoost boost, string mainBuildingKey, int serverLevel, int levelsPerTier,
+            double locationMultiplier)
         {
-            if (_buildings.Count(b => b.IsUnderConstruction) >= builderCount)
-                throw new RequirementNotMetException("All builders are busy.");
-
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId) ??
                 throw new EntityNotFoundException("Building", buildingId);
 

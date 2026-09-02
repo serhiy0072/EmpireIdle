@@ -24,12 +24,12 @@
             "Amount": 100
           }
         ],
-        "BaseBuildMinutes": 0,
-        "BuildTimeGrowth": 1.6,
+        "BaseBuildMinutes": 7,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "warehouse",
@@ -46,12 +46,12 @@
             "Amount": 150
           }
         ],
-        "BaseBuildMinutes": 20,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 2000,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "farm",
@@ -71,12 +71,12 @@
             "Amount": 60
           }
         ],
-        "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": 1.5,
+        "BaseBuildMinutes": 4,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": "food",
         "BaseProductionPerMinute": 10,
         "BaseStorage": 600,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "sawmill",
@@ -96,12 +96,12 @@
             "Amount": 40
           }
         ],
-        "BaseBuildMinutes": 3,
-        "BuildTimeGrowth": 1.5,
+        "BaseBuildMinutes": 4,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": "wood",
         "BaseProductionPerMinute": 8,
         "BaseStorage": 800,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "goldmine",
@@ -121,12 +121,12 @@
             "Amount": 50
           }
         ],
-        "BaseBuildMinutes": 2,
-        "BuildTimeGrowth": 1.5,
+        "BaseBuildMinutes": 4,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": "gold",
         "BaseProductionPerMinute": 10,
         "BaseStorage": 600,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "house",
@@ -146,12 +146,12 @@
             "Amount": 50
           }
         ],
-        "BaseBuildMinutes": 1,
-        "BuildTimeGrowth": 1.4,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "barracks",
@@ -175,12 +175,12 @@
             "Amount": 100
           }
         ],
-        "BaseBuildMinutes": 30,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 6,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "bank",
@@ -201,12 +201,12 @@
             "Amount": 150
           }
         ],
-        "BaseBuildMinutes": 25,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 2000,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "heroeshall",
@@ -227,12 +227,12 @@
             "Amount": 200
           }
         ],
-        "BaseBuildMinutes": 35,
-        "BuildTimeGrowth": 1.6,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "ironmine",
@@ -253,11 +253,11 @@
           }
         ],
         "BaseBuildMinutes": 4,
-        "BuildTimeGrowth": 1.5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": "iron",
         "BaseProductionPerMinute": 8,
         "BaseStorage": 600,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "lootshop",
@@ -277,12 +277,12 @@
             "Amount": 250
           }
         ],
-        "BaseBuildMinutes": 40,
-        "BuildTimeGrowth": 1.6,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "hospital",
@@ -303,12 +303,12 @@
             "Amount": 250
           }
         ],
-        "BaseBuildMinutes": 35,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 6,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "market",
@@ -329,12 +329,12 @@
             "Amount": 300
           }
         ],
-        "BaseBuildMinutes": 45,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "wall",
@@ -355,12 +355,12 @@
             "Amount": 200
           }
         ],
-        "BaseBuildMinutes": 40,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 6,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "stable",
@@ -384,38 +384,12 @@
             "Amount": 200
           }
         ],
-        "BaseBuildMinutes": 50,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 6,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
-      },
-      {
-        "Key": "builderhut",
-        "DisplayName": "Builder's Hut",
-        "RequiresMainBuildingLevel": 5,
-        "Position": {
-          "X": 50.0,
-          "Y": 20.0
-        },
-        "BuilderSlotsPerLevel": 1,
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 400
-          },
-          {
-            "Resource": "wood",
-            "Amount": 300
-          }
-        ],
-        "BaseBuildMinutes": 45,
-        "BuildTimeGrowth": 1.6,
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
-        "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "embassy",
@@ -440,12 +414,12 @@
             "Amount": 200
           }
         ],
-        "BaseBuildMinutes": 60,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "scouttower",
@@ -466,12 +440,12 @@
             "Amount": 150
           }
         ],
-        "BaseBuildMinutes": 45,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "forge",
@@ -492,12 +466,12 @@
             "Amount": 300
           }
         ],
-        "BaseBuildMinutes": 60,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "fishinghut",
@@ -517,12 +491,12 @@
             "Amount": 120
           }
         ],
-        "BaseBuildMinutes": 5,
-        "BuildTimeGrowth": 1.5,
+        "BaseBuildMinutes": 4,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": "food",
         "BaseProductionPerMinute": 10,
         "BaseStorage": 600,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       },
       {
         "Key": "beastpen",
@@ -543,12 +517,12 @@
             "Amount": 300
           }
         ],
-        "BaseBuildMinutes": 55,
-        "BuildTimeGrowth": 1.55,
+        "BaseBuildMinutes": 5,
+        "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.45
+        "UpgradeCostGrowth": 1.28
       }
     ]
   }

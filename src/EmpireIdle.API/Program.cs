@@ -34,9 +34,11 @@ builder.Configuration
     .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true);
 
-// ValidateOnStart перетворює 
+// Наповненість секцій і межі окремих полів. Узгодженість між секціями —
+// у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
 builder.Services.AddOptions<GameConfig>()
     .Bind(builder.Configuration.GetSection("GameConfig"))
     .Validate(c => c.Resources.Count > 0, "GameConfig.Resources is empty — check Config/resources.json.")
@@ -44,26 +46,15 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Units.Count > 0, "GameConfig.Units is empty — check Config/units.json.")
     .Validate(c => c.Monsters.Count > 0, "GameConfig.Monsters is empty — check Config/monsters.json.")
     .Validate(c => c.Items.Count > 0, "GameConfig.Items is empty — check Config/items.json.")
+    .Validate(c => c.Quests.Count > 0, "GameConfig.Quests is empty — check Config/quests.json.")
+    .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
     .Validate(c => c.Shop.GemPacks.Count > 0, "GameConfig.Shop.GemPacks is empty — check Config/shop.json.")
+    .Validate(c => c.StartingResources.Count > 0, "GameConfig.StartingResources is empty.")
+    .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
     .Validate(c => c.Map.Terrains.Any(t => t.Weight > 0), "GameConfig.Map has no terrain with positive weight.")
     .Validate(c => c.Map.Width > 0 && c.Map.Height > 0, "GameConfig.Map has non-positive dimensions.")
     .Validate(c => c.Map.CellsPerMonster > 0, "GameConfig.Map.CellsPerMonster must be positive.")
-    .Validate(c => c.Buildings.Count(b => b.IsMainBuilding) == 1, "GameConfig must define exactly one main building.")
-    .Validate(c => c.StartingResources.Count > 0, "GameConfig.StartingResources is empty.")
-    .Validate(c => c.StartingResources.Keys.All(k => c.Resources.Any(r => r.Key == k)), "GameConfig.StartingResources references an unknown resource key.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
-    .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
-    .Validate(c => c.ActiveServerIds.Contains(c.DefaultServerId), "GameConfig.DefaultServerId is not in ActiveServerIds.")
-    .Validate(c => c.Quests.Count > 0, "GameConfig.Quests is empty — check Config/quests.json.")
-    .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
-    .Validate(c => c.Quests.Select(q => q.Key).Distinct().Count() == c.Quests.Count, "GameConfig.Quests has duplicate keys.")
-    .Validate(c => c.Quests.All(q => q.Prerequisite is null || c.Quests.Any(p => p.Key == q.Prerequisite)), "A quest references a prerequisite that does not exist.")
-    .Validate(c => c.Quests.SelectMany(q => q.Rewards).All(r => r.Type != "Resource" || r.Key is not null), "A resource reward is missing its Key.")
-    .Validate(c => c.Quests.SelectMany(q => q.Rewards)
-        .Where(r => r.Type == "Resource").All(r => c.Resources.Any(res => res.Key == r.Key)), "A quest reward references an unknown resource.")
-    .Validate(c => c.Quests.SelectMany(q => q.Rewards.Select(r => (q.Key, r)))
-        .Where(x => x.r.Type == "Item")
-        .All(x => c.Items.Any(i => i.Key == x.r.Key)), "A quest reward references an unknown item — check Item keys in Config/quests.json against Config/items.json.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1,
         "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
@@ -218,6 +209,8 @@ builder.Services.AddScoped<MonsterSpawnJob>();
 builder.Services.AddScoped<OutboxMaintenanceJob>();
 builder.Services.AddScoped<DailyQuestResetJob>();
 builder.Services.AddScoped<ServerEvolutionJob>();
+builder.Services.AddScoped<RatingRecalculationJob>();
+builder.Services.AddScoped<ServerQuestTotalsJob>();
 
 //  8. ВЕБ-ШАР
 

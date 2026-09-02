@@ -35,5 +35,11 @@ namespace EmpireIdle.API.Hubs
         public Task NotifyBattleFinishedAsync(Guid playerId, Guid reportId, bool won, string targetName, CancellationToken cancellationToken = default)
             => _hubContext.Clients.User(playerId.ToString())
                 .SendAsync("BattleFinished", new { reportId, won, targetName }, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task NotifyServerQuestRewardedAsync(Guid playerId, string questKey, int rank, long contribution,
+            CancellationToken cancellationToken = default)
+            => _hubContext.Clients.Group(playerId.ToString())
+                .SendAsync("ServerQuestRewarded", new { questKey, rank, contribution }, cancellationToken);
     }
 }
