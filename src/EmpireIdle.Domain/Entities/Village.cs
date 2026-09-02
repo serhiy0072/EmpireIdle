@@ -173,23 +173,18 @@ namespace EmpireIdle.Domain.Entities
 
             EnsureTierAllows(building, config, buildingConfigs, mainBuildingKey, serverLevel, levelsPerTier);
 
-            // Перевіряємо, що вистачає КОЖНОГО ресурсу (перш ніж списувати хоч щось)
-            foreach (var line in config.Cost)
-            {
-                var need = ProgressionCurves.UpgradeCost(line.Amount, building.Level.Value, config.UpgradeCostGrowth);
-                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
+            // Ціну рахуємо один раз: перевірка й списання мають бачити те саме число,
+            // інакше вони розійдуться при першій же зміні кривої
+            var cost = config.Cost
+                .Select(line => new ResourceCost
+                {
+                    Resource = line.Resource,
+                    Amount = ProgressionCurves.UpgradeCost(line.Amount, building.Level.Value, config.UpgradeCostGrowth)
+                })
+                .ToList();
 
-                if (res.Amount < need)
-                    throw new NotEnoughResourcesException(line.Resource, need, res.Amount);
-            }
-
-            // Усе перевірено — тепер списуємо (жодного часткового списання при нестачі)
-            foreach (var line in config.Cost)
-            {
-                _resources.First(r => r.ResourceType == line.Resource)
-                    .Subtract(ProgressionCurves.UpgradeCost(line.Amount, building.Level.Value, config.UpgradeCostGrowth));
-            }
+            // Все або нічого — ChargeCost перевіряє всі позиції до першого списання
+            ChargeCost(cost, utcNow);
 
             var buildMinutes = config.BaseBuildMinutes * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
             building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost, locationMultiplier);
