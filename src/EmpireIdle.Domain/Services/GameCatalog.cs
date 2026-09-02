@@ -65,6 +65,7 @@ namespace EmpireIdle.Domain.Services
             ValidateQuests(config);
             ValidateGeometry(config);
             ValidateRating(config);
+            ValidatePreview(config);
         }
 
         /// <summary>Унікальність ключів і рівно одна головна будівля.</summary>
@@ -244,6 +245,25 @@ namespace EmpireIdle.Domain.Services
             if (duplicates.Count > 0)
                 throw new InvalidOperationException(
                     $"{section} has duplicate keys: {string.Join(", ", duplicates)}.");
+        }
+
+        /// <summary>Пороги прев'ю бою.</summary>
+        private static void ValidatePreview(GameConfig config)
+        {
+            var thresholds = config.Combat.PreviewOddsThresholds;
+
+            // Порожній список не падає, а тихо віддає найгіршу смугу на будь-який бій —
+            // гравець бачить «безнадійно» там, де насправді легка перемога
+            if (thresholds.Count == 0)
+                throw new InvalidOperationException(
+                    "Combat.PreviewOddsThresholds is empty — every preview would return the worst band.");
+
+            for (var i = 1; i < thresholds.Count; i++)
+            {
+                if (thresholds[i] >= thresholds[i - 1])
+                    throw new InvalidOperationException(
+                        "Combat.PreviewOddsThresholds must decrease: the first band is the strongest.");
+            }
         }
 
         /// <summary>Будівля за ключем або виняток із зрозумілим текстом.</summary>
