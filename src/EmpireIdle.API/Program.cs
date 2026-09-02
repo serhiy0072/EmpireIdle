@@ -56,8 +56,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Map.CellsPerMonster > 0, "GameConfig.Map.CellsPerMonster must be positive.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
-    .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1,
-        "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
+    .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
+    .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -85,9 +85,9 @@ builder.Services.AddSingleton(sp => new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetization));
 builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>(), sp.GetRequiredService<WorldGeometry>()));
+builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));
 builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<WorldGeometry>()));
+builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));
 builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<BattleResolver>();

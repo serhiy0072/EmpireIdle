@@ -49,7 +49,7 @@ namespace EmpireIdle.Domain.Tests.Services
         });
 
         private static MonsterSpawner Spawner(MapConfig config)
-            => new(new TerrainGenerator(config), config, Catalog(), new WorldGeometry(config));
+            => new(new TerrainGenerator(config), config, Catalog(), new WorldGeometry(config), new SystemRandomSource());
 
         /// <summary>
         /// Цільова кількість рахується від ВІДКРИТОЇ площі: на першому рівні

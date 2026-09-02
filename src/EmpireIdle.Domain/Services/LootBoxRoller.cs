@@ -12,10 +12,12 @@ namespace EmpireIdle.Domain.Services
         private const string LegendaryRarity = "legendary";
 
         private readonly ShopConfig _config;
+        private readonly IRandomSource _random;
 
-        public LootBoxRoller(ShopConfig config)
+        public LootBoxRoller(ShopConfig config, IRandomSource random)
         {
             _config = config;
+            _random = random;
         }
 
         /// <summary>Знаходить конфіг лутбокса за ключем.</summary>
@@ -45,7 +47,7 @@ namespace EmpireIdle.Domain.Services
             if (totalWeight <= 0)
                 throw new InvalidOperationException($"Loot box '{boxKey}' has no drops with positive weight.");
 
-            var roll = Random.Shared.Next(totalWeight);
+            var roll = _random.Next(totalWeight);
             var cumulative = 0;
 
             foreach (var drop in box.Drops.OrderBy(d => d.Key))

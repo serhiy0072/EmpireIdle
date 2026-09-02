@@ -10,13 +10,15 @@ namespace EmpireIdle.Domain.Services
         private readonly MapConfig _mapConfig;
         private readonly GameCatalog _catalog;
         private readonly WorldGeometry _geometry;
+        private readonly IRandomSource _random;
 
-        public MonsterSpawner(TerrainGenerator terrain, MapConfig mapConfig, GameCatalog catalog, WorldGeometry geometry)
+        public MonsterSpawner(TerrainGenerator terrain, MapConfig mapConfig, GameCatalog catalog, WorldGeometry geometry, IRandomSource random)
         {
             _terrain = terrain;
             _mapConfig = mapConfig;
             _catalog = catalog;
             _geometry = geometry;
+            _random = random;
         }
 
         /// <summary>
@@ -50,14 +52,13 @@ namespace EmpireIdle.Domain.Services
             if (available.Count == 0)
                 return null;
 
-            var random = Random.Shared;
             var (cx, cy) = _geometry.Centre;
             var boundary = _geometry.SettlementBoundary(serverLevel);
 
             for (var attempt = 0; attempt < maxAttempts; attempt++)
             {
-                var x = cx + random.Next(-boundary, boundary + 1);
-                var y = cy + random.Next(-boundary, boundary + 1);
+                var x = cx + _random.Next(-boundary, boundary + 1);
+                var y = cy + _random.Next(-boundary, boundary + 1);
 
                 if (!_terrain.IsHabitable(serverId, x, y))
                     continue;
@@ -65,8 +66,8 @@ namespace EmpireIdle.Domain.Services
                 if (await isOccupied(x, y))
                     continue;
 
-                var config = available[random.Next(available.Count)];
-                var level = PickLevel(config, x, y, random,serverLevel);
+                var config = available[_random.Next(available.Count)];
+                var level = PickLevel(config, x, y, serverLevel);
 
                 return (config.Key, level, x, y);
             }
@@ -80,7 +81,7 @@ namespace EmpireIdle.Domain.Services
         /// у куті центрального кільця був би слабшим за монстра на осі,
         /// хоч гравець бачить їх в одній зоні.
         /// </summary>
-        private int PickLevel(MonsterConfig config, int x, int y, Random random, int serverLevel)
+        private int PickLevel(MonsterConfig config, int x, int y, int serverLevel)
         {
             var proximity = _geometry.Proximity(x, y, serverLevel);
 
@@ -88,7 +89,7 @@ namespace EmpireIdle.Domain.Services
             var level = config.MinLevel + (int)Math.Round(span * proximity);
 
             // ±1 розкид, щоб сусідні монстри відрізнялись
-            level += random.Next(-1, 2);
+            level += _random.Next(-1, 2);
 
             return Math.Clamp(level, config.MinLevel, config.MaxLevel);
         }

@@ -27,7 +27,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var config = Config();
             var terrain = new TerrainGenerator(config);
             var geometry = new WorldGeometry(config); 
-            var placer = new SettlementPlacer(terrain, geometry);
+            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
 
             // 50 спроб поспіль — щоб зловити випадковість
             for (var i = 0; i < 50; i++)
@@ -46,7 +46,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var config = Config();
             var terrain = new TerrainGenerator(config);
             var geometry = new WorldGeometry(config); 
-            var placer = new SettlementPlacer(terrain, geometry);
+            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
 
             for (var i = 0; i < 50; i++)
             {
@@ -63,7 +63,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var config = Config();
             var terrain = new TerrainGenerator(config);
             var geometry = new WorldGeometry(config); 
-            var placer = new SettlementPlacer(terrain, geometry);
+            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
 
             var occupied = new HashSet<(int, int)>();
 
@@ -89,7 +89,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var config = Config();
             var terrain = new TerrainGenerator(config);
             var geometry = new WorldGeometry(config); 
-            var placer = new SettlementPlacer(terrain, geometry);
+            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
 
             // усе зайнято
             await Assert.ThrowsAsync<InvalidOperationException>(() =>

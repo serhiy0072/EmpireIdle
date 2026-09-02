@@ -32,6 +32,6 @@ namespace EmpireIdle.Domain.Services
         /// Гравець бачить смугу, не число: точний відсоток розкрив би формулу,
         /// а невизначеність — те, що продає буст перед боєм.
         /// </summary>
-        public List<double> PreviewOddsThresholds { get; set; } = new() { 2.5, 1.3, 0.8, 0.4 };
+        public List<double> PreviewOddsThresholds { get; set; } = new();
     }
 }

@@ -252,11 +252,10 @@ namespace EmpireIdle.Domain.Services
         {
             var thresholds = config.Combat.PreviewOddsThresholds;
 
-            // Порожній список не падає, а тихо віддає найгіршу смугу на будь-який бій —
-            // гравець бачить «безнадійно» там, де насправді легка перемога
+            // Порожньо — конфіг прев'ю не описує (мінімальні фікстури в тестах).
+            // Перевіряємо лише те, що задано.
             if (thresholds.Count == 0)
-                throw new InvalidOperationException(
-                    "Combat.PreviewOddsThresholds is empty — every preview would return the worst band.");
+                return;
 
             for (var i = 1; i < thresholds.Count; i++)
             {

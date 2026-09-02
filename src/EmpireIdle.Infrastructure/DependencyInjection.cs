@@ -8,6 +8,7 @@ using EmpireIdle.Application.Quests.Tracking.Mappers;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Granters;
 using EmpireIdle.Domain.Events;
+using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Payments;
 using EmpireIdle.Infrastructure.Persistence;
@@ -62,6 +63,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerPowerRepository, PlayerPowerRepository>();
             services.AddScoped<IPlayerRatingRepository, PlayerRatingRepository>();
             services.AddScoped<IServerQuestRepository, ServerQuestRepository>();
+            services.AddSingleton<IRandomSource, SystemRandomSource>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();

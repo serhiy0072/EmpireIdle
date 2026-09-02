@@ -10,11 +10,13 @@ namespace EmpireIdle.Domain.Services
     {
         private readonly TerrainGenerator _terrain;
         private readonly WorldGeometry _geometry;
+        private readonly IRandomSource _random;
 
-        public SettlementPlacer(TerrainGenerator terrain, WorldGeometry geometry)
+        public SettlementPlacer(TerrainGenerator terrain, WorldGeometry geometry, IRandomSource random)
         {
             _terrain = terrain;
             _geometry = geometry;
+            _random = random;
         }
 
         /// <summary>
@@ -30,7 +32,6 @@ namespace EmpireIdle.Domain.Services
             Func<int, int, Task<bool>> isOccupied,
             int maxAttempts = 200)
         {
-            var random = Random.Shared;
             var (cx, cy) = _geometry.Centre;
             var boundary = _geometry.SettlementBoundary(serverLevel);
 
@@ -38,8 +39,8 @@ namespace EmpireIdle.Domain.Services
             {
                 // Кидаємо одразу в межах туману: рандом по всій карті на першому
                 // рівні промазував би повз відкриту зону в більшості спроб
-                var x = cx + random.Next(-boundary, boundary + 1);
-                var y = cy + random.Next(-boundary, boundary + 1);
+                var x = cx + _random.Next(-boundary, boundary + 1);
+                var y = cy + _random.Next(-boundary, boundary + 1);
 
                 if (!_terrain.IsHabitable(serverId, x, y))
                     continue;
