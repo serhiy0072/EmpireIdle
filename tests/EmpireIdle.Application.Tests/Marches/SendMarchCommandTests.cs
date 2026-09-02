@@ -187,9 +187,6 @@ public class SendMarchCommandTests
         var far = new Monster(Guid.NewGuid(), 1, "wolves", 1, 90, 90, Now);
         _monsters.GetByIdAsync(far.Id, Arg.Any<CancellationToken>()).Returns(far);
 
-        March? nearMarch = null, farMarch = null;
-        await _marches.AddAsync(Arg.Do<March>(m => nearMarch ??= m), Arg.Any<CancellationToken>());
-
         await Handler().Handle(Send(near.Id), CancellationToken.None);
         await Handler().Handle(Send(far.Id), CancellationToken.None);
 
