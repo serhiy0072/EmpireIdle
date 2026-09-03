@@ -35,7 +35,8 @@ builder.Configuration
     .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
