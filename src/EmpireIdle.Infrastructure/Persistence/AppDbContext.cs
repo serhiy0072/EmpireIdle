@@ -43,6 +43,9 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<Server> Servers => Set<Server>();
         public DbSet<PlayerPower> PlayerPowers => Set<PlayerPower>();
         public DbSet<PlayerRating> PlayerRatings => Set<PlayerRating>();
+        public DbSet<Clan> Clans => Set<Clan>();
+        public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
+        public DbSet<ClanRole> ClanRoles => Set<ClanRole>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -61,6 +64,7 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<Garrison>().HasQueryFilter(g => g.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<PlayerPower>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<PlayerRating>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<Clan>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
