@@ -63,7 +63,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerPowerRepository, PlayerPowerRepository>();
             services.AddScoped<IPlayerRatingRepository, PlayerRatingRepository>();
             services.AddScoped<IServerQuestRepository, ServerQuestRepository>();
-            services.AddSingleton<IRandomSource, SystemRandomSource>();
+            services.AddScoped<IClanRepository, ClanRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
@@ -107,6 +107,7 @@ namespace EmpireIdle.Infrastructure
             }
 
             // Зовнішні сервіси
+            services.AddSingleton<IRandomSource, SystemRandomSource>();
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();
 
             services.AddScoped<DomainEventDispatchInterceptor>();
