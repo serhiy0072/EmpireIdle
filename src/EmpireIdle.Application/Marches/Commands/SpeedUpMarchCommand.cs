@@ -79,8 +79,9 @@ namespace EmpireIdle.Application.Marches.Commands
                 wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId, now);
             }
 
-            // Зсуваємо прибуття на «зараз»; бій або повернення відпрацює сканер
-            march.ReduceTravelTime(march.ArrivesAt - now, now);
+            // Прострочений марш чекає сканера — від'ємне скорочення зсунуло б його вперед
+            if (march.ArrivesAt > now)
+                march.ReduceTravelTime(march.ArrivesAt - now, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
