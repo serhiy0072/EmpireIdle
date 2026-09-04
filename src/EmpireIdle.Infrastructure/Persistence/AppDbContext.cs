@@ -46,6 +46,8 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<Clan> Clans => Set<Clan>();
         public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
         public DbSet<ClanRole> ClanRoles => Set<ClanRole>();
+        public DbSet<ClanHelpRequest> ClanHelpRequests => Set<ClanHelpRequest>();
+        public DbSet<ClanHelpContribution> ClanHelpContributions => Set<ClanHelpContribution>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -65,6 +67,9 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<PlayerPower>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<PlayerRating>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Clan>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ClanHelpRequest>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
+
+
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(Entity).IsAssignableFrom(entityType.ClrType))

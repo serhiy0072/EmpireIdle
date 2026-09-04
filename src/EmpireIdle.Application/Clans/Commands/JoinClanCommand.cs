@@ -57,7 +57,6 @@ namespace EmpireIdle.Application.Clans.Commands
                 throw new RequirementNotMetException("This clan does not accept open applications.");
 
             var clanConfig = _catalog.Config.Clan;
-            clan.Join(player.Id, clan.Capacity(clanConfig.BaseCapacity, clanConfig.CapacityPerLevel), now);
 
             player.JoinClan(clan.Id);
 

@@ -27,9 +27,6 @@ namespace EmpireIdle.Domain.Entities
 
         public ClanJoinPolicy JoinPolicy { get; private set; }
 
-        /// <summary>Рівень клану — визначає ліміт учасників і кількість допомог.</summary>
-        public int Level { get; private set; }
-
         public DateTime CreatedAt { get; private set; }
 
         public DateTime UpdatedAt { get; private set; }
@@ -49,7 +46,6 @@ namespace EmpireIdle.Domain.Entities
             ServerId = serverId;
             Name = name;
             Tag = tag;
-            Level = 1;
             JoinPolicy = ClanJoinPolicy.ByApproval;
             CreatedAt = utcNow;
             UpdatedAt = utcNow;
@@ -100,9 +96,6 @@ namespace EmpireIdle.Domain.Entities
 
             return member is null ? null : _roles.FirstOrDefault(r => r.Id == member.RoleId);
         }
-
-        /// <summary>Скільки учасників вміщає клан на поточному рівні.</summary>
-        public int Capacity(int baseCapacity, int perLevel) => baseCapacity + perLevel * (Level - 1);
 
         // ---------- Склад ----------
 

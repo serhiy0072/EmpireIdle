@@ -1,9 +1,10 @@
 {
   "GameConfig": {
     "Clan": {
-      "BaseCapacity": 20,
-      "CapacityPerLevel": 5,
+      "Capacity": 200,
       "MaxHelpShare": 0.4,
+      "HelpSharePerPlayer": 0.02,
+      "HelpRequestLifetimeHours": 24,
       "LeaderInactivityDays": 7
     }
   }
