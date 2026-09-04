@@ -49,9 +49,7 @@ namespace EmpireIdle.Application.Rating.Queries
             // Імена й сила одним запитом на всіх — інакше сто рядків топу
             // дали б двісті звернень до бази
             var names = await _playerRepository.GetNamesAsync(playerIds, cancellationToken);
-            var powers = await _powerRepository.GetAllAsync(cancellationToken);
-
-            var powerByPlayer = powers.ToDictionary(p => p.PlayerId, p => p.TotalPower);
+            var powerByPlayer = await _powerRepository.GetTotalPowerAsync(playerIds, cancellationToken);
 
             return ratings
                 .Select((rating, index) => new LeaderboardEntry(

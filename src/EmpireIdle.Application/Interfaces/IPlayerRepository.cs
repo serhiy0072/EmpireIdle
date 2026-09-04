@@ -18,7 +18,6 @@ namespace EmpireIdle.Application.Interfaces
         Task<List<Player>> GetAllByUserIdAsync(string userId, CancellationToken cancellationToken = default);
 
         /// <summary>Імена гравців за списком id — для топу, одним запитом.</summary>
-        Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> playerIds,
-            CancellationToken cancellationToken = default);
+        Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> playerIds, CancellationToken cancellationToken = default);
     }
 }
