@@ -34,6 +34,11 @@ namespace EmpireIdle.API.Controllers
             return Created((string?)null, marchId);
         }
 
+
+        /// <summary>
+        /// Миттєво завершити переміщення армії за gems. Бій відбудеться
+        /// найближчим проходом сканера.
+        /// </summary>
         [HttpPost("{playerId:guid}/{marchId:guid}/speedup")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

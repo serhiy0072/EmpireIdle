@@ -60,6 +60,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
+    .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -205,10 +206,8 @@ builder.Services.AddCors(options =>
               .AllowCredentials()));
 
 //  7. ФОНОВІ ЗАДАЧІ
-//  Hangfire живе в тій самій PostgreSQL базі.
 
-// Hangfire живе в тій самій PostgreSQL базі.
-//
+//  Hangfire живе в тій самій PostgreSQL базі
 // У тестах не піднімається взагалі: Hangfire кешує LoggerFactory у статичному
 // GlobalJobFilters, а WebApplicationFactory будує хост двічі — статика від
 // першого хоста переживає його disposal і падає ObjectDisposedException.
@@ -275,6 +274,9 @@ var app = builder.Build();
 //  9. КОНВЕЄР ЗАПИТУ
 //  Порядок критичний: кожен наступний крок покладається на попередній.
 
+// Найперший: далі всі бачать реальний IP клієнта, а не проксі
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -291,9 +293,6 @@ else
 {
     app.UseHttpsRedirection();
 }
-
-// Найперший: далі всі бачать реальний IP клієнта, а не проксі
-app.UseForwardedHeaders();
 
 app.UseExceptionHandler();
 app.UseCors(FrontendCors);

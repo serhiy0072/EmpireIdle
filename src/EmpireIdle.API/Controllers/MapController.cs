@@ -21,7 +21,7 @@ namespace EmpireIdle.API.Controllers
         private readonly IServerContext _serverContext;
         private readonly TerrainGenerator _terrain;
 
-        public MapController(IMediator mediator, IServerContext serverContext,TerrainGenerator terrain)
+        public MapController(IMediator mediator, IServerContext serverContext, TerrainGenerator terrain)
         {
             _mediator = mediator;
             _serverContext = serverContext;

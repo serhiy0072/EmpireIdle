@@ -74,6 +74,7 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Миттєво завершити тренування партії юнітів за gems.</summary>
         [HttpPost("{playerId:guid}/training/{orderId:guid}/speedup")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

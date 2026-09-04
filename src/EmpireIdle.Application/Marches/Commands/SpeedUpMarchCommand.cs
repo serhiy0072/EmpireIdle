@@ -13,8 +13,9 @@ namespace EmpireIdle.Application.Marches.Commands
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
-    /// Обробник SpeedUpMarchCommand: списує gems і зсуває час прибуття на «зараз».
-    /// Сам бій відбудеться найближчим проходом сканера.
+    /// Обробник SpeedUpMarchCommand: списує gems і підтягує час прибуття
+    /// на «зараз», якщо марш ще в дорозі. Сам бій відбудеться найближчим
+    /// проходом сканера.
     /// </summary>
     public sealed class SpeedUpMarchCommandHandler : IRequestHandler<SpeedUpMarchCommand>
     {

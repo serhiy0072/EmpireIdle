@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EmpireIdle.API.Controllers
 {
+    /// <summary>Село гравця: стан, апгрейди будівель, збір виробітку.</summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -61,6 +62,10 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Миттєво завершити будівництво за gems. Ціна залежить від часу,
+        /// що лишився; прострочений таймер сканер закриє сам.
+        /// </summary>
         [HttpPost("{playerId:guid}/buildings/{buildingId:guid}/speedup")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

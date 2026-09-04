@@ -53,8 +53,11 @@ namespace EmpireIdle.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-            // Міжсерверний витік стає структурно неможливим: фільтр застосовується
-            // до кожного запиту, забути його не можна.
+            // Фільтр по світу — на кожен корінь агрегату з ServerId. Діти
+            // (ClanMember, ClanRole, ClanHelpContribution) свого не мають:
+            // читаються лише через батька, який уже відфільтрований.
+            // Payment теж без фільтра — вебхук приходить без контексту,
+            // і світ відновлюється з самого платежу.
             modelBuilder.Entity<Player>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Village>().HasQueryFilter(v => v.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Monster>().HasQueryFilter(m => m.ServerId == _serverContext.ServerId);
@@ -68,7 +71,6 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<PlayerRating>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Clan>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<ClanHelpRequest>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
-
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

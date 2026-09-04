@@ -58,6 +58,9 @@ namespace EmpireIdle.Application.Clans.Commands
 
             var clanConfig = _catalog.Config.Clan;
 
+            // Членство — в агрегаті: там же перевірка місткості й видача
+            // ролі за замовчуванням. Player.ClanId — лише дзеркало
+            clan.Join(player.Id, clanConfig.Capacity, now);
             player.JoinClan(clan.Id);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
