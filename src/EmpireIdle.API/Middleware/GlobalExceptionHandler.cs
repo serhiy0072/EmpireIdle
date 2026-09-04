@@ -21,8 +21,6 @@ namespace EmpireIdle.API.Middleware
 
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            _logger.LogError(exception, "Exception handled: {Message}", exception.Message);
-
             if (exception is ValidationException validationException)
             {
                 var errors = validationException.Errors.GroupBy(e => e.PropertyName).ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
@@ -33,6 +31,8 @@ namespace EmpireIdle.API.Middleware
                     Title = "Validation Failed",
                     Instance = httpContext.Request.Path
                 };
+
+                _logger.LogWarning("Validation failed on {Path}: {Errors}", httpContext.Request.Path, errors);
 
                 httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
                 await httpContext.Response.WriteAsJsonAsync(validationProblem, cancellationToken);
@@ -51,6 +51,13 @@ namespace EmpireIdle.API.Middleware
                 DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "The resource was modified by another request. Retry with the current state."),
                 _ => (StatusCodes.Status500InternalServerError, "Internal Server Error")
             };
+
+            // 4xx — очікувана відмова, не інцидент: Error лишаємо для 5xx
+            if (statusCode >= StatusCodes.Status500InternalServerError)
+                _logger.LogError(exception, "Unhandled exception on {Path}", httpContext.Request.Path);
+            else
+                _logger.LogWarning("Request to {Path} rejected with {StatusCode}: {Message}",
+                    httpContext.Request.Path, statusCode, exception.Message);
 
             // На 500 не віддаємо exception.Message: DbUpdateException містить імена
             // таблиць і констрейнтів, NpgsqlException — деталі підключення

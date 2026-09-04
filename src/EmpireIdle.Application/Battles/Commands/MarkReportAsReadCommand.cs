@@ -24,10 +24,9 @@ namespace EmpireIdle.Application.Battles.Commands
             var report = await _repository.GetByIdAsync(request.ReportId, cancellationToken)
                 ?? throw new EntityNotFoundException("Report", request.ReportId);
 
-            // Другий рубіж захисту: PlayerScopeBehavior перевіряє PlayerId у команді,
-            // але сам звіт теж має належати цьому гравцю
-            if ((report.PlayerId != request.PlayerId))
-                throw new UnauthorizedAccessException("Report belongs to another player.");
+            // 404, не 403: чужий звіт не відрізняється від неіснуючого — інакше id перебираються
+            if (report.PlayerId != request.PlayerId)
+                throw new EntityNotFoundException("Report", request.ReportId);
 
             report.MarkAsRead();
             await _unitOfWork.SaveChangesAsync(cancellationToken);

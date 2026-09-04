@@ -43,8 +43,13 @@ namespace EmpireIdle.Application.Payments.Commands
         public async Task Handle(CompletePaymentCommand request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
-            var payment = await _paymentRepository.GetBySessionIdAsync(request.SessionId, cancellationToken)
-                ?? throw new InvalidOperationException($"Payment for session '{request.SessionId}' not found.");
+            var payment = await _paymentRepository.GetBySessionIdAsync(request.SessionId, cancellationToken);
+            if (payment is null)
+            {
+                // Не наша сесія — ретрай Stripe нічого не змінить, віддаємо 200
+                _logger.LogWarning("Webhook for unknown session {SessionId} ignored.", request.SessionId);
+                return;
+            }
 
             // Вебхук анонімний — світ відновлюємо з платежу ПЕРЕД будь-яким читанням
             // відфільтрованих сутностей, інакше query-фільтр на Player кине
