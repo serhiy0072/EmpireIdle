@@ -71,6 +71,10 @@ var gameConfig = builder.Configuration.GetSection("GameConfig").Get<GameConfig>(
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT settings not configured.");
 
+// HS256 з коротким ключем падає на першому логіні, а не на старті
+if (Encoding.UTF8.GetByteCount(jwtSettings.Secret) < 32)
+    throw new InvalidOperationException("JwtSettings.Secret must be at least 32 bytes for HS256.");
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("ConnectionString 'DefaultConnection' not found. Check User Secrets.");
 

@@ -46,8 +46,9 @@ namespace EmpireIdle.Infrastructure.Auth
 
             if (!result.Succeeded)
             {
-                var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-                throw new RequirementNotMetException($"Registration failed: {errors}");
+                // Коди, не описи: "DuplicateEmail" не видає, що email зареєстрований
+                var codes = string.Join("; ", result.Errors.Select(e => e.Code));
+                throw new RequirementNotMetException($"Registration failed: {codes}");
             }
 
             return user.Id;
@@ -63,13 +64,13 @@ namespace EmpireIdle.Infrastructure.Auth
                 ?? throw new AuthenticationFailedException("Invalid email or password.");
 
             if (await _userManager.IsLockedOutAsync(user))
-                throw new UnauthorizedAccessException("Account temporarily locked. Try again later.");
+                throw new AuthenticationFailedException("Account temporarily locked. Try again later.");
 
             var validPassword = await _userManager.CheckPasswordAsync(user, password);
             if (!validPassword)
             {
                 await _userManager.AccessFailedAsync(user);
-                throw new UnauthorizedAccessException("Invalid email or password.");
+                throw new AuthenticationFailedException("Invalid email or password.");
             }
 
             await _userManager.ResetAccessFailedCountAsync(user);
@@ -87,11 +88,12 @@ namespace EmpireIdle.Infrastructure.Auth
         public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> RefreshAsync(string refreshToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
-            var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken)
+            var hash = HashToken(refreshToken);
+
+            var storedToken = await _context.RefreshTokens.AsNoTracking().FirstOrDefaultAsync(rt => rt.Token == hash)
                 ?? throw new AuthenticationFailedException("Invalid refresh token.");
 
-            // Спроба використати ревокнутий токен = можлива крадіжка.
-            // Ревокуємо ВСІ токени користувача — змусить перелогінитись всюди.
+            // Спроба використати ревокнутий токен = можлива крадіжка — ревокуємо всі
             if (storedToken.RevokedAt is not null)
             {
                 await RevokeAllUserTokensAsync(storedToken.UserId, now);
@@ -99,22 +101,34 @@ namespace EmpireIdle.Infrastructure.Auth
                 throw new AuthenticationFailedException("Token reuse detected. All sessions revoked.");
             }
 
-            if (!storedToken.IsActiveAt(now))
+            if (now >= storedToken.ExpiresAt)
+                throw new AuthenticationFailedException("Refresh token expired.");
+
+            var newRefreshToken = GenerateRefreshTokenString();
+            var newHash = HashToken(newRefreshToken);
+
+            // Атомарна ротація: паралельний запит із тим самим токеном отримає 0 рядків
+            var revoked = await _context.RefreshTokens
+                .Where(rt => rt.Id == storedToken.Id && rt.RevokedAt == null)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(rt => rt.RevokedAt, now)
+                    .SetProperty(rt => rt.ReplacedByToken, newHash));
+
+            if (revoked == 0)
+            {
+                await RevokeAllUserTokensAsync(storedToken.UserId, now);
+                await _context.SaveChangesAsync();
                 throw new AuthenticationFailedException("Token reuse detected. All sessions revoked.");
+            }
 
             var user = await _userManager.FindByIdAsync(storedToken.UserId)
                 ?? throw new InvalidOperationException("User not found.");
-
-            // Ротація: ревокуємо старий, створюємо новий
-            var newRefreshToken = GenerateRefreshTokenString();
-            storedToken.RevokedAt = now;
-            storedToken.ReplacedByToken = newRefreshToken;
 
             _context.RefreshTokens.Add(new RefreshToken
             {
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
-                Token = newRefreshToken,
+                Token = newHash,
                 CreatedAt = now,
                 ExpiresAt = now.AddDays(_jwtSettings.RefreshTokenExpirationDays)
             });
@@ -125,6 +139,10 @@ namespace EmpireIdle.Infrastructure.Auth
             var accessToken = GenerateAccessToken(user, playerId, serverId, now);
             return (accessToken, newRefreshToken, playerId);
         }
+
+        /// <summary>У БД лежить лише хеш: дамп таблиці не дає живих сесій.</summary>
+        private static string HashToken(string token)
+            => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(token)));
 
         private async Task<string> CreateRefreshTokenAsync(string userId)
         {
@@ -183,18 +201,6 @@ namespace EmpireIdle.Infrastructure.Auth
             using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
-        }
-
-        /// <summary>Знаходить доменного гравця за email (міст Identity ↔ Domain).</summary>
-        private async Task<Guid> GetPlayerIdAsync(string email)
-        {
-            var normalized = email.Trim().ToLowerInvariant();
-
-            var player = await _context.Players.AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Email == normalized)
-                ?? throw new InvalidOperationException("Player not found for this account.");
-
-            return player.Id;
         }
 
         /// <summary>
