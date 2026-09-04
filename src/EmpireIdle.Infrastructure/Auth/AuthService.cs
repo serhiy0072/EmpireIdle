@@ -153,7 +153,7 @@ namespace EmpireIdle.Infrastructure.Auth
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                Token = token,
+                Token = HashToken(token),
                 CreatedAt = now,
                 ExpiresAt = now.AddDays(_jwtSettings.RefreshTokenExpirationDays)
             });
