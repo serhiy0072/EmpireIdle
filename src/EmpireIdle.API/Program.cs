@@ -13,6 +13,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -149,17 +150,32 @@ builder.Services.AddAuthorization(options =>
 
 //  6. ЗАХИСТ ПЕРИМЕТРА
 
+// За reverse-proxy RemoteIpAddress — це проксі; без цього всі гравці = один IP
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+    // Довіряти лише своєму проксі: інакше X-Forwarded-For підробляється
+    foreach (var proxy in builder.Configuration.GetSection("KnownProxies").Get<string[]>() ?? [])
+        options.KnownProxies.Add(System.Net.IPAddress.Parse(proxy));
+});
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Логін і реєстрація — окремо й жорстко: це поверхня для брутфорсу
-    options.AddFixedWindowLimiter("auth", limiter =>
-    {
-        limiter.PermitLimit = 10;
-        limiter.Window = TimeSpan.FromMinutes(1);
-        limiter.QueueLimit = 0;
-    });
+    // Логін і реєстрація — окремо й жорстко, але ПО КЛІЄНТУ:
+    // AddFixedWindowLimiter дав би один глобальний лічильник — 10 чужих спроб
+    // блокували б логін усім
+    options.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 
     // Решта API — по гравцю, а за його відсутності по IP
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
@@ -272,13 +288,17 @@ else
     app.UseHttpsRedirection();
 }
 
+// Найперший: далі всі бачать реальний IP клієнта, а не проксі
+app.UseForwardedHeaders();
+
 app.UseExceptionHandler();
 app.UseCors(FrontendCors);
 
-// Перед автентифікацією: відсіюємо ще до роботи з токеном
+app.UseAuthentication();
+
+// ПІСЛЯ автентифікації: до неї User порожній і партиція завжди падала на IP
 app.UseRateLimiter();
 
-app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
