@@ -15,6 +15,15 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки годин живе запит на допомогу.</summary>
         public int HelpRequestLifetimeHours { get; set; } = 24;
 
+        /// <summary>Скільки годин живе заявка чи запрошення, поки не протермінується.</summary>
+        public int RequestLifetimeHours { get; set; } = 72;
+
+        /// <summary>
+        /// Скільки годин після відмови гравець не може подати заявку в той самий
+        /// клан. Без цього відхилений заявник надсилає її повторно щохвилини.
+        /// </summary>
+        public int RejectedCooldownHours { get; set; } = 12;
+
         /// <summary>Скільки днів неактивності лідера запускає автопередачу.</summary>
         public int LeaderInactivityDays { get; set; } = 7;
 
