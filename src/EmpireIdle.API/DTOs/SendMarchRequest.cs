@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 
 namespace EmpireIdle.API.DTOs
 {

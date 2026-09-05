@@ -1,18 +1,7 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Entities
 {
-    /// <summary>На що діє активний ефект.</summary>
-    public enum EffectTarget
-    {
-        /// <summary>Виробництво ресурсів.</summary>
-        Production = 1,
-
-        /// <summary>Сила атаки в бою.</summary>
-        Attack = 2,
-
-        /// <summary>Сила захисту в бою.</summary>
-        Defense = 3
-    }
-
     /// <summary>
     /// Тимчасовий ефект гравця: множник, що діє до вказаного часу.
     /// Створюється використанням буста, читається тіком і боєм.

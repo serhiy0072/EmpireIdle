@@ -1,23 +1,8 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
 {
-    /// <summary>Стан життєвого циклу світу.</summary>
-    public enum ServerState
-    {
-        /// <summary>Створений, реєстрація відкрита.</summary>
-        Active = 0,
-
-        /// <summary>Досяг стелі й заповнений — реєстрація закрита, гра триває.</summary>
-        Closed = 1,
-
-        /// <summary>Оголошено закриття, зворотний відлік до архівації.</summary>
-        Sunset = 2,
-
-        /// <summary>Гра зупинена, дані збережені.</summary>
-        Archived = 3
-    }
-
     /// <summary>
     /// Ігровий світ. Рівень визначає геометрію карти, стелю рівня будівель,
     /// доступні типи монстрів і рівні зброї — усе, що має відкриватись

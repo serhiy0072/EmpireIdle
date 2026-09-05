@@ -1,20 +1,8 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
 {
-    /// <summary>Стан платежу.</summary>
-    public enum PaymentStatus
-    {
-        /// <summary>Сесію створено, гравець ще не заплатив.</summary>
-        Pending = 1,
-
-        /// <summary>Оплату підтверджено вебхуком, gems зараховані.</summary>
-        Completed = 2,
-
-        /// <summary>Оплата не відбулась (скасування, помилка, прострочення).</summary>
-        Failed = 3
-    }
-
     /// <summary>
     /// Платіж за пакет gems. Створюється при відкритті Checkout,
     /// завершується вебхуком від Stripe — не поверненням гравця на сайт.

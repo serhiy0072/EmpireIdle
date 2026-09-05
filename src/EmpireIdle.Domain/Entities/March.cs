@@ -1,37 +1,8 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
-{
-    /// <summary>Стан походу.</summary>
-    public enum MarchState
-    {
-        /// <summary>Іде до цілі.</summary>
-        Outbound = 1,
-
-        /// <summary>Повертається додому.</summary>
-        Returning = 2,
-
-        /// <summary>Завершений (армія вдома).</summary>
-        Completed = 3
-    }
-
-    /// <summary>Тип цілі походу.</summary>
-    public enum MarchTargetType
-    {
-        Monster = 1,
-        Village = 2
-    }
-
-    /// <summary>
-    /// Що армія робить на цілі. Ортогонально до TargetType: той каже,
-    /// що стоїть у клітині, цей — навіщо ми туди йдемо.
-    /// </summary>
-    public enum MarchIntent
-    {
-        Attack = 1,
-        Reinforce = 2
-    }
-
+{   
     /// <summary>
     /// Похід армії до цілі. Юніти зняті з гарнізону на час маршу
     /// і зберігаються тут (склад армії).
