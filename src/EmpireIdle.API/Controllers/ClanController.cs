@@ -197,6 +197,21 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
+        /// Відкликати всі свої підкріплення. Юніти йдуть маршем і будуть
+        /// доступні лише після прибуття.
+        /// </summary>
+        /// <returns>Скільки маршів вирушило додому.</returns>
+        [HttpPost("{playerId:guid}/reinforcements/recall")]
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RecallReinforcements(Guid playerId, CancellationToken cancellationToken)
+        {
+            var sent = await _mediator.Send(new RecallReinforcementsCommand(playerId), cancellationToken);
+
+            return Ok(sent);
+        }
+
+        /// <summary>
         /// Прапорці дозволів — списком назв: фронту простіше перевірити
         /// наявність у масиві, ніж робити бітову арифметику.
         /// </summary>

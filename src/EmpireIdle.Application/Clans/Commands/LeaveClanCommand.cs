@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -13,21 +14,27 @@ namespace EmpireIdle.Application.Clans.Commands
     {
         private readonly IClanRepository _clanRepository;
         private readonly IPlayerRepository _playerRepository;
+        private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
+        private readonly ReinforcementReturner _returner;
         private readonly ILogger<LeaveClanCommandHandler> _logger;
 
         public LeaveClanCommandHandler(
             IClanRepository clanRepository,
             IPlayerRepository playerRepository,
+            IVillageRepository villageRepository,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
+            ReinforcementReturner returner,
             ILogger<LeaveClanCommandHandler> logger)
         {
             _clanRepository = clanRepository;
             _playerRepository = playerRepository;
+            _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
+            _returner = returner;   
             _logger = logger;
         }
 
@@ -43,6 +50,15 @@ namespace EmpireIdle.Application.Clans.Commands
 
             clan.Leave(player.Id, now);
             player.LeaveClan();
+
+            // Обидва напрямки: свої війська з чужих сіл і чужі — зі свого.
+            // Поза кланом гість у селі не має підстав лишатися
+            await _returner.ReturnAllOfPlayerAsync(player.Id, now, cancellationToken);
+
+            var village = await _villageRepository.GetByPlayerIdAsync(player.Id, cancellationToken);
+
+            if (village is not null)
+                await _returner.ReturnAllFromVillageAsync(village.Id, now, cancellationToken);
 
             // Останній учасник — клан зникає. Порожній клан тримав би
             // назву й тег зайнятими назавжди

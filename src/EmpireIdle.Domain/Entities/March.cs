@@ -98,6 +98,25 @@ namespace EmpireIdle.Domain.Entities
 
         protected March() { } // Для EF Core
 
+        /// <summary>
+        /// Похід, що одразу вирушає додому: підкріплення, зняте з чужого
+        /// гарнізону. Фази Outbound у нього немає — армія вже на місці.
+        /// </summary>
+        /// <param name="garrisonId">Гарнізон власника: саме туди повернуться юніти.</param>
+        public static March ReturningHome(Guid id, int serverId, Guid garrisonId,
+            int homeX, int homeY, int fromX, int fromY, Guid fromVillageId,
+            IReadOnlyDictionary<string, int> units, TimeSpan duration, DateTime utcNow)
+        {
+            // Origin — дім: гілка Returning у сканері веде армію саме туди
+            var march = new March(id, serverId, garrisonId, homeX, homeY, fromX, fromY,
+                MarchTargetType.Village, fromVillageId, units, utcNow + duration, utcNow,
+                MarchIntent.Reinforce);
+
+            march.State = MarchState.Returning;
+
+            return march;
+        }
+
         /// <summary>Склад армії у вигляді словника (для повернення в гарнізон).</summary>
         public Dictionary<string, int> GetUnits() => _units.ToDictionary(u => u.UnitType, u => u.Count);
 

@@ -73,5 +73,18 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Where(r => r.ExpiresAt <= utcNow)
                 .ExecuteDeleteAsync(cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public Task<List<Garrison>> GetHoldingReinforcementsAsync(Guid ownerPlayerId,
+            CancellationToken cancellationToken = default)
+            => _context.Garrisons
+                .Include(g => g.Units)
+                .Include(g => g.TrainingOrders)
+                .Include(g => g.Wounded)
+                .Include(g => g.Recoverable)
+                .Include(g => g.Reinforcements)
+                .AsSplitQuery()
+                .Where(g => g.Reinforcements.Any(r => r.OwnerPlayerId == ownerPlayerId))
+                .ToListAsync(cancellationToken);
     }
 }

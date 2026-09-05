@@ -23,5 +23,7 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Видаляє прострочені стеки відновлюваних. Повертає кількість видалених рядків.</summary>
         Task<int> PurgeExpiredRecoverableAsync(DateTime utcNow, CancellationToken cancellationToken);
 
+        /// <summary>Гарнізони, де стоять підкріплення цього гравця. Для й для виходу з клану: свої війська розкидані по чужих селах.</summary>
+        Task<List<Garrison>> GetHoldingReinforcementsAsync(Guid ownerPlayerId, CancellationToken cancellationToken = default);
     }
 }
