@@ -1,24 +1,24 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EmpireIdle.API.DTOs
-{
-    // Атрибути на параметрах, не [property:]: MVC валідує record
-    // через параметри конструктора і кидає, якщо метадані на властивостях.
-    // Межі = обмеження БД: Player.Username(50), Player.Email(200).
-    public record RegisterRequest(
-        [Required, StringLength(50, MinimumLength = 3), RegularExpression("^[A-Za-z0-9._-]+$")]
+namespace EmpireIdle.API.DTOs;
+
+/// <summary>Реєстрація: створює користувача, гравця й одразу видає токени.</summary>
+public record RegisterRequest(
+    [Required, StringLength(50, MinimumLength = 3), RegularExpression("^[A-Za-z0-9._-]+$")]
         string UserName,
-        [Required, EmailAddress, StringLength(200)]
+    [Required, EmailAddress, StringLength(200)]
         string Email,
-        [Required, StringLength(128, MinimumLength = 8)]
+    [Required, StringLength(128, MinimumLength = 8)]
         string Password);
 
-    public record LoginRequest(
-        [Required, EmailAddress, StringLength(200)] string Email,
-        [Required, StringLength(128)] string Password);
+/// <summary>Вхід за поштою та паролем.</summary>
+public record LoginRequest(
+    [Required, EmailAddress, StringLength(200)] string Email,
+    [Required, StringLength(128)] string Password);
 
-    public record AuthResponse(string AccessToken, string RefreshToken, Guid PlayerId);
+/// <summary>Пара токенів і гравець, до якого вони прив'язані.</summary>
+public record AuthResponse(string AccessToken, string RefreshToken, Guid PlayerId);
 
-    public record RefreshRequest(
-        [Required, StringLength(128, MinimumLength = 64)] string RefreshToken);
-}
+/// <summary>Обмін refresh-токена на нову пару. Старий одразу ревокується.</summary>
+public record RefreshRequest(
+    [Required, StringLength(128, MinimumLength = 64)] string RefreshToken);
