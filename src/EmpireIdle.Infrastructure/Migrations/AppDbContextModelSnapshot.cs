@@ -1031,7 +1031,6 @@ namespace EmpireIdle.Infrastructure.Migrations
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ReinforcementUnit", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("ArrivedAt")
@@ -1051,13 +1050,17 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<string>("UnitType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GarrisonId");
+                    b.HasIndex("OwnerPlayerId");
 
-                    b.ToTable("ReinforcementUnit");
+                    b.HasIndex("GarrisonId", "OwnerPlayerId", "UnitType")
+                        .IsUnique();
+
+                    b.ToTable("ReinforcementUnits", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Server", b =>
