@@ -1,13 +1,10 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Domain.Entities;
+using EmpireIdle.Application.Inventory.ReadModels;
 using MediatR;
 
 namespace EmpireIdle.Application.Inventory.Queries
 {
-    /// <summary>Вміст інвентаря: стакові предмети, спорядження та діючі бусти.</summary>
-    public record InventoryContents(List<PlayerItem> Items, List<EquipmentItem> Equipment, List<ActiveEffect> ActiveEffects);
-
     /// <summary>Запит на інвентар гравця.</summary>
     public record GetInventoryQuery(Guid PlayerId) : IRequest<InventoryContents>, IPlayerScopedRequest;
 

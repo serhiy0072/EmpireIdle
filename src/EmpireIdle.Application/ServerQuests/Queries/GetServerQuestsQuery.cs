@@ -1,22 +1,12 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.ServerQuests.ReadModels;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
 namespace EmpireIdle.Application.ServerQuests.Queries
 {
-    /// <summary>Серверний квест очима конкретного гравця.</summary>
-    public record ServerQuestView(
-        string Key,
-        string DisplayName,
-        long Total,
-        long Target,
-        QuestState State,
-        DateTime? CompletedAt,
-        long MyContribution,
-        int MyRank);
-
     public record GetServerQuestsQuery(Guid PlayerId) : IRequest<List<ServerQuestView>>, IPlayerScopedRequest;
 
     public sealed class GetServerQuestsQueryHandler : IRequestHandler<GetServerQuestsQuery, List<ServerQuestView>>

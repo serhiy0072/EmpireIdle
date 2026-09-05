@@ -1,16 +1,9 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Rating.ReadModels;
 using MediatR;
 
 namespace EmpireIdle.Application.Rating.Queries
-{
-    /// <summary>Рядок топу.</summary>
-    public record LeaderboardEntry(
-        int Rank,
-        Guid PlayerId,
-        string PlayerName,
-        int Rating,
-        double Power);
-
+{ 
     /// <summary>
     /// Топ світу за рейтингом. Публічний у межах світу — на відміну від
     /// власної сили, чужий рейтинг гравець бачить: у цьому й сенс лідерборда.

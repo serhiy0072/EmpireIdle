@@ -1,17 +1,10 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Power.ReadModels;
 using MediatR;
 
 namespace EmpireIdle.Application.Power.Queries
 {
-    /// <summary>Бойова сила гравця з розкладкою по джерелах.</summary>
-    public record PlayerPowerView(
-        double Total,
-        double Army,
-        double Hero,
-        double Equipment,
-        DateTime UpdatedAt);
-
     public record GetPlayerPowerQuery(Guid PlayerId) : IRequest<PlayerPowerView>, IPlayerScopedRequest;
 
     public sealed class GetPlayerPowerQueryHandler : IRequestHandler<GetPlayerPowerQuery, PlayerPowerView>

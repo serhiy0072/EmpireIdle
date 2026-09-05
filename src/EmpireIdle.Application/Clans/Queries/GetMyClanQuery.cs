@@ -1,47 +1,12 @@
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
 namespace EmpireIdle.Application.Clans.Queries
 {
-    /// <summary>Учасник у складі клану.</summary>
-    public record ClanMemberView(
-        Guid PlayerId,
-        string PlayerName,
-        Guid RoleId,
-        string RoleName,
-        int Rank,
-        double Power,
-        DateTime JoinedAt,
-        DateTime LastActiveAt);
-
-    /// <summary>Роль клану — для екрана керування складом.</summary>
-    public record ClanRoleView(
-        Guid Id,
-        string Name,
-        int Rank,
-        ClanPermission Permissions,
-        bool IsLeaderRole,
-        bool IsDefaultRole);
-
-    /// <summary>Клан очима його учасника — зі складом, ролями і власними дозволами.</summary>
-    public record MyClan(
-        Guid Id,
-        string Name,
-        string Tag,
-        string Description,
-        ClanJoinPolicy JoinPolicy,
-        int MemberCount,
-        int Capacity,
-        DateTime CreatedAt,
-        Guid MyRoleId,
-        ClanPermission MyPermissions,
-        List<ClanRoleView> Roles,
-        List<ClanMemberView> Members);
-
     /// <summary>
     /// Клан гравця; null — гравець без клану. Це нормальний стан екрана,
     /// а не помилка, тож 404 тут був би брехнею.

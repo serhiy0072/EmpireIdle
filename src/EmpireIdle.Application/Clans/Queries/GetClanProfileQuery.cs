@@ -1,23 +1,11 @@
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
 namespace EmpireIdle.Application.Clans.Queries
 {
-    /// <summary>Картка чужого клану — те, що видно до вступу.</summary>
-    public record ClanProfile(
-        Guid Id,
-        string Name,
-        string Tag,
-        string Description,
-        ClanJoinPolicy JoinPolicy,
-        int MemberCount,
-        int Capacity,
-        bool IsFull,
-        DateTime CreatedAt);
-
     /// <summary>Клан за id. Склад назовні не віддається — його бачать лише свої.</summary>
     public record GetClanProfileQuery(Guid ClanId) : IRequest<ClanProfile>;
 

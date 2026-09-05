@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Quests.Commands;
 using EmpireIdle.Application.Quests.Queries;
+using EmpireIdle.Application.Quests.ReadModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

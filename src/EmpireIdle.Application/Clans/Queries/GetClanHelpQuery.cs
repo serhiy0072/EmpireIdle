@@ -1,25 +1,11 @@
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
 namespace EmpireIdle.Application.Clans.Queries
 {
-    /// <summary>Активний запит на кланову допомогу.</summary>
-    public record ClanHelpItem(
-        Guid RequestId,
-        Guid PlayerId,
-        string PlayerName,
-        ClanHelpTarget TargetType,
-        Guid TargetId,
-        int HelpCount,
-        int MaxHelpers,
-        bool AlreadyHelped,
-        bool IsMine,
-        DateTime CreatedAt,
-        DateTime ExpiresAt);
-
     /// <summary>Список допомоги клану — порожній, якщо гравець без клану.</summary>
     public record GetClanHelpQuery(Guid PlayerId) : IRequest<List<ClanHelpItem>>, IPlayerScopedRequest;
 

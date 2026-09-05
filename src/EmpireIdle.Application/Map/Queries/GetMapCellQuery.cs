@@ -1,13 +1,11 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Map.ReadModels;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
 namespace EmpireIdle.Application.Map.Queries
 {
-    /// <summary>Дані окупанта клітини.</summary>
-    public record MapCellOccupant(string OccupantType,Guid OccupantId,string? OccupantName,int? MonsterLevel,Dictionary<string, int>? MonsterUnits);
-
     /// <summary>Хто стоїть на клітині.</summary>
     public record GetMapCellQuery(int ServerId, int X, int Y) : IRequest<MapCellOccupant?>;
 
