@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
+using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Application.ServerQuests.Commands;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;

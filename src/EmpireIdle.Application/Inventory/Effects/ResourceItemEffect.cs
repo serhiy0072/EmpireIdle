@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Application.Inventory.Effects

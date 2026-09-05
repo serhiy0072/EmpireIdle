@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;

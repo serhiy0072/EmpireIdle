@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
+using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Application.Inventory.Effects;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;

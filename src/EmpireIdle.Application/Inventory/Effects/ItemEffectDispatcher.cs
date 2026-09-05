@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Application.Inventory.Effects

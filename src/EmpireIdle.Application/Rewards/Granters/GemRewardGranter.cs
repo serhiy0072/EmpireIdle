@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Application.Rewards.Granters
