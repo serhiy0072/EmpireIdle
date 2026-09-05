@@ -17,5 +17,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Скільки днів неактивності лідера запускає автопередачу.</summary>
         public int LeaderInactivityDays { get; set; } = 7;
+
+        /// <summary>Скільки допомог приймає один запит: кап скорочення ділиться на внесок.</summary>
+        public int MaxHelpers => (int)Math.Round(MaxHelpShare / HelpSharePerPlayer);
     }
 }

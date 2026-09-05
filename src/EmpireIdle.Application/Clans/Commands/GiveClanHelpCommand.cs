@@ -65,7 +65,7 @@ namespace EmpireIdle.Application.Clans.Commands
                 throw new RequirementNotMetException("That request belongs to another clan.");
 
             var clanConfig = _catalog.Config.Clan;
-            var maxHelpers = (int)Math.Round(clanConfig.MaxHelpShare / clanConfig.HelpSharePerPlayer);
+            var maxHelpers = clanConfig.MaxHelpers;
 
             // Агрегат перевіряє повтор, кап і строк — і повертає, скільки зрізати
             var reduction = helpRequest.AcceptHelp(

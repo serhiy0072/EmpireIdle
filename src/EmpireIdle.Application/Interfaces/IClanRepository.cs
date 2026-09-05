@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 
 namespace EmpireIdle.Application.Interfaces
 {
@@ -21,5 +22,18 @@ namespace EmpireIdle.Application.Interfaces
         Task AddAsync(Clan clan, CancellationToken cancellationToken = default);
 
         void Remove(Clan clan);
+
+        /// <summary>
+        /// Сторінка кланів світу з пошуком за назвою або тегом, без регістру.
+        /// Total — усього збігів, для пагінації.
+        /// </summary>
+        Task<(IReadOnlyList<ClanCard> Items, int Total)> BrowseAsync(string? search, int skip, int take,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Картка одного клану; null — немає.</summary>
+        Task<ClanCard?> GetCardAsync(Guid clanId, CancellationToken cancellationToken = default);
+
+        /// <summary>Id клану гравця; null — без клану. Для читань, яким склад не потрібен.</summary>
+        Task<Guid?> GetClanIdByMemberAsync(Guid playerId, CancellationToken cancellationToken = default);
     }
 }
