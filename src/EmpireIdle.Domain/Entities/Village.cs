@@ -1,6 +1,6 @@
-using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities

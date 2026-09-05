@@ -4,6 +4,7 @@ using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

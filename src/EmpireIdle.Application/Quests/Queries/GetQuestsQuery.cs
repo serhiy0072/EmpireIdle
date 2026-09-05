@@ -4,6 +4,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 
 namespace EmpireIdle.Application.Quests.Queries

@@ -1,5 +1,5 @@
 using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Tests.Entities
 {

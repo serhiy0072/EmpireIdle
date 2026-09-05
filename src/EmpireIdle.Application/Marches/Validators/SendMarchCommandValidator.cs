@@ -1,5 +1,5 @@
 using EmpireIdle.Application.Marches.Commands;
-using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using FluentValidation;
 
 namespace EmpireIdle.Application.Marches.Validators

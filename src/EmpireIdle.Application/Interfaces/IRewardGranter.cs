@@ -1,4 +1,4 @@
-using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Application.Interfaces
 {
