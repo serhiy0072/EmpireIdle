@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Числа кланової механіки.</summary>
     public class ClanConfig

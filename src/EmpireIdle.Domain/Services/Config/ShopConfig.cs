@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Асортимент офіційного магазину.</summary>
     public class ShopConfig

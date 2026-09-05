@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Модифікатор сили типу юніта на певній місцевості.</summary>
     public class TerrainBonus

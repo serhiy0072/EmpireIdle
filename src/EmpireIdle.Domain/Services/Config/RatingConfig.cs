@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>
     /// Ваги рейтингу. Кожен компонент нормалізується до 0..1 за своїм

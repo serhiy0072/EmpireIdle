@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Конфігурація типу монстра.</summary>
     public class MonsterConfig

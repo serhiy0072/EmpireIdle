@@ -1,6 +1,6 @@
 using EmpireIdle.Domain.Enums;
 
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Одна ціль квесту.</summary>
     public class QuestObjectiveConfig

@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Координати будівлі на карті селища (у відсотках від розміру полотна).</summary>
     public class BuildingPosition

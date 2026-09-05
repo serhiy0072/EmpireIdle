@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Одна нагорода. Спільна для квестів, віх, івентів, лутбоксів.</summary>
     public class RewardConfig

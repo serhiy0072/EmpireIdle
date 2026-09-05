@@ -1,6 +1,6 @@
 using EmpireIdle.Domain.Enums;
 
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Опис квесту з quests.json. Додати квест = дописати JSON.</summary>
     public class QuestConfig

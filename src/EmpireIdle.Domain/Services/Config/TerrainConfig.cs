@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Services.Config
 {
 
     /// <summary>Тип місцевості: частота появи та ігрові властивості клітини.</summary>
