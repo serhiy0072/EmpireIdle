@@ -25,5 +25,12 @@ namespace EmpireIdle.Application.Interfaces
             CancellationToken cancellationToken = default);
 
         Task AddAsync(ClanRequest request, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Усі відкриті заявки й запрошення гравця, з трекінгом.
+        /// Потрібні, щоб закрити їх, коли він кудись вступив.
+        /// </summary>
+        Task<List<ClanRequest>> GetPendingForPlayerAsync(Guid playerId, DateTime utcNow,
+            CancellationToken cancellationToken = default);
     }
 }

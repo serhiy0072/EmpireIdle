@@ -97,6 +97,20 @@ namespace EmpireIdle.Domain.Entities
             return member is null ? null : _roles.FirstOrDefault(r => r.Id == member.RoleId);
         }
 
+        /// <summary>
+        /// Перевіряє право виконавця. Публічний, на відміну від внутрішніх
+        /// перевірок у Kick і AssignRole: рекрутинг живе поза агрегатом —
+        /// заявник ще не член клану, а сама заявка окрема сутність.
+        /// </summary>
+        public void EnsureCan(Guid actorId, ClanPermission permission)
+        {
+            var role = RoleOf(actorId)
+                ?? throw new RequirementNotMetException("You are not in this clan.");
+
+            if (!role.Permissions.HasFlag(permission))
+                throw new RequirementNotMetException($"Your role lacks the {permission} permission.");
+        }
+
         // ---------- Склад ----------
 
         /// <summary>Приймає гравця в роль за замовчуванням.</summary>

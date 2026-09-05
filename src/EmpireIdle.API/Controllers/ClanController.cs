@@ -112,15 +112,18 @@ namespace EmpireIdle.API.Controllers
             return Created((string?)null, clanId);
         }
 
-        /// <summary>Вступити у відкритий клан.</summary>
+        /// <summary>
+        /// Вступити в клан. Відкритий приймає одразу, закритий створює заявку —
+        /// що саме сталося, каже поле відповіді.
+        /// </summary>
         [HttpPost("{playerId:guid}/join/{clanId:guid}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Join(Guid playerId, Guid clanId, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new JoinClanCommand(playerId, clanId), cancellationToken);
+            var outcome = await _mediator.Send(new JoinClanCommand(playerId, clanId), cancellationToken);
 
-            return NoContent();
+            return Ok(outcome.ToString());
         }
 
         /// <summary>Вийти з клану. Лідер спершу передає лідерство.</summary>
