@@ -420,5 +420,16 @@ namespace EmpireIdle.Domain.Entities
 
             Touch(utcNow);
         }
+
+        /// <summary>
+        /// Скільки чужих юнітів вміщає посольство: сума рівнів × слоти на рівень.
+        /// Недобудоване не рахується.
+        /// </summary>
+        public int ReinforcementCapacity(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+            => Buildings
+                .Where(b => !b.IsUnderConstruction)
+                .Sum(b => buildingConfigs.TryGetValue(b.Type, out var cfg)
+                    ? cfg.ReinforcementSlotsPerLevel * b.Level.Value
+                    : 0);
     }
 }

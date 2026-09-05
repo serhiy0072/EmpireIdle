@@ -21,14 +21,14 @@ namespace EmpireIdle.API.Controllers
             _mediator = mediator;
         }
 
-        /// <summary>Відправити армію до цілі.</summary>
+        /// <summary>Відправити армію до цілі: в атаку на монстра або підкріпленням до села союзника.</summary>
         [HttpPost("{playerId:guid}")]
         [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SendMarch(Guid playerId, [FromBody] SendMarchRequest request, CancellationToken cancellationToken)
         {
             var marchId = await _mediator.Send(
-                new SendMarchCommand(playerId, request.TargetType, request.TargetId, request.Units),
+                new SendMarchCommand(playerId, request.TargetType, request.TargetId, request.Units, request.Intent),
                 cancellationToken);
 
             return Created((string?)null, marchId);

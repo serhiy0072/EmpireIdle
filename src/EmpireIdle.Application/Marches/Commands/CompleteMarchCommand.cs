@@ -20,6 +20,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMonsterRepository _monsterRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IBattleReportRepository _battleReportRepository;
+        private readonly IClanRepository _clanRepository;
         private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
@@ -38,6 +39,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IMonsterRepository monsterRepository,
             IVillageRepository villageRepository,
             IBattleReportRepository battleReportRepository,
+            IClanRepository clanRepository,
             GameCatalog catalog,
             TimeProvider timeProvider,
             MonsterArmyBuilder armyBuilder,
@@ -54,6 +56,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
             _battleReportRepository = battleReportRepository;
+            _clanRepository = clanRepository;
             _armyBuilder = armyBuilder;
             _terrain = terrain;
             _calculator = calculator;
@@ -77,7 +80,10 @@ namespace EmpireIdle.Application.Marches.Commands
 
             if (march.State == MarchState.Outbound)
             {
-                await ResolveBattleAsync(march, now, cancellationToken);
+                if (march.Intent == MarchIntent.Reinforce)
+                    await DeliverReinforcementsAsync(march, now, cancellationToken);
+                else
+                    await ResolveBattleAsync(march, now, cancellationToken);
             }
             else if (march.State == MarchState.Returning)
             {
@@ -193,6 +199,66 @@ namespace EmpireIdle.Application.Marches.Commands
                split.Wounded.Values.Sum(), split.Recoverable.Values.Sum(), split.Dead.Values.Sum());
 
             TurnMarchBack(march, march.GetUnits(), utcNow);
+        }
+
+        /// <summary>
+        /// Ставить армію в гарнізон союзника.
+        ///
+        /// Якщо за час дороги союзник вийшов із клану, село зникло або
+        /// посольство переповнилось — армія розвертається. Кидати виняток
+        /// тут не можна: це прогін сканера, а не запит гравця, і падіння
+        /// заблокувало б решту маршів у пакеті.
+        /// </summary>
+        private async Task DeliverReinforcementsAsync(March march, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            var units = march.GetUnits();
+
+            var ownerGarrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken)
+                ?? throw new InvalidOperationException($"Garrison {march.GarrisonId} not found for march {march.Id}.");
+
+            var ownerVillage = await _villageRepository.GetByIdAsync(ownerGarrison.VillageId, cancellationToken)
+                ?? throw new InvalidOperationException($"Village {ownerGarrison.VillageId} not found for garrison {ownerGarrison.Id}.");
+
+            var targetVillage = await _villageRepository.GetByIdAsync(march.TargetId, cancellationToken);
+            var targetGarrison = targetVillage is null
+                ? null
+                : await _garrisonRepository.GetByVillageIdAsync(targetVillage.Id, cancellationToken);
+
+            if (targetVillage is null || targetGarrison is null)
+            {
+                TurnMarchBack(march, units, utcNow);
+                return;
+            }
+
+            var ownerClan = await _clanRepository.GetClanIdByMemberAsync(ownerVillage.PlayerId, cancellationToken);
+            var targetClan = await _clanRepository.GetClanIdByMemberAsync(targetVillage.PlayerId, cancellationToken);
+
+            if (ownerClan is null || ownerClan != targetClan)
+            {
+                _logger.LogInformation("March {MarchId} turned back: no longer clanmates", march.Id);
+
+                TurnMarchBack(march, units, utcNow);
+                return;
+            }
+
+            var capacity = targetVillage.ReinforcementCapacity(_catalog.Buildings);
+            var incoming = units.Values.Sum();
+
+            if (targetGarrison.ReinforcementCount + incoming > capacity)
+            {
+                _logger.LogInformation(
+                    "March {MarchId} turned back: embassy at village {VillageId} has no room for {Incoming} units",
+                    march.Id, targetVillage.Id, incoming);
+
+                TurnMarchBack(march, units, utcNow);
+                return;
+            }
+
+            targetGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, units, capacity, utcNow);
+            march.Delivered(utcNow);
+
+            _logger.LogInformation("March {MarchId} delivered {Incoming} units to village {VillageId}",
+                march.Id, incoming, targetVillage.Id);
         }
 
         /// <summary>Розвертає похід додому (або завершує, якщо армія загинула).</summary>

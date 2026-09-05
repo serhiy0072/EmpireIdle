@@ -23,6 +23,16 @@ namespace EmpireIdle.Domain.Entities
     }
 
     /// <summary>
+    /// Що армія робить на цілі. Ортогонально до TargetType: той каже,
+    /// що стоїть у клітині, цей — навіщо ми туди йдемо.
+    /// </summary>
+    public enum MarchIntent
+    {
+        Attack = 1,
+        Reinforce = 2
+    }
+
+    /// <summary>
     /// Похід армії до цілі. Юніти зняті з гарнізону на час маршу
     /// і зберігаються тут (склад армії).
     /// </summary>
@@ -42,6 +52,7 @@ namespace EmpireIdle.Domain.Entities
 
         public MarchTargetType TargetType { get; private set; }
         public Guid TargetId { get; private set; }
+        public MarchIntent Intent { get; private set; }
 
         public MarchState State { get; private set; }
 
@@ -66,7 +77,7 @@ namespace EmpireIdle.Domain.Entities
         public DateTime UpdatedAt { get; private set; }
 
         public March(Guid id, int serverId, Guid garrisonId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
-            Guid targetId, IReadOnlyDictionary<string, int> units, DateTime arrivesAt, DateTime departedAt) : base(id)
+            Guid targetId, IReadOnlyDictionary<string, int> units, DateTime arrivesAt, DateTime departedAt, MarchIntent intent = MarchIntent.Attack) : base(id)
         {
             ServerId = serverId;
             GarrisonId = garrisonId;
@@ -79,6 +90,7 @@ namespace EmpireIdle.Domain.Entities
             State = MarchState.Outbound;
             ArrivesAt = arrivesAt;
             DepartedAt = departedAt;
+            Intent = intent;
 
             foreach (var (unitType, count) in units)
                 _units.Add(new MarchUnit(Guid.NewGuid(), id, unitType, count));
@@ -122,6 +134,20 @@ namespace EmpireIdle.Domain.Entities
             OriginY = originY;
             State = MarchState.Returning;
             ArrivesAt = utcNow + travelled;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Армія лишається в чужому гарнізоні: похід завершено на місці,
+        /// без розвороту. Події про повернення немає — юніти додому не йшли.
+        /// </summary>
+        public void Delivered(DateTime utcNow)
+        {
+            if (State != MarchState.Outbound)
+                throw new InvalidStateException($"March {Id} is not outbound.");
+
+            State = MarchState.Completed;
 
             Touch(utcNow);
         }

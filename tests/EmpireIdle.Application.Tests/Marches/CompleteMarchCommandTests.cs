@@ -26,6 +26,7 @@ public class CompleteMarchCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IBattleReportRepository _reports = Substitute.For<IBattleReportRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
     private static GameConfig Config() => new()
@@ -81,7 +82,7 @@ public class CompleteMarchCommandTests
         var terrain = new TerrainGenerator(config.Map);
 
         return new CompleteMarchCommandHandler(
-            _marches, _garrisons, _unitOfWork, _map, _monsters, _villages, _reports,
+            _marches, _garrisons, _unitOfWork, _map, _monsters, _villages, _reports, _clans,
             catalog, new FakeTimeProvider(Now),
             new MonsterArmyBuilder(catalog),
             terrain,
