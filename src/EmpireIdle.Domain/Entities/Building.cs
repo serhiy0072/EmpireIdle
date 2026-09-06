@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
@@ -129,18 +130,19 @@ namespace EmpireIdle.Domain.Entities
         /// Завершити будівництво: підняти рівень і вийти зі стану будівництва.
         /// Викликається сканером, коли настав ConstructionCompletesAt.
         /// </summary>
-        /// <param name="utcNow">
-        /// Поточний час. Зсуває мітку накопичення — інакше період будівництва
-        /// порахувався б як виробіток, ще й за новою (вищою) ставкою.
-        /// </param>
+        /// <param name="utcNow">Поточний час — запобіжник, якщо викликано раніше строку.</param>
         public void CompleteConstruction(DateTime utcNow)
         {
-            if (!IsUnderConstruction)
+            // Патерн замість !IsUnderConstruction: дає ненульовий локал,
+            // інакше компілятор не бачить зв'язку і попереджає на .Value
+            if (ConstructionCompletesAt is not { } completesAt)
                 throw new InvalidStateException($"Building {Id} is not under construction.");
 
+            // Виробництво стартує з моменту завершення, а не з приходу сканера:
+            // інакше кожна хвилина затримки Hangfire — втрачений виробіток
+            LastAccruedAt = completesAt <= utcNow ? completesAt : utcNow;
             Level = Level.Next();
             ConstructionCompletesAt = null;
-            LastAccruedAt = utcNow;
         }
 
         /// <summary>Прискорити будівництво (speedup за gems або допомога союзника).</summary>

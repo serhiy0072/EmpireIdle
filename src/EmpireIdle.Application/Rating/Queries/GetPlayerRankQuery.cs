@@ -1,22 +1,10 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Rating.ReadModels;
 using MediatR;
 
 namespace EmpireIdle.Application.Rating.Queries
-{
-    /// <summary>Місце гравця з розкладкою, звідки взявся рейтинг.</summary>
-    public record PlayerRankView(
-        int Rank,
-        int Rating,
-        double PowerScore,
-        double DevelopmentScore,
-        double ActivityScore,
-        int MonstersDefeated,
-        int BattlesWon,
-        int QuestsCompleted,
-        DateTime UpdatedAt);
-
-    public record GetPlayerRankQuery(Guid PlayerId) : IRequest<PlayerRankView>, IPlayerScopedRequest;
+{    public record GetPlayerRankQuery(Guid PlayerId) : IRequest<PlayerRankView>, IPlayerScopedRequest;
 
     public sealed class GetPlayerRankQueryHandler : IRequestHandler<GetPlayerRankQuery, PlayerRankView>
     {

@@ -1,10 +1,24 @@
-namespace EmpireIdle.API.DTOs
-{
-    public record RegisterRequest(string UserName, string Email, string Password);
+using System.ComponentModel.DataAnnotations;
 
-    public record LoginRequest(string Email, string Password);
+namespace EmpireIdle.API.DTOs;
 
-    public record AuthResponse(string AccessToken, string RefreshToken, Guid PlayerId);
+/// <summary>Реєстрація: створює користувача, гравця й одразу видає токени.</summary>
+public record RegisterRequest(
+    [Required, StringLength(50, MinimumLength = 3), RegularExpression("^[A-Za-z0-9._-]+$")]
+        string UserName,
+    [Required, EmailAddress, StringLength(200)]
+        string Email,
+    [Required, StringLength(128, MinimumLength = 8)]
+        string Password);
 
-    public record RefreshRequest(string RefreshToken);
-}
+/// <summary>Вхід за поштою та паролем.</summary>
+public record LoginRequest(
+    [Required, EmailAddress, StringLength(200)] string Email,
+    [Required, StringLength(128)] string Password);
+
+/// <summary>Пара токенів і гравець, до якого вони прив'язані.</summary>
+public record AuthResponse(string AccessToken, string RefreshToken, Guid PlayerId);
+
+/// <summary>Обмін refresh-токена на нову пару. Старий одразу ревокується.</summary>
+public record RefreshRequest(
+    [Required, StringLength(128, MinimumLength = 64)] string RefreshToken);

@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Garrisons.ReadModels;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -7,27 +8,6 @@ namespace EmpireIdle.Application.Garrisons.Queries
 {
     /// <summary>Запит на отримання гарнізону гравця в поданні для клієнта.</summary>
     public record GetGarrisonQuery(Guid PlayerId) : IRequest<GarrisonView>, IPlayerScopedRequest;
-
-    /// <summary>Гарнізон у поданні для клієнта.</summary>
-    public record GarrisonView(
-        Guid Id,
-        Guid VillageId,
-        List<UnitView> Units,
-        List<UnitView> Wounded,
-        List<RecoverableUnitView> Recoverable,
-        List<TrainingOrderView> TrainingOrders);
-
-    /// <summary>Юніти одного типу.</summary>
-    public record UnitView(string UnitType, int Count);
-
-    /// <summary>
-    /// Юніти, яких ще можна відновити за gems. Ціна залежить від каталогу,
-    /// а список відфільтрований за часом — тому збирається тут, не в контролері.
-    /// </summary>
-    public record RecoverableUnitView(string UnitType, int Count, DateTime ExpiresAt, int CostGems);
-
-    /// <summary>Замовлення тренування в черзі.</summary>
-    public record TrainingOrderView(Guid Id, string UnitType, int Count, DateTime CompletesAt);
 
     public sealed class GetGarrisonQueryHandler : IRequestHandler<GetGarrisonQuery, GarrisonView>
     {
@@ -73,9 +53,7 @@ namespace EmpireIdle.Application.Garrisons.Queries
                 garrison.Units.Select(u => new UnitView(u.UnitType, u.Count)).ToList(),
                 garrison.Wounded.Select(w => new UnitView(w.UnitType, w.Count)).ToList(),
                 recoverable,
-                garrison.TrainingOrders
-                    .Select(o => new TrainingOrderView(o.Id, o.UnitType, o.Count, o.CompletesAt))
-                    .ToList());
+                garrison.TrainingOrders.Select(o => new TrainingOrderView(o.Id, o.UnitType, o.Count, o.CompletesAt)).ToList());
         }
 
         private int RecoverCost(string unitType)

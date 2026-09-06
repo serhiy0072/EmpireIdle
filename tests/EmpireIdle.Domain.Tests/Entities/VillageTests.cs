@@ -1,5 +1,5 @@
 using EmpireIdle.Domain.Exceptions;
-using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Tests.Entities
@@ -186,7 +186,6 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestData.CreateVillage();
             village.Resources.Single(r => r.ResourceType == "gold").Add(100);
             village.Resources.Single(r => r.ResourceType == "food").Add(10);
-
             var cost = new List<ResourceCost>
             {
                 new() { Resource = "gold", Amount = 10 },

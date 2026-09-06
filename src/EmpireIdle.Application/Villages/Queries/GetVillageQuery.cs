@@ -1,7 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Application.Villages.ReadModels;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
@@ -11,31 +11,6 @@ namespace EmpireIdle.Application.Villages.Queries
     /// Запит на отримання села гравця в поданні для клієнта.
     /// </summary>
     public record GetVillageQuery(Guid PlayerId) : IRequest<VillageView>, IPlayerScopedRequest;
-
-    /// <summary>Село в поданні для клієнта.</summary>
-    public record VillageView(
-        Guid Id,
-        string Name,
-        List<BuildingView> Buildings,
-        List<ResourceView> Resources);
-
-    /// <summary>
-    /// Будівля з порахованим буфером. StoredAmount — величина на момент запиту,
-    /// вона залежить від часу й буста, тому рахується тут, а не в контролері.
-    /// </summary>
-    public record BuildingView(
-        Guid Id,
-        string Type,
-        int Level,
-        DateTime LastCollectedAt,
-        int StoredAmount,
-        int StorageCap,
-        DateTime? ConstructionCompletesAt,
-        bool IsUnderConstruction,
-        bool IsUnlocked);
-
-    /// <summary>Ресурс села.</summary>
-    public record ResourceView(string ResourceType, int Amount);
 
     /// <summary>
     /// Обробник запиту GetVillageQuery.

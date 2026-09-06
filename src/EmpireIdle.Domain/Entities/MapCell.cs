@@ -1,12 +1,7 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Entities
 {
-    /// <summary>Що займає клітину карти.</summary>
-    public enum MapOccupantType
-    {
-        Village = 1,
-        Monster = 2
-    }
-
     /// <summary>
     /// Зайнята клітина карти. Sparse-модель: порожні клітини в БД не зберігаються,
     /// їхня місцевість обчислюється TerrainGenerator'ом на льоту.

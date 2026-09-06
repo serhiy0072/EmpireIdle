@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Services.Config;
+
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>
@@ -54,27 +56,16 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Квести з Config/quests.json — усі гілки: intro, military, milestones, daily, server.</summary>
         public List<QuestConfig> Quests { get; set; } = new();
 
-        // <summary>
-        /// Скільки юнітів гарнізон може тримати на кожен рівень будівлі, що гейтить юніта (казарми, стайня).
-        /// У ліміт входять юніти в гарнізоні та в черзі тренування.
-        /// Не входять: юніти в маршах (зняті з гарнізону), поранені
-        /// й відновлювані (не б'ються).
-        /// </summary>
+        /// <summary>Ліміт армії на рівень будівлі, що гейтить юніта; марші й поранені не рахуються.</summary>
         public int ArmyCapacityPerBarracksLevel { get; set; }
 
-        /// <summary>
-        /// Скільки рівнів будівель відкриває один рівень сервера.
-        /// Стеля ратуші = ServerLevel × BuildingLevelsPerTier.
-        /// </summary>
+        /// <summary>Скільки рівнів будівель відкриває один рівень сервера.</summary>
         public int BuildingLevelsPerTier { get; set; } = 10;
 
-        /// <summary>
-        /// Ваги й орієнтири серверного рейтингу.
-        ///
-        /// Окремо від Combat, бо рейтинг не бере участі в бою: він міряє
-        /// становище гравця у світі, а не результат сутички. Змішувати їх
-        /// означало б, що ребаланс статів юнітів чіпає лідерборд.
-        /// </summary>
+        /// <summary>Ваги й орієнтири серверного рейтингу.</summary>
         public RatingConfig Rating { get; set; } = new();
+
+        /// <summary>Місткість, кап допомоги, строк неактивності лідера.</summary>
+        public ClanConfig Clan { get; set; } = new();
     }
 }

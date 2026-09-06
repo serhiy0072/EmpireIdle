@@ -1,8 +1,10 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -25,6 +27,7 @@ public class SendMarchCommandTests
     private readonly IMonsterRepository _monsters = Substitute.For<IMonsterRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
+    private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -47,7 +50,8 @@ public class SendMarchCommandTests
         _serverContext.ServerId.Returns(1);
 
         return new SendMarchCommandHandler(
-            _villages, _garrisons, _marches, _monsters, _unitOfWork, _serverContext,
+            _villages, _garrisons, _marches, _monsters, _clans, _unitOfWork, _serverContext,
+            catalog,
             new FakeTimeProvider(Now),
             new MarchCalculator(new TerrainGenerator(config.Map), catalog),
             NullLogger<SendMarchCommandHandler>.Instance);

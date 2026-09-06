@@ -164,5 +164,181 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Throws<RequirementNotMetException>(() =>
                 garrison.TrainUnits("infantry", 2, 10, 6, TimeSpan.FromMinutes(4), DateTime.UtcNow.AddMinutes(11)));
         }
+
+        /// <summary>
+        /// Підкріплення лягають окремою колекцією й не змішуються з власною
+        /// армією: ліміт у них свій, від посольства.
+        /// </summary>
+        [Fact]
+        public void AddReinforcements_ShouldKeepAlliedUnitsSeparateFromOwnArmy()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var ownerId = Guid.NewGuid();
+            var ownerGarrisonId = Guid.NewGuid();
+            var now = DateTime.UtcNow;
+
+            // Act
+            garrison.AddReinforcements(ownerId, ownerGarrisonId,
+                new Dictionary<string, int> { ["infantry"] = 10, ["archer"] = 5 }, 100, now);
+
+            // Assert
+            Assert.Equal(15, garrison.ReinforcementCount);
+            Assert.Empty(garrison.Units);
+            Assert.Equal(2, garrison.Reinforcements.Count);
+        }
+
+        /// <summary>
+        /// Друга партія від того самого власника додається в наявний стек,
+        /// а не заводить другий рядок на ту саму пару.
+        /// </summary>
+        [Fact]
+        public void AddReinforcements_ShouldStackByOwnerAndType()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var ownerId = Guid.NewGuid();
+            var ownerGarrisonId = Guid.NewGuid();
+            var now = DateTime.UtcNow;
+
+            garrison.AddReinforcements(ownerId, ownerGarrisonId,
+                new Dictionary<string, int> { ["infantry"] = 10 }, 100, now);
+
+            // Act
+            garrison.AddReinforcements(ownerId, ownerGarrisonId,
+                new Dictionary<string, int> { ["infantry"] = 7 }, 100, now.AddMinutes(30));
+
+            // Assert
+            var stack = Assert.Single(garrison.Reinforcements);
+            Assert.Equal(17, stack.Count);
+        }
+
+        /// <summary>
+        /// Двоє союзників тримаються окремими стеками: повернення адресне,
+        /// і злити їх означало б утратити, кому що віддавати.
+        /// </summary>
+        [Fact]
+        public void AddReinforcements_ShouldNotMergeDifferentOwners()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var first = Guid.NewGuid();
+            var second = Guid.NewGuid();
+            var now = DateTime.UtcNow;
+
+            // Act
+            garrison.AddReinforcements(first, Guid.NewGuid(),
+                new Dictionary<string, int> { ["infantry"] = 10 }, 100, now);
+            garrison.AddReinforcements(second, Guid.NewGuid(),
+                new Dictionary<string, int> { ["infantry"] = 4 }, 100, now);
+
+            // Assert
+            Assert.Equal(2, garrison.Reinforcements.Count);
+            Assert.Equal(14, garrison.ReinforcementCount);
+            Assert.Equal(2, garrison.ReinforcementOwners().Count);
+        }
+
+        /// <summary>Понад місткість посольства партія не приймається — цілком, не частково.</summary>
+        [Fact]
+        public void AddReinforcements_ShouldRejectBatchOverCapacity()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var ownerId = Guid.NewGuid();
+            var now = DateTime.UtcNow;
+
+            garrison.AddReinforcements(ownerId, Guid.NewGuid(),
+                new Dictionary<string, int> { ["infantry"] = 18 }, 20, now);
+
+            // Act
+            var act = () => garrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
+                new Dictionary<string, int> { ["archer"] = 5 }, 20, now);
+
+            // Assert
+            Assert.Throws<RequirementNotMetException>(act);
+            Assert.Equal(18, garrison.ReinforcementCount);
+        }
+
+        /// <summary>Порожня партія — помилка виклику, а не мовчазний no-op.</summary>
+        [Fact]
+        public void AddReinforcements_ShouldRejectEmptyBatch()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            // Act
+            var act = () => garrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
+                new Dictionary<string, int> { ["infantry"] = 0 }, 100, DateTime.UtcNow);
+
+            // Assert
+            Assert.Throws<RequirementNotMetException>(act);
+        }
+
+        /// <summary>
+        /// Зняття забирає війська лише одного власника й повертає їх склад —
+        /// саме він поїде додому маршем.
+        /// </summary>
+        [Fact]
+        public void WithdrawReinforcements_ShouldReturnOnlyThatOwnersUnits()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var leaving = Guid.NewGuid();
+            var staying = Guid.NewGuid();
+            var now = DateTime.UtcNow;
+
+            garrison.AddReinforcements(leaving, Guid.NewGuid(),
+                new Dictionary<string, int> { ["infantry"] = 10, ["archer"] = 3 }, 100, now);
+            garrison.AddReinforcements(staying, Guid.NewGuid(),
+                new Dictionary<string, int> { ["infantry"] = 6 }, 100, now);
+
+            // Act
+            var withdrawn = garrison.WithdrawReinforcements(leaving, now.AddHours(1));
+
+            // Assert
+            Assert.Equal(10, withdrawn["infantry"]);
+            Assert.Equal(3, withdrawn["archer"]);
+            Assert.Equal(6, garrison.ReinforcementCount);
+            Assert.DoesNotContain(garrison.Reinforcements, r => r.OwnerPlayerId == leaving);
+        }
+
+        /// <summary>
+        /// Зняття в того, хто нічого не тримає, дає порожній словник:
+        /// автоповернення при кіку викликається для будь-кого, і кидати тут не можна.
+        /// </summary>
+        [Fact]
+        public void WithdrawReinforcements_ShouldReturnEmpty_WhenOwnerHasNothingHere()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            // Act
+            var withdrawn = garrison.WithdrawReinforcements(Guid.NewGuid(), DateTime.UtcNow);
+
+            // Assert
+            Assert.Empty(withdrawn);
+        }
+
+        /// <summary>
+        /// Чужі підкріплення не займають ліміт власної армії: він рахується
+        /// від казарм і стосується лише своїх юнітів.
+        /// </summary>
+        [Fact]
+        public void TrainUnits_ShouldIgnoreReinforcements_WhenCheckingArmyCapacity()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
+                new Dictionary<string, int> { ["infantry"] = 50 }, 100, now);
+
+            // Act
+            garrison.TrainUnits("infantry", 3, 5, 5, TimeSpan.FromMinutes(6), now);
+
+            // Assert
+            var order = Assert.Single(garrison.TrainingOrders);
+            Assert.Equal(3, order.Count);
+        }
     }
 }

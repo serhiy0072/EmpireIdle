@@ -19,5 +19,8 @@ namespace EmpireIdle.Application.Interfaces
         /// події, що змінює армію — унікальний індекс на PlayerId не дасть другий.
         /// </summary>
         Task AddAsync(PlayerPower power, CancellationToken cancellationToken = default);
+
+        /// <summary>Сила лише вказаних гравців — для топу, одним запитом.</summary>
+        Task<Dictionary<Guid, double>> GetTotalPowerAsync(IReadOnlyCollection<Guid> playerIds, CancellationToken cancellationToken = default);
     }
 }

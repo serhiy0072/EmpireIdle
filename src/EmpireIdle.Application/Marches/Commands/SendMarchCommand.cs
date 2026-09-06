@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -15,7 +16,8 @@ namespace EmpireIdle.Application.Marches.Commands
         Guid PlayerId,
         MarchTargetType TargetType,
         Guid TargetId,
-        Dictionary<string, int> Units) : IRequest<Guid>, IPlayerScopedRequest, IIdempotentRequest;
+        Dictionary<string, int> Units,
+        MarchIntent Intent = MarchIntent.Attack) : IRequest<Guid>, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
     /// Обробник SendMarchCommand: знімає юнітів із гарнізону,
@@ -31,6 +33,8 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IMonsterRepository _monsterRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerContext _serverContext;
+        private readonly IClanRepository _clanRepository;
+        private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly MarchCalculator _calculator;
         private readonly ILogger<SendMarchCommandHandler> _logger;
@@ -40,8 +44,10 @@ namespace EmpireIdle.Application.Marches.Commands
             IGarrisonRepository garrisonRepository,
             IMarchRepository marchRepository,
             IMonsterRepository monsterRepository,
+            IClanRepository clanRepository,
             IUnitOfWork unitOfWork,
             IServerContext serverContext,
+            GameCatalog catalog,
             TimeProvider timeProvider,
             MarchCalculator calculator,
             ILogger<SendMarchCommandHandler> logger)
@@ -50,6 +56,8 @@ namespace EmpireIdle.Application.Marches.Commands
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
             _monsterRepository = monsterRepository;
+            _clanRepository = clanRepository;
+            _catalog = catalog;
             _serverContext = serverContext;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
@@ -74,6 +82,10 @@ namespace EmpireIdle.Application.Marches.Commands
 
             var (targetX, targetY) = await ResolveTargetAsync(request, cancellationToken);
 
+            // Перевіряємо до зняття юнітів: інакше відмова лишила б гарнізон порожнім
+            if (request.Intent == MarchIntent.Reinforce)
+                await EnsureCanReinforceAsync(request, cancellationToken);
+
             // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
             garrison.SendUnits(request.Units, now);
 
@@ -84,7 +96,8 @@ namespace EmpireIdle.Application.Marches.Commands
                 Guid.NewGuid(), _serverContext.ServerId, garrison.Id,
                 village.X, village.Y, targetX, targetY,
                 request.TargetType, request.TargetId,
-                request.Units, now + duration, now);
+                request.Units, now + duration, now,
+                request.Intent);
 
             await _marchRepository.AddAsync(march, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -114,6 +127,38 @@ namespace EmpireIdle.Application.Marches.Commands
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{request.TargetType}'.");
             }
+        }
+
+        /// <summary>
+        /// Підкріплення йдуть лише до союзника і лише якщо в посольстві є місце.
+        /// Обидві умови перевіряються ще раз на прибутті: дорога довга.
+        /// </summary>
+        private async Task EnsureCanReinforceAsync(SendMarchCommand request, CancellationToken cancellationToken)
+        {
+            if (request.TargetType != MarchTargetType.Village)
+                throw new RequirementNotMetException($"Reinforcement march must target a village, got '{request.TargetType}'.");
+
+            var target = await _villageRepository.GetByIdAsync(request.TargetId, cancellationToken)
+                ?? throw new EntityNotFoundException("Village", request.TargetId);
+
+            if (target.PlayerId == request.PlayerId)
+                throw new RequirementNotMetException("You cannot reinforce your own village.");
+
+            var myClan = await _clanRepository.GetClanIdByMemberAsync(request.PlayerId, cancellationToken);
+            var targetClan = await _clanRepository.GetClanIdByMemberAsync(target.PlayerId, cancellationToken);
+
+            if (myClan is null || myClan != targetClan)
+                throw new RequirementNotMetException("Reinforcements go to clanmates only.");
+
+            var targetGarrison = await _garrisonRepository.GetByVillageIdAsync(target.Id, cancellationToken)
+                ?? throw new InvalidOperationException($"Garrison not found for village {target.Id}.");
+
+            var free = target.ReinforcementCapacity(_catalog.Buildings) - targetGarrison.ReinforcementCount;
+            var incoming = request.Units.Values.Sum();
+
+            if (incoming > free)
+                throw new RequirementNotMetException(
+                    $"The embassy has room for {free} more units, you are sending {incoming}.");
         }
     }
 }

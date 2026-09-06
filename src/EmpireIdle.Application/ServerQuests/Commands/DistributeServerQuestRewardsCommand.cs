@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

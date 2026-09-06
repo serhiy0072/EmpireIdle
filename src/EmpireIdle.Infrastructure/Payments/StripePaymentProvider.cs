@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Payments.Contracts;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;

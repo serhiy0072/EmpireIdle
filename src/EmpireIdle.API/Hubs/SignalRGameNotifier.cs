@@ -16,24 +16,29 @@ namespace EmpireIdle.API.Hubs
             _hubContext = hubContext;
         }
 
+        /// <inheritdoc/>
         public async Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected, int newVillageAmount, CancellationToken cancellationToken = default)
         {
             await _hubContext.Clients.Group(playerId.ToString())
                 .SendAsync("BuildingCollected", new { buildingId, resourceType, collected, newVillageAmount }, cancellationToken);
         }
 
+        /// <inheritdoc/>
         public async Task NotifyUpgradeStartedAsync(Guid playerId, Guid buildingId, DateTime completesAt, CancellationToken cancellationToken = default)
         {
             await _hubContext.Clients.Group(playerId.ToString()).SendAsync("UpgradeStarted", new {buildingId, completesAt}, cancellationToken);
         }
-                         
+
+        /// <inheritdoc/>        
         public async Task NotifyUpgradeCompletedAsync(Guid playerId, Guid buildingId, int newLevel, CancellationToken cancellationToken = default)
         {
             await _hubContext.Clients.Group(playerId.ToString()).SendAsync("UpgradeCompleted", new { buildingId, newLevel }, cancellationToken);
         }
+
         /// <inheritdoc/>
         public Task NotifyBattleFinishedAsync(Guid playerId, Guid reportId, bool won, string targetName, CancellationToken cancellationToken = default)
-            => _hubContext.Clients.User(playerId.ToString())
+            // Group, не User: UserIdentifier у SignalR — це IdentityUser.Id (sub), а не playerId
+            => _hubContext.Clients.Group(playerId.ToString())
                 .SendAsync("BattleFinished", new { reportId, won, targetName }, cancellationToken);
 
         /// <inheritdoc/>
@@ -41,5 +46,11 @@ namespace EmpireIdle.API.Hubs
             CancellationToken cancellationToken = default)
             => _hubContext.Clients.Group(playerId.ToString())
                 .SendAsync("ServerQuestRewarded", new { questKey, rank, contribution }, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag,
+            DateTime expiresAt, CancellationToken cancellationToken = default)
+            => _hubContext.Clients.Group(playerId.ToString())
+                .SendAsync("ClanInvite", new { requestId, clanId, clanName, clanTag, expiresAt }, cancellationToken);
     }
 }

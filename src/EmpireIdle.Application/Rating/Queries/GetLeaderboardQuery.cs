@@ -1,16 +1,9 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Rating.ReadModels;
 using MediatR;
 
 namespace EmpireIdle.Application.Rating.Queries
-{
-    /// <summary>Рядок топу.</summary>
-    public record LeaderboardEntry(
-        int Rank,
-        Guid PlayerId,
-        string PlayerName,
-        int Rating,
-        double Power);
-
+{ 
     /// <summary>
     /// Топ світу за рейтингом. Публічний у межах світу — на відміну від
     /// власної сили, чужий рейтинг гравець бачить: у цьому й сенс лідерборда.
@@ -49,9 +42,7 @@ namespace EmpireIdle.Application.Rating.Queries
             // Імена й сила одним запитом на всіх — інакше сто рядків топу
             // дали б двісті звернень до бази
             var names = await _playerRepository.GetNamesAsync(playerIds, cancellationToken);
-            var powers = await _powerRepository.GetAllAsync(cancellationToken);
-
-            var powerByPlayer = powers.ToDictionary(p => p.PlayerId, p => p.TotalPower);
+            var powerByPlayer = await _powerRepository.GetTotalPowerAsync(playerIds, cancellationToken);
 
             return ratings
                 .Select((rating, index) => new LeaderboardEntry(

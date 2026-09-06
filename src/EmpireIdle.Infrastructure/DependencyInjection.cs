@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Common.Services;
@@ -63,7 +64,9 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IPlayerPowerRepository, PlayerPowerRepository>();
             services.AddScoped<IPlayerRatingRepository, PlayerRatingRepository>();
             services.AddScoped<IServerQuestRepository, ServerQuestRepository>();
-            services.AddSingleton<IRandomSource, SystemRandomSource>();
+            services.AddScoped<IClanRepository, ClanRepository>();
+            services.AddScoped<IClanHelpRepository, ClanHelpRepository>();
+            services.AddScoped<IClanRequestRepository, ClanRequestRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
@@ -72,6 +75,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
+            services.AddScoped<ReinforcementReturner>();
 
             // Нагороди — той самий патерн: усі реалізації + диспетчер за типом
             services.AddScoped<IRewardGranter, GemRewardGranter>();
@@ -107,6 +111,7 @@ namespace EmpireIdle.Infrastructure
             }
 
             // Зовнішні сервіси
+            services.AddSingleton<IRandomSource, SystemRandomSource>();
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();
 
             services.AddScoped<DomainEventDispatchInterceptor>();

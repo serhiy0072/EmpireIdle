@@ -13,6 +13,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -35,7 +36,8 @@ builder.Configuration
     .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -58,6 +60,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
+    .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -68,6 +71,10 @@ var gameConfig = builder.Configuration.GetSection("GameConfig").Get<GameConfig>(
 
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT settings not configured.");
+
+// HS256 з коротким ключем падає на першому логіні, а не на старті
+if (Encoding.UTF8.GetByteCount(jwtSettings.Secret) < 32)
+    throw new InvalidOperationException("JwtSettings.Secret must be at least 32 bytes for HS256.");
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("ConnectionString 'DefaultConnection' not found. Check User Secrets.");
@@ -148,17 +155,32 @@ builder.Services.AddAuthorization(options =>
 
 //  6. ЗАХИСТ ПЕРИМЕТРА
 
+// За reverse-proxy RemoteIpAddress — це проксі; без цього всі гравці = один IP
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+    // Довіряти лише своєму проксі: інакше X-Forwarded-For підробляється
+    foreach (var proxy in builder.Configuration.GetSection("KnownProxies").Get<string[]>() ?? [])
+        options.KnownProxies.Add(System.Net.IPAddress.Parse(proxy));
+});
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Логін і реєстрація — окремо й жорстко: це поверхня для брутфорсу
-    options.AddFixedWindowLimiter("auth", limiter =>
-    {
-        limiter.PermitLimit = 10;
-        limiter.Window = TimeSpan.FromMinutes(1);
-        limiter.QueueLimit = 0;
-    });
+    // Логін і реєстрація — окремо й жорстко, але ПО КЛІЄНТУ:
+    // AddFixedWindowLimiter дав би один глобальний лічильник — 10 чужих спроб
+    // блокували б логін усім
+    options.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 
     // Решта API — по гравцю, а за його відсутності по IP
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
@@ -184,10 +206,8 @@ builder.Services.AddCors(options =>
               .AllowCredentials()));
 
 //  7. ФОНОВІ ЗАДАЧІ
-//  Hangfire живе в тій самій PostgreSQL базі.
 
-// Hangfire живе в тій самій PostgreSQL базі.
-//
+//  Hangfire живе в тій самій PostgreSQL базі
 // У тестах не піднімається взагалі: Hangfire кешує LoggerFactory у статичному
 // GlobalJobFilters, а WebApplicationFactory будує хост двічі — статика від
 // першого хоста переживає його disposal і падає ObjectDisposedException.
@@ -211,6 +231,7 @@ builder.Services.AddScoped<DailyQuestResetJob>();
 builder.Services.AddScoped<ServerEvolutionJob>();
 builder.Services.AddScoped<RatingRecalculationJob>();
 builder.Services.AddScoped<ServerQuestTotalsJob>();
+builder.Services.AddScoped<ClanLeadershipJob>();
 
 //  8. ВЕБ-ШАР
 
@@ -254,6 +275,9 @@ var app = builder.Build();
 //  9. КОНВЕЄР ЗАПИТУ
 //  Порядок критичний: кожен наступний крок покладається на попередній.
 
+// Найперший: далі всі бачать реальний IP клієнта, а не проксі
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -274,10 +298,11 @@ else
 app.UseExceptionHandler();
 app.UseCors(FrontendCors);
 
-// Перед автентифікацією: відсіюємо ще до роботи з токеном
+app.UseAuthentication();
+
+// ПІСЛЯ автентифікації: до неї User порожній і партиція завжди падала на IP
 app.UseRateLimiter();
 
-app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

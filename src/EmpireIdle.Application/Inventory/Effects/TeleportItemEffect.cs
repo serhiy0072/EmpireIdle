@@ -1,6 +1,8 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 
@@ -54,6 +56,10 @@ namespace EmpireIdle.Application.Inventory.Effects
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
         {
+            // Один телепорт = один переїзд; Count > 1 спалив би зайві предмети без ефекту
+            if (context.Count != 1)
+                throw new RequirementNotMetException("Teleport is used one at a time.");
+
             if (context.TargetX is not { } x || context.TargetY is not { } y)
                 throw new RequirementNotMetException("Teleport requires target coordinates.");
 

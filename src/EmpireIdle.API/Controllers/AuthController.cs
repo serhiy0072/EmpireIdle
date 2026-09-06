@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace EmpireIdle.API.Controllers
 {
+    /// <summary>Реєстрація, вхід і ротація токенів. Єдиний анонімний контролер.</summary>
     [ApiController]
     [Route("api/[controller]")]
     [AllowAnonymous]

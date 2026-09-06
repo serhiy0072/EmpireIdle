@@ -2,7 +2,9 @@ using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -26,6 +28,7 @@ public class CompleteMarchCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IBattleReportRepository _reports = Substitute.For<IBattleReportRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
     private static GameConfig Config() => new()
@@ -81,7 +84,7 @@ public class CompleteMarchCommandTests
         var terrain = new TerrainGenerator(config.Map);
 
         return new CompleteMarchCommandHandler(
-            _marches, _garrisons, _unitOfWork, _map, _monsters, _villages, _reports,
+            _marches, _garrisons, _unitOfWork, _map, _monsters, _villages, _reports, _clans,
             catalog, new FakeTimeProvider(Now),
             new MonsterArmyBuilder(catalog),
             terrain,

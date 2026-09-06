@@ -40,6 +40,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
             builder.Navigation(g => g.Recoverable).UsePropertyAccessMode(PropertyAccessMode.Field);
 
+            builder.HasMany(g => g.Reinforcements)
+                .WithOne()
+                .HasForeignKey(r => r.GarrisonId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(g => g.Reinforcements).UsePropertyAccessMode(PropertyAccessMode.Field);
+
             builder.Ignore(g => g.DomainEvents);
         }
     }

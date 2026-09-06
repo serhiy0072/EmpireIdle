@@ -1,5 +1,6 @@
 
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
 {

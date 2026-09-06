@@ -1,17 +1,8 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
 {
-    /// <summary>Слот, у який вдягається спорядження.</summary>
-    public enum EquipmentSlot
-    {
-        Weapon = 1,
-        Armor = 2,
-        Helmet = 3,
-        Boots = 4,
-        Accessory = 5
-    }
-
     /// <summary>
     /// Унікальний екземпляр спорядження з власними характеристиками.
     /// На відміну від стакових предметів, кожен меч — окремий запис.
@@ -82,25 +73,5 @@ namespace EmpireIdle.Domain.Entities
 
             return stat.Value * (1 + EnhancementLevel * 0.1);
         }
-    }
-
-    /// <summary>Одна характеристика екземпляра спорядження.</summary>
-    public class EquipmentStat : Entity
-    {
-        public Guid EquipmentItemId { get; private set; }
-
-        /// <summary>Ключ стата: Attack, Defense, Speed…</summary>
-        public string StatKey { get; private set; } = null!;
-
-        public double Value { get; private set; }
-
-        public EquipmentStat(Guid id, Guid equipmentItemId, string statKey, double value) : base(id)
-        {
-            EquipmentItemId = equipmentItemId;
-            StatKey = statKey;
-            Value = value;
-        }
-
-        protected EquipmentStat() { } // Для EF Core
     }
 }

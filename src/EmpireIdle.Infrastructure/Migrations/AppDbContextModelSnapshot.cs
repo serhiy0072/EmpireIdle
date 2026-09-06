@@ -194,6 +194,229 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("Buildings");
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.Clan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("JoinPolicy")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId", "Name")
+                        .IsUnique();
+
+                    b.HasIndex("ServerId", "Tag")
+                        .IsUnique();
+
+                    b.ToTable("Clans", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanHelpContribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("HelpedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HelperId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId", "HelperId")
+                        .IsUnique();
+
+                    b.ToTable("ClanHelpContributions", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanHelpRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan>("FullDuration")
+                        .HasColumnType("interval");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TargetId")
+                        .IsUnique();
+
+                    b.HasIndex("ClanId", "ExpiresAt");
+
+                    b.ToTable("ClanHelpRequests", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastActiveAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.ToTable("ClanMembers", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ResolvedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId", "Status");
+
+                    b.HasIndex("PlayerId", "Status");
+
+                    b.HasIndex("ClanId", "PlayerId", "Kind")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 0");
+
+                    b.ToTable("ClanRequests", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanRole", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDefaultRole")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLeaderRole")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("Permissions")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ClanRoles", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -390,6 +613,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("GarrisonId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("Intent")
+                        .HasColumnType("integer");
+
                     b.Property<int>("OriginX")
                         .HasColumnType("integer");
 
@@ -556,6 +782,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ClanId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -563,6 +792,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
@@ -845,6 +1077,41 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.HasIndex("GarrisonId", "ExpiresAt");
 
                     b.ToTable("RecoverableUnits", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ReinforcementUnit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ArrivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("GarrisonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OwnerGarrisonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OwnerPlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UnitType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerPlayerId");
+
+                    b.HasIndex("GarrisonId", "OwnerPlayerId", "UnitType")
+                        .IsUnique();
+
+                    b.ToTable("ReinforcementUnits", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Server", b =>
@@ -1425,6 +1692,33 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanHelpContribution", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.ClanHelpRequest", null)
+                        .WithMany("Helpers")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanMember", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.Clan", null)
+                        .WithMany("Members")
+                        .HasForeignKey("ClanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanRole", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.Clan", null)
+                        .WithMany("Roles")
+                        .HasForeignKey("ClanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentStat", b =>
                 {
                     b.HasOne("EmpireIdle.Domain.Entities.EquipmentItem", null)
@@ -1456,6 +1750,15 @@ namespace EmpireIdle.Infrastructure.Migrations
                 {
                     b.HasOne("EmpireIdle.Domain.Entities.Garrison", null)
                         .WithMany("Recoverable")
+                        .HasForeignKey("GarrisonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ReinforcementUnit", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.Garrison", null)
+                        .WithMany("Reinforcements")
                         .HasForeignKey("GarrisonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1562,6 +1865,18 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Navigation("Lines");
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.Clan", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Roles");
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanHelpRequest", b =>
+                {
+                    b.Navigation("Helpers");
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentItem", b =>
                 {
                     b.Navigation("Stats");
@@ -1570,6 +1885,8 @@ namespace EmpireIdle.Infrastructure.Migrations
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Garrison", b =>
                 {
                     b.Navigation("Recoverable");
+
+                    b.Navigation("Reinforcements");
 
                     b.Navigation("TrainingOrders");
 

@@ -13,6 +13,7 @@ namespace EmpireIdle.Domain.Entities
         private readonly List<UnitTrainingOrder> _trainingOrders = new();
         private readonly List<WoundedUnit> _wounded = new();
         private readonly List<RecoverableUnit> _recoverable = new();
+        private readonly List<ReinforcementUnit> _reinforcements = new();
 
         /// <summary>Скільки поранених зараз лежить у Госпіталі.</summary>
         public int WoundedCount => _wounded.Sum(w => w.Count);
@@ -22,10 +23,18 @@ namespace EmpireIdle.Domain.Entities
 
         public IReadOnlyCollection<VillageUnit> Units => _units.AsReadOnly();
         public IReadOnlyCollection<UnitTrainingOrder> TrainingOrders => _trainingOrders.AsReadOnly();
+
         /// <summary>Поранені в Госпіталі (тільки для читання).</summary>
         public IReadOnlyCollection<WoundedUnit> Wounded => _wounded.AsReadOnly();
+
         /// <summary>Юніти, доступні для викупу за gems (тільки для читання).</summary>
         public IReadOnlyCollection<RecoverableUnit> Recoverable => _recoverable.AsReadOnly();
+
+        /// <summary>Чужі юніти, що стоять тут як підкріплення (тільки для читання).</summary>
+        public IReadOnlyCollection<ReinforcementUnit> Reinforcements => _reinforcements.AsReadOnly();
+
+        /// <summary>Скільки чужих юнітів зараз у гарнізоні.</summary>
+        public int ReinforcementCount => _reinforcements.Sum(r => r.Count);
 
         /// <summary>
         /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
@@ -55,7 +64,8 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="armyCapacity">
         /// Скільки юнітів гарнізон може тримати. Рахується від рівня казарм.
         /// Юніти в маршах у ліміт не входять: вони вже зняті з гарнізону, і
-        /// перевіряти їх означало б тягнути в агрегат чужий стан.
+        /// перевіряти їх означало б тягнути в агрегат чужий стан. Чужі
+        /// підкріплення теж не входять — у них свій ліміт від посольства.
         /// </param>
         public void TrainUnits(string unitType, int count, int maxBatchSize, int armyCapacity,
             TimeSpan trainDuration, DateTime utcNow)
@@ -167,6 +177,71 @@ namespace EmpireIdle.Domain.Entities
             }
             Touch(utcNow);
         }
+
+        /// <summary>
+        /// Приймає підкріплення від союзника.
+        /// </summary>
+        /// <param name="capacity">
+        /// Скільки чужих юнітів вміщає посольство. Окремо від armyCapacity:
+        /// підкріплення не належать господарю, не входять у його силу
+        /// й не звільняють місця під власну армію.
+        /// </param>
+        public void AddReinforcements(Guid ownerPlayerId, Guid ownerGarrisonId,
+            IReadOnlyDictionary<string, int> units, int capacity, DateTime utcNow)
+        {
+            var incoming = units.Values.Where(c => c > 0).Sum();
+
+            if (incoming == 0)
+                throw new RequirementNotMetException("Cannot reinforce with an empty army.");
+
+            if (ReinforcementCount + incoming > capacity)
+                throw new RequirementNotMetException(
+                    $"Embassy capacity exceeded: {ReinforcementCount} of {capacity} used, incoming {incoming}.");
+
+            foreach (var (unitType, count) in units)
+            {
+                if (count < 1)
+                    continue;
+
+                var stack = _reinforcements.FirstOrDefault(r =>
+                    r.OwnerPlayerId == ownerPlayerId && r.UnitType == unitType);
+
+                if (stack is null)
+                {
+                    stack = new ReinforcementUnit(Guid.NewGuid(), Id, ownerPlayerId, ownerGarrisonId,
+                        unitType, 0, utcNow);
+                    _reinforcements.Add(stack);
+                }
+
+                stack.Add(count);
+            }
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Знімає підкріплення одного союзника — відкликання, кік або вихід
+        /// із клану. Повертає склад, який має вирушити додому.
+        /// </summary>
+        public Dictionary<string, int> WithdrawReinforcements(Guid ownerPlayerId, DateTime utcNow)
+        {
+            var withdrawn = _reinforcements
+                .Where(r => r.OwnerPlayerId == ownerPlayerId && r.Count > 0)
+                .ToDictionary(r => r.UnitType, r => r.Count);
+
+            if (withdrawn.Count == 0)
+                return [];
+
+            _reinforcements.RemoveAll(r => r.OwnerPlayerId == ownerPlayerId);
+
+            Touch(utcNow);
+
+            return withdrawn;
+        }
+
+        /// <summary>Хто тримає тут підкріплення — для екрана оборони й масового відкликання.</summary>
+        public IReadOnlyCollection<Guid> ReinforcementOwners()
+            => _reinforcements.Select(r => r.OwnerPlayerId).Distinct().ToList();
 
         /// <summary>
         /// Виліковує поранених: вони повертаються в гарнізон.

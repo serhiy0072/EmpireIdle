@@ -1,9 +1,11 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
+using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Application.ServerQuests.Commands;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

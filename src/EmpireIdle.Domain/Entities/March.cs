@@ -1,27 +1,8 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
-{
-    /// <summary>Стан походу.</summary>
-    public enum MarchState
-    {
-        /// <summary>Іде до цілі.</summary>
-        Outbound = 1,
-
-        /// <summary>Повертається додому.</summary>
-        Returning = 2,
-
-        /// <summary>Завершений (армія вдома).</summary>
-        Completed = 3
-    }
-
-    /// <summary>Тип цілі походу.</summary>
-    public enum MarchTargetType
-    {
-        Monster = 1,
-        Village = 2
-    }
-
+{   
     /// <summary>
     /// Похід армії до цілі. Юніти зняті з гарнізону на час маршу
     /// і зберігаються тут (склад армії).
@@ -42,6 +23,7 @@ namespace EmpireIdle.Domain.Entities
 
         public MarchTargetType TargetType { get; private set; }
         public Guid TargetId { get; private set; }
+        public MarchIntent Intent { get; private set; }
 
         public MarchState State { get; private set; }
 
@@ -66,7 +48,7 @@ namespace EmpireIdle.Domain.Entities
         public DateTime UpdatedAt { get; private set; }
 
         public March(Guid id, int serverId, Guid garrisonId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
-            Guid targetId, IReadOnlyDictionary<string, int> units, DateTime arrivesAt, DateTime departedAt) : base(id)
+            Guid targetId, IReadOnlyDictionary<string, int> units, DateTime arrivesAt, DateTime departedAt, MarchIntent intent = MarchIntent.Attack) : base(id)
         {
             ServerId = serverId;
             GarrisonId = garrisonId;
@@ -79,12 +61,32 @@ namespace EmpireIdle.Domain.Entities
             State = MarchState.Outbound;
             ArrivesAt = arrivesAt;
             DepartedAt = departedAt;
+            Intent = intent;
 
             foreach (var (unitType, count) in units)
                 _units.Add(new MarchUnit(Guid.NewGuid(), id, unitType, count));
         }
 
         protected March() { } // Для EF Core
+
+        /// <summary>
+        /// Похід, що одразу вирушає додому: підкріплення, зняте з чужого
+        /// гарнізону. Фази Outbound у нього немає — армія вже на місці.
+        /// </summary>
+        /// <param name="garrisonId">Гарнізон власника: саме туди повернуться юніти.</param>
+        public static March ReturningHome(Guid id, int serverId, Guid garrisonId,
+            int homeX, int homeY, int fromX, int fromY, Guid fromVillageId,
+            IReadOnlyDictionary<string, int> units, TimeSpan duration, DateTime utcNow)
+        {
+            // Origin — дім: гілка Returning у сканері веде армію саме туди
+            var march = new March(id, serverId, garrisonId, homeX, homeY, fromX, fromY,
+                MarchTargetType.Village, fromVillageId, units, utcNow + duration, utcNow,
+                MarchIntent.Reinforce);
+
+            march.State = MarchState.Returning;
+
+            return march;
+        }
 
         /// <summary>Склад армії у вигляді словника (для повернення в гарнізон).</summary>
         public Dictionary<string, int> GetUnits() => _units.ToDictionary(u => u.UnitType, u => u.Count);
@@ -122,6 +124,20 @@ namespace EmpireIdle.Domain.Entities
             OriginY = originY;
             State = MarchState.Returning;
             ArrivesAt = utcNow + travelled;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Армія лишається в чужому гарнізоні: похід завершено на місці,
+        /// без розвороту. Події про повернення немає — юніти додому не йшли.
+        /// </summary>
+        public void Delivered(DateTime utcNow)
+        {
+            if (State != MarchState.Outbound)
+                throw new InvalidStateException($"March {Id} is not outbound.");
+
+            State = MarchState.Completed;
 
             Touch(utcNow);
         }

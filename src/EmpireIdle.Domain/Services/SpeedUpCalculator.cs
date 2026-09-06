@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Services.Config;
+
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>Рахує вартість прискорення таймерів у gems.</summary>

@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Quests.ReadModels;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Events;
@@ -10,19 +11,6 @@ namespace EmpireIdle.Application.Quests.Queries
 {
     /// <summary>Квести гравця з поточним прогресом.</summary>
     public record GetQuestsQuery(Guid PlayerId) : IRequest<List<QuestView>>, IPlayerScopedRequest;
-
-    /// <summary>Квест у поданні для клієнта.</summary>
-    public record QuestView(
-        string Key,
-        string DisplayName,
-        QuestScope Scope,
-        QuestWindow Window,
-        QuestState State,
-        List<QuestObjectiveView> Objectives,
-        List<RewardConfig> Rewards);
-
-    /// <summary>Ціль квесту з прогресом.</summary>
-    public record QuestObjectiveView(string Type, string? Target, int Amount, int Required);
 
     public sealed class GetQuestsQueryHandler : IRequestHandler<GetQuestsQuery, List<QuestView>>
     {

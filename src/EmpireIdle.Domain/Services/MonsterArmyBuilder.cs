@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Services.Config;
+
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>Будує склад загону монстра за його типом і рівнем.</summary>

@@ -21,5 +21,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<List<PlayerPower>> GetAllAsync(CancellationToken cancellationToken = default)
             => _context.PlayerPowers.AsNoTracking().ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<Dictionary<Guid, double>> GetTotalPowerAsync(IReadOnlyCollection<Guid> playerIds,
+            CancellationToken cancellationToken = default)
+            => _context.PlayerPowers
+                .AsNoTracking()
+                .Where(p => playerIds.Contains(p.PlayerId))
+                .ToDictionaryAsync(p => p.PlayerId, p => p.TotalPower, cancellationToken);
     }
 }
