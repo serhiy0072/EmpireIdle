@@ -17,6 +17,9 @@ public record AssignClanRoleRequest(Guid RoleId);
 /// <summary>Прохання про допомогу з таймером будівлі або тренування.</summary>
 public record RequestClanHelpRequest(ClanHelpTarget TargetType, Guid TargetId);
 
+/// <summary>Рішення по заявці або запрошенню.</summary>
+public record ResolveClanRequestRequest(bool Approve);
+
 // ---------- Відповіді ----------
 
 /// <summary>Рядок списку кланів.</summary>
@@ -92,4 +95,25 @@ public record ClanHelpItemResponse(
     bool AlreadyHelped,
     bool IsMine,
     DateTime CreatedAt,
+    DateTime ExpiresAt);
+
+/// <summary>Заявка в черзі офіцера.</summary>
+public record ClanApplicationResponse(
+    Guid RequestId,
+    Guid PlayerId,
+    string PlayerName,
+    double Power,
+    DateTime CreatedAt,
+    DateTime ExpiresAt);
+
+/// <summary>Запрошення, адресоване гравцеві.</summary>
+public record ClanInviteResponse(
+    Guid RequestId,
+    Guid ClanId,
+    string ClanName,
+    string ClanTag,
+    string Description,
+    int MemberCount,
+    int Capacity,
+    DateTime InvitedAt,
     DateTime ExpiresAt);

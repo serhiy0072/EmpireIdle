@@ -87,5 +87,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Where(c => c.Members.Any(m => m.PlayerId == playerId))
                 .Select(c => (Guid?)c.Id)
                 .FirstOrDefaultAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<Dictionary<Guid, ClanCard>> GetCardsAsync(IReadOnlyCollection<Guid> clanIds,
+            CancellationToken cancellationToken = default)
+            => _context.Clans
+                .AsNoTracking()
+                .Where(c => clanIds.Contains(c.Id))
+                .Select(c => new ClanCard(c.Id, c.Name, c.Tag, c.Description,
+                    c.JoinPolicy, c.Members.Count, c.CreatedAt))
+                .ToDictionaryAsync(c => c.Id, cancellationToken);
     }
 }

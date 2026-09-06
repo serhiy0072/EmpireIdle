@@ -1,5 +1,4 @@
 using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Enums;
 
 namespace EmpireIdle.Application.Interfaces
 {
@@ -35,5 +34,9 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Id клану гравця; null — без клану. Для читань, яким склад не потрібен.</summary>
         Task<Guid?> GetClanIdByMemberAsync(Guid playerId, CancellationToken cancellationToken = default);
+
+        /// <summary>Картки кількох кланів одним запитом — для списку запрошень.</summary>
+        Task<Dictionary<Guid, ClanCard>> GetCardsAsync(IReadOnlyCollection<Guid> clanIds,
+            CancellationToken cancellationToken = default);
     }
 }
