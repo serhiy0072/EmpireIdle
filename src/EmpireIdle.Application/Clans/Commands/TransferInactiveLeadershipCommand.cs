@@ -62,22 +62,26 @@ namespace EmpireIdle.Application.Clans.Commands
 
             var rankByRole = clan.Roles.ToDictionary(r => r.Id, r => r.Rank);
 
-            // Найвищий ранг, серед рівних — хто був у грі найпізніше.
-            // Кандидат сам має бути активним: міняти одного зниклого
-            // на іншого зниклого не має сенсу
-            var successor = clan.Members
+            // Спуск рангами: зам, далі генерали, офіцери, ветерани, рядові.
+            // Серед рівних — хто був у грі найпізніше
+            var candidates = clan.Members
                 .Where(m => m.PlayerId != leaderId.Value)
-                .Where(m => presence.TryGetValue(m.PlayerId, out var seen) && seen >= inactiveSince)
                 .OrderByDescending(m => rankByRole.GetValueOrDefault(m.RoleId))
-                .ThenByDescending(m => presence[m.PlayerId])
-                .FirstOrDefault();
+                .ThenByDescending(m => presence.GetValueOrDefault(m.PlayerId))
+                .ToList();
 
-            if (successor is null)
+            if (candidates.Count == 0)
             {
-                _logger.LogInformation("Clan {ClanId} has no active successor; leadership kept.", clan.Id);
+                _logger.LogInformation("Clan {ClanId} has no other members; leadership kept.", clan.Id);
 
                 return false;
             }
+
+            // Активний найвищого рангу, а якщо не зник лише лідер і активних
+            // немає взагалі — найстарший за рангом: клан не має лишатись
+            // із лідером, який не повернеться
+            var successor = candidates.FirstOrDefault(m => presence.GetValueOrDefault(m.PlayerId) >= inactiveSince)
+                ?? candidates[0];
 
             clan.PromoteToLeader(successor.PlayerId, now);
 
