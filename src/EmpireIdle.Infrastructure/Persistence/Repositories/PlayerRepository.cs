@@ -57,5 +57,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
             return updated > 0;
         }
+
+        /// <inheritdoc/>
+        public Task<Dictionary<Guid, DateTime>> GetLastSeenAsync(IReadOnlyCollection<Guid> playerIds, CancellationToken cancellationToken = default)
+            => _context.Players
+                .AsNoTracking()
+                .Where(p => playerIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.LastSeenAt, cancellationToken);
     }
 }

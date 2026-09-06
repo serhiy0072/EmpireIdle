@@ -27,5 +27,8 @@ namespace EmpireIdle.Application.Interfaces
         /// </summary>
         /// <returns>true, якщо рядок оновлено.</returns>
         Task<bool> TouchLastSeenAsync(Guid playerId, DateTime utcNow, TimeSpan threshold, CancellationToken cancellationToken = default);
+
+        /// <summary>Час останньої присутності вказаних гравців.</summary>
+        Task<Dictionary<Guid, DateTime>> GetLastSeenAsync(IReadOnlyCollection<Guid> playerIds, CancellationToken cancellationToken = default);
     }
 }

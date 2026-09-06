@@ -89,13 +89,23 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<Dictionary<Guid, ClanCard>> GetCardsAsync(IReadOnlyCollection<Guid> clanIds,
-            CancellationToken cancellationToken = default)
+        public Task<Dictionary<Guid, ClanCard>> GetCardsAsync(IReadOnlyCollection<Guid> clanIds, CancellationToken cancellationToken = default)
             => _context.Clans
                 .AsNoTracking()
                 .Where(c => clanIds.Contains(c.Id))
                 .Select(c => new ClanCard(c.Id, c.Name, c.Tag, c.Description,
                     c.JoinPolicy, c.Members.Count, c.CreatedAt))
                 .ToDictionaryAsync(c => c.Id, cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsWithInactiveLeaderAsync(DateTime inactiveSince, CancellationToken cancellationToken = default)
+            => await (from clan in _context.Clans.AsNoTracking()
+                      from member in clan.Members
+                      join role in _context.Set<ClanRole>().AsNoTracking() on member.RoleId equals role.Id
+                      join player in _context.Players.AsNoTracking() on member.PlayerId equals player.Id
+                      where role.IsLeaderRole && player.LastSeenAt < inactiveSince
+                      select clan.Id)
+                     .Distinct()
+                     .ToListAsync(cancellationToken);
     }
 }

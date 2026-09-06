@@ -192,29 +192,51 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Передає лідерство. Старий лідер стає другим за рангом, а не рядовим:
-        /// передача часто тимчасова, і зниження до найнижчої її б карало.
+        /// Передати лідерство. Може лише сам лідер: це добровільний крок.
+        /// Автоматичну передачу робить PromoteToLeader — там виконавця немає.
         /// </summary>
         public void TransferLeadership(Guid fromPlayerId, Guid toPlayerId, DateTime utcNow)
         {
             var leaderRole = _roles.Single(r => r.IsLeaderRole);
 
-            var current = _members.FirstOrDefault(m => m.PlayerId == fromPlayerId && m.RoleId == leaderRole.Id)
-                ?? throw new RequirementNotMetException("Only the leader can transfer leadership.");
+            if (!_members.Any(m => m.PlayerId == fromPlayerId && m.RoleId == leaderRole.Id))
+                throw new RequirementNotMetException("Only the leader can transfer leadership.");
 
-            var successor = _members.FirstOrDefault(m => m.PlayerId == toPlayerId)
-                ?? throw new EntityNotFoundException("Clan member", toPlayerId);
+            PromoteToLeader(toPlayerId, utcNow);
+        }
+
+        /// <summary>
+        /// Ставить учасника лідером, чинного лідера — на другий за рангом.
+        /// Без перевірки виконавця: викликається і за наказом лідера,
+        /// і фоновим правилом неактивності, у якого виконавця немає.
+        /// </summary>
+        public void PromoteToLeader(Guid successorId, DateTime utcNow)
+        {
+            var leaderRole = _roles.Single(r => r.IsLeaderRole);
+
+            var successor = _members.FirstOrDefault(m => m.PlayerId == successorId)
+                ?? throw new EntityNotFoundException("Clan member", successorId);
+
+            if (successor.RoleId == leaderRole.Id)
+                throw new RequirementNotMetException("This member is already the leader.");
 
             var secondHighest = _roles
                 .Where(r => !r.IsLeaderRole)
                 .OrderByDescending(r => r.Rank)
                 .First();
 
-            current.AssignRole(secondHighest.Id);
+            var current = _members.FirstOrDefault(m => m.RoleId == leaderRole.Id);
+
+            current?.AssignRole(secondHighest.Id);
             successor.AssignRole(leaderRole.Id);
 
             Touch(utcNow);
         }
+
+        /// <summary>Id чинного лідера; null — клан лишився без нього.</summary>
+        public Guid? LeaderId => _members
+            .FirstOrDefault(m => m.RoleId == _roles.Single(r => r.IsLeaderRole).Id)?.PlayerId;
+
 
         // ---------- Ролі ----------
 

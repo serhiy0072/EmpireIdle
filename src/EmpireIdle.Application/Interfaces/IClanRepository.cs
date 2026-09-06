@@ -38,5 +38,12 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Картки кількох кланів одним запитом — для списку запрошень.</summary>
         Task<Dictionary<Guid, ClanCard>> GetCardsAsync(IReadOnlyCollection<Guid> clanIds,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Клани, чий лідер не з'являвся від указаного моменту.
+        /// Присутність береться з Player.LastSeenAt: ClanMember.LastActiveAt
+        /// означає лише участь у клановій допомозі.
+        /// </summary>
+        Task<IReadOnlyList<Guid>> GetIdsWithInactiveLeaderAsync(DateTime inactiveSince, CancellationToken cancellationToken = default);
     }
 }

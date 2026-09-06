@@ -231,6 +231,7 @@ builder.Services.AddScoped<DailyQuestResetJob>();
 builder.Services.AddScoped<ServerEvolutionJob>();
 builder.Services.AddScoped<RatingRecalculationJob>();
 builder.Services.AddScoped<ServerQuestTotalsJob>();
+builder.Services.AddScoped<ClanLeadershipJob>();
 
 //  8. ВЕБ-ШАР
 
