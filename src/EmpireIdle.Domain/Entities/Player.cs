@@ -32,6 +32,12 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public Guid? ClanId { get; private set; }
 
+        /// <summary>
+        /// Востаннє гравець щось робив. Оновлюється з пайплайну, дискретно:
+        /// це присутність у грі, а не точний час останнього запиту.
+        /// </summary>
+        public DateTime LastSeenAt { get; private set; }
+
         public Player(Guid id, string username, string email, string userId, DateTime utcNow, int serverId = 1) : base(id)
         {
             UserId = userId;
@@ -39,6 +45,7 @@ namespace EmpireIdle.Domain.Entities
             Email = email;
             CreatedAt = utcNow;
             ServerId = serverId;
+            LastSeenAt = utcNow;
         }
 
         protected Player() { } // для EF Core

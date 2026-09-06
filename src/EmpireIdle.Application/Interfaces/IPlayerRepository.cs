@@ -19,5 +19,13 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Імена гравців за списком id — для топу, одним запитом.</summary>
         Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> playerIds, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Позначає гравця присутнім, якщо попередня позначка старша за поріг.
+        /// ExecuteUpdate, бо викликається з пайплайну на кожен запит: тягнути
+        /// агрегат і зберігати його там, де запит нічого не змінює, не можна.
+        /// </summary>
+        /// <returns>true, якщо рядок оновлено.</returns>
+        Task<bool> TouchLastSeenAsync(Guid playerId, DateTime utcNow, TimeSpan threshold, CancellationToken cancellationToken = default);
     }
 }
