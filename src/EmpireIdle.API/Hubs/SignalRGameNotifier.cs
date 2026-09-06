@@ -46,5 +46,11 @@ namespace EmpireIdle.API.Hubs
             CancellationToken cancellationToken = default)
             => _hubContext.Clients.Group(playerId.ToString())
                 .SendAsync("ServerQuestRewarded", new { questKey, rank, contribution }, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag,
+            DateTime expiresAt, CancellationToken cancellationToken = default)
+            => _hubContext.Clients.Group(playerId.ToString())
+                .SendAsync("ClanInvite", new { requestId, clanId, clanName, clanTag, expiresAt }, cancellationToken);
     }
 }

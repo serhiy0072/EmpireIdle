@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
@@ -44,6 +45,12 @@ namespace EmpireIdle.Domain.Entities
             Status = ClanRequestStatus.Pending;
             ExpiresAt = expiresAt;
             CreatedAt = utcNow;
+
+            // Тільки для запрошень: заявку гравець подає сам і сповіщати
+            // його нема про що. Подія йде через Outbox — підписників може
+            // бути кілька, і скринька стане одним із них
+            if (kind == ClanRequestKind.Invite)
+                RaiseDomainEvent(new ClanInviteSent(id, clanId, playerId, expiresAt, utcNow));
         }
 
         protected ClanRequest() { } // для EF Core
