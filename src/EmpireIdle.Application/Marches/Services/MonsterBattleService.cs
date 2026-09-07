@@ -21,13 +21,12 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IMapRepository _mapRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
-        private readonly IBattleReportRepository _battleReportRepository;
         private readonly IRandomSource _random;
-        private readonly CombatConfig _combatConfig;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly BattleResolver _resolver;
         private readonly EffectResolver _effectResolver;
         private readonly MarchLogistics _logistics;
+        private readonly BattleAftermath _aftermath;
         private readonly ILogger<MonsterBattleService> _logger;
 
         public MonsterBattleService(
@@ -35,26 +34,24 @@ namespace EmpireIdle.Application.Marches.Services
             IMapRepository mapRepository,
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
-            IBattleReportRepository battleReportRepository,
             IRandomSource random,
-            GameCatalog catalog,
             MonsterArmyBuilder armyBuilder,
             BattleResolver resolver,
             EffectResolver effectResolver,
             MarchLogistics logistics,
+            BattleAftermath aftermath,
             ILogger<MonsterBattleService> logger)
         {
             _monsterRepository = monsterRepository;
             _mapRepository = mapRepository;
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
-            _battleReportRepository = battleReportRepository;
             _random = random;
-            _combatConfig = catalog.Config.Combat;
             _armyBuilder = armyBuilder;
             _resolver = resolver;
             _effectResolver = effectResolver;
             _logistics = logistics;
+            _aftermath = aftermath;
             _logger = logger;
         }
 
@@ -103,8 +100,9 @@ namespace EmpireIdle.Application.Marches.Services
             if (result.AttackerWon)
                 await TakeSpoilsAsync(march, monster, utcNow, cancellationToken);
 
-            await WriteReportAsync(march, village, garrison, monster, attackerArmy, outcome, terrain, seed, utcNow,
-                cancellationToken);
+            await _aftermath.RecordAttackerAsync(march, village, garrison,
+                $"{monster.Type} (lvl {monster.Level})", monster.Level,
+                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
@@ -139,46 +137,6 @@ namespace EmpireIdle.Application.Marches.Services
                 march.GetUnits());
 
             march.LoadCargo(carried, utcNow);
-        }
-
-        /// <summary>
-        /// Один звіт — нападнику. Відновлюваних кладемо окремим стеком:
-        /// у кожного бою свій дедлайн викупу.
-        /// </summary>
-        private async Task WriteReportAsync(March march, Village village, Garrison garrison, Monster monster,
-            IReadOnlyDictionary<string, int> attackerArmy, BattleOutcome outcome, string terrain, int seed,
-            DateTime utcNow, CancellationToken cancellationToken)
-        {
-            var result = outcome.Battle;
-            var split = outcome.AttackerCasualties;
-
-            var report = new BattleReport(
-                Guid.NewGuid(),
-                village.PlayerId,
-                march.Id,
-                march.TargetX, march.TargetY, terrain,
-                $"{monster.Type} (lvl {monster.Level})", monster.Level,
-                result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
-
-            foreach (var (unitType, sent) in attackerArmy)
-            {
-                report.AddLine(
-                    unitType,
-                    sent,
-                    split.Wounded.GetValueOrDefault(unitType),
-                    split.Recoverable.GetValueOrDefault(unitType),
-                    split.Dead.GetValueOrDefault(unitType));
-            }
-
-            await _battleReportRepository.AddAsync(report, cancellationToken);
-
-            if (split.Recoverable.Count > 0)
-            {
-                var expiresAt = utcNow.AddHours(_combatConfig.RecoveryWindowHours);
-                garrison.AddRecoverable(split.Recoverable, report.Id, expiresAt, utcNow);
-            }
-
-            march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, report.TargetName, utcNow);
         }
     }
 }

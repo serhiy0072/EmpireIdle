@@ -7,6 +7,7 @@ using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -112,19 +113,23 @@ public class CompleteMarchCommandTests
         var calculator = new MarchCalculator(terrain, catalog);
         var casualties = new CasualtySplitter(config.Combat);
         var resolver = new BattleResolver(combat, casualties);
+        var armyBuilder = new MonsterArmyBuilder(catalog);
         var effects = new EffectResolver(_effects);
 
         var logistics = new MarchLogistics(
             _villages, catalog, calculator, NullLogger<MarchLogistics>.Instance);
 
+        var aftermath = new BattleAftermath(_reports, _garrisons, _villages, _notifier, casualties, catalog, logistics,
+            NullLogger<BattleAftermath>.Instance);
+
         var monsterBattle = new MonsterBattleService(
-            _monsters, _map, _garrisons, _villages, _reports, _random,
-            catalog, new MonsterArmyBuilder(catalog), resolver, effects, logistics,
+            _monsters, _map, _garrisons, _villages, _random,
+            new MonsterArmyBuilder(catalog), resolver, effects, logistics, aftermath,
             NullLogger<MonsterBattleService>.Instance);
 
         var villageBattle = new VillageBattleService(
-            _garrisons, _villages, _reports, _serverRepository, _notifier, _random,
-            catalog, resolver, new DefenceLossAllocator(), casualties, effects, geometry, logistics,
+            _garrisons, _villages, _serverRepository, _random,
+            catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
             NullLogger<VillageBattleService>.Instance);
 
         var reinforcements = new ReinforcementDelivery(
