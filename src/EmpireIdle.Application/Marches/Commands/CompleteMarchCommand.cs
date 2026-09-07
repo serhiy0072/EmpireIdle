@@ -25,6 +25,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IClanRepository _clanRepository;
         private readonly IRandomSource _random;
         private readonly IGameNotifier _notifier;
+        private readonly IServerRepository _serverRepository;
         private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
@@ -35,6 +36,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly BattleResolver _resolver;
         private readonly DefenceLossAllocator _lossAllocator;
         private readonly CasualtySplitter _casualties;
+        private readonly WorldGeometry _geometry;
         private readonly ILogger<CompleteMarchCommandHandler> _logger;
 
         public CompleteMarchCommandHandler(
@@ -48,7 +50,8 @@ namespace EmpireIdle.Application.Marches.Commands
             IClanRepository clanRepository,
             IRandomSource random,
             IGameNotifier notifier,
-            GameCatalog catalog,
+            IServerRepository serverRepository,
+        GameCatalog catalog,
             TimeProvider timeProvider,
             MonsterArmyBuilder armyBuilder,
             TerrainGenerator terrain,
@@ -57,7 +60,8 @@ namespace EmpireIdle.Application.Marches.Commands
             BattleResolver resolver,
             DefenceLossAllocator lossAllocator,
             CasualtySplitter casualties,
-            ILogger<CompleteMarchCommandHandler> logger)
+            WorldGeometry geometry,
+        ILogger<CompleteMarchCommandHandler> logger)
         {
             _marchRepository = marchRepository;
             _garrisonRepository = garrisonRepository;
@@ -69,6 +73,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _clanRepository = clanRepository;
             _random = random;
             _notifier = notifier;
+            _serverRepository = serverRepository;
             _armyBuilder = armyBuilder;
             _terrain = terrain;
             _calculator = calculator;
@@ -79,6 +84,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _logger = logger;
             _catalog = catalog;
             _resolver = resolver;
+            _geometry = geometry;
             _combatConfig = _catalog.Config.Combat;
         }
 
@@ -108,6 +114,8 @@ namespace EmpireIdle.Application.Marches.Commands
                 var survivors = march.GetUnits();
                 if (survivors.Count > 0)
                     garrison.ReceiveUnits(survivors, now);
+
+                await UnloadCargoAsync(march, garrison, now, cancellationToken);
 
                 march.Complete(now);
             }
@@ -170,8 +178,14 @@ namespace EmpireIdle.Application.Marches.Commands
                 if (cell is not null)
                     _mapRepository.Remove(cell);
 
+                // Здобич не з'являється в момент перемоги: вона їде з армією
+                // й лягає на склад лише по прибутті, у межах вантажопідйомності
                 var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
-                village.GrantResources(rewards, utcNow);
+                var carried = LimitToCarryCapacity(
+                    rewards.ToDictionary(r => r.Resource, r => r.Amount),
+                    march.GetUnits());
+
+                march.LoadCargo(carried, utcNow);
             }
 
             var report = new BattleReport(
@@ -336,6 +350,9 @@ namespace EmpireIdle.Application.Marches.Commands
 
             await AdmitDefenderWoundedAsync(defenderLosses, seed, utcNow, cancellationToken);
 
+            if (result.AttackerWon)
+                await PlunderAsync(march, targetVillage, utcNow, cancellationToken);
+
             await WriteBattleReportsAsync(march, attackerVillage, attackerGarrison,
                 targetVillage, targetGarrison, attackerArmy, defence, outcome, defenderLosses,
                 terrain, seed, utcNow, cancellationToken);
@@ -346,6 +363,34 @@ namespace EmpireIdle.Application.Marches.Commands
                 "PvP at ({X},{Y}): {Attacker} vs {Defender}, attacker {Outcome}",
                 march.TargetX, march.TargetY, attackerVillage.PlayerId, targetVillage.PlayerId,
                 result.AttackerWon ? "won" : "lost");
+        }
+
+        /// <summary>
+        /// Забирає здобич після переможного бою. Вантажопідйомність рахується
+        /// по тих, хто пережив бій, тож великі втрати зменшують і винесене.
+        /// </summary>
+        private async Task PlunderAsync(March march, Village target, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            var capacity = CalculateCarryCapacity(march.GetUnits());
+
+            if (capacity <= 0)
+                return;
+
+            // Буст і множник кільця — захисника, не нападника: буфери,
+            // які ми зараз матеріалізуємо, вироблені його селом
+            var boost = await _effectResolver.GetProductionBoostAsync(target.PlayerId, utcNow, cancellationToken);
+            var serverLevel = await _serverRepository.GetLevelAsync(target.ServerId, cancellationToken);
+            var locationMultiplier = _geometry.ProductionMultiplierAt(target.X, target.Y, serverLevel);
+
+            var loot = target.Plunder(_catalog.Buildings, capacity, boost, locationMultiplier, utcNow);
+
+            if (loot.Count == 0)
+                return;
+
+            march.LoadCargo(loot, utcNow);
+
+            _logger.LogInformation("March {MarchId} plundered {Amount} resources from village {VillageId}.",
+                march.Id, loot.Values.Sum(), target.Id);
         }
 
         /// <summary>
@@ -396,6 +441,71 @@ namespace EmpireIdle.Application.Marches.Commands
                 march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
 
             march.TurnBack(backDuration, utcNow);
+        }
+
+        /// <summary>
+        /// Розвантажує здобич на склад. Надлишок понад кап згорає: везти
+        /// більше, ніж вміщає сховище, гравець може, зберегти — ні.
+        /// </summary>
+        private async Task UnloadCargoAsync(March march, Garrison garrison, DateTime utcNow,
+            CancellationToken cancellationToken)
+        {
+            var cargo = march.GetCargo();
+
+            if (cargo.Count == 0)
+                return;
+
+            var village = await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken)
+                ?? throw new InvalidOperationException($"Village {garrison.VillageId} not found for garrison {garrison.Id}.");
+
+            var stored = 0;
+
+            foreach (var (resourceType, amount) in cargo)
+                stored += village.GrantResource(resourceType, amount, _catalog.Buildings, utcNow);
+
+            _logger.LogInformation("March {MarchId} unloaded {Stored} of {Carried} carried resources.",
+                march.Id, stored, cargo.Values.Sum());
+        }
+
+        /// <summary>
+        /// Скільки армія здатна винести: сума CarryCapacity по вцілілих.
+        /// Саме по вцілілих — інакше вигідно вести гарматне м'ясо заради місця.
+        /// </summary>
+        private int CalculateCarryCapacity(IReadOnlyDictionary<string, int> survivors)
+            => survivors.Sum(pair => _catalog.Units.TryGetValue(pair.Key, out var config)
+                ? (int)(config.Stats.GetValueOrDefault("CarryCapacity", 0) * pair.Value)
+                : 0);
+
+        /// <summary>
+        /// Обрізає здобич до вантажопідйомності, пропорційно по ресурсах.
+        /// Залишок від округлення дістається найбільшій позиції — інакше
+        /// сума частин розійшлася б із лімітом.
+        /// </summary>
+        private Dictionary<string, int> LimitToCarryCapacity(
+            IReadOnlyDictionary<string, int> loot, IReadOnlyDictionary<string, int> survivors)
+        {
+            var total = loot.Values.Sum();
+            var capacity = CalculateCarryCapacity(survivors);
+
+            if (total <= capacity)
+                return loot.ToDictionary(pair => pair.Key, pair => pair.Value);
+
+            if (capacity <= 0)
+                return [];
+
+            var limited = loot.ToDictionary(
+                pair => pair.Key,
+                pair => (int)Math.Floor((double)pair.Value * capacity / total));
+
+            var shortfall = capacity - limited.Values.Sum();
+
+            if (shortfall > 0)
+            {
+                var biggest = loot.OrderByDescending(pair => pair.Value).First().Key;
+                limited[biggest] += shortfall;
+            }
+
+            return limited.Where(pair => pair.Value > 0).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
         /// <summary>

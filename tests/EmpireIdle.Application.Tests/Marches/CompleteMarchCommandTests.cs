@@ -32,6 +32,7 @@ public class CompleteMarchCommandTests
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IRandomSource _random = Substitute.For<IRandomSource>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
+    private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -84,10 +85,12 @@ public class CompleteMarchCommandTests
         var catalog = new GameCatalog(config);
         var combat = new CombatCalculator(config.Combat, catalog);
         var terrain = new TerrainGenerator(config.Map);
+        var geometry = new WorldGeometry(config.Map);
 
         return new CompleteMarchCommandHandler(
             _marches, _garrisons, _unitOfWork, _map, _monsters, _villages, _reports, _clans,
             _random, _notifier,
+            _serverRepository,
             catalog, new FakeTimeProvider(Now),
             new MonsterArmyBuilder(catalog),
             terrain,
@@ -96,6 +99,7 @@ public class CompleteMarchCommandTests
             new BattleResolver(combat, new CasualtySplitter(config.Combat)),
             new DefenceLossAllocator(),
             new CasualtySplitter(config.Combat),
+            geometry,
             NullLogger<CompleteMarchCommandHandler>.Instance);
             }
 
