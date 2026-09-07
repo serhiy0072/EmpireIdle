@@ -244,6 +244,26 @@ namespace EmpireIdle.Domain.Entities
             => _reinforcements.Select(r => r.OwnerPlayerId).Distinct().ToList();
 
         /// <summary>
+        /// Склад оборони: власні юніти плюс підкріплення союзників.
+        /// Поранені й ті, хто на прокачці, не беруть участі — їх тут немає.
+        ///
+        /// Повертає стеками, а не сумою: бій рахується на об'єднаній армії,
+        /// але втрати потім треба повернути кожному власнику окремо.
+        /// </summary>
+        public IReadOnlyList<DefenceStack> GetDefence()
+        {
+            var own = _units
+                .Where(u => u.Count > 0)
+                .Select(u => new DefenceStack(null, u.UnitType, u.Count));
+
+            var allied = _reinforcements
+                .Where(r => r.Count > 0)
+                .Select(r => new DefenceStack(r.OwnerPlayerId, r.UnitType, r.Count));
+
+            return own.Concat(allied).ToList();
+        }
+
+        /// <summary>
         /// Виліковує поранених: вони повертаються в гарнізон.
         /// </summary>
         public Dictionary<string, int> HealWounded(IReadOnlyDictionary<string, int> toHeal, DateTime utcNow)

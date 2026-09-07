@@ -97,6 +97,7 @@ builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<Te
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));
 builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+builder.Services.AddSingleton<DefenceLossAllocator>();
 builder.Services.AddSingleton<BattleResolver>();
 
 //  3. ІНФРАСТРУКТУРА

@@ -340,5 +340,46 @@ namespace EmpireIdle.Domain.Tests.Entities
             var order = Assert.Single(garrison.TrainingOrders);
             Assert.Equal(3, order.Count);
         }
+
+        /// <summary>Оборона — це свої юніти плюс підкріплення, окремими стеками.</summary>
+        [Fact]
+        public void GetDefence_ShouldIncludeOwnUnitsAndReinforcements()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var ally = Guid.NewGuid();
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 10, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            garrison.AddReinforcements(ally, Guid.NewGuid(),
+                new Dictionary<string, int> { ["infantry"] = 4 }, 100, now);
+
+            // Act
+            var defence = garrison.GetDefence();
+
+            // Assert
+            Assert.Equal(2, defence.Count);
+            Assert.Contains(defence, s => s.OwnerPlayerId is null && s.Count == 10);
+            Assert.Contains(defence, s => s.OwnerPlayerId == ally && s.Count == 4);
+        }
+
+        /// <summary>Поранені не стоять в обороні — вони в госпіталі.</summary>
+        [Fact]
+        public void GetDefence_ShouldExcludeWounded()
+        {
+            // Arrange
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.AdmitWounded(new Dictionary<string, int> { ["infantry"] = 6 }, now);
+
+            // Act
+            var defence = garrison.GetDefence();
+
+            // Assert
+            Assert.Empty(defence);
+        }
     }
 }
