@@ -105,5 +105,8 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Скільки одночасних прокачок зброї відкриває рівень (0 — не кузня).</summary>
         public int WeaponUpgradeSlotsPerLevel { get; set; }
+
+        /// <summary>Скільки додає до захисту оборонця кожен рівень будівлі. Стіни — єдине джерело.</summary>
+        public double DefenderBonusPerLevel { get; set; }
     }
 }

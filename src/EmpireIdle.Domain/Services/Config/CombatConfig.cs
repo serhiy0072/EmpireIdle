@@ -27,6 +27,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Частка втрат, яку можна відновити миттєво (за 200% вартості або gems).</summary>
         public double RecoverableShare { get; set; } = 0.12;
 
+        /// <summary>Рівень ратуші, з якого спадає щит новачка й відкриваються підкріплення.</summary>
+        public int NewbieShieldTownHallLevel { get; set; } = 3;
+
         /// <summary>
         /// Пороги співвідношення сил для прев'ю, від найвищого до найнижчого.
         /// Гравець бачить смугу, не число: точний відсоток розкрив би формулу,

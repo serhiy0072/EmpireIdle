@@ -237,6 +237,11 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
+        /// <summary>Рівень ратуші; 0, якщо її чомусь немає.</summary>
+        public int MainBuildingLevel(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+            => Buildings.FirstOrDefault(b =>
+                buildingConfigs.TryGetValue(b.Type, out var config) && config.IsMainBuilding)?.Level.Value ?? 0;
+
         /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
         public bool HasBuilding(string buildingType)
             => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
@@ -430,6 +435,27 @@ namespace EmpireIdle.Domain.Entities
                 .Where(b => !b.IsUnderConstruction)
                 .Sum(b => buildingConfigs.TryGetValue(b.Type, out var cfg)
                     ? cfg.ReinforcementSlotsPerLevel * b.Level.Value
+                    : 0);
+
+        /// <summary>
+        /// Чи діє щит новачка: рівень ратуші нижчий за поріг. Такого гравця
+        /// не можна атакувати, і сам він не атакує. Таймера немає — щит
+        /// спадає рівнем ратуші, а вище за неї нічого не піднімеш (§3.2).
+        /// </summary>
+        public bool IsShielded(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, int shieldTownHallLevel)
+        {
+            var townHall = Buildings.FirstOrDefault(b =>
+                buildingConfigs.TryGetValue(b.Type, out var config) && config.IsMainBuilding);
+
+            return townHall is null || townHall.Level.Value < shieldTownHallLevel;
+        }
+
+        /// <summary>Бонус захисту від стін: сума рівнів × бонус за рівень.</summary>
+        public double WallBonus(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+            => 1.0 + Buildings
+                .Where(b => !b.IsUnderConstruction)
+                .Sum(b => buildingConfigs.TryGetValue(b.Type, out var config)
+                    ? config.DefenderBonusPerLevel * b.Level.Value
                     : 0);
     }
 }

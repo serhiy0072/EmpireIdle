@@ -10,6 +10,7 @@
       "RecoverableShare": 0.12,
       "PreviewOddsThresholds": [ 2.5, 1.3, 0.8, 0.4 ],
       "NoLossShareThreshold": 0.03,
+      "NewbieShieldTownHallLevel": 3,
       "TerrainBonuses": [
         {
           "Terrain": "plain",

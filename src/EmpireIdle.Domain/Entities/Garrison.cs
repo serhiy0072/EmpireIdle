@@ -1,5 +1,6 @@
 
 using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Domain.Entities
 {
@@ -261,6 +262,40 @@ namespace EmpireIdle.Domain.Entities
                 .Select(r => new DefenceStack(r.OwnerPlayerId, r.UnitType, r.Count));
 
             return own.Concat(allied).ToList();
+        }
+
+        /// <summary>
+        /// Знімає з оборони полеглих. Свої юніти зникають зі стеків гарнізону,
+        /// чужі — зі стеків підкріплення відповідного власника.
+        ///
+        /// Порожні стеки підкріплень лишаються: власник далі числиться тут,
+        /// і повернення додому має що відправити, навіть якщо це нуль.
+        /// </summary>
+        public void ApplyDefenceLosses(IReadOnlyList<StackLoss> losses, DateTime utcNow)
+        {
+            foreach (var loss in losses)
+            {
+                if (loss.Lost <= 0)
+                    continue;
+
+                if (loss.OwnerPlayerId is null)
+                {
+                    var own = _units.FirstOrDefault(u => u.UnitType == loss.UnitType);
+
+                    own?.Subtract(loss.Lost);
+
+                    continue;
+                }
+
+                var stack = _reinforcements.FirstOrDefault(r =>
+                    r.OwnerPlayerId == loss.OwnerPlayerId && r.UnitType == loss.UnitType);
+
+                stack?.Subtract(loss.Lost);
+            }
+
+            _units.RemoveAll(u => u.Count <= 0);
+
+            Touch(utcNow);
         }
 
         /// <summary>

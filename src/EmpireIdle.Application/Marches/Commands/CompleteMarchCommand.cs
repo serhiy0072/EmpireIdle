@@ -23,6 +23,8 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IBattleReportRepository _battleReportRepository;
         private readonly IClanRepository _clanRepository;
+        private readonly IRandomSource _random;
+        private readonly IGameNotifier _notifier;
         private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
@@ -31,6 +33,8 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly MarchCalculator _calculator;
         private readonly EffectResolver _effectResolver;
         private readonly BattleResolver _resolver;
+        private readonly DefenceLossAllocator _lossAllocator;
+        private readonly CasualtySplitter _casualties;
         private readonly ILogger<CompleteMarchCommandHandler> _logger;
 
         public CompleteMarchCommandHandler(
@@ -42,6 +46,8 @@ namespace EmpireIdle.Application.Marches.Commands
             IVillageRepository villageRepository,
             IBattleReportRepository battleReportRepository,
             IClanRepository clanRepository,
+            IRandomSource random,
+            IGameNotifier notifier,
             GameCatalog catalog,
             TimeProvider timeProvider,
             MonsterArmyBuilder armyBuilder,
@@ -49,6 +55,8 @@ namespace EmpireIdle.Application.Marches.Commands
             MarchCalculator calculator,
             EffectResolver effectResolver,
             BattleResolver resolver,
+            DefenceLossAllocator lossAllocator,
+            CasualtySplitter casualties,
             ILogger<CompleteMarchCommandHandler> logger)
         {
             _marchRepository = marchRepository;
@@ -59,11 +67,15 @@ namespace EmpireIdle.Application.Marches.Commands
             _villageRepository = villageRepository;
             _battleReportRepository = battleReportRepository;
             _clanRepository = clanRepository;
+            _random = random;
+            _notifier = notifier;
             _armyBuilder = armyBuilder;
             _terrain = terrain;
             _calculator = calculator;
             _timeProvider = timeProvider;
             _effectResolver = effectResolver;
+            _lossAllocator = lossAllocator;
+            _casualties = casualties;
             _logger = logger;
             _catalog = catalog;
             _resolver = resolver;
@@ -109,10 +121,9 @@ namespace EmpireIdle.Application.Marches.Commands
             var attackerArmy = march.GetUnits();
             var terrain = _terrain.GetTerrainType(march.ServerId, march.TargetX, march.TargetY);
 
-            if (march.TargetType != MarchTargetType.Monster)
+            if (march.TargetType == MarchTargetType.Village)
             {
-                // PvP — окрема фаза; поки армія просто розвертається
-                TurnMarchBack(march, attackerArmy, utcNow);
+                await ResolveVillageBattleAsync(march, attackerArmy, terrain, utcNow, cancellationToken);
                 return;
             }
 
@@ -263,6 +274,113 @@ namespace EmpireIdle.Application.Marches.Commands
                 march.Id, incoming, targetVillage.Id);
         }
 
+        /// <summary>
+        /// Бій за село. Захисник — гарнізон господаря разом із підкріпленнями
+        /// клану; втрати кожної сторони розкидаються по власниках, і поранені
+        /// йдуть у госпіталь того, чиї це юніти, а не того, хто оборонявся.
+        ///
+        /// Здобич тут не рахується — вона наступним кроком, разом
+        /// із захищеним запасом.
+        /// </summary>
+        private async Task ResolveVillageBattleAsync(March march, Dictionary<string, int> attackerArmy,
+            string terrain, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            var attackerGarrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken)
+                ?? throw new InvalidOperationException($"Garrison {march.GarrisonId} not found for march {march.Id}.");
+
+            var attackerVillage = await _villageRepository.GetByIdAsync(attackerGarrison.VillageId, cancellationToken)
+                ?? throw new InvalidOperationException($"Village {attackerGarrison.VillageId} not found.");
+
+            var targetVillage = await _villageRepository.GetByIdAsync(march.TargetId, cancellationToken);
+            var targetGarrison = targetVillage is null
+                ? null
+                : await _garrisonRepository.GetByVillageIdAsync(targetVillage.Id, cancellationToken);
+
+            var shieldLevel = _combatConfig.NewbieShieldTownHallLevel;
+
+            // Щит міг з'явитись хіба що в нападника, але село могло й зникнути.
+            // Це прогін сканера, тож будь-яка невідповідність — розворот, не виняток
+            if (targetVillage is null || targetGarrison is null
+                || targetVillage.IsShielded(_catalog.Buildings, shieldLevel)
+                || attackerVillage.IsShielded(_catalog.Buildings, shieldLevel))
+            {
+                TurnMarchBack(march, attackerArmy, utcNow);
+                return;
+            }
+
+            var defence = targetGarrison.GetDefence();
+            var defenderArmy = defence
+                .GroupBy(s => s.UnitType)
+                .ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
+
+            var attackerBonus = await _effectResolver.GetMultiplierAsync(
+                attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
+
+            var defenderBonus = targetVillage.WallBonus(_catalog.Buildings);
+
+            var seed = _random.Next(int.MaxValue);
+
+            var attackerWoundedCapacity = CalculateWoundedCapacity(attackerVillage, attackerGarrison);
+
+            var outcome = _resolver.Resolve(attackerArmy, defenderArmy, terrain, seed,
+                attackerBonus, defenderBonus, attackerWoundedCapacity);
+
+            var result = outcome.Battle;
+
+            march.ApplyLosses(result.AttackerLosses, utcNow);
+            attackerGarrison.AdmitWounded(outcome.AttackerCasualties.Wounded, utcNow);
+
+            var defenderLosses = _lossAllocator.Allocate(defence, result.DefenderLosses);
+
+            targetGarrison.ApplyDefenceLosses(defenderLosses, utcNow);
+
+            await AdmitDefenderWoundedAsync(defenderLosses, seed, utcNow, cancellationToken);
+
+            await WriteBattleReportsAsync(march, attackerVillage, attackerGarrison,
+                targetVillage, targetGarrison, attackerArmy, defence, outcome, defenderLosses,
+                terrain, seed, utcNow, cancellationToken);
+
+            TurnMarchBack(march, march.GetUnits(), utcNow);
+
+            _logger.LogInformation(
+                "PvP at ({X},{Y}): {Attacker} vs {Defender}, attacker {Outcome}",
+                march.TargetX, march.TargetY, attackerVillage.PlayerId, targetVillage.PlayerId,
+                result.AttackerWon ? "won" : "lost");
+        }
+
+        /// <summary>
+        /// Розводить поранених захисника по госпіталях власників: свої —
+        /// господарю, підкріплення — тому, хто їх прислав. Кожен платить
+        /// за своїх, і чужий госпіталь чужими не забивається.
+        /// </summary>
+        private async Task AdmitDefenderWoundedAsync(IReadOnlyList<StackLoss> losses, int seed, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            foreach (var group in losses.GroupBy(l => l.OwnerPlayerId))
+            {
+                // Поранені господаря лягли в WriteBattleReportsAsync
+                if (group.Key is not { } ownerId)
+                    continue;
+
+                var byType = group
+                    .GroupBy(l => l.UnitType)
+                    .ToDictionary(g => g.Key, g => g.Sum(l => l.Lost));
+
+                // Гарнізон союзника стоїть за сотню клітин, але транзакція одна
+                var ownerVillage = await _villageRepository.GetByPlayerIdAsync(ownerId, cancellationToken);
+                var ownerGarrison = ownerVillage is null
+                    ? null
+                    : await _garrisonRepository.GetByVillageIdAsync(ownerVillage.Id, cancellationToken);
+
+                if (ownerVillage is null || ownerGarrison is null)
+                    continue;
+
+                var ownerCapacity = CalculateWoundedCapacity(ownerVillage, ownerGarrison);
+                var ownerSplit = _casualties.Split(byType, ownerCapacity, seed ^ 0x1B873593);
+
+                ownerGarrison.AdmitWounded(ownerSplit.Wounded, utcNow);
+            }
+        }
+
         /// <summary>Розвертає похід додому (або завершує, якщо армія загинула).</summary>
         private void TurnMarchBack(March march, IReadOnlyDictionary<string, int> survivors, DateTime utcNow)
         {
@@ -298,6 +416,101 @@ namespace EmpireIdle.Application.Marches.Commands
                     : 0);
 
             return Math.Max(0, total - garrison.WoundedCount);
+        }
+
+        /// <summary>
+        /// Пише звіти обом сторонам. Кожен бачить бій зі свого боку:
+        /// нападник — що втратив зі свого маршу, захисник — що втратив
+        /// власний гарнізон. Підкріплення в звіт господаря не потрапляють:
+        /// це чужі юніти, і в рядках вони виглядали б як його власні.
+        /// </summary>
+        private async Task WriteBattleReportsAsync(
+            March march,
+            Village attackerVillage,
+            Garrison attackerGarrison,
+            Village defenderVillage,
+            Garrison defenderGarrison,
+            IReadOnlyDictionary<string, int> attackerArmy,
+            IReadOnlyList<DefenceStack> defence,
+            BattleOutcome outcome,
+            IReadOnlyList<StackLoss> defenderLosses,
+            string terrain,
+            int seed,
+            DateTime utcNow,
+            CancellationToken cancellationToken)
+        {
+            var result = outcome.Battle;
+            var attackerSplit = outcome.AttackerCasualties;
+            var expiresAt = utcNow.AddHours(_combatConfig.RecoveryWindowHours);
+
+            var attackerReport = new BattleReport(
+                Guid.NewGuid(),
+                attackerVillage.PlayerId,
+                march.Id,
+                march.TargetX, march.TargetY, terrain,
+                defenderVillage.Name, defenderVillage.MainBuildingLevel(_catalog.Buildings),
+                result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
+
+            foreach (var (unitType, sent) in attackerArmy)
+            {
+                attackerReport.AddLine(
+                    unitType,
+                    sent,
+                    attackerSplit.Wounded.GetValueOrDefault(unitType),
+                    attackerSplit.Recoverable.GetValueOrDefault(unitType),
+                    attackerSplit.Dead.GetValueOrDefault(unitType));
+            }
+
+            await _battleReportRepository.AddAsync(attackerReport, cancellationToken);
+
+            if (attackerSplit.Recoverable.Count > 0)
+                attackerGarrison.AddRecoverable(attackerSplit.Recoverable, attackerReport.Id, expiresAt, utcNow);
+
+            // Для захисника координати власні: бій ішов у нього вдома,
+            // а «ціллю» в його звіті виступає нападник
+            var defenderReport = new BattleReport(
+                Guid.NewGuid(),
+                defenderVillage.PlayerId,
+                march.Id,
+                defenderVillage.X, defenderVillage.Y, terrain,
+                attackerVillage.Name, attackerVillage.MainBuildingLevel(_catalog.Buildings),
+                !result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
+
+            var hostStood = defence
+                .Where(s => s.OwnerPlayerId is null)
+                .GroupBy(s => s.UnitType)
+                .ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
+
+            var hostLost = defenderLosses
+                .Where(l => l.OwnerPlayerId is null)
+                .GroupBy(l => l.UnitType)
+                .ToDictionary(g => g.Key, g => g.Sum(l => l.Lost));
+
+            var hostCapacity = CalculateWoundedCapacity(defenderVillage, defenderGarrison);
+            var hostSplit = _casualties.Split(hostLost, hostCapacity, seed ^ 0x1B873593);
+
+            defenderGarrison.AdmitWounded(hostSplit.Wounded, utcNow);
+
+            foreach (var (unitType, stood) in hostStood)
+            {
+                defenderReport.AddLine(
+                    unitType,
+                    stood,
+                    hostSplit.Wounded.GetValueOrDefault(unitType),
+                    hostSplit.Recoverable.GetValueOrDefault(unitType),
+                    hostSplit.Dead.GetValueOrDefault(unitType));
+            }
+
+            await _battleReportRepository.AddAsync(defenderReport, cancellationToken);
+
+            if (hostSplit.Recoverable.Count > 0)
+                defenderGarrison.AddRecoverable(hostSplit.Recoverable, defenderReport.Id, expiresAt, utcNow);
+
+            march.RecordBattle(attackerVillage.PlayerId, attackerReport.Id, result.AttackerWon,
+                defenderVillage.Name, utcNow);
+
+            await _notifier.NotifyBattleFinishedAsync(defenderVillage.PlayerId, defenderReport.Id,
+                !result.AttackerWon, attackerVillage.Name, cancellationToken);
         }
     }
 }
