@@ -28,8 +28,10 @@ public class CompleteMarchCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IBattleReportRepository _reports = Substitute.For<IBattleReportRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
-    private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
+    private readonly IRandomSource _random = Substitute.For<IRandomSource>();
+    private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
 
     private static GameConfig Config() => new()
     {
@@ -85,14 +87,17 @@ public class CompleteMarchCommandTests
 
         return new CompleteMarchCommandHandler(
             _marches, _garrisons, _unitOfWork, _map, _monsters, _villages, _reports, _clans,
+            _random, _notifier,
             catalog, new FakeTimeProvider(Now),
             new MonsterArmyBuilder(catalog),
             terrain,
             new MarchCalculator(terrain, catalog),
             new EffectResolver(_effects),
             new BattleResolver(combat, new CasualtySplitter(config.Combat)),
+            new DefenceLossAllocator(),
+            new CasualtySplitter(config.Combat),
             NullLogger<CompleteMarchCommandHandler>.Instance);
-    }
+            }
 
     /// <summary>Село, гарнізон, марш до монстра — стандартна сцена бою.</summary>
     private (March March, Village Village, Garrison Garrison, Monster Monster) GivenBattle(

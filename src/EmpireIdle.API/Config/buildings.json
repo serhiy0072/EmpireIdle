@@ -6,7 +6,7 @@
         "DisplayName": "Town Hall",
         "IsMainBuilding": true,
         "RequiresMainBuildingLevel": 0,
-        "DefenderBonusPerLevel": 0.03,
+        "ProtectedStorage": 250,
         "Position": {
           "X": 50.0,
           "Y": 30.0

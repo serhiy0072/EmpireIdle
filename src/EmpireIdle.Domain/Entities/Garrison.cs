@@ -1,4 +1,3 @@
-
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 
@@ -10,14 +9,13 @@ namespace EmpireIdle.Domain.Entities
     /// </summary>
     public class Garrison : Entity
     {
+        #region Стан
+
         private readonly List<VillageUnit> _units = new();
         private readonly List<UnitTrainingOrder> _trainingOrders = new();
         private readonly List<WoundedUnit> _wounded = new();
         private readonly List<RecoverableUnit> _recoverable = new();
         private readonly List<ReinforcementUnit> _reinforcements = new();
-
-        /// <summary>Скільки поранених зараз лежить у Госпіталі.</summary>
-        public int WoundedCount => _wounded.Sum(w => w.Count);
 
         /// <summary>Село, якому належить гарнізон.</summary>
         public Guid VillageId { get; private set; }
@@ -33,6 +31,9 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Чужі юніти, що стоять тут як підкріплення (тільки для читання).</summary>
         public IReadOnlyCollection<ReinforcementUnit> Reinforcements => _reinforcements.AsReadOnly();
+
+        /// <summary>Скільки поранених зараз лежить у Госпіталі.</summary>
+        public int WoundedCount => _wounded.Sum(w => w.Count);
 
         /// <summary>Скільки чужих юнітів зараз у гарнізоні.</summary>
         public int ReinforcementCount => _reinforcements.Sum(r => r.Count);
@@ -50,6 +51,10 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public int ServerId { get; private set; }
 
+        #endregion
+
+        #region Створення
+
         public Garrison(Guid id, Guid villageId, int serverId) : base(id)
         {
             VillageId = villageId;
@@ -57,6 +62,41 @@ namespace EmpireIdle.Domain.Entities
         }
 
         protected Garrison() { } // Для EF Core
+
+        #endregion
+
+        #region Читання
+
+        /// <summary>
+        /// Склад оборони: власні юніти плюс підкріплення союзників.
+        /// Поранені й ті, хто на прокачці, не беруть участі — їх тут немає.
+        ///
+        /// Повертає стеками, а не сумою: бій рахується на об'єднаній армії,
+        /// але втрати потім треба повернути кожному власнику окремо.
+        /// </summary>
+        public IReadOnlyList<DefenceStack> GetDefence()
+        {
+            var own = _units
+                .Where(u => u.Count > 0)
+                .Select(u => new DefenceStack(null, u.UnitType, u.Count));
+
+            var allied = _reinforcements
+                .Where(r => r.Count > 0)
+                .Select(r => new DefenceStack(r.OwnerPlayerId, r.UnitType, r.Count));
+
+            return own.Concat(allied).ToList();
+        }
+
+        /// <summary>Хто тримає тут підкріплення — для екрана оборони й масового відкликання.</summary>
+        public IReadOnlyCollection<Guid> ReinforcementOwners()
+            => _reinforcements.Select(r => r.OwnerPlayerId).Distinct().ToList();
+
+        /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
+        public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
+
+        #endregion
+
+        #region Тренування
 
         /// <summary>
         /// Ставить партію юнітів у чергу тренування.
@@ -113,6 +153,20 @@ namespace EmpireIdle.Domain.Entities
             return due.Count;
         }
 
+        /// <summary>Прискорює замовлення тренування (speedup за gems).</summary>
+        public void ReduceTrainingTime(Guid orderId, TimeSpan reduction, DateTime utcNow)
+        {
+            var order = _trainingOrders.FirstOrDefault(o => o.Id == orderId)
+                 ?? throw new EntityNotFoundException("Training order", orderId);
+
+            order.Reduce(reduction);
+            Touch(utcNow);
+        }
+
+        #endregion
+
+        #region Марші
+
         /// <summary>
         /// Знімає юнітів із гарнізону для походу.
         /// </summary>
@@ -160,24 +214,9 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        /// <summary>Приймає поранених після бою (у межах вільної місткості).</summary>
-        public void AdmitWounded(IReadOnlyDictionary<string, int> wounded, DateTime utcNow)
-        {
-            foreach (var (unitType, count) in wounded)
-            {
-                if (count <= 0)
-                    continue;
+        #endregion
 
-                var stack = _wounded.FirstOrDefault(w => w.UnitType == unitType);
-                if (stack is null)
-                {
-                    stack = new WoundedUnit(Guid.NewGuid(), Id, unitType, 0);
-                    _wounded.Add(stack);
-                }
-                stack.Add(count);
-            }
-            Touch(utcNow);
-        }
+        #region Підкріплення
 
         /// <summary>
         /// Приймає підкріплення від союзника.
@@ -240,29 +279,9 @@ namespace EmpireIdle.Domain.Entities
             return withdrawn;
         }
 
-        /// <summary>Хто тримає тут підкріплення — для екрана оборони й масового відкликання.</summary>
-        public IReadOnlyCollection<Guid> ReinforcementOwners()
-            => _reinforcements.Select(r => r.OwnerPlayerId).Distinct().ToList();
+        #endregion
 
-        /// <summary>
-        /// Склад оборони: власні юніти плюс підкріплення союзників.
-        /// Поранені й ті, хто на прокачці, не беруть участі — їх тут немає.
-        ///
-        /// Повертає стеками, а не сумою: бій рахується на об'єднаній армії,
-        /// але втрати потім треба повернути кожному власнику окремо.
-        /// </summary>
-        public IReadOnlyList<DefenceStack> GetDefence()
-        {
-            var own = _units
-                .Where(u => u.Count > 0)
-                .Select(u => new DefenceStack(null, u.UnitType, u.Count));
-
-            var allied = _reinforcements
-                .Where(r => r.Count > 0)
-                .Select(r => new DefenceStack(r.OwnerPlayerId, r.UnitType, r.Count));
-
-            return own.Concat(allied).ToList();
-        }
+        #region Втрати, лікування, викуп
 
         /// <summary>
         /// Знімає з оборони полеглих. Свої юніти зникають зі стеків гарнізону,
@@ -298,6 +317,25 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
+        /// <summary>Приймає поранених після бою (у межах вільної місткості).</summary>
+        public void AdmitWounded(IReadOnlyDictionary<string, int> wounded, DateTime utcNow)
+        {
+            foreach (var (unitType, count) in wounded)
+            {
+                if (count <= 0)
+                    continue;
+
+                var stack = _wounded.FirstOrDefault(w => w.UnitType == unitType);
+                if (stack is null)
+                {
+                    stack = new WoundedUnit(Guid.NewGuid(), Id, unitType, 0);
+                    _wounded.Add(stack);
+                }
+                stack.Add(count);
+            }
+            Touch(utcNow);
+        }
+
         /// <summary>
         /// Виліковує поранених: вони повертаються в гарнізон.
         /// </summary>
@@ -324,19 +362,6 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
             return healed;
         }
-
-        /// <summary>Прискорює замовлення тренування (speedup за gems).</summary>
-        public void ReduceTrainingTime(Guid orderId, TimeSpan reduction, DateTime utcNow)
-        {
-            var order = _trainingOrders.FirstOrDefault(o => o.Id == orderId)
-                 ?? throw new EntityNotFoundException("Training order", orderId);
-
-            order.Reduce(reduction);
-            Touch(utcNow);
-        }
-
-        /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
-        public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
 
         /// <summary>Записує відновлюваних після бою — окремим стеком зі своїм дедлайном.</summary>
         public void AddRecoverable(IReadOnlyDictionary<string, int> units, Guid battleReportId, DateTime expiresAt, DateTime utcNow)
@@ -393,6 +418,12 @@ namespace EmpireIdle.Domain.Entities
             return recovered;
         }
 
+        #endregion
+
+        #region Внутрішнє
+
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
+
+        #endregion
     }
 }

@@ -10,6 +10,7 @@ namespace EmpireIdle.Domain.Entities
     public class March : Entity
     {
         private readonly List<MarchUnit> _units = new();
+        private readonly List<MarchCargo> _cargo = new();
 
         public int ServerId { get; private set; }
         public Guid GarrisonId { get; private set; }
@@ -39,6 +40,9 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Склад армії (тільки для читання).</summary>
         public IReadOnlyCollection<MarchUnit> Units => _units.AsReadOnly();
+
+        /// <summary>Здобич, яку армія везе додому (тільки для читання).</summary>
+        public IReadOnlyCollection<MarchCargo> Cargo => _cargo.AsReadOnly();
 
         /// <summary>
         /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
@@ -90,6 +94,29 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Склад армії у вигляді словника (для повернення в гарнізон).</summary>
         public Dictionary<string, int> GetUnits() => _units.ToDictionary(u => u.UnitType, u => u.Count);
+
+        /// <summary>Складає здобич у марш. Викликається один раз, одразу після бою.</summary>
+        public void LoadCargo(IReadOnlyDictionary<string, int> loot, DateTime utcNow)
+        {
+            foreach (var (resourceType, amount) in loot)
+            {
+                if (amount <= 0)
+                    continue;
+
+                var existing = _cargo.FirstOrDefault(c => c.ResourceType == resourceType);
+
+                if (existing is null)
+                    _cargo.Add(new MarchCargo(Guid.NewGuid(), Id, resourceType, amount));
+                else
+                    existing.Add(amount);
+            }
+
+            Touch(utcNow);
+        }
+
+        /// <summary>Вміст вантажу для розвантаження вдома.</summary>
+        public Dictionary<string, int> GetCargo()
+            => _cargo.ToDictionary(c => c.ResourceType, c => c.Amount);
 
         /// <summary>
         /// Армія дійшла до цілі й розвертається додому.

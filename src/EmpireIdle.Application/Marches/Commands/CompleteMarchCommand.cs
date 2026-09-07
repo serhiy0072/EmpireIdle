@@ -146,7 +146,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var attackerBonus = await _effectResolver.GetMultiplierAsync(village.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
-            var seed = Random.Shared.Next();
+            var seed = _random.Next(int.MaxValue);
 
             // Вільна місткість Госпіталю = сума рівнів × місткість на рівень − уже поранені
             var woundedCapacity = CalculateWoundedCapacity(village, garrison);
@@ -316,7 +316,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                 attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
 
-            var defenderBonus = targetVillage.WallBonus(_catalog.Buildings);
+            var defenderBonus = targetVillage.DefenceMultiplier(_catalog.Buildings);
 
             var seed = _random.Next(int.MaxValue);
 

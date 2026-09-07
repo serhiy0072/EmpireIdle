@@ -19,6 +19,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<List<March>> GetActiveByGarrisonAsync(Guid garrisonId, CancellationToken cancellationToken = default)
             => _context.Marches
             .Include(m => m.Units)
+            .Include(m => m.Cargo)
             .AsSplitQuery()
             .Where(m => m.GarrisonId == garrisonId && m.State != MarchState.Completed)
             .ToListAsync(cancellationToken);
@@ -36,6 +37,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<March?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.Marches
             .Include(m => m.Units)
+            .Include(m => m.Cargo)
             .AsSplitQuery()
             .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
 

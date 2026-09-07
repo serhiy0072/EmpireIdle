@@ -19,7 +19,8 @@
         "Stats": {
           "Attack": 8,
           "Defense": 12,
-          "Speed": 4
+          "Speed": 4,
+          "CarryCapacity": 40
         },
         "RequiresBuilding": "barracks",
         "RequiresBuildingLevel" :  1
@@ -42,7 +43,8 @@
         "Stats": {
           "Attack": 12,
           "Defense": 6,
-          "Speed": 4
+          "Speed": 4,
+          "CarryCapacity": 20
         },
         "RequiresBuilding": "barracks",
         "RequiresBuildingLevel": 3
@@ -69,7 +71,8 @@
         "Stats": {
           "Attack": 18,
           "Defense": 10,
-          "Speed": 8
+          "Speed": 8,
+          "CarryCapacity": 60
         },
         "RequiresBuilding": "stable",
         "RequiresBuildingLevel": 1
@@ -92,7 +95,8 @@
         "Stats": {
           "Attack": 40,
           "Defense": 5,
-          "Speed": 1
+          "Speed": 1,
+          "CarryCapacity": 15
         },
         "RequiresBuilding": "barracks",
         "RequiresBuildingLevel": 6

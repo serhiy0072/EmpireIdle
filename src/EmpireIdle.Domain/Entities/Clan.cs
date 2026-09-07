@@ -13,6 +13,8 @@ namespace EmpireIdle.Domain.Entities
     /// </summary>
     public class Clan : Entity
     {
+        #region Стан
+
         private readonly List<ClanMember> _members = new();
         private readonly List<ClanRole> _roles = new();
 
@@ -37,6 +39,10 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
+
+        #endregion
+
+        #region Створення
 
         /// <summary>
         /// Створює клан зі стандартним набором ролей і засновником у ролі лідера.
@@ -87,7 +93,9 @@ namespace EmpireIdle.Domain.Entities
             new(Guid.NewGuid(), clanId, "Member", 0, ClanPermission.None, isDefaultRole: true)
         ];
 
-        // ---------- Читання ----------
+        #endregion
+
+        #region Читання
 
         /// <summary>Роль гравця; null — не в клані.</summary>
         public ClanRole? RoleOf(Guid playerId)
@@ -97,21 +105,20 @@ namespace EmpireIdle.Domain.Entities
             return member is null ? null : _roles.FirstOrDefault(r => r.Id == member.RoleId);
         }
 
+        /// <summary>Id чинного лідера; null — клан лишився без нього.</summary>
+        public Guid? LeaderId => _members
+            .FirstOrDefault(m => m.RoleId == _roles.Single(r => r.IsLeaderRole).Id)?.PlayerId;
+
         /// <summary>
         /// Перевіряє право виконавця. Публічний, на відміну від внутрішніх
         /// перевірок у Kick і AssignRole: рекрутинг живе поза агрегатом —
         /// заявник ще не член клану, а сама заявка окрема сутність.
         /// </summary>
-        public void EnsureCan(Guid actorId, ClanPermission permission)
-        {
-            var role = RoleOf(actorId)
-                ?? throw new RequirementNotMetException("You are not in this clan.");
+        public void EnsureCan(Guid actorId, ClanPermission permission) => RequireRole(actorId, permission);
 
-            if (!role.Permissions.HasFlag(permission))
-                throw new RequirementNotMetException($"Your role lacks the {permission} permission.");
-        }
+        #endregion
 
-        // ---------- Склад ----------
+        #region Склад
 
         /// <summary>Приймає гравця в роль за замовчуванням.</summary>
         public void Join(Guid playerId, int capacity, DateTime utcNow)
@@ -233,12 +240,9 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        /// <summary>Id чинного лідера; null — клан лишився без нього.</summary>
-        public Guid? LeaderId => _members
-            .FirstOrDefault(m => m.RoleId == _roles.Single(r => r.IsLeaderRole).Id)?.PlayerId;
+        #endregion
 
-
-        // ---------- Ролі ----------
+        #region Ролі
 
         /// <summary>Створює роль. Ранг не може дорівнювати власному або перевищувати його.</summary>
         public Guid CreateRole(Guid actorId, string name, int rank, ClanPermission permissions, DateTime utcNow)
@@ -312,7 +316,9 @@ namespace EmpireIdle.Domain.Entities
             return affected.Count;
         }
 
-        // ---------- Профіль і активність ----------
+        #endregion
+
+        #region Профіль і активність
 
         public void UpdateSettings(Guid actorId, string description, ClanJoinPolicy joinPolicy, DateTime utcNow)
         {
@@ -331,7 +337,9 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        // ---------- Внутрішнє ----------
+        #endregion
+
+        #region Внутрішнє
 
         /// <summary>Роль виконавця з перевіркою дозволу.</summary>
         private ClanRole RequireRole(Guid actorId, ClanPermission permission)
@@ -363,5 +371,7 @@ namespace EmpireIdle.Domain.Entities
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
+
+        #endregion
     }
 }
