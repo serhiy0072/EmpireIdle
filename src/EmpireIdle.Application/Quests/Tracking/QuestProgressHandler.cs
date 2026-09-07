@@ -15,14 +15,12 @@ namespace EmpireIdle.Application.Quests.Tracking
         private readonly QuestSignalResolver _resolver;
         private readonly QuestProgressTracker _tracker;
         private readonly TimeProvider _timeProvider;
-        private readonly ILogger<QuestProgressHandler<TEvent>> _logger;
 
-        public QuestProgressHandler(QuestSignalResolver resolver, QuestProgressTracker tracker, TimeProvider timeProvider, ILogger<QuestProgressHandler<TEvent>> logger)
+        public QuestProgressHandler(QuestSignalResolver resolver, QuestProgressTracker tracker, TimeProvider timeProvider)
         {
             _resolver = resolver;
             _tracker = tracker;
             _timeProvider = timeProvider;
-            _logger = logger;
         }
 
         public async Task Handle(DomainEventNotification<TEvent> notification, CancellationToken cancellationToken)

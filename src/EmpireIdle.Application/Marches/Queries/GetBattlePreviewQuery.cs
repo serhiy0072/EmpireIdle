@@ -25,7 +25,6 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IServerContext _serverContext;
-        private readonly GameCatalog _catalog;
         private readonly CombatCalculator _combat;
         private readonly TerrainGenerator _terrain;
         private readonly MarchCalculator _calculator;
@@ -37,7 +36,6 @@ namespace EmpireIdle.Application.Marches.Queries
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IServerContext serverContext,
-            GameCatalog catalog,
             CombatCalculator combat,
             TerrainGenerator terrain,
             MarchCalculator calculator,
@@ -48,7 +46,6 @@ namespace EmpireIdle.Application.Marches.Queries
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _serverContext = serverContext;
-            _catalog = catalog;
             _combat = combat;
             _terrain = terrain;
             _calculator = calculator;
