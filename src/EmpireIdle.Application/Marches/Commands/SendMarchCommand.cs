@@ -80,21 +80,24 @@ namespace EmpireIdle.Application.Marches.Commands
             if (active.Count >= MaxActiveMarches)
                 throw new RequirementNotMetException($"Cannot send more than {MaxActiveMarches} marches at once.");
 
-            var (targetX, targetY) = await ResolveTargetAsync(request, cancellationToken);
+            // Ціль читається один раз: далі її перевіряють і щит, і підкріплення
+            var target = await ResolveTargetAsync(request, village, cancellationToken);
 
             // Перевіряємо до зняття юнітів: інакше відмова лишила б гарнізон порожнім
             if (request.Intent == MarchIntent.Reinforce)
-                await EnsureCanReinforceAsync(request, cancellationToken);
+                await EnsureCanReinforceAsync(request, village, target, cancellationToken);
+            else
+                EnsureCanAttack(village, target.Village);
 
             // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
             garrison.SendUnits(request.Units, now);
 
             var duration = _calculator.CalculateDuration(
-                _serverContext.ServerId, village.X, village.Y, targetX, targetY, request.Units);
+                _serverContext.ServerId, village.X, village.Y, target.X, target.Y, request.Units);
 
             var march = new March(
                 Guid.NewGuid(), _serverContext.ServerId, garrison.Id,
-                village.X, village.Y, targetX, targetY,
+                village.X, village.Y, target.X, target.Y,
                 request.TargetType, request.TargetId,
                 request.Units, now + duration, now,
                 request.Intent);
@@ -104,25 +107,46 @@ namespace EmpireIdle.Application.Marches.Commands
 
             _logger.LogInformation(
                 "March {MarchId} sent from ({OriginX},{OriginY}) to ({TargetX},{TargetY}), arrives in {Minutes:F1} min",
-                march.Id, village.X, village.Y, targetX, targetY, duration.TotalMinutes);
+                march.Id, village.X, village.Y, target.X, target.Y, duration.TotalMinutes);
 
             return march.Id;
         }
 
-        /// <summary>Знаходить координати цілі за її типом.</summary>
-        private async Task<(int X, int Y)> ResolveTargetAsync(SendMarchCommand request, CancellationToken cancellationToken)
+        /// <summary>
+        /// Координати цілі й саме село, якщо ціль — село.
+        /// Village null для монстра: у нього немає ні щита, ні клану.
+        /// </summary>
+        private sealed record MarchTarget(int X, int Y, Village? Village);
+
+        /// <summary>
+        /// Знаходить ціль за типом і звіряє світ.
+        ///
+        /// TargetId приходить від клієнта, а query-фільтр захищає лише читання
+        /// в межах поточного світу — тож без явної звірки марш ходив би
+        /// між світами, щойно клієнт підставить чужий id.
+        /// </summary>
+        private async Task<MarchTarget> ResolveTargetAsync(SendMarchCommand request, Village origin,
+            CancellationToken cancellationToken)
         {
             switch (request.TargetType)
             {
                 case MarchTargetType.Monster:
                     var monster = await _monsterRepository.GetByIdAsync(request.TargetId, cancellationToken)
-                        ?? throw new EntityNotFoundException($"Monster", request.TargetId);
-                    return (monster.X, monster.Y);
+                        ?? throw new EntityNotFoundException("Monster", request.TargetId);
+
+                    if (monster.ServerId != origin.ServerId)
+                        throw new EntityNotFoundException("Monster", request.TargetId);
+
+                    return new MarchTarget(monster.X, monster.Y, null);
 
                 case MarchTargetType.Village:
                     var target = await _villageRepository.GetByIdAsync(request.TargetId, cancellationToken)
-                        ?? throw new EntityNotFoundException($"Village", request.TargetId);
-                    return (target.X, target.Y);
+                        ?? throw new EntityNotFoundException("Village", request.TargetId);
+
+                    if (target.ServerId != origin.ServerId)
+                        throw new EntityNotFoundException("Village", request.TargetId);
+
+                    return new MarchTarget(target.X, target.Y, target);
 
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{request.TargetType}'.");
@@ -130,30 +154,60 @@ namespace EmpireIdle.Application.Marches.Commands
         }
 
         /// <summary>
+        /// Щит новачка діє в обидва боки: гравець під ним не атакує,
+        /// і його самого атакувати не можна. Монстрів це не стосується —
+        /// PvE відкритий із першого рівня.
+        /// </summary>
+        private void EnsureCanAttack(Village origin, Village? target)
+        {
+            if (target is null)
+                return;
+
+            var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
+
+            if (origin.IsShielded(_catalog.Buildings, shieldLevel))
+                throw new RequirementNotMetException(
+                    $"Attacking other players is available from town hall level {shieldLevel}.");
+
+            if (target.IsShielded(_catalog.Buildings, shieldLevel))
+                throw new RequirementNotMetException("This village is under a newbie shield.");
+        }
+
+        /// <summary>
         /// Підкріплення йдуть лише до союзника і лише якщо в посольстві є місце.
         /// Обидві умови перевіряються ще раз на прибутті: дорога довга.
         /// </summary>
-        private async Task EnsureCanReinforceAsync(SendMarchCommand request, CancellationToken cancellationToken)
+        private async Task EnsureCanReinforceAsync(SendMarchCommand request, Village origin, MarchTarget target,
+            CancellationToken cancellationToken)
         {
-            if (request.TargetType != MarchTargetType.Village)
-                throw new RequirementNotMetException($"Reinforcement march must target a village, got '{request.TargetType}'.");
+            if (target.Village is not { } destination)
+                throw new RequirementNotMetException(
+                    $"Reinforcement march must target a village, got '{request.TargetType}'.");
 
-            var target = await _villageRepository.GetByIdAsync(request.TargetId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village", request.TargetId);
-
-            if (target.PlayerId == request.PlayerId)
+            if (destination.PlayerId == request.PlayerId)
                 throw new RequirementNotMetException("You cannot reinforce your own village.");
 
+            // Підкріплення відкриваються з того самого порогу, що знімає щит:
+            // недоторканне село інакше стало б сейфом для кланової армії
+            var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
+
+            if (origin.IsShielded(_catalog.Buildings, shieldLevel))
+                throw new RequirementNotMetException(
+                    $"Reinforcements are available from town hall level {shieldLevel}.");
+
+            if (destination.IsShielded(_catalog.Buildings, shieldLevel))
+                throw new RequirementNotMetException("This village cannot receive reinforcements yet.");
+
             var myClan = await _clanRepository.GetClanIdByMemberAsync(request.PlayerId, cancellationToken);
-            var targetClan = await _clanRepository.GetClanIdByMemberAsync(target.PlayerId, cancellationToken);
+            var targetClan = await _clanRepository.GetClanIdByMemberAsync(destination.PlayerId, cancellationToken);
 
             if (myClan is null || myClan != targetClan)
                 throw new RequirementNotMetException("Reinforcements go to clanmates only.");
 
-            var targetGarrison = await _garrisonRepository.GetByVillageIdAsync(target.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {target.Id}.");
+            var targetGarrison = await _garrisonRepository.GetByVillageIdAsync(destination.Id, cancellationToken)
+                ?? throw new InvalidOperationException($"Garrison not found for village {destination.Id}.");
 
-            var free = target.ReinforcementCapacity(_catalog.Buildings) - targetGarrison.ReinforcementCount;
+            var free = destination.ReinforcementCapacity(_catalog.Buildings) - targetGarrison.ReinforcementCount;
             var incoming = request.Units.Values.Sum();
 
             if (incoming > free)
