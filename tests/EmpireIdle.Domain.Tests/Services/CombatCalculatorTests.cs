@@ -52,5 +52,85 @@ namespace EmpireIdle.Domain.Tests.Services
             // 20 піхотинців × 10 атаки, без терейн-бонусу
             Assert.Equal(200, power);
         }
+
+        /// <summary>
+        /// Каталог із двома типами різної стійкості: облога втричі
+        /// крихкіша за піхоту, атака однакова — щоб різниця у втратах
+        /// пояснювалась саме захистом, а не внеском у силу.
+        /// </summary>
+        private static CombatCalculator CalculatorWithFragileSiege()
+        {
+            var combatConfig = new CombatConfig
+            {
+                RandomSigma = 0.15,
+                RandomMin = 0.7,
+                RandomMax = 1.4,
+                NoLossShareThreshold = 0.03
+            };
+
+            var catalog = new GameCatalog(new GameConfig
+            {
+                Units =
+                [
+                    new()
+                    {
+                        Key = "infantry",
+                        Stats = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 12 }
+                    },
+                    new()
+                    {
+                        Key = "siege",
+                        Stats = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 4 }
+                    }
+                ],
+                Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true }]
+            });
+
+            return new CombatCalculator(combatConfig, catalog);
+        }
+
+        [Fact]
+        public void Resolve_ShouldHitFragileUnitsHarder_WhenSideWins()
+        {
+            // Arrange: змішана армія проти явно слабшого захисника
+            var calculator = CalculatorWithFragileSiege();
+
+            var attacker = new Dictionary<string, int> { ["infantry"] = 100, ["siege"] = 100 };
+            var defender = new Dictionary<string, int> { ["infantry"] = 10 };
+
+            // Act
+            var result = calculator.Resolve(attacker, defender, "plain", seed: 42);
+
+            // Assert
+            Assert.True(result.AttackerWon);
+
+            var infantryShare = result.AttackerLosses["infantry"] / 100.0;
+            var siegeShare = result.AttackerLosses["siege"] / 100.0;
+
+            // Захист 4 проти 12 — облога має танути помітно швидше
+            Assert.True(siegeShare > infantryShare,
+                $"siege {siegeShare:P1} має бути більшим за infantry {infantryShare:P1}");
+        }
+
+        [Fact]
+        public void Resolve_ShouldSpreadLossesEvenly_WhenSideLoses()
+        {
+            // Arrange: змішана армія, яка гарантовано програє
+            var calculator = CalculatorWithFragileSiege();
+
+            var attacker = new Dictionary<string, int> { ["infantry"] = 100, ["siege"] = 100 };
+            var defender = new Dictionary<string, int> { ["infantry"] = 1000 };
+
+            // Act
+            var result = calculator.Resolve(attacker, defender, "plain", seed: 42);
+
+            // Assert
+            Assert.False(result.AttackerWon);
+
+            // Розгром не розбирає якість: однакова частка на обидва типи,
+            // різниця можлива хіба на одиницю залишку при непарних втратах
+            Assert.True(Math.Abs(result.AttackerLosses["infantry"] - result.AttackerLosses["siege"]) <= 1,
+                $"infantry {result.AttackerLosses["infantry"]} проти siege {result.AttackerLosses["siege"]}");
+        }
     }
 }

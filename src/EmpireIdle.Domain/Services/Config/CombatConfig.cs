@@ -33,5 +33,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// а невизначеність — те, що продає буст перед боєм.
         /// </summary>
         public List<double> PreviewOddsThresholds { get; set; } = new();
+
+        /// <summary>
+        /// Частка втрат типу, нижче за яку вона округляється до нуля —
+        /// але лише для переможця. Розгромна перевага має виводити
+        /// найстійкіші загони без утрат.
+        /// </summary>
+        public double NoLossShareThreshold { get; set; } = 0.03;
     }
 }
