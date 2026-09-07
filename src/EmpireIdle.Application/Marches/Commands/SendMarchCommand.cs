@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -37,6 +38,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly MarchCalculator _calculator;
+        private readonly MarchTargetResolver _targets;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
         public SendMarchCommandHandler(
@@ -50,6 +52,7 @@ namespace EmpireIdle.Application.Marches.Commands
             GameCatalog catalog,
             TimeProvider timeProvider,
             MarchCalculator calculator,
+            MarchTargetResolver targets,
             ILogger<SendMarchCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -62,6 +65,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _unitOfWork = unitOfWork;
             _calculator = calculator;
             _timeProvider = timeProvider;
+            _targets = targets;
             _logger = logger;
         }
 
@@ -81,13 +85,13 @@ namespace EmpireIdle.Application.Marches.Commands
                 throw new RequirementNotMetException($"Cannot send more than {MaxActiveMarches} marches at once.");
 
             // Ціль читається один раз: далі її перевіряють і щит, і підкріплення
-            var target = await ResolveTargetAsync(request, village, cancellationToken);
+            var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, cancellationToken);
 
             // Перевіряємо до зняття юнітів: інакше відмова лишила б гарнізон порожнім
             if (request.Intent == MarchIntent.Reinforce)
                 await EnsureCanReinforceAsync(request, village, target, cancellationToken);
             else
-                EnsureCanAttack(village, target.Village);
+                _targets.EnsureAttackAllowed(village, target);
 
             // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
             garrison.SendUnits(request.Units, now);
@@ -110,67 +114,6 @@ namespace EmpireIdle.Application.Marches.Commands
                 march.Id, village.X, village.Y, target.X, target.Y, duration.TotalMinutes);
 
             return march.Id;
-        }
-
-        /// <summary>
-        /// Координати цілі й саме село, якщо ціль — село.
-        /// Village null для монстра: у нього немає ні щита, ні клану.
-        /// </summary>
-        private sealed record MarchTarget(int X, int Y, Village? Village);
-
-        /// <summary>
-        /// Знаходить ціль за типом і звіряє світ.
-        ///
-        /// TargetId приходить від клієнта, а query-фільтр захищає лише читання
-        /// в межах поточного світу — тож без явної звірки марш ходив би
-        /// між світами, щойно клієнт підставить чужий id.
-        /// </summary>
-        private async Task<MarchTarget> ResolveTargetAsync(SendMarchCommand request, Village origin,
-            CancellationToken cancellationToken)
-        {
-            switch (request.TargetType)
-            {
-                case MarchTargetType.Monster:
-                    var monster = await _monsterRepository.GetByIdAsync(request.TargetId, cancellationToken)
-                        ?? throw new EntityNotFoundException("Monster", request.TargetId);
-
-                    if (monster.ServerId != origin.ServerId)
-                        throw new EntityNotFoundException("Monster", request.TargetId);
-
-                    return new MarchTarget(monster.X, monster.Y, null);
-
-                case MarchTargetType.Village:
-                    var target = await _villageRepository.GetByIdAsync(request.TargetId, cancellationToken)
-                        ?? throw new EntityNotFoundException("Village", request.TargetId);
-
-                    if (target.ServerId != origin.ServerId)
-                        throw new EntityNotFoundException("Village", request.TargetId);
-
-                    return new MarchTarget(target.X, target.Y, target);
-
-                default:
-                    throw new RequirementNotMetException($"Unsupported target type '{request.TargetType}'.");
-            }
-        }
-
-        /// <summary>
-        /// Щит новачка діє в обидва боки: гравець під ним не атакує,
-        /// і його самого атакувати не можна. Монстрів це не стосується —
-        /// PvE відкритий із першого рівня.
-        /// </summary>
-        private void EnsureCanAttack(Village origin, Village? target)
-        {
-            if (target is null)
-                return;
-
-            var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
-
-            if (origin.IsShielded(_catalog.Buildings, shieldLevel))
-                throw new RequirementNotMetException(
-                    $"Attacking other players is available from town hall level {shieldLevel}.");
-
-            if (target.IsShielded(_catalog.Buildings, shieldLevel))
-                throw new RequirementNotMetException("This village is under a newbie shield.");
         }
 
         /// <summary>

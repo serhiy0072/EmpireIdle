@@ -73,6 +73,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IItemEffect, ResourceItemEffect>();
             services.AddScoped<IItemEffect, BoostItemEffect>();
             services.AddScoped<IItemEffect, TeleportItemEffect>();
+
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
@@ -81,6 +82,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ReinforcementDelivery>();
             services.AddScoped<VillageBattleService>();
             services.AddScoped<MonsterBattleService>();
+            services.AddScoped<MarchTargetResolver>();
 
             // Нагороди — той самий патерн: усі реалізації + диспетчер за типом
             services.AddScoped<IRewardGranter, GemRewardGranter>();
