@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Logging;
+using System.Data;
 
 namespace EmpireIdle.Application.Marches.Services
 {
@@ -16,24 +17,24 @@ namespace EmpireIdle.Application.Marches.Services
     {
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
-        private readonly IClanRepository _clanRepository;
         private readonly GameCatalog _catalog;
         private readonly MarchLogistics _logistics;
+        private readonly ReinforcementRules _rules;
         private readonly ILogger<ReinforcementDelivery> _logger;
 
         public ReinforcementDelivery(
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
-            IClanRepository clanRepository,
             GameCatalog catalog,
             MarchLogistics logistics,
+            ReinforcementRules rules,
             ILogger<ReinforcementDelivery> logger)
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
-            _clanRepository = clanRepository;
             _catalog = catalog;
             _logistics = logistics;
+            _rules = rules;
             _logger = logger;
         }
 
@@ -66,29 +67,20 @@ namespace EmpireIdle.Application.Marches.Services
                 return;
             }
 
-            var ownerClan = await _clanRepository.GetClanIdByMemberAsync(ownerVillage.PlayerId, cancellationToken);
-            var targetClan = await _clanRepository.GetClanIdByMemberAsync(targetVillage.PlayerId, cancellationToken);
+            var incoming = units.Values.Sum();
 
-            if (ownerClan is null || ownerClan != targetClan)
+            var refusal = await _rules.CheckOnArrivalAsync(
+               ownerVillage, targetVillage, units.Values.Sum(), cancellationToken);
+
+            if (refusal is not null)
             {
-                _logger.LogInformation("March {MarchId} turned back: no longer clanmates", march.Id);
+                _logger.LogInformation("March {MarchId} turned back: {Reason}", march.Id, refusal);
 
                 _logistics.TurnMarchBack(march, units, utcNow);
                 return;
             }
 
             var capacity = targetVillage.ReinforcementCapacity(_catalog.Buildings);
-            var incoming = units.Values.Sum();
-
-            if (targetGarrison.ReinforcementCount + incoming > capacity)
-            {
-                _logger.LogInformation(
-                    "March {MarchId} turned back: embassy at village {VillageId} has no room for {Incoming} units",
-                    march.Id, targetVillage.Id, incoming);
-
-                _logistics.TurnMarchBack(march, units, utcNow);
-                return;
-            }
 
             targetGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, units, capacity, utcNow);
             march.Delivered(utcNow);

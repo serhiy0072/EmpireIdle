@@ -31,41 +31,35 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IMarchRepository _marchRepository;
-        private readonly IMonsterRepository _monsterRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerContext _serverContext;
-        private readonly IClanRepository _clanRepository;
-        private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly MarchCalculator _calculator;
         private readonly MarchTargetResolver _targets;
+        private readonly ReinforcementRules _reinforcementRules;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
         public SendMarchCommandHandler(
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IMarchRepository marchRepository,
-            IMonsterRepository monsterRepository,
-            IClanRepository clanRepository,
             IUnitOfWork unitOfWork,
             IServerContext serverContext,
-            GameCatalog catalog,
             TimeProvider timeProvider,
             MarchCalculator calculator,
             MarchTargetResolver targets,
+            ReinforcementRules reinforcementRules,
             ILogger<SendMarchCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
-            _monsterRepository = monsterRepository;
-            _clanRepository = clanRepository;
-            _catalog = catalog;
             _serverContext = serverContext;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
             _timeProvider = timeProvider;
             _targets = targets;
+            _reinforcementRules = reinforcementRules;
             _logger = logger;
         }
 
@@ -89,7 +83,8 @@ namespace EmpireIdle.Application.Marches.Commands
 
             // Перевіряємо до зняття юнітів: інакше відмова лишила б гарнізон порожнім
             if (request.Intent == MarchIntent.Reinforce)
-                await EnsureCanReinforceAsync(request, village, target, cancellationToken);
+                await _reinforcementRules.EnsureAllowedAsync(
+                    village, target, request.Units.Values.Sum(), cancellationToken);
             else
                 _targets.EnsureAttackAllowed(village, target);
 
@@ -114,48 +109,6 @@ namespace EmpireIdle.Application.Marches.Commands
                 march.Id, village.X, village.Y, target.X, target.Y, duration.TotalMinutes);
 
             return march.Id;
-        }
-
-        /// <summary>
-        /// Підкріплення йдуть лише до союзника і лише якщо в посольстві є місце.
-        /// Обидві умови перевіряються ще раз на прибутті: дорога довга.
-        /// </summary>
-        private async Task EnsureCanReinforceAsync(SendMarchCommand request, Village origin, MarchTarget target,
-            CancellationToken cancellationToken)
-        {
-            if (target.Village is not { } destination)
-                throw new RequirementNotMetException(
-                    $"Reinforcement march must target a village, got '{request.TargetType}'.");
-
-            if (destination.PlayerId == request.PlayerId)
-                throw new RequirementNotMetException("You cannot reinforce your own village.");
-
-            // Підкріплення відкриваються з того самого порогу, що знімає щит:
-            // недоторканне село інакше стало б сейфом для кланової армії
-            var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
-
-            if (origin.IsShielded(_catalog.Buildings, shieldLevel))
-                throw new RequirementNotMetException(
-                    $"Reinforcements are available from town hall level {shieldLevel}.");
-
-            if (destination.IsShielded(_catalog.Buildings, shieldLevel))
-                throw new RequirementNotMetException("This village cannot receive reinforcements yet.");
-
-            var myClan = await _clanRepository.GetClanIdByMemberAsync(request.PlayerId, cancellationToken);
-            var targetClan = await _clanRepository.GetClanIdByMemberAsync(destination.PlayerId, cancellationToken);
-
-            if (myClan is null || myClan != targetClan)
-                throw new RequirementNotMetException("Reinforcements go to clanmates only.");
-
-            var targetGarrison = await _garrisonRepository.GetByVillageIdAsync(destination.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {destination.Id}.");
-
-            var free = destination.ReinforcementCapacity(_catalog.Buildings) - targetGarrison.ReinforcementCount;
-            var incoming = request.Units.Values.Sum();
-
-            if (incoming > free)
-                throw new RequirementNotMetException(
-                    $"The embassy has room for {free} more units, you are sending {incoming}.");
         }
     }
 }

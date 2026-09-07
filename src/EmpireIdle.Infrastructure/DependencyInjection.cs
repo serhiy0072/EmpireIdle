@@ -83,6 +83,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<VillageBattleService>();
             services.AddScoped<MonsterBattleService>();
             services.AddScoped<MarchTargetResolver>();
+            services.AddScoped<BattleAftermath>();
+            services.AddScoped<ReinforcementRules>();
 
             // Нагороди — той самий патерн: усі реалізації + диспетчер за типом
             services.AddScoped<IRewardGranter, GemRewardGranter>();

@@ -119,12 +119,15 @@ public class CompleteMarchCommandTests
         var logistics = new MarchLogistics(
             _villages, catalog, calculator, NullLogger<MarchLogistics>.Instance);
 
-        var aftermath = new BattleAftermath(_reports, _garrisons, _villages, _notifier, casualties, catalog, logistics,
+        var aftermath = new BattleAftermath(
+            _reports, _garrisons, _villages, _notifier, casualties, catalog, logistics,
             NullLogger<BattleAftermath>.Instance);
+
+        var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog);
 
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _random,
-            new MonsterArmyBuilder(catalog), resolver, effects, logistics, aftermath,
+            armyBuilder, resolver, effects, logistics, aftermath,
             NullLogger<MonsterBattleService>.Instance);
 
         var villageBattle = new VillageBattleService(
@@ -133,7 +136,7 @@ public class CompleteMarchCommandTests
             NullLogger<VillageBattleService>.Instance);
 
         var reinforcements = new ReinforcementDelivery(
-            _garrisons, _villages, _clans, catalog, logistics,
+            _garrisons, _villages, catalog, logistics, reinforcementRules,
             NullLogger<ReinforcementDelivery>.Instance);
 
         return new CompleteMarchCommandHandler(
@@ -142,6 +145,7 @@ public class CompleteMarchCommandTests
             logistics, monsterBattle, villageBattle, reinforcements,
             NullLogger<CompleteMarchCommandHandler>.Instance);
     }
+
 
     /// <summary>Село з ратушею потрібного рівня — інакше діє щит новачка.</summary>
     private static Village NewVillage(GameCatalog catalog, Guid ownerId, int x, int y, int townHallLevel = 5)

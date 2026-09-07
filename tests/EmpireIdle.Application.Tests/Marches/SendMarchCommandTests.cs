@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -39,21 +40,36 @@ public class SendMarchCommandTests
             Height = 100,
             TerrainSeed = 1,
             Terrains = [new TerrainConfig { Type = "plain", Weight = 1, Passable = true, MoveCost = 1.0, Habitable = true }]
-        }
+        },
+        Monsters =
+        [
+            new MonsterConfig
+            {
+                Key = "wolves", MinLevel = 1, MaxLevel = 10, UnitGrowth = 1.5, RewardGrowth = 1.3,
+                Units = [new UnitStack { UnitType = "infantry", Count = 1 }],
+                Rewards = [new ResourceCost { Resource = "food", Amount = 500 }]
+            }
+        ]
     };
 
     private SendMarchCommandHandler Handler()
     {
         var config = Config();
         var catalog = new GameCatalog(config);
+        var terrain = new TerrainGenerator(config.Map);
 
         _serverContext.ServerId.Returns(1);
 
+        var targets = new MarchTargetResolver(
+            _monsters, _villages, _garrisons, new MonsterArmyBuilder(catalog), catalog);
+
+        var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog);
+
         return new SendMarchCommandHandler(
-            _villages, _garrisons, _marches, _monsters, _clans, _unitOfWork, _serverContext,
-            catalog,
+            _villages, _garrisons, _marches, _unitOfWork, _serverContext,
             new FakeTimeProvider(Now),
-            new MarchCalculator(new TerrainGenerator(config.Map), catalog),
+            new MarchCalculator(terrain, catalog),
+            targets, reinforcementRules,
             NullLogger<SendMarchCommandHandler>.Instance);
     }
 
