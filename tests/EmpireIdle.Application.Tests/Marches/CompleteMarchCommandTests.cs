@@ -1,11 +1,13 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -108,20 +110,36 @@ public class CompleteMarchCommandTests
         var combat = new CombatCalculator(config.Combat, catalog);
         var terrain = new TerrainGenerator(config.Map);
         var geometry = new WorldGeometry(config.Map);
+        var calculator = new MarchCalculator(terrain, catalog);
+        var casualties = new CasualtySplitter(config.Combat);
+        var resolver = new BattleResolver(combat, casualties);
+        var armyBuilder = new MonsterArmyBuilder(catalog);
+        var effects = new EffectResolver(_effects);
+
+        var logistics = new MarchLogistics(
+            _villages, catalog, calculator, NullLogger<MarchLogistics>.Instance);
+
+        var aftermath = new BattleAftermath(_reports, _garrisons, _villages, _notifier, casualties, catalog, logistics,
+            NullLogger<BattleAftermath>.Instance);
+
+        var monsterBattle = new MonsterBattleService(
+            _monsters, _map, _garrisons, _villages, _random,
+            new MonsterArmyBuilder(catalog), resolver, effects, logistics, aftermath,
+            NullLogger<MonsterBattleService>.Instance);
+
+        var villageBattle = new VillageBattleService(
+            _garrisons, _villages, _serverRepository, _random,
+            catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
+            NullLogger<VillageBattleService>.Instance);
+
+        var reinforcements = new ReinforcementDelivery(
+            _garrisons, _villages, _clans, catalog, logistics,
+            NullLogger<ReinforcementDelivery>.Instance);
 
         return new CompleteMarchCommandHandler(
-            _marches, _garrisons, _unitOfWork, _map, _monsters, _villages, _reports, _clans,
-            _random, _notifier,
-            _serverRepository,
-            catalog, new FakeTimeProvider(at ?? Now),
-            new MonsterArmyBuilder(catalog),
-            terrain,
-            new MarchCalculator(terrain, catalog),
-            new EffectResolver(_effects),
-            new BattleResolver(combat, new CasualtySplitter(config.Combat)),
-            new DefenceLossAllocator(),
-            new CasualtySplitter(config.Combat),
-            geometry,
+            _marches, _garrisons, _unitOfWork, terrain,
+            new FakeTimeProvider(at ?? Now),
+            logistics, monsterBattle, villageBattle, reinforcements,
             NullLogger<CompleteMarchCommandHandler>.Instance);
     }
 
