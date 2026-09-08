@@ -1,4 +1,6 @@
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 
@@ -24,7 +26,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
             var collectAt = building.LastAccruedAt.AddMinutes(5);
 
-            village.CollectFromBuilding(building.Id, configs, collectAt, ProductionBoost.None, 1.0);
+            village.CollectFromBuilding(building.Id, configs, storageCap: 100_000, collectAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(0, building.AccruedAmount);
             Assert.Equal(foodBefore + 50, village.Resources.Single(r => r.ResourceType == "food").Amount);
@@ -42,7 +44,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
 
-            village.CollectFromBuilding(building.Id, configs, building.LastAccruedAt, ProductionBoost.None, 1.0);
+            village.CollectFromBuilding(building.Id, configs, storageCap: 100_000, building.LastAccruedAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(foodBefore, village.Resources.Single(r => r.ResourceType == "food").Amount);
         }
@@ -212,6 +214,170 @@ namespace EmpireIdle.Domain.Tests.Entities
             village.MaterializeProduction(configs, start.AddMinutes(4), boost, 1.0);
 
             Assert.Equal(60, building.AccruedAmount);
+        }
+
+        /// <summary>
+        /// Ферма з буфером плюс склад із захищеним запасом.
+        /// Захищено 40 їжі за рівень, вміщає 500.
+        /// </summary>
+        private static Dictionary<string, BuildingConfig> PlunderConfigs()
+        {
+            var configs = TestData.FarmConfigs();
+
+            configs["warehouse"] = new BuildingConfig
+            {
+                Key = "warehouse",
+                StoresResources = ["food"],
+                BaseStorage = 500,
+                ProtectedStorage = 40,
+                Cost = [new ResourceCost { Resource = "wood", Amount = 100 }],
+                BaseBuildMinutes = 5,
+                BuildTimeGrowth = 1.5,
+                UpgradeCostGrowth = 1.45,
+                RequiresMainBuildingLevel = 0
+            };
+
+            return configs;
+        }
+
+        /// <summary>
+        /// Калькулятор грабунку на тому самому конфігу, що й PlunderConfigs.
+        /// Каталог мінімальний: грабунку потрібні лише будівлі.
+        /// </summary>
+        private static PlunderCalculator Plunderer(Dictionary<string, BuildingConfig> configs)
+        {
+            var catalog = new GameCatalog(new GameConfig
+            {
+                Buildings = configs.Values.ToList()
+            });
+
+            return new PlunderCalculator(catalog, new VillageCapacities(catalog));
+        }
+
+        /// <summary>
+        /// Село, де є лише їжа: решта ресурсів нульові навмисно.
+        /// Ресурс без сховища не має захищеного запасу й грабується
+        /// повністю — це правильно, але заважає міряти саме запас.
+        /// </summary>
+        private static Village VillageWithStoredFood(int food, Dictionary<string, BuildingConfig> configs)
+        {
+            var village = TestData.CreateVillageWithResources(0);
+
+            village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, DateTime.UtcNow);
+            village.AddBuilding("warehouse", configs, DateTime.UtcNow);
+
+            return village;
+        }
+
+        /// <summary>
+        /// Понад захищений запас нападник забирає, сам запас — ні.
+        /// Це те, що робить набіг «неприємним, але не катастрофою».
+        /// </summary>
+        [Fact]
+        public void Plunder_ShouldLeaveTheProtectedReserve()
+        {
+            // Arrange: 100 їжі на складі, захищено 40, армія винесе скільки завгодно
+            var configs = PlunderConfigs();
+            var village = VillageWithStoredFood(100, configs);
+
+            var plunder = Plunderer(configs);
+
+
+            // Act
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+
+            // Assert
+            Assert.Equal(60, loot["food"]);
+            Assert.Equal(40, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        }
+
+        /// <summary>Нижче захищеного запасу брати нема чого — набіг порожній.</summary>
+        [Fact]
+        public void Plunder_ShouldTakeNothing_WhenStoreIsBelowTheReserve()
+        {
+            // Arrange
+            var configs = PlunderConfigs();
+            var village = VillageWithStoredFood(30, configs);
+
+            var plunder = Plunderer(configs);
+
+            // Act
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+
+            // Assert
+            Assert.Empty(loot);
+            Assert.Equal(30, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        }
+
+        /// <summary>
+        /// Буфер будівлі захисту не має: невибраний виробіток іде повністю,
+        /// і саме це карає того, хто давно не заходив.
+        /// </summary>
+        [Fact]
+        public void Plunder_ShouldEmptyBuildingBuffersFirst()
+        {
+            // Arrange: ферма виробила 50 за 5 хвилин, на складі рівно запас
+            var configs = PlunderConfigs();
+            var village = VillageWithStoredFood(40, configs);
+
+            village.AddBuilding("farm", configs, DateTime.UtcNow);
+
+            var farm = village.Buildings.Single(b => b.Type == "farm");
+            var plunderAt = farm.LastAccruedAt.AddMinutes(5);
+
+            var plunder = Plunderer(configs);
+
+            // Act
+            var loot = plunder.Plunder(village, carryCapacity: 50, ProductionBoost.None, 1.0, plunderAt);
+
+            // Assert
+            Assert.Equal(50, loot["food"]);
+            Assert.Equal(0, farm.AccruedAmount);
+
+            // Склад лишився недоторканим — там рівно захищений запас
+            Assert.Equal(40, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        }
+
+        /// <summary>Вантажопідйомність — стеля: решта лишається в селі.</summary>
+        [Fact]
+        public void Plunder_ShouldStopAtCarryCapacity()
+        {
+            // Arrange: доступно 60 понад запас, армія винесе лише 25
+            var configs = PlunderConfigs();
+            var village = VillageWithStoredFood(100, configs);
+
+            var plunder = Plunderer(configs);
+
+            // Act
+            var loot = plunder.Plunder(village, carryCapacity: 25, ProductionBoost.None, 1.0, DateTime.UtcNow);
+
+            // Assert
+            Assert.Equal(25, loot["food"]);
+            Assert.Equal(75, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        }
+
+        /// <summary>
+        /// Ресурс без сховища грабується повністю: захищений запас
+        /// дає будівля, а не сам факт наявності ресурсу.
+        /// </summary>
+        [Fact]
+        public void Plunder_ShouldTakeEverything_WhenResourceHasNoStorage()
+        {
+            // Arrange: склад описаний лише для food, дерево лежить без захисту
+            var configs = PlunderConfigs();
+            var village = TestData.CreateVillageWithResources(0);
+
+            village.GrantStartingResources(new Dictionary<string, int> { ["wood"] = 70 }, DateTime.UtcNow);
+            village.AddBuilding("warehouse", configs, DateTime.UtcNow);
+
+            var plunder = Plunderer(configs);
+
+            // Act
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+
+            // Assert
+            Assert.Equal(70, loot["wood"]);
+            Assert.Equal(0, village.Resources.Single(r => r.ResourceType == "wood").Amount);
         }
     }
 }

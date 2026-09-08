@@ -10,12 +10,12 @@ namespace EmpireIdle.Application.Inventory.Effects
         public string ItemType => "resources";
 
         private readonly IVillageRepository _villageRepository;
-        private readonly GameCatalog _catalog;
+        private readonly VillageCapacities _capacities;
 
-        public ResourceItemEffect(IVillageRepository villageRepository, GameCatalog catalog)
+        public ResourceItemEffect(IVillageRepository villageRepository, VillageCapacities capacities)
         {
             _villageRepository = villageRepository;
-            _catalog = catalog;
+            _capacities = capacities;
         }
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
@@ -28,7 +28,11 @@ namespace EmpireIdle.Application.Inventory.Effects
 
             // Той самий шлях, що й нагороди квестів: надлишок понад кап згорає
             foreach (var line in context.Config.Resources)
-                village.GrantResource(line.Resource, line.Amount * context.Count, _catalog.Buildings, context.UtcNow);
+                village.GrantResource(
+                    line.Resource,
+                    line.Amount * context.Count,
+                    _capacities.StorageCapFor(village, line.Resource),
+                    context.UtcNow);
         }
     }
 }

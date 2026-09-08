@@ -65,8 +65,8 @@ namespace EmpireIdle.Domain.Services
                 attackerWon,
                 attackerPower,
                 defenderPower,
-                ApplyLosses(attacker, attackerLossRatio),
-                ApplyLosses(defender, defenderLossRatio));
+                ApplyLosses(attacker, attackerLossRatio, terrainType, attackerWon),
+                ApplyLosses(defender, defenderLossRatio, terrainType, !attackerWon));
         }
 
         /// <summary>
@@ -137,10 +137,151 @@ namespace EmpireIdle.Domain.Services
             return Math.Clamp(value, _config.RandomMin, _config.RandomMax);
         }
 
-        /// <summary>Розподіляє втрати по загонах пропорційно.</summary>
-        private static Dictionary<string, int> ApplyLosses(IReadOnlyDictionary<string, int> army, double ratio)
-            => army.ToDictionary(
-                pair => pair.Key,
-                pair => Math.Min(pair.Value, (int)Math.Ceiling(pair.Value * ratio)));
+        /// <summary>
+        /// Розподіляє втрати по типах юнітів.
+        ///
+        /// Загальна кількість утрачених визначається співвідношенням сил
+        /// і однакова для обох правил нижче. Різниця в тому, як вона
+        /// лягає на типи.
+        ///
+        /// Переможець втрачає обернено до фактичного захисту: облога тане,
+        /// піхота тримається, а найстійкіші загони при розгромній перевазі
+        /// виходять узагалі без утрат. Переможений втрачає рівномірно —
+        /// розгром не розбирає, хто якісніший.
+        /// </summary>
+        private Dictionary<string, int> ApplyLosses(
+            IReadOnlyDictionary<string, int> army, double ratio, string terrainType, bool sideWon)
+        {
+            var result = army.ToDictionary(pair => pair.Key, _ => 0);
+
+            var units = army.Where(pair => pair.Value > 0).ToList();
+
+            if (units.Count == 0)
+                return result;
+
+            var totalUnits = units.Sum(pair => pair.Value);
+            var totalLost = Math.Min(totalUnits, (int)Math.Round(totalUnits * ratio, MidpointRounding.AwayFromZero));
+
+            if (totalLost <= 0)
+                return result;
+
+            // Переможений: вага дорівнює кількості, тобто рівномірна частка.
+            // Переможець: обернено до захисту з терейн-модифікатором
+            var weighted = units
+                .Select(pair => (
+                    Key: pair.Key,
+                    Count: pair.Value,
+                    Weight: sideWon
+                        ? pair.Value / EffectiveDefence(pair.Key, terrainType)
+                        : (double)pair.Value))
+                .ToList();
+
+            if (sideWon)
+                weighted = DropNegligible(weighted, totalLost);
+
+            foreach (var (key, lost) in Spread(weighted, totalLost))
+                result[key] = lost;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Фактичний захист юніта на цьому терейні. Мінімум обмежений знизу,
+        /// щоб нульовий чи від'ємний стат у конфігу не давав ділення на нуль.
+        /// </summary>
+        private double EffectiveDefence(string unitType, string terrainType)
+        {
+            var stat = _catalog.Units.TryGetValue(unitType, out var config)
+                ? config.Stats.GetValueOrDefault("Defense", 1.0)
+                : 1.0;
+
+            return Math.Max(0.1, stat * GetTerrainModifier(terrainType, unitType));
+        }
+
+        /// <summary>
+        /// Обнуляє ваги типів, чия частка втрат нижча за поріг. Один прохід:
+        /// після обнулення решта ділить усе між собою, і це вже може підняти
+        /// когось вище порога — але другий прохід зробив би результат
+        /// залежним від порядку, а не від чисел.
+        /// </summary>
+        private List<(string Key, int Count, double Weight)> DropNegligible(
+            List<(string Key, int Count, double Weight)> weighted, int totalLost)
+        {
+            var totalWeight = weighted.Sum(x => x.Weight);
+
+            if (totalWeight <= 0)
+                return weighted;
+
+            var survivors = weighted
+                .Where(x => totalLost * x.Weight / totalWeight / x.Count >= _config.NoLossShareThreshold)
+                .ToList();
+
+            // Якщо поріг відсік геть усіх, втрати мають лягти хоч кудись
+            return survivors.Count > 0 ? survivors : weighted;
+        }
+
+        /// <summary>
+        /// Розкидає ціле число втрат за вагами: цілі частини плюс залишок
+        /// за найбільшими дробовими частинами. Тип не може втратити більше,
+        /// ніж мав, тож надлишок перерозподіляється між рештою.
+        /// </summary>
+        private static IEnumerable<(string Key, int Lost)> Spread(
+            List<(string Key, int Count, double Weight)> weighted, int totalLost)
+        {
+            var assigned = weighted.ToDictionary(x => x.Key, _ => 0);
+            var open = weighted.ToList();
+            var remaining = totalLost;
+
+            // Кожна ітерація або роздає все, або закриває хоча б один тип
+            while (remaining > 0 && open.Count > 0)
+            {
+                var totalWeight = open.Sum(x => x.Weight);
+
+                if (totalWeight <= 0)
+                    break;
+
+                var shares = open
+                    .Select(x =>
+                    {
+                        var exact = remaining * x.Weight / totalWeight;
+
+                        return (x.Key, x.Count, Whole: (int)Math.Floor(exact), Fraction: exact - Math.Floor(exact));
+                    })
+                    .ToList();
+
+                var whole = shares.Sum(s => s.Whole);
+                var leftover = remaining - whole;
+
+                var queue = shares
+                    .OrderByDescending(s => s.Fraction)
+                    .ThenByDescending(s => s.Count)
+                    .ThenBy(s => s.Key, StringComparer.Ordinal)
+                    .ToList();
+
+                for (var i = 0; i < leftover; i++)
+                {
+                    var item = queue[i];
+                    shares[shares.FindIndex(s => s.Key == item.Key)] = (item.Key, item.Count, item.Whole + 1, 0);
+                }
+
+                remaining = 0;
+
+                foreach (var share in shares)
+                {
+                    var capacity = share.Count - assigned[share.Key];
+                    var take = Math.Min(share.Whole, capacity);
+
+                    assigned[share.Key] += take;
+
+                    // Те, що не влізло, поїде наступною ітерацією до інших типів
+                    remaining += share.Whole - take;
+                }
+
+                open = open.Where(x => assigned[x.Key] < x.Count).ToList();
+            }
+
+            return assigned.Where(pair => pair.Value > 0).Select(pair => (pair.Key, pair.Value));
+        }
+
     }
 }

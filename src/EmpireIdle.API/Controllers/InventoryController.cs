@@ -17,13 +17,11 @@ namespace EmpireIdle.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly GameCatalog _catalog;
-        private readonly IActiveEffectRepository _effectRepository;
 
-        public InventoryController(IMediator mediator, GameCatalog catalog, IActiveEffectRepository effectRepository)
+        public InventoryController(IMediator mediator, GameCatalog catalog)
         {
             _mediator = mediator;
             _catalog = catalog;
-            _effectRepository = effectRepository;
         }
 
         /// <summary>Вміст інвентаря з описами предметів із конфіга.</summary>

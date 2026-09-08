@@ -24,6 +24,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                 .WithOne()
                 .HasForeignKey(u => u.MarchId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(m => m.Cargo)
+                .WithOne()
+                .HasForeignKey(c => c.MarchId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(m => m.Cargo).UsePropertyAccessMode(PropertyAccessMode.Field);
+
             builder.Navigation(m => m.Units).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             builder.Property<uint>("Version").IsRowVersion();

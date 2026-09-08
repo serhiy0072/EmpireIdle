@@ -108,6 +108,23 @@ namespace EmpireIdle.Domain.Entities
             return collected;
         }
 
+        /// <summary>
+        /// Забирає частину накопиченого — грабунок. На відміну від Collect,
+        /// не скидає LastCollectedAt: буфер обкрадено, а не зібрано власником,
+        /// і виробіток далі рахується від того самого моменту.
+        /// </summary>
+        /// <returns>Скільки фактично забрано.</returns>
+        public int Plunder(int amount)
+        {
+            if (amount <= 0)
+                return 0;
+
+            var taken = Math.Min(amount, AccruedAmount);
+
+            AccruedAmount -= taken;
+
+            return taken;
+        }
 
         /// <summary>
         /// Розпочати апгрейд: будівля переходить у стан будівництва до вказаного часу.

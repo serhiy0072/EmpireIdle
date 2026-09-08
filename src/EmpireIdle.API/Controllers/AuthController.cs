@@ -20,16 +20,14 @@ namespace EmpireIdle.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
-        private readonly IPlayerRepository _playerRepository;
         private readonly IMediator _mediator;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
 
-        public AuthController(AuthService authService, IPlayerRepository playerRepository, IMediator mediator, IUnitOfWork unitOfWork, IServerContext serverContext, GameCatalog catalog)
+        public AuthController(AuthService authService, IMediator mediator, IUnitOfWork unitOfWork, IServerContext serverContext, GameCatalog catalog)
         {
             _authService = authService;
-            _playerRepository = playerRepository;
             _mediator = mediator;
             _unitOfWork = unitOfWork;
             _serverContext = serverContext;

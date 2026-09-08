@@ -105,5 +105,8 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Скільки одночасних прокачок зброї відкриває рівень (0 — не кузня).</summary>
         public int WeaponUpgradeSlotsPerLevel { get; set; }
+
+        /// <summary>Скільки одиниць ресурсу за рівень не можна пограбувати. Лише для сховищ.</summary>
+        public int ProtectedStorage { get; set; }
     }
 }

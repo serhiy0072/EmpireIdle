@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- IDE0052: приватне поле присвоюється, але не читається.
+         Без цього мертві залежності накопичуються мовчки -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <WarningsAsErrors>IDE0052</WarningsAsErrors>
+  </PropertyGroup>
+</Project>

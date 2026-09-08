@@ -1,9 +1,11 @@
+
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Quests.Tracking;
 using EmpireIdle.Application.Quests.Tracking.Mappers;
 using EmpireIdle.Application.Rewards;
@@ -72,10 +74,22 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IItemEffect, ResourceItemEffect>();
             services.AddScoped<IItemEffect, BoostItemEffect>();
             services.AddScoped<IItemEffect, TeleportItemEffect>();
+
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
             services.AddScoped<ReinforcementReturner>();
+            services.AddScoped<MarchLogistics>();
+            services.AddScoped<ReinforcementDelivery>();
+            services.AddScoped<VillageBattleService>();
+            services.AddScoped<MonsterBattleService>();
+            services.AddScoped<MarchTargetResolver>();
+            services.AddScoped<BattleAftermath>();
+            services.AddScoped<ReinforcementRules>();
+
+            services.AddSingleton<VillageCapacities>();
+            services.AddSingleton<VillageStatus>();
+            services.AddSingleton<PlunderCalculator>();
 
             // Нагороди — той самий патерн: усі реалізації + диспетчер за типом
             services.AddScoped<IRewardGranter, GemRewardGranter>();

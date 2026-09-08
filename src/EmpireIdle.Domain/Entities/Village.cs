@@ -11,6 +11,8 @@ namespace EmpireIdle.Domain.Entities
     /// </summary>
     public class Village : Entity
     {
+        #region Стан
+
         private readonly List<Building> _buildings = new();
         private readonly List<VillageResource> _resources = new();
 
@@ -42,6 +44,10 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
+        #endregion
+
+        #region Створення
+
         /// <summary>
         /// Створює нове село зі стартовим набором ресурсів (по нулю кожного).
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
@@ -61,49 +67,18 @@ namespace EmpireIdle.Domain.Entities
 
         protected Village() { } // Для EF Core
 
-        /// <summary>
-        /// Переносить накопичене з буфера будівлі у сховище села.
-        /// Буфер спорожнюється повністю; те, що не вмістилось у сховище, згорає.
-        /// </summary>
-        /// <param name="buildingId">Ідентифікатор будівлі.</param>
-        /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
-        /// <param name="utcNow">Момент збору.</param>
-        /// <param name="boost">Вікно дії буста виробництва.</param>
-        /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
-        /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
-        public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
-        {
-            var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
-                ?? throw new EntityNotFoundException("Building", buildingId);
+        #endregion
 
-            // Не доменне правило: будівля вже стоїть, а конфіг її типу зник —
-            // це битий конфіг, і має бути 500, а не 400
-            if (!buildingConfigs.TryGetValue(building.Type, out var config))
-                throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
+        #region Читання
 
-            if (config.ProducesResource is null)
-                return;
+        /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
+        public bool HasBuilding(string buildingType)
+            => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
 
-            var collected = building.Collect(config, utcNow, boost, locationMultiplier);
-            if (collected == 0)
-                return; // порожній буфер — не подія і не зміна стану
 
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
-            if (resource is null)
-            {
-                resource = new VillageResource(Id, config.ProducesResource);
-                _resources.Add(resource);
-            }
+        #endregion
 
-            // Склад приймає скільки влізе, решта згорає
-            var cap = StorageCapFor(config.ProducesResource, buildingConfigs);
-            var accepted = resource.AddUpTo(collected, cap);
-
-            RaiseDomainEvent(new Events.BuildingCollected(
-                Id, PlayerId, building.Id, config.ProducesResource, accepted, resource.Amount, utcNow));
-            Touch(utcNow);
-        }
+        #region Будівлі
 
         /// <summary>
         /// Ставить будівлю 1 рівня. Системна операція, не дія гравця:
@@ -126,32 +101,6 @@ namespace EmpireIdle.Domain.Entities
 
             Touch(utcNow);
             return building.Id;
-        }
-
-        /// <summary>
-        /// Списує вартість із ресурсів села: спершу перевіряє всі позиції,
-        /// потім списує (все або нічого — без часткового списання).
-        /// </summary>
-        /// <param name="cost">Позиції вартості (ресурс → кількість за одиницю).</param>
-        /// <param name="utcNow">Час операції — фіксує момент мутації агрегату.</param>
-        /// <param name="multiplier">Множник (кількість юнітів, рівень будівлі тощо).</param>
-        /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
-        public void ChargeCost(List<ResourceCost> cost, DateTime utcNow, int multiplier = 1)
-        {
-            foreach (var line in cost)
-            {
-                var need = line.Amount * multiplier;
-                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
-
-                if (res.Amount < need)
-                    throw new NotEnoughResourcesException(line.Resource, need, res.Amount);
-            }
-
-            foreach (var line in cost)
-                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * multiplier);
-
-            Touch(utcNow);
         }
 
         /// <summary>
@@ -214,6 +163,95 @@ namespace EmpireIdle.Domain.Entities
             return due.Count;
         }
 
+        #endregion
+
+        #region Ресурси
+
+        /// <summary>
+        /// Переносить накопичене з буфера будівлі у сховище села.
+        /// Буфер спорожнюється повністю; те, що не вмістилось у сховище, згорає.
+        /// </summary>
+        /// <param name="buildingId">Ідентифікатор будівлі.</param>
+        /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
+        /// <param name="utcNow">Момент збору.</param>
+        /// <param name="boost">Вікно дії буста виробництва.</param>
+        /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
+        /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
+        public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            int storageCap, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        {
+            var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
+                ?? throw new EntityNotFoundException("Building", buildingId);
+
+            // Не доменне правило: будівля вже стоїть, а конфіг її типу зник —
+            // це битий конфіг, і має бути 500, а не 400
+            if (!buildingConfigs.TryGetValue(building.Type, out var config))
+                throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
+
+            if (config.ProducesResource is null)
+                return;
+
+            var collected = building.Collect(config, utcNow, boost, locationMultiplier);
+            if (collected == 0)
+                return; // порожній буфер — не подія і не зміна стану
+
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
+            if (resource is null)
+            {
+                resource = new VillageResource(Id, config.ProducesResource);
+                _resources.Add(resource);
+            }
+
+            // Склад приймає скільки влізе, решта згорає
+            var accepted = resource.AddUpTo(collected, storageCap);
+
+            RaiseDomainEvent(new Events.BuildingCollected(
+                Id, PlayerId, building.Id, config.ProducesResource, accepted, resource.Amount, utcNow));
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Фіксує буфери всіх виробничих будівель на поточний момент.
+        /// Викликається перед зміною множника: інакше вироблене за старим
+        /// бустом порахувалося б за новим (або без нього).
+        /// </summary>
+        public void MaterializeProduction(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        {
+            foreach (var building in _buildings)
+            {
+                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.ProducesResource is not null)
+                    building.Materialize(config, utcNow, boost, locationMultiplier);
+            }
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Списує вартість із ресурсів села: спершу перевіряє всі позиції,
+        /// потім списує (все або нічого — без часткового списання).
+        /// </summary>
+        /// <param name="cost">Позиції вартості (ресурс → кількість за одиницю).</param>
+        /// <param name="utcNow">Час операції — фіксує момент мутації агрегату.</param>
+        /// <param name="multiplier">Множник (кількість юнітів, рівень будівлі тощо).</param>
+        /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
+        public void ChargeCost(List<ResourceCost> cost, DateTime utcNow, int multiplier = 1)
+        {
+            foreach (var line in cost)
+            {
+                var need = line.Amount * multiplier;
+                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
+                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
+
+                if (res.Amount < need)
+                    throw new NotEnoughResourcesException(line.Resource, need, res.Amount);
+            }
+
+            foreach (var line in cost)
+                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * multiplier);
+
+            Touch(utcNow);
+        }
+
         /// <summary>
         /// Нараховує ресурси в село (нагорода за бій, подарунок тощо).
         /// Невідомі ресурси створюються на льоту.
@@ -237,9 +275,26 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
-        public bool HasBuilding(string buildingType)
-            => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
+        /// <summary>
+        /// Нараховує ресурс від нагороди. Повертає, скільки реально зараховано:
+        /// надлишок понад сумарний кап складів згорає.
+        /// </summary>
+        public int GrantResource(string resourceKey, int amount, int storageCap, DateTime utcNow)
+        {
+            if (amount <= 0)
+                return 0;
+
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
+                ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
+
+            var granted = Math.Max(0, Math.Min(amount, storageCap - resource.Amount));
+
+            if (granted > 0)
+                resource.Add(granted);
+
+            Touch(utcNow);
+            return granted;
+        }
 
         /// <summary>Нараховує стартові ресурси при заснуванні поселення.</summary>
         public void GrantStartingResources(IReadOnlyDictionary<string, int> amounts, DateTime utcNow)
@@ -256,63 +311,46 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Фіксує буфери всіх виробничих будівель на поточний момент.
-        /// Викликається перед зміною множника: інакше вироблене за старим
-        /// бустом порахувалося б за новим (або без нього).
+        /// Списує ресурс зі сховища. Скільки саме — вирішує PlunderCalculator;
+        /// агрегат лише не дає піти в мінус.
         /// </summary>
-        public void MaterializeProduction(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        public void TakeFromStore(string resourceKey, int amount, DateTime utcNow)
         {
-            foreach (var building in _buildings)
-            {
-                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.ProducesResource is not null)
-                    building.Materialize(config, utcNow, boost, locationMultiplier);
-            }
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey);
+
+            if (resource is null || amount <= 0)
+                return;
+
+            resource.Subtract(Math.Min(amount, resource.Amount));
+
             Touch(utcNow);
         }
 
+        #endregion
+
+        #region Карта
+
         /// <summary>
-        /// Нараховує ресурс від нагороди. Повертає, скільки реально зараховано:
-        /// надлишок понад сумарний кап складів згорає.
+        /// Переносить поселення на нову клітину.
+        ///
+        /// Буфери мають бути зафіксовані ДО виклику: множник кільця залежить
+        /// від координат, і без фіксації накопичене на околиці порахувалось би
+        /// за центральним множником.
         /// </summary>
-        public int GrantResource(string resourceKey, int amount, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
+        public void RelocateTo(int x, int y, DateTime utcNow)
         {
-            if (amount <= 0)
-                return 0;
+            if (X == x && Y == y)
+                throw new RequirementNotMetException("The village is already on that cell.");
 
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
-                ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
-
-            var cap = StorageCapFor(resourceKey, buildingConfigs);
-            var granted = Math.Max(0, Math.Min(amount, cap - resource.Amount));
-
-            if (granted > 0)
-                resource.Add(granted);
+            X = x;
+            Y = y;
 
             Touch(utcNow);
-            return granted;
         }
 
-        /// <summary>
-        /// Місткість сховища для ресурсу. Золото зберігається в банку,
-        /// решта — на складі: два різні сховища, два різні рівні.
-        /// Будівля під будівництвом місткості не дає.
-        /// </summary>
-        public int StorageCapFor(string resourceKey, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
-        {
-            var storageKey = buildingConfigs.Values
-                .FirstOrDefault(c => c.StoresResources?.Contains(resourceKey) == true)?.Key;
+        #endregion
 
-            if (storageKey is null)
-                return int.MaxValue;
-
-            var storage = _buildings.FirstOrDefault(b => b.Type == storageKey && !b.IsUnderConstruction);
-
-            if (storage is null || !buildingConfigs.TryGetValue(storageKey, out var storageConfig))
-                return 0;
-
-            return storageConfig.BaseStorage * storage.Level.Value;
-        }
+        #region Внутрішнє
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
 
@@ -368,68 +406,6 @@ namespace EmpireIdle.Domain.Entities
                     $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.");
         }
 
-        /// <summary>
-        /// Чи відкрита будівля гравцю. Під туманом вона фізично існує й може
-        /// навіть будуватись, але гравець її не бачить і не взаємодіє.
-        ///
-        /// Стан не зберігається: це функція від рівня ратуші й конфіга.
-        /// Зберігати означало б тримати похідне значення, яке розсинхронізується
-        /// з конфігом при першому ж ребалансі порогів.
-        /// </summary>
-        public bool IsUnlocked(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            string mainBuildingKey)
-        {
-            if (!buildingConfigs.TryGetValue(buildingType, out var config))
-                return false;
-
-            var townhall = _buildings.FirstOrDefault(b => b.Type == mainBuildingKey);
-
-            return townhall is not null && config.RequiresMainBuildingLevel <= townhall.Level.Value;
-        }
-
-        /// <summary>
-        /// Множник до сили оборони від укріплень. 1.0 — стін немає.
-        /// Рахується від селища, а не з гарнізону: стіни належать місту,
-        /// і підкріплення клану ними теж прикриті.
-        /// </summary>
-        public double DefenceMultiplier(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
-        {
-            var bonus = _buildings
-                .Where(b => !b.IsUnderConstruction
-                            && buildingConfigs.TryGetValue(b.Type, out var c)
-                            && c.DefenceBonusPerLevel > 0)
-                .Sum(b => buildingConfigs[b.Type].DefenceBonusPerLevel * b.Level.Value);
-
-            return 1.0 + bonus;
-        }
-
-        /// <summary>
-        /// Переносить поселення на нову клітину.
-        ///
-        /// Буфери мають бути зафіксовані ДО виклику: множник кільця залежить
-        /// від координат, і без фіксації накопичене на околиці порахувалось би
-        /// за центральним множником.
-        /// </summary>
-        public void RelocateTo(int x, int y, DateTime utcNow)
-        {
-            if (X == x && Y == y)
-                throw new RequirementNotMetException("The village is already on that cell.");
-
-            X = x;
-            Y = y;
-
-            Touch(utcNow);
-        }
-
-        /// <summary>
-        /// Скільки чужих юнітів вміщає посольство: сума рівнів × слоти на рівень.
-        /// Недобудоване не рахується.
-        /// </summary>
-        public int ReinforcementCapacity(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
-            => Buildings
-                .Where(b => !b.IsUnderConstruction)
-                .Sum(b => buildingConfigs.TryGetValue(b.Type, out var cfg)
-                    ? cfg.ReinforcementSlotsPerLevel * b.Level.Value
-                    : 0);
+        #endregion
     }
 }

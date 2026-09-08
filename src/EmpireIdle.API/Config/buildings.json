@@ -35,6 +35,7 @@
         "Key": "warehouse",
         "DisplayName": "Warehouse",
         "RequiresMainBuildingLevel": 0,
+        "ProtectedStorage": 250,
         "Position": {
           "X": 40.0,
           "Y": 30.0
@@ -186,6 +187,7 @@
         "Key": "bank",
         "DisplayName": "Bank",
         "RequiresMainBuildingLevel": 1,
+        "ProtectedStorage": 250,
         "Position": {
           "X": 40.0,
           "Y": 20.0
