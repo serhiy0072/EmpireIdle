@@ -3,6 +3,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Marches.Services
 {
@@ -39,18 +40,21 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly GameCatalog _catalog;
+        private readonly VillageStatus _status;
 
         public MarchTargetResolver(
             IMonsterRepository monsterRepository,
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             MonsterArmyBuilder armyBuilder,
-            GameCatalog catalog)
+            GameCatalog catalog,
+            VillageStatus status)
         {
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _armyBuilder = armyBuilder;
+            _status = status;
             _catalog = catalog;
         }
 
@@ -101,10 +105,10 @@ namespace EmpireIdle.Application.Marches.Services
                     return new MarchTarget(
                         village.X, village.Y,
                         village.Name,
-                        village.MainBuildingLevel(_catalog.Buildings),
+                        _status.MainBuildingLevel(village),
                         village,
                         army,
-                        village.DefenceMultiplier(_catalog.Buildings));
+                        _status.DefenceMultiplier(village));
 
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{targetType}'.");
@@ -123,11 +127,11 @@ namespace EmpireIdle.Application.Marches.Services
 
             var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
 
-            if (origin.IsShielded(_catalog.Buildings, shieldLevel))
+            if (_status.IsShielded(origin))
                 throw new RequirementNotMetException(
                     $"Attacking other players is available from town hall level {shieldLevel}.");
 
-            if (target.Village.IsShielded(_catalog.Buildings, shieldLevel))
+            if (_status.IsShielded(target.Village))
                 throw new RequirementNotMetException("This village is under a newbie shield.");
         }
     }

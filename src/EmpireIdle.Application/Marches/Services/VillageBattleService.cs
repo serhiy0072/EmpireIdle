@@ -5,6 +5,7 @@ using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging;
+using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Marches.Services
 {
@@ -21,7 +22,6 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IVillageRepository _villageRepository;
         private readonly IServerRepository _serverRepository;
         private readonly IRandomSource _random;
-        private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
         private readonly BattleResolver _resolver;
         private readonly DefenceLossAllocator _lossAllocator;
@@ -29,6 +29,8 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly WorldGeometry _geometry;
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
+        private readonly VillageStatus _status;
+        private readonly PlunderCalculator _plunder;
         private readonly ILogger<VillageBattleService> _logger;
 
         public VillageBattleService(
@@ -43,13 +45,14 @@ namespace EmpireIdle.Application.Marches.Services
             WorldGeometry geometry,
             MarchLogistics logistics,
             BattleAftermath aftermath,
+            VillageStatus status,
+            PlunderCalculator plunder,
             ILogger<VillageBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
             _serverRepository = serverRepository;
             _random = random;
-            _catalog = catalog;
             _combatConfig = catalog.Config.Combat;
             _resolver = resolver;
             _lossAllocator = lossAllocator;
@@ -57,6 +60,8 @@ namespace EmpireIdle.Application.Marches.Services
             _geometry = geometry;
             _logistics = logistics;
             _aftermath = aftermath;
+            _status = status;
+            _plunder = plunder;
             _logger = logger;
         }
 
@@ -84,8 +89,8 @@ namespace EmpireIdle.Application.Marches.Services
             // Щит міг з'явитись хіба що в нападника, але село могло й зникнути.
             // Це прогін сканера, тож будь-яка невідповідність — розворот, не виняток
             if (targetVillage is null || targetGarrison is null
-                || targetVillage.IsShielded(_catalog.Buildings, shieldLevel)
-                || attackerVillage.IsShielded(_catalog.Buildings, shieldLevel))
+                || _status.IsShielded(targetVillage)
+                || _status.IsShielded(attackerVillage))
             {
                 _logistics.TurnMarchBack(march, attackerArmy, utcNow);
                 return;
@@ -99,7 +104,7 @@ namespace EmpireIdle.Application.Marches.Services
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                 attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
 
-            var defenderBonus = targetVillage.DefenceMultiplier(_catalog.Buildings);
+            var defenderBonus = _status.DefenceMultiplier(targetVillage);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіти обох сторін
             var seed = _random.Next(int.MaxValue);
@@ -125,7 +130,7 @@ namespace EmpireIdle.Application.Marches.Services
                 await PlunderAsync(march, targetVillage, utcNow, cancellationToken);
 
             await _aftermath.RecordAttackerAsync(march, attackerVillage, attackerGarrison,
-                targetVillage.Name, targetVillage.MainBuildingLevel(_catalog.Buildings),
+                targetVillage.Name, _status.MainBuildingLevel(targetVillage),
                 attackerArmy, outcome, terrain, seed, utcNow, cancellationToken);
 
             await _aftermath.RecordDefenderAsync(march, targetVillage, targetGarrison, attackerVillage,
@@ -156,7 +161,7 @@ namespace EmpireIdle.Application.Marches.Services
             var serverLevel = await _serverRepository.GetLevelAsync(target.ServerId, cancellationToken);
             var locationMultiplier = _geometry.ProductionMultiplierAt(target.X, target.Y, serverLevel);
 
-            var loot = target.Plunder(_catalog.Buildings, capacity, boost, locationMultiplier, utcNow);
+            var loot = _plunder.Plunder(target, capacity, boost, locationMultiplier, utcNow);
 
             if (loot.Count == 0)
                 return;

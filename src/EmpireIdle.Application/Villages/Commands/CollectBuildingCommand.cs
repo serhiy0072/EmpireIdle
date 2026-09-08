@@ -1,9 +1,11 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Resources;
 
 namespace EmpireIdle.Application.Villages.Commands
 {
@@ -19,7 +21,7 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly WorldGeometry _geometry;
-
+        private readonly VillageCapacities _capacities;
         private readonly ILogger<CollectBuildingCommandHandler> _logger;
 
         public CollectBuildingCommandHandler(
@@ -30,6 +32,7 @@ namespace EmpireIdle.Application.Villages.Commands
             GameCatalog catalog,
             TimeProvider timeProvider,
             WorldGeometry geometry,
+            VillageCapacities capacities,
             ILogger<CollectBuildingCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -39,6 +42,7 @@ namespace EmpireIdle.Application.Villages.Commands
             _catalog = catalog;
             _timeProvider = timeProvider;
             _geometry = geometry;
+            _capacities = capacities;
             _logger = logger;
         }
 
@@ -49,6 +53,16 @@ namespace EmpireIdle.Application.Villages.Commands
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
+            // Кап залежить від того, що виробляє будівля, а команда цього
+            // не знає — тож тип визначаємо до виклику
+            var building = village.Buildings.FirstOrDefault(b => b.Id == request.BuildingId)
+                ?? throw new EntityNotFoundException("Building", request.BuildingId);
+
+            var storageCap = _catalog.Buildings.TryGetValue(building.Type, out var buildingConfig)
+                && buildingConfig.ProducesResource is { } resourceKey
+                ? _capacities.StorageCapFor(village, resourceKey)
+                : 0;
+
             // Буфер рахується від останньої матеріалізації, тож потрібне вікно буста
             var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
 
@@ -56,7 +70,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
             var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
 
-            village.CollectFromBuilding(request.BuildingId, _catalog.Buildings, now, boost, locationMultiplier);
+            village.CollectFromBuilding(request.BuildingId, _catalog.Buildings, storageCap, now, boost, locationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

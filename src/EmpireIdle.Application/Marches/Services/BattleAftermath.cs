@@ -20,9 +20,9 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IVillageRepository _villageRepository;
         private readonly IGameNotifier _notifier;
         private readonly CasualtySplitter _casualties;
-        private readonly GameCatalog _catalog;
         private readonly CombatConfig _combatConfig;
         private readonly MarchLogistics _logistics;
+        private readonly VillageStatus _status;
         private readonly ILogger<BattleAftermath> _logger;
 
         public BattleAftermath(
@@ -33,6 +33,7 @@ namespace EmpireIdle.Application.Marches.Services
             CasualtySplitter casualties,
             GameCatalog catalog,
             MarchLogistics logistics,
+            VillageStatus status,
             ILogger<BattleAftermath> logger)
         {
             _battleReportRepository = battleReportRepository;
@@ -40,9 +41,9 @@ namespace EmpireIdle.Application.Marches.Services
             _villageRepository = villageRepository;
             _notifier = notifier;
             _casualties = casualties;
-            _catalog = catalog;
             _combatConfig = catalog.Config.Combat;
             _logistics = logistics;
+            _status = status;
             _logger = logger;
         }
 
@@ -125,7 +126,7 @@ namespace EmpireIdle.Application.Marches.Services
                 defenderVillage.PlayerId,
                 march.Id,
                 defenderVillage.X, defenderVillage.Y, terrain,
-                attackerVillage.Name, attackerVillage.MainBuildingLevel(_catalog.Buildings),
+                attackerVillage.Name, _status.MainBuildingLevel(attackerVillage),
                 !result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
 
             var hostStood = defence

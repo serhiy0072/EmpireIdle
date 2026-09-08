@@ -24,6 +24,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly VillageStatus _status;
         private readonly ILogger<CreateClanCommandHandler> _logger;
 
         public CreateClanCommandHandler(
@@ -34,6 +35,7 @@ namespace EmpireIdle.Application.Clans.Commands
             IServerContext serverContext,
             GameCatalog catalog,
             TimeProvider timeProvider,
+            VillageStatus status,
             ILogger<CreateClanCommandHandler> logger)
         {
             _clanRepository = clanRepository;
@@ -43,6 +45,7 @@ namespace EmpireIdle.Application.Clans.Commands
             _serverContext = serverContext;
             _catalog = catalog;
             _timeProvider = timeProvider;
+            _status = status;
             _logger = logger;
         }
 
@@ -94,7 +97,7 @@ namespace EmpireIdle.Application.Clans.Commands
             if (embassyKey is null)
                 return;
 
-            if (!village.IsUnlocked(embassyKey, _catalog.Buildings, _catalog.MainBuildingKey))
+            if (!_status.IsUnlocked(village, embassyKey))
                 throw new RequirementNotMetException($"Founding a clan requires the '{embassyKey}'.");
         }
     }

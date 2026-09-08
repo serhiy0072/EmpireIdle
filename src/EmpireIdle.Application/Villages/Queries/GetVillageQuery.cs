@@ -4,6 +4,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Villages.ReadModels;
 using EmpireIdle.Domain.Services;
 using MediatR;
+using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Villages.Queries
 {
@@ -23,6 +24,7 @@ namespace EmpireIdle.Application.Villages.Queries
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly WorldGeometry _geometry;
+        private readonly VillageStatus _status;
 
         public GetVillageQueryHandler(
             IVillageRepository villageRepository,
@@ -30,7 +32,8 @@ namespace EmpireIdle.Application.Villages.Queries
             EffectResolver effectResolver,
             GameCatalog catalog,
             TimeProvider timeProvider,
-            WorldGeometry geometry)
+            WorldGeometry geometry,
+            VillageStatus status)
         {
             _villageRepository = villageRepository;
             _serverRepository = serverRepository;
@@ -38,6 +41,7 @@ namespace EmpireIdle.Application.Villages.Queries
             _catalog = catalog;
             _timeProvider = timeProvider;
             _geometry = geometry;
+            _status = status;
         }
 
         public async Task<VillageView> Handle(GetVillageQuery request, CancellationToken cancellationToken)
@@ -53,7 +57,7 @@ namespace EmpireIdle.Application.Villages.Queries
 
             var buildings = village.Buildings.Select(b =>
             {
-                var isUnlocekd = village.IsUnlocked(b.Type, _catalog.Buildings, _catalog.MainBuildingKey);
+                var isUnlocekd = _status.IsUnlocked(village, b.Type);
 
                 // Тип без конфіга означає битий конфіг, але падати на GET села зайве:
                 // гравець побачить будівлю з нульовим буфером, решта відповіді ціла

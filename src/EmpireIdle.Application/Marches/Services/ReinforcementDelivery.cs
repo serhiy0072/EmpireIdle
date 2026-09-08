@@ -17,24 +17,24 @@ namespace EmpireIdle.Application.Marches.Services
     {
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
-        private readonly GameCatalog _catalog;
         private readonly MarchLogistics _logistics;
         private readonly ReinforcementRules _rules;
+        private readonly VillageCapacities _capacities;
         private readonly ILogger<ReinforcementDelivery> _logger;
 
         public ReinforcementDelivery(
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
-            GameCatalog catalog,
             MarchLogistics logistics,
             ReinforcementRules rules,
+            VillageCapacities capacities,
             ILogger<ReinforcementDelivery> logger)
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
-            _catalog = catalog;
             _logistics = logistics;
             _rules = rules;
+            _capacities = capacities;
             _logger = logger;
         }
 
@@ -80,7 +80,7 @@ namespace EmpireIdle.Application.Marches.Services
                 return;
             }
 
-            var capacity = targetVillage.ReinforcementCapacity(_catalog.Buildings);
+            var capacity = _capacities.ReinforcementSlots(targetVillage);
 
             targetGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, units, capacity, utcNow);
             march.Delivered(utcNow);

@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Logging;
+using System.Resources;
 
 namespace EmpireIdle.Application.Rewards.Granters
 {
@@ -14,13 +15,15 @@ namespace EmpireIdle.Application.Rewards.Granters
         private readonly IVillageRepository _villageRepository;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly VillageCapacities _capacities;
         private readonly ILogger<ResourceRewardGranter> _logger;
 
-        public ResourceRewardGranter(IVillageRepository villageRepository, GameCatalog catalog, TimeProvider timeProvider, ILogger<ResourceRewardGranter> logger)
+        public ResourceRewardGranter(IVillageRepository villageRepository, GameCatalog catalog, TimeProvider timeProvider, VillageCapacities capacities, ILogger<ResourceRewardGranter> logger)
         {
             _villageRepository = villageRepository;
             _catalog = catalog;
             _timeProvider = timeProvider;
+            _capacities = capacities;
             _logger = logger;
         }
 
@@ -41,7 +44,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {context.PlayerId}.");
 
-            var granted = village.GrantResource(key, context.Reward.Amount, _catalog.Buildings, now);
+            var granted = village.GrantResource(key, context.Reward.Amount, _capacities.StorageCapFor(village, key), now);
 
             if (granted < context.Reward.Amount)
                 _logger.LogInformation(

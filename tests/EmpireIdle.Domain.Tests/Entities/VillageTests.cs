@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 
@@ -25,7 +26,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
             var collectAt = building.LastAccruedAt.AddMinutes(5);
 
-            village.CollectFromBuilding(building.Id, configs, collectAt, ProductionBoost.None, 1.0);
+            village.CollectFromBuilding(building.Id, configs, storageCap: 100_000, collectAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(0, building.AccruedAmount);
             Assert.Equal(foodBefore + 50, village.Resources.Single(r => r.ResourceType == "food").Amount);
@@ -43,7 +44,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
 
-            village.CollectFromBuilding(building.Id, configs, building.LastAccruedAt, ProductionBoost.None, 1.0);
+            village.CollectFromBuilding(building.Id, configs, storageCap: 100_000, building.LastAccruedAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(foodBefore, village.Resources.Single(r => r.ResourceType == "food").Amount);
         }
@@ -240,6 +241,20 @@ namespace EmpireIdle.Domain.Tests.Entities
         }
 
         /// <summary>
+        /// Калькулятор грабунку на тому самому конфігу, що й PlunderConfigs.
+        /// Каталог мінімальний: грабунку потрібні лише будівлі.
+        /// </summary>
+        private static PlunderCalculator Plunderer(Dictionary<string, BuildingConfig> configs)
+        {
+            var catalog = new GameCatalog(new GameConfig
+            {
+                Buildings = configs.Values.ToList()
+            });
+
+            return new PlunderCalculator(catalog, new VillageCapacities(catalog));
+        }
+
+        /// <summary>
         /// Село, де є лише їжа: решта ресурсів нульові навмисно.
         /// Ресурс без сховища не має захищеного запасу й грабується
         /// повністю — це правильно, але заважає міряти саме запас.
@@ -265,8 +280,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             var configs = PlunderConfigs();
             var village = VillageWithStoredFood(100, configs);
 
+            var plunder = Plunderer(configs);
+
+
             // Act
-            var loot = village.Plunder(configs, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
 
             // Assert
             Assert.Equal(60, loot["food"]);
@@ -281,8 +299,10 @@ namespace EmpireIdle.Domain.Tests.Entities
             var configs = PlunderConfigs();
             var village = VillageWithStoredFood(30, configs);
 
+            var plunder = Plunderer(configs);
+
             // Act
-            var loot = village.Plunder(configs, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
 
             // Assert
             Assert.Empty(loot);
@@ -305,8 +325,10 @@ namespace EmpireIdle.Domain.Tests.Entities
             var farm = village.Buildings.Single(b => b.Type == "farm");
             var plunderAt = farm.LastAccruedAt.AddMinutes(5);
 
+            var plunder = Plunderer(configs);
+
             // Act
-            var loot = village.Plunder(configs, carryCapacity: 1000, ProductionBoost.None, 1.0, plunderAt);
+            var loot = plunder.Plunder(village, carryCapacity: 50, ProductionBoost.None, 1.0, plunderAt);
 
             // Assert
             Assert.Equal(50, loot["food"]);
@@ -324,8 +346,10 @@ namespace EmpireIdle.Domain.Tests.Entities
             var configs = PlunderConfigs();
             var village = VillageWithStoredFood(100, configs);
 
+            var plunder = Plunderer(configs);
+
             // Act
-            var loot = village.Plunder(configs, carryCapacity: 25, ProductionBoost.None, 1.0, DateTime.UtcNow);
+            var loot = plunder.Plunder(village, carryCapacity: 25, ProductionBoost.None, 1.0, DateTime.UtcNow);
 
             // Assert
             Assert.Equal(25, loot["food"]);
@@ -346,8 +370,10 @@ namespace EmpireIdle.Domain.Tests.Entities
             village.GrantStartingResources(new Dictionary<string, int> { ["wood"] = 70 }, DateTime.UtcNow);
             village.AddBuilding("warehouse", configs, DateTime.UtcNow);
 
+            var plunder = Plunderer(configs);
+
             // Act
-            var loot = village.Plunder(configs, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
 
             // Assert
             Assert.Equal(70, loot["wood"]);

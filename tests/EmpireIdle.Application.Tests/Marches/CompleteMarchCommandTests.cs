@@ -116,14 +116,18 @@ public class CompleteMarchCommandTests
         var armyBuilder = new MonsterArmyBuilder(catalog);
         var effects = new EffectResolver(_effects);
 
+        var capacities = new VillageCapacities(catalog);
+        var status = new VillageStatus(catalog);
+        var plunder = new PlunderCalculator(catalog, capacities);
+
         var logistics = new MarchLogistics(
-            _villages, catalog, calculator, NullLogger<MarchLogistics>.Instance);
+            _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
 
         var aftermath = new BattleAftermath(
-            _reports, _garrisons, _villages, _notifier, casualties, catalog, logistics,
+            _reports, _garrisons, _villages, _notifier, casualties, catalog, logistics, status,
             NullLogger<BattleAftermath>.Instance);
 
-        var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog);
+        var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _random,
@@ -133,10 +137,11 @@ public class CompleteMarchCommandTests
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _random,
             catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
+            status, plunder, 
             NullLogger<VillageBattleService>.Instance);
 
         var reinforcements = new ReinforcementDelivery(
-            _garrisons, _villages, catalog, logistics, reinforcementRules,
+            _garrisons, _villages, logistics, reinforcementRules, capacities,
             NullLogger<ReinforcementDelivery>.Instance);
 
         return new CompleteMarchCommandHandler(
@@ -203,9 +208,10 @@ public class CompleteMarchCommandTests
 
         var attacker = NewVillage(catalog, PlayerId, 50, 50);
         var defender = NewVillage(catalog, Guid.NewGuid(), 55, 55);
+        var capacities = new VillageCapacities(catalog);
 
         if (defenderFood > 0)
-            defender.GrantResource("food", defenderFood, catalog.Buildings, Now);
+            defender.GrantResource("food", defenderFood, capacities.StorageCapFor(defender, "food"), Now);
 
         var attackerGarrison = new Garrison(Guid.NewGuid(), attacker.Id, 1);
         var defenderGarrison = new Garrison(Guid.NewGuid(), defender.Id, 1);

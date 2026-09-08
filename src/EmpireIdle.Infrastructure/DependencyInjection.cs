@@ -1,3 +1,4 @@
+
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Events;
@@ -85,6 +86,10 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<MarchTargetResolver>();
             services.AddScoped<BattleAftermath>();
             services.AddScoped<ReinforcementRules>();
+
+            services.AddSingleton<VillageCapacities>();
+            services.AddSingleton<VillageStatus>();
+            services.AddSingleton<PlunderCalculator>();
 
             // Нагороди — той самий патерн: усі реалізації + диспетчер за типом
             services.AddScoped<IRewardGranter, GemRewardGranter>();

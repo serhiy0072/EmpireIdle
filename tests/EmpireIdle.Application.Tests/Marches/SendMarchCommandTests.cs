@@ -60,10 +60,13 @@ public class SendMarchCommandTests
 
         _serverContext.ServerId.Returns(1);
 
-        var targets = new MarchTargetResolver(
-            _monsters, _villages, _garrisons, new MonsterArmyBuilder(catalog), catalog);
+        var capacities = new VillageCapacities(catalog);
+        var status = new VillageStatus(catalog);
 
-        var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog);
+        var targets = new MarchTargetResolver(
+            _monsters, _villages, _garrisons, new MonsterArmyBuilder(catalog), catalog, status);
+
+        var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
         return new SendMarchCommandHandler(
             _villages, _garrisons, _marches, _unitOfWork, _serverContext,

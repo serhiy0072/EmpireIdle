@@ -73,7 +73,7 @@ public class VillageCommandTests
 
     private CollectBuildingCommandHandler CollectHandler() => new(
         _villages, _unitOfWork, _servers, new EffectResolver(_effects),
-        Catalog(), new FakeTimeProvider(Now), Geometry(),
+        Catalog(), new FakeTimeProvider(Now), Geometry(), new VillageCapacities(Catalog()),
         NullLogger<CollectBuildingCommandHandler>.Instance);
 
     private UpgradeBuildingCommandHandler UpgradeHandler() => new(

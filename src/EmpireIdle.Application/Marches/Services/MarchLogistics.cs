@@ -17,17 +17,20 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IVillageRepository _villageRepository;
         private readonly GameCatalog _catalog;
         private readonly MarchCalculator _calculator;
+        private readonly VillageCapacities _capacities;
         private readonly ILogger<MarchLogistics> _logger;
 
         public MarchLogistics(
             IVillageRepository villageRepository,
             GameCatalog catalog,
             MarchCalculator calculator,
+            VillageCapacities capacities,
             ILogger<MarchLogistics> logger)
         {
             _villageRepository = villageRepository;
             _catalog = catalog;
             _calculator = calculator;
+            _capacities = capacities;   
             _logger = logger;
         }
 
@@ -70,7 +73,8 @@ namespace EmpireIdle.Application.Marches.Services
             var stored = 0;
 
             foreach (var (resourceType, amount) in cargo)
-                stored += village.GrantResource(resourceType, amount, _catalog.Buildings, utcNow);
+                stored += village.GrantResource(
+                    resourceType, amount, _capacities.StorageCapFor(village, resourceType), utcNow);
 
             _logger.LogInformation("March {MarchId} unloaded {Stored} of {Carried} carried resources.",
                 march.Id, stored, cargo.Values.Sum());

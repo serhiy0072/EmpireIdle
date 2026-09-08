@@ -71,65 +71,10 @@ namespace EmpireIdle.Domain.Entities
 
         #region Читання
 
-        /// <summary>Рівень ратуші; 0, якщо її чомусь немає.</summary>
-        public int MainBuildingLevel(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
-            => Buildings.FirstOrDefault(b =>
-                buildingConfigs.TryGetValue(b.Type, out var config) && config.IsMainBuilding)?.Level.Value ?? 0;
-
         /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
         public bool HasBuilding(string buildingType)
             => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
 
-        /// <summary>
-        /// Чи відкрита будівля гравцю. Під туманом вона фізично існує й може
-        /// навіть будуватись, але гравець її не бачить і не взаємодіє.
-        ///
-        /// Стан не зберігається: це функція від рівня ратуші й конфіга.
-        /// Зберігати означало б тримати похідне значення, яке розсинхронізується
-        /// з конфігом при першому ж ребалансі порогів.
-        /// </summary>
-        public bool IsUnlocked(string buildingType, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            string mainBuildingKey)
-        {
-            if (!buildingConfigs.TryGetValue(buildingType, out var config))
-                return false;
-
-            var townhall = _buildings.FirstOrDefault(b => b.Type == mainBuildingKey);
-
-            return townhall is not null && config.RequiresMainBuildingLevel <= townhall.Level.Value;
-        }
-
-        /// <summary>
-        /// Місткість сховища для ресурсу. Золото зберігається в банку,
-        /// решта — на складі: два різні сховища, два різні рівні.
-        /// Будівля під будівництвом місткості не дає.
-        /// </summary>
-        public int StorageCapFor(string resourceKey, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
-        {
-            var storageKey = buildingConfigs.Values
-                .FirstOrDefault(c => c.StoresResources?.Contains(resourceKey) == true)?.Key;
-
-            if (storageKey is null)
-                return int.MaxValue;
-
-            var storage = _buildings.FirstOrDefault(b => b.Type == storageKey && !b.IsUnderConstruction);
-
-            if (storage is null || !buildingConfigs.TryGetValue(storageKey, out var storageConfig))
-                return 0;
-
-            return storageConfig.BaseStorage * storage.Level.Value;
-        }
-
-        /// <summary>
-        /// Скільки чужих юнітів вміщає посольство: сума рівнів × слоти на рівень.
-        /// Недобудоване не рахується.
-        /// </summary>
-        public int ReinforcementCapacity(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
-            => Buildings
-                .Where(b => !b.IsUnderConstruction)
-                .Sum(b => buildingConfigs.TryGetValue(b.Type, out var cfg)
-                    ? cfg.ReinforcementSlotsPerLevel * b.Level.Value
-                    : 0);
 
         #endregion
 
@@ -233,7 +178,7 @@ namespace EmpireIdle.Domain.Entities
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
         public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+            int storageCap, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
                 ?? throw new EntityNotFoundException("Building", buildingId);
@@ -258,8 +203,7 @@ namespace EmpireIdle.Domain.Entities
             }
 
             // Склад приймає скільки влізе, решта згорає
-            var cap = StorageCapFor(config.ProducesResource, buildingConfigs);
-            var accepted = resource.AddUpTo(collected, cap);
+            var accepted = resource.AddUpTo(collected, storageCap);
 
             RaiseDomainEvent(new Events.BuildingCollected(
                 Id, PlayerId, building.Id, config.ProducesResource, accepted, resource.Amount, utcNow));
@@ -335,7 +279,7 @@ namespace EmpireIdle.Domain.Entities
         /// Нараховує ресурс від нагороди. Повертає, скільки реально зараховано:
         /// надлишок понад сумарний кап складів згорає.
         /// </summary>
-        public int GrantResource(string resourceKey, int amount, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
+        public int GrantResource(string resourceKey, int amount, int storageCap, DateTime utcNow)
         {
             if (amount <= 0)
                 return 0;
@@ -343,8 +287,7 @@ namespace EmpireIdle.Domain.Entities
             var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
                 ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
 
-            var cap = StorageCapFor(resourceKey, buildingConfigs);
-            var granted = Math.Max(0, Math.Min(amount, cap - resource.Amount));
+            var granted = Math.Max(0, Math.Min(amount, storageCap - resource.Amount));
 
             if (granted > 0)
                 resource.Add(granted);
@@ -367,122 +310,25 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        #endregion
-
-        #region Бій і карта
-
         /// <summary>
-        /// Чи діє щит новачка: рівень ратуші нижчий за поріг. Такого гравця
-        /// не можна атакувати, і сам він не атакує. Таймера немає — щит
-        /// спадає рівнем ратуші, а вище за неї нічого не піднімеш (§3.2).
+        /// Списує ресурс зі сховища. Скільки саме — вирішує PlunderCalculator;
+        /// агрегат лише не дає піти в мінус.
         /// </summary>
-        public bool IsShielded(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, int shieldTownHallLevel)
-            => MainBuildingLevel(buildingConfigs) < shieldTownHallLevel;
-
-        /// <summary>
-        /// Множник до сили оборони від укріплень. 1.0 — стін немає.
-        /// Рахується від селища, а не з гарнізону: стіни належать місту,
-        /// і підкріплення клану ними теж прикриті.
-        /// </summary>
-        public double DefenceMultiplier(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        public void TakeFromStore(string resourceKey, int amount, DateTime utcNow)
         {
-            var bonus = _buildings
-                .Where(b => !b.IsUnderConstruction
-                            && buildingConfigs.TryGetValue(b.Type, out var c)
-                            && c.DefenceBonusPerLevel > 0)
-                .Sum(b => buildingConfigs[b.Type].DefenceBonusPerLevel * b.Level.Value);
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey);
 
-            return 1.0 + bonus;
-        }
+            if (resource is null || amount <= 0)
+                return;
 
-        /// <summary>
-        /// Віддає ресурси нападнику. Буфери будівель ідуть повністю —
-        /// невибраний виробіток захисту не має. Зі складу й банку береться
-        /// лише те, що понад захищений запас, і не більше, ніж армія здатна
-        /// винести.
-        /// </summary>
-        /// <param name="carryCapacity">Скільки одиниць ресурсів вміщає армія.</param>
-        /// <returns>Що саме винесено, за ключами ресурсів.</returns>
-        public Dictionary<string, int> Plunder(
-            IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            int carryCapacity,
-            ProductionBoost boost,
-            double locationMultiplier,
-            DateTime utcNow)
-        {
-            var loot = new Dictionary<string, int>();
-            var remaining = Math.Max(0, carryCapacity);
-
-            if (remaining == 0)
-                return loot;
-
-            // Буфер живе у StoredAt як функція часу — щоб забрати частину,
-            // його спершу треба осадити в AccruedAmount
-            MaterializeProduction(buildingConfigs, utcNow, boost, locationMultiplier);
-
-            foreach (var building in _buildings)
-            {
-                if (remaining == 0)
-                    break;
-
-                if (!buildingConfigs.TryGetValue(building.Type, out var config) || config.ProducesResource is null)
-                    continue;
-
-                var taken = building.Plunder(remaining);
-
-                if (taken == 0)
-                    continue;
-
-                Accumulate(loot, config.ProducesResource, taken);
-
-                remaining -= taken;
-            }
-
-            // Далі склад і банк — але тільки понад недоторканий запас
-            foreach (var resource in _resources)
-            {
-                if (remaining == 0)
-                    break;
-
-                var protectedAmount = ProtectedReserveFor(resource.ResourceType, buildingConfigs);
-                var available = resource.Amount - protectedAmount;
-
-                if (available <= 0)
-                    continue;
-
-                var taken = Math.Min(available, remaining);
-
-                resource.Subtract(taken);
-                Accumulate(loot, resource.ResourceType, taken);
-
-                remaining -= taken;
-            }
+            resource.Subtract(Math.Min(amount, resource.Amount));
 
             Touch(utcNow);
-
-            return loot;
         }
 
-        /// <summary>
-        /// Недоторканий запас ресурсу — абсолютне число від рівня сховища.
-        /// Навмисно не частка від місткості: інакше качання складу
-        /// піднімало б і захист, і здобич, і гравець не мав би важеля.
-        /// </summary>
-        public int ProtectedReserveFor(string resourceKey, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
-        {
-            var storageKey = buildingConfigs.Values
-                .FirstOrDefault(c => c.StoresResources?.Contains(resourceKey) == true)?.Key;
+        #endregion
 
-            if (storageKey is null)
-                return 0;
-
-            var storage = _buildings.FirstOrDefault(b => b.Type == storageKey && !b.IsUnderConstruction);
-
-            if (storage is null || !buildingConfigs.TryGetValue(storageKey, out var storageConfig))
-                return 0;
-
-            return storageConfig.ProtectedStorage * storage.Level.Value;
-        }
+        #region Карта
 
         /// <summary>
         /// Переносить поселення на нову клітину.
@@ -507,9 +353,6 @@ namespace EmpireIdle.Domain.Entities
         #region Внутрішнє
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
-
-        private static void Accumulate(Dictionary<string, int> loot, string resourceKey, int amount)
-            => loot[resourceKey] = loot.GetValueOrDefault(resourceKey) + amount;
 
         /// <summary>
         /// Перевіряє три незалежні умови апгрейду.

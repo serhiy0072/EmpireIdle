@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Marches.Services
 {
@@ -17,15 +18,21 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IClanRepository _clanRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly GameCatalog _catalog;
+        private readonly VillageStatus _status;
+        private readonly VillageCapacities _capacities;
 
         public ReinforcementRules(
             IClanRepository clanRepository,
             IGarrisonRepository garrisonRepository,
-            GameCatalog catalog)
+            GameCatalog catalog,
+            VillageStatus status,
+            VillageCapacities capacities)
         {
             _clanRepository = clanRepository;
             _garrisonRepository = garrisonRepository;
             _catalog = catalog;
+            _status = status;
+            _capacities = capacities;
         }
 
         /// <summary>
@@ -45,11 +52,11 @@ namespace EmpireIdle.Application.Marches.Services
             // недоторканне село інакше стало б сейфом для кланової армії
             var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
 
-            if (origin.IsShielded(_catalog.Buildings, shieldLevel))
+            if (_status.IsShielded(origin))
                 throw new RequirementNotMetException(
                     $"Reinforcements are available from town hall level {shieldLevel}.");
 
-            if (destination.IsShielded(_catalog.Buildings, shieldLevel))
+            if (_status.IsShielded(destination))
                 throw new RequirementNotMetException("This village cannot receive reinforcements yet.");
 
             if (!await AreClanmatesAsync(origin.PlayerId, destination.PlayerId, cancellationToken))
@@ -89,7 +96,7 @@ namespace EmpireIdle.Application.Marches.Services
             if (garrison is null)
                 return 0;
 
-            return destination.ReinforcementCapacity(_catalog.Buildings) - garrison.ReinforcementCount;
+            return _capacities.ReinforcementSlots(destination) - garrison.ReinforcementCount;
         }
 
         private async Task<bool> AreClanmatesAsync(Guid first, Guid second, CancellationToken cancellationToken)
