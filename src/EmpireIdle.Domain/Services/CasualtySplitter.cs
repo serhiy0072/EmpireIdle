@@ -25,9 +25,16 @@ namespace EmpireIdle.Domain.Services
             var recoverable = new Dictionary<string, int>();
             var dead = new Dictionary<string, int>();
 
-            var random = new Random(seed);
+            // Власний PRNG з тієї самої причини, що й у CombatCalculator:
+            // послідовність Random не гарантована між версіями рантайму,
+            // а зберігається лише сід.
+            var random = new DeterministicRandom(seed);
             var remainingCapacity = Math.Max(0, woundedCapacity);
-            foreach (var(unitType, lost) in losses)
+
+            // Порядок обходу Dictionary не визначений специфікацією, а кожен тип
+            // тягне свій кидок — без сортування переграш міг би роздати ті самі
+            // числа іншим типам і змінити розкладку поранених. Ordinal, як у Spread.
+            foreach (var (unitType, lost) in losses.OrderBy(pair => pair.Key, StringComparer.Ordinal))
             {
                 if(lost<=0)
                     continue;

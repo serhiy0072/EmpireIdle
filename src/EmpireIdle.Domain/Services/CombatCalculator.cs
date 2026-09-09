@@ -43,7 +43,10 @@ namespace EmpireIdle.Domain.Services
         public BattleResult Resolve(IReadOnlyDictionary<string, int> attacker, IReadOnlyDictionary<string, int> defender,
             string terrainType, int seed, double attackerBonus = 1.0, double defenderBonus = 1.0)
         {
-            var random = new Random(seed);
+            // Власний PRNG, а не Random: у звіті зберігається лише сід, і послідовність
+            // BCL-класу не гарантована між версіями рантайму — переграш бою після
+            // апгрейду SDK дав би інший результат, ніж оригінал.
+            var random = new DeterministicRandom(seed);
 
             var attackerPower = CalculatePower(attacker, terrainType, isAttacker: true) * attackerBonus * RollRandom(random);
             var defenderPower = CalculatePower(defender, terrainType, isAttacker: false) * defenderBonus * RollRandom(random);
@@ -127,7 +130,7 @@ namespace EmpireIdle.Domain.Services
         /// Випадковий множник ~N(1.0, sigma), обрізаний межами конфіга.
         /// Box-Muller: перетворює рівномірний розподіл на нормальний.
         /// </summary>
-        private double RollRandom(Random random)
+        private double RollRandom(DeterministicRandom random)
         {
             var u1 = 1.0 - random.NextDouble();
             var u2 = 1.0 - random.NextDouble();
