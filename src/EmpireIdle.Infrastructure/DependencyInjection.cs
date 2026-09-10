@@ -53,6 +53,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IBattleReportRepository, BattleReportRepository>();
             services.AddScoped<IVillageRepository, VillageRepository>();
             services.AddScoped<IGarrisonRepository, GarrisonRepository>();
+            services.AddScoped<IHeroRepository, HeroRepository>();
             services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
             services.AddScoped<IInventoryRepository, InventoryRepository>();
             services.AddScoped<IMapRepository, MapRepository>();
@@ -95,6 +96,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IRewardGranter, GemRewardGranter>();
             services.AddScoped<IRewardGranter, ResourceRewardGranter>();
             services.AddScoped<IRewardGranter, ItemRewardGranter>();
+            services.AddScoped<IRewardGranter, HeroRewardGranter>();
             services.AddScoped<RewardDispatcher>();
 
             // Квести

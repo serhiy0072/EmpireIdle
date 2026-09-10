@@ -131,6 +131,7 @@ namespace EmpireIdle.Domain.Services
 
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
             var itemKeys = config.Items.Select(i => i.Key).ToHashSet();
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
 
             var rewards = config.Quests.SelectMany(q => q.Rewards.Select(r => (Quest: q.Key, Reward: r)));
 
@@ -139,6 +140,7 @@ namespace EmpireIdle.Domain.Services
                 {
                     "Resource" => x.Reward.Key is null || !resourceKeys.Contains(x.Reward.Key),
                     "Item" => x.Reward.Key is null || !itemKeys.Contains(x.Reward.Key),
+                    "Hero" => x.Reward.Key is null || !heroKeys.Contains(x.Reward.Key),
                     _ => false
                 })
                 .Select(x => $"{x.Quest} → {x.Reward.Type} '{x.Reward.Key ?? "(no key)"}'")
