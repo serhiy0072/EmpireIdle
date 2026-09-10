@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
@@ -199,5 +200,133 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Validate_ShouldRejectNonDecreasingPreviewThresholds()
             => Rejects(c => c.Combat.PreviewOddsThresholds = [0.8, 1.2]);
+
+        // ---------- Герої ----------
+
+        /// <summary>
+        /// Валідний конфіг героїв: два класи, три тіри, два предмети еволюції,
+        /// звичайний герой із ціною уламка.
+        /// </summary>
+        private static GameConfig WithHeroes()
+        {
+            var config = ValidConfig();
+
+            config.Items =
+            [
+                new ItemConfig { Key = "hero_essence_t2" },
+                new ItemConfig { Key = "hero_essence_t3" }
+            ];
+
+            config.HeroSettings = new HeroesConfig
+            {
+                LevelsPerTier = 10,
+                MaxTier = 3,
+                MaxMarches = 8,
+                TierStatMultipliers = [1.0, 1.35, 1.8],
+                EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
+                Classes = ["warrior", "archer"]
+            };
+
+            config.Heroes =
+            [
+                new HeroConfig
+                {
+                    Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
+                    SummonShards = 10, ShardPriceGold = 1200
+                },
+                new HeroConfig { Key = "archer_lyra", Class = "archer", Rank = Rarity.Unique }
+            ];
+
+            return config;
+        }
+
+        private static InvalidOperationException RejectsHero(Action<GameConfig> break_)
+        {
+            var config = WithHeroes();
+            break_(config);
+
+            return Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+        }
+
+        [Fact]
+        public void Validate_ShouldAcceptAValidHeroRoster()
+            => GameConfigValidator.Validate(WithHeroes());
+
+        /// <summary>
+        /// Порожній ростер означає «конфіг героїв не описує» — мінімальні
+        /// фікстури тестів не мусять заповнювати всю секцію.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldIgnoreHeroRules_WhenTheRosterIsEmpty()
+        {
+            var config = WithHeroes();
+            config.Heroes = [];
+            config.HeroSettings.Classes = [];
+
+            GameConfigValidator.Validate(config);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectDuplicateHeroKeys()
+            => RejectsHero(c => c.Heroes =
+            [
+                new HeroConfig { Key = "warrior_bran", Class = "warrior", SummonShards = 1, ShardPriceGold = 1 },
+                new HeroConfig { Key = "warrior_bran", Class = "warrior", SummonShards = 1, ShardPriceGold = 1 }
+            ]);
+
+        /// <summary>
+        /// Клас із друкарською помилкою дав би героя, якому не підходить
+        /// жоден предмет — і виявилось би це вже в гравця.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectUnknownHeroClass()
+            => RejectsHero(c => c.Heroes[1].Class = "paladin");
+
+        [Fact]
+        public void Validate_ShouldRejectEmptyClassRoster()
+            => RejectsHero(c => c.HeroSettings.Classes = []);
+
+        [Fact]
+        public void Validate_ShouldRejectDuplicateClasses()
+            => RejectsHero(c => c.HeroSettings.Classes = ["warrior", "warrior", "archer"]);
+
+        /// <summary>Множників має бути рівно стільки, скільки тірів.</summary>
+        [Fact]
+        public void Validate_ShouldRejectTierMultiplierCountMismatch()
+            => RejectsHero(c => c.HeroSettings.TierStatMultipliers = [1.0, 1.35]);
+
+        /// <summary>
+        /// Незростаючі множники означають, що еволюція піднімає лише стелю,
+        /// і два герої різних тірів на тому самому рівні однакові.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectNonIncreasingTierMultipliers()
+            => RejectsHero(c => c.HeroSettings.TierStatMultipliers = [1.0, 1.35, 1.35]);
+
+        /// <summary>Переходів рівно на один менше, ніж тірів.</summary>
+        [Fact]
+        public void Validate_ShouldRejectEvolutionItemCountMismatch()
+            => RejectsHero(c => c.HeroSettings.EvolutionItemKeys = ["hero_essence_t2"]);
+
+        [Fact]
+        public void Validate_ShouldRejectUnknownEvolutionItem()
+            => RejectsHero(c => c.HeroSettings.EvolutionItemKeys = ["hero_essence_t2", "missing_essence"]);
+
+        /// <summary>
+        /// Звичайні герої — основний щоденний стік золота. Без ціни уламка
+        /// вони роздавались би безкоштовно.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectCommonHeroWithoutShardPrice()
+            => RejectsHero(c => c.Heroes[0].ShardPriceGold = 0);
+
+        [Fact]
+        public void Validate_ShouldRejectCommonHeroWithoutShardCount()
+            => RejectsHero(c => c.Heroes[0].SummonShards = 0);
+
+        /// <summary>Нуль маршів лишив би гравця з героями без доступу до карти.</summary>
+        [Fact]
+        public void Validate_ShouldRejectZeroMaxMarches()
+            => RejectsHero(c => c.HeroSettings.MaxMarches = 0);
     }
 }
