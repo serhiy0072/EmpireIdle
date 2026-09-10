@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EmpireIdle.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260910182606_EquipmentItemRarityToEnum")]
-    partial class EquipmentItemRarityToEnum
+    [Migration("20260910192541_HeroesAndRefactorEquipmentItemRarityToEnum")]
+    partial class HeroesAndRefactorEquipmentItemRarityToEnum
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

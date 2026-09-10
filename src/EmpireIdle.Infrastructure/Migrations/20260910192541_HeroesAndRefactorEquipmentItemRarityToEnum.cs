@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,19 +6,25 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EmpireIdle.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class EquipmentItemRarityToEnum : Migration
+    public partial class HeroesAndRefactorEquipmentItemRarityToEnum : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
-                name: "Rarity",
-                table: "EquipmentItems",
-                type: "integer",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(20)",
-                oldMaxLength: 20);
+            // PostgreSQL не кастить varchar у integer неявно, тож згенерований
+            // AlterColumn замінено явним USING. Заразом тут лишається зафіксованим
+            // ретирування "legendary": воно лягає в ту саму трійку, що й "unique".
+            migrationBuilder.Sql("""
+                ALTER TABLE "EquipmentItems"
+                ALTER COLUMN "Rarity" TYPE integer
+                USING CASE lower("Rarity")
+                    WHEN 'common'    THEN 1
+                    WHEN 'rare'      THEN 2
+                    WHEN 'unique'    THEN 3
+                    WHEN 'legendary' THEN 3
+                    ELSE 1
+                END;
+                """);
 
             migrationBuilder.CreateTable(
                 name: "Heroes",
@@ -95,20 +101,24 @@ namespace EmpireIdle.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            
+
             migrationBuilder.DropTable(
                 name: "HeroLevelOrders");
 
             migrationBuilder.DropTable(
                 name: "Heroes");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Rarity",
-                table: "EquipmentItems",
-                type: "character varying(20)",
-                maxLength: 20,
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer");
+            migrationBuilder.Sql("""
+                ALTER TABLE "EquipmentItems"
+                ALTER COLUMN "Rarity" TYPE character varying(20)
+                USING CASE "Rarity"
+                    WHEN 1 THEN 'common'
+                    WHEN 2 THEN 'rare'
+                    WHEN 3 THEN 'unique'
+                    ELSE 'common'
+                END;
+                """);
         }
     }
 }
