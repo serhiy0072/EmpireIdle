@@ -2,6 +2,14 @@
   "GameConfig": {
     "Items": [
       {
+        "Key": "hero_shard",
+        "DisplayName": "Hero Shard",
+        "Description": "Лишається від дубліката героя, який уже досяг шостого сузір'я",
+        "Rarity": "rare",
+        "Type": "currency",
+        "IsStackable": true
+      },
+      {
         "Key": "hero_essence_t2",
         "DisplayName": "Essence of the Second Circle",
         "Description": "Піднімає героя з першого тіру в другий. Потрібен рівень світу 2",

@@ -29,6 +29,20 @@ namespace EmpireIdle.Domain.Services.Config
         public int MaxConstellation { get; set; } = 6;
 
         /// <summary>
+        /// Предмет, у який перетворюється дублікат понад стелю сузір'я.
+        /// Без нього унікальний дроп на C6 просто зникав би — а з банерами
+        /// це щоденна ситуація, не крайній випадок.
+        /// </summary>
+        public string OverflowShardItemKey { get; set; } = null!;
+
+        /// <summary>
+        /// Скільки уламків дає надлишковий дублікат: ключ — назва рангу
+        /// (Common, Rare, Unique). Рядком, а не enum: біндер конфігурації
+        /// надійно розбирає лише рядкові ключі словника.
+        /// </summary>
+        public Dictionary<string, int> OverflowShards { get; set; } = new();
+
+        /// <summary>
         /// Жорсткий кап одночасних маршів. Кількість маршів і так дорівнює
         /// кількості вільних героїв, це стеля поверх неї.
         /// </summary>

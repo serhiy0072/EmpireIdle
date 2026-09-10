@@ -291,6 +291,32 @@ namespace EmpireIdle.Domain.Services
 
             var itemKeys = config.Items.Select(i => i.Key).ToHashSet();
 
+            if (!itemKeys.Contains(settings.OverflowShardItemKey ?? string.Empty))
+                throw new InvalidOperationException(
+                    $"HeroSettings.OverflowShardItemKey '{settings.OverflowShardItemKey}' is not a known item — "
+                    + "duplicates past the constellation cap would vanish.");
+
+            var rankNames = Enum.GetNames<Rarity>().ToHashSet();
+
+            var unknownRanks = settings.OverflowShards.Keys
+                .Where(k => !rankNames.Contains(k))
+                .ToList();
+
+            if (unknownRanks.Count > 0)
+                throw new InvalidOperationException(
+                    $"HeroSettings.OverflowShards has keys that are not ranks: {string.Join(", ", unknownRanks)}.");
+
+            var missingRanks = config.Heroes
+                .Select(h => h.Rank.ToString())
+                .Distinct()
+                .Where(r => !settings.OverflowShards.ContainsKey(r))
+                .ToList();
+
+            if (missingRanks.Count > 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.OverflowShards has no entry for ranks in the roster: "
+                    + $"{string.Join(", ", missingRanks)}.");
+
             var unknownItems = settings.EvolutionItemKeys
                 .Where(k => !itemKeys.Contains(k))
                 .ToList();

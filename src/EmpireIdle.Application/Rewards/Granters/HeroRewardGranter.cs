@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.Entities;
@@ -15,12 +16,15 @@ namespace EmpireIdle.Application.Rewards.Granters
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IServerContext _serverContext;
+        private readonly ItemGranter _itemGranter;
         private readonly GameCatalog _catalog;
 
-        public HeroRewardGranter(IHeroRepository heroRepository, IServerContext serverContext, GameCatalog catalog)
+        public HeroRewardGranter(IHeroRepository heroRepository, IServerContext serverContext,
+            ItemGranter itemGranter, GameCatalog catalog)
         {
             _heroRepository = heroRepository;
             _serverContext = serverContext;
+            _itemGranter = itemGranter;
             _catalog = catalog;
         }
 
@@ -35,7 +39,7 @@ namespace EmpireIdle.Application.Rewards.Granters
 
             // Кидає, якщо героя немає в каталозі — краще впасти при видачі,
             // ніж створити рядок, для якого немає ні стат, ні картки
-            _catalog.Hero(key);
+            var config = _catalog.Hero(key);
 
             var existing = await _heroRepository.GetByKeyAsync(context.PlayerId, key, cancellationToken);
 
@@ -48,10 +52,17 @@ namespace EmpireIdle.Application.Rewards.Granters
                 return;
             }
 
-            // Дублікат іде в сузір'я. Понад стелю зараз згорає: правила конвертації
-            // надлишку визначаються у фазі 25 разом із гача, і поки їх немає,
-            // видати щось інше замість героя ми не можемо.
-            existing.TryAddConstellation(_catalog.Config.HeroSettings.MaxConstellation, context.UtcNow);
+            var settings = _catalog.Config.HeroSettings;
+
+            if (existing.TryAddConstellation(settings.MaxConstellation, context.UtcNow))
+                return;
+
+            // Стеля сузір'я досягнута — дублікат стає уламками. Кількість залежить
+            // від рангу: інакше унікальний дроп і звичайний коштували б однаково.
+            var shards = settings.OverflowShards.GetValueOrDefault(config.Rank.ToString(), 0);
+
+            await _itemGranter.GrantAsync(
+                context.PlayerId, settings.OverflowShardItemKey, shards, cancellationToken);
         }
     }
 }
