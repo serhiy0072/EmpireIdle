@@ -37,7 +37,8 @@ builder.Configuration
     .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true); ;
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -61,6 +62,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
+    .Validate(c => c.Heroes.Count > 0, "GameConfig.Heroes is empty — check Config/heroes.json.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -96,6 +98,7 @@ builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<Ter
 builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));
 builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
+builder.Services.AddSingleton(sp => new HeroProgression(gameConfig.HeroSettings));
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<DefenceLossAllocator>();
 builder.Services.AddSingleton<BattleResolver>();

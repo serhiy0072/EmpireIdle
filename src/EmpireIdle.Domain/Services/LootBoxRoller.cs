@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
@@ -11,7 +12,7 @@ namespace EmpireIdle.Domain.Services
     /// </summary>
     public class LootBoxRoller
     {
-        private const string LegendaryRarity = "legendary";
+        private const Rarity TopRarity = Rarity.Unique;
 
         private readonly ShopConfig _config;
         private readonly IRandomSource _random;
@@ -39,7 +40,7 @@ namespace EmpireIdle.Domain.Services
             // Pity: вичерпали ліміт — легендарка гарантована
             if (sinceLastLegendary + 1 >= box.PityCount)
             {
-                var legendary = box.Drops.FirstOrDefault(d => d.Rarity == LegendaryRarity)
+                var legendary = box.Drops.FirstOrDefault(d => d.Rarity == TopRarity)
                     ?? throw new InvalidOperationException($"Loot box '{boxKey}' has no legendary drop configured.");
 
                 return new LootRollResult(legendary, WasPity: true);

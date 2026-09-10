@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Конфігурація типу предмета.</summary>
@@ -12,8 +14,8 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Опис для гравця.</summary>
         public string Description { get; set; } = null!;
 
-        /// <summary>common / rare / legendary.</summary>
-        public string Rarity { get; set; } = "common";
+        /// <summary>Рідкість предмета.</summary>
+        public Rarity Rarity { get; set; } = Rarity.Common;
 
         /// <summary>Тип ефекту: speedup, resources, healing, boost, equipment.</summary>
         public string Type { get; set; } = null!;

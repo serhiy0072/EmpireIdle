@@ -19,8 +19,8 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Слот, у який вдягається.</summary>
         public EquipmentSlot Slot { get; private set; }
 
-        /// <summary>common / rare / legendary — впливає на силу статів.</summary>
-        public string Rarity { get; private set; } = null!;
+        /// <summary>Рідкість екземпляра — впливає на силу статів.</summary>
+        public Rarity Rarity { get; private set; }
 
         /// <summary>Рівень заточки (0 — не заточене).</summary>
         public int EnhancementLevel { get; private set; }
@@ -34,7 +34,7 @@ namespace EmpireIdle.Domain.Entities
         public DateTime AcquiredAt { get; private set; }
 
         public EquipmentItem(Guid id, Guid playerId, string itemKey, EquipmentSlot slot,
-            string rarity, IEnumerable<(string Stat, double Value)> stats, DateTime utcNow) : base(id)
+            Rarity rarity, IEnumerable<(string Stat, double Value)> stats, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;
             ItemKey = itemKey;

@@ -2,6 +2,7 @@ using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -41,7 +42,7 @@ namespace EmpireIdle.API.Controllers
                         i.ItemKey,
                         config?.DisplayName ?? i.ItemKey,
                         config?.Description ?? string.Empty,
-                        config?.Rarity ?? "common",
+                        (config?.Rarity ?? Rarity.Common).ToString().ToLowerInvariant(),
                         config?.Type ?? "unknown",
                         i.Count);
                 })
@@ -49,7 +50,7 @@ namespace EmpireIdle.API.Controllers
 
             var equipment = contents.Equipment
                 .Select(e => new EquipmentResponse(
-                    e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity,
+                    e.Id, e.ItemKey, e.Slot.ToString(), (e?.Rarity ?? Rarity.Common).ToString().ToLowerInvariant(),
                     e.EnhancementLevel, e.EquippedByHeroId,
                     e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey))))
                 .ToList();

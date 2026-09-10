@@ -11,7 +11,7 @@ public class EquipmentItemConfiguration : IEntityTypeConfiguration<EquipmentItem
         builder.Property(e => e.Id).ValueGeneratedNever();
 
         builder.Property(e => e.ItemKey).IsRequired().HasMaxLength(50);
-        builder.Property(e => e.Rarity).IsRequired().HasMaxLength(20);
+        builder.Property(e => e.Rarity).HasConversion<int>();
         builder.Property(e => e.Slot).HasConversion<int>();
 
         builder.HasIndex(e => e.PlayerId);

@@ -59,7 +59,7 @@
             {
               "Key": "equipment_basic",
               "DisplayName": "Basic equipment",
-              "Rarity": "legendary",
+              "Rarity": "unique",
               "Weight": 3
             }
           ]
