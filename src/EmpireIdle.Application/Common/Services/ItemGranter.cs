@@ -38,7 +38,7 @@ namespace EmpireIdle.Application.Common.Services
 
         /// <summary>Видає унікальний екземпляр спорядження.</summary>
         public async Task GrantEquipmentAsync(
-            Guid playerId, string itemKey, EquipmentSlot slot, string rarity,
+            Guid playerId, string itemKey, EquipmentSlot slot, Rarity rarity,
             IEnumerable<(string Stat, double Value)> stats,
             DateTime utcNow, CancellationToken cancellationToken = default)
         {

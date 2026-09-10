@@ -2,6 +2,22 @@
   "GameConfig": {
     "Items": [
       {
+        "Key": "hero_essence_t2",
+        "DisplayName": "Essence of the Second Circle",
+        "Description": "Піднімає героя з першого тіру в другий. Потрібен рівень світу 2",
+        "Rarity": "rare",
+        "Type": "evolution",
+        "IsStackable": true
+      },
+      {
+        "Key": "hero_essence_t3",
+        "DisplayName": "Essence of the Third Circle",
+        "Description": "Піднімає героя з другого тіру в третій. Потрібен рівень світу 3",
+        "Rarity": "unique",
+        "Type": "evolution",
+        "IsStackable": true
+      },
+      {
         "Key": "crate_wood_5000",
         "DisplayName": "Timber Crate",
         "Description": "Миттєво додає 5000 деревини",

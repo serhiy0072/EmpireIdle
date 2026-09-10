@@ -67,5 +67,11 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Місткість, кап допомоги, строк неактивності лідера.</summary>
         public ClanConfig Clan { get; set; } = new();
+
+        /// <summary>Усі типи героїв із Config/heroes.json.</summary>
+        public List<HeroConfig> Heroes { get; set; } = new();
+
+        /// <summary>Тіри, стелі, черга й госпіталь героїв.</summary>
+        public HeroesConfig HeroSettings { get; set; } = new();
     }
 }

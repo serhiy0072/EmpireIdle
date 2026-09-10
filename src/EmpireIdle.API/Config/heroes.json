@@ -1,0 +1,60 @@
+{
+  "GameConfig": {
+    "HeroSettings": {
+      "LevelsPerTier": 10,
+      "MaxTier": 3,
+      "TierStatMultipliers": [ 1.0, 1.35, 1.8 ],
+      "EvolutionItemKeys": [ "hero_essence_t2", "hero_essence_t3" ],
+      "MaxConstellation": 6,
+      "MaxMarches": 8,
+      "HealMinutesPerLevel": 3,
+      "InstantHealCostGems": 20,
+      "BaseLevelUpMinutes": 4,
+      "UnlockTownHallLevel": 3,
+      "Classes": [ "warrior", "knight", "archer", "mage" ]
+    },
+
+    "Heroes": [
+      {
+        "Key": "warrior_bran",
+        "DisplayName": "Bran the Shieldbearer",
+        "Class": "warrior",
+        "Rank": "common",
+        "SummonShards": 10,
+        "ShardPriceGold": 1200,
+        "BaseStats": { "Attack": 40, "Defense": 60, "Health": 300 },
+        "StatGrowth": { "Attack": 4, "Defense": 7, "Health": 35 }
+      },
+      {
+        "Key": "archer_lyra",
+        "DisplayName": "Lyra of the Long Sight",
+        "Class": "archer",
+        "Rank": "common",
+        "SummonShards": 10,
+        "ShardPriceGold": 1200,
+        "BaseStats": { "Attack": 65, "Defense": 30, "Health": 220 },
+        "StatGrowth": { "Attack": 8, "Defense": 3, "Health": 24 }
+      },
+      {
+        "Key": "knight_ordwin",
+        "DisplayName": "Ordwin the Steadfast",
+        "Class": "knight",
+        "Rank": "rare",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "BaseStats": { "Attack": 70, "Defense": 75, "Health": 380 },
+        "StatGrowth": { "Attack": 8, "Defense": 8, "Health": 42 }
+      },
+      {
+        "Key": "mage_iselle",
+        "DisplayName": "Iselle of the Ninth Flame",
+        "Class": "mage",
+        "Rank": "unique",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "BaseStats": { "Attack": 105, "Defense": 35, "Health": 260 },
+        "StatGrowth": { "Attack": 13, "Defense": 4, "Health": 28 }
+      }
+    ]
+  }
+}

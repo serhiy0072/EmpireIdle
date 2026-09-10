@@ -50,7 +50,7 @@ namespace EmpireIdle.API.Controllers
 
             var equipment = contents.Equipment
                 .Select(e => new EquipmentResponse(
-                    e.Id, e.ItemKey, e.Slot.ToString(), (e?.Rarity ?? Rarity.Common).ToString().ToLowerInvariant(),
+                    e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
                     e.EnhancementLevel, e.EquippedByHeroId,
                     e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey))))
                 .ToList();

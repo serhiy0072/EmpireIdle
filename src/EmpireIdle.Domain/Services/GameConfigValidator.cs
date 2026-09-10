@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
@@ -28,6 +29,7 @@ namespace EmpireIdle.Domain.Services
             ValidateGeometry(config);
             ValidateRating(config);
             ValidatePreview(config);
+            ValidateHeroes(config);
         }
 
 
@@ -40,6 +42,7 @@ namespace EmpireIdle.Domain.Services
             RequireUniqueKeys(config.Monsters.Select(m => m.Key), "Monsters");
             RequireUniqueKeys(config.Items.Select(i => i.Key), "Items");
             RequireUniqueKeys(config.Quests.Select(q => q.Key), "Quests");
+            RequireUniqueKeys(config.Heroes.Select(h => h.Key), "Heroes");
 
             var mainBuildings = config.Buildings.Count(b => b.IsMainBuilding);
 
@@ -226,6 +229,85 @@ namespace EmpireIdle.Domain.Services
                     throw new InvalidOperationException(
                         "Combat.PreviewOddsThresholds must decrease: the first band is the strongest.");
             }
+        }
+
+        /// <summary>Ростер героїв: класи, тіри, предмети еволюції, ціна звичайних.</summary>
+        private static void ValidateHeroes(GameConfig config)
+        {
+            // Порожній ростер — конфіг героїв не описує (мінімальні фікстури в тестах).
+            // Перевіряємо лише те, що задано.
+            if (config.Heroes.Count == 0)
+                return;
+
+            var settings = config.HeroSettings;
+
+            if (settings.MaxTier < 1)
+                throw new InvalidOperationException("HeroSettings.MaxTier must be at least 1.");
+
+            if (settings.LevelsPerTier < 1)
+                throw new InvalidOperationException("HeroSettings.LevelsPerTier must be at least 1.");
+
+            if (settings.MaxMarches < 1)
+                throw new InvalidOperationException(
+                    "HeroSettings.MaxMarches must be at least 1 — otherwise a player with heroes still has no marches.");
+
+            if (settings.Classes.Count == 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.Classes is empty — every hero references a class, and weapons fit by class.");
+
+            RequireUniqueKeys(settings.Classes, "HeroSettings.Classes");
+
+            var classes = settings.Classes.ToHashSet();
+
+            var unknownClasses = config.Heroes
+                .Where(h => !classes.Contains(h.Class))
+                .Select(h => $"{h.Key} → '{h.Class}'")
+                .ToList();
+
+            if (unknownClasses.Count > 0)
+                throw new InvalidOperationException(
+                    $"Heroes reference unknown classes: {string.Join(", ", unknownClasses)}.");
+
+            if (settings.TierStatMultipliers.Count != settings.MaxTier)
+                throw new InvalidOperationException(
+                    $"HeroSettings.TierStatMultipliers needs exactly MaxTier entries ({settings.MaxTier}), "
+                    + $"got {settings.TierStatMultipliers.Count}.");
+
+            for (var i = 1; i < settings.TierStatMultipliers.Count; i++)
+            {
+                if (settings.TierStatMultipliers[i] <= settings.TierStatMultipliers[i - 1])
+                    throw new InvalidOperationException(
+                        "HeroSettings.TierStatMultipliers must increase: otherwise evolution raises only the "
+                        + "ceiling, and two heroes of different tiers are identical at the same level.");
+            }
+
+            // Переходів рівно на один менше, ніж тірів: 1→2 і 2→3 для трьох тірів
+            if (settings.EvolutionItemKeys.Count != settings.MaxTier - 1)
+                throw new InvalidOperationException(
+                    $"HeroSettings.EvolutionItemKeys needs MaxTier - 1 entries ({settings.MaxTier - 1}), "
+                    + $"got {settings.EvolutionItemKeys.Count}.");
+
+            var itemKeys = config.Items.Select(i => i.Key).ToHashSet();
+
+            var unknownItems = settings.EvolutionItemKeys
+                .Where(k => !itemKeys.Contains(k))
+                .ToList();
+
+            if (unknownItems.Count > 0)
+                throw new InvalidOperationException(
+                    $"HeroSettings.EvolutionItemKeys reference unknown items: {string.Join(", ", unknownItems)}.");
+
+            // Звичайні герої купуються уламками за золото — це основний щоденний
+            // стік золота. Решта приходить із банерів цілими, ціни не має.
+            var brokenShards = config.Heroes
+                .Where(h => h.Rank == Rarity.Common && (h.SummonShards < 1 || h.ShardPriceGold < 1))
+                .Select(h => h.Key)
+                .ToList();
+
+            if (brokenShards.Count > 0)
+                throw new InvalidOperationException(
+                    "Common heroes need SummonShards and ShardPriceGold above zero: "
+                    + $"{string.Join(", ", brokenShards)}.");
         }
     }
 }
