@@ -45,6 +45,7 @@ namespace EmpireIdle.Domain.Services
             RequireUniqueKeys(config.Heroes.Select(h => h.Key), "Heroes");
 
             var mainBuildings = config.Buildings.Count(b => b.IsMainBuilding);
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
 
             if (mainBuildings != 1)
                 throw new InvalidOperationException(
@@ -270,6 +271,13 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Heroes reference unknown classes: {string.Join(", ", unknownClasses)}.");
 
+            var buildingKeys = config.Buildings.Select(b => b.Key).ToHashSet();
+
+            if (!buildingKeys.Contains(settings.BuildingKey ?? string.Empty))
+                throw new InvalidOperationException(
+                    $"HeroSettings.BuildingKey '{settings.BuildingKey}' is not a known building — "
+                    + "heroes would have nowhere to be summoned.");
+
             if (settings.TierStatMultipliers.Count != settings.MaxTier)
                 throw new InvalidOperationException(
                     $"HeroSettings.TierStatMultipliers needs exactly MaxTier entries ({settings.MaxTier}), "
@@ -291,32 +299,6 @@ namespace EmpireIdle.Domain.Services
 
             var itemKeys = config.Items.Select(i => i.Key).ToHashSet();
 
-            if (!itemKeys.Contains(settings.OverflowShardItemKey ?? string.Empty))
-                throw new InvalidOperationException(
-                    $"HeroSettings.OverflowShardItemKey '{settings.OverflowShardItemKey}' is not a known item — "
-                    + "duplicates past the constellation cap would vanish.");
-
-            var rankNames = Enum.GetNames<Rarity>().ToHashSet();
-
-            var unknownRanks = settings.OverflowShards.Keys
-                .Where(k => !rankNames.Contains(k))
-                .ToList();
-
-            if (unknownRanks.Count > 0)
-                throw new InvalidOperationException(
-                    $"HeroSettings.OverflowShards has keys that are not ranks: {string.Join(", ", unknownRanks)}.");
-
-            var missingRanks = config.Heroes
-                .Select(h => h.Rank.ToString())
-                .Distinct()
-                .Where(r => !settings.OverflowShards.ContainsKey(r))
-                .ToList();
-
-            if (missingRanks.Count > 0)
-                throw new InvalidOperationException(
-                    "HeroSettings.OverflowShards has no entry for ranks in the roster: "
-                    + $"{string.Join(", ", missingRanks)}.");
-
             var unknownItems = settings.EvolutionItemKeys
                 .Where(k => !itemKeys.Contains(k))
                 .ToList();
@@ -324,6 +306,29 @@ namespace EmpireIdle.Domain.Services
             if (unknownItems.Count > 0)
                 throw new InvalidOperationException(
                     $"HeroSettings.EvolutionItemKeys reference unknown items: {string.Join(", ", unknownItems)}.");
+
+            // Надлишок понад стелю сузір'я стає джемами. Забутий ранг означав би,
+            // що дублікат зникає без сліду — саме те, чого ми уникали.
+            var rankNames = Enum.GetNames<Rarity>().ToHashSet();
+
+            var unknownRanks = settings.OverflowGems.Keys
+                .Where(k => !rankNames.Contains(k))
+                .ToList();
+
+            if (unknownRanks.Count > 0)
+                throw new InvalidOperationException(
+                    $"HeroSettings.OverflowGems has keys that are not ranks: {string.Join(", ", unknownRanks)}.");
+
+            var missingRanks = config.Heroes
+                .Select(h => h.Rank.ToString())
+                .Distinct()
+                .Where(r => !settings.OverflowGems.ContainsKey(r))
+                .ToList();
+
+            if (missingRanks.Count > 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.OverflowGems has no entry for ranks in the roster: "
+                    + $"{string.Join(", ", missingRanks)}.");
 
             // Звичайні герої купуються уламками за золото — це основний щоденний
             // стік золота. Решта приходить із банерів цілими, ціни не має.

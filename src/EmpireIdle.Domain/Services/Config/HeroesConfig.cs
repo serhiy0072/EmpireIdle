@@ -29,18 +29,14 @@ namespace EmpireIdle.Domain.Services.Config
         public int MaxConstellation { get; set; } = 6;
 
         /// <summary>
-        /// Предмет, у який перетворюється дублікат понад стелю сузір'я.
-        /// Без нього унікальний дроп на C6 просто зникав би — а з банерами
-        /// це щоденна ситуація, не крайній випадок.
+        /// Скільки джемів дає дублікат понад стелю сузір'я: ключ — назва рангу.
+        /// Рахується як чверть вартості ролла, тобто чотири надлишкових
+        /// дублікати повертають один ролл.
+        ///
+        /// Це єдине місце, де джеми з'являються не з покупки й не з квесту,
+        /// тому числа тут чіпати обережно.
         /// </summary>
-        public string OverflowShardItemKey { get; set; } = null!;
-
-        /// <summary>
-        /// Скільки уламків дає надлишковий дублікат: ключ — назва рангу
-        /// (Common, Rare, Unique). Рядком, а не enum: біндер конфігурації
-        /// надійно розбирає лише рядкові ключі словника.
-        /// </summary>
-        public Dictionary<string, int> OverflowShards { get; set; } = new();
+        public Dictionary<string, int> OverflowGems { get; set; } = new();
 
         /// <summary>
         /// Жорсткий кап одночасних маршів. Кількість маршів і так дорівнює
@@ -58,10 +54,10 @@ namespace EmpireIdle.Domain.Services.Config
         public double BaseLevelUpMinutes { get; set; } = 4;
 
         /// <summary>
-        /// Рівень ратуші, з якого відкривається зала героїв і видається
-        /// стартовий герой. Той самий поріг, що й вихід на глобальну карту.
+        /// Будівля, у якій купуються й качаються герої. Ключем із конфіга,
+        /// а не рядком у коді: гейт має мінятися разом із рештою балансу.
         /// </summary>
-        public int UnlockTownHallLevel { get; set; } = 3;
+        public string BuildingKey { get; set; } = "heroeshall";
 
         /// <summary>
         /// Ростер класів. Валідатор звіряє з ним HeroConfig.Class

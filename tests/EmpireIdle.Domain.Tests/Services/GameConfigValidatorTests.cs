@@ -6,15 +6,10 @@ namespace EmpireIdle.Domain.Tests.Services
 {
     /// <summary>
     /// Валідатор конфіга — єдине, що стоїть між битим JSON і грою.
-    /// Кожен тест ламає рівно одну річ у валідному конфігу: так видно,
-    /// що саме правило спрацювало, а не якесь інше.
+    /// Кожен тест ламає рівно одну річ у валідному конфігу.
     /// </summary>
     public class GameConfigValidatorTests
     {
-        /// <summary>
-        /// Мінімально валідний конфіг: ратуша, ферма, склад, ресурс,
-        /// коректна геометрія й рейтинг.
-        /// </summary>
         private static GameConfig ValidConfig() => new()
         {
             Buildings =
@@ -204,12 +199,16 @@ namespace EmpireIdle.Domain.Tests.Services
         // ---------- Герої ----------
 
         /// <summary>
-        /// Валідний конфіг героїв: два класи, три тіри, два предмети еволюції,
-        /// звичайний герой із ціною уламка.
+        /// Валідний конфіг героїв: зала героїв, два класи, три тіри,
+        /// два предмети еволюції, звичайний герой із ціною уламка.
         /// </summary>
         private static GameConfig WithHeroes()
         {
             var config = ValidConfig();
+
+            // Зала героїв додається тут, а не у ValidConfig: базова фікстура
+            // лишається мінімальною, а гейт потрібен лише героям
+            config.Buildings.Add(new BuildingConfig { Key = "heroeshall", UpgradeCostGrowth = 1.45 });
 
             config.Items =
             [
@@ -224,6 +223,8 @@ namespace EmpireIdle.Domain.Tests.Services
                 MaxMarches = 8,
                 TierStatMultipliers = [1.0, 1.35, 1.8],
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
+                OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
+                BuildingKey = "heroeshall",
                 Classes = ["warrior", "archer"]
             };
 
@@ -328,5 +329,18 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Validate_ShouldRejectZeroMaxMarches()
             => RejectsHero(c => c.HeroSettings.MaxMarches = 0);
+
+        /// <summary>Без будівлі героїв не було б де призивати.</summary>
+        [Fact]
+        public void Validate_ShouldRejectUnknownHeroBuilding()
+            => RejectsHero(c => c.HeroSettings.BuildingKey = "ghosthall");
+
+        /// <summary>
+        /// Забутий ранг означав би, що дублікат понад стелю сузір'я
+        /// зникає без сліду — саме те, чого ми уникали.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectMissingOverflowGemsForRank()
+            => RejectsHero(c => c.HeroSettings.OverflowGems.Remove("Unique"));
     }
 }

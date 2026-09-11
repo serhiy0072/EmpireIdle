@@ -10,7 +10,7 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>
         /// Конкретний герой за типом; null — такого в ростері немає.
-        /// Використовується призовом, щоб відрізнити нового героя від дубліката.
+        /// Використовується видачею, щоб відрізнити нового героя від дубліката.
         /// </summary>
         Task<Hero?> GetByKeyAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default);
 
@@ -23,6 +23,11 @@ namespace EmpireIdle.Application.Interfaces
         Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default);
 
         Task AddAsync(Hero hero, CancellationToken cancellationToken = default);
+
+        /// <summary>Накопичені уламки конкретного героя; null — ще жодного.</summary>
+        Task<HeroShardProgress?> GetShardsAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default);
+
+        Task AddShardsAsync(HeroShardProgress progress, CancellationToken cancellationToken = default);
 
         /// <summary>Активне замовлення на прокачку; null — черга вільна.</summary>
         Task<HeroLevelOrder?> GetActiveOrderAsync(Guid playerId, CancellationToken cancellationToken = default);

@@ -6,13 +6,16 @@
       "TierStatMultipliers": [ 1.0, 1.35, 1.8 ],
       "EvolutionItemKeys": [ "hero_essence_t2", "hero_essence_t3" ],
       "MaxConstellation": 6,
-      "OverflowShardItemKey": "hero_shard",
-      "OverflowShards": { "Common": 1, "Rare": 1, "Unique": 2 },
+      "OverflowGems": {
+        "Common": 0,
+        "Rare": 15,
+        "Unique": 60
+      },
       "MaxMarches": 8,
       "HealMinutesPerLevel": 3,
       "InstantHealCostGems": 20,
       "BaseLevelUpMinutes": 4,
-      "UnlockTownHallLevel": 3,
+      "BuildingKey": "heroeshall",
       "Classes": [ "warrior", "knight", "archer", "mage" ]
     },
 
@@ -26,8 +29,16 @@
         "Lore": "Бран був ковалем у прикордонному селі, доки повз нього не пройшло військо, яке не спинилось. Із того дня він носить щит, скутий із дверей власної кузні, і не відступив жодного разу. Каже, що не з упертості, а тому що вже пробував відступати.",
         "SummonShards": 10,
         "ShardPriceGold": 1200,
-        "BaseStats": { "Attack": 40, "Defense": 60, "Health": 300 },
-        "StatGrowth": { "Attack": 4, "Defense": 7, "Health": 35 }
+        "BaseStats": {
+          "Attack": 40,
+          "Defense": 60,
+          "Health": 300
+        },
+        "StatGrowth": {
+          "Attack": 4,
+          "Defense": 7,
+          "Health": 35
+        }
       },
       {
         "Key": "archer_lyra",
@@ -38,8 +49,16 @@
         "Lore": "Ліра виросла на сторожовій вежі, де єдиною розвагою було рахувати кроки чужинців на обрії. Вона навчилась влучати в те, чого ще не видно іншим. Стріляє мовчки й ніколи не дивиться, чи влучила.",
         "SummonShards": 10,
         "ShardPriceGold": 1200,
-        "BaseStats": { "Attack": 65, "Defense": 30, "Health": 220 },
-        "StatGrowth": { "Attack": 8, "Defense": 3, "Health": 24 }
+        "BaseStats": {
+          "Attack": 65,
+          "Defense": 30,
+          "Health": 220
+        },
+        "StatGrowth": {
+          "Attack": 8,
+          "Defense": 3,
+          "Health": 24
+        }
       },
       {
         "Key": "knight_ordwin",
@@ -50,8 +69,16 @@
         "Lore": "Ордвін присягав трьом володарям, і всі троє програли. Четвертому він служити відмовився, забрав коня та спис і пішов на схід. Тепер його спис коштує дорожче за титул, який йому колись обіцяли.",
         "SummonShards": 0,
         "ShardPriceGold": 0,
-        "BaseStats": { "Attack": 70, "Defense": 75, "Health": 380 },
-        "StatGrowth": { "Attack": 8, "Defense": 8, "Health": 42 }
+        "BaseStats": {
+          "Attack": 70,
+          "Defense": 75,
+          "Health": 380
+        },
+        "StatGrowth": {
+          "Attack": 8,
+          "Defense": 8,
+          "Health": 42
+        }
       },
       {
         "Key": "mage_iselle",
@@ -62,8 +89,16 @@
         "Lore": "Із дев'яти вогнів академії Ізель лишили доглядати найменший — той, що гасне від протягу. Вона роздула його так, що згоріла й академія, і вісім інших вогнів. Її не судили: не лишилось нікого, хто б міг.",
         "SummonShards": 0,
         "ShardPriceGold": 0,
-        "BaseStats": { "Attack": 105, "Defense": 35, "Health": 260 },
-        "StatGrowth": { "Attack": 13, "Defense": 4, "Health": 28 }
+        "BaseStats": {
+          "Attack": 105,
+          "Defense": 35,
+          "Health": 260
+        },
+        "StatGrowth": {
+          "Attack": 13,
+          "Defense": 4,
+          "Health": 28
+        }
       }
     ]
   }

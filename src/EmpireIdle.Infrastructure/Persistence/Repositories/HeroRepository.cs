@@ -42,6 +42,17 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
+        public Task<HeroShardProgress?> GetShardsAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
+            => _context.HeroShards
+            .FirstOrDefaultAsync(s => s.PlayerId == playerId && s.HeroKey == heroKey, cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task AddShardsAsync(HeroShardProgress progress, CancellationToken cancellationToken = default)
+        {
+            await _context.HeroShards.AddAsync(progress, cancellationToken);
+        }
+
+        /// <inheritdoc/>
         public Task<HeroLevelOrder?> GetActiveOrderAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.HeroLevelOrders
             .FirstOrDefaultAsync(o => o.PlayerId == playerId, cancellationToken);

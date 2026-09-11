@@ -70,6 +70,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IClanRepository, ClanRepository>();
             services.AddScoped<IClanHelpRepository, ClanHelpRepository>();
             services.AddScoped<IClanRequestRepository, ClanRequestRepository>();
+            services.AddScoped<IHeroRepository, HeroRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
@@ -79,6 +80,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
+            services.AddScoped<HeroGranter>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<MarchLogistics>();
             services.AddScoped<ReinforcementDelivery>();

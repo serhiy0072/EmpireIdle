@@ -51,6 +51,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<ClanRequest> ClanRequests => Set<ClanRequest>();
         public DbSet<Hero> Heroes => Set<Hero>();
         public DbSet<HeroLevelOrder> HeroLevelOrders => Set<HeroLevelOrder>();
+        public DbSet<HeroShardProgress> HeroShards => Set<HeroShardProgress>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -77,6 +78,7 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<ClanRequest>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Hero>().HasQueryFilter(h => h.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<HeroLevelOrder>().HasQueryFilter(o => o.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<HeroShardProgress>().HasQueryFilter(s => s.ServerId == _serverContext.ServerId);
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
