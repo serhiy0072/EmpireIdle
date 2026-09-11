@@ -235,6 +235,7 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>Ростер героїв: класи, тіри, предмети еволюції, ціна звичайних.</summary>
+        /// <summary>Ростер героїв: класи, тіри, вартість прокачки, ціна звичайних.</summary>
         private static void ValidateHeroes(GameConfig config)
         {
             // Порожній ростер — конфіг героїв не описує (мінімальні фікстури в тестах).
@@ -329,6 +330,35 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     "HeroSettings.OverflowGems has no entry for ranks in the roster: "
                     + $"{string.Join(", ", missingRanks)}.");
+
+            // Смуги вартості прокачки. Набір ресурсів міняється з рівнем, тож діра
+            // між смугами вилізла б лише тоді, коли до неї дійшов би гравець.
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+
+            foreach (var hero in config.Heroes)
+            {
+                if (hero.LevelUpCosts.Count == 0)
+                    throw new InvalidOperationException(
+                        $"Hero '{hero.Key}' has no LevelUpCosts — it could never be levelled.");
+
+                if (hero.LevelUpCosts.All(b => b.FromLevel > 1))
+                    throw new InvalidOperationException(
+                        $"Hero '{hero.Key}' has no cost band starting at level 1.");
+
+                RequireUniqueKeys(
+                    hero.LevelUpCosts.Select(b => b.FromLevel.ToString()),
+                    $"Hero '{hero.Key}' LevelUpCosts.FromLevel");
+
+                var brokenLines = hero.LevelUpCosts
+                    .SelectMany(b => b.Cost.Select(c => (b.FromLevel, c.Resource, c.Amount)))
+                    .Where(x => !resourceKeys.Contains(x.Resource) || x.Amount < 1)
+                    .Select(x => $"from {x.FromLevel}: '{x.Resource}' × {x.Amount}")
+                    .ToList();
+
+                if (brokenLines.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Hero '{hero.Key}' has invalid LevelUpCosts entries: {string.Join(", ", brokenLines)}.");
+            }
 
             // Звичайні герої купуються уламками за золото — це основний щоденний
             // стік золота. Решта приходить із банерів цілими, ціни не має.

@@ -32,6 +32,15 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Активне замовлення на прокачку; null — черга вільна.</summary>
         Task<HeroLevelOrder?> GetActiveOrderAsync(Guid playerId, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Id дозрілих замовлень по світу. Сканерний запит: віддає лише
+        /// ідентифікатори, бо кожне далі обробляється у власному scope.
+        /// </summary>
+        Task<IReadOnlyList<Guid>> GetIdsWithDueLevelUpAsync(DateTime utcNow, int batchSize,
+            CancellationToken cancellationToken = default);
+
+        Task<HeroLevelOrder?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
         Task AddOrderAsync(HeroLevelOrder order, CancellationToken cancellationToken = default);
 
         void RemoveOrder(HeroLevelOrder order);

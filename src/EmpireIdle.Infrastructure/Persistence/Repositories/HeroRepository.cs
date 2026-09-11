@@ -64,6 +64,21 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsWithDueLevelUpAsync(DateTime utcNow, int batchSize,
+            CancellationToken cancellationToken = default)
+            => await _context.HeroLevelOrders
+            .Where(o => o.CompletesAt <= utcNow)
+            .OrderBy(o => o.CompletesAt)
+            .Take(batchSize)
+            .Select(o => o.Id)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<HeroLevelOrder?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.HeroLevelOrders
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+
+        /// <inheritdoc/>
         public void RemoveOrder(HeroLevelOrder order) => _context.HeroLevelOrders.Remove(order);
     }
 }

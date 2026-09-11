@@ -43,5 +43,11 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Ціна одного уламка в золоті. Основний щоденний стік золота.</summary>
         public int ShardPriceGold { get; set; }
+
+        /// <summary>
+        /// Вартість прокачки по смугах рівнів. Порожній список означає,
+        /// що герой не качається — валідатор такого не пропустить.
+        /// </summary>
+        public List<HeroLevelCostBand> LevelUpCosts { get; set; } = new();
     }
 }

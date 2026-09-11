@@ -1,6 +1,8 @@
 using EmpireIdle.Application.Effects.Commands;
 using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Garrisons.Queries;
+using EmpireIdle.Application.Heroes.Commands;
+using EmpireIdle.Application.Heroes.Queries;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
@@ -22,6 +24,9 @@ namespace EmpireIdle.API.Jobs
 
             await _runner.ForEachItemAsync(nameof(CompleteGarrisonTrainingCommand), mediator => mediator.Send(new GetGarrisonIdsWithDueTrainingQuery()),
                 (mediator, id) => mediator.Send(new CompleteGarrisonTrainingCommand(id)));
+
+            await _runner.ForEachItemAsync(nameof(CompleteHeroLevelUpCommand), mediator => mediator.Send(new GetHeroOrderIdsWithDueLevelUpQuery()),
+                (mediator, id) => mediator.Send(new CompleteHeroLevelUpCommand(id)));
 
             await _runner.ForEachServerAsync(nameof(RemoveExpiredEffectsCommand), (mediator, _) => mediator.Send(new RemoveExpiredEffectsCommand()));
 

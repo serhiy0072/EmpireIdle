@@ -96,5 +96,24 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скільки триває підняття рівня до targetLevel.</summary>
         public TimeSpan LevelUpDuration(int targetLevel)
             => TimeSpan.FromMinutes(_config.BaseLevelUpMinutes * targetLevel);
+
+        /// <summary>
+        /// Вартість переходу на targetLevel. Береться смуга з найбільшим
+        /// FromLevel, який не перевищує цільовий рівень.
+        ///
+        /// Список повертається як є, без множення: множник передається
+        /// у ChargeCost, щоб вартість і списання не розходились у двох місцях.
+        /// </summary>
+        public List<ResourceCost> LevelUpCost(HeroConfig hero, int targetLevel)
+        {
+            var band = hero.LevelUpCosts
+                .Where(b => b.FromLevel <= targetLevel)
+                .OrderByDescending(b => b.FromLevel)
+                .FirstOrDefault()
+                ?? throw new InvalidOperationException(
+                    $"Hero '{hero.Key}' has no cost band covering level {targetLevel}.");
+
+            return band.Cost;
+        }
     }
 }

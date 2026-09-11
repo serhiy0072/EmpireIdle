@@ -231,11 +231,30 @@ namespace EmpireIdle.Domain.Tests.Services
             config.Heroes =
             [
                 new HeroConfig
-                {
-                    Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
-                    SummonShards = 10, ShardPriceGold = 1200
-                },
-                new HeroConfig { Key = "archer_lyra", Class = "archer", Rank = Rarity.Unique }
+                    {
+                        Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
+                        SummonShards = 10, ShardPriceGold = 1200,
+                        LevelUpCosts =
+                        [
+                            new HeroLevelCostBand
+                            {
+                                FromLevel = 1,
+                                Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
+                            }
+                        ]
+                    },
+                    new HeroConfig
+                    {
+                        Key = "archer_lyra", Class = "archer", Rank = Rarity.Unique,
+                        LevelUpCosts =
+                        [
+                            new HeroLevelCostBand
+                            {
+                                FromLevel = 1,
+                                Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
+                            }
+                        ]
+                    }
             ];
 
             return config;
@@ -342,5 +361,23 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Validate_ShouldRejectMissingOverflowGemsForRank()
             => RejectsHero(c => c.HeroSettings.OverflowGems.Remove("Unique"));
+
+        /// <summary>Герой без смуг вартості не качався б узагалі.</summary>
+        [Fact]
+        public void Validate_ShouldRejectHeroWithoutLevelUpCosts()
+            => RejectsHero(c => c.Heroes[0].LevelUpCosts = []);
+
+        /// <summary>
+        /// Смуга має починатися з першого рівня, інакше герой упреться
+        /// в дірку одразу після призову.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectLevelUpCostsNotStartingAtOne()
+            => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].FromLevel = 5);
+
+        [Fact]
+        public void Validate_ShouldRejectLevelUpCostWithUnknownResource()
+            => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].Cost =
+                [new ResourceCost { Resource = "mithril", Amount = 10 }]);
     }
 }
