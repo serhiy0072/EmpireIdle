@@ -26,6 +26,21 @@ namespace EmpireIdle.Domain.Tests.Services
                 BaseLevelUpMinutes = 4
             });
 
+        private static HeroProgression Progression(HeroesConfig? settings = null)
+            => new(settings ?? Settings());
+
+        private static HeroesConfig Settings() => new()
+        {
+            LevelsPerTier = 10,
+            MaxTier = 3,
+            TierStatMultipliers = [1.0, 1.35, 1.8],
+            EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
+            MaxConstellation = 6,
+            MaxMarches = 8,
+            HealMinutesPerLevel = 3,
+            BaseLevelUpMinutes = 4
+        };
+
         private static HeroConfig Hero() => new()
         {
             Key = "warrior_bran",
@@ -207,6 +222,92 @@ namespace EmpireIdle.Domain.Tests.Services
             var progression = Create();
 
             Assert.Equal(TimeSpan.FromMinutes(20), progression.LevelUpDuration(targetLevel: 5));
+        }
+
+        // ---------- Смуги вартості ----------
+
+        private static HeroConfig BandedHero() => new()
+        {
+            Key = "warrior_bran",
+            Class = "warrior",
+            LevelUpCosts =
+            [
+                new HeroLevelCostBand
+                {
+                    FromLevel = 1,
+                    Cost = [new ResourceCost { Resource = "gold", Amount = 400 }]
+                },
+                new HeroLevelCostBand
+                {
+                    FromLevel = 11,
+                    Cost =
+                    [
+                        new ResourceCost { Resource = "gold", Amount = 900 },
+                        new ResourceCost { Resource = "iron", Amount = 300 }
+                    ]
+                }
+            ]
+        };
+
+        /// <summary>Нижче другої межі діє перша смуга.</summary>
+        [Theory]
+        [InlineData(1)]
+        [InlineData(10)]
+        public void LevelUpCost_ShouldTakeTheFirstBand_BelowTheNextBoundary(int level)
+        {
+            var cost = Progression().LevelUpCost(BandedHero(), level);
+
+            Assert.Equal(400, Assert.Single(cost).Amount);
+        }
+
+        /// <summary>
+        /// З рівнем міняється не лише кількість, а й набір ресурсів:
+        /// на одинадцятому з'являється залізо, якого до того не було.
+        /// </summary>
+        [Fact]
+        public void LevelUpCost_ShouldSwitchBands_AtTheBoundary()
+        {
+            var cost = Progression().LevelUpCost(BandedHero(), 11);
+
+            Assert.Equal(2, cost.Count);
+            Assert.Contains(cost, c => c.Resource == "iron" && c.Amount == 300);
+        }
+
+        /// <summary>Вище останньої межі діє остання смуга, а не жодна.</summary>
+        [Fact]
+        public void LevelUpCost_ShouldKeepTheLastBand_AboveEveryBoundary()
+        {
+            var cost = Progression().LevelUpCost(BandedHero(), 30);
+
+            Assert.Contains(cost, c => c.Resource == "iron");
+        }
+
+        /// <summary>
+        /// Порядок смуг у конфігу не має значення — береться найбільший
+        /// FromLevel, що не перевищує цільовий рівень.
+        /// </summary>
+        [Fact]
+        public void LevelUpCost_ShouldIgnoreBandOrderInConfig()
+        {
+            var hero = BandedHero();
+            hero.LevelUpCosts.Reverse();
+
+            var cost = Progression().LevelUpCost(hero, 5);
+
+            Assert.Equal(400, Assert.Single(cost).Amount);
+        }
+
+        /// <summary>
+        /// Діра в смугах — це помилка конфіга, а не мовчазний нуль:
+        /// безкоштовна прокачка помітна пізніше й гірше.
+        /// </summary>
+        [Fact]
+        public void LevelUpCost_ShouldThrow_WhenNoBandCoversTheLevel()
+        {
+            var hero = BandedHero();
+            hero.LevelUpCosts = [new HeroLevelCostBand { FromLevel = 5, Cost = [] }];
+
+            Assert.Throws<InvalidOperationException>(() => Progression().LevelUpCost(hero, 3));
         }
     }
 }

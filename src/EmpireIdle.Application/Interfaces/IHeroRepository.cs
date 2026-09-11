@@ -39,6 +39,12 @@ namespace EmpireIdle.Application.Interfaces
         Task<IReadOnlyList<Guid>> GetIdsWithDueLevelUpAsync(DateTime utcNow, int batchSize,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Усі накопичені уламки гравця. Одним запитом, а не по ключу
+        /// в циклі — ростер відкривається часто.
+        /// </summary>
+        Task<List<HeroShardProgress>> GetAllShardsAsync(Guid playerId, CancellationToken cancellationToken = default);
+
         Task<HeroLevelOrder?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
         Task AddOrderAsync(HeroLevelOrder order, CancellationToken cancellationToken = default);

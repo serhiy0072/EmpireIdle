@@ -74,6 +74,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<HeroShardProgress>> GetAllShardsAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.HeroShards
+            .Where(s => s.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public Task<HeroLevelOrder?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.HeroLevelOrders
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
