@@ -24,30 +24,16 @@ public class HeroGranterTests
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
 
-    private static GameConfig Config() => new()
-    {
-        HeroSettings = new HeroesConfig
-        {
-            MaxConstellation = 6,
-            OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 }
-        },
-        Heroes =
-        [
-            new HeroConfig { Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common },
-            new HeroConfig { Key = "mage_iselle", Class = "mage", Rank = Rarity.Unique }
-        ]
-    };
-
     private HeroGranter Granter()
     {
         _serverContext.ServerId.Returns(ServerId);
 
-        return new HeroGranter(_heroes, _players, _wallets, _serverContext, new GameCatalog(Config()));
+        return new HeroGranter(_heroes, _players, _wallets, _serverContext, HeroTestConfig.Catalog());
     }
 
     private PlayerWallet GivenWallet()
     {
-        var player = new Player(Guid.NewGuid(), "user-1", "a@b.c", "tester", ServerId, Now);
+        var player = new Player(Guid.NewGuid(), "tester", "a@b.c", "user-1", Now, ServerId);
         var wallet = new PlayerWallet(Guid.NewGuid(), "user-1");
 
         _players.GetByIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(player);
@@ -94,7 +80,7 @@ public class HeroGranterTests
 
         await Granter().GrantAsync(PlayerId, "mage_iselle", "banner", Now);
 
-        Assert.Equal(40, wallet.GemBalance);
+        Assert.Equal(40, wallet.GemBalance.Value);
         Assert.Equal(6, owned.Constellation);
     }
 

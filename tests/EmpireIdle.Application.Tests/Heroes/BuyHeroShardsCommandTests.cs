@@ -5,6 +5,7 @@ using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -20,41 +21,15 @@ public class BuyHeroShardsCommandTests
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
-    private static GameConfig Config() => new()
-    {
-        Buildings =
-        [
-            new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 },
-            new BuildingConfig
-            {
-                Key = "heroeshall",
-                UpgradeCostGrowth = 1.45,
-                BaseBuildMinutes = 10,
-                BuildTimeGrowth = 1.5,
-                Cost = [new ResourceCost { Resource = "gold", Amount = 10 }]
-            },
-            new BuildingConfig { Key = "warehouse", StoresResources = ["gold"], UpgradeCostGrowth = 1.45 }
-        ],
-        HeroSettings = new HeroesConfig { BuildingKey = "heroeshall" },
-        Heroes =
-        [
-            new HeroConfig
-            {
-                Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
-                SummonShards = 10, ShardPriceGold = 100
-            },
-            new HeroConfig { Key = "mage_iselle", Class = "mage", Rank = Rarity.Unique }
-        ]
-    };
-
     private BuyHeroShardsCommandHandler Handler() => new(
-        _villages, _heroes, _unitOfWork, new FakeTimeProvider(Now),
-        NullLogger<BuyHeroShardsCommandHandler>.Instance, new GameCatalog(Config()));
+            _villages, _heroes, _unitOfWork, new FakeTimeProvider(Now),
+            NullLogger<BuyHeroShardsCommandHandler>.Instance, HeroTestConfig.Catalog());
+
 
     /// <summary>Село із залою героїв і золотом.</summary>
     private Village GivenVillage(int gold = 10_000, bool hallUnderConstruction = false)
     {
-        var catalog = new GameCatalog(Config());
+        var catalog = HeroTestConfig.Catalog();
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["gold"], 0, 0);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["gold"] = gold }, Now);
@@ -165,7 +140,7 @@ public class BuyHeroShardsCommandTests
     [Fact]
     public async Task Handle_ShouldReject_WhenTheHallIsMissing()
     {
-        var catalog = new GameCatalog(Config());
+        var catalog = HeroTestConfig.Catalog();
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["gold"], 0, 0);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["gold"] = 10_000 }, Now);

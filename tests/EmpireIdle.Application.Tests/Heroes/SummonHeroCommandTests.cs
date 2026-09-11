@@ -24,32 +24,15 @@ public class SummonHeroCommandTests
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
-    private static GameConfig Config() => new()
-    {
-        HeroSettings = new HeroesConfig
-        {
-            MaxConstellation = 6,
-            OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 }
-        },
-        Heroes =
-        [
-            new HeroConfig
-            {
-                Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
-                SummonShards = 10, ShardPriceGold = 100
-            }
-        ]
-    };
-
     private SummonHeroCommandHandler Handler()
     {
         _serverContext.ServerId.Returns(ServerId);
 
-        var granter = new HeroGranter(_heroes, _players, _wallets, _serverContext, new GameCatalog(Config()));
+        var granter = new HeroGranter(_heroes, _players, _wallets, _serverContext, HeroTestConfig.Catalog());
 
         return new SummonHeroCommandHandler(
             _heroes, granter, _unitOfWork, new FakeTimeProvider(Now),
-            NullLogger<SummonHeroCommandHandler>.Instance, new GameCatalog(Config()));
+            NullLogger<SummonHeroCommandHandler>.Instance, HeroTestConfig.Catalog());
     }
 
     private HeroShardProgress GivenShards(int count)
