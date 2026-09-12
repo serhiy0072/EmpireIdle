@@ -1,5 +1,7 @@
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Domain.Tests.Entities
 {
@@ -381,5 +383,110 @@ namespace EmpireIdle.Domain.Tests.Entities
             // Assert
             Assert.Empty(defence);
         }
+
+        // ---------- Події про рух підкріплень ----------
+
+        /// <summary>
+        /// Прибуття підкріплення міняє армію власника, а відбувається в чужому
+        /// агрегаті. Без події його Power оновилась би лише випадково —
+        /// наступним боєм чи тренуванням у себе вдома.
+        /// </summary>
+        [Fact]
+        public void AddReinforcements_ShouldRaiseMovedEventForTheOwnerGarrison()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var ownerGarrisonId = Guid.NewGuid();
+
+            garrison.AddReinforcements(Guid.NewGuid(), ownerGarrisonId,
+                new Dictionary<string, int> { ["infantry"] = 5 }, 100, DateTime.UtcNow);
+
+            var moved = Assert.Single(garrison.DomainEvents.OfType<ReinforcementsMoved>());
+
+            Assert.Equal(ownerGarrisonId, moved.OwnerGarrisonId);
+        }
+
+        /// <summary>Відкликання — той самий рух у зворотний бік.</summary>
+        [Fact]
+        public void WithdrawReinforcements_ShouldRaiseMovedEventForTheOwnerGarrison()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var ownerId = Guid.NewGuid();
+            var ownerGarrisonId = Guid.NewGuid();
+
+            garrison.AddReinforcements(ownerId, ownerGarrisonId,
+                new Dictionary<string, int> { ["infantry"] = 5 }, 100, DateTime.UtcNow);
+
+            garrison.ClearDomainEvents();
+
+            garrison.WithdrawReinforcements(ownerId, DateTime.UtcNow);
+
+            var moved = Assert.Single(garrison.DomainEvents.OfType<ReinforcementsMoved>());
+
+            Assert.Equal(ownerGarrisonId, moved.OwnerGarrisonId);
+        }
+
+        /// <summary>Нічого відкликати — нічого й повідомляти.</summary>
+        [Fact]
+        public void WithdrawReinforcements_ShouldNotRaiseEvent_WhenNothingIsDeployed()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            garrison.WithdrawReinforcements(Guid.NewGuid(), DateTime.UtcNow);
+
+            Assert.Empty(garrison.DomainEvents.OfType<ReinforcementsMoved>());
+        }
+
+        /// <summary>
+        /// Полеглі підкріплення теж зменшують армію власника, тож бій
+        /// в обороні має повідомити кожного постраждалого союзника окремо.
+        /// </summary>
+        [Fact]
+        public void ApplyDefenceLosses_ShouldRaiseEventPerAffectedOwner()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            var firstOwner = Guid.NewGuid();
+            var secondOwner = Guid.NewGuid();
+            var firstGarrison = Guid.NewGuid();
+            var secondGarrison = Guid.NewGuid();
+
+            garrison.AddReinforcements(firstOwner, firstGarrison,
+                new Dictionary<string, int> { ["infantry"] = 10 }, 100, DateTime.UtcNow);
+            garrison.AddReinforcements(secondOwner, secondGarrison,
+                new Dictionary<string, int> { ["infantry"] = 10 }, 100, DateTime.UtcNow);
+
+            garrison.ClearDomainEvents();
+
+            garrison.ApplyDefenceLosses(
+            [
+                new StackLoss(firstOwner, "infantry", 3),
+                new StackLoss(secondOwner, "infantry", 4)
+            ], DateTime.UtcNow);
+
+            var owners = garrison.DomainEvents.OfType<ReinforcementsMoved>()
+                .Select(e => e.OwnerGarrisonId)
+                .ToList();
+
+            Assert.Equal(2, owners.Count);
+            Assert.Contains(firstGarrison, owners);
+            Assert.Contains(secondGarrison, owners);
+        }
+
+        /// <summary>
+        /// Втрати самого господаря союзників не стосуються — зайва подія
+        /// змусила б перераховувати Power тим, у кого нічого не змінилось.
+        /// </summary>
+        [Fact]
+        public void ApplyDefenceLosses_ShouldNotRaiseEvent_ForOwnUnitsOnly()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = 10 }, DateTime.UtcNow);
+            garrison.ClearDomainEvents();
+
+            garrison.ApplyDefenceLosses([new StackLoss(null, "infantry", 4)], DateTime.UtcNow);
+
+            Assert.Empty(garrison.DomainEvents.OfType<ReinforcementsMoved>());
+        }
+
     }
 }

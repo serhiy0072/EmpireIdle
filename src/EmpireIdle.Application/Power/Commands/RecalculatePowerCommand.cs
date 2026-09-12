@@ -78,6 +78,14 @@ namespace EmpireIdle.Application.Power.Commands
                     army[unitType] = army.GetValueOrDefault(unitType) + count;
             }
 
+            // Підкріплення в чужих селах рахуються власнику (§7.1): інакше
+            // допомога клану коштувала б рейтингу, і її перестали б надсилати
+            var deployed = await _garrisonRepository.GetDeployedReinforcementsAsync(
+                village.PlayerId, cancellationToken);
+
+            foreach (var (unitType, count) in deployed)
+                army[unitType] = army.GetValueOrDefault(unitType) + count;
+
             // Поранені й відновлювані не входять: вони не б'ються
             var armyPower = _combat.CalculatePower(army, NeutralTerrain, isAttacker: true);
 

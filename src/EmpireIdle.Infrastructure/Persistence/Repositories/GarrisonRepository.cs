@@ -86,5 +86,14 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .AsSplitQuery()
                 .Where(g => g.Reinforcements.Any(r => r.OwnerPlayerId == ownerPlayerId))
                 .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<Dictionary<string, int>> GetDeployedReinforcementsAsync(
+            Guid ownerPlayerId, CancellationToken cancellationToken = default)
+            => await _context.Set<ReinforcementUnit>()
+            .Where(r => r.OwnerPlayerId == ownerPlayerId)
+            .GroupBy(r => r.UnitType)
+            .Select(g => new { g.Key, Count = g.Sum(r => r.Count) })
+            .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
     }
 }

@@ -256,6 +256,7 @@ namespace EmpireIdle.Domain.Entities
                 stack.Add(count);
             }
 
+            RaiseDomainEvent(new Events.ReinforcementsMoved(ownerGarrisonId, utcNow));
             Touch(utcNow);
         }
 
@@ -265,15 +266,23 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public Dictionary<string, int> WithdrawReinforcements(Guid ownerPlayerId, DateTime utcNow)
         {
-            var withdrawn = _reinforcements
-                .Where(r => r.OwnerPlayerId == ownerPlayerId && r.Count > 0)
+            var stacks = _reinforcements
+                .Where(r => r.OwnerPlayerId == ownerPlayerId)
+                .ToList();
+
+            var withdrawn = stacks
+                .Where(r => r.Count > 0)
                 .ToDictionary(r => r.UnitType, r => r.Count);
 
             if (withdrawn.Count == 0)
                 return [];
 
+            // Гарнізон власника читаємо до видалення — після нього стеків уже немає
+            var ownerGarrisonId = stacks[0].OwnerGarrisonId;
+
             _reinforcements.RemoveAll(r => r.OwnerPlayerId == ownerPlayerId);
 
+            RaiseDomainEvent(new Events.ReinforcementsMoved(ownerGarrisonId, utcNow));
             Touch(utcNow);
 
             return withdrawn;
@@ -292,6 +301,10 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void ApplyDefenceLosses(IReadOnlyList<StackLoss> losses, DateTime utcNow)
         {
+            // Власники, чиї стеки постраждали: у кожного змінилась армія,
+            // і кожному треба перерахувати Power окремо
+            var affected = new HashSet<Guid>();
+
             foreach (var loss in losses)
             {
                 if (loss.Lost <= 0)
@@ -309,10 +322,17 @@ namespace EmpireIdle.Domain.Entities
                 var stack = _reinforcements.FirstOrDefault(r =>
                     r.OwnerPlayerId == loss.OwnerPlayerId && r.UnitType == loss.UnitType);
 
-                stack?.Subtract(loss.Lost);
+                if (stack is null)
+                    continue;
+
+                stack.Subtract(loss.Lost);
+                affected.Add(stack.OwnerGarrisonId);
             }
 
             _units.RemoveAll(u => u.Count <= 0);
+
+            foreach (var ownerGarrisonId in affected)
+                RaiseDomainEvent(new Events.ReinforcementsMoved(ownerGarrisonId, utcNow));
 
             Touch(utcNow);
         }

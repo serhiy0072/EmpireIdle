@@ -52,6 +52,8 @@ public class RecalculatePowerCommandTests
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
+        _garrisons.GetDeployedReinforcementsAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(new Dictionary<string, int>());
+
         if (garrisonInfantry > 0)
             garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = garrisonInfantry }, Now);
 

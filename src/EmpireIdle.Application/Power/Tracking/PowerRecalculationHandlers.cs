@@ -46,4 +46,15 @@ namespace EmpireIdle.Application.Power.Tracking
         public Task Handle(DomainEventNotification<MarchReturned> notification, CancellationToken cancellationToken)
             => _mediator.Send(new RecalculatePowerCommand(notification.DomainEvent.GarrisonId), cancellationToken);
     }
+
+    public sealed class RecalculatePowerOnReinforcementsMoved
+        : INotificationHandler<DomainEventNotification<ReinforcementsMoved>>
+    {
+        private readonly IMediator _mediator;
+
+        public RecalculatePowerOnReinforcementsMoved(IMediator mediator) => _mediator = mediator;
+
+        public Task Handle(DomainEventNotification<ReinforcementsMoved> notification, CancellationToken cancellationToken)
+            => _mediator.Send(new RecalculatePowerCommand(notification.DomainEvent.OwnerGarrisonId), cancellationToken);
+    }
 }
