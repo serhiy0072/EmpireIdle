@@ -34,8 +34,7 @@ public class UseItemCommandTests
             {
                 Key = "resource_pack",
                 DisplayName = "Resource Pack",
-                Type = "resource",
-                IsStackable = true
+                Type = "resource"
             }
         ]
     };

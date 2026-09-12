@@ -20,12 +20,6 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Тип ефекту: speedup, resources, healing, boost, equipment.</summary>
         public string Type { get; set; } = null!;
 
-        /// <summary>
-        /// Чи складаються екземпляри в один стек.
-        /// Розхідники — так; спорядження з унікальними статами — ні.
-        /// </summary>
-        public bool IsStackable { get; set; } = true;
-
         // --- параметри за типами ---
 
         /// <summary>resources: що і скільки додає.</summary>

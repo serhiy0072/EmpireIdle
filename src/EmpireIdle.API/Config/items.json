@@ -6,16 +6,14 @@
         "DisplayName": "Essence of the Second Circle",
         "Description": "Піднімає героя з першого тіру в другий. Потрібен рівень світу 2",
         "Rarity": "rare",
-        "Type": "evolution",
-        "IsStackable": true
+        "Type": "evolution"
       },
       {
         "Key": "hero_essence_t3",
         "DisplayName": "Essence of the Third Circle",
         "Description": "Піднімає героя з другого тіру в третій. Потрібен рівень світу 3",
         "Rarity": "unique",
-        "Type": "evolution",
-        "IsStackable": true
+        "Type": "evolution"
       },
       {
         "Key": "crate_wood_5000",
@@ -23,7 +21,6 @@
         "Description": "Миттєво додає 5000 деревини",
         "Rarity": "common",
         "Type": "resources",
-        "IsStackable": true,
         "Resources": [
           {
             "Resource": "wood",
@@ -37,7 +34,6 @@
         "Description": "Набір ресурсів для розбудови",
         "Rarity": "rare",
         "Type": "resources",
-        "IsStackable": true,
         "Resources": [
           {
             "Resource": "gold",
@@ -63,7 +59,6 @@
         "Description": "Подвоює виробництво на 4 години",
         "Rarity": "rare",
         "Type": "boost",
-        "IsStackable": true,
         "BoostTarget": "production",
         "Multiplier": 2.0,
         "DurationHours": 4
@@ -74,7 +69,6 @@
         "Description": "+25% до атаки на годину",
         "Rarity": "rare",
         "Type": "boost",
-        "IsStackable": true,
         "BoostTarget": "attack",
         "Multiplier": 1.25,
         "DurationHours": 1
@@ -85,7 +79,6 @@
         "Description": "+25% до захисту на 8 годин",
         "Rarity": "rare",
         "Type": "boost",
-        "IsStackable": true,
         "BoostTarget": "defense",
         "Multiplier": 1.25,
         "DurationHours": 8
@@ -96,7 +89,6 @@
         "Description": "Подвоює виробництво на годину",
         "Rarity": "common",
         "Type": "boost",
-        "IsStackable": true,
         "BoostTarget": "production",
         "Multiplier": 2.0,
         "DurationHours": 1
@@ -106,8 +98,7 @@
         "DisplayName": "Teleport",
         "Description": "Переносить поселення на обрану вільну клітину",
         "Rarity": "rare",
-        "Type": "teleport",
-        "IsStackable": true
+        "Type": "teleport"
       }
     ]
   }

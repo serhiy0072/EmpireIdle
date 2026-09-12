@@ -22,7 +22,6 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IVillageRepository _villageRepository;
         private readonly IServerRepository _serverRepository;
         private readonly IRandomSource _random;
-        private readonly CombatConfig _combatConfig;
         private readonly BattleResolver _resolver;
         private readonly DefenceLossAllocator _lossAllocator;
         private readonly EffectResolver _effectResolver;
@@ -53,7 +52,6 @@ namespace EmpireIdle.Application.Marches.Services
             _villageRepository = villageRepository;
             _serverRepository = serverRepository;
             _random = random;
-            _combatConfig = catalog.Config.Combat;
             _resolver = resolver;
             _lossAllocator = lossAllocator;
             _effectResolver = effectResolver;
@@ -83,8 +81,6 @@ namespace EmpireIdle.Application.Marches.Services
             var targetGarrison = targetVillage is null
                 ? null
                 : await _garrisonRepository.GetByVillageIdAsync(targetVillage.Id, cancellationToken);
-
-            var shieldLevel = _combatConfig.NewbieShieldTownHallLevel;
 
             // Щит міг з'явитись хіба що в нападника, але село могло й зникнути.
             // Це прогін сканера, тож будь-яка невідповідність — розворот, не виняток
