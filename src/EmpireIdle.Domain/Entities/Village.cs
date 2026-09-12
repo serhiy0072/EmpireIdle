@@ -169,12 +169,16 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Переносить накопичене з буфера будівлі у сховище села.
-        /// Буфер спорожнюється повністю; те, що не вмістилось у сховище, згорає.
+        ///
+        /// Повний склад **відмовляє** в зборі, а не приймає частину: буфер
+        /// не під контролем гравця, тож часткове прийняття знищувало б
+        /// вироблене за клік, якого гравець не планував.
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
         /// <param name="utcNow">Момент збору.</param>
         /// <param name="boost">Вікно дії буста виробництва.</param>
+        /// <exception cref="RequirementNotMetException">На складі немає вільного місця.</exception>
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
         public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
@@ -191,18 +195,27 @@ namespace EmpireIdle.Domain.Entities
             if (config.ProducesResource is null)
                 return;
 
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
+
+            // Місце перевіряється ДО Collect: буфер спорожнюється беззастережно,
+            // тож перевірка після нього знищила б накопичене. Гравець не керує
+            // буфером будівлі — він керує лише тим, коли витратити зі складу.
+            var free = storageCap - (resource?.Amount ?? 0);
+
+            if (free <= 0)
+                throw new RequirementNotMetException(
+                    $"Storage for '{config.ProducesResource}' is full: spend before collecting.");
+
             var collected = building.Collect(config, utcNow, boost, locationMultiplier);
             if (collected == 0)
                 return; // порожній буфер — не подія і не зміна стану
 
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
             if (resource is null)
             {
                 resource = new VillageResource(Id, config.ProducesResource);
                 _resources.Add(resource);
             }
 
-            // Склад приймає скільки влізе, решта згорає
             var accepted = resource.AddUpTo(collected, storageCap);
 
             RaiseDomainEvent(new Events.BuildingCollected(
