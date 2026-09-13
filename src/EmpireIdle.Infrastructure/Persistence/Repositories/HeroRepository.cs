@@ -37,9 +37,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .CountAsync(h => h.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
-        public Task<int> CountAvailableAsync(Guid playerId, CancellationToken cancellationToken = default)
+        public Task<int> CountAvailableAsync(Guid playerId, Guid garrisonId,
+            CancellationToken cancellationToken = default)
             => _context.Heroes
-            .CountAsync(h => h.PlayerId == playerId && h.State == HeroState.Idle, cancellationToken);
+            .CountAsync(h => h.PlayerId == playerId
+                && h.StationedGarrisonId == garrisonId
+                && h.State == HeroState.Idle, cancellationToken);
 
         /// <inheritdoc/>
         public Task<List<Hero>> GetByGarrisonAsync(Guid garrisonId, CancellationToken cancellationToken = default)

@@ -23,10 +23,11 @@ namespace EmpireIdle.Application.Interfaces
         Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Скільки героїв гравця готові вийти в марш. Кап рахується з них,
-        /// а не з усього ростера: поранений і вже відправлений слот не дають.
+        /// Скільки героїв гравця стоять у цьому гарнізоні й готові виступити.
+        /// Гарнізон у ключі навмисно: герой, що стоїть підкріпленням
+        /// у союзника, вести похід із дому не може.
         /// </summary>
-        Task<int> CountAvailableAsync(Guid playerId, CancellationToken cancellationToken = default);
+        Task<int> CountAvailableAsync(Guid playerId, Guid garrisonId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Хто стоїть у гарнізоні, включно з чужими підкріпленнями.

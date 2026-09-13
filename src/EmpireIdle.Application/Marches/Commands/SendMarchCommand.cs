@@ -80,20 +80,30 @@ namespace EmpireIdle.Application.Marches.Commands
 
             // Ліміт одночасних походів
             var hero = await _heroRepository.GetByIdAsync(request.HeroId, cancellationToken)
-                ?? throw new EntityNotFoundException("Hero", request.HeroId.ToString());
+    ?? throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
+            // Чужий герой не відрізняється від неіснуючого: інакше відповідь
+            // підтверджувала б, що такий герой у когось є
             if (hero.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
             if (!hero.IsAvailable)
                 throw new RequirementNotMetException($"Hero {request.HeroId} is {hero.State}.");
 
-            // Кап дорівнює кількості вільних героїв під стелею з конфіга.
-            // Сам герой ще вільний, тому входить у лічильник
-            var available = await _heroRepository.CountAvailableAsync(request.PlayerId, cancellationToken);
-            var capacity = _progression.MarchCapacity(available);
+            // Герой веде похід звідти, де стоїть. Без цієї перевірки герой
+            // із гарнізону союзника телепортувався б додому, лишивши там
+            // свій стек без лідера
+            if (hero.StationedGarrisonId != garrison.Id)
+                throw new RequirementNotMetException($"Hero {request.HeroId} is stationed in another garrison.");
 
             var active = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
+
+            // Ростер це вільні герої плюс ті, хто вже в дорозі: кожен похід
+            // веде свій герой, тож вільний герой і є вільним слотом, а
+            // MaxMarches лишається стелею згори
+            var available = await _heroRepository.CountAvailableAsync(request.PlayerId, garrison.Id, cancellationToken);
+            var capacity = _progression.MarchCapacity(available + active.Count);
+
             if (active.Count >= capacity)
                 throw new RequirementNotMetException($"Cannot send more than {capacity} marches at once.");
 
@@ -111,7 +121,6 @@ namespace EmpireIdle.Application.Marches.Commands
             else
                 _targets.EnsureAttackAllowed(village, target);
 
-            // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
             // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
             if (request.Units.Count > 0)
                 garrison.SendUnits(request.Units, now);

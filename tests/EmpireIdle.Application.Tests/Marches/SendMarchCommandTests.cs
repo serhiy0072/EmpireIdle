@@ -114,7 +114,7 @@ public class SendMarchCommandTests
         _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(existing);
         _monsters.GetByIdAsync(monster.Id, Arg.Any<CancellationToken>()).Returns(monster);
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
-        _heroes.CountAvailableAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(availableHeroes);
+        _heroes.CountAvailableAsync(PlayerId, garrison.Id, Arg.Any<CancellationToken>()).Returns(availableHeroes);
 
         return (garrison, monster, hero);
     }
@@ -245,13 +245,15 @@ public class SendMarchCommandTests
     }
 
     /// <summary>
-    /// Кап дорівнює кількості вільних героїв, а не стелі конфіга: останній
-    /// герой пішов у марш, і другий похід відправляти нікому.
+    /// Вільних героїв немає: єдиний уже в поході. Кап тут ні до чого —
+    /// відмову дає стан героя, бо похід веде рівно один герой, і зайнятий
+    /// герой і є вичерпаним слотом.
     /// </summary>
     [Fact]
     public async Task Handle_ShouldReject_WhenNoHeroIsFree()
     {
-        var (_, monster, hero) = GivenState(activeMarches: 1, availableHeroes: 1);
+        var (_, monster, hero) = GivenState(activeMarches: 1, availableHeroes: 0);
+        hero.Deploy(Now);
 
         await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
@@ -292,5 +294,37 @@ public class SendMarchCommandTests
         Assert.Equal(HeroState.Deployed, hero.State);
         Assert.Null(hero.StationedGarrisonId);
         Assert.False(hero.IsLeader);
+    }
+
+    /// <summary>Стеля MaxMarches діє навіть при повному ростері.</summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenTheConfigCeilingIsReached()
+    {
+        var (_, monster, hero) = GivenState(activeMarches: 3, availableHeroes: 5);
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
+    }
+
+    /// <summary>Три герої дають три походи, а не два.</summary>
+    [Fact]
+    public async Task Handle_ShouldAllowTheLastHero_WhenTwoAreAlreadyMarching()
+    {
+        var (_, monster, hero) = GivenState(activeMarches: 2, availableHeroes: 1);
+
+        await Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None);
+
+        Assert.Equal(HeroState.Deployed, hero.State);
+    }
+
+    /// <summary>Герой, що стоїть підкріпленням у союзника, з дому не виступає.</summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenTheHeroIsStationedElsewhere()
+    {
+        var (_, monster, hero) = GivenState();
+        hero.StationIn(Guid.NewGuid(), asLeader: false, Now);
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
     }
 }
