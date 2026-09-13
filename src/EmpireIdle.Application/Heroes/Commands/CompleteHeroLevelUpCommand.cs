@@ -48,10 +48,12 @@ namespace EmpireIdle.Application.Heroes.Commands
                 return;
             }
 
-            // Стеля перевірялась на постановці; тут беремо цільовий рівень
-            // із самого замовлення, бо ратуша могла впасти в рівні не могла,
-            // а тір за цей час не змінюється
-            hero.GainLevel(order.TargetLevel, now);
+            // Стеля перевірялась на постановці, тож цільовий рівень береться
+            // з самого замовлення. Уже досягнутий рівень — не помилка, а знак
+            // повторного прогону: замовлення все одно знімається, інакше воно
+            // назавжди займе єдину чергу гравця
+            if (hero.Level < order.TargetLevel)
+                hero.GainLevel(order.TargetLevel, now);
 
             _heroRepository.RemoveOrder(order);
 

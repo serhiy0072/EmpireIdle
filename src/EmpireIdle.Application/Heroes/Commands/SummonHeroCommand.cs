@@ -48,6 +48,12 @@ namespace EmpireIdle.Application.Heroes.Commands
             var config = _catalog.FindHero(request.HeroKey)
                 ?? throw new EntityNotFoundException("Hero", request.HeroKey);
 
+            // Герой без порогу уламків приходить лише з банерів. Без цієї
+            // перевірки TryConsume(0) давав би безкоштовний призов, щойно
+            // рядок уламків з'явиться з будь-якого нового джерела
+            if (config.SummonShards < 1)
+                throw new RequirementNotMetException($"Hero '{request.HeroKey}' cannot be summoned from shards.");
+
             var progress = await _heroRepository.GetShardsAsync(request.PlayerId, request.HeroKey, cancellationToken)
                 ?? throw new RequirementNotMetException($"No shards of '{request.HeroKey}' collected yet.");
 

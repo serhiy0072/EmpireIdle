@@ -23,6 +23,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IServerContext _serverContext;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<BuyHeroShardsCommandHandler> _logger;
         private readonly GameCatalog _catalog;
@@ -31,6 +32,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             IVillageRepository villageRepository,
             IHeroRepository heroRepository,
             IUnitOfWork unitOfWork,
+            IServerContext serverContext,
             TimeProvider timeProvider,
             ILogger<BuyHeroShardsCommandHandler> logger,
             GameCatalog catalog)
@@ -38,6 +40,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             _villageRepository = villageRepository;
             _heroRepository = heroRepository;
             _unitOfWork = unitOfWork;
+            _serverContext = serverContext;
             _timeProvider = timeProvider;
             _logger = logger;
             _catalog = catalog;
@@ -73,9 +76,11 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var progress = await _heroRepository.GetShardsAsync(request.PlayerId, request.HeroKey, cancellationToken);
 
+            // Світ — із контексту, як і в HeroGranter: одне джерело на всі
+            // рядки героїв, а не село в одному місці й контекст в іншому
             if (progress is null)
             {
-                progress = new HeroShardProgress(Guid.NewGuid(), request.PlayerId, village.ServerId, request.HeroKey);
+                progress = new HeroShardProgress(Guid.NewGuid(), request.PlayerId, _serverContext.ServerId, request.HeroKey);
                 await _heroRepository.AddShardsAsync(progress, cancellationToken);
             }
 

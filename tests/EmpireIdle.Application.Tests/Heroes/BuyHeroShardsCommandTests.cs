@@ -1,3 +1,5 @@
+
+
 using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
@@ -20,11 +22,16 @@ public class BuyHeroShardsCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
 
-    private BuyHeroShardsCommandHandler Handler() => new(
-            _villages, _heroes, _unitOfWork, new FakeTimeProvider(Now),
+    private BuyHeroShardsCommandHandler Handler()
+    {
+        _serverContext.ServerId.Returns(1);
+
+        return new BuyHeroShardsCommandHandler(
+            _villages, _heroes, _unitOfWork, _serverContext, new FakeTimeProvider(Now),
             NullLogger<BuyHeroShardsCommandHandler>.Instance, HeroTestConfig.Catalog());
-
+    }
 
     /// <summary>Село із залою героїв і золотом.</summary>
     private Village GivenVillage(int gold = 10_000, bool hallUnderConstruction = false)

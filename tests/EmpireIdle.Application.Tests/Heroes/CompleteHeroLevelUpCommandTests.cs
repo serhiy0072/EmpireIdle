@@ -90,4 +90,22 @@ public class CompleteHeroLevelUpCommandTests
         _heroes.Received(1).RemoveOrder(order);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    /// <summary>
+    /// Рівень уже досягнуто — замовлення знімається без винятку. Інакше
+    /// сканер падав би на ньому щотік, а унікальний індекс на PlayerId
+    /// назавжди закрив би гравцю чергу.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldRemoveTheOrder_WhenTheLevelIsAlreadyReached()
+    {
+        var (hero, order) = GivenDueOrder();
+        hero.GainLevel(maxLevel: 2, Now);
+
+        await Handler().Handle(new CompleteHeroLevelUpCommand(order.Id), CancellationToken.None);
+
+        Assert.Equal(2, hero.Level);
+        _heroes.Received(1).RemoveOrder(order);
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
 }

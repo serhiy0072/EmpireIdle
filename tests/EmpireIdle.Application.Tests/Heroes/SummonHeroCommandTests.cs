@@ -121,4 +121,21 @@ public class SummonHeroCommandTests
     public async Task Handle_ShouldThrow_ForUnknownHero()
         => await Assert.ThrowsAsync<EntityNotFoundException>(() =>
             Handler().Handle(new SummonHeroCommand(PlayerId, "dragon_rider"), CancellationToken.None));
+
+    /// <summary>
+    /// Герой без порогу уламків не призивається, навіть якщо рядок уламків
+    /// існує: TryConsume(0) інакше проходив би завжди.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldThrow_WhenTheHeroHasNoShardThreshold()
+    {
+        var progress = new HeroShardProgress(Guid.NewGuid(), PlayerId, ServerId, HeroTestConfig.UniqueHero);
+        progress.Add(5);
+        _heroes.GetShardsAsync(PlayerId, HeroTestConfig.UniqueHero, Arg.Any<CancellationToken>()).Returns(progress);
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new SummonHeroCommand(PlayerId, HeroTestConfig.UniqueHero), CancellationToken.None));
+
+        await _heroes.DidNotReceive().AddAsync(Arg.Any<Hero>(), Arg.Any<CancellationToken>());
+    }
 }
