@@ -118,15 +118,16 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Герой повернувся з походу неушкодженим і став у гарнізон.
+        /// Похід закінчився, герой став у гарнізон. Свій він чи чужий,
+        /// герою байдуже: підкріплення лишається стояти в союзника,
+        /// атака повертає його додому, перехід той самий.
         /// </summary>
         /// <param name="leaderSlotFree">
         /// Чи вільний лідерський слот саме зараз. Якщо за час походу
-        /// призначили іншого, герой повертається рядовим: інакше на
-        /// SaveChanges прилетіло б порушення індексу гравцеві, який
-        /// нічого не робив.
+        /// призначили іншого, герой стає рядовим: інакше на SaveChanges
+        /// прилетіло б порушення індексу гравцеві, який нічого не робив.
         /// </param>
-        public void ReturnHome(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
+        public void Arrive(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
         {
             if (State != HeroState.Deployed)
                 throw new InvalidStateException($"Hero {Id} is not deployed.");

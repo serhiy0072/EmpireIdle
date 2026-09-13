@@ -88,7 +88,7 @@ public class RecalculatePowerCommandTests
         var garrison = GivenGarrison(garrisonInfantry: 10);
 
         var march = new March(
-            Guid.NewGuid(), 1, garrison.Id, 0, 0, 5, 5,
+            Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 0, 0, 5, 5,
             MarchTargetType.Monster, Guid.NewGuid(),
             new Dictionary<string, int> { ["infantry"] = 5 },
             Now.AddHours(1), Now);

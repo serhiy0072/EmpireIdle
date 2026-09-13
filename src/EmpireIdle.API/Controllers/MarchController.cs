@@ -28,7 +28,7 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> SendMarch(Guid playerId, [FromBody] SendMarchRequest request, CancellationToken cancellationToken)
         {
             var marchId = await _mediator.Send(
-                new SendMarchCommand(playerId, request.TargetType, request.TargetId, request.Units, request.Intent),
+                new SendMarchCommand(playerId, request.TargetType, request.TargetId, request.Units, request.HeroId, request.Intent),
                 cancellationToken);
 
             return Created((string?)null, marchId);

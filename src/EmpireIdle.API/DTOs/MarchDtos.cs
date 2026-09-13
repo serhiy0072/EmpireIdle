@@ -10,4 +10,5 @@ public record SendMarchRequest(
     MarchTargetType TargetType,
     Guid TargetId,
     Dictionary<string, int> Units,
+    Guid HeroId,
     MarchIntent Intent = MarchIntent.Attack);

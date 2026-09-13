@@ -187,7 +187,7 @@ public class ReinforcementRulesTests
         GivenTarget(destination);
         GivenClans(ClanId, Guid.NewGuid());
 
-        var refusal = await Rules().CheckOnArrivalAsync(origin, destination, 10, default);
+        var refusal = await Rules().CheckOnArrivalAsync(origin, destination, default);
 
         refusal.Should().NotBeNull();
     }
@@ -201,7 +201,7 @@ public class ReinforcementRulesTests
         GivenTarget(destination);
         GivenClans(ClanId, ClanId);
 
-        var refusal = await Rules().CheckOnArrivalAsync(origin, destination, 10, default);
+        var refusal = await Rules().CheckOnArrivalAsync(origin, destination, default);
 
         refusal.Should().BeNull();
     }

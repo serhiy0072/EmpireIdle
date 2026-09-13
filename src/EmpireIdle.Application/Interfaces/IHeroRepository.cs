@@ -39,6 +39,13 @@ namespace EmpireIdle.Application.Interfaces
         /// </summary>
         Task<Hero?> GetLeaderAsync(Guid garrisonId, Guid playerId, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Чужі гарнізони, де стоять герої гравця. Потрібен відкликанню:
+        /// герой без юнітів рядка в Reinforcements не лишає, і пошук
+        /// контингенту по стеках його не знайшов би.
+        /// </summary>
+        Task<IReadOnlyList<Guid>> GetForeignGarrisonIdsAsync(Guid playerId, CancellationToken cancellationToken = default);
+
         Task AddAsync(Hero hero, CancellationToken cancellationToken = default);
 
         /// <summary>Накопичені уламки конкретного героя; null — ще жодного.</summary>

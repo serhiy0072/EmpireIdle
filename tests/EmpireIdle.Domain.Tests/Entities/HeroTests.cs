@@ -74,7 +74,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             hero.StationIn(garrison, asLeader: false, Now);
             hero.Deploy(Now);
 
-            hero.ReturnHome(garrison, leaderSlotFree: false, Now.AddHours(2));
+            hero.Arrive(garrison, leaderSlotFree: false, Now.AddHours(2));
 
             Assert.Equal(HeroState.Idle, hero.State);
             Assert.True(hero.IsAvailable);
@@ -86,7 +86,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var hero = CreateHero();
 
-            Assert.Throws<InvalidStateException>(() => hero.ReturnHome(Guid.NewGuid(), leaderSlotFree: true, Now));
+            Assert.Throws<InvalidStateException>(() => hero.Arrive(Guid.NewGuid(), leaderSlotFree: true, Now));
         }
 
         // ---------- Госпіталь ----------

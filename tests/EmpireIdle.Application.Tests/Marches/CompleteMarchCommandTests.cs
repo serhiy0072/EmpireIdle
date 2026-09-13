@@ -36,6 +36,7 @@ public class CompleteMarchCommandTests
     private readonly IRandomSource _random = Substitute.For<IRandomSource>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -140,12 +141,14 @@ public class CompleteMarchCommandTests
             status, plunder, 
             NullLogger<VillageBattleService>.Instance);
 
+        _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
+
         var reinforcements = new ReinforcementDelivery(
-            _garrisons, _villages, logistics, reinforcementRules, capacities,
+            _garrisons, _villages, _heroes, logistics, reinforcementRules, capacities,
             NullLogger<ReinforcementDelivery>.Instance);
 
         return new CompleteMarchCommandHandler(
-            _marches, _garrisons, _unitOfWork, terrain,
+            _marches, _garrisons, _heroes, _unitOfWork, terrain,
             new FakeTimeProvider(at ?? Now),
             logistics, monsterBattle, villageBattle, reinforcements,
             NullLogger<CompleteMarchCommandHandler>.Instance);
@@ -185,7 +188,7 @@ public class CompleteMarchCommandTests
         var monster = new Monster(Guid.NewGuid(), 1, "wolves", monsterLevel, 55, 55, Now);
 
         var march = new March(
-            Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55,
+            Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
             MarchTargetType.Monster, monster.Id,
             new Dictionary<string, int> { ["infantry"] = attackerInfantry },
             Now, Now.AddMinutes(-30));
@@ -220,7 +223,7 @@ public class CompleteMarchCommandTests
             defenderGarrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = defenderInfantry }, Now);
 
         var march = new March(
-            Guid.NewGuid(), 1, attackerGarrison.Id, 50, 50, 55, 55,
+            Guid.NewGuid(), 1, attackerGarrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
             MarchTargetType.Village, defender.Id,
             new Dictionary<string, int> { ["infantry"] = attackerInfantry },
             Now, Now.AddMinutes(-30));

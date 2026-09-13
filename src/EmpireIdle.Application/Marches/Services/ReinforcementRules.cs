@@ -73,19 +73,18 @@ namespace EmpireIdle.Application.Marches.Services
         /// Те саме, але без винятків: на прибутті відмова означає розворот,
         /// а не помилку. Це прогін сканера, і падіння заблокувало б
         /// решту маршів у пакеті.
+        ///
+        /// Місткість тут не перевіряється: якщо посольство вміщає не всіх,
+        /// доставка часткова, а не відмова. Скільки саме влізе, питає
+        /// сама доставка через FreeEmbassySlotsAsync.
         /// </summary>
         /// <returns>Причина відмови або null, якщо доставку дозволено.</returns>
-        public async Task<string?> CheckOnArrivalAsync(Village origin, Village destination, int incomingUnits,
+        public async Task<string?> CheckOnArrivalAsync(Village origin, Village destination,
             CancellationToken cancellationToken)
         {
-            if (!await AreClanmatesAsync(origin.PlayerId, destination.PlayerId, cancellationToken))
-                return "no longer clanmates";
-
-            var free = await FreeEmbassySlotsAsync(destination, cancellationToken);
-
-            return incomingUnits > free
-                ? $"embassy has room for {free} of {incomingUnits} units"
-                : null;
+            return await AreClanmatesAsync(origin.PlayerId, destination.PlayerId, cancellationToken)
+                ? null
+                : "no longer clanmates";
         }
 
         /// <summary>Скільки чужих юнітів село ще прийме.</summary>

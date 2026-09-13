@@ -40,7 +40,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var hero = Stationed(asLeader: true);
             hero.Deploy(Now);
 
-            hero.ReturnHome(Garrison, leaderSlotFree: false, Now);
+            hero.Arrive(Garrison, leaderSlotFree: false, Now);
 
             Assert.Equal(Garrison, hero.StationedGarrisonId);
             Assert.False(hero.IsLeader);
@@ -53,7 +53,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var hero = Stationed(asLeader: true);
             hero.Deploy(Now);
 
-            hero.ReturnHome(Garrison, leaderSlotFree: true, Now);
+            hero.Arrive(Garrison, leaderSlotFree: true, Now);
 
             Assert.True(hero.IsLeader);
         }
