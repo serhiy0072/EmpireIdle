@@ -23,12 +23,23 @@ public class HeroGranterTests
     private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
+    private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
+    private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
 
     private HeroGranter Granter()
     {
         _serverContext.ServerId.Returns(ServerId);
 
-        return new HeroGranter(_heroes, _players, _wallets, _serverContext, HeroTestConfig.Catalog());
+        // Видача оселяє героя в гарнізоні, тож село й гарнізон мусять існувати,
+        // інакше granter кине ще до перевірки правила видачі
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, ServerId);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, ServerId);
+
+        _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
+
+        return new HeroGranter(_heroes, _players, _wallets, _villages, _garrisons, _serverContext,
+            HeroTestConfig.Catalog());
     }
 
     private PlayerWallet GivenWallet()

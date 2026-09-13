@@ -18,6 +18,8 @@ namespace EmpireIdle.Application.Common.Services
         private readonly IHeroRepository _heroRepository;
         private readonly IPlayerRepository _playerRepository;
         private readonly IPlayerWalletRepository _walletRepository;
+        private readonly IVillageRepository _villageRepository;
+        private readonly IGarrisonRepository _garrisonRepository;
         private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
 
@@ -25,12 +27,16 @@ namespace EmpireIdle.Application.Common.Services
             IHeroRepository heroRepository,
             IPlayerRepository playerRepository,
             IPlayerWalletRepository walletRepository,
+            IVillageRepository villageRepository,
+            IGarrisonRepository garrisonRepository,
             IServerContext serverContext,
             GameCatalog catalog)
         {
             _heroRepository = heroRepository;
             _playerRepository = playerRepository;
             _walletRepository = walletRepository;
+            _villageRepository = villageRepository;
+            _garrisonRepository = garrisonRepository;
             _serverContext = serverContext;
             _catalog = catalog;
         }
@@ -48,9 +54,21 @@ namespace EmpireIdle.Application.Common.Services
 
             if (existing is null)
             {
-                await _heroRepository.AddAsync(
-                    new Hero(Guid.NewGuid(), playerId, _serverContext.ServerId, heroKey, utcNow),
-                    cancellationToken);
+                var hero = new Hero(Guid.NewGuid(), playerId, _serverContext.ServerId, heroKey, utcNow);
+
+                // Герой оселяється в гарнізоні одразу. Інакше новачок отримує
+                // нагороду, бачить нуль ефекту й мусить сам знайти кнопку
+                var village = await _villageRepository.GetByPlayerIdAsync(playerId, cancellationToken)
+                    ?? throw new InvalidOperationException($"Village not found for player {playerId}.");
+
+                var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
+                    ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+
+                var leader = await _heroRepository.GetLeaderAsync(garrison.Id, playerId, cancellationToken);
+
+                hero.StationIn(garrison.Id, asLeader: leader is null, utcNow);
+
+                await _heroRepository.AddAsync(hero, cancellationToken);
 
                 return;
             }

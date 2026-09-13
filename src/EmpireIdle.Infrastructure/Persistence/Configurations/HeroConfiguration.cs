@@ -26,6 +26,18 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             // інакше створили б двох.
             builder.HasIndex(h => new { h.PlayerId, h.HeroKey }).IsUnique();
 
+            builder.HasIndex(h => h.StationedGarrisonId);
+
+            // Один лідер на гравця в гарнізоні. Ключ включає PlayerId, бо в
+            // чужому селі стоять підкріплення кількох союзників, і в кожного
+            // свій лідер над своїм стеком.
+            //
+            // Частковий індекс, а не перевірка в хендлері: два паралельні
+            // призначення інакше дали б двох лідерів і подвійний бонус.
+            builder.HasIndex(h => new { h.StationedGarrisonId, h.PlayerId })
+                .IsUnique()
+                .HasFilter("\"IsLeader\" AND \"StationedGarrisonId\" IS NOT NULL");
+
             builder.Ignore(h => h.DomainEvents);
         }
     }

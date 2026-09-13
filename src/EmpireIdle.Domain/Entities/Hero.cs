@@ -47,8 +47,27 @@ namespace EmpireIdle.Domain.Entities
         /// вони не гинуть, тож надлишку, який треба кудись подіти, не буває.
         /// </summary>
         public DateTime? HealedAt { get; private set; }
-
         public DateTime AcquiredAt { get; private set; }
+
+        /// <summary>
+        /// Гарнізон, у якому герой зараз стоїть. Порожнє означає «в дорозі»:
+        /// на час маршу героя немає ні вдома, ні в чужому селі, як і юнітів.
+        ///
+        /// Своє село й чуже тут не розрізняються навмисно: підкріплення —
+        /// той самий випадок, і єдине правило замість двох знімає спецвипадок
+        /// «герой господаря» з бойової формули.
+        /// </summary>
+        public Guid? StationedGarrisonId { get; private set; }
+
+        /// <summary>
+        /// Лідер гарнізону. Лише він дає бонус своїм стекам і лише він
+        /// потрапляє в госпіталь при поразці — інакше зібраний ростер
+        /// множив би оборону, а одна програна битва клала б увесь зал.
+        ///
+        /// Слот один на гравця в гарнізоні, і стежить за цим частковий
+        /// унікальний індекс, а не перевірка в хендлері.
+        /// </summary>
+        public bool IsLeader { get; private set; }
 
         /// <summary>
         /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
@@ -79,10 +98,13 @@ namespace EmpireIdle.Domain.Entities
         public bool IsAvailable => State == HeroState.Idle;
 
         /// <summary>
-        /// Закріплює героя за маршем або підкріпленням.
+        /// Знімає героя з гарнізону в марш або підкріплення.
         ///
         /// Кидає, а не повертає false: викликач уже зняв юнітів із гарнізону,
         /// і мовчазна відмова лишила б гарнізон порожнім без маршу.
+        ///
+        /// Лідерство складається тут же. Гарнізон лишається без лідера,
+        /// поки герой не повернеться або поки не призначать іншого.
         /// </summary>
         public void Deploy(DateTime utcNow)
         {
@@ -90,16 +112,63 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidStateException($"Hero {Id} is {State} and cannot be deployed.");
 
             State = HeroState.Deployed;
+            StationedGarrisonId = null;
+            IsLeader = false;
             Touch(utcNow);
         }
 
-        /// <summary>Герой повернувся з походу неушкодженим.</summary>
-        public void ReturnHome(DateTime utcNow)
+        /// <summary>
+        /// Герой повернувся з походу неушкодженим і став у гарнізон.
+        /// </summary>
+        /// <param name="leaderSlotFree">
+        /// Чи вільний лідерський слот саме зараз. Якщо за час походу
+        /// призначили іншого, герой повертається рядовим: інакше на
+        /// SaveChanges прилетіло б порушення індексу гравцеві, який
+        /// нічого не робив.
+        /// </param>
+        public void ReturnHome(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
         {
             if (State != HeroState.Deployed)
                 throw new InvalidStateException($"Hero {Id} is not deployed.");
 
             State = HeroState.Idle;
+            StationedGarrisonId = garrisonId;
+            IsLeader = leaderSlotFree;
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Ставить героя в гарнізон, не змінюючи стану. Використовується
+        /// видачею й переведенням між гарнізонами.
+        /// </summary>
+        public void StationIn(Guid garrisonId, bool asLeader, DateTime utcNow)
+        {
+            if (State == HeroState.Deployed)
+                throw new InvalidStateException($"Hero {Id} is on the move and cannot be stationed.");
+
+            StationedGarrisonId = garrisonId;
+            IsLeader = asLeader;
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Призначає лідером гарнізону, у якому герой уже стоїть.
+        /// Поранений лідером бути може: бонус дає той, хто в строю,
+        /// а перевірка стану — справа бойової формули, не призначення.
+        /// </summary>
+        public void AppointLeader(DateTime utcNow)
+        {
+            if (StationedGarrisonId is null)
+                throw new InvalidStateException($"Hero {Id} is not stationed anywhere.");
+
+            IsLeader = true;
+            Touch(utcNow);
+        }
+
+        /// <summary>Складає лідерство, лишаючись у гарнізоні.</summary>
+        public void DismissLeader(DateTime utcNow)
+        {
+            IsLeader = false;
             Touch(utcNow);
         }
 

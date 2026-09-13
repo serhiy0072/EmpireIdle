@@ -53,7 +53,9 @@ namespace EmpireIdle.Application.Heroes.Queries
                     _progression.MaxLevel(townHallLevel, h.Tier),
                     h.Constellation,
                     h.State.ToString().ToLowerInvariant(),
-                    h.HealedAt))
+                    h.HealedAt,
+                    h.StationedGarrisonId,
+                    h.IsLeader))
                 .ToList();
 
             var shards = await _heroRepository.GetAllShardsAsync(request.PlayerId, cancellationToken);
@@ -73,7 +75,7 @@ namespace EmpireIdle.Application.Heroes.Queries
                 order is null
                     ? null
                     : new HeroLevelOrderSummary(order.Id, order.HeroId, order.TargetLevel, order.CompletesAt),
-                _progression.MarchCapacity(heroes.Count));
+                _progression.MarchCapacity(heroes.Count(h => h.IsAvailable)));
         }
     }
 }

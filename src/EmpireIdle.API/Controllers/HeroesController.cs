@@ -68,5 +68,15 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new EvolveHeroTierCommand(playerId, heroId), cancellationToken);
             return NoContent();
         }
+
+        /// <summary>Призначити героя лідером гарнізону, у якому він стоїть.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/appoint-leader")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AppointLeader(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new AppointGarrisonLeaderCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
     }
 }

@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmpireIdle.Infrastructure.Persistence.Repositories
@@ -34,6 +35,24 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.Heroes
             .CountAsync(h => h.PlayerId == playerId, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> CountAvailableAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .CountAsync(h => h.PlayerId == playerId && h.State == HeroState.Idle, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<Hero>> GetByGarrisonAsync(Guid garrisonId, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .Where(h => h.StationedGarrisonId == garrisonId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<Hero?> GetLeaderAsync(Guid garrisonId, Guid playerId, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .FirstOrDefaultAsync(h => h.StationedGarrisonId == garrisonId
+                && h.PlayerId == playerId
+                && h.IsLeader, cancellationToken);
 
         /// <inheritdoc/>
         public async Task AddAsync(Hero hero, CancellationToken cancellationToken = default)

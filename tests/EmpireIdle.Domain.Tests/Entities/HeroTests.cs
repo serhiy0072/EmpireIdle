@@ -70,12 +70,15 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void ReturnHome_ShouldReleaseHero()
         {
             var hero = CreateHero();
+            var garrison = Guid.NewGuid();
+            hero.StationIn(garrison, asLeader: false, Now);
             hero.Deploy(Now);
 
-            hero.ReturnHome(Now.AddHours(2));
+            hero.ReturnHome(garrison, leaderSlotFree: false, Now.AddHours(2));
 
             Assert.Equal(HeroState.Idle, hero.State);
             Assert.True(hero.IsAvailable);
+            Assert.Equal(garrison, hero.StationedGarrisonId);
         }
 
         [Fact]
@@ -83,7 +86,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var hero = CreateHero();
 
-            Assert.Throws<InvalidStateException>(() => hero.ReturnHome(Now));
+            Assert.Throws<InvalidStateException>(() => hero.ReturnHome(Guid.NewGuid(), leaderSlotFree: true, Now));
         }
 
         // ---------- Госпіталь ----------

@@ -23,12 +23,21 @@ public class SummonHeroCommandTests
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
+    private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
 
     private SummonHeroCommandHandler Handler()
     {
         _serverContext.ServerId.Returns(ServerId);
 
-        var granter = new HeroGranter(_heroes, _players, _wallets, _serverContext, HeroTestConfig.Catalog());
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, ServerId);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, ServerId);
+
+        _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
+
+        var granter = new HeroGranter(_heroes, _players, _wallets, _villages, _garrisons, _serverContext,
+            HeroTestConfig.Catalog());
 
         return new SummonHeroCommandHandler(
             _heroes, granter, _unitOfWork, new FakeTimeProvider(Now),
