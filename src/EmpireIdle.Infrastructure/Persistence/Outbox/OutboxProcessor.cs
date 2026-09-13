@@ -18,6 +18,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
     /// </summary>
     public class OutboxProcessor : BackgroundService
     {
+        // Ключ — FullName типу, і він же лежить у колонці Type. Перейменування
+        // або перенесення події в інший namespace ламає необроблені рядки:
+        // такий рефакторинг потребує міграції даних у OutboxMessages
         private static readonly Dictionary<string, Type> EventTypes =
             typeof(IDomainEvent).Assembly
             .GetTypes()

@@ -33,6 +33,20 @@ namespace EmpireIdle.Infrastructure.Persistence.Interceptors
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
+        /// <summary>
+        /// Синхронний шлях покривається так само: інакше перший SaveChanges()
+        /// без Async мовчки втратив би події.
+        /// </summary>
+        public override InterceptionResult<int> SavingChanges(
+            DbContextEventData eventData,
+            InterceptionResult<int> result)
+        {
+            if (eventData.Context is not null)
+                WriteToOutbox(eventData.Context);
+
+            return base.SavingChanges(eventData, result);
+        }
+
         private void WriteToOutbox(DbContext context)
         {
             var entitiesWithEvents = context.ChangeTracker
