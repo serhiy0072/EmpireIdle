@@ -125,7 +125,7 @@ public class CompleteMarchCommandTests
             _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
 
         var aftermath = new BattleAftermath(
-            _reports, _garrisons, _villages, _notifier, casualties, catalog, logistics, status,
+            _reports, _garrisons, _villages, _heroes, _notifier, casualties, catalog, logistics, status,
             NullLogger<BattleAftermath>.Instance);
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);

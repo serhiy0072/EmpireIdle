@@ -17,7 +17,6 @@ namespace EmpireIdle.Application.Heroes.Contracts
         int MaxLevel,
         int Constellation,
         string State,
-        DateTime? HealedAt,
         Guid? StationedGarrisonId,
         bool IsLeader);
 }

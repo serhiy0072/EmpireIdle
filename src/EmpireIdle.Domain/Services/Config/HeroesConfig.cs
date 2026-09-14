@@ -44,11 +44,14 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public int MaxMarches { get; set; } = 8;
 
-        /// <summary>Скільки хвилин герой лежить у госпіталі за кожен свій рівень.</summary>
-        public double HealMinutesPerLevel { get; set; } = 3;
+        /// <summary>
+        /// Вартість лікування за один рівень героя. Множиться на рівень:
+        /// десятий рівень коштує вдесятеро дорожче за перший.
+        /// </summary>
+        public List<ResourceCost> HealCostPerLevel { get; set; } = new();
 
-        /// <summary>Ціна миттєвого лікування героя в gems.</summary>
-        public int InstantHealCostGems { get; set; } = 20;
+        /// <summary>Будівля, без якої лікувати нікому.</summary>
+        public string HealBuildingKey { get; set; } = "hospital";
 
         /// <summary>Базовий час підняття рівня, хвилин. Множиться на цільовий рівень.</summary>
         public double BaseLevelUpMinutes { get; set; } = 4;

@@ -57,7 +57,7 @@ public class StartHeroLevelUpCommandTests
 
     private Hero GivenHero(int level = 1, int tier = 1, HeroState state = HeroState.Idle)
     {
-        var hero = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
 
         for (var i = 1; i < level; i++)
             hero.GainLevel(level, Now);
@@ -69,7 +69,7 @@ public class StartHeroLevelUpCommandTests
             hero.Deploy(Now);
 
         if (state == HeroState.Wounded)
-            hero.Wound(Now.AddHours(1), Now);
+            hero.Wound(Now);
 
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 
@@ -190,7 +190,7 @@ public class StartHeroLevelUpCommandTests
     {
         GivenVillage();
 
-        var foreign = new Hero(Guid.NewGuid(), Guid.NewGuid(), ServerId, "warrior_bran", Now);
+        var foreign = new Hero(Guid.NewGuid(), Guid.NewGuid(), ServerId, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
         _heroes.GetByIdAsync(foreign.Id, Arg.Any<CancellationToken>()).Returns(foreign);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>

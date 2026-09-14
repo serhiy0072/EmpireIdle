@@ -53,7 +53,6 @@ namespace EmpireIdle.Application.Heroes.Queries
                     _progression.MaxLevel(townHallLevel, h.Tier),
                     h.Constellation,
                     h.State.ToString().ToLowerInvariant(),
-                    h.HealedAt,
                     h.StationedGarrisonId,
                     h.IsLeader))
                 .ToList();

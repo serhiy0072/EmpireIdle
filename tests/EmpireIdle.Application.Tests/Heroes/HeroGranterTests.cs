@@ -65,7 +65,7 @@ public class HeroGranterTests
     [Fact]
     public async Task Grant_ShouldRaiseConstellation_WhenOwnedBelowTheCap()
     {
-        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "mage_iselle", Now);
+        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "mage_iselle", Guid.NewGuid(), asLeader: true, Now);
         _heroes.GetByKeyAsync(PlayerId, "mage_iselle", Arg.Any<CancellationToken>()).Returns(owned);
 
         await Granter().GrantAsync(PlayerId, "mage_iselle", "banner", Now);
@@ -80,7 +80,7 @@ public class HeroGranterTests
     [Fact]
     public async Task Grant_ShouldConvertToGems_AtTheConstellationCap()
     {
-        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "mage_iselle", Now);
+        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "mage_iselle", Guid.NewGuid(), asLeader: true, Now);
 
         for (var i = 0; i < 6; i++)
             owned.TryAddConstellation(6, Now);
@@ -102,7 +102,7 @@ public class HeroGranterTests
     [Fact]
     public async Task Grant_ShouldNotTouchTheWallet_WhenTheRankConvertsToZero()
     {
-        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Now);
+        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
 
         for (var i = 0; i < 6; i++)
             owned.TryAddConstellation(6, Now);

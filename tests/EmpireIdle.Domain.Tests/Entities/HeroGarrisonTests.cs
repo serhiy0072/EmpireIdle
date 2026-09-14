@@ -11,12 +11,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         private static readonly Guid Garrison = Guid.NewGuid();
 
         private static Hero Stationed(bool asLeader)
-        {
-            var hero = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, "archer_lyra", Now);
-            hero.StationIn(Garrison, asLeader, Now);
-
-            return hero;
-        }
+            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "archer_lyra", Garrison, asLeader, Now);
 
         [Fact]
         public void Deploy_ShouldClearGarrisonAndLeadership()

@@ -26,7 +26,7 @@ public class CompleteHeroLevelUpCommandTests
 
     private (Hero Hero, HeroLevelOrder Order) GivenDueOrder(DateTime? completesAt = null)
     {
-        var hero = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
 
         var order = new HeroLevelOrder(Guid.NewGuid(), hero.Id, PlayerId, ServerId,
             targetLevel: 2, completesAt ?? Now.AddMinutes(-1));

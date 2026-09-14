@@ -1,3 +1,4 @@
+
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
@@ -89,9 +90,14 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public int MarchCapacity(int heroCount) => Math.Min(heroCount, _config.MaxMarches);
 
-        /// <summary>Скільки герой пролежить у госпіталі після поразки.</summary>
-        public TimeSpan HealDuration(int level)
-            => TimeSpan.FromMinutes(_config.HealMinutesPerLevel * level);
+        /// <summary>
+        /// Вартість лікування героя. Лінійна від рівня: сильніший герой
+        /// дорожче обходиться після поразки.
+        /// </summary>
+        public List<ResourceCost> HealCost(int level)
+            => _config.HealCostPerLevel
+            .Select(c => new ResourceCost { Resource = c.Resource, Amount = c.Amount * level })
+            .ToList();
 
         /// <summary>Скільки триває підняття рівня до targetLevel.</summary>
         public TimeSpan LevelUpDuration(int targetLevel)

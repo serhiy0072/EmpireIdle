@@ -18,6 +18,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IBattleReportRepository _battleReportRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly IHeroRepository _heroRepository;
         private readonly IGameNotifier _notifier;
         private readonly CasualtySplitter _casualties;
         private readonly CombatConfig _combatConfig;
@@ -29,6 +30,7 @@ namespace EmpireIdle.Application.Marches.Services
             IBattleReportRepository battleReportRepository,
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
+            IHeroRepository heroRepository,
             IGameNotifier notifier,
             CasualtySplitter casualties,
             GameCatalog catalog,
@@ -39,6 +41,7 @@ namespace EmpireIdle.Application.Marches.Services
             _battleReportRepository = battleReportRepository;
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
+            _heroRepository = heroRepository;
             _notifier = notifier;
             _casualties = casualties;
             _combatConfig = catalog.Config.Combat;
@@ -96,6 +99,15 @@ namespace EmpireIdle.Application.Marches.Services
                 garrison.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
+            // Провалена атака кладе героя в госпіталь. Ранить лише його:
+            // марш веде рівно один герой, а вдома ростер бою не бачив
+            if (!result.AttackerWon && march.HeroId is Guid heroId)
+            {
+                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
+
+                hero?.Wound(utcNow);
+            }
+
             march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, targetName, utcNow);
 
             return report.Id;
@@ -143,6 +155,16 @@ namespace EmpireIdle.Application.Marches.Services
             var split = _casualties.Split(hostLost, capacity, WoundedSeed(seed));
 
             defenderGarrison.AdmitWounded(split.Wounded, utcNow);
+
+            // Програна оборона ранить лідера гарнізону. Решта героїв стоїть
+            // у резерві й у бою не була: інакше одна поразка клала б увесь зал
+            if (result.AttackerWon)
+            {
+                var leader = await _heroRepository.GetLeaderAsync(
+                    defenderGarrison.Id, defenderVillage.PlayerId, cancellationToken);
+
+                leader?.Wound(utcNow);
+            }
 
             foreach (var (unitType, stood) in hostStood)
             {

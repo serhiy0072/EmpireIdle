@@ -54,8 +54,6 @@ namespace EmpireIdle.Application.Common.Services
 
             if (existing is null)
             {
-                var hero = new Hero(Guid.NewGuid(), playerId, _serverContext.ServerId, heroKey, utcNow);
-
                 // Герой оселяється в гарнізоні одразу. Інакше новачок отримує
                 // нагороду, бачить нуль ефекту й мусить сам знайти кнопку
                 var village = await _villageRepository.GetByPlayerIdAsync(playerId, cancellationToken)
@@ -66,7 +64,7 @@ namespace EmpireIdle.Application.Common.Services
 
                 var leader = await _heroRepository.GetLeaderAsync(garrison.Id, playerId, cancellationToken);
 
-                hero.StationIn(garrison.Id, asLeader: leader is null, utcNow);
+                var hero = new Hero(Guid.NewGuid(), playerId, _serverContext.ServerId, heroKey, garrison.Id, asLeader: leader is null, utcNow);
 
                 await _heroRepository.AddAsync(hero, cancellationToken);
 

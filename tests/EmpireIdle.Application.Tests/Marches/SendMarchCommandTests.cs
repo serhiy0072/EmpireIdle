@@ -98,7 +98,7 @@ public class SendMarchCommandTests
 
         var monster = new Monster(Guid.NewGuid(), 1, "wolves", 1, 55, 55, Now);
 
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "warrior_bran", Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
         hero.StationIn(garrison.Id, asLeader: true, Now);
 
         var existing = Enumerable.Range(0, activeMarches)
@@ -224,7 +224,7 @@ public class SendMarchCommandTests
     {
         var (garrison, near, hero) = GivenState();
 
-        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", Now);
+        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", Guid.NewGuid(), asLeader: false, Now);
         second.StationIn(garrison.Id, asLeader: false, Now);
         _heroes.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(second);
 
@@ -263,7 +263,7 @@ public class SendMarchCommandTests
     public async Task Handle_ShouldReject_WhenTheHeroIsWounded()
     {
         var (_, monster, hero) = GivenState();
-        hero.Wound(Now.AddHours(1), Now);
+        hero.Wound(Now);
 
         await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
@@ -275,7 +275,7 @@ public class SendMarchCommandTests
     {
         var (garrison, monster, _) = GivenState();
 
-        var stranger = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, "warrior_bran", Now);
+        var stranger = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, "warrior_bran", Guid.NewGuid(), asLeader: false, Now);
         stranger.StationIn(garrison.Id, asLeader: false, Now);
         _heroes.GetByIdAsync(stranger.Id, Arg.Any<CancellationToken>()).Returns(stranger);
 

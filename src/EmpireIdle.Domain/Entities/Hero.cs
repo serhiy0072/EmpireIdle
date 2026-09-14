@@ -41,12 +41,6 @@ namespace EmpireIdle.Domain.Entities
 
         public HeroState State { get; private set; }
 
-        /// <summary>
-        /// Коли герой вийде з госпіталю. Заповнене лише в стані Wounded.
-        /// Місткість госпіталю героїв не обмежує — на відміну від юнітів,
-        /// вони не гинуть, тож надлишку, який треба кудись подіти, не буває.
-        /// </summary>
-        public DateTime? HealedAt { get; private set; }
         public DateTime AcquiredAt { get; private set; }
 
         /// <summary>
@@ -79,7 +73,8 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
 
-        public Hero(Guid id, Guid playerId, int serverId, string heroKey, DateTime utcNow) : base(id)
+        public Hero(Guid id, Guid playerId, int serverId, string heroKey, Guid garrisonId, bool asLeader,
+            DateTime utcNow) : base(id)
         {
             PlayerId = playerId;
             ServerId = serverId;
@@ -88,6 +83,8 @@ namespace EmpireIdle.Domain.Entities
             Level = 1;
             Constellation = 0;
             State = HeroState.Idle;
+            StationedGarrisonId = garrisonId;
+            IsLeader = asLeader;
             AcquiredAt = utcNow;
             UpdatedAt = utcNow;
         }
@@ -121,6 +118,9 @@ namespace EmpireIdle.Domain.Entities
         /// Похід закінчився, герой став у гарнізон. Свій він чи чужий,
         /// герою байдуже: підкріплення лишається стояти в союзника,
         /// атака повертає його додому, перехід той самий.
+        ///
+        /// «У дорозі» визначає порожній гарнізон, а не стан: поранений
+        /// у поході теж їде й теж прибуває, лишаючись пораненим.
         /// </summary>
         /// <param name="leaderSlotFree">
         /// Чи вільний лідерський слот саме зараз. Якщо за час походу
@@ -129,12 +129,34 @@ namespace EmpireIdle.Domain.Entities
         /// </param>
         public void Arrive(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
         {
-            if (State != HeroState.Deployed)
-                throw new InvalidStateException($"Hero {Id} is not deployed.");
+            // У дорозі означає порожній гарнізон плюс стан не Idle: щойно
+            // створений герой теж без гарнізону, але він нікуди не виходив
+            if (StationedGarrisonId is not null)
+                throw new InvalidStateException($"Hero {Id} is not on the move.");
 
-            State = HeroState.Idle;
+            if (State == HeroState.Deployed)
+                State = HeroState.Idle;
+
             StationedGarrisonId = garrisonId;
             IsLeader = leaderSlotFree;
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Знімає героя з гарнізону в дорогу додому. На відміну від Deploy
+        /// дозволений і пораненому: поранений лідер їде зі своїм загоном,
+        /// а лікувати його можна лише у власному госпіталі.
+        /// </summary>
+        public void SendHome(DateTime utcNow)
+        {
+            if (StationedGarrisonId is null)
+                throw new InvalidStateException($"Hero {Id} is already on the move.");
+
+            if (State == HeroState.Idle)
+                State = HeroState.Deployed;
+
+            StationedGarrisonId = null;
+            IsLeader = false;
             Touch(utcNow);
         }
 
@@ -177,38 +199,36 @@ namespace EmpireIdle.Domain.Entities
         /// Герой лягає в госпіталь. Викликається лише при поразці: інакше
         /// будь-який бій із утратами виводив би героя з ладу, і карта
         /// зупинилась би після першої ж сутички.
+        ///
+        /// Ідемпотентний: розбір бою може зачепити того самого лідера двічі,
+        /// і другий раз не має бути помилкою.
+        ///
+        /// Лідерство лишається за ним. Слот звільняє або лікування, або
+        /// явне призначення іншого — мовчазна втрата посади після поразки
+        /// виглядала б як баг.
         /// </summary>
-        public void Wound(DateTime healedAt, DateTime utcNow)
+        public void Wound(DateTime utcNow)
         {
+            if (State == HeroState.Wounded)
+                return;
+
             State = HeroState.Wounded;
-            HealedAt = healedAt;
             Touch(utcNow);
         }
 
         /// <summary>
-        /// Виписує героя, якщо строк лікування вийшов. Повертає false,
-        /// коли ще рано — сканер таймерів на цьому не падає.
+        /// Виписує героя з госпіталю. Лікування миттєве, як і в юнітів:
+        /// ціну платять ресурсами, а не часом — списує викликач.
         /// </summary>
-        public bool TryHeal(DateTime utcNow)
-        {
-            if (State != HeroState.Wounded || HealedAt is null || HealedAt > utcNow)
-                return false;
-
-            State = HeroState.Idle;
-            HealedAt = null;
-            Touch(utcNow);
-
-            return true;
-        }
-
-        /// <summary>Миттєве лікування за gems.</summary>
-        public void HealInstantly(DateTime utcNow)
+        public void Heal(DateTime utcNow)
         {
             if (State != HeroState.Wounded)
                 throw new InvalidStateException($"Hero {Id} is not wounded.");
 
+            if (StationedGarrisonId is null)
+                throw new InvalidStateException($"Hero {Id} is on the move and cannot be healed.");
+
             State = HeroState.Idle;
-            HealedAt = null;
             Touch(utcNow);
         }
 

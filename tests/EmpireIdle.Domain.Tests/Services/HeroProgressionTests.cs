@@ -22,7 +22,7 @@ namespace EmpireIdle.Domain.Tests.Services
                 MaxMarches = maxMarches,
                 TierStatMultipliers = multipliers ?? [1.0, 1.35, 1.8],
                 EvolutionItemKeys = evolutionItems ?? ["hero_essence_t2", "hero_essence_t3"],
-                HealMinutesPerLevel = 3,
+                HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
                 BaseLevelUpMinutes = 4
             });
 
@@ -37,7 +37,7 @@ namespace EmpireIdle.Domain.Tests.Services
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
             MaxConstellation = 6,
             MaxMarches = 8,
-            HealMinutesPerLevel = 3,
+            HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
             BaseLevelUpMinutes = 4
         };
 
@@ -209,11 +209,13 @@ namespace EmpireIdle.Domain.Tests.Services
         // ---------- Час ----------
 
         [Fact]
-        public void HealDuration_ShouldScaleWithLevel()
+        public void HealCost_ShouldScaleWithLevel()
         {
-            var progression = Create();
+            var progression = Progression();
 
-            Assert.Equal(TimeSpan.FromMinutes(30), progression.HealDuration(level: 10));
+            var cost = progression.HealCost(level: 10);
+
+            Assert.Equal(400, cost.Single(c => c.Resource == "food").Amount);
         }
 
         [Fact]

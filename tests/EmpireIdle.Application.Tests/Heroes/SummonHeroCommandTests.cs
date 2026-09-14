@@ -116,7 +116,7 @@ public class SummonHeroCommandTests
     {
         GivenShards(10);
 
-        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Now);
+        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
         _heroes.GetByKeyAsync(PlayerId, "warrior_bran", Arg.Any<CancellationToken>()).Returns(owned);
 
         await Handler().Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None);

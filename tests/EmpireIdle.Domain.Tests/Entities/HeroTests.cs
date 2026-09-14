@@ -15,7 +15,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         private static readonly DateTime Now = new(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
 
         private static Hero CreateHero(string heroKey = "warrior_bran")
-            => new(Guid.NewGuid(), Guid.NewGuid(), serverId: 1, heroKey, Now);
+            => new(Guid.NewGuid(), Guid.NewGuid(), serverId: 1, heroKey, Guid.NewGuid(), asLeader: true, Now);
 
         // ---------- Створення ----------
 
@@ -61,7 +61,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void Deploy_ShouldRejectWoundedHero()
         {
             var hero = CreateHero();
-            hero.Wound(Now.AddHours(1), Now);
+            hero.Wound(Now);
 
             Assert.Throws<InvalidStateException>(() => hero.Deploy(Now));
         }
@@ -91,81 +91,79 @@ namespace EmpireIdle.Domain.Tests.Entities
 
         // ---------- Госпіталь ----------
 
-        /// <summary>
-        /// Поранення застає героя в поході, тому воно не вимагає стану Idle:
-        /// перевірка стану тут заблокувала б розбір бою.
-        /// </summary>
         [Fact]
-        public void Wound_ShouldTakeHeroOutOfTheField_EvenWhileDeployed()
+        public void Wound_ShouldKeepLeadership()
         {
             var hero = CreateHero();
-            hero.Deploy(Now);
+            var garrison = Guid.NewGuid();
+            hero.StationIn(garrison, asLeader: true, Now);
 
-            var healedAt = Now.AddHours(3);
-            hero.Wound(healedAt, Now);
+            hero.Wound(Now);
 
             Assert.Equal(HeroState.Wounded, hero.State);
-            Assert.Equal(healedAt, hero.HealedAt);
+            Assert.True(hero.IsLeader);
             Assert.False(hero.IsAvailable);
         }
 
         [Fact]
-        public void TryHeal_ShouldKeepHeroInHospital_BeforeTheDeadline()
+        public void Wound_ShouldBeIdempotent()
         {
             var hero = CreateHero();
-            hero.Wound(Now.AddHours(3), Now);
+            hero.Wound(Now);
 
-            var healed = hero.TryHeal(Now.AddHours(1));
+            hero.Wound(Now.AddHours(1));
 
-            Assert.False(healed);
+            Assert.Equal(HeroState.Wounded, hero.State);
+        }
+
+        /// <summary>Поранений у поході доїжджає й лишається пораненим.</summary>
+        [Fact]
+        public void Arrive_ShouldKeepTheWoundedState()
+        {
+            var hero = CreateHero();
+            var garrison = Guid.NewGuid();
+            hero.StationIn(garrison, asLeader: false, Now);
+            hero.Deploy(Now);
+            hero.Wound(Now);
+
+            hero.Arrive(garrison, leaderSlotFree: true, Now.AddHours(1));
+
+            Assert.Equal(HeroState.Wounded, hero.State);
+            Assert.Equal(garrison, hero.StationedGarrisonId);
+        }
+
+        [Fact]
+        public void SendHome_ShouldMoveTheWoundedHero()
+        {
+            var hero = CreateHero();
+            hero.StationIn(Guid.NewGuid(), asLeader: true, Now);
+            hero.Wound(Now);
+
+            hero.SendHome(Now);
+
+            Assert.Null(hero.StationedGarrisonId);
+            Assert.False(hero.IsLeader);
             Assert.Equal(HeroState.Wounded, hero.State);
         }
 
         [Fact]
-        public void TryHeal_ShouldReleaseHero_AfterTheDeadline()
+        public void Heal_ShouldRejectHeroOnTheMove()
         {
             var hero = CreateHero();
-            hero.Wound(Now.AddHours(3), Now);
+            hero.StationIn(Guid.NewGuid(), asLeader: false, Now);
+            hero.Wound(Now);
+            hero.SendHome(Now);
 
-            var healed = hero.TryHeal(Now.AddHours(4));
-
-            Assert.True(healed);
-            Assert.Equal(HeroState.Idle, hero.State);
-            Assert.Null(hero.HealedAt);
-        }
-
-        /// <summary>
-        /// Сканер таймерів проходить по всіх героях підряд, тож здоровий герой
-        /// має повертати false, а не падати.
-        /// </summary>
-        [Fact]
-        public void TryHeal_ShouldIgnoreHealthyHero()
-        {
-            var hero = CreateHero();
-
-            Assert.False(hero.TryHeal(Now.AddDays(1)));
-            Assert.Equal(HeroState.Idle, hero.State);
+            Assert.Throws<InvalidStateException>(() => hero.Heal(Now));
         }
 
         [Fact]
-        public void HealInstantly_ShouldReleaseHeroBeforeTheDeadline()
+        public void Heal_ShouldRejectHealthyHero()
         {
             var hero = CreateHero();
-            hero.Wound(Now.AddHours(5), Now);
+            hero.StationIn(Guid.NewGuid(), asLeader: false, Now);
 
-            hero.HealInstantly(Now);
-
-            Assert.Equal(HeroState.Idle, hero.State);
-            Assert.Null(hero.HealedAt);
-        }
-
-        /// <summary>Платити gems за лікування здорового героя не можна.</summary>
-        [Fact]
-        public void HealInstantly_ShouldRejectHealthyHero()
-        {
-            var hero = CreateHero();
-
-            Assert.Throws<InvalidStateException>(() => hero.HealInstantly(Now));
+            Assert.Throws<InvalidStateException>(() => hero.Heal(Now));
         }
 
         // ---------- Рівні й тіри ----------

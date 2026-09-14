@@ -78,5 +78,15 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new AppointGarrisonLeaderCommand(playerId, heroId), cancellationToken);
             return NoContent();
         }
+
+        /// <summary>Вилікувати пораненого героя за ресурси.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/heal")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Heal(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new HealHeroCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
     }
 }

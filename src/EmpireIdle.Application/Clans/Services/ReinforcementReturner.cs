@@ -116,7 +116,7 @@ namespace EmpireIdle.Application.Clans.Services
             var stacks = host.Reinforcements.Where(r => r.OwnerPlayerId == ownerPlayerId).ToList();
 
             var stationed = await _heroRepository.GetByGarrisonAsync(host.Id, cancellationToken);
-            var heroes = stationed.Where(h => h.PlayerId == ownerPlayerId && h.IsAvailable).ToList();
+            var heroes = stationed.Where(h => h.PlayerId == ownerPlayerId).ToList();
 
             if (stacks.Count == 0 && heroes.Count == 0)
                 return false;
@@ -154,7 +154,7 @@ namespace EmpireIdle.Application.Clans.Services
 
             if (heroes.Count > 0)
             {
-                heroes[0].Deploy(utcNow);
+                heroes[0].SendHome(utcNow);
                 escort = heroes[0].Id;
             }
 
@@ -167,7 +167,7 @@ namespace EmpireIdle.Application.Clans.Services
 
             foreach (var extra in heroes.Skip(1))
             {
-                extra.Deploy(utcNow);
+                extra.SendHome(utcNow);
 
                 await _marchRepository.AddAsync(March.ReturningHome(
                     Guid.NewGuid(), host.ServerId, ownerGarrison.Id, extra.Id,

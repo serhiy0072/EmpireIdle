@@ -12,8 +12,17 @@
         "Unique": 60
       },
       "MaxMarches": 8,
-      "HealMinutesPerLevel": 3,
-      "InstantHealCostGems": 20,
+      "HealCostPerLevel": [
+        {
+          "Resource": "food",
+          "Amount": 40
+        },
+        {
+          "Resource": "iron",
+          "Amount": 20
+        }
+      ],
+      "HealBuildingKey": "hospital",
       "BaseLevelUpMinutes": 4,
       "BuildingKey": "heroeshall",
       "Classes": [ "warrior", "knight", "archer", "mage" ]
