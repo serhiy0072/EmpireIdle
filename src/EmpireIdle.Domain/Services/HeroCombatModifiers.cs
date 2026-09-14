@@ -2,7 +2,6 @@ using EmpireIdle.Domain.Entities;
 
 namespace EmpireIdle.Domain.Services
 {
-
     /// <summary>
     /// Збирає бонуси героя його війську. Чиста функція від конфіга
     /// й стану героя: нічого не зберігає, нічого не перераховує.

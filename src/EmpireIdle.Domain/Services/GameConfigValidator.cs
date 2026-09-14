@@ -267,8 +267,7 @@ namespace EmpireIdle.Domain.Services
                     "Combat.DefenderLossLosses.Min must not be below DefenderWinLosses.Max: losing would cost less than winning.");
         }
 
-        /// <summary>Ростер героїв: класи, тіри, предмети еволюції, ціна звичайних.</summary>
-        /// <summary>Ростер героїв: класи, тіри, вартість прокачки, ціна звичайних.</summary>
+        /// <summary>Ростер героїв: класи, тіри, вартість прокачки, лікування, пасивки.</summary>
         private static void ValidateHeroes(GameConfig config)
         {
             // Порожній ростер — конфіг героїв не описує (мінімальні фікстури в тестах).
@@ -311,6 +310,11 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"HeroSettings.BuildingKey '{settings.BuildingKey}' is not a known building — "
                     + "heroes would have nowhere to be summoned.");
+
+            if (!buildingKeys.Contains(settings.HealBuildingKey ?? string.Empty))
+                throw new InvalidOperationException(
+                    $"HeroSettings.HealBuildingKey '{settings.HealBuildingKey}' is not a known building — "
+                    + "wounded heroes would have nowhere to be healed.");
 
             if (settings.TierStatMultipliers.Count != settings.MaxTier)
                 throw new InvalidOperationException(
@@ -364,12 +368,29 @@ namespace EmpireIdle.Domain.Services
                     "HeroSettings.OverflowGems has no entry for ranks in the roster: "
                     + $"{string.Join(", ", missingRanks)}.");
 
-            // Смуги вартості прокачки. Набір ресурсів міняється з рівнем, тож діра
-            // між смугами вилізла б лише тоді, коли до неї дійшов би гравець.
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+            var unitKeys = config.Units.Select(u => u.Key).ToHashSet();
+            var statKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Attack", "Defense" };
+
+            // Порожня вартість означає безкоштовне лікування, і поразка
+            // перестає щось коштувати взагалі
+            if (settings.HealCostPerLevel.Count == 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.HealCostPerLevel is empty — healing a hero would be free.");
+
+            var brokenHealCost = settings.HealCostPerLevel
+                .Where(c => !resourceKeys.Contains(c.Resource) || c.Amount < 1)
+                .Select(c => $"'{c.Resource}' × {c.Amount}")
+                .ToList();
+
+            if (brokenHealCost.Count > 0)
+                throw new InvalidOperationException(
+                    $"HeroSettings.HealCostPerLevel has invalid entries: {string.Join(", ", brokenHealCost)}.");
 
             foreach (var hero in config.Heroes)
             {
+                // Смуги вартості прокачки. Набір ресурсів міняється з рівнем, тож діра
+                // між смугами вилізла б лише тоді, коли до неї дійшов би гравець.
                 if (hero.LevelUpCosts.Count == 0)
                     throw new InvalidOperationException(
                         $"Hero '{hero.Key}' has no LevelUpCosts — it could never be levelled.");
@@ -391,25 +412,9 @@ namespace EmpireIdle.Domain.Services
                 if (brokenLines.Count > 0)
                     throw new InvalidOperationException(
                         $"Hero '{hero.Key}' has invalid LevelUpCosts entries: {string.Join(", ", brokenLines)}.");
-            }
 
-            // Звичайні герої купуються уламками за золото — це основний щоденний
-            // стік золота. Решта приходить із банерів цілими, ціни не має.
-            var brokenShards = config.Heroes
-                .Where(h => h.Rank == Rarity.Common && (h.SummonShards < 1 || h.ShardPriceGold < 1))
-                .Select(h => h.Key)
-                .ToList();
-
-            if (brokenShards.Count > 0)
-                throw new InvalidOperationException(
-                    "Common heroes need SummonShards and ShardPriceGold above zero: "
-                    + $"{string.Join(", ", brokenShards)}.");
-
-            var unitKeys = config.Units.Select(u => u.Key).ToHashSet();
-            var statKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Attack", "Defense" };
-
-            foreach (var hero in config.Heroes)
-            {
+                // Пасивки: саме вони, а не стати героя, рухають бойову формулу,
+                // тож описка в цілі або статі мовчки знеструмила б героя
                 RequireUniqueKeys(hero.Passives.Select(p => p.Key).ToList(), $"Heroes['{hero.Key}'].Passives");
 
                 foreach (var passive in hero.Passives)
@@ -434,6 +439,18 @@ namespace EmpireIdle.Domain.Services
                             + "a passive never weakens its own army.");
                 }
             }
+
+            // Звичайні герої купуються уламками за золото — це основний щоденний
+            // стік золота. Решта приходить із банерів цілими, ціни не має.
+            var brokenShards = config.Heroes
+                .Where(h => h.Rank == Rarity.Common && (h.SummonShards < 1 || h.ShardPriceGold < 1))
+                .Select(h => h.Key)
+                .ToList();
+
+            if (brokenShards.Count > 0)
+                throw new InvalidOperationException(
+                    "Common heroes need SummonShards and ShardPriceGold above zero: "
+                    + $"{string.Join(", ", brokenShards)}.");
         }
     }
 }
