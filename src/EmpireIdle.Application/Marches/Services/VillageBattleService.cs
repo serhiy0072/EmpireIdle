@@ -119,7 +119,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             targetGarrison.ApplyDefenceLosses(defenderLosses, utcNow);
 
-            await _aftermath.AdmitAlliedWoundedAsync(defenderLosses, seed, utcNow, cancellationToken);
+            await _aftermath.AdmitAlliedWoundedAsync(defenderLosses, targetGarrison, targetVillage.PlayerId, result.AttackerWon, seed, utcNow, cancellationToken);
 
             // Грабунок до звітів: вантаж має бути на марші, коли той його згадає
             if (result.AttackerWon)

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
@@ -124,9 +125,13 @@ public class CompleteMarchCommandTests
         var logistics = new MarchLogistics(
             _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
 
+        var returner = new ReinforcementReturner(
+            _garrisons, _villages, _marches, _heroes, calculator,
+            NullLogger<ReinforcementReturner>.Instance);
+
         var aftermath = new BattleAftermath(
             _reports, _garrisons, _villages, _heroes, _notifier, casualties, catalog, logistics, status,
-            NullLogger<BattleAftermath>.Instance);
+            returner, NullLogger<BattleAftermath>.Instance);
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 

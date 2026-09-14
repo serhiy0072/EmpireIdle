@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
@@ -24,6 +25,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly CombatConfig _combatConfig;
         private readonly MarchLogistics _logistics;
         private readonly VillageStatus _status;
+        private readonly ReinforcementReturner _returner;
         private readonly ILogger<BattleAftermath> _logger;
 
         public BattleAftermath(
@@ -36,6 +38,7 @@ namespace EmpireIdle.Application.Marches.Services
             GameCatalog catalog,
             MarchLogistics logistics,
             VillageStatus status,
+            ReinforcementReturner returner,
             ILogger<BattleAftermath> logger)
         {
             _battleReportRepository = battleReportRepository;
@@ -47,6 +50,7 @@ namespace EmpireIdle.Application.Marches.Services
             _combatConfig = catalog.Config.Combat;
             _logistics = logistics;
             _status = status;
+            _returner = returner;
             _logger = logger;
         }
 
@@ -187,14 +191,19 @@ namespace EmpireIdle.Application.Marches.Services
         }
 
         /// <summary>
-        /// Розводить поранених підкріплень по госпіталях їхніх власників.
-        /// Кожен платить за своїх, і чужий госпіталь чужими не забивається.
+        /// Розводить поранених підкріплень по госпіталях їхніх власників
+        /// і, після програної оборони, розпускає контингенти по домівках.
         ///
+        /// Кожен платить за своїх, і чужий госпіталь чужими не забивається.
         /// Власного звіту союзники не отримують, а отже й кошика викупу —
         /// це свідоме спрощення: один бій інакше породжував би до двохсот звітів.
         /// </summary>
-        public async Task AdmitAlliedWoundedAsync(IReadOnlyList<StackLoss> losses, int seed, DateTime utcNow,
-            CancellationToken cancellationToken)
+        /// <param name="defenceLost">
+        /// Чи впала оборона. Тільки тоді лідери союзників ідуть у госпіталь,
+        /// а вцілілі повертаються додому: виграний бій лишає контингент стояти.
+        /// </param>
+        public async Task AdmitAlliedWoundedAsync(IReadOnlyList<StackLoss> losses, Garrison hostGarrison,
+            Guid hostOwnerId, bool defenceLost, int seed, DateTime utcNow, CancellationToken cancellationToken)
         {
             foreach (var group in losses.GroupBy(l => l.OwnerPlayerId))
             {
@@ -222,6 +231,26 @@ namespace EmpireIdle.Application.Marches.Services
                 var split = _casualties.Split(byType, capacity, WoundedSeed(seed));
 
                 ownerGarrison.AdmitWounded(split.Wounded, utcNow);
+            }
+
+            if (!defenceLost)
+                return;
+
+            // Власників беремо з гарнізону, а не з утрат: контингент міг
+            // вистояти без жодної втрати, а додому все одно йде
+            var owners = hostGarrison.ReinforcementOwners().ToList();
+
+            var stationed = await _heroRepository.GetByGarrisonAsync(hostGarrison.Id, cancellationToken);
+
+            foreach (var leader in stationed.Where(h => h.IsLeader && h.PlayerId != hostOwnerId))
+                leader.Wound(utcNow);
+
+            foreach (var ownerId in owners.Concat(stationed.Select(h => h.PlayerId)).Distinct())
+            {
+                if (ownerId == hostOwnerId)
+                    continue;
+
+                await _returner.ReturnOwnerAsync(hostGarrison, ownerId, utcNow, cancellationToken);
             }
         }
 

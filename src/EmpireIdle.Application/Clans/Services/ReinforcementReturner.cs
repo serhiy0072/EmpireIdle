@@ -62,7 +62,7 @@ namespace EmpireIdle.Application.Clans.Services
             var sent = 0;
 
             foreach (var host in hosts)
-                if (await ReturnFromHostAsync(host, ownerPlayerId, utcNow, cancellationToken))
+                if (await ReturnOwnerAsync(host, ownerPlayerId, utcNow, cancellationToken))
                     sent++;
 
             return sent;
@@ -96,7 +96,7 @@ namespace EmpireIdle.Application.Clans.Services
             var sent = 0;
 
             foreach (var ownerId in owners)
-                if (await ReturnFromHostAsync(host, ownerId, utcNow, cancellationToken))
+                if (await ReturnOwnerAsync(host, ownerId, utcNow, cancellationToken))
                     sent++;
 
             return sent;
@@ -104,14 +104,12 @@ namespace EmpireIdle.Application.Clans.Services
 
         /// <summary>
         /// Знімає війська й героїв одного власника з одного гарнізону
-        /// й веде їх додому.
-        ///
-        /// Героїв може бути кілька: кожен прийшов своїм маршем. Один їде
-        /// з юнітами, решта окремо — у марші місце рівно на одного героя,
-        /// і це та сама межа, з якої рахується кап походів.
+        /// й веде їх додому. Публічний, бо цим же шляхом розбір бою
+        /// розпускає контингенти після програної оборони: правило
+        /// повернення одне, і дублювати його в бою не можна.
         /// </summary>
-        private async Task<bool> ReturnFromHostAsync(Garrison host, Guid ownerPlayerId, DateTime utcNow,
-            CancellationToken cancellationToken)
+        /// <returns>true, якщо марш додому створено.</returns>
+        public async Task<bool> ReturnOwnerAsync(Garrison host, Guid ownerPlayerId, DateTime utcNow, CancellationToken cancellationToken)
         {
             var stacks = host.Reinforcements.Where(r => r.OwnerPlayerId == ownerPlayerId).ToList();
 
