@@ -96,7 +96,27 @@
           "Attack": 4,
           "Defense": 7,
           "Health": 35
-        }
+        },
+        "Passives": [
+          {
+            "Key": "shieldwall",
+            "DisplayName": "Стіна щитів",
+            "UnlockConstellation": 0,
+            "Target": "infantry",
+            "Stat": "Defense",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "hold_the_line",
+            "DisplayName": "Тримати стрій",
+            "UnlockConstellation": 3,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 4,
+            "PercentPerConstellation": 1.5
+          }
+        ]
       },
       {
         "Key": "archer_lyra",
@@ -165,7 +185,27 @@
           "Attack": 8,
           "Defense": 3,
           "Health": 24
-        }
+        },
+        "Passives": [
+          {
+            "Key": "volley",
+            "DisplayName": "Залп",
+            "UnlockConstellation": 0,
+            "Target": "archer",
+            "Stat": "Attack",
+            "BasePercent": 7,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "steady_aim",
+            "DisplayName": "Тверда рука",
+            "UnlockConstellation": 4,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 3,
+            "PercentPerConstellation": 1.5
+          }
+        ]
       },
       {
         "Key": "knight_ordwin",
@@ -234,7 +274,36 @@
           "Attack": 8,
           "Defense": 8,
           "Health": 42
-        }
+        },
+        "Passives": [
+          {
+            "Key": "lance_charge",
+            "DisplayName": "Удар списом",
+            "UnlockConstellation": 0,
+            "Target": "cavalry",
+            "Stat": "Attack",
+            "BasePercent": 9,
+            "PercentPerConstellation": 2.5
+          },
+          {
+            "Key": "barded_horses",
+            "DisplayName": "Кінська броня",
+            "UnlockConstellation": 2,
+            "Target": "cavalry",
+            "Stat": "Defense",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "vanguard",
+            "DisplayName": "Авангард",
+            "UnlockConstellation": 5,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 5,
+            "PercentPerConstellation": 2
+          }
+        ]
       },
       {
         "Key": "mage_iselle",
@@ -303,7 +372,45 @@
           "Attack": 13,
           "Defense": 4,
           "Health": 28
-        }
+        },
+        "Passives": [
+          {
+            "Key": "flame_wave",
+            "DisplayName": "Вогняна хвиля",
+            "UnlockConstellation": 0,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "scorched_ranks",
+            "DisplayName": "Випалені лави",
+            "UnlockConstellation": 2,
+            "Target": "siege",
+            "Stat": "Attack",
+            "BasePercent": 10,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "ward",
+            "DisplayName": "Оберіг",
+            "UnlockConstellation": 4,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 5,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "ninth_flame",
+            "DisplayName": "Дев'яте полум'я",
+            "UnlockConstellation": 6,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 0
+          }
+        ]
       }
     ]
   }

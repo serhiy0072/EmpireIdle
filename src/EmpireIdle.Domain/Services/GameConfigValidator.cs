@@ -404,6 +404,36 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     "Common heroes need SummonShards and ShardPriceGold above zero: "
                     + $"{string.Join(", ", brokenShards)}.");
+
+            var unitKeys = config.Units.Select(u => u.Key).ToHashSet();
+            var statKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Attack", "Defense" };
+
+            foreach (var hero in config.Heroes)
+            {
+                RequireUniqueKeys(hero.Passives.Select(p => p.Key).ToList(), $"Heroes['{hero.Key}'].Passives");
+
+                foreach (var passive in hero.Passives)
+                {
+                    if (passive.Target != HeroCombatModifiers.AllUnits && !unitKeys.Contains(passive.Target))
+                        throw new InvalidOperationException(
+                            $"Hero '{hero.Key}' passive '{passive.Key}' targets unknown unit '{passive.Target}'.");
+
+                    if (!statKeys.Contains(passive.Stat ?? string.Empty))
+                        throw new InvalidOperationException(
+                            $"Hero '{hero.Key}' passive '{passive.Key}' affects unknown stat '{passive.Stat}' — "
+                            + "combat knows Attack and Defense.");
+
+                    if (passive.UnlockConstellation < 0 || passive.UnlockConstellation > settings.MaxConstellation)
+                        throw new InvalidOperationException(
+                            $"Hero '{hero.Key}' passive '{passive.Key}' unlocks at constellation "
+                            + $"{passive.UnlockConstellation}, outside 0..{settings.MaxConstellation}.");
+
+                    if (passive.BasePercent < 0 || passive.PercentPerConstellation < 0)
+                        throw new InvalidOperationException(
+                            $"Hero '{hero.Key}' passive '{passive.Key}' has negative percentages — "
+                            + "a passive never weakens its own army.");
+                }
+            }
         }
     }
 }

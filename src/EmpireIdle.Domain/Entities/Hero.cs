@@ -129,8 +129,8 @@ namespace EmpireIdle.Domain.Entities
         /// </param>
         public void Arrive(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
         {
-            // У дорозі означає порожній гарнізон плюс стан не Idle: щойно
-            // створений герой теж без гарнізону, але він нікуди не виходив
+            // У дорозі означає порожній гарнізон: іншого способу його втратити,
+            // ніж Deploy або SendHome, у героя немає — конструктор вимагає гарнізон
             if (StationedGarrisonId is not null)
                 throw new InvalidStateException($"Hero {Id} is not on the move.");
 
