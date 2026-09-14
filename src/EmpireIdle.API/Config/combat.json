@@ -11,6 +11,22 @@
       "PreviewOddsThresholds": [ 2.5, 1.3, 0.8, 0.4 ],
       "NoLossShareThreshold": 0.03,
       "NewbieShieldTownHallLevel": 3,
+      "AttackerWinLosses": {
+        "Min": 0.02,
+        "Max": 0.35
+      },
+      "AttackerLossLosses": {
+        "Min": 0.35,
+        "Max": 0.60
+      },
+      "DefenderWinLosses": {
+        "Min": 0.02,
+        "Max": 0.25
+      },
+      "DefenderLossLosses": {
+        "Min": 0.25,
+        "Max": 0.50
+      },
       "TerrainBonuses": [
         {
           "Terrain": "plain",

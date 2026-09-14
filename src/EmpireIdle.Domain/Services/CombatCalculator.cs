@@ -54,15 +54,17 @@ namespace EmpireIdle.Domain.Services
             var attackerWon = attackerPower > defenderPower;
             var total = attackerPower + defenderPower;
 
-            // Що слабша сторона відносно суперника — то більші її втрати.
-            // Переможець втрачає пропорційно силі супротивника, переможений — майже все.
-            var attackerLossRatio = attackerWon
-                ? Math.Min(0.9, defenderPower / total)
-                : 1.0;
+            // Втрати ростуть зі силою супротивника в межах своєї смуги.
+            // Переможений більше не втрачає все: село після поразки лишається
+            // з військом, а не з нулем, інакше одна програна оборона
+            // викреслювала б гравця з гри на тижні
+            var attackerLossRatio = LossRatio(
+                attackerWon ? _config.AttackerWinLosses : _config.AttackerLossLosses,
+                defenderPower, total);
 
-            var defenderLossRatio = attackerWon
-                ? 1.0
-                : Math.Min(0.9, attackerPower / total);
+            var defenderLossRatio = LossRatio(
+                attackerWon ? _config.DefenderLossLosses : _config.DefenderWinLosses,
+                attackerPower, total);
 
             return new BattleResult(
                 attackerWon,
@@ -125,6 +127,21 @@ namespace EmpireIdle.Domain.Services
             => _config.TerrainBonuses
                 .FirstOrDefault(b => b.Terrain == terrainType && b.UnitType == unitType)
                 ?.Modifier ?? 1.0;
+
+        /// <summary>
+        /// Частка втрат у межах смуги: лінійно від частки ворожої сили
+        /// в загальній. Рівні сторони дають половину смуги, розгром —
+        /// її край.
+        /// </summary>
+        private static double LossRatio(LossBand band, double enemyPower, double totalPower)
+        {
+            if (totalPower <= 0)
+                return band.Min;
+
+            var share = Math.Clamp(enemyPower / totalPower, 0.0, 1.0);
+
+            return band.Min + (band.Max - band.Min) * share;
+        }
 
         /// <summary>
         /// Випадковий множник ~N(1.0, sigma), обрізаний межами конфіга.

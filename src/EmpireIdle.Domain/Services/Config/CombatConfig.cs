@@ -43,5 +43,17 @@ namespace EmpireIdle.Domain.Services.Config
         /// найстійкіші загони без утрат.
         /// </summary>
         public double NoLossShareThreshold { get; set; } = 0.03;
+
+        /// <summary>Втрати нападника, що переміг.</summary>
+        public LossBand AttackerWinLosses { get; set; } = new() { Min = 0.02, Max = 0.35 };
+
+        /// <summary>Втрати нападника, що програв.</summary>
+        public LossBand AttackerLossLosses { get; set; } = new() { Min = 0.35, Max = 0.60 };
+
+        /// <summary>Втрати захисника, що відбився.</summary>
+        public LossBand DefenderWinLosses { get; set; } = new() { Min = 0.02, Max = 0.25 };
+
+        /// <summary>Втрати захисника, чия оборона впала.</summary>
+        public LossBand DefenderLossLosses { get; set; } = new() { Min = 0.25, Max = 0.50 };
     }
 }

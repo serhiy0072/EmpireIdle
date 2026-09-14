@@ -30,6 +30,7 @@ namespace EmpireIdle.Domain.Services
             ValidateRating(config);
             ValidatePreview(config);
             ValidateHeroes(config);
+            ValidateLossBands(config);
         }
 
 
@@ -232,6 +233,38 @@ namespace EmpireIdle.Domain.Services
                     throw new InvalidOperationException(
                         "Combat.PreviewOddsThresholds must decrease: the first band is the strongest.");
             }
+        }
+
+        /// <summary>
+        /// Смуги втрат. Головне тут не межі 0–1, а відсутність інверсії:
+        /// якщо нижня межа програшу опускається під верхню межу перемоги,
+        /// то за певного співвідношення сил програти стає дешевше, ніж
+        /// перемогти, і оптимальною стратегією стає навмисна поразка.
+        /// </summary>
+        private static void ValidateLossBands(GameConfig config)
+        {
+            var bands = new (string Name, LossBand Band)[]
+            {
+                ("AttackerWinLosses", config.Combat.AttackerWinLosses),
+                ("AttackerLossLosses", config.Combat.AttackerLossLosses),
+                ("DefenderWinLosses", config.Combat.DefenderWinLosses),
+                ("DefenderLossLosses", config.Combat.DefenderLossLosses)
+            };
+
+            foreach (var (name, band) in bands)
+            {
+                if (band.Min < 0 || band.Max > 1 || band.Min > band.Max)
+                    throw new InvalidOperationException(
+                        $"Combat.{name} must satisfy 0 <= Min <= Max <= 1.");
+            }
+
+            if (config.Combat.AttackerLossLosses.Min < config.Combat.AttackerWinLosses.Max)
+                throw new InvalidOperationException(
+                    "Combat.AttackerLossLosses.Min must not be below AttackerWinLosses.Max: losing would cost less than winning.");
+
+            if (config.Combat.DefenderLossLosses.Min < config.Combat.DefenderWinLosses.Max)
+                throw new InvalidOperationException(
+                    "Combat.DefenderLossLosses.Min must not be below DefenderWinLosses.Max: losing would cost less than winning.");
         }
 
         /// <summary>Ростер героїв: класи, тіри, предмети еволюції, ціна звичайних.</summary>

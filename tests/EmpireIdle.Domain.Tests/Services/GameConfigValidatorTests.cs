@@ -379,5 +379,73 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectLevelUpCostWithUnknownResource()
             => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].Cost =
                 [new ResourceCost { Resource = "mithril", Amount = 10 }]);
+
+        // ---------- Смуги втрат ----------
+
+        [Fact]
+        public void Validate_ShouldRejectABandWithMinAboveMax()
+        {
+            var error = Rejects(c => c.Combat.AttackerWinLosses = new LossBand { Min = 0.4, Max = 0.2 });
+
+            Assert.Contains("AttackerWinLosses", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectABandAboveOne()
+        {
+            var error = Rejects(c => c.Combat.DefenderLossLosses = new LossBand { Min = 0.3, Max = 1.2 });
+
+            Assert.Contains("DefenderLossLosses", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectANegativeBand()
+        {
+            var error = Rejects(c => c.Combat.DefenderWinLosses = new LossBand { Min = -0.1, Max = 0.2 });
+
+            Assert.Contains("DefenderWinLosses", error.Message);
+        }
+
+        /// <summary>
+        /// Головна перевірка: нижня межа програшу під верхньою межею перемоги
+        /// означає, що за певного співвідношення сил програти дешевше, ніж
+        /// перемогти, і оптимальною стратегією стає навмисна поразка.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectInvertedAttackerBands()
+        {
+            var error = Rejects(c =>
+            {
+                c.Combat.AttackerWinLosses = new LossBand { Min = 0.02, Max = 0.50 };
+                c.Combat.AttackerLossLosses = new LossBand { Min = 0.35, Max = 0.60 };
+            });
+
+            Assert.Contains("AttackerLossLosses", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectInvertedDefenderBands()
+        {
+            var error = Rejects(c =>
+            {
+                c.Combat.DefenderWinLosses = new LossBand { Min = 0.02, Max = 0.40 };
+                c.Combat.DefenderLossLosses = new LossBand { Min = 0.25, Max = 0.50 };
+            });
+
+            Assert.Contains("DefenderLossLosses", error.Message);
+        }
+
+        /// <summary>Дотик межі — не інверсія: 0.35 і 0.35 сходяться, не перетинаються.</summary>
+        [Fact]
+        public void Validate_ShouldAcceptTouchingBands()
+        {
+            var config = ValidConfig();
+            config.Combat.AttackerWinLosses = new LossBand { Min = 0.02, Max = 0.35 };
+            config.Combat.AttackerLossLosses = new LossBand { Min = 0.35, Max = 0.60 };
+
+            var exception = Record.Exception(() => GameConfigValidator.Validate(config));
+
+            Assert.Null(exception);
+        }
     }
 }
