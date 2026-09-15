@@ -16,7 +16,6 @@ namespace EmpireIdle.Application.Common.Services
         private readonly IRandomSource _random;
         private readonly ArtifactRoller _roller;
 
-
         public ItemGranter(IInventoryRepository repository, IServerContext serverContext, IRandomSource random, ArtifactRoller roller)
         {
             _repository = repository;
