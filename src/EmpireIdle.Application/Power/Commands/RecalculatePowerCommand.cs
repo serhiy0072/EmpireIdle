@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

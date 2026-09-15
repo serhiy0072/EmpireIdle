@@ -1,18 +1,10 @@
-
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Combat
 {
-    /// <summary>Результат бою.</summary>
-    public record BattleResult(
-        bool AttackerWon,
-        double AttackerPower,
-        double DefenderPower,
-        Dictionary<string, int> AttackerLosses,
-        Dictionary<string, int> DefenderLosses);
-
     /// <summary>
     /// Рахує бій: сила сторін із урахуванням місцевості й випадковості,
     /// втрати пропорційні співвідношенню сил.

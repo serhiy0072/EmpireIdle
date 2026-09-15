@@ -1,12 +1,8 @@
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 
 namespace EmpireIdle.Domain.Services
 {
-    /// <summary>
-    /// Результат бою разом із розкладкою втрат атакувальника.
-    /// </summary>
-    public record BattleOutcome(BattleResult Battle, CasualtySplit AttackerCasualties);
-
     /// <summary>
     /// Проводить бій: рахує сили, визначає переможця, розподіляє втрати.
     ///

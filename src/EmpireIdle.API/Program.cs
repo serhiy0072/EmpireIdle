@@ -6,6 +6,7 @@ using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Granters;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;

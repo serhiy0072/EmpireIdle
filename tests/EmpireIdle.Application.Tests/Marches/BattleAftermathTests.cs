@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;

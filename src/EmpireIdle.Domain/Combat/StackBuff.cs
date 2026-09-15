@@ -1,4 +1,6 @@
-namespace EmpireIdle.Domain.Services
+using EmpireIdle.Domain.Services;
+
+namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
     /// Множники, які герой дає своєму стеку. Порожній примірник —

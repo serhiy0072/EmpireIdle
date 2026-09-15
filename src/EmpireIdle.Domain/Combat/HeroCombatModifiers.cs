@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 
 namespace EmpireIdle.Domain.Services

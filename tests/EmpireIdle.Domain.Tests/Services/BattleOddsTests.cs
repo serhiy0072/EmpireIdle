@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
