@@ -133,14 +133,15 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Заточка провалилась і зіпсувала зброю. Рівень при цьому не
-        /// падає: гравець утратив спробу, а не прогрес.
+        /// Предмет зіпсовано. Рівень при цьому не падає: гравець утратив
+        /// спробу, а не прогрес.
+        ///
+        /// Слот тут не перевіряється: те, що артефакти не ламаються, —
+        /// правило заточки, і живе воно в EnhanceArtifactCommand, який
+        /// просто ніколи цього не кличе.
         /// </summary>
         public void Break(DateTime utcNow)
         {
-            if (Slot != EquipmentSlot.Weapon)
-                throw new InvalidStateException($"Equipment {Id} is not a weapon and cannot break.");
-
             IsBroken = true;
             EquippedByHeroId = null;
             SlotIndex = 0;

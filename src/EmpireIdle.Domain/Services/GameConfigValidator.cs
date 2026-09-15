@@ -489,6 +489,36 @@ namespace EmpireIdle.Domain.Services
                     "Equipment.ArtifactStats has fewer entries than ArtifactBaseStats — "
                     + "a new artifact could not be filled.");
 
+            var setKeys = config.Items
+                .Where(i => !string.IsNullOrWhiteSpace(i.SetKey))
+                .Select(i => i.SetKey!)
+                .ToHashSet();
+
+            RequireUniqueKeys(config.Equipment.SetBonuses.Select(b => b.SetKey).ToList(), "Equipment.SetBonuses");
+
+            foreach (var bonus in config.Equipment.SetBonuses)
+            {
+                if (!setKeys.Contains(bonus.SetKey))
+                    throw new InvalidOperationException(
+                        $"Set bonus '{bonus.SetKey}' has no items — nobody could ever collect it.");
+
+                var pieces = config.Items.Count(i => i.SetKey == bonus.SetKey);
+
+                // Комплект, більший за кількість предметів або за кількість
+                // слотів, недосяжний: правило є, спрацювати не може
+                if (bonus.RequiredPieces < 1 || bonus.RequiredPieces > pieces)
+                    throw new InvalidOperationException(
+                        $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but only {pieces} exist.");
+
+                if (bonus.RequiredPieces > config.Equipment.ArtifactSlots)
+                    throw new InvalidOperationException(
+                        $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but a hero has only "
+                        + $"{config.Equipment.ArtifactSlots} artifact slots.");
+
+                if (bonus.Stats.Count == 0)
+                    throw new InvalidOperationException($"Set bonus '{bonus.SetKey}' grants nothing.");
+            }
+
             var brokenBands = config.Equipment.ArtifactStats
                 .Where(s => s.Min > s.Max || s.UpgradeMin > s.UpgradeMax || s.Min < 0 || s.UpgradeMin < 0)
                 .Select(s => s.Stat)

@@ -74,10 +74,6 @@ namespace EmpireIdle.Domain.Tests.Entities
         }
 
         [Fact]
-        public void Break_ShouldRejectAnArtifact()
-            => Assert.Throws<InvalidStateException>(() => Artifact().Break(Now));
-
-        [Fact]
         public void EquipTo_ShouldRejectABrokenWeapon()
         {
             var item = Weapon();

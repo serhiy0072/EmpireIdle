@@ -60,6 +60,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Пул статів артефактів.</summary>
         public List<ArtifactStatConfig> ArtifactStats { get; set; } = new();
 
+        /// <summary>Бонуси за повні набори артефактів.</summary>
+        public List<SetBonusConfig> SetBonuses { get; set; } = new();
+
         /// <summary>
         /// Множник значень за рідкістю артефакта. Той самий стат на
         /// unique-артефакті вартий більше, ніж на common.

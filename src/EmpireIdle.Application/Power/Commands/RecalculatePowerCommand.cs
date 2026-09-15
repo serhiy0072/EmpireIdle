@@ -1,6 +1,8 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -28,9 +30,14 @@ namespace EmpireIdle.Application.Power.Commands
         private readonly IVillageRepository _villageRepository;
         private readonly IMarchRepository _marchRepository;
         private readonly IPlayerPowerRepository _powerRepository;
+        private readonly IHeroRepository _heroRepository;
+        private readonly IInventoryRepository _inventoryRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly CombatCalculator _combat;
         private readonly TimeProvider _timeProvider;
+        private readonly HeroProgression _progression;
+        private readonly HeroStats _heroStats;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<RecalculatePowerCommandHandler> _logger;
 
         public RecalculatePowerCommandHandler(
@@ -38,18 +45,28 @@ namespace EmpireIdle.Application.Power.Commands
             IVillageRepository villageRepository,
             IMarchRepository marchRepository,
             IPlayerPowerRepository powerRepository,
+            IHeroRepository heroRepository,
+            IInventoryRepository inventoryRepository,
             IUnitOfWork unitOfWork,
             CombatCalculator combat,
             TimeProvider timeProvider,
+            HeroProgression progression,
+            HeroStats heroStats,
+            GameCatalog catalog,
             ILogger<RecalculatePowerCommandHandler> logger)
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
             _marchRepository = marchRepository;
             _powerRepository = powerRepository;
+            _heroRepository = heroRepository;
+            _inventoryRepository = inventoryRepository;
             _unitOfWork = unitOfWork;
             _combat = combat;
             _timeProvider = timeProvider;
+            _progression = progression;
+            _heroStats = heroStats;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -89,6 +106,35 @@ namespace EmpireIdle.Application.Power.Commands
             // Поранені й відновлювані не входять: вони не б'ються
             var armyPower = _combat.CalculatePower(army, NeutralTerrain, isAttacker: true);
 
+            // Герої рахуються всі, де б не стояли: ростер належить гравцеві,
+            // а не гарнізону. Поранені теж — на піку своєї сили, бо вони
+            // не гинуть і повертаються в строй, щойно їх вилікують
+            var heroes = await _heroRepository.GetByPlayerAsync(village.PlayerId, cancellationToken);
+
+            var heroPower = 0.0;
+            var equipmentPower = 0.0;
+
+            foreach (var hero in heroes)
+            {
+                var heroConfig = _catalog.FindHero(hero.HeroKey);
+
+                if (heroConfig is null)
+                    continue;
+
+                var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
+
+                var bare = _catalog.FindHero(hero.HeroKey)!.BaseStats.Keys
+                    .Sum(stat => _progression.StatValue(heroConfig, stat, hero.Level, hero.Tier));
+
+                var full = _heroStats.Compute(hero, heroConfig, equipped).Values.Sum();
+
+                heroPower += bare;
+
+                // Спорядження окремою колонкою: гравець має бачити, скільки
+                // сили дає ростер, а скільки — те, що на ньому вдягнене
+                equipmentPower += full - bare;
+            }
+
             var power = await _powerRepository.GetByPlayerAsync(village.PlayerId, cancellationToken);
 
             if (power is null)
@@ -97,8 +143,7 @@ namespace EmpireIdle.Application.Power.Commands
                 await _powerRepository.AddAsync(power, cancellationToken);
             }
 
-            // Абсолютні значення, не дельти: герої й спорядження — фаза 24
-            power.Set(armyPower, hero: 0, equipment: 0, now);
+            power.Set(armyPower, heroPower, equipmentPower, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -24,6 +24,9 @@ namespace EmpireIdle.Domain.Services
         public IReadOnlyDictionary<string, QuestConfig> Quests { get; }
         public IReadOnlyDictionary<string, HeroConfig> Heroes { get; }
 
+        /// <summary>Які предмети входять у кожен набір.</summary>
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> SetPieces { get; }
+
         /// <summary>Ключ головної будівлі — гейт для решти.</summary>
         public string MainBuildingKey { get; }
 
@@ -44,6 +47,10 @@ namespace EmpireIdle.Domain.Services
             Quests = config.Quests.ToDictionary(q => q.Key);
             Heroes = config.Heroes.ToDictionary(h => h.Key);
             MainBuildingKey = config.Buildings.Single(b => b.IsMainBuilding).Key;
+            SetPieces = config.Items
+                .Where(i => !string.IsNullOrWhiteSpace(i.SetKey))
+                .GroupBy(i => i.SetKey!)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(i => i.Key).ToList());
         }
 
         /// <summary>

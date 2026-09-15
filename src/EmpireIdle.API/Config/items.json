@@ -99,7 +99,126 @@
         "Description": "Переносить поселення на обрану вільну клітину",
         "Rarity": "rare",
         "Type": "teleport"
+      },
+      {
+        "Key": "sword_iron",
+        "Type": "equipment",
+        "DisplayName": "Залізний меч",
+        "Slot": "Weapon",
+        "WeaponClasses": [ "warrior" ],
+        "BaseStats": { "Attack": 12 },
+        "PriceGold": 500
+      },
+      {
+        "Key": "lance_iron",
+        "Type": "equipment",
+        "DisplayName": "Залізний спис",
+        "Slot": "Weapon",
+        "WeaponClasses": [ "knight" ],
+        "BaseStats": { "Attack": 14 },
+        "PriceGold": 600
+      },
+      {
+        "Key": "bow_yew",
+        "Type": "equipment",
+        "DisplayName": "Тисовий лук",
+        "Slot": "Weapon",
+        "WeaponClasses": [ "archer" ],
+        "BaseStats": { "Attack": 11 },
+        "PriceGold": 500
+      },
+      {
+        "Key": "staff_ember",
+        "Type": "equipment",
+        "DisplayName": "Жарний посох",
+        "Slot": "Weapon",
+        "WeaponClasses": [ "mage" ],
+        "BaseStats": { "Attack": 16 },
+        "PriceGold": 750
+      },
+      {
+        "Key": "dawn_amulet",
+        "Type": "equipment",
+        "DisplayName": "Амулет світанку",
+        "Slot": "Artifact",
+        "SetKey": "dawn"
+      },
+      {
+        "Key": "dawn_ring",
+        "Type": "equipment",
+        "DisplayName": "Перстень світанку",
+        "Slot": "Artifact",
+        "SetKey": "dawn"
+      },
+      {
+        "Key": "dawn_sigil",
+        "Type": "equipment",
+        "DisplayName": "Знак світанку",
+        "Slot": "Artifact",
+        "SetKey": "dawn"
+      },
+      {
+        "Key": "dawn_chime",
+        "Type": "equipment",
+        "DisplayName": "Дзвіночок світанку",
+        "Slot": "Artifact",
+        "SetKey": "dawn"
       }
-    ]
+    ],
+    "Equipment": {
+      "ArtifactSlots": 4,
+      "MaxEnhancement": 20,
+      "EnhancementBonusPerLevel": 0.1,
+      "ForgeBuildingKey": "forge",
+      "EnhanceBaseGold": 200,
+      "EnhanceCostGrowth": 1.35,
+      "SafeEnhancementLevel": 5,
+      "SuccessDropPerLevel": 0.05,
+      "MinSuccessChance": 0.25,
+      "BreakChanceOnFailure": 0.2,
+      "RepairCostShare": 0.5,
+      "ArtifactBaseStats": 2,
+      "ArtifactStatLevels": [ 4, 8 ],
+      "ArtifactUpgradeLevels": [ 12, 16, 20 ],
+      "DoubleUpgradeChance": 0.1,
+      "SetBonuses": [
+        {
+          "SetKey": "dawn",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        }
+      ],
+      "ArtifactStats": [
+        {
+          "Stat": "Attack",
+          "Min": 4,
+          "Max": 12,
+          "UpgradeMin": 1,
+          "UpgradeMax": 3
+        },
+        {
+          "Stat": "Defense",
+          "Min": 5,
+          "Max": 14,
+          "UpgradeMin": 1,
+          "UpgradeMax": 4
+        },
+        {
+          "Stat": "Health",
+          "Min": 20,
+          "Max": 60,
+          "UpgradeMin": 5,
+          "UpgradeMax": 15
+        }
+      ],
+      "ArtifactRarityMultipliers": {
+        "Common": 1.0,
+        "Rare": 1.4,
+        "Unique": 2.0
+      }
+    }
   }
 }
