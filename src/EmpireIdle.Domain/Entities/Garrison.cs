@@ -1,5 +1,5 @@
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Exceptions;
-using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Domain.Entities
 {

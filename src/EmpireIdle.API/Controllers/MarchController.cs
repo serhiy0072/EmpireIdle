@@ -1,7 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Queries;
-using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Combat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

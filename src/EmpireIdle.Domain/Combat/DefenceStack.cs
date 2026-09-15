@@ -1,4 +1,4 @@
-namespace EmpireIdle.Domain.Entities
+namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
     /// Однорідна частина оборони: чиї юніти, якого типу й скільки.

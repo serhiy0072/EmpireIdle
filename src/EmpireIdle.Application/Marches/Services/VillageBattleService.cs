@@ -1,11 +1,10 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging;
-using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Marches.Services
 {

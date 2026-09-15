@@ -1,7 +1,4 @@
-using EmpireIdle.Domain.Combat;
-using EmpireIdle.Domain.Entities;
-
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
     /// Проводить бій: рахує сили, визначає переможця, розподіляє втрати.

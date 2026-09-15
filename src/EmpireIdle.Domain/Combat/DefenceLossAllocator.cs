@@ -1,6 +1,4 @@
-using EmpireIdle.Domain.Entities;
-
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
     /// Розкидає втрати захисника по стеках.

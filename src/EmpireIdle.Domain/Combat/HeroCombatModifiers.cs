@@ -1,7 +1,7 @@
-using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Services;
 
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
     /// Збирає бонуси героя його війську. Чиста функція від конфіга

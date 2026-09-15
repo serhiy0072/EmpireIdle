@@ -1,6 +1,4 @@
-using EmpireIdle.Domain.Combat;
-
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
     /// Бонуси всіх лідерів, що стоять в одному гарнізоні.

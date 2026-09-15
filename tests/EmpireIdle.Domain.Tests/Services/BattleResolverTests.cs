@@ -1,5 +1,4 @@
 using EmpireIdle.Domain.Combat;
-using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 

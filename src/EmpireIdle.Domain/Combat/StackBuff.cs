@@ -1,5 +1,3 @@
-using EmpireIdle.Domain.Services;
-
 namespace EmpireIdle.Domain.Combat
 {
     /// <summary>

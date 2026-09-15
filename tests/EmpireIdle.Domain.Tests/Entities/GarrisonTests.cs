@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;

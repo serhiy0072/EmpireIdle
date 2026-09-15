@@ -1,6 +1,6 @@
 using EmpireIdle.Domain.Enums;
 
-namespace EmpireIdle.Domain.Services
+namespace EmpireIdle.Domain.Combat
 {    /// <summary>Що бачить гравець перед відправкою армії.</summary>
     public record BattlePreviewResult(
         BattleOdds Odds,
