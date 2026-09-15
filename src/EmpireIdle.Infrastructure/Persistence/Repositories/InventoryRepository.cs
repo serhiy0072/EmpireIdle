@@ -41,6 +41,14 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<EquipmentItem>> GetEquippedAsync(Guid heroId, CancellationToken cancellationToken = default)
+            => _context.EquipmentItems
+            .Include(e => e.Stats)
+            .AsSplitQuery()
+            .Where(e => e.EquippedByHeroId == heroId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public async Task AddItemAsync(PlayerItem item, CancellationToken cancellationToken = default)
         {
             await _context.PlayerItems.AddAsync(item, cancellationToken);

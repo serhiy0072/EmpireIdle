@@ -88,5 +88,26 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new HealHeroCommand(playerId, heroId), cancellationToken);
             return NoContent();
         }
+
+        /// <summary>Вдягнути спорядження на героя.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/equipment/{equipmentId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Equip(Guid playerId, Guid heroId, Guid equipmentId,
+            [FromQuery] int slotIndex, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new EquipHeroItemCommand(playerId, heroId, equipmentId, slotIndex), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Зняти спорядження в інвентар.</summary>
+        [HttpDelete("{playerId:guid}/equipment/{equipmentId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Unequip(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new UnequipHeroItemCommand(playerId, equipmentId), cancellationToken);
+            return NoContent();
+        }
     }
 }

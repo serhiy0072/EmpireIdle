@@ -15,12 +15,20 @@ namespace EmpireIdle.Application.Tests.Heroes;
 internal static class HeroTestConfig
 {
     public const string Hall = "heroeshall";
+    public const string Forge = "forge";
     public const string CommonHero = "warrior_bran";
     public const string UniqueHero = "mage_iselle";
+
+    public const string WarriorWeapon = "sword_iron";
+    public const string BetterWarriorWeapon = "sword_steel";
+    public const string Artifact = "amulet_dawn";
+    public const string SecondArtifact = "ring_ember";
 
     public const int ShardPriceGold = 100;
     public const int SummonShards = 10;
     public const int LevelUpGold = 100;
+    public const int WeaponPriceGold = 500;
+    public const int ArtifactSlots = 4;
 
     public static GameConfig Create() => new()
     {
@@ -41,13 +49,60 @@ internal static class HeroTestConfig
                 Cost = [new ResourceCost { Resource = "gold", Amount = 10 }]
             },
             new BuildingConfig { Key = "warehouse", StoresResources = ["gold", "food"], UpgradeCostGrowth = 1.45 },
-            new BuildingConfig { Key = "hospital", UpgradeCostGrowth = 1.45 }
+            new BuildingConfig { Key = "hospital", UpgradeCostGrowth = 1.45 },
+            new BuildingConfig { Key = Forge, UpgradeCostGrowth = 1.45 }
         ],
         Items =
         [
             new ItemConfig { Key = "hero_essence_t2" },
-            new ItemConfig { Key = "hero_essence_t3" }
+            new ItemConfig { Key = "hero_essence_t3" },
+
+            // Зброя воїна: клас звужений навмисно, на ньому тримається
+            // перевірка придатності
+            new ItemConfig
+            {
+                Key = WarriorWeapon,
+                Type = "equipment",
+                Slot = EquipmentSlot.Weapon,
+                WeaponClasses = ["warrior"],
+                BaseStats = new Dictionary<string, double> { ["Attack"] = 10 },
+                PriceGold = WeaponPriceGold
+            },
+            new ItemConfig
+            {
+                Key = BetterWarriorWeapon,
+                Type = "equipment",
+                Slot = EquipmentSlot.Weapon,
+                WeaponClasses = ["warrior"],
+                BaseStats = new Dictionary<string, double> { ["Attack"] = 18 },
+                PriceGold = WeaponPriceGold * 2
+            },
+
+            // Артефакти без базових статів: їхні стати випадкові й лежать
+            // на екземплярі. Обидва з одного набору — на них перевіряється
+            // і сет-бонус, і заборона дублікатів
+            new ItemConfig
+            {
+                Key = Artifact,
+                Type = "equipment",
+                Slot = EquipmentSlot.Artifact,
+                SetKey = "dawn"
+            },
+            new ItemConfig
+            {
+                Key = SecondArtifact,
+                Type = "equipment",
+                Slot = EquipmentSlot.Artifact,
+                SetKey = "dawn"
+            }
         ],
+        Equipment = new EquipmentConfig
+        {
+            ArtifactSlots = ArtifactSlots,
+            MaxEnhancement = 20,
+            EnhancementBonusPerLevel = 0.1,
+            ForgeBuildingKey = Forge
+        },
         HeroSettings = new HeroesConfig
         {
             BuildingKey = Hall,
