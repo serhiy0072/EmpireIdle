@@ -120,5 +120,15 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new EnhanceArtifactCommand(playerId, equipmentId), cancellationToken);
             return NoContent();
         }
+
+        /// <summary>Купити зброю в кузні. Ідемпотентна операція.</summary>
+        [HttpPost("{playerId:guid}/weapons/{itemKey}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> BuyWeapon(Guid playerId, string itemKey, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new BuyWeaponCommand(playerId, itemKey), cancellationToken);
+            return NoContent();
+        }
     }
 }

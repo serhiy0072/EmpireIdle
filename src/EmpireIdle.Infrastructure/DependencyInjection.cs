@@ -99,6 +99,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IRewardGranter, ResourceRewardGranter>();
             services.AddScoped<IRewardGranter, ItemRewardGranter>();
             services.AddScoped<IRewardGranter, HeroRewardGranter>();
+            services.AddScoped<IRewardGranter, EquipmentRewardGranter>();
             services.AddScoped<RewardDispatcher>();
 
             // Квести

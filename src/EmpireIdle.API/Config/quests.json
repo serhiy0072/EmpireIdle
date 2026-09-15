@@ -107,6 +107,11 @@
           {
             "Type": "Gems",
             "Amount": 30
+          },
+          {
+            "Type": "Equipment",
+            "Key": "dawn_amulet",
+            "Amount": 1
           }
         ]
       },

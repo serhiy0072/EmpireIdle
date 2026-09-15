@@ -1,7 +1,10 @@
-using System.Text.RegularExpressions;
 using AwesomeAssertions;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Configuration;
+using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace EmpireIdle.Architecture.Tests;
 
@@ -82,5 +85,61 @@ public class ShippedConfigTests
         var build = () => new GameCatalog(config);
 
         build.Should().NotThrow();
+    }
+
+    /// <summary>
+    /// Кожен тип нагороди в конфізі має зареєстрованого грантера.
+    ///
+    /// Список грантерів у DI ведеться руками, тож новий тип легко додати
+    /// в JSON і забути в коді. Тоді помилка спливає не на старті, а тоді,
+    /// коли перший гравець дійде до цієї нагороди — RewardDispatcher кидає
+    /// на невідомому типі вже під час видачі.
+    /// </summary>
+    [Fact]
+    public void ShippedConfig_ShouldOnlyUseSupportedRewardTypes()
+    {
+        var config = Bind(RepositoryRoot.Find());
+
+        var supported = typeof(IRewardGranter).Assembly
+            .GetTypes()
+            .Where(t => t is { IsAbstract: false, IsInterface: false } && t.IsAssignableTo(typeof(IRewardGranter)))
+            .Select(t => (string)t.GetProperty(nameof(IRewardGranter.RewardType))!
+                .GetValue(RuntimeHelpers.GetUninitializedObject(t))!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var used = config.Quests
+            .SelectMany(q => q.Rewards)
+            .Select(r => r.Type)
+            .Distinct()
+            .ToList();
+
+        used.Should().NotBeEmpty("інакше тест проходить на порожньому списку й нічого не перевіряє");
+
+        used.Should().OnlyContain(type => supported.Contains(type),
+            $"кожен тип нагороди потребує грантера; зареєстровані: {string.Join(", ", supported)}");
+    }
+
+    /// <summary>
+    /// Спорядження не видається як стаковий предмет.
+    ///
+    /// ItemRewardGranter кладе PlayerItem — рядок «ключ плюс кількість».
+    /// Артефакт так не видається: йому потрібен власний екземпляр зі статами
+    /// й журналом роллів. Помилка мовчазна: нагорода наче видана, а предмета
+    /// в героя немає й не буде.
+    /// </summary>
+    [Fact]
+    public void ShippedConfig_ShouldNotGrantEquipmentAsAStackableItem()
+    {
+        var config = Bind(RepositoryRoot.Find());
+        var catalog = new GameCatalog(config);
+
+        var wrong = config.Quests
+            .SelectMany(q => q.Rewards)
+            .Where(r => string.Equals(r.Type, "Item", StringComparison.OrdinalIgnoreCase) && r.Key is not null)
+            .Where(r => catalog.Items.GetValueOrDefault(r.Key!)?.Slot is not null)
+            .Select(r => r.Key!)
+            .ToList();
+
+        wrong.Should().BeEmpty("спорядження видається типом Equipment, а не Item");
     }
 }
