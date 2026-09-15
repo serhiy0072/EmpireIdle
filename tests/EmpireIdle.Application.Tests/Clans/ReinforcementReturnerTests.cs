@@ -54,6 +54,8 @@ public class ReinforcementReturnerTests
         return new ReinforcementReturner(
             _garrisons, _villages, _marches, _heroes,
             new MarchCalculator(new TerrainGenerator(config.Map), catalog),
+            catalog,
+            new HeroProgression(config.HeroSettings),
             NullLogger<ReinforcementReturner>.Instance);
     }
 

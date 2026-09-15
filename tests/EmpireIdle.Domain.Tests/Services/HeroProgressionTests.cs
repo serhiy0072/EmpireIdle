@@ -311,5 +311,24 @@ namespace EmpireIdle.Domain.Tests.Services
 
             Assert.Throws<InvalidOperationException>(() => Progression().LevelUpCost(hero, 3));
         }
+
+        /// <summary>
+        /// Тір множить бойові стати, але не швидкість: еволюція робить
+        /// героя сильнішим, а не прудкішим, інакше карта стискалася б
+        /// разом із прогресом.
+        /// </summary>
+        [Fact]
+        public void MarchSpeed_ShouldNotScaleWithTier()
+        {
+            var config = Hero();
+            config.BaseStats["Speed"] = 5;
+
+            Assert.Equal(5, Progression().MarchSpeed(config), 3);
+        }
+
+        /// <summary>Тип без явної швидкості бере значення з налаштувань.</summary>
+        [Fact]
+        public void MarchSpeed_ShouldFallBackToTheDefault()
+            => Assert.Equal(Settings().DefaultMarchSpeed, Progression().MarchSpeed(Hero()), 3);
     }
 }

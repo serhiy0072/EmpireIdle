@@ -20,6 +20,8 @@ namespace EmpireIdle.Application.Clans.Services
         private readonly IMarchRepository _marchRepository;
         private readonly IHeroRepository _heroRepository;
         private readonly MarchCalculator _calculator;
+        private readonly GameCatalog _catalog;
+        private readonly HeroProgression _progression;
         private readonly ILogger<ReinforcementReturner> _logger;
 
         public ReinforcementReturner(
@@ -28,6 +30,8 @@ namespace EmpireIdle.Application.Clans.Services
             IMarchRepository marchRepository,
             IHeroRepository heroRepository,
             MarchCalculator calculator,
+            GameCatalog catalog,
+            HeroProgression progression,
             ILogger<ReinforcementReturner> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -35,6 +39,8 @@ namespace EmpireIdle.Application.Clans.Services
             _marchRepository = marchRepository;
             _heroRepository = heroRepository;
             _calculator = calculator;
+            _catalog = catalog;
+            _progression = progression;
             _logger = logger;
         }
 
@@ -145,9 +151,6 @@ namespace EmpireIdle.Application.Clans.Services
 
             var units = host.WithdrawReinforcements(ownerPlayerId, utcNow);
 
-            var duration = _calculator.CalculateDuration(
-                host.ServerId, hostVillage.X, hostVillage.Y, ownerVillage.X, ownerVillage.Y, units);
-
             Guid? escort = null;
 
             if (heroes.Count > 0)
@@ -156,6 +159,14 @@ namespace EmpireIdle.Application.Clans.Services
                 escort = heroes[0].Id;
             }
 
+            // Колона йде за найповільнішим, і герой у цьому рахунку нарівні
+            // з юнітами: важкий супровід гальмує відхід так само, як облога
+            var duration = _calculator.CalculateDuration(
+                host.ServerId, hostVillage.X, hostVillage.Y, ownerVillage.X, ownerVillage.Y, units,
+                heroes.Count > 0
+                    ? _progression.MarchSpeed(_catalog.FindHero(heroes[0].HeroKey))
+                    : null);
+
             var march = March.ReturningHome(
                 Guid.NewGuid(), host.ServerId, ownerGarrison!.Id, escort,
                 ownerVillage.X, ownerVillage.Y, hostVillage.X, hostVillage.Y, hostVillage.Id,
@@ -163,14 +174,21 @@ namespace EmpireIdle.Application.Clans.Services
 
             await _marchRepository.AddAsync(march, cancellationToken);
 
+            // Решта героїв іде окремо: у марші місце рівно на одного,
+            // і кожен рахує власний час — без юнітів його ніщо не тримає
             foreach (var extra in heroes.Skip(1))
             {
                 extra.SendHome(utcNow);
 
+                var soloDuration = _calculator.CalculateDuration(
+                    host.ServerId, hostVillage.X, hostVillage.Y, ownerVillage.X, ownerVillage.Y,
+                    new Dictionary<string, int>(),
+                    _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey)));
+
                 await _marchRepository.AddAsync(March.ReturningHome(
                     Guid.NewGuid(), host.ServerId, ownerGarrison.Id, extra.Id,
                     ownerVillage.X, ownerVillage.Y, hostVillage.X, hostVillage.Y, hostVillage.Id,
-                    new Dictionary<string, int>(), duration, utcNow), cancellationToken);
+                    new Dictionary<string, int>(), soloDuration, utcNow), cancellationToken);
             }
 
             _logger.LogInformation(

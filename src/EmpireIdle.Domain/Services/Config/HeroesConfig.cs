@@ -68,5 +68,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// дала б героя, якому не підходить жоден предмет.
         /// </summary>
         public List<string> Classes { get; set; } = new();
+
+        /// <summary>
+        /// Швидкість героя, якщо тип її не задає. Дорівнює швидкості
+        /// найшвидших юнітів, щоб герой без явного стата колону не гальмував.
+        /// </summary>
+        public double DefaultMarchSpeed { get; set; } = 6.0;
     }
 }

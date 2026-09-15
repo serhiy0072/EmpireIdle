@@ -81,6 +81,7 @@ public class SendMarchCommandTests
             new MarchCalculator(terrain, catalog),
             targets, reinforcementRules,
             new HeroProgression(config.HeroSettings),
+            catalog,
             NullLogger<SendMarchCommandHandler>.Instance);
     }
 

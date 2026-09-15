@@ -19,20 +19,30 @@ namespace EmpireIdle.Domain.Services
         /// Час у дорозі в одну сторону.
         /// </summary>
         /// <param name="units">Склад армії (тип → кількість).</param>
+        /// <param name="heroSpeed">
+        /// Швидкість героя, що веде похід. Колона йде за найповільнішим,
+        /// і герой у цьому рахунку нарівні з юнітами: інакше підкріплення
+        /// з самого героя завжди йшло б базовою швидкістю, а важкий герой
+        /// не сповільнював би легку кінноту.
+        /// </param>
         public TimeSpan CalculateDuration(int serverId, int fromX, int fromY, int toX, int toY,
-            IReadOnlyDictionary<string, int> units)
+            IReadOnlyDictionary<string, int> units, double? heroSpeed = null)
         {
             var distance = Math.Sqrt(Math.Pow(toX - fromX, 2) + Math.Pow(toY - fromY, 2));
             if (distance <= 0)
                 return TimeSpan.Zero;
 
-            // Швидкість колони = швидкість найповільнішого юніта
-            var speed = units.Keys
+            // Швидкість колони = швидкість найповільнішого учасника
+            var speeds = units.Keys
                 .Select(type => _catalog.Units.GetValueOrDefault(type))
                 .Where(c => c is not null)
                 .Select(c => c!.Stats.GetValueOrDefault("Speed", 1.0))
-                .DefaultIfEmpty(1.0)
-                .Min();
+                .ToList();
+
+            if (heroSpeed is { } hero && hero > 0)
+                speeds.Add(hero);
+
+            var speed = speeds.DefaultIfEmpty(1.0).Min();
 
             if (speed <= 0)
                 speed = 1.0;

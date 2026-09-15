@@ -38,6 +38,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly MarchTargetResolver _targets;
         private readonly ReinforcementRules _reinforcementRules;
         private readonly HeroProgression _progression;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
         public SendMarchCommandHandler(
@@ -52,6 +53,7 @@ namespace EmpireIdle.Application.Marches.Commands
             MarchTargetResolver targets,
             ReinforcementRules reinforcementRules,
             HeroProgression progression,
+            GameCatalog catalog,
             ILogger<SendMarchCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -65,6 +67,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _targets = targets;
             _reinforcementRules = reinforcementRules;
             _progression = progression;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -78,9 +81,8 @@ namespace EmpireIdle.Application.Marches.Commands
             var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
-            // Ліміт одночасних походів
             var hero = await _heroRepository.GetByIdAsync(request.HeroId, cancellationToken)
-    ?? throw new EntityNotFoundException("Hero", request.HeroId.ToString());
+                ?? throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
             // Чужий герой не відрізняється від неіснуючого: інакше відповідь
             // підтверджувала б, що такий герой у когось є
@@ -101,8 +103,10 @@ namespace EmpireIdle.Application.Marches.Commands
             // Ростер це вільні герої плюс ті, хто вже в дорозі: кожен похід
             // веде свій герой, тож вільний герой і є вільним слотом, а
             // MaxMarches лишається стелею згори
-            var available = await _heroRepository.CountAvailableAsync(request.PlayerId, garrison.Id, cancellationToken);
-            var capacity = _progression.MarchCapacity(available + active.Count);
+            var availableHeroes = await _heroRepository.CountAvailableAsync(
+                request.PlayerId, garrison.Id, cancellationToken);
+
+            var capacity = _progression.MarchCapacity(availableHeroes + active.Count);
 
             if (active.Count >= capacity)
                 throw new RequirementNotMetException($"Cannot send more than {capacity} marches at once.");
@@ -110,7 +114,7 @@ namespace EmpireIdle.Application.Marches.Commands
             // Ціль читається один раз: далі її перевіряють і щит, і підкріплення
             var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, cancellationToken);
 
-            // Перевіряємо до зняття юнітів: інакше відмова лишила б гарнізон порожнім
+            // Перевіряємо до зняття юнітів: інакше відмова лишила б гарнізон порожнім.
             // Підкріплення може складатись із самого героя, атака не може:
             // порожня армія в бою дала б нульову силу й гарантовану поразку
             if (request.Intent == MarchIntent.Reinforce)
@@ -127,8 +131,12 @@ namespace EmpireIdle.Application.Marches.Commands
 
             hero.Deploy(now);
 
+            // Колона йде за найповільнішим учасником, і герой тут нарівні
+            // з юнітами: підкріплення з самого героя інакше плелося б
+            // базовою швидкістю замість власної
             var duration = _calculator.CalculateDuration(
-                _serverContext.ServerId, village.X, village.Y, target.X, target.Y, request.Units);
+                _serverContext.ServerId, village.X, village.Y, target.X, target.Y, request.Units,
+                _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey)));
 
             var march = new March(
                 Guid.NewGuid(), _serverContext.ServerId, garrison.Id, hero.Id,
@@ -141,8 +149,9 @@ namespace EmpireIdle.Application.Marches.Commands
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "March {MarchId} sent from ({OriginX},{OriginY}) to ({TargetX},{TargetY}), arrives in {Minutes:F1} min",
-                march.Id, village.X, village.Y, target.X, target.Y, duration.TotalMinutes);
+                "March {MarchId} sent from ({OriginX},{OriginY}) to ({TargetX},{TargetY}) led by hero {HeroId}, "
+                + "arrives in {Minutes:F1} min",
+                march.Id, village.X, village.Y, target.X, target.Y, hero.Id, duration.TotalMinutes);
 
             return march.Id;
         }

@@ -114,5 +114,87 @@ namespace EmpireIdle.Domain.Tests.Services
 
             Assert.True(hard > easy, $"Rough terrain must slow the march: easy={easy}, hard={hard}");
         }
+
+        // ---------- Швидкість героя ----------
+
+        /// <summary>
+        /// Герой у рахунку нарівні з юнітами: повільний герой гальмує
+        /// швидку колону так само, як облогова машина.
+        /// </summary>
+        [Fact]
+        public void CalculateDuration_ShouldFollowTheSlowestParticipant()
+        {
+            var calc = Calculator();
+            var cavalry = new Dictionary<string, int> { ["cavalry"] = 10 };
+
+            var alone = calc.CalculateDuration(1, 100, 100, 150, 100, cavalry);
+            var withSlowHero = calc.CalculateDuration(1, 100, 100, 150, 100, cavalry, heroSpeed: 2);
+
+            Assert.True(withSlowHero > alone,
+                $"A slow hero must hold the column back: alone={alone}, withHero={withSlowHero}");
+        }
+
+        /// <summary>
+        /// Швидкий герой колону не пришвидшує: він не несе на собі
+        /// облогові машини.
+        /// </summary>
+        [Fact]
+        public void CalculateDuration_ShouldIgnoreAFasterHero()
+        {
+            var calc = Calculator();
+            var infantry = new Dictionary<string, int> { ["infantry"] = 10 };
+
+            var alone = calc.CalculateDuration(1, 100, 100, 150, 100, infantry);
+            var withFastHero = calc.CalculateDuration(1, 100, 100, 150, 100, infantry, heroSpeed: 20);
+
+            Assert.Equal(alone, withFastHero);
+        }
+
+        /// <summary>
+        /// Підкріплення з самого героя йде його швидкістю. До цієї зміни
+        /// порожній склад давав базову одиницю, тобто вчетверо повільніше
+        /// за піхоту — герой-одинак приходив би пізніше за колону.
+        /// </summary>
+        [Fact]
+        public void CalculateDuration_ShouldUseTheHeroSpeed_WhenThereAreNoUnits()
+        {
+            var calc = Calculator();
+            var empty = new Dictionary<string, int>();
+
+            var solo = calc.CalculateDuration(1, 100, 100, 150, 100, empty, heroSpeed: 8);
+            var withCavalry = calc.CalculateDuration(1, 100, 100, 150, 100,
+                new Dictionary<string, int> { ["cavalry"] = 1 }, heroSpeed: 8);
+
+            Assert.Equal(withCavalry, solo);
+        }
+
+        /// <summary>
+        /// Без героя поведінка та сама, що й до зміни: старі виклики
+        /// з чотирма аргументами читаються однаково.
+        /// </summary>
+        [Fact]
+        public void CalculateDuration_ShouldMatchTheOldResult_WhenNoHeroIsGiven()
+        {
+            var calc = Calculator();
+            var infantry = new Dictionary<string, int> { ["infantry"] = 10 };
+
+            Assert.Equal(
+                calc.CalculateDuration(1, 100, 100, 150, 100, infantry),
+                calc.CalculateDuration(1, 100, 100, 150, 100, infantry, heroSpeed: null));
+        }
+
+        /// <summary>Нульова або від'ємна швидкість героя не вішає похід назавжди.</summary>
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-5)]
+        public void CalculateDuration_ShouldIgnoreANonPositiveHeroSpeed(double heroSpeed)
+        {
+            var calc = Calculator();
+            var infantry = new Dictionary<string, int> { ["infantry"] = 10 };
+
+            Assert.Equal(
+                calc.CalculateDuration(1, 100, 100, 150, 100, infantry),
+                calc.CalculateDuration(1, 100, 100, 150, 100, infantry, heroSpeed));
+        }
     }
 }
