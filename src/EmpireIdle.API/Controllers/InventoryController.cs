@@ -107,5 +107,18 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new RepairWeaponCommand(playerId, equipmentId), cancellationToken);
             return NoContent();
         }
+
+        /// <summary>
+        /// Прокачати артефакт. Ідемпотентна операція — потрібен заголовок
+        /// Idempotency-Key, інакше повтор запиту дав би другий ролл.
+        /// </summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/upgrade")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Upgrade(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new EnhanceArtifactCommand(playerId, equipmentId), cancellationToken);
+            return NoContent();
+        }
     }
 }

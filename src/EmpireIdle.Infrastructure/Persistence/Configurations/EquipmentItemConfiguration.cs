@@ -39,6 +39,12 @@ public class EquipmentItemConfiguration : IEntityTypeConfiguration<EquipmentItem
             .WithOne()
             .HasForeignKey(s => s.EquipmentItemId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(e => e.Rolls)
+            .WithOne()
+            .HasForeignKey(r => r.EquipmentItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Navigation(e => e.Stats).UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Ignore(e => e.DomainEvents);

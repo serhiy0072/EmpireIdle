@@ -13,6 +13,7 @@ namespace EmpireIdle.Domain.Entities
     public class EquipmentItem : Entity
     {
         private readonly List<EquipmentStat> _stats = new();
+        private readonly List<EquipmentRoll> _rolls = new();
 
         public Guid PlayerId { get; private set; }
 
@@ -53,6 +54,9 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Індивідуальні характеристики екземпляра.</summary>
         public IReadOnlyCollection<EquipmentStat> Stats => _stats.AsReadOnly();
+
+        /// <summary>Журнал роллів: рівень і сід кожного.</summary>
+        public IReadOnlyCollection<EquipmentRoll> Rolls => _rolls.AsReadOnly();
 
         public DateTime AcquiredAt { get; private set; }
 
@@ -192,6 +196,9 @@ namespace EmpireIdle.Domain.Entities
 
             return stat.Value * (1 + EnhancementLevel * enhancementBonus);
         }
+        /// <summary>Записує ролл у журнал, щоб його можна було переграти.</summary>
+        public void RecordRoll(int level, int seed, DateTime utcNow)
+            => _rolls.Add(new EquipmentRoll(Guid.NewGuid(), Id, level, seed, utcNow));
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
     }

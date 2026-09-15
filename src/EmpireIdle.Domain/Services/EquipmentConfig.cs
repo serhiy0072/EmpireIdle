@@ -44,5 +44,26 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Вартість ремонту як частка від вартості поточного рівня заточки.</summary>
         public double RepairCostShare { get; set; } = 0.5;
+
+        /// <summary>Скільки статів артефакт має одразу.</summary>
+        public int ArtifactBaseStats { get; set; } = 2;
+
+        /// <summary>Рівні, на яких артефакт отримує новий стат.</summary>
+        public List<int> ArtifactStatLevels { get; set; } = [4, 8];
+
+        /// <summary>Рівні, на яких качаються наявні стати.</summary>
+        public List<int> ArtifactUpgradeLevels { get; set; } = [12, 16, 20];
+
+        /// <summary>Шанс прокачати два стати замість одного.</summary>
+        public double DoubleUpgradeChance { get; set; } = 0.1;
+
+        /// <summary>Пул статів артефактів.</summary>
+        public List<ArtifactStatConfig> ArtifactStats { get; set; } = new();
+
+        /// <summary>
+        /// Множник значень за рідкістю артефакта. Той самий стат на
+        /// unique-артефакті вартий більше, ніж на common.
+        /// </summary>
+        public Dictionary<string, double> ArtifactRarityMultipliers { get; set; } = new();
     }
 }

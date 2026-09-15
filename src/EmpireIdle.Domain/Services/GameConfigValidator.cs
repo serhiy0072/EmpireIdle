@@ -484,6 +484,36 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Equipment.ForgeBuildingKey '{config.Equipment.ForgeBuildingKey}' is not a known building.");
 
+            if (config.Equipment.ArtifactStats.Count < config.Equipment.ArtifactBaseStats)
+                throw new InvalidOperationException(
+                    "Equipment.ArtifactStats has fewer entries than ArtifactBaseStats — "
+                    + "a new artifact could not be filled.");
+
+            var brokenBands = config.Equipment.ArtifactStats
+                .Where(s => s.Min > s.Max || s.UpgradeMin > s.UpgradeMax || s.Min < 0 || s.UpgradeMin < 0)
+                .Select(s => s.Stat)
+                .ToList();
+
+            if (brokenBands.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactStats has invalid bands: {string.Join(", ", brokenBands)}.");
+
+            RequireUniqueKeys(config.Equipment.ArtifactStats.Select(s => s.Stat).ToList(), "Equipment.ArtifactStats");
+
+            if (config.Equipment.DoubleUpgradeChance is < 0 or > 1)
+                throw new InvalidOperationException("Equipment.DoubleUpgradeChance must be within 0..1.");
+
+            // Рівні поза стелею означають правило, яке ніколи не спрацює
+            var unreachable = config.Equipment.ArtifactStatLevels
+                .Concat(config.Equipment.ArtifactUpgradeLevels)
+                .Where(l => l < 1 || l > config.Equipment.MaxEnhancement)
+                .ToList();
+
+            if (unreachable.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment artifact levels outside 1..{config.Equipment.MaxEnhancement}: "
+                    + string.Join(", ", unreachable));
+
             var classes = config.HeroSettings.Classes.ToHashSet();
 
             foreach (var item in equipment)

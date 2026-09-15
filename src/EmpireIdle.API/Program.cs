@@ -99,6 +99,7 @@ builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
 builder.Services.AddSingleton(sp => new HeroProgression(gameConfig.HeroSettings));
 builder.Services.AddSingleton(sp => new HeroCombatModifiers(sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));
+builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<DefenceLossAllocator>();
 builder.Services.AddSingleton<BattleResolver>();

@@ -101,7 +101,30 @@ internal static class HeroTestConfig
             ArtifactSlots = ArtifactSlots,
             MaxEnhancement = 20,
             EnhancementBonusPerLevel = 0.1,
-            ForgeBuildingKey = Forge
+            ForgeBuildingKey = Forge,
+            EnhanceBaseGold = 200,
+            EnhanceCostGrowth = 1.35,
+            SafeEnhancementLevel = 5,
+            SuccessDropPerLevel = 0.05,
+            MinSuccessChance = 0.25,
+            BreakChanceOnFailure = 0.2,
+            RepairCostShare = 0.5,
+            ArtifactBaseStats = 2,
+            ArtifactStatLevels = [4, 8],
+            ArtifactUpgradeLevels = [12, 16, 20],
+            DoubleUpgradeChance = 0.1,
+            ArtifactStats =
+            [
+                new ArtifactStatConfig { Stat = "Attack", Min = 4, Max = 12, UpgradeMin = 1, UpgradeMax = 3 },
+                new ArtifactStatConfig { Stat = "Defense", Min = 5, Max = 14, UpgradeMin = 1, UpgradeMax = 4 },
+                new ArtifactStatConfig { Stat = "Health", Min = 20, Max = 60, UpgradeMin = 5, UpgradeMax = 15 }
+            ],
+            ArtifactRarityMultipliers = new Dictionary<string, double>
+            {
+                ["Common"] = 1.0,
+                ["Rare"] = 1.4,
+                ["Unique"] = 2.0
+            }
         },
         HeroSettings = new HeroesConfig
         {
