@@ -1,5 +1,4 @@
 using EmpireIdle.Domain.Combat;
-using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
@@ -12,120 +11,30 @@ namespace EmpireIdle.Domain.Tests.Services
     public class HeroCombatModifiersTests
     {
         private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
-        private static readonly Guid Garrison = Guid.NewGuid();
 
-        /// <summary>
-        /// Мінімальний конфіг, який проходить валідатор. Один тір навмисно:
-        /// тоді не потрібні ні предмети еволюції, ні зростання множників,
-        /// а пасивки — єдине, що тут справді перевіряється.
-        /// </summary>
-        private static HeroCombatModifiers Modifiers() => new(new GameCatalog(new GameConfig
-        {
-            Buildings =
-            [
-                new BuildingConfig { Key = "townhall", IsMainBuilding = true },
-                new BuildingConfig { Key = "heroeshall" },
-                new BuildingConfig { Key = "hospital" }
-            ],
-            Resources = [new ResourceConfig { Key = "food" }],
-            Units =
-            [
-                new UnitConfig { Key = "infantry" },
-                new UnitConfig { Key = "archer" }
-            ],
-            HeroSettings = new HeroesConfig
-            {
-                MaxTier = 1,
-                LevelsPerTier = 10,
-                MaxMarches = 3,
-                MaxConstellation = 6,
-                BuildingKey = "heroeshall",
-                Classes = ["warrior"],
-                TierStatMultipliers = [1.0],
-                EvolutionItemKeys = [],
-                HealBuildingKey = "hospital",
-                HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
-                OverflowGems = new Dictionary<string, int> { ["Common"] = 0 }
-            },
-            Heroes =
-            [
-                new HeroConfig
-                {
-                    Key = "warrior_bran",
-                    Class = "warrior",
-                    SummonShards = 10,
-                    ShardPriceGold = 100,
-                    LevelUpCosts =
-                    [
-                        new HeroLevelCostBand
-                        {
-                            FromLevel = 1,
-                            Cost = [new ResourceCost { Resource = "food", Amount = 50 }]
-                        }
-                    ],
-                    Passives =
-                    [
-                        new HeroPassiveConfig
-                        {
-                            Key = "shieldwall", Target = "infantry", Stat = "Defense",
-                            UnlockConstellation = 0, BasePercent = 6, PercentPerConstellation = 2
-                        },
-                        new HeroPassiveConfig
-                        {
-                            Key = "hold_the_line", Target = "all", Stat = "Defense",
-                            UnlockConstellation = 3, BasePercent = 4, PercentPerConstellation = 1.5
-                        }
-                    ]
-                },
-                new HeroConfig
-                {
-                    Key = "plain_hero",
-                    Class = "warrior",
-                    SummonShards = 10,
-                    ShardPriceGold = 100,
-                    LevelUpCosts =
-                    [
-                        new HeroLevelCostBand
-                        {
-                            FromLevel = 1,
-                            Cost = [new ResourceCost { Resource = "food", Amount = 50 }]
-                        }
-                    ]
-                }
-            ]
-        }));
+        private static readonly HeroPassiveConfig Shieldwall =
+            HeroFixture.Defence(percent: 6, target: "infantry", perConstellation: 2);
 
-        private static Hero Hero(string key = "warrior_bran", int constellation = 0)
-        {
-            var hero = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, key, Garrison, asLeader: true, Now);
+        private static readonly HeroPassiveConfig HoldTheLine =
+            HeroFixture.Defence(percent: 4, target: HeroCombatModifiers.AllUnits,
+                unlockConstellation: 3, perConstellation: 1.5);
 
-            for (var i = 0; i < constellation; i++)
-                hero.TryAddConstellation(maxConstellation: 6, Now);
-
-            return hero;
-        }
+        private static StackBuff Buff(int constellation = 0)
+            => HeroFixture.Buff(constellation, Shieldwall, HoldTheLine);
 
         [Fact]
         public void For_ShouldApplyAnUnlockedPassive()
-        {
-            var buff = Modifiers().For(Hero());
-
-            Assert.Equal(1.06, buff.Defense("infantry"), 3);
-        }
+            => Assert.Equal(1.06, Buff().Defense("infantry"), 3);
 
         /// <summary>Пасивка б'є лише по своїй цілі: лучникам вона нічого не дає.</summary>
         [Fact]
         public void For_ShouldNotLeakToOtherUnits()
-        {
-            var buff = Modifiers().For(Hero());
-
-            Assert.Equal(1.0, buff.Defense("archer"), 3);
-        }
+            => Assert.Equal(1.0, Buff().Defense("archer"), 3);
 
         [Fact]
         public void For_ShouldIgnoreALockedPassive()
         {
-            var buff = Modifiers().For(Hero(constellation: 2));
+            var buff = Buff(constellation: 2);
 
             // shieldwall: 6 + 2×2 = 10; hold_the_line ще закрита
             Assert.Equal(1.10, buff.Defense("infantry"), 3);
@@ -139,7 +48,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldSumTheAllTargetWithTheSpecificOne()
         {
-            var buff = Modifiers().For(Hero(constellation: 3));
+            var buff = Buff(constellation: 3);
 
             Assert.Equal(1.16, buff.Defense("infantry"), 3);
             Assert.Equal(1.04, buff.Defense("archer"), 3);
@@ -147,20 +56,22 @@ namespace EmpireIdle.Domain.Tests.Services
 
         [Fact]
         public void For_ShouldNotTouchTheOtherStat()
-        {
-            var buff = Modifiers().For(Hero(constellation: 3));
+            => Assert.Equal(1.0, Buff(constellation: 3).Attack("infantry"), 3);
 
-            Assert.Equal(1.0, buff.Attack("infantry"), 3);
-        }
+        /// <summary>Невідомий тип юніта не валить формулу.</summary>
+        [Fact]
+        public void For_ShouldReturnOne_ForAnUnknownUnitType()
+            => Assert.Equal(1.0, Buff().Defense("siege_ram"), 3);
 
         /// <summary>Поранений не дає нічого: у цьому й ціна поразки.</summary>
         [Fact]
         public void For_ShouldReturnNothing_WhenTheHeroIsWounded()
         {
-            var hero = Hero(constellation: 3);
+            var config = HeroFixture.Config(Shieldwall, HoldTheLine);
+            var hero = HeroFixture.HeroWith(HeroFixture.Buffer, constellation: 3);
             hero.Wound(Now);
 
-            var buff = Modifiers().For(hero);
+            var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
@@ -168,7 +79,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldReturnNothing_WhenThereIsNoHero()
         {
-            var buff = Modifiers().For(null);
+            var buff = new HeroCombatModifiers(new GameCatalog(HeroFixture.Config(Shieldwall))).For(null);
 
             Assert.Equal(1.0, buff.Attack("infantry"), 3);
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
@@ -177,18 +88,12 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldReturnNothing_WhenTheHeroHasNoPassives()
         {
-            var buff = Modifiers().For(Hero("plain_hero"));
+            var config = HeroFixture.Config(Shieldwall);
+            var hero = HeroFixture.HeroWith(HeroFixture.Plain);
+
+            var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
-        }
-
-        /// <summary>Невідомий тип юніта не валить формулу.</summary>
-        [Fact]
-        public void For_ShouldReturnOne_ForAnUnknownUnitType()
-        {
-            var buff = Modifiers().For(Hero());
-
-            Assert.Equal(1.0, buff.Defense("siege_ram"), 3);
         }
     }
 }

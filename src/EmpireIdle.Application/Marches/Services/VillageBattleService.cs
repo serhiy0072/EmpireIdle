@@ -135,7 +135,7 @@ namespace EmpireIdle.Application.Marches.Services
             march.ApplyLosses(result.AttackerLosses, utcNow);
             attackerGarrison.AdmitWounded(outcome.AttackerCasualties.Wounded, utcNow);
 
-            var defenderLosses = _lossAllocator.Allocate(defence, result.DefenderLosses);
+            var defenderLosses = _lossAllocator.Allocate(defence, result.DefenderLosses, defenceBuffs);
 
             targetGarrison.ApplyDefenceLosses(defenderLosses, utcNow);
 

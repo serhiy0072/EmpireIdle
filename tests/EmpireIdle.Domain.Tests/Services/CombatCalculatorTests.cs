@@ -239,70 +239,6 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Пасивки в обороні ----------
 
-        /// <summary>
-        /// Бонус будується так само, як у бою: через пасивку з конфіга.
-        /// Складати StackBuff вручну тест не може й не має — тоді він
-        /// перевіряв би власну арифметику, а не шлях від JSON до формули.
-        /// </summary>
-        private static StackBuff Buff(double defensePercent, string target = "infantry")
-        {
-            var config = new GameConfig
-            {
-                Buildings =
-                [
-                    new BuildingConfig { Key = "townhall", IsMainBuilding = true },
-                    new BuildingConfig { Key = "heroeshall" },
-                    new BuildingConfig { Key = "hospital" }
-                ],
-                Resources = [new ResourceConfig { Key = "food" }],
-                Units = [new UnitConfig { Key = "infantry" }, new UnitConfig { Key = "archer" }],
-                HeroSettings = new HeroesConfig
-                {
-                    MaxTier = 1,
-                    LevelsPerTier = 10,
-                    MaxMarches = 3,
-                    BuildingKey = "heroeshall",
-                    HealBuildingKey = "hospital",
-                    HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
-                    Classes = ["warrior"],
-                    TierStatMultipliers = [1.0],
-                    EvolutionItemKeys = [],
-                    OverflowGems = new Dictionary<string, int> { ["Common"] = 0 }
-                },
-                Heroes =
-                [
-                    new HeroConfig
-                    {
-                        Key = "buffer",
-                        Class = "warrior",
-                        SummonShards = 10,
-                        ShardPriceGold = 100,
-                        LevelUpCosts =
-                        [
-                            new HeroLevelCostBand
-                            {
-                                FromLevel = 1,
-                                Cost = [new ResourceCost { Resource = "food", Amount = 50 }]
-                            }
-                        ],
-                        Passives =
-                        [
-                            new HeroPassiveConfig
-                            {
-                                Key = "guard", Target = target, Stat = "Defense",
-                                UnlockConstellation = 0, BasePercent = defensePercent
-                            }
-                        ]
-                    }
-                ]
-            };
-
-            var hero = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, "buffer", Guid.NewGuid(),
-                asLeader: true, new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc));
-
-            return new HeroCombatModifiers(new GameCatalog(config)).For(hero);
-        }
-
         /// <summary>Пасивка лідера піднімає силу оборони, не чіпаючи складу.</summary>
         [Fact]
         public void CalculateDefencePower_ShouldApplyTheOwnersBuff()
@@ -311,7 +247,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var plain = _calculator.CalculateDefencePower(stacks, "plain");
             var buffed = _calculator.CalculateDefencePower(stacks, "plain",
-                new DefenceBuffs(Buff(defensePercent: 10), new()));
+                new DefenceBuffs(HeroFixture.Buff(passives: HeroFixture.Defence(10)), new()));
 
             Assert.Equal(plain * 1.10, buffed, 3);
         }
@@ -333,7 +269,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var buffs = new DefenceBuffs(
                 StackBuff.None,
-                new Dictionary<Guid, StackBuff> { [ally] = Buff(defensePercent: 20) });
+                new Dictionary<Guid, StackBuff> { [ally] = HeroFixture.Buff(passives: HeroFixture.Defence(20)) });
 
             var actual = _calculator.CalculateDefencePower(stacks, "plain", buffs);
             var plain = _calculator.CalculateDefencePower(stacks, "plain");
