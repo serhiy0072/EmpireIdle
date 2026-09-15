@@ -32,6 +32,7 @@ namespace EmpireIdle.Domain.Services
             ValidatePreview(config);
             ValidateHeroes(config);
             ValidateLossBands(config);
+            ValidateEquipment(config);
         }
 
 
@@ -459,6 +460,51 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     "Common heroes need SummonShards and ShardPriceGold above zero: "
                     + $"{string.Join(", ", brokenShards)}.");
+        }
+
+        /// <summary>Спорядження: слоти, класи зброї, набори, ціни.</summary>
+        private static void ValidateEquipment(GameConfig config)
+        {
+            var equipment = config.Items.Where(i => i.Type == "equipment").ToList();
+
+            if (equipment.Count == 0)
+                return;
+
+            if (config.Equipment.ArtifactSlots < 1)
+                throw new InvalidOperationException("Equipment.ArtifactSlots must be at least 1.");
+
+            if (config.Equipment.MaxEnhancement < 1)
+                throw new InvalidOperationException("Equipment.MaxEnhancement must be at least 1.");
+
+            if (config.Equipment.EnhancementBonusPerLevel <= 0)
+                throw new InvalidOperationException(
+                    "Equipment.EnhancementBonusPerLevel must be above zero — otherwise enhancing changes nothing.");
+
+            if (!config.Buildings.Select(b => b.Key).Contains(config.Equipment.ForgeBuildingKey))
+                throw new InvalidOperationException(
+                    $"Equipment.ForgeBuildingKey '{config.Equipment.ForgeBuildingKey}' is not a known building.");
+
+            var classes = config.HeroSettings.Classes.ToHashSet();
+
+            foreach (var item in equipment)
+            {
+                if (item.Slot is null)
+                    throw new InvalidOperationException($"Item '{item.Key}' is equipment but has no Slot.");
+
+                var unknownClasses = item.WeaponClasses.Where(c => !classes.Contains(c)).ToList();
+
+                if (unknownClasses.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Item '{item.Key}' fits unknown hero classes: {string.Join(", ", unknownClasses)}.");
+
+                // Зброя купується в кузні, артефакти падають у данжах
+                if (item.Slot == EquipmentSlot.Weapon && item.PriceGold < 1)
+                    throw new InvalidOperationException($"Weapon '{item.Key}' needs a positive PriceGold.");
+
+                if (item.Slot == EquipmentSlot.Artifact && item.BaseStats.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Artifact '{item.Key}' has BaseStats — artifact stats are rolled per instance.");
+            }
         }
     }
 }

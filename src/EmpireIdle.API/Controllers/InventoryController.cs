@@ -48,11 +48,15 @@ namespace EmpireIdle.API.Controllers
                 })
                 .ToList();
 
+            // Приріст заточки береться з конфіга: гравець має бачити ті самі
+            // числа, з якими предмет піде в бій
+            var enhancementBonus = _catalog.Config.Equipment.EnhancementBonusPerLevel;
+
             var equipment = contents.Equipment
                 .Select(e => new EquipmentResponse(
                     e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
                     e.EnhancementLevel, e.EquippedByHeroId,
-                    e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey))))
+                    e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey, enhancementBonus))))
                 .ToList();
 
             var activeEffects = contents.ActiveEffects.Select(e => new ActiveEffectResponse(e.Target.ToString(), e.Multiplier, e.ExpiresAt, e.SourceItemKey)).ToList();

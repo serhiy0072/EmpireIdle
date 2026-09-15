@@ -33,5 +33,29 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>boost: скільки годин діє.</summary>
         public int DurationHours { get; set; }
+
+        // --- equipment ---
+
+        /// <summary>equipment: зброя чи артефакт.</summary>
+        public EquipmentSlot? Slot { get; set; }
+
+        /// <summary>
+        /// equipment: класи героїв, яким зброя підходить. Порожньо — підходить усім.
+        /// Пара одноручних рахується одним предметом і заточується разом:
+        /// це свідоме спрощення, окремого слота для лівої руки немає.
+        /// </summary>
+        public List<string> WeaponClasses { get; set; } = new();
+
+        /// <summary>
+        /// equipment: базові стати зброї. В артефактів порожні — їхні стати
+        /// випадкові й лежать на екземплярі, а не на типі.
+        /// </summary>
+        public Dictionary<string, double> BaseStats { get; set; } = new();
+
+        /// <summary>equipment: ключ набору, за повний комплект якого дається бонус.</summary>
+        public string? SetKey { get; set; }
+
+        /// <summary>equipment: ціна зброї в золоті; артефакти не продаються.</summary>
+        public int PriceGold { get; set; }
     }
 }

@@ -18,5 +18,11 @@ namespace EmpireIdle.Domain.Entities
         }
 
         protected EquipmentStat() { } // Для EF Core
+
+        /// <summary>
+        /// Підсилює стат. Артефакти качають випадкові стати на 12, 16 і 20
+        /// рівнях — ролер обирає які, рядок лише зберігає результат.
+        /// </summary>
+        public void Raise(double delta) => Value += delta;
     }
 }

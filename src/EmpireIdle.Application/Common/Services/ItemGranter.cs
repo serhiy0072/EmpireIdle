@@ -11,10 +11,12 @@ namespace EmpireIdle.Application.Common.Services
     public class ItemGranter
     {
         private readonly IInventoryRepository _repository;
+        private readonly IServerContext _serverContext;
 
-        public ItemGranter(IInventoryRepository repository)
+        public ItemGranter(IInventoryRepository repository, IServerContext serverContext)
         {
             _repository = repository;
+            _serverContext = serverContext;
         }
 
         /// <summary>Видає стакові предмети.</summary>
@@ -43,7 +45,7 @@ namespace EmpireIdle.Application.Common.Services
             DateTime utcNow, CancellationToken cancellationToken = default)
         {
             await _repository.AddEquipmentAsync(
-                new EquipmentItem(Guid.NewGuid(), playerId, itemKey, slot, rarity, stats, utcNow),
+                new EquipmentItem(Guid.NewGuid(), playerId, _serverContext.ServerId, itemKey, slot, rarity, stats, utcNow),
                 cancellationToken);
         }
     }

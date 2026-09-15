@@ -79,6 +79,7 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<Hero>().HasQueryFilter(h => h.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<HeroLevelOrder>().HasQueryFilter(o => o.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<HeroShardProgress>().HasQueryFilter(s => s.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<EquipmentItem>().HasQueryFilter(e => e.ServerId == _serverContext.ServerId);
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

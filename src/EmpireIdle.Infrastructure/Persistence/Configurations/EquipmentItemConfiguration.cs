@@ -17,6 +17,17 @@ public class EquipmentItemConfiguration : IEntityTypeConfiguration<EquipmentItem
         builder.HasIndex(e => e.PlayerId);
         builder.HasIndex(e => e.EquippedByHeroId);
 
+        builder.Property(e => e.Version).IsRowVersion();
+
+        builder.HasIndex(e => new { e.PlayerId, e.ServerId });
+
+        // Слот зайнятий рівно одним предметом. Арбітр — індекс, а не
+        // перевірка в хендлері: два паралельні вдягання інакше дали б
+        // героєві дві зброї
+        builder.HasIndex(e => new { e.EquippedByHeroId, e.Slot, e.SlotIndex })
+            .IsUnique()
+            .HasFilter("\"EquippedByHeroId\" IS NOT NULL");
+
         builder.HasMany(e => e.Stats)
             .WithOne()
             .HasForeignKey(s => s.EquipmentItemId)

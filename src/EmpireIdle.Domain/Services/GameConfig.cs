@@ -73,5 +73,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Тіри, стелі, черга й госпіталь героїв.</summary>
         public HeroesConfig HeroSettings { get; set; } = new();
+
+        /// <summary>Екіпірування героїв.</summary>
+        public EquipmentConfig Equipment { get; set; } = new();
     }
 }
