@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
@@ -83,6 +84,27 @@ namespace EmpireIdle.API.Controllers
                 playerId, request.ItemKey, request.Count, request.TargetId,
                 request.TargetX, request.TargetY), cancellationToken);
 
+            return NoContent();
+        }
+
+        /// <summary>Заточити зброю. Ідемпотентна операція — потрібен заголовок Idempotency-Key.</summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/enhance")]
+        [ProducesResponseType(typeof(EnhancementResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Enhance(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        {
+            var outcome = await _mediator.Send(new EnhanceWeaponCommand(playerId, equipmentId), cancellationToken);
+
+            return Ok(new EnhancementResponse(outcome.ToString().ToLowerInvariant()));
+        }
+
+        /// <summary>Полагодити зламану зброю.</summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/repair")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Repair(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RepairWeaponCommand(playerId, equipmentId), cancellationToken);
             return NoContent();
         }
     }
