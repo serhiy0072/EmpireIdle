@@ -73,7 +73,7 @@ public class ReinforcementRulesTests
 
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
-        return new MarchTarget(village.X, village.Y, village.Name, 5, village, [], 1.0);
+        return new MarchTarget(village.X, village.Y, village.Name, 5, village, [], DefenceBuffs.None, 1.0);
     }
 
     private void GivenClans(Guid? ownerClan, Guid? hostClan)

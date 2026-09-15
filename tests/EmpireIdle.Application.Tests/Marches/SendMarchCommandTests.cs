@@ -67,9 +67,10 @@ public class SendMarchCommandTests
 
         var capacities = new VillageCapacities(catalog);
         var status = new VillageStatus(catalog);
+        var heroModifiers = new HeroCombatModifiers(catalog);
 
         var targets = new MarchTargetResolver(
-            _monsters, _villages, _garrisons, new MonsterArmyBuilder(catalog), catalog, status);
+            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog, status);
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 

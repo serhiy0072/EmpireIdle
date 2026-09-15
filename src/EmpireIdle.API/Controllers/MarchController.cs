@@ -60,7 +60,7 @@ namespace EmpireIdle.API.Controllers
             [FromBody] SendMarchRequest request, CancellationToken cancellationToken)
         {
             var preview = await _mediator.Send(
-                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.Units),
+                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.HeroId, request.Units),
                 cancellationToken);
 
             return Ok(preview);

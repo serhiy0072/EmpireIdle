@@ -3,17 +3,16 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
-using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Marches.Services
 {
-    /// <summary>
-    /// Ціль походу: де вона, як зветься і чим боронитиметься.
-    /// </summary>
     /// <param name="Village">Село, якщо ціль — гравець. Для монстра null.</param>
-    /// <param name="DefenderArmy">
-    /// Склад оборони сумарно. Для села це гарнізон **разом із підкріпленнями**:
+    /// <param name="Defence">
+    /// Склад оборони по стеках. Для села це гарнізон **разом із підкріпленнями**:
     /// саме так рахує бій, і прев'ю мусить бачити те саме.
+    /// </param>
+    /// <param name="DefenceBuffs">
+    /// Пасивки лідерів, що стоять у цій обороні. Для монстра порожні.
     /// </param>
     public record MarchTarget(
         int X,
@@ -21,7 +20,8 @@ namespace EmpireIdle.Application.Marches.Services
         string Name,
         int Level,
         Village? Village,
-        Dictionary<string, int> DefenderArmy,
+        IReadOnlyList<DefenceStack> Defence,
+        DefenceBuffs DefenceBuffs,
         double DefenceMultiplier);
 
     /// <summary>
@@ -38,7 +38,9 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IMonsterRepository _monsterRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
+        private readonly IHeroRepository _heroRepository;
         private readonly MonsterArmyBuilder _armyBuilder;
+        private readonly HeroCombatModifiers _heroModifiers;
         private readonly GameCatalog _catalog;
         private readonly VillageStatus _status;
 
@@ -46,14 +48,18 @@ namespace EmpireIdle.Application.Marches.Services
             IMonsterRepository monsterRepository,
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
+            IHeroRepository heroRepository,
             MonsterArmyBuilder armyBuilder,
+            HeroCombatModifiers heroModifiers,
             GameCatalog catalog,
             VillageStatus status)
         {
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
+            _heroRepository = heroRepository;
             _armyBuilder = armyBuilder;
+            _heroModifiers = heroModifiers;
             _status = status;
             _catalog = catalog;
         }
@@ -82,8 +88,9 @@ namespace EmpireIdle.Application.Marches.Services
                         $"{monster.Type} (lvl {monster.Level})",
                         monster.Level,
                         Village: null,
-                        _armyBuilder.BuildArmy(monster.Type, monster.Level),
-                        // Монстр стін не має
+                        DefenceStacks.FromArmy(_armyBuilder.BuildArmy(monster.Type, monster.Level)),
+                        // Монстр ні стін, ні героїв не має
+                        DefenceBuffs.None,
                         DefenceMultiplier: 1.0);
 
                 case MarchTargetType.Village:
@@ -96,23 +103,42 @@ namespace EmpireIdle.Application.Marches.Services
                     var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken);
 
                     // Підкріплення входять в оборону — і в бою, і тут
-                    var army = garrison is null
+                    var defence = garrison is null
                         ? []
-                        : garrison.GetDefence()
-                            .GroupBy(s => s.UnitType)
-                            .ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
+                        : garrison.GetDefence();
+
+                    var buffs = garrison is null
+                        ? DefenceBuffs.None
+                        : await BuildDefenceBuffsAsync(garrison.Id, village.PlayerId, cancellationToken);
 
                     return new MarchTarget(
                         village.X, village.Y,
                         village.Name,
                         _status.MainBuildingLevel(village),
                         village,
-                        army,
+                        defence,
+                        buffs,
                         _status.DefenceMultiplier(village));
 
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{targetType}'.");
             }
+        }
+
+        /// <summary>
+        /// Пасивки лідерів гарнізону. Лідер господаря діє на його юнітів,
+        /// лідер кожного союзника — лише на власний стек.
+        /// </summary>
+        private async Task<DefenceBuffs> BuildDefenceBuffsAsync(Guid garrisonId, Guid hostPlayerId,
+            CancellationToken cancellationToken)
+        {
+            var stationed = await _heroRepository.GetByGarrisonAsync(garrisonId, cancellationToken);
+
+            return new DefenceBuffs(
+                _heroModifiers.For(stationed.FirstOrDefault(h => h.IsLeader && h.PlayerId == hostPlayerId)),
+                stationed
+                    .Where(h => h.IsLeader && h.PlayerId != hostPlayerId)
+                    .ToDictionary(h => h.PlayerId, h => _heroModifiers.For(h)));
         }
 
         /// <summary>

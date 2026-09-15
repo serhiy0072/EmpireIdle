@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Entities;
+
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>
@@ -33,15 +35,17 @@ namespace EmpireIdle.Domain.Services
         /// </param>
         public BattleOutcome Resolve(
             IReadOnlyDictionary<string, int> attackerArmy,
-            IReadOnlyDictionary<string, int> defenderArmy,
+            IReadOnlyList<DefenceStack> defence,
             string terrainType,
             int seed,
             double attackerBonus,
             double defenderBonus,
-            int woundedCapacity)
+            int woundedCapacity,
+            StackBuff? attackerBuff = null,
+            DefenceBuffs? defenceBuffs = null)
         {
-            var battle = _combat.Resolve(attackerArmy, defenderArmy, terrainType, seed,
-                attackerBonus, defenderBonus);
+            var battle = _combat.Resolve(attackerArmy, defence, terrainType, seed,
+                attackerBonus, defenderBonus, attackerBuff, defenceBuffs);
 
             // Окремий сід для розподілу: якби він збігався з бойовим, послідовність
             // Random продовжилась би з місця, де її лишив CombatCalculator,

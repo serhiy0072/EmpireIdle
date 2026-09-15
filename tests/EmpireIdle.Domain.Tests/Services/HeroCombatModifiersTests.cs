@@ -23,7 +23,8 @@ namespace EmpireIdle.Domain.Tests.Services
             Buildings =
             [
                 new BuildingConfig { Key = "townhall", IsMainBuilding = true },
-                new BuildingConfig { Key = "heroeshall" }
+                new BuildingConfig { Key = "heroeshall" },
+                new BuildingConfig { Key = "hospital" }
             ],
             Resources = [new ResourceConfig { Key = "food" }],
             Units =
@@ -41,6 +42,8 @@ namespace EmpireIdle.Domain.Tests.Services
                 Classes = ["warrior"],
                 TierStatMultipliers = [1.0],
                 EvolutionItemKeys = [],
+                HealBuildingKey = "hospital",
+                HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
                 OverflowGems = new Dictionary<string, int> { ["Common"] = 0 }
             },
             Heroes =

@@ -40,7 +40,8 @@ internal static class HeroTestConfig
                 BuildTimeGrowth = 1.5,
                 Cost = [new ResourceCost { Resource = "gold", Amount = 10 }]
             },
-            new BuildingConfig { Key = "warehouse", StoresResources = ["gold", "food"], UpgradeCostGrowth = 1.45 }
+            new BuildingConfig { Key = "warehouse", StoresResources = ["gold", "food"], UpgradeCostGrowth = 1.45 },
+            new BuildingConfig { Key = "hospital", UpgradeCostGrowth = 1.45 }
         ],
         Items =
         [
@@ -50,6 +51,7 @@ internal static class HeroTestConfig
         HeroSettings = new HeroesConfig
         {
             BuildingKey = Hall,
+            HealBuildingKey = "hospital",
             LevelsPerTier = 10,
             MaxTier = 3,
             MaxMarches = 8,

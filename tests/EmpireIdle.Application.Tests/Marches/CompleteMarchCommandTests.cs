@@ -122,6 +122,8 @@ public class CompleteMarchCommandTests
         var status = new VillageStatus(catalog);
         var plunder = new PlunderCalculator(catalog, capacities);
 
+        var heroModifiers = new HeroCombatModifiers(catalog);
+
         var logistics = new MarchLogistics(
             _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
 
@@ -136,14 +138,14 @@ public class CompleteMarchCommandTests
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
         var monsterBattle = new MonsterBattleService(
-            _monsters, _map, _garrisons, _villages, _random,
-            armyBuilder, resolver, effects, logistics, aftermath,
+            _monsters, _map, _garrisons, _villages, _heroes, _random,
+            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers,
             NullLogger<MonsterBattleService>.Instance);
 
         var villageBattle = new VillageBattleService(
-            _garrisons, _villages, _serverRepository, _random,
+            _garrisons, _villages, _serverRepository, _heroes, _random,
             catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, 
+            status, plunder, heroModifiers,
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());

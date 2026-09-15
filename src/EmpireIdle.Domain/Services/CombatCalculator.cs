@@ -1,4 +1,5 @@
 
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services.Config;
 
@@ -28,28 +29,26 @@ namespace EmpireIdle.Domain.Services
             _catalog = catalog;
         }
 
-        /// <summary>
-        /// Проводить бій між двома арміями на заданій місцевості.
-        /// </summary>
-        /// <param name="attacker">Склад атакувальника (тип → кількість).</param>
-        /// <param name="defender">Склад захисника.</param>
-        /// <param name="terrainType">Місцевість клітини бою.</param>
-        /// <param name="attackerBonus">Додатковий множник атакувальнику (бусти).</param>
-        /// <param name="defenderBonus">Додатковий множник захиснику (стіни тощо).</param>
-        /// <param name="seed">
-        /// Сід випадковості. Зберігається у звіті — бій можна переграти
-        /// й отримати той самий результат.
+        /// <param name="defence">
+        /// Склад оборони по стеках. Не словник: у кожного власника свій
+        /// лідер, і сила стека залежить від того, чий він.
         /// </param>
-        public BattleResult Resolve(IReadOnlyDictionary<string, int> attacker, IReadOnlyDictionary<string, int> defender,
-            string terrainType, int seed, double attackerBonus = 1.0, double defenderBonus = 1.0)
+        /// <param name="attackerBuff">Пасивки героя, що веде марш.</param>
+        /// <param name="defenceBuffs">Пасивки лідерів у гарнізоні.</param>
+        public BattleResult Resolve(IReadOnlyDictionary<string, int> attacker, IReadOnlyList<DefenceStack> defence,
+            string terrainType, int seed, double attackerBonus = 1.0, double defenderBonus = 1.0,
+            StackBuff? attackerBuff = null, DefenceBuffs? defenceBuffs = null)
         {
             // Власний PRNG, а не Random: у звіті зберігається лише сід, і послідовність
             // BCL-класу не гарантована між версіями рантайму — переграш бою після
             // апгрейду SDK дав би інший результат, ніж оригінал.
             var random = new DeterministicRandom(seed);
 
-            var attackerPower = CalculatePower(attacker, terrainType, isAttacker: true) * attackerBonus * RollRandom(random);
-            var defenderPower = CalculatePower(defender, terrainType, isAttacker: false) * defenderBonus * RollRandom(random);
+            var attackerPower = CalculatePower(attacker, terrainType, isAttacker: true, attackerBuff)
+                * attackerBonus * RollRandom(random);
+
+            var defenderPower = CalculateDefencePower(defence, terrainType, defenceBuffs)
+                * defenderBonus * RollRandom(random);
 
             var attackerWon = attackerPower > defenderPower;
             var total = attackerPower + defenderPower;
@@ -66,19 +65,27 @@ namespace EmpireIdle.Domain.Services
                 attackerWon ? _config.DefenderLossLosses : _config.DefenderWinLosses,
                 attackerPower, total);
 
+            // Скільки втратив кожен тип, вирішує бій; хто саме з власників
+            // за це заплатив — DefenceLossAllocator уже після
+            var defenderArmy = defence
+                .GroupBy(s => s.UnitType)
+                .ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
+
             return new BattleResult(
                 attackerWon,
                 attackerPower,
                 defenderPower,
                 ApplyLosses(attacker, attackerLossRatio, terrainType, attackerWon),
-                ApplyLosses(defender, defenderLossRatio, terrainType, !attackerWon));
+                ApplyLosses(defenderArmy, defenderLossRatio, terrainType, !attackerWon));
         }
 
         /// <summary>
         /// Сила армії: сума статів загонів із терейн-модифікаторами, без випадковості.
         /// Публічний — прев'ю бою й реальний бій мусять рахувати однією формулою.
         /// </summary>
-        public double CalculatePower(IReadOnlyDictionary<string, int> army, string terrainType, bool isAttacker)
+        /// <param name="buff">Пасивки героя цієї сторони; null — героя немає.</param>
+        public double CalculatePower(IReadOnlyDictionary<string, int> army, string terrainType, bool isAttacker,
+            StackBuff? buff = null)
         {
             var power = 0.0;
 
@@ -92,8 +99,37 @@ namespace EmpireIdle.Domain.Services
                     ? config.Stats.GetValueOrDefault("Attack", 1.0)
                     : config.Stats.GetValueOrDefault("Defense", 1.0);
 
-                var modifier = GetTerrainModifier(terrainType, unitType);
-                power += count * stat * modifier;
+                var hero = buff is null
+                    ? 1.0
+                    : isAttacker ? buff.Attack(unitType) : buff.Defense(unitType);
+
+                power += count * stat * GetTerrainModifier(terrainType, unitType) * hero;
+            }
+
+            return power;
+        }
+
+        /// <summary>
+        /// Сила оборони по стеках. Окремий метод, бо кожен стек множиться
+        /// пасивками свого власника: звести оборону в один словник до бою
+        /// означало б прикласти чужого лідера до моїх юнітів.
+        /// </summary>
+        public double CalculateDefencePower(IReadOnlyList<DefenceStack> stacks, string terrainType,
+            DefenceBuffs? buffs = null)
+        {
+            var resolved = buffs ?? DefenceBuffs.None;
+            var power = 0.0;
+
+            foreach (var stack in stacks)
+            {
+                if (!_catalog.Units.TryGetValue(stack.UnitType, out var config) || stack.Count <= 0)
+                    continue;
+
+                var stat = config.Stats.GetValueOrDefault("Defense", 1.0);
+
+                power += stack.Count * stat
+                    * GetTerrainModifier(terrainType, stack.UnitType)
+                    * resolved.For(stack.OwnerPlayerId).Defense(stack.UnitType);
             }
 
             return power;

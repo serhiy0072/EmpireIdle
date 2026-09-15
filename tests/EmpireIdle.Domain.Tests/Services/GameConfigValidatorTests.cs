@@ -21,8 +21,8 @@ namespace EmpireIdle.Domain.Tests.Services
                     UpgradeCostGrowth = 1.45,
                     Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
                 },
-                new BuildingConfig { Key = "warehouse", StoresResources = ["food"], BaseStorage = 1000,
-                    UpgradeCostGrowth = 1.45 }
+                new BuildingConfig { Key = "warehouse", StoresResources = ["food"], BaseStorage = 1000, UpgradeCostGrowth = 1.45 },
+                new BuildingConfig { Key = "hospital" }
             ],
             Resources = [new ResourceConfig { Key = "food" }],
             StartingResources = new Dictionary<string, int> { ["food"] = 100 },
@@ -225,6 +225,8 @@ namespace EmpireIdle.Domain.Tests.Services
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
                 OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 BuildingKey = "heroeshall",
+                HealBuildingKey = "hospital",
+                HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
                 Classes = ["warrior", "archer"]
             };
 
@@ -378,6 +380,19 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Validate_ShouldRejectLevelUpCostWithUnknownResource()
             => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].Cost =
+                [new ResourceCost { Resource = "mithril", Amount = 10 }]);
+
+        [Fact]
+        public void Validate_ShouldRejectAnUnknownHealBuilding()
+            => RejectsHero(c => c.HeroSettings.HealBuildingKey = "infirmary");
+
+        [Fact]
+        public void Validate_ShouldRejectFreeHealing()
+            => RejectsHero(c => c.HeroSettings.HealCostPerLevel.Clear());
+
+        [Fact]
+        public void Validate_ShouldRejectHealCostInAnUnknownResource()
+            => RejectsHero(c => c.HeroSettings.HealCostPerLevel =
                 [new ResourceCost { Resource = "mithril", Amount = 10 }]);
 
         // ---------- Смуги втрат ----------
