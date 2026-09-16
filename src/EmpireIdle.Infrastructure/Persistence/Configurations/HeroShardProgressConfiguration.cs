@@ -14,6 +14,9 @@ public class HeroShardProgressConfiguration : IEntityTypeConfiguration<HeroShard
 
         builder.Property(s => s.HeroKey).IsRequired().HasMaxLength(50);
 
+        // Купівля й призов пишуть той самий лічильник без іншого спільного рядка з токеном
+        builder.Property(s => s.Version).IsRowVersion();
+
         // Один рядок на пару гравець-герой. Індексом, а не перевіркою:
         // дві паралельні купівлі інакше створили б два лічильники,
         // і жоден із них не дійшов би до порогу.

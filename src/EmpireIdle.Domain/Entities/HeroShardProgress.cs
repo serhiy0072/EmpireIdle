@@ -13,6 +13,8 @@ namespace EmpireIdle.Domain.Entities
         public int ServerId { get; private set; }
         public string HeroKey { get; private set; } = null!;
         public int Count { get; private set; }
+        /// <summary>Concurrency token (PostgreSQL xmin).</summary>
+        public uint Version { get; private set; }
 
         public HeroShardProgress(Guid id, Guid playerId, int serverId, string heroKey) : base(id)
         {
