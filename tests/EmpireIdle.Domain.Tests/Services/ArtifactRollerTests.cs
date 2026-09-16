@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using System.Globalization;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
@@ -234,6 +235,42 @@ namespace EmpireIdle.Domain.Tests.Services
 
             Assert.Equal(first.Added, second.Added);
             Assert.Equal(first.Raised, second.Raised);
+        }
+
+        /// <summary>
+        /// У данській «aa» — це «å», і вона сортується після «z». Той самий сід
+        /// на хості з іншою культурою не має обирати інший стат.
+        /// </summary>
+        [Fact]
+        public void RollInitial_ShouldPickTheSameStat_RegardlessOfCulture()
+        {
+            var roller = new ArtifactRoller(new EquipmentConfig
+            {
+                ArtifactBaseStats = 1,
+                ArtifactStats =
+                [
+                    new ArtifactStatConfig { Stat = "Aarmor", Min = 1, Max = 2, UpgradeMin = 1, UpgradeMax = 1 },
+            new ArtifactStatConfig { Stat = "Zeal", Min = 1, Max = 2, UpgradeMin = 1, UpgradeMax = 1 }
+                ],
+                ArtifactRarityMultipliers = new Dictionary<string, double> { ["Common"] = 1.0 }
+            });
+
+            string PickUnder(CultureInfo culture)
+            {
+                var original = CultureInfo.CurrentCulture;
+                CultureInfo.CurrentCulture = culture;
+
+                try
+                {
+                    return roller.RollInitial(Rarity.Common, seed: 7).Keys.Single();
+                }
+                finally
+                {
+                    CultureInfo.CurrentCulture = original;
+                }
+            }
+
+            Assert.Equal(PickUnder(CultureInfo.InvariantCulture), PickUnder(new CultureInfo("da-DK")));
         }
     }
 }

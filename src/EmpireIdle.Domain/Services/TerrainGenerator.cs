@@ -21,7 +21,7 @@ namespace EmpireIdle.Domain.Services
             // Сортування за Type — щоб порядок не залежав від порядку в JSON (детермінованість).
             var cumulative = 0;
             _distribution = new List<(TerrainConfig, int)>();
-            foreach (var terrain in _config.Terrains.Where(t => t.Weight > 0).OrderBy(t => t.Type))
+            foreach (var terrain in _config.Terrains.Where(t => t.Weight > 0).OrderBy(t => t.Type, StringComparer.Ordinal))
             {
                 cumulative += terrain.Weight;
                 _distribution.Add((terrain, cumulative));

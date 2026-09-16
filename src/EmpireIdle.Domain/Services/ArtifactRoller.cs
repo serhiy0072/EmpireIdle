@@ -33,7 +33,7 @@ namespace EmpireIdle.Domain.Services
         public IReadOnlyDictionary<string, double> RollInitial(Rarity rarity, int seed)
         {
             var random = new DeterministicRandom(seed);
-            var pool = _config.ArtifactStats.OrderBy(s => s.Stat).ToList();
+            var pool = _config.ArtifactStats.OrderBy(s => s.Stat, StringComparer.Ordinal).ToList();
             var result = new Dictionary<string, double>();
 
             for (var i = 0; i < _config.ArtifactBaseStats && pool.Count > 0; i++)
@@ -62,7 +62,7 @@ namespace EmpireIdle.Domain.Services
             {
                 var pool = _config.ArtifactStats
                     .Where(s => !currentStats.Contains(s.Stat))
-                    .OrderBy(s => s.Stat)
+                    .OrderBy(s => s.Stat, StringComparer.Ordinal)
                     .ToList();
 
                 // Пул вичерпано — новий стат не з'явиться; прокачка тоді
@@ -80,7 +80,7 @@ namespace EmpireIdle.Domain.Services
                 // як обрано які саме: інакше шанс залежав би від порядку
                 var count = random.NextDouble() < _config.DoubleUpgradeChance ? 2 : 1;
 
-                var candidates = currentStats.OrderBy(s => s).ToList();
+                var candidates = currentStats.OrderBy(s => s, StringComparer.Ordinal).ToList();
 
                 for (var i = 0; i < count && candidates.Count > 0; i++)
                 {

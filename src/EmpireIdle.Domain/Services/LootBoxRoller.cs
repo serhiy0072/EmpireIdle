@@ -53,7 +53,7 @@ namespace EmpireIdle.Domain.Services
             var roll = _random.Next(totalWeight);
             var cumulative = 0;
 
-            foreach (var drop in box.Drops.OrderBy(d => d.Key))
+            foreach (var drop in box.Drops.OrderBy(d => d.Key, StringComparer.Ordinal))
             {
                 cumulative += drop.Weight;
                 if (roll < cumulative)

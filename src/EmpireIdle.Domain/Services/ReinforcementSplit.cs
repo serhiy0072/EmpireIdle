@@ -55,7 +55,7 @@ namespace EmpireIdle.Domain.Services
 
             foreach (var share in shares
                 .OrderByDescending(s => s.Exact - Math.Floor(s.Exact))
-                .ThenBy(s => s.Type)
+                .ThenBy(s => s.Type, StringComparer.Ordinal)
                 .Take(left))
                 accepted[share.Type]++;
 
