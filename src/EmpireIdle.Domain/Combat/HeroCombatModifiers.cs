@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Domain.Combat
@@ -26,7 +27,9 @@ namespace EmpireIdle.Domain.Combat
         /// <summary>Бонуси, які цей герой дає своєму стеку.</summary>
         public StackBuff For(Hero? hero)
         {
-            if (hero is null || !hero.IsAvailable)
+            // Бонус гасить лише поранення. Deployed — звичайний стан героя, що веде марш,
+            // і саме в ньому він б'ється; IsAvailable тут хибний критерій
+            if (hero is null || hero.State == HeroState.Wounded)
                 return StackBuff.None;
 
             if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Passives.Count == 0)
