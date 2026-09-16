@@ -29,7 +29,7 @@ namespace EmpireIdle.Domain.Entities
             if (count < 1)
                 throw new ArgumentOutOfRangeException(nameof(count), "Shard count must be positive.");
 
-            Count += count;
+            Count = checked(Count + count);
         }
 
         /// <summary>

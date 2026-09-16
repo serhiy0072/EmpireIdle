@@ -249,18 +249,27 @@ namespace EmpireIdle.Domain.Entities
         /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public void ChargeCost(List<ResourceCost> cost, DateTime utcNow, int multiplier = 1)
         {
-            foreach (var line in cost)
+            if (multiplier < 1)
+                throw new ArgumentOutOfRangeException(nameof(multiplier), multiplier, "Multiplier must be at least 1.");
+
+            // long: у int добуток загортається в дрібну суму. Запас живе в int,
+            // тож усе, що не влазить в int, свідомо більше за будь-який запас
+            var charges = cost
+                .Select(line => (line.Resource, Need: (long)line.Amount * multiplier))
+                .ToList();
+
+            foreach (var (resource, need) in charges)
             {
-                var need = line.Amount * multiplier;
-                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
+                var res = _resources.FirstOrDefault(r => r.ResourceType == resource)
+                    ?? throw new InvalidOperationException($"Resource '{resource}' not found in village {Id}.");
 
                 if (res.Amount < need)
-                    throw new NotEnoughResourcesException(line.Resource, need, res.Amount);
+                    throw new NotEnoughResourcesException(resource, need, res.Amount);
             }
 
-            foreach (var line in cost)
-                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * multiplier);
+            // Після перевірки кожне need не більше за запас, отже вміщається в int
+            foreach (var (resource, need) in charges)
+                _resources.First(r => r.ResourceType == resource).Subtract((int)need);
 
             Touch(utcNow);
         }

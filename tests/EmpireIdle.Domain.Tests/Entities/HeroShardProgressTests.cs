@@ -94,5 +94,15 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void TryConsume_ShouldRefuse_WhenNothingCollected()
             => Assert.False(CreateProgress().TryConsume(1));
+
+        [Fact]
+        public void Add_ShouldThrow_WhenTheCountOverflows()
+        {
+            var progress = new HeroShardProgress(Guid.NewGuid(), Guid.NewGuid(), 1, "warrior_bran");
+            progress.Add(int.MaxValue);
+
+            Assert.Throws<OverflowException>(() => progress.Add(1));
+            Assert.Equal(int.MaxValue, progress.Count);
+        }
     }
 }
