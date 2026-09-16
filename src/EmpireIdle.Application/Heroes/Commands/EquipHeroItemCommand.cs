@@ -81,9 +81,6 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
 
-            if (equipped.Any(e => e.Id != item.Id && e.ItemKey == item.ItemKey))
-                throw new AlreadyExistsException("Equipped item", item.ItemKey);
-
             // Уже стоїть у цьому ж слоті — нічого не робимо: команда ідемпотентна
             if (item.EquippedByHeroId == hero.Id && item.SlotIndex == slotIndex)
                 return;
@@ -92,7 +89,11 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (item.EquippedByHeroId is not null)
                 item.Unequip(now);
 
+            // Той, хто стоїть у цільовому слоті, зараз буде знятий — дублікатом він не рахується
             var occupant = equipped.FirstOrDefault(e => e.Slot == item.Slot && e.SlotIndex == slotIndex);
+
+            if (equipped.Any(e => e.Id != item.Id && e.Id != occupant?.Id && e.ItemKey == item.ItemKey))
+                throw new AlreadyExistsException("Equipped item", item.ItemKey);
 
             occupant?.Unequip(now);
 
