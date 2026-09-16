@@ -30,6 +30,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\EmpireIdle.Application\EmpireIdle.Application.csproj" />
+		<ProjectReference Include="..\EmpireIdle.TestKit\EmpireIdle.TestKit.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

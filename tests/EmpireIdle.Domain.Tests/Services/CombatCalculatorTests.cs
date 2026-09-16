@@ -247,7 +247,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var plain = _calculator.CalculateDefencePower(stacks, "plain");
             var buffed = _calculator.CalculateDefencePower(stacks, "plain",
-                new DefenceBuffs(HeroFixture.Buff(passives: HeroFixture.Defence(10)), new()));
+                new DefenceBuffs(TestKit.Passives.Buff(passives: TestKit.Passives.Defence(10)), new()));
 
             Assert.Equal(plain * 1.10, buffed, 3);
         }
@@ -269,7 +269,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var buffs = new DefenceBuffs(
                 StackBuff.None,
-                new Dictionary<Guid, StackBuff> { [ally] = HeroFixture.Buff(passives: HeroFixture.Defence(20)) });
+                new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(20)) });
 
             var actual = _calculator.CalculateDefencePower(stacks, "plain", buffs);
             var plain = _calculator.CalculateDefencePower(stacks, "plain");

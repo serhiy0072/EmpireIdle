@@ -8,7 +8,7 @@ namespace EmpireIdle.Domain.Tests.Entities;
 public class BuildingTests
 {
     // farm: 10/хв, кап 60, ріст капу 1.3
-    private static readonly BuildingConfig Farm = TestData.FarmConfigs()["farm"];
+    private static readonly BuildingConfig Farm = TestKit.Entities.FarmConfigs()["farm"];
 
     private static Building CreateFarm() => new(Guid.NewGuid(), Guid.NewGuid(), "farm", DateTime.UtcNow);
 

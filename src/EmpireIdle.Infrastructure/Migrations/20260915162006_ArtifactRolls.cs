@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -33,7 +33,7 @@ namespace EmpireIdle.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_EquipmentRoll_EquipmentItemId",
+                name: "IX_EquipmentRoll_EquipmentItemId", 
                 table: "EquipmentRoll",
                 column: "EquipmentItemId");
         }

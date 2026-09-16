@@ -2,6 +2,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.TestKit;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
@@ -15,27 +16,28 @@ namespace EmpireIdle.Domain.Tests.Services
     /// </summary>
     public class HeroStatsTests
     {
-        private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
-
         private static HeroStats Stats()
         {
-            var config = HeroFixture.Config();
+            var config = new GameConfigBuilder()
+                .WithHeroes()
+                .WithEquipment()
+                .Build();
 
             return new HeroStats(new HeroProgression(config.HeroSettings), new GameCatalog(config));
         }
 
         private static HeroConfig HeroConfig()
-            => new GameCatalog(HeroFixture.Config()).Hero(HeroFixture.Plain);
+            => new GameCatalog(new GameConfigBuilder().WithHeroes().WithEquipment().Build()).Hero(TestKeys.CommonHero);
 
         private static EquipmentItem SetPiece(string key)
-            => HeroFixture.Item(key, EquipmentSlot.Artifact, ("Attack", 5.0));
+            => TestKit.Entities.Equipment(key, EquipmentSlot.Artifact, stats: [("Attack", 5.0)]);
 
         // ---------- Власні стати ----------
 
         [Fact]
         public void Compute_ShouldReturnBareStats_WhenNothingIsEquipped()
         {
-            var result = Stats().Compute(HeroFixture.HeroAt(level: 1), HeroConfig(), []);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), []);
 
             Assert.Equal(100, result["Attack"], 3);
             Assert.Equal(40, result["Defense"], 3);
@@ -44,7 +46,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldGrowWithLevel()
         {
-            var result = Stats().Compute(HeroFixture.HeroAt(level: 5), HeroConfig(), []);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 5), HeroConfig(), []);
 
             // 100 + 10 × 4
             Assert.Equal(140, result["Attack"], 3);
@@ -53,7 +55,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldMultiplyOwnStatsByTier()
         {
-            var result = Stats().Compute(HeroFixture.HeroAt(level: 1, tier: 2), HeroConfig(), []);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1, tier: 2), HeroConfig(), []);
 
             Assert.Equal(150, result["Attack"], 3);
         }
@@ -63,9 +65,9 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldAddEquipmentStats()
         {
-            var sword = HeroFixture.Item(HeroFixture.Weapon, EquipmentSlot.Weapon, ("Attack", 12.0));
+            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 12.0)]);
 
-            var result = Stats().Compute(HeroFixture.HeroAt(level: 1), HeroConfig(), [sword]);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), [sword]);
 
             Assert.Equal(112, result["Attack"], 3);
         }
@@ -80,13 +82,13 @@ namespace EmpireIdle.Domain.Tests.Services
             var stats = Stats();
             var config = HeroConfig();
 
-            var bareTier1 = stats.Compute(HeroFixture.HeroAt(tier: 1), config, [])["Attack"];
-            var bareTier3 = stats.Compute(HeroFixture.HeroAt(tier: 3), config, [])["Attack"];
+            var bareTier1 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 1), config, [])["Attack"];
+            var bareTier3 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 3), config, [])["Attack"];
 
-            var sword = HeroFixture.Item(HeroFixture.Weapon, EquipmentSlot.Weapon, ("Attack", 12.0));
+            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 12.0)]);
 
-            var withTier1 = stats.Compute(HeroFixture.HeroAt(tier: 1), config, [sword])["Attack"];
-            var withTier3 = stats.Compute(HeroFixture.HeroAt(tier: 3), config, [sword])["Attack"];
+            var withTier1 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 1), config, [sword])["Attack"];
+            var withTier3 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 3), config, [sword])["Attack"];
 
             Assert.Equal(12, withTier1 - bareTier1, 3);
             Assert.Equal(12, withTier3 - bareTier3, 3);
@@ -95,11 +97,11 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldCountEnhancementInEquipmentStats()
         {
-            var sword = HeroFixture.Item(HeroFixture.Weapon, EquipmentSlot.Weapon, ("Attack", 10.0));
-            sword.Enhance(Now);
-            sword.Enhance(Now);
+            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 10.0)]);
+            sword.Enhance(TestKit.Entities.Now);
+            sword.Enhance(TestKit.Entities.Now);
 
-            var result = Stats().Compute(HeroFixture.HeroAt(), HeroConfig(), [sword]);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword]);
 
             // 10 × (1 + 2 × 0.1)
             Assert.Equal(112, result["Attack"], 3);
@@ -109,10 +111,10 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldIgnoreBrokenEquipment()
         {
-            var sword = HeroFixture.Item(HeroFixture.Weapon, EquipmentSlot.Weapon, ("Attack", 12.0));
-            sword.Break(Now);
+            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 12.0)]);
+            sword.Break(TestKit.Entities.Now);
 
-            var result = Stats().Compute(HeroFixture.HeroAt(), HeroConfig(), [sword]);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword]);
 
             Assert.Equal(100, result["Attack"], 3);
         }
@@ -121,9 +123,9 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldIntroduceStatsTheHeroLacks()
         {
-            var charm = HeroFixture.Item(HeroFixture.LooseArtifact, EquipmentSlot.Artifact, ("Health", 50.0));
+            var charm = TestKit.Entities.Equipment(TestKeys.LooseArtifact, EquipmentSlot.Artifact, stats: [("Health", 50.0)]);
 
-            var result = Stats().Compute(HeroFixture.HeroAt(), HeroConfig(), [charm]);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [charm]);
 
             Assert.Equal(50, result["Health"], 3);
         }
@@ -131,10 +133,10 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldSumSeveralItems()
         {
-            var sword = HeroFixture.Item(HeroFixture.Weapon, EquipmentSlot.Weapon, ("Attack", 12.0));
-            var charm = HeroFixture.Item(HeroFixture.LooseArtifact, EquipmentSlot.Artifact, ("Attack", 6.0));
+            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 12.0)]);
+            var charm = TestKit.Entities.Equipment(TestKeys.LooseArtifact, EquipmentSlot.Artifact, stats: [("Attack", 6.0)]);
 
-            var result = Stats().Compute(HeroFixture.HeroAt(), HeroConfig(), [sword, charm]);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword, charm]);
 
             Assert.Equal(118, result["Attack"], 3);
         }
@@ -154,9 +156,9 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var bonus = Stats().SetBonus(
             [
-                SetPiece(HeroFixture.SetPiece1),
-                SetPiece(HeroFixture.SetPiece2),
-                SetPiece(HeroFixture.SetPiece3)
+                SetPiece(TestKeys.Artifact),
+                SetPiece(TestKeys.SecondArtifact),
+                SetPiece(TestKeys.ThirdArtifact)
             ]);
 
             Assert.Empty(bonus);
@@ -167,27 +169,27 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var bonus = Stats().SetBonus(
             [
-                SetPiece(HeroFixture.SetPiece1),
-                SetPiece(HeroFixture.SetPiece2),
-                SetPiece(HeroFixture.SetPiece3),
-                SetPiece(HeroFixture.SetPiece4)
+                SetPiece(TestKeys.Artifact),
+                SetPiece(TestKeys.SecondArtifact),
+                SetPiece(TestKeys.ThirdArtifact),
+                SetPiece(TestKeys.FourthArtifact)
             ]);
 
-            Assert.Equal(HeroFixture.SetBonusAttack, bonus["Attack"], 3);
+            Assert.Equal(25, bonus["Attack"], 3);
         }
 
         /// <summary>Зламаний артефакт комплект не закриває.</summary>
         [Fact]
         public void SetBonus_ShouldNotCountBrokenPieces()
         {
-            var broken = SetPiece(HeroFixture.SetPiece4);
-            broken.Break(Now);
+            var broken = SetPiece(TestKeys.FourthArtifact);
+            broken.Break(TestKit.Entities.Now);
 
             var bonus = Stats().SetBonus(
             [
-                SetPiece(HeroFixture.SetPiece1),
-                SetPiece(HeroFixture.SetPiece2),
-                SetPiece(HeroFixture.SetPiece3),
+                SetPiece(TestKeys.Artifact),
+                SetPiece(TestKeys.SecondArtifact),
+                SetPiece(TestKeys.ThirdArtifact),
                 broken
             ]);
 
@@ -200,10 +202,10 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var bonus = Stats().SetBonus(
             [
-                SetPiece(HeroFixture.SetPiece1),
-                SetPiece(HeroFixture.SetPiece2),
-                SetPiece(HeroFixture.SetPiece3),
-                SetPiece(HeroFixture.LooseArtifact)
+                SetPiece(TestKeys.Artifact),
+                SetPiece(TestKeys.SecondArtifact),
+                SetPiece(TestKeys.ThirdArtifact),
+                SetPiece(TestKeys.LooseArtifact)
             ]);
 
             Assert.Empty(bonus);
@@ -213,12 +215,12 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldIncludeTheSetBonus()
         {
-            var result = Stats().Compute(HeroFixture.HeroAt(), HeroConfig(),
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(),
             [
-                SetPiece(HeroFixture.SetPiece1),
-                SetPiece(HeroFixture.SetPiece2),
-                SetPiece(HeroFixture.SetPiece3),
-                SetPiece(HeroFixture.SetPiece4)
+                SetPiece(TestKeys.Artifact),
+                SetPiece(TestKeys.SecondArtifact),
+                SetPiece(TestKeys.ThirdArtifact),
+                SetPiece(TestKeys.FourthArtifact)
             ]);
 
             // 100 базових + 4 × 5 зі статів + 25 за комплект

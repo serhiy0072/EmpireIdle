@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.TestKit;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
@@ -13,14 +14,14 @@ namespace EmpireIdle.Domain.Tests.Services
         private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 
         private static readonly HeroPassiveConfig Shieldwall =
-            HeroFixture.Defence(percent: 6, target: "infantry", perConstellation: 2);
+            TestKit.Passives.Defence(percent: 6, target: "infantry", perConstellation: 2);
 
         private static readonly HeroPassiveConfig HoldTheLine =
-            HeroFixture.Defence(percent: 4, target: HeroCombatModifiers.AllUnits,
+            TestKit.Passives.Defence(percent: 4, target: HeroCombatModifiers.AllUnits,
                 unlockConstellation: 3, perConstellation: 1.5);
 
         private static StackBuff Buff(int constellation = 0)
-            => HeroFixture.Buff(constellation, Shieldwall, HoldTheLine);
+            => TestKit.Passives.Buff(constellation, Shieldwall, HoldTheLine);
 
         [Fact]
         public void For_ShouldApplyAnUnlockedPassive()
@@ -67,8 +68,11 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldReturnNothing_WhenTheHeroIsWounded()
         {
-            var config = HeroFixture.Config(Shieldwall, HoldTheLine);
-            var hero = HeroFixture.HeroWith(HeroFixture.Buffer, constellation: 3);
+            var config = new GameConfigBuilder()
+                .WithUnits()
+                .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
+                .Build();
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, constellation: 3);
             hero.Wound(Now);
 
             var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
@@ -79,7 +83,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldReturnNothing_WhenThereIsNoHero()
         {
-            var buff = new HeroCombatModifiers(new GameCatalog(HeroFixture.Config(Shieldwall))).For(null);
+            var buff = new HeroCombatModifiers(new GameCatalog(new GameConfigBuilder().WithUnits().WithHeroes(passives: Shieldwall).Build())).For(null);
 
             Assert.Equal(1.0, buff.Attack("infantry"), 3);
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
@@ -88,8 +92,8 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldReturnNothing_WhenTheHeroHasNoPassives()
         {
-            var config = HeroFixture.Config(Shieldwall);
-            var hero = HeroFixture.HeroWith(HeroFixture.Plain);
+            var config = new GameConfigBuilder().WithUnits().WithHeroes(passives: Shieldwall).Build();
+            var hero = TestKit.Entities.Hero(TestKeys.PlainHero);
 
             var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
 

@@ -10,20 +10,17 @@ namespace EmpireIdle.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Таблиця вже в множині: перейменування зробила попередня міграція.
-            // Тут лишається привести до множини первинний і зовнішній ключі —
-            // Postgres їх при RenameTable не чіпає
             migrationBuilder.DropForeignKey(
                 name: "FK_EquipmentRoll_EquipmentItems_EquipmentItemId",
-                table: "EquipmentRolls");
+                table: "EquipmentRoll");
 
             migrationBuilder.DropPrimaryKey(
                 name: "PK_EquipmentRoll",
-                table: "EquipmentRolls");
+                table: "EquipmentRoll");
 
             migrationBuilder.DropIndex(
-                name: "IX_EquipmentRolls_EquipmentItemId",
-                table: "EquipmentRolls");
+                name: "IX_EquipmentRoll_EquipmentItemId",
+                table: "EquipmentRoll");
 
             // Обидва покриваються префіксами складених індексів
             migrationBuilder.DropIndex(
@@ -35,18 +32,18 @@ namespace EmpireIdle.Infrastructure.Migrations
                 table: "EquipmentItems");
 
             migrationBuilder.AddPrimaryKey(
-                name: "PK_EquipmentRolls",
-                table: "EquipmentRolls",
+                name: "PK_EquipmentRoll",
+                table: "EquipmentRoll",
                 column: "Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EquipmentRolls_EquipmentItemId_Level",
-                table: "EquipmentRolls",
+                name: "IX_EquipmentRoll_EquipmentItemId_Level",
+                table: "EquipmentRoll",
                 columns: new[] { "EquipmentItemId", "Level" });
 
             migrationBuilder.AddForeignKey(
-                name: "FK_EquipmentRolls_EquipmentItems_EquipmentItemId",
-                table: "EquipmentRolls",
+                name: "FK_EquipmentRoll_EquipmentItems_EquipmentItemId",
+                table: "EquipmentRoll",
                 column: "EquipmentItemId",
                 principalTable: "EquipmentItems",
                 principalColumn: "Id",
@@ -57,25 +54,25 @@ namespace EmpireIdle.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_EquipmentRolls_EquipmentItems_EquipmentItemId",
-                table: "EquipmentRolls");
+                name: "FK_EquipmentRoll_EquipmentItems_EquipmentItemId",
+                table: "EquipmentRoll");
 
             migrationBuilder.DropPrimaryKey(
-                name: "PK_EquipmentRolls",
-                table: "EquipmentRolls");
+                name: "PK_EquipmentRoll",
+                table: "EquipmentRoll");
 
             migrationBuilder.DropIndex(
-                name: "IX_EquipmentRolls_EquipmentItemId_Level",
-                table: "EquipmentRolls");
+                name: "IX_EquipmentRoll_EquipmentItemId_Level",
+                table: "EquipmentRoll");
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_EquipmentRoll",
-                table: "EquipmentRolls",
+                table: "EquipmentRoll",
                 column: "Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EquipmentRolls_EquipmentItemId",
-                table: "EquipmentRolls",
+                name: "IX_EquipmentRoll_EquipmentItemId",
+                table: "EquipmentRoll",
                 column: "EquipmentItemId");
 
             migrationBuilder.CreateIndex(
@@ -90,7 +87,7 @@ namespace EmpireIdle.Infrastructure.Migrations
 
             migrationBuilder.AddForeignKey(
                 name: "FK_EquipmentRoll_EquipmentItems_EquipmentItemId",
-                table: "EquipmentRolls",
+                table: "EquipmentRoll",
                 column: "EquipmentItemId",
                 principalTable: "EquipmentItems",
                 principalColumn: "Id",

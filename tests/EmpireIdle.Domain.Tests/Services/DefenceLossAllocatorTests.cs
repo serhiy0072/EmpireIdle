@@ -154,7 +154,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var buffs = new DefenceBuffs(
                 StackBuff.None,
-                new Dictionary<Guid, StackBuff> { [ally] = HeroFixture.Buff(passives: HeroFixture.Defence(100)) });
+                new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(100)) });
 
             var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 90 }, buffs);
 
@@ -185,7 +185,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var buffs = new DefenceBuffs(
                 StackBuff.None,
-                new Dictionary<Guid, StackBuff> { [ally] = HeroFixture.Buff(passives: HeroFixture.Defence(40)) });
+                new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(40)) });
 
             var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = lost }, buffs);
 
@@ -210,7 +210,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var buffs = new DefenceBuffs(
                 StackBuff.None,
-                new Dictionary<Guid, StackBuff> { [ally] = HeroFixture.Buff(passives: HeroFixture.Defence(300)) });
+                new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(300)) });
 
             var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 150 }, buffs);
 

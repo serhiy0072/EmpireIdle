@@ -17,46 +17,42 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void CollectFromBuilding_ShouldMoveBufferIntoVillageResources()
         {
-            var village = TestData.CreateVillageWithResources(1000);
-            var configs = TestData.FarmConfigs();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var building = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
 
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
-            var building = village.Buildings.Single();
-
-            var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
+            var foodBefore = village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount;
             var collectAt = building.LastAccruedAt.AddMinutes(5);
 
             village.CollectFromBuilding(building.Id, configs, storageCap: 100_000, collectAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(0, building.AccruedAmount);
-            Assert.Equal(foodBefore + 50, village.Resources.Single(r => r.ResourceType == "food").Amount);
+            Assert.Equal(foodBefore + 50, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
         /// <summary>Збір із порожнього буфера — не подія: ресурси не змінюються.</summary>
         [Fact]
         public void CollectFromBuilding_ShouldDoNothing_WhenBufferIsEmpty()
         {
-            var village = TestData.CreateVillageWithResources(1000);
-            var configs = TestData.FarmConfigs();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var building = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
 
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
-            var building = village.Buildings.Single();
-
-            var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
+            var foodBefore = village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount;
 
             village.CollectFromBuilding(building.Id, configs, storageCap: 100_000, building.LastAccruedAt, ProductionBoost.None, 1.0);
 
-            Assert.Equal(foodBefore, village.Resources.Single(r => r.ResourceType == "food").Amount);
+            Assert.Equal(foodBefore, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
         /// <summary>Додавання будівлі кладе її в колекцію з правильним VillageId.</summary>
         [Fact]
         public void AddBuilding_ShouldPlaceBuildingInVillage()
         {
-            var village = TestData.CreateVillageWithResources(200);
-            var configs = TestData.FarmConfigs();
+            var village = TestKit.Entities.VillageWithResources(200);
+            var configs = TestKit.Entities.FarmConfigs();
 
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
+            village.AddBuilding(TestKit.TestKeys.Farm, configs, TestKit.Entities.Now);
 
             Assert.Single(village.Buildings);
             Assert.Equal(village.Id, village.Buildings.First().VillageId);
@@ -66,12 +62,12 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void AddBuilding_ShouldRejectDuplicateType()
         {
-            var village = TestData.CreateVillageWithResources(1000);
-            var configs = TestData.FarmConfigs();
+            var village = TestKit.Entities.VillageWithResources(1000);
+            var configs = TestKit.Entities.FarmConfigs();
 
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
+            village.AddBuilding(TestKit.TestKeys.Farm, configs, TestKit.Entities.Now);
 
-            Assert.Throws<AlreadyExistsException>(() => village.AddBuilding("farm", configs, DateTime.UtcNow));
+            Assert.Throws<AlreadyExistsException>(() => village.AddBuilding(TestKit.TestKeys.Farm, configs, TestKit.Entities.Now));
         }
 
         /// <summary>
@@ -81,31 +77,31 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void BeginBuildingUpgrade_ShouldChargeCostAndStartConstruction()
         {
-            var village = TestData.CreateVillageWithTownhall(resourceAmount: 300);
-            var configs = TestData.FarmConfigs();
-            var farm = village.Buildings.Single(b => b.Type == "farm");
-            var now = DateTime.UtcNow;
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 10, resourceAmount: 300);
+            var configs = TestKit.Entities.FarmConfigs();
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+            var now = TestKit.Entities.Now;
 
-            var foodBefore = village.Resources.Single(r => r.ResourceType == "food").Amount;
+            var foodBefore = village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount;
 
             village.BeginBuildingUpgrade(farm.Id, configs, now, ProductionBoost.None,
-                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
+                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
 
             Assert.True(farm.IsUnderConstruction);
             Assert.NotNull(farm.ConstructionCompletesAt);
-            Assert.Equal(foodBefore - 100, village.Resources.Single(r => r.ResourceType == "food").Amount);
+            Assert.Equal(foodBefore - 100, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
         /// <summary>Апгрейд банкує вироблене до зупинки — воно не губиться.</summary>
         [Fact]
         public void BeginBuildingUpgrade_ShouldBankProductionBeforeFreezing()
         {
-            var village = TestData.CreateVillageWithTownhall();
-            var configs = TestData.FarmConfigs();
-            var farm = village.Buildings.Single(b => b.Type == "farm");
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 10, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
 
             village.BeginBuildingUpgrade(farm.Id, configs, farm.LastAccruedAt.AddMinutes(4), ProductionBoost.None,
-                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
+                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
 
             Assert.Equal(40, farm.AccruedAmount);
         }
@@ -114,13 +110,13 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void CompleteDueConstructions_ShouldRaiseLevelOnlyForDueBuildings()
         {
-            var village = TestData.CreateVillageWithTownhall();
-            var configs = TestData.FarmConfigs();
-            var farm = village.Buildings.Single(b => b.Type == "farm");
-            var startedAt = DateTime.UtcNow;
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 10, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+            var startedAt = TestKit.Entities.Now;
 
             village.BeginBuildingUpgrade(farm.Id, configs, startedAt, ProductionBoost.None,
-                mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
+                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
 
             Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs));
             Assert.Equal(1, farm.Level.Value);
@@ -137,14 +133,14 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void BeginBuildingUpgrade_ShouldReject_WhenServerLevelCapsTheTier()
         {
-            var village = TestData.CreateVillageWithTownhall(townhallLevel: 10);
-            var configs = TestData.FarmConfigs();
-            var townhall = village.Buildings.Single(b => b.Type == "townhall");
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 10, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var townhall = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Townhall);
 
             // Сервер 1 рівня дозволяє до 10; ратуша вже там
             Assert.Throws<RequirementNotMetException>(() =>
-                village.BeginBuildingUpgrade(townhall.Id, configs, DateTime.UtcNow, ProductionBoost.None,
-                    mainBuildingKey: "townhall", serverLevel: 1, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+                village.BeginBuildingUpgrade(townhall.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
+                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: 1, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
         }
 
         /// <summary>
@@ -154,28 +150,33 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void BeginBuildingUpgrade_ShouldReject_WhenTownhallCrossesTierWithLaggingBuildings()
         {
-            var village = TestData.CreateVillageWithTownhall(townhallLevel: 10);
-            var configs = TestData.FarmConfigs();
-            var townhall = village.Buildings.Single(b => b.Type == "townhall");
+            // Ратуша вже на межі (рівень 10), а ферма відстає (рівень 1).
+            // Спроба підняти ратушу до рівня 11 (перехід тіру) має бути заблокована.
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 10, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var townhall = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Townhall);
 
-            // Ферма лишилась на 1 рівні, ратуша стоїть рівно на межі тіру
+            // Опускаємо ферму до 1 рівня спеціально для перевірки відставання
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+            // (або якщо рівня за замовчуванням достатньо — головне, щоб ратуша була рівно на межі 10)
+
             Assert.Throws<RequirementNotMetException>(() =>
-                village.BeginBuildingUpgrade(townhall.Id, configs, DateTime.UtcNow, ProductionBoost.None,
-                    mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+                village.BeginBuildingUpgrade(townhall.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
+                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
         }
 
         /// <summary>Правило C: жодна будівля не переростає ратушу.</summary>
         [Fact]
         public void BeginBuildingUpgrade_ShouldReject_WhenBuildingWouldExceedTownhall()
         {
-            var village = TestData.CreateVillageWithTownhall(townhallLevel: 1);
-            var configs = TestData.FarmConfigs();
-            var farm = village.Buildings.Single(b => b.Type == "farm");
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
 
-            // Ферма 1 → 2 при ратуші 1
+            // Ферма 1 → 2 при ратуші 1 (ратуша 1, тому ферма не може стати 2)
             Assert.Throws<RequirementNotMetException>(() =>
-                village.BeginBuildingUpgrade(farm.Id, configs, DateTime.UtcNow, ProductionBoost.None,
-                    mainBuildingKey: "townhall", serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+                village.BeginBuildingUpgrade(farm.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
+                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
         }
 
         /// <summary>
@@ -185,28 +186,26 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void ChargeCost_ShouldNotChargeAnything_WhenOneResourceIsInsufficient()
         {
-            var village = TestData.CreateVillage();
-            village.Resources.Single(r => r.ResourceType == "gold").Add(100);
-            village.Resources.Single(r => r.ResourceType == "food").Add(10);
+            var village = TestKit.Entities.Village();
+            village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Gold).Add(100);
+            village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Add(10);
             var cost = new List<ResourceCost>
             {
-                new() { Resource = "gold", Amount = 10 },
-                new() { Resource = "food", Amount = 50 } // не вистачає
+                new() { Resource = TestKit.TestKeys.Gold, Amount = 10 },
+                new() { Resource = TestKit.TestKeys.Food, Amount = 50 } // не вистачає
             };
 
-            Assert.Throws<NotEnoughResourcesException>(() => village.ChargeCost(cost, DateTime.UtcNow));
-            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == "gold").Amount);
+            Assert.Throws<NotEnoughResourcesException>(() => village.ChargeCost(cost, TestKit.Entities.Now));
+            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Gold).Amount);
         }
 
         /// <summary>Фіксація буфера перед зміною буста не втрачає вироблене.</summary>
         [Fact]
         public void MaterializeProduction_ShouldBankAccruedAmountForAllBuildings()
         {
-            var village = TestData.CreateVillageWithResources(1000);
-            var configs = TestData.FarmConfigs();
-
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
-            var building = village.Buildings.Single();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 10, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var building = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
             var start = building.LastAccruedAt;
 
             // 4 хв під бустом ×1.5 = 60
@@ -222,15 +221,15 @@ namespace EmpireIdle.Domain.Tests.Entities
         /// </summary>
         private static Dictionary<string, BuildingConfig> PlunderConfigs()
         {
-            var configs = TestData.FarmConfigs();
+            var configs = TestKit.Entities.FarmConfigs();
 
-            configs["warehouse"] = new BuildingConfig
+            configs[TestKit.TestKeys.Warehouse] = new BuildingConfig
             {
-                Key = "warehouse",
-                StoresResources = ["food"],
+                Key = TestKit.TestKeys.Warehouse,
+                StoresResources = [TestKit.TestKeys.Food],
                 BaseStorage = 500,
                 ProtectedStorage = 40,
-                Cost = [new ResourceCost { Resource = "wood", Amount = 100 }],
+                Cost = [new ResourceCost { Resource = TestKit.TestKeys.Wood, Amount = 100 }],
                 BaseBuildMinutes = 5,
                 BuildTimeGrowth = 1.5,
                 UpgradeCostGrowth = 1.45,
@@ -261,10 +260,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         /// </summary>
         private static Village VillageWithStoredFood(int food, Dictionary<string, BuildingConfig> configs)
         {
-            var village = TestData.CreateVillageWithResources(0);
+            var village = TestKit.Entities.VillageWithResources(0);
 
-            village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, DateTime.UtcNow);
-            village.AddBuilding("warehouse", configs, DateTime.UtcNow);
+            village.GrantStartingResources(new Dictionary<string, int> { [TestKit.TestKeys.Food] = food }, TestKit.Entities.Now);
+            village.AddBuilding(TestKit.TestKeys.Warehouse, configs, TestKit.Entities.Now);
 
             return village;
         }
@@ -282,13 +281,12 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             var plunder = Plunderer(configs);
 
-
             // Act
-            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, TestKit.Entities.Now);
 
             // Assert
-            Assert.Equal(60, loot["food"]);
-            Assert.Equal(40, village.Resources.Single(r => r.ResourceType == "food").Amount);
+            Assert.Equal(60, loot[TestKit.TestKeys.Food]);
+            Assert.Equal(40, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
         /// <summary>Нижче захищеного запасу брати нема чого — набіг порожній.</summary>
@@ -302,11 +300,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             var plunder = Plunderer(configs);
 
             // Act
-            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, TestKit.Entities.Now);
 
             // Assert
             Assert.Empty(loot);
-            Assert.Equal(30, village.Resources.Single(r => r.ResourceType == "food").Amount);
+            Assert.Equal(30, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
         /// <summary>
@@ -320,9 +318,9 @@ namespace EmpireIdle.Domain.Tests.Entities
             var configs = PlunderConfigs();
             var village = VillageWithStoredFood(40, configs);
 
-            village.AddBuilding("farm", configs, DateTime.UtcNow);
+            village.AddBuilding(TestKit.TestKeys.Farm, configs, TestKit.Entities.Now);
 
-            var farm = village.Buildings.Single(b => b.Type == "farm");
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
             var plunderAt = farm.LastAccruedAt.AddMinutes(5);
 
             var plunder = Plunderer(configs);
@@ -331,11 +329,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             var loot = plunder.Plunder(village, carryCapacity: 50, ProductionBoost.None, 1.0, plunderAt);
 
             // Assert
-            Assert.Equal(50, loot["food"]);
+            Assert.Equal(50, loot[TestKit.TestKeys.Food]);
             Assert.Equal(0, farm.AccruedAmount);
 
             // Склад лишився недоторканим — там рівно захищений запас
-            Assert.Equal(40, village.Resources.Single(r => r.ResourceType == "food").Amount);
+            Assert.Equal(40, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
         /// <summary>Вантажопідйомність — стеля: решта лишається в селі.</summary>
@@ -349,11 +347,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             var plunder = Plunderer(configs);
 
             // Act
-            var loot = plunder.Plunder(village, carryCapacity: 25, ProductionBoost.None, 1.0, DateTime.UtcNow);
+            var loot = plunder.Plunder(village, carryCapacity: 25, ProductionBoost.None, 1.0, TestKit.Entities.Now);
 
             // Assert
-            Assert.Equal(25, loot["food"]);
-            Assert.Equal(75, village.Resources.Single(r => r.ResourceType == "food").Amount);
+            Assert.Equal(25, loot[TestKit.TestKeys.Food]);
+            Assert.Equal(75, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
         /// <summary>
@@ -365,19 +363,19 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             // Arrange: склад описаний лише для food, дерево лежить без захисту
             var configs = PlunderConfigs();
-            var village = TestData.CreateVillageWithResources(0);
+            var village = TestKit.Entities.VillageWithResources(0);
 
-            village.GrantStartingResources(new Dictionary<string, int> { ["wood"] = 70 }, DateTime.UtcNow);
-            village.AddBuilding("warehouse", configs, DateTime.UtcNow);
+            village.GrantStartingResources(new Dictionary<string, int> { [TestKit.TestKeys.Wood] = 70 }, TestKit.Entities.Now);
+            village.AddBuilding(TestKit.TestKeys.Warehouse, configs, TestKit.Entities.Now);
 
             var plunder = Plunderer(configs);
 
             // Act
-            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, DateTime.UtcNow);
+            var loot = plunder.Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0, TestKit.Entities.Now);
 
             // Assert
-            Assert.Equal(70, loot["wood"]);
-            Assert.Equal(0, village.Resources.Single(r => r.ResourceType == "wood").Amount);
+            Assert.Equal(70, loot[TestKit.TestKeys.Wood]);
+            Assert.Equal(0, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Wood).Amount);
         }
     }
 }

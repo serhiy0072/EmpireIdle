@@ -499,7 +499,7 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasIndex("EquipmentItemId", "Level");
 
-                    b.ToTable("EquipmentRolls", (string)null);
+                    b.ToTable("EquipmentRolls", "public");
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentStat", b =>
