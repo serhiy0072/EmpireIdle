@@ -69,8 +69,7 @@ namespace EmpireIdle.Domain.Services
         /// ключ, прибраний із конфіга, не має ламати вже виданих героїв.
         /// </summary>
         public double MarchSpeed(HeroConfig? config)
-            => config?.BaseStats.GetValueOrDefault("Speed", _config.DefaultMarchSpeed)
-            ?? _config.DefaultMarchSpeed;
+            => config?.Speed ?? _config.DefaultMarchSpeed;
 
         /// <summary>
         /// Чи можна підняти тір. Тір прив'язаний до рівня світу: перехід

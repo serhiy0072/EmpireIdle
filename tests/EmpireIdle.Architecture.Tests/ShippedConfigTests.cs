@@ -40,7 +40,7 @@ public class ShippedConfigTests
         foreach (var file in ConfigFiles(root))
             builder.AddJsonFile(file, optional: false);
 
-        return builder.Build().GetSection("GameConfig").Get<GameConfig>()
+        return builder.Build().GetSection("GameConfig").Get<GameConfig>(o => o.ErrorOnUnknownConfiguration = true)
             ?? throw new InvalidOperationException("GameConfig section is missing from the shipped config.");
     }
 

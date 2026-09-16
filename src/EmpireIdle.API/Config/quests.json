@@ -155,7 +155,7 @@
           {
             "Type": "Item",
             "Key": "boost_production_1h",
-            "Count": 1
+            "Amount": 1
           }
         ]
       },

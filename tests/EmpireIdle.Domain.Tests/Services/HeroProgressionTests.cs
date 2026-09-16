@@ -321,7 +321,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void MarchSpeed_ShouldNotScaleWithTier()
         {
             var config = Hero();
-            config.BaseStats["Speed"] = 5;
+            config.Speed = 5;
 
             Assert.Equal(5, Progression().MarchSpeed(config), 3);
         }

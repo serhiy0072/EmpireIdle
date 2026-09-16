@@ -21,6 +21,18 @@ namespace EmpireIdle.Domain.Services.Config
         public string Class { get; set; } = null!;
 
         /// <summary>
+        /// Швидкість у поході. Не в BaseStats: тір її не множить і в суму сили вона не входить.
+        /// null — HeroesConfig.DefaultMarchSpeed.
+        /// </summary>
+        public double? Speed { get; set; }
+
+        /// <summary> Історія героя </summary>
+        public string? Lore { get; set; }
+
+        /// <summary> Короткий опис героя </summary>
+        public string? Description { get; set; }
+
+        /// <summary>
         /// Ранг. Незмінний для типу героя, тому в БД не дублюється:
         /// звичайні купуються за золото, решта падає з банерів.
         /// </summary>

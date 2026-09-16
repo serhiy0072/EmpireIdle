@@ -418,9 +418,8 @@ namespace EmpireIdle.Domain.Services
                     throw new InvalidOperationException(
                         $"Hero '{hero.Key}' has invalid LevelUpCosts entries: {string.Join(", ", brokenLines)}.");
 
-                if (hero.BaseStats.GetValueOrDefault("Speed", settings.DefaultMarchSpeed) <= 0)
-                    throw new InvalidOperationException(
-                        $"Hero '{hero.Key}' has non-positive Speed — its marches would never arrive.");
+                if (hero.Speed is <= 0)
+                    throw new InvalidOperationException($"Hero '{hero.Key}' has non-positive Speed — its marches would never arrive.");
 
                 // Пасивки: саме вони, а не стати героя, рухають бойову формулу,
                 // тож описка в цілі або статі мовчки знеструмила б героя
