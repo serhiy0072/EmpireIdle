@@ -2,6 +2,8 @@ using EmpireIdle.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+namespace EmpireIdle.Infrastructure.Persistence.Configurations;
+
 public class EquipmentItemConfiguration : IEntityTypeConfiguration<EquipmentItem>
 {
     public void Configure(EntityTypeBuilder<EquipmentItem> builder)
@@ -14,11 +16,11 @@ public class EquipmentItemConfiguration : IEntityTypeConfiguration<EquipmentItem
         builder.Property(e => e.Rarity).HasConversion<int>();
         builder.Property(e => e.Slot).HasConversion<int>();
 
-        builder.HasIndex(e => e.PlayerId);
-        builder.HasIndex(e => e.EquippedByHeroId);
-
         builder.Property(e => e.Version).IsRowVersion();
 
+        // Окремих індексів по PlayerId і EquippedByHeroId немає навмисно:
+        // обидва повністю покриваються префіксами складених нижче, і були б
+        // зайвими записами на кожне вдягання
         builder.HasIndex(e => new { e.PlayerId, e.ServerId });
 
         // Слот зайнятий рівно одним предметом. Арбітр — індекс, а не
@@ -46,6 +48,7 @@ public class EquipmentItemConfiguration : IEntityTypeConfiguration<EquipmentItem
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Navigation(e => e.Stats).UsePropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(e => e.Rolls).UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Ignore(e => e.DomainEvents);
     }
