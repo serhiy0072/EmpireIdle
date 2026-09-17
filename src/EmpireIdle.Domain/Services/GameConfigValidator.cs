@@ -134,17 +134,26 @@ namespace EmpireIdle.Domain.Services
                     $"Quests reference missing prerequisites: {string.Join("; ", brokenPrerequisites)}.");
 
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
-            var itemKeys = config.Items.Select(i => i.Key).ToHashSet();
+            var items = config.Items.ToDictionary(i => i.Key);
             var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
 
-            var rewards = config.Quests.SelectMany(q => q.Rewards.Select(r => (Quest: q.Key, Reward: r)));
+            // Ярусні нагороди серверних квестів видає той самий диспетчер
+            var rewards = config.Quests.SelectMany(q => q.Rewards
+                .Concat(q.RewardTiers.SelectMany(t => t.Rewards))
+                .Select(r => (Quest: q.Key, Reward: r)));
 
+            // Регістр ігнорується, як у RewardDispatcher. Невідомий тип тут не ловиться:
+            // список грантерів живе в Application
             var brokenRewards = rewards
-                .Where(x => x.Reward.Type switch
+                .Where(x => x.Reward.Type?.ToLowerInvariant() switch
                 {
-                    "Resource" => x.Reward.Key is null || !resourceKeys.Contains(x.Reward.Key),
-                    "Item" => x.Reward.Key is null || !itemKeys.Contains(x.Reward.Key),
-                    "Hero" => x.Reward.Key is null || !heroKeys.Contains(x.Reward.Key),
+                    null => true,
+                    "resource" => x.Reward.Key is null || !resourceKeys.Contains(x.Reward.Key),
+                    "hero" => x.Reward.Key is null || !heroKeys.Contains(x.Reward.Key),
+                    // Стаковий предмет і спорядження видають різні грантери:
+                    // ключ не того виду інакше впаде лише на видачі
+                    "item" => x.Reward.Key is null || items.GetValueOrDefault(x.Reward.Key) is not { Slot: null },
+                    "equipment" => x.Reward.Key is null || items.GetValueOrDefault(x.Reward.Key) is not { Slot: not null },
                     _ => false
                 })
                 .Select(x => $"{x.Quest} → {x.Reward.Type} '{x.Reward.Key ?? "(no key)"}'")
@@ -152,7 +161,7 @@ namespace EmpireIdle.Domain.Services
 
             if (brokenRewards.Count > 0)
                 throw new InvalidOperationException(
-                    $"Quest rewards reference unknown keys: {string.Join("; ", brokenRewards)}.");
+                    $"Quest rewards reference unknown keys or keys of the wrong kind: {string.Join("; ", brokenRewards)}.");
         }
 
         /// <summary>Кільця карти й туман.</summary>

@@ -48,9 +48,13 @@ namespace EmpireIdle.Application.Rewards.Granters
 
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            // Кількість навмисно ігнорується: спорядження видається поштучно,
-            // і "Amount": 3 означав би три окремі екземпляри з різними роллами
-            var count = Math.Max(1, context.Reward.Amount);
+            // Amount — кількість окремих екземплярів, кожен зі своїм роллом.
+            // Нуль означає зламаний конфіг, а не «видати один»
+            if (context.Reward.Amount < 1)
+                throw new InvalidOperationException(
+                    $"Equipment reward from '{context.Reference}' has non-positive Amount {context.Reward.Amount}.");
+
+            var count = context.Reward.Amount;
 
             for (var i = 0; i < count; i++)
                 await _granter.GrantEquipmentAsync(context.PlayerId, key, slot, config.Rarity,
