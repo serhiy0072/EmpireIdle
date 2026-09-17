@@ -89,11 +89,16 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (item.EquippedByHeroId is not null)
                 item.Unequip(now);
 
-            // Той, хто стоїть у цільовому слоті, зараз буде знятий — дублікатом він не рахується
+            // Той, хто стоїть у цільовому слоті, зараз буде знятий — дублікатом він не рахується.
+            // Перевірка до будь-якої мутації: відмова не лишає предмет знятим у трекері
             var occupant = equipped.FirstOrDefault(e => e.Slot == item.Slot && e.SlotIndex == slotIndex);
 
             if (equipped.Any(e => e.Id != item.Id && e.Id != occupant?.Id && e.ItemKey == item.ItemKey))
                 throw new AlreadyExistsException("Equipped item", item.ItemKey);
+
+            // Знімаємо з попереднього носія або зі старого слота
+            if (item.EquippedByHeroId is not null)
+                item.Unequip(now);
 
             occupant?.Unequip(now);
 

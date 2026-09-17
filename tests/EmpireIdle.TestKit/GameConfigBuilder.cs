@@ -256,9 +256,10 @@ public sealed class GameConfigBuilder
             BaseStats = new Dictionary<string, double>
             {
                 ["Attack"] = attack,
-                ["Defense"] = Math.Round(attack * 0.4),
-                ["Speed"] = 4
+                ["Defense"] = Math.Round(attack * 0.4)
             },
+            // Швидкість — окреме поле: у BaseStats вона множилась би тіром і йшла в Power
+            Speed = 4,
             StatGrowth = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 4 },
             LevelUpCosts =
             [

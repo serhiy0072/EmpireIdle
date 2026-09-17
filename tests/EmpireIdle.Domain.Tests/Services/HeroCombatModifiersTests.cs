@@ -99,5 +99,37 @@ namespace EmpireIdle.Domain.Tests.Services
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
+
+        /// <summary>Лідер маршу в стані Deployed — і саме в ньому б'ється. Регресія: IsAvailable гасив йому бонус.</summary>
+        [Fact]
+        public void For_ShouldApplyPassives_WhenTheHeroLeadsAMarch()
+        {
+            var config = new GameConfigBuilder()
+                .WithUnits()
+                .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
+                .Build();
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, constellation: 3);
+            hero.Deploy(Now);
+
+            var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
+
+            Assert.Equal(1.16, buff.Defense("infantry"), 3);
+        }
+
+        [Fact]
+        public void For_ShouldReturnNothing_WhenTheHeroIsWoundedOnTheMove()
+        {
+            var config = new GameConfigBuilder()
+                .WithUnits()
+                .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
+                .Build();
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, constellation: 3);
+            hero.Deploy(Now);
+            hero.Wound(Now);
+
+            var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
+
+            Assert.Equal(1.0, buff.Defense("infantry"), 3);
+        }
     }
 }
