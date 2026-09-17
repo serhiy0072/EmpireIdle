@@ -68,4 +68,61 @@ public class VillageChargeCostTests
 
         Assert.Equal(400, Gold(village));
     }
+
+    [Fact]
+    public void ChargeCost_ShouldSumRepeatedLines_BeforeCharging()
+    {
+        var village = VillageWithGold(150);
+        List<ResourceCost> cost =
+        [
+            new ResourceCost { Resource = "gold", Amount = 100 },
+            new ResourceCost { Resource = "gold", Amount = 100 }
+        ];
+
+        Assert.Throws<NotEnoughResourcesException>(() => village.ChargeCost(cost, Now));
+
+        Assert.Equal(150, Gold(village));
+    }
+
+    [Fact]
+    public void ChargeCost_ShouldChargeRepeatedLinesTogether()
+    {
+        var village = VillageWithGold(500);
+        List<ResourceCost> cost =
+        [
+            new ResourceCost { Resource = "gold", Amount = 100 },
+            new ResourceCost { Resource = "gold", Amount = 50 }
+        ];
+
+        village.ChargeCost(cost, Now, multiplier: 2);
+
+        Assert.Equal(200, Gold(village));
+    }
+
+    [Fact]
+    public void ChargeCost_ShouldReject_NegativeAmount_WithoutTouchingStock()
+    {
+        var village = VillageWithGold(1_000);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => village.ChargeCost(Price(-100), Now));
+
+        Assert.Equal(1_000, Gold(village));
+    }
+
+    /// <summary>3 × int.MaxValue × int.MaxValue не влазить у long.</summary>
+    [Fact]
+    public void ChargeCost_ShouldReject_WhenTheSummedProductExceedsLong()
+    {
+        var village = VillageWithGold(1_000);
+        List<ResourceCost> cost =
+        [
+            new ResourceCost { Resource = "gold", Amount = int.MaxValue },
+            new ResourceCost { Resource = "gold", Amount = int.MaxValue },
+            new ResourceCost { Resource = "gold", Amount = int.MaxValue }
+        ];
+
+        Assert.Throws<NotEnoughResourcesException>(() => village.ChargeCost(cost, Now, int.MaxValue));
+
+        Assert.Equal(1_000, Gold(village));
+    }
 }

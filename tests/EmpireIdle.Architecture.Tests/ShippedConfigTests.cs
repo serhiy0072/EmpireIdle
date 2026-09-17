@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Configuration;
-using System.Runtime.Serialization;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 

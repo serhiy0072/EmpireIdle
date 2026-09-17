@@ -252,10 +252,15 @@ namespace EmpireIdle.Domain.Entities
             if (multiplier < 1)
                 throw new ArgumentOutOfRangeException(nameof(multiplier), multiplier, "Multiplier must be at least 1.");
 
-            // long: у int добуток загортається в дрібну суму. Запас живе в int,
-            // тож усе, що не влазить в int, свідомо більше за будь-який запас
+            if (cost.Any(line => line.Amount < 0))
+                throw new ArgumentOutOfRangeException(nameof(cost), "Cost lines cannot be negative.");
+
+            // Рядки одного ресурсу сумуються: перевірка кожного окремо проти повного
+            // запасу пропускала 100 + 100 при 150, і друге списання падало посередині.
+            // long і насичення: у int добуток загортається, у long — на кількох рядках
             var charges = cost
-                .Select(line => (line.Resource, Need: (long)line.Amount * multiplier))
+                .GroupBy(line => line.Resource)
+                .Select(group => (Resource: group.Key, Need: Saturate(group.Sum(line => (long)line.Amount), multiplier)))
                 .ToList();
 
             foreach (var (resource, need) in charges)
@@ -273,6 +278,10 @@ namespace EmpireIdle.Domain.Entities
 
             Touch(utcNow);
         }
+
+        /// <summary>Добуток без переповнення: усе понад long.MaxValue і так більше за будь-який запас.</summary>
+        private static long Saturate(long perUnit, int multiplier)
+            => perUnit > long.MaxValue / multiplier ? long.MaxValue : perUnit * multiplier;
 
         /// <summary>
         /// Нараховує ресурси в село (нагорода за бій, подарунок тощо).

@@ -230,6 +230,7 @@ AppPackages/
 BundleArtifacts/
 Package.StoreAssociation.xml
 _pkginfo.txt
+*.txt
 *.appx
 *.appxbundle
 *.appxupload
@@ -485,3 +486,5 @@ $RECYCLE.BIN/
 *.swp
 .env
 *.env
+*.zip
+*.ps1

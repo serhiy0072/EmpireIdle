@@ -15,7 +15,6 @@ namespace EmpireIdle.Application.Heroes.Validators
         {
             RuleFor(x => x.PlayerId).NotEmpty();
             RuleFor(x => x.HeroKey).NotEmpty().MaximumLength(50);
-            RuleFor(x => x.Count).GreaterThan(0);
             RuleFor(x => x.Count).InclusiveBetween(1, MaxPerPurchase);
         }
     }
