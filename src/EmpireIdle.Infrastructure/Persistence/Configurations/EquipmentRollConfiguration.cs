@@ -10,7 +10,7 @@ public class EquipmentRollConfiguration : IEntityTypeConfiguration<EquipmentRoll
     {
         // Ім'я явно: DbSet у роллів немає, бо писати їх повз предмет не можна,
         // тож EF узяв би назву з імені типу й дав однину проти решти схеми
-        builder.ToTable("EquipmentRolls", "public");
+        builder.ToTable("EquipmentRolls");
 
         builder.HasKey(r => r.Id);
         builder.Property(r => r.Id).ValueGeneratedNever();
