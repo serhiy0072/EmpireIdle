@@ -4213,11 +4213,16 @@
   "components": {
     "schemas": {
       "ActiveEffectResponse": {
+        "required": [
+          "expiresAt",
+          "multiplier",
+          "sourceItemKey",
+          "target"
+        ],
         "type": "object",
         "properties": {
           "target": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "multiplier": {
             "type": "number",
@@ -4228,13 +4233,15 @@
             "format": "date-time"
           },
           "sourceItemKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
       },
       "AssignClanRoleRequest": {
+        "required": [
+          "roleId"
+        ],
         "type": "object",
         "properties": {
           "roleId": {
@@ -4245,15 +4252,18 @@
         "additionalProperties": false
       },
       "AuthResponse": {
+        "required": [
+          "accessToken",
+          "playerId",
+          "refreshToken"
+        ],
         "type": "object",
         "properties": {
           "accessToken": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "refreshToken": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "playerId": {
             "type": "string",
@@ -4263,15 +4273,19 @@
         "additionalProperties": false
       },
       "BannerDropView": {
+        "required": [
+          "chance",
+          "displayName",
+          "key",
+          "rarity"
+        ],
         "type": "object",
         "properties": {
           "key": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "displayName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "rarity": {
             "$ref": "#/components/schemas/Rarity"
@@ -4295,19 +4309,27 @@
         "format": "int32"
       },
       "BannerRollResponse": {
+        "required": [
+          "bannerKey",
+          "displayName",
+          "dropKey",
+          "gemBalance",
+          "lostFiftyFifty",
+          "rareSince",
+          "rarity",
+          "uniqueSince",
+          "wasPity"
+        ],
         "type": "object",
         "properties": {
           "bannerKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "dropKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "displayName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "rarity": {
             "$ref": "#/components/schemas/Rarity"
@@ -4334,22 +4356,32 @@
         "additionalProperties": false
       },
       "BannerView": {
+        "required": [
+          "displayName",
+          "drops",
+          "featuredGuaranteed",
+          "key",
+          "kind",
+          "pityGroup",
+          "priceGems",
+          "rarePity",
+          "rareSince",
+          "uniquePity",
+          "uniqueSince"
+        ],
         "type": "object",
         "properties": {
           "key": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "displayName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "kind": {
             "$ref": "#/components/schemas/BannerKind"
           },
           "pityGroup": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "priceGems": {
             "type": "integer",
@@ -4387,8 +4419,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/BannerDropView"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
@@ -4405,14 +4436,21 @@
         "format": "int32"
       },
       "BattlePreviewResult": {
+        "required": [
+          "odds",
+          "targetName",
+          "targetX",
+          "targetY",
+          "terrain",
+          "travelTime"
+        ],
         "type": "object",
         "properties": {
           "odds": {
             "$ref": "#/components/schemas/BattleOdds"
           },
           "targetName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "targetX": {
             "type": "integer",
@@ -4423,8 +4461,7 @@
             "format": "int32"
           },
           "terrain": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "travelTime": {
             "type": "string",
@@ -4434,11 +4471,18 @@
         "additionalProperties": false
       },
       "BattleReportLineResponse": {
+        "required": [
+          "dead",
+          "recoverable",
+          "sent",
+          "survived",
+          "unitType",
+          "wounded"
+        ],
         "type": "object",
         "properties": {
           "unitType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "sent": {
             "type": "integer",
@@ -4464,6 +4508,21 @@
         "additionalProperties": false
       },
       "BattleReportResponse": {
+        "required": [
+          "attackerPower",
+          "defenderPower",
+          "foughtAt",
+          "id",
+          "isRead",
+          "lines",
+          "marchId",
+          "targetLevel",
+          "targetName",
+          "terrainType",
+          "won",
+          "x",
+          "y"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4483,12 +4542,10 @@
             "format": "int32"
           },
           "terrainType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "targetName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "targetLevel": {
             "type": "integer",
@@ -4516,13 +4573,21 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/BattleReportLineResponse"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
       },
       "BuildingResponse": {
+        "required": [
+          "id",
+          "isUnderConstruction",
+          "lastCollectedAt",
+          "level",
+          "storageCap",
+          "storedAmount",
+          "type"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4530,8 +4595,7 @@
             "format": "uuid"
           },
           "type": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "level": {
             "type": "integer",
@@ -4561,11 +4625,14 @@
         "additionalProperties": false
       },
       "BuyHeroShardsRequest": {
+        "required": [
+          "count",
+          "heroKey"
+        ],
         "type": "object",
         "properties": {
           "heroKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "count": {
             "type": "integer",
@@ -4575,6 +4642,14 @@
         "additionalProperties": false
       },
       "ClanApplicationResponse": {
+        "required": [
+          "createdAt",
+          "expiresAt",
+          "playerId",
+          "playerName",
+          "power",
+          "requestId"
+        ],
         "type": "object",
         "properties": {
           "requestId": {
@@ -4586,8 +4661,7 @@
             "format": "uuid"
           },
           "playerName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "power": {
             "type": "number",
@@ -4605,6 +4679,19 @@
         "additionalProperties": false
       },
       "ClanHelpItemResponse": {
+        "required": [
+          "alreadyHelped",
+          "createdAt",
+          "expiresAt",
+          "helpCount",
+          "isMine",
+          "maxHelpers",
+          "playerId",
+          "playerName",
+          "requestId",
+          "targetId",
+          "targetType"
+        ],
         "type": "object",
         "properties": {
           "requestId": {
@@ -4616,12 +4703,10 @@
             "format": "uuid"
           },
           "playerName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "targetType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "targetId": {
             "type": "string",
@@ -4661,6 +4746,17 @@
         "format": "int32"
       },
       "ClanInviteResponse": {
+        "required": [
+          "capacity",
+          "clanId",
+          "clanName",
+          "clanTag",
+          "description",
+          "expiresAt",
+          "invitedAt",
+          "memberCount",
+          "requestId"
+        ],
         "type": "object",
         "properties": {
           "requestId": {
@@ -4672,16 +4768,13 @@
             "format": "uuid"
           },
           "clanName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "clanTag": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "memberCount": {
             "type": "integer",
@@ -4712,6 +4805,16 @@
         "format": "int32"
       },
       "ClanListItemResponse": {
+        "required": [
+          "capacity",
+          "description",
+          "id",
+          "isFull",
+          "joinPolicy",
+          "memberCount",
+          "name",
+          "tag"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4719,20 +4822,16 @@
             "format": "uuid"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "tag": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "joinPolicy": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "memberCount": {
             "type": "integer",
@@ -4749,14 +4848,19 @@
         "additionalProperties": false
       },
       "ClanListResponse": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ClanListItemResponse"
-            },
-            "nullable": true
+            }
           },
           "total": {
             "type": "integer",
@@ -4774,6 +4878,16 @@
         "additionalProperties": false
       },
       "ClanMemberResponse": {
+        "required": [
+          "joinedAt",
+          "lastActiveAt",
+          "playerId",
+          "playerName",
+          "power",
+          "rank",
+          "roleId",
+          "roleName"
+        ],
         "type": "object",
         "properties": {
           "playerId": {
@@ -4781,16 +4895,14 @@
             "format": "uuid"
           },
           "playerName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "roleId": {
             "type": "string",
             "format": "uuid"
           },
           "roleName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "rank": {
             "type": "integer",
@@ -4812,6 +4924,17 @@
         "additionalProperties": false
       },
       "ClanProfileResponse": {
+        "required": [
+          "capacity",
+          "createdAt",
+          "description",
+          "id",
+          "isFull",
+          "joinPolicy",
+          "memberCount",
+          "name",
+          "tag"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4819,20 +4942,16 @@
             "format": "uuid"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "tag": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "joinPolicy": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "memberCount": {
             "type": "integer",
@@ -4853,6 +4972,14 @@
         "additionalProperties": false
       },
       "ClanRoleResponse": {
+        "required": [
+          "id",
+          "isDefaultRole",
+          "isLeaderRole",
+          "name",
+          "permissions",
+          "rank"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4860,8 +4987,7 @@
             "format": "uuid"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "rank": {
             "type": "integer",
@@ -4871,8 +4997,7 @@
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           },
           "isLeaderRole": {
             "type": "boolean"
@@ -4884,30 +5009,42 @@
         "additionalProperties": false
       },
       "CreateClanRequest": {
+        "required": [
+          "name",
+          "tag"
+        ],
         "type": "object",
         "properties": {
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "tag": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
       },
       "EnhancementResponse": {
+        "required": [
+          "outcome"
+        ],
         "type": "object",
         "properties": {
           "outcome": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
       },
       "EquipmentResponse": {
+        "required": [
+          "enhancementLevel",
+          "id",
+          "itemKey",
+          "rarity",
+          "slot",
+          "stats"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4915,16 +5052,13 @@
             "format": "uuid"
           },
           "itemKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "slot": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "rarity": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "enhancementLevel": {
             "type": "integer",
@@ -4940,13 +5074,20 @@
             "additionalProperties": {
               "type": "number",
               "format": "double"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
       },
       "GarrisonResponse": {
+        "required": [
+          "id",
+          "recoverable",
+          "trainingOrders",
+          "units",
+          "villageId",
+          "wounded"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -4961,29 +5102,25 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UnitResponse"
-            },
-            "nullable": true
+            }
           },
           "wounded": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UnitResponse"
-            },
-            "nullable": true
+            }
           },
           "recoverable": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RecoverableUnitResponse"
-            },
-            "nullable": true
+            }
           },
           "trainingOrders": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TrainingOrderResponse"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
@@ -4997,6 +5134,10 @@
         "format": "int32"
       },
       "HealWoundedRequest": {
+        "required": [
+          "payment",
+          "units"
+        ],
         "type": "object",
         "properties": {
           "units": {
@@ -5004,8 +5145,7 @@
             "additionalProperties": {
               "type": "integer",
               "format": "int32"
-            },
-            "nullable": true
+            }
           },
           "payment": {
             "$ref": "#/components/schemas/HealPaymentMethod"
@@ -5014,6 +5154,12 @@
         "additionalProperties": false
       },
       "HeroLevelOrderSummary": {
+        "required": [
+          "completesAt",
+          "heroId",
+          "id",
+          "targetLevel"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -5036,11 +5182,15 @@
         "additionalProperties": false
       },
       "HeroShardSummary": {
+        "required": [
+          "count",
+          "heroKey",
+          "required"
+        ],
         "type": "object",
         "properties": {
           "heroKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "count": {
             "type": "integer",
@@ -5054,6 +5204,16 @@
         "additionalProperties": false
       },
       "HeroSummary": {
+        "required": [
+          "constellation",
+          "heroKey",
+          "id",
+          "isLeader",
+          "level",
+          "maxLevel",
+          "state",
+          "tier"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -5061,8 +5221,7 @@
             "format": "uuid"
           },
           "heroKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "tier": {
             "type": "integer",
@@ -5081,8 +5240,7 @@
             "format": "int32"
           },
           "state": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "stationedGarrisonId": {
             "type": "string",
@@ -5096,21 +5254,24 @@
         "additionalProperties": false
       },
       "HeroesOverview": {
+        "required": [
+          "heroes",
+          "marchCapacity",
+          "shards"
+        ],
         "type": "object",
         "properties": {
           "heroes": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/HeroSummary"
-            },
-            "nullable": true
+            }
           },
           "shards": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/HeroShardSummary"
-            },
-            "nullable": true
+            }
           },
           "activeOrder": {
             "$ref": "#/components/schemas/HeroLevelOrderSummary"
@@ -5123,27 +5284,30 @@
         "additionalProperties": false
       },
       "InventoryItemResponse": {
+        "required": [
+          "count",
+          "description",
+          "displayName",
+          "itemKey",
+          "rarity",
+          "type"
+        ],
         "type": "object",
         "properties": {
           "itemKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "displayName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "rarity": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "type": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "count": {
             "type": "integer",
@@ -5153,33 +5317,42 @@
         "additionalProperties": false
       },
       "InventoryResponse": {
+        "required": [
+          "activeEffects",
+          "equipment",
+          "items"
+        ],
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/InventoryItemResponse"
-            },
-            "nullable": true
+            }
           },
           "equipment": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/EquipmentResponse"
-            },
-            "nullable": true
+            }
           },
           "activeEffects": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ActiveEffectResponse"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
       },
       "LeaderboardEntryResponse": {
+        "required": [
+          "playerId",
+          "playerName",
+          "power",
+          "rank",
+          "rating"
+        ],
         "type": "object",
         "properties": {
           "rank": {
@@ -5191,8 +5364,7 @@
             "format": "uuid"
           },
           "playerName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "rating": {
             "type": "integer",
@@ -5206,20 +5378,30 @@
         "additionalProperties": false
       },
       "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
         "type": "object",
         "properties": {
           "email": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "password": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
       },
       "MapAreaResponse": {
+        "required": [
+          "maxX",
+          "maxY",
+          "minX",
+          "minY",
+          "occupants",
+          "terrain"
+        ],
         "type": "object",
         "properties": {
           "minX": {
@@ -5242,20 +5424,26 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MapTerrainCell"
-            },
-            "nullable": true
+            }
           },
           "occupants": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MapOccupantCell"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
       },
       "MapCellDetailsResponse": {
+        "required": [
+          "habitable",
+          "moveCost",
+          "passable",
+          "terrainType",
+          "x",
+          "y"
+        ],
         "type": "object",
         "properties": {
           "x": {
@@ -5267,8 +5455,7 @@
             "format": "int32"
           },
           "terrainType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "passable": {
             "type": "boolean"
@@ -5310,6 +5497,12 @@
         "additionalProperties": false
       },
       "MapOccupantCell": {
+        "required": [
+          "occupantId",
+          "occupantType",
+          "x",
+          "y"
+        ],
         "type": "object",
         "properties": {
           "x": {
@@ -5321,8 +5514,7 @@
             "format": "int32"
           },
           "occupantType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "occupantId": {
             "type": "string",
@@ -5336,6 +5528,13 @@
         "additionalProperties": false
       },
       "MapTerrainCell": {
+        "required": [
+          "habitable",
+          "passable",
+          "type",
+          "x",
+          "y"
+        ],
         "type": "object",
         "properties": {
           "x": {
@@ -5347,8 +5546,7 @@
             "format": "int32"
           },
           "type": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "passable": {
             "type": "boolean"
@@ -5376,6 +5574,20 @@
         "format": "int32"
       },
       "MyClanResponse": {
+        "required": [
+          "capacity",
+          "createdAt",
+          "description",
+          "id",
+          "joinPolicy",
+          "memberCount",
+          "members",
+          "myPermissions",
+          "myRoleId",
+          "name",
+          "roles",
+          "tag"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -5383,20 +5595,16 @@
             "format": "uuid"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "tag": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "joinPolicy": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "memberCount": {
             "type": "integer",
@@ -5418,27 +5626,35 @@
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           },
           "roles": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ClanRoleResponse"
-            },
-            "nullable": true
+            }
           },
           "members": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ClanMemberResponse"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
       },
       "PlayerRankResponse": {
+        "required": [
+          "activityScore",
+          "battlesWon",
+          "developmentScore",
+          "monstersDefeated",
+          "powerScore",
+          "questsCompleted",
+          "rank",
+          "rating",
+          "updatedAt"
+        ],
         "type": "object",
         "properties": {
           "rank": {
@@ -5481,6 +5697,13 @@
         "additionalProperties": false
       },
       "PowerResponse": {
+        "required": [
+          "army",
+          "equipment",
+          "hero",
+          "total",
+          "updatedAt"
+        ],
         "type": "object",
         "properties": {
           "total": {
@@ -5534,11 +5757,15 @@
         "additionalProperties": {}
       },
       "QuestObjectiveView": {
+        "required": [
+          "amount",
+          "required",
+          "type"
+        ],
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "target": {
             "type": "string",
@@ -5573,15 +5800,22 @@
         "format": "int32"
       },
       "QuestView": {
+        "required": [
+          "displayName",
+          "key",
+          "objectives",
+          "rewards",
+          "scope",
+          "state",
+          "window"
+        ],
         "type": "object",
         "properties": {
           "key": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "displayName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "scope": {
             "$ref": "#/components/schemas/QuestScope"
@@ -5596,15 +5830,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/QuestObjectiveView"
-            },
-            "nullable": true
+            }
           },
           "rewards": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RewardConfig"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
@@ -5628,6 +5860,9 @@
         "format": "int32"
       },
       "RecoverUnitsRequest": {
+        "required": [
+          "units"
+        ],
         "type": "object",
         "properties": {
           "units": {
@@ -5635,18 +5870,22 @@
             "additionalProperties": {
               "type": "integer",
               "format": "int32"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
       },
       "RecoverableUnitResponse": {
+        "required": [
+          "costGems",
+          "count",
+          "expiresAt",
+          "unitType"
+        ],
         "type": "object",
         "properties": {
           "unitType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "count": {
             "type": "integer",
@@ -5664,34 +5903,42 @@
         "additionalProperties": false
       },
       "RefreshRequest": {
+        "required": [
+          "refreshToken"
+        ],
         "type": "object",
         "properties": {
           "refreshToken": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
       },
       "RegisterRequest": {
+        "required": [
+          "email",
+          "password",
+          "userName"
+        ],
         "type": "object",
         "properties": {
           "userName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "email": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "password": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
       },
       "RequestClanHelpRequest": {
+        "required": [
+          "targetId",
+          "targetType"
+        ],
         "type": "object",
         "properties": {
           "targetType": {
@@ -5705,6 +5952,9 @@
         "additionalProperties": false
       },
       "ResolveClanRequestRequest": {
+        "required": [
+          "approve"
+        ],
         "type": "object",
         "properties": {
           "approve": {
@@ -5714,11 +5964,14 @@
         "additionalProperties": false
       },
       "ResourceResponse": {
+        "required": [
+          "amount",
+          "resourceType"
+        ],
         "type": "object",
         "properties": {
           "resourceType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "amount": {
             "type": "integer",
@@ -5728,11 +5981,14 @@
         "additionalProperties": false
       },
       "RewardConfig": {
+        "required": [
+          "amount",
+          "type"
+        ],
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "key": {
             "type": "string",
@@ -5746,6 +6002,13 @@
         "additionalProperties": false
       },
       "SendMarchRequest": {
+        "required": [
+          "heroId",
+          "intent",
+          "targetId",
+          "targetType",
+          "units"
+        ],
         "type": "object",
         "properties": {
           "targetType": {
@@ -5760,8 +6023,7 @@
             "additionalProperties": {
               "type": "integer",
               "format": "int32"
-            },
-            "nullable": true
+            }
           },
           "heroId": {
             "type": "string",
@@ -5774,15 +6036,22 @@
         "additionalProperties": false
       },
       "ServerQuestResponse": {
+        "required": [
+          "displayName",
+          "key",
+          "myContribution",
+          "myRank",
+          "state",
+          "target",
+          "total"
+        ],
         "type": "object",
         "properties": {
           "key": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "displayName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "total": {
             "type": "integer",
@@ -5793,8 +6062,7 @@
             "format": "int64"
           },
           "state": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "completedAt": {
             "type": "string",
@@ -5813,21 +6081,26 @@
         "additionalProperties": false
       },
       "SummonHeroRequest": {
+        "required": [
+          "heroKey"
+        ],
         "type": "object",
         "properties": {
           "heroKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
       },
       "TrainUnitsRequest": {
+        "required": [
+          "count",
+          "unitType"
+        ],
         "type": "object",
         "properties": {
           "unitType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "count": {
             "type": "integer",
@@ -5837,6 +6110,12 @@
         "additionalProperties": false
       },
       "TrainingOrderResponse": {
+        "required": [
+          "completesAt",
+          "count",
+          "id",
+          "unitType"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -5844,8 +6123,7 @@
             "format": "uuid"
           },
           "unitType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "count": {
             "type": "integer",
@@ -5859,11 +6137,14 @@
         "additionalProperties": false
       },
       "UnitResponse": {
+        "required": [
+          "count",
+          "unitType"
+        ],
         "type": "object",
         "properties": {
           "unitType": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "count": {
             "type": "integer",
@@ -5873,11 +6154,14 @@
         "additionalProperties": false
       },
       "UpdateClanSettingsRequest": {
+        "required": [
+          "description",
+          "joinPolicy"
+        ],
         "type": "object",
         "properties": {
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "joinPolicy": {
             "$ref": "#/components/schemas/ClanJoinPolicy"
@@ -5886,11 +6170,14 @@
         "additionalProperties": false
       },
       "UseItemRequest": {
+        "required": [
+          "count",
+          "itemKey"
+        ],
         "type": "object",
         "properties": {
           "itemKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "count": {
             "type": "integer",
@@ -5915,6 +6202,12 @@
         "additionalProperties": false
       },
       "VillageResponse": {
+        "required": [
+          "buildings",
+          "id",
+          "name",
+          "resources"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -5922,22 +6215,19 @@
             "format": "uuid"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "buildings": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/BuildingResponse"
-            },
-            "nullable": true
+            }
           },
           "resources": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ResourceResponse"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false

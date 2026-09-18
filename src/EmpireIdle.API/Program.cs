@@ -283,6 +283,10 @@ builder.Services.AddSwaggerGen(options =>
     });
 
     options.OperationFilter<IdempotencyHeaderFilter>();
+    // Без цього кожен рядок у схемі позначений nullable, і типи клієнта
+    // перетворюють будь-яке поле на "може не прийти"
+    options.SupportNonNullableReferenceTypes();
+    options.SchemaFilter<RequiredPropertiesSchemaFilter>();
 });
 
 var app = builder.Build();
