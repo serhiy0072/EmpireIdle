@@ -13,6 +13,7 @@ using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
@@ -260,6 +261,12 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Browser-based idle empire builder game API"
     });
 
+    // Стабільний operationId: із нього генератор робить ім'я методу клієнта.
+    // Без нього Swashbuckle лишає порожньо, і назви залежать від маршруту
+    options.CustomOperationIds(api => api.ActionDescriptor is ControllerActionDescriptor descriptor
+        ? $"{descriptor.ControllerName}_{descriptor.ActionName}"
+        : null);
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -286,9 +293,13 @@ var app = builder.Build();
 // Найперший: далі всі бачать реальний IP клієнта, а не проксі
 app.UseForwardedHeaders();
 
+// Специфікацію віддаємо і в Testing: з неї генеруються типи фронту
+// й на ній тримається тест на розходження контракту. UI лишається в dev
+if (!app.Environment.IsProduction())
+    app.UseSwagger();
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
     app.UseSwaggerUI(options =>
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "EmpireIdle API v1"));
 
