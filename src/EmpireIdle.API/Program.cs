@@ -3,6 +3,7 @@ using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Middleware;
 using EmpireIdle.API.Services;
 using EmpireIdle.API.Swagger;
+using EmpireIdle.Application.Dev.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Services;
@@ -10,6 +11,7 @@ using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
 using Hangfire;
 using Hangfire.PostgreSql;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -312,6 +314,13 @@ if (app.Environment.IsDevelopment())
     {
         Authorization = [new HangfireDashboardAuthorizationFilter()]
     }).AllowAnonymous();
+
+    // Сід дев-акаунта. Поза Development маршруту не існує взагалі
+    app.MapPost("/api/dev/seed/{playerId:guid}", async (Guid playerId, IMediator mediator, CancellationToken cancellationToken) =>
+    {
+        await mediator.Send(new SeedDevAccountCommand(playerId), cancellationToken);
+        return Results.NoContent();
+    }).RequireAuthorization();
 }
 else
 {
