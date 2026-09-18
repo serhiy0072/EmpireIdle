@@ -30,7 +30,6 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<March> Marches => Set<March>();
         public DbSet<BattleReport> BattleReports => Set<BattleReport>();
         public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
-        public DbSet<LootBoxProgress> LootBoxProgress => Set<LootBoxProgress>();
         public DbSet<PlayerItem> PlayerItems => Set<PlayerItem>();
         public DbSet<EquipmentItem> EquipmentItems => Set<EquipmentItem>();
         public DbSet<ActiveEffect> ActiveEffects => Set<ActiveEffect>();
@@ -52,6 +51,13 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<Hero> Heroes => Set<Hero>();
         public DbSet<HeroLevelOrder> HeroLevelOrders => Set<HeroLevelOrder>();
         public DbSet<HeroShardProgress> HeroShards => Set<HeroShardProgress>();
+        public DbSet<BannerPityProgress> BannerPity => Set<BannerPityProgress>();
+
+        /// <summary>
+        /// Журнал роллів. Фільтра за світом немає навмисно: gems акаунтні,
+        /// і підтримка має бачити всю історію гравця, а не зріз одного світу.
+        /// </summary>
+        public DbSet<BannerRollRecord> BannerRolls => Set<BannerRollRecord>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
