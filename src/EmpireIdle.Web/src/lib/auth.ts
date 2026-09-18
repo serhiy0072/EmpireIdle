@@ -1,41 +1,31 @@
 import { apiPost } from "./api";
+import { fromAuthResponse, getSession, setSession, type AuthResponse } from "./session";
 
-const TOKEN_KEY = "empireidle.accessToken";
-const PLAYER_KEY = "empireidle.playerId";
-
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  playerId: string;
-}
+export type { AuthResponse, Session } from "./session";
 
 export async function login(email: string, password: string, remember = true): Promise<AuthResponse> {
-  const auth = await apiPost<AuthResponse>("/login", { email, password });
+  const auth = await apiPost<AuthResponse>("/api/auth/login", { email, password });
 
-  const store = remember ? localStorage : sessionStorage;
-  const other = remember ? sessionStorage : localStorage;
-  other.removeItem(TOKEN_KEY);
-  other.removeItem(PLAYER_KEY);
-  store.setItem(TOKEN_KEY, auth.accessToken);
-  store.setItem(PLAYER_KEY, auth.playerId);
+  setSession(fromAuthResponse(auth), remember);
   return auth;
 }
 
-function read(key: string): string | null {
-  return localStorage.getItem(key) ?? sessionStorage.getItem(key);
-}
+export async function register(
+  userName: string,
+  email: string,
+  password: string,
+  remember = true,
+): Promise<AuthResponse> {
+  const auth = await apiPost<AuthResponse>("/api/auth/register", { userName, email, password });
 
-export function getToken(): string | null {
-  return read(TOKEN_KEY);
+  setSession(fromAuthResponse(auth), remember);
+  return auth;
 }
 
 export function getPlayerId(): string | null {
-  return read(PLAYER_KEY);
+  return getSession()?.playerId ?? null;
 }
 
 export function logout(): void {
-  [localStorage, sessionStorage].forEach((s) => {
-    s.removeItem(TOKEN_KEY);
-    s.removeItem(PLAYER_KEY);
-  });
+  setSession(null);
 }

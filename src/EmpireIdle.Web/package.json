@@ -4,14 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "api:types": "npx -y -p typescript@5 -p openapi-typescript@7 openapi-typescript ../../openapi/v1.json -o src/lib/schema.d.ts",
+    "predev": "npm run api:types",
     "dev": "vite",
+    "prebuild": "npm run api:types",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "typecheck": "tsc -b --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
     "@tailwindcss/vite": "^4.3.2",
+    "@tanstack/react-query": "^5.62.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-icons": "^5.6.0",

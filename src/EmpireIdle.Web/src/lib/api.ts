@@ -1,43 +1,105 @@
-import { getToken } from "./auth";
+import { ApiError, type ProblemDetails } from "./problem";
+import { fromAuthResponse, getSession, setSession, type AuthResponse } from "./session";
 
-const API_URL = import.meta.env.VITE_API_URL as string;
+export { ApiError, isApiError } from "./problem";
 
-export class ApiError extends Error {
-  status: number;
-  problem: unknown;
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
 
-  constructor(status: number, problem: unknown) {
-    super((problem as { title?: string })?.title ?? `Запит провалився (${status})`);
-    this.status = status;
-    this.problem = problem;
-  }
+export interface RequestOptions {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  body?: unknown;
+  /** Команди з IIdempotentRequest: повтор після обриву мережі має вернути той самий результат. */
+  idempotent?: boolean;
+  signal?: AbortSignal;
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+/** Одна ротація на всіх: шість паралельних 401 не мають зробити шість рефрешів. */
+let refreshing: Promise<boolean> | null = null;
+
+export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const response = await send(path, options);
+
+  // Сам рефреш не рефрешимо: інакше протухла пара зациклиться
+  if (response.status === 401 && !path.startsWith("/api/auth/")) {
+    if (await refreshOnce()) {
+      return unwrap<T>(await send(path, options));
+    }
+
+    setSession(null);
+  }
+
+  return unwrap<T>(response);
+}
+
+export function apiGet<T>(path: string): Promise<T> {
+  return api<T>(path);
+}
+
+export function apiPost<T>(path: string, body: unknown, options: RequestOptions = {}): Promise<T> {
+  return api<T>(path, { ...options, method: "POST", body });
+}
+
+function send(path: string, options: RequestOptions): Promise<Response> {
+  const session = getSession();
+  const headers = new Headers({ Accept: "application/json" });
+
+  if (session !== null) {
+    headers.set("Authorization", `Bearer ${session.accessToken}`);
+  }
+
+  if (options.body !== undefined) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (options.idempotent === true) {
+    headers.set("Idempotency-Key", crypto.randomUUID());
+  }
+
+  return fetch(`${API_URL}${path}`, {
+    method: options.method ?? "GET",
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    signal: options.signal,
+  });
+}
+
+function refreshOnce(): Promise<boolean> {
+  refreshing ??= rotate().finally(() => {
+    refreshing = null;
+  });
+
+  return refreshing;
+}
+
+async function rotate(): Promise<boolean> {
+  const session = getSession();
+
+  if (session === null) return false;
+
+  const response = await fetch(`${API_URL}/api/auth/refresh`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ refreshToken: session.refreshToken }),
   });
 
-  if (!res.ok) {
-    const problem = await res.json().catch(() => null);
-    throw new ApiError(res.status, problem);
-  }
+  if (!response.ok) return false;
 
-  return res.json() as Promise<T>;
+  setSession(fromAuthResponse((await response.json()) as AuthResponse));
+  return true;
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const token = getToken();
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-
-  if (!res.ok) {
-    const problem = await res.json().catch(() => null);
-    throw new ApiError(res.status, problem);
+async function unwrap<T>(response: Response): Promise<T> {
+  if (response.status === 204) {
+    return undefined as T;
   }
 
-  return res.json() as Promise<T>;
+  const text = await response.text();
+  const payload = text === "" ? null : (JSON.parse(text) as unknown);
+
+  if (!response.ok) {
+    // Бек завжди віддає ProblemDetails, але падати на відповіді проксі не варто
+    throw new ApiError(response.status, (payload as ProblemDetails | null) ?? { status: response.status });
+  }
+
+  return payload as T;
 }

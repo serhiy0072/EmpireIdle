@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Генерується з openapi/v1.json перед кожним dev і build
+src/lib/schema.d.ts

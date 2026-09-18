@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { login } from "../lib/auth";
-import { ApiError } from "../lib/api";
+import { isApiError } from "../lib/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -8,30 +8,18 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [playerId, setPlayerId] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const auth = await login(email, password, rememberMe);
-      setPlayerId(auth.playerId);
+      await login(email, password, rememberMe);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не вдалося з'єднатися з сервером");
+      setError(describe(err));
     } finally {
       setLoading(false);
     }
-  }
-
-  if (playerId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-lg text-slate-700">
-          Увійшли. playerId: <span className="font-mono">{playerId}</span>
-        </p>
-      </div>
-    );
   }
 
   return (
@@ -73,4 +61,15 @@ export default function LoginPage() {
       </form>
     </div>
   );
+}
+
+/** Розгалуження за errorCode, а не за текстом: текст беку може змінитись будь-коли. */
+function describe(error: unknown): string {
+  if (!isApiError(error)) return "Не вдалося з'єднатися з сервером";
+
+  if (error.is("AuthenticationFailed")) return "Невірна пошта або пароль";
+
+  const fields = Object.values(error.fieldErrors).flat();
+
+  return fields.length > 0 ? fields.join(" ") : error.message;
 }
