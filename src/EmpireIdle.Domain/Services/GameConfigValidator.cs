@@ -33,6 +33,7 @@ namespace EmpireIdle.Domain.Services
             ValidateHeroes(config);
             ValidateLossBands(config);
             ValidateEquipment(config);
+            ValidateBanners(config);
         }
 
 
@@ -145,17 +146,7 @@ namespace EmpireIdle.Domain.Services
             // Регістр ігнорується, як у RewardDispatcher. Невідомий тип тут не ловиться:
             // список грантерів живе в Application
             var brokenRewards = rewards
-                .Where(x => x.Reward.Type?.ToLowerInvariant() switch
-                {
-                    null => true,
-                    "resource" => x.Reward.Key is null || !resourceKeys.Contains(x.Reward.Key),
-                    "hero" => x.Reward.Key is null || !heroKeys.Contains(x.Reward.Key),
-                    // Стаковий предмет і спорядження видають різні грантери:
-                    // ключ не того виду інакше впаде лише на видачі
-                    "item" => x.Reward.Key is null || items.GetValueOrDefault(x.Reward.Key) is not { Slot: null },
-                    "equipment" => x.Reward.Key is null || items.GetValueOrDefault(x.Reward.Key) is not { Slot: not null },
-                    _ => false
-                })
+                .Where(x => IsRewardBroken(x.Reward, resourceKeys, items, heroKeys))
                 .Select(x => $"{x.Quest} → {x.Reward.Type} '{x.Reward.Key ?? "(no key)"}'")
                 .ToList();
 
@@ -572,6 +563,134 @@ namespace EmpireIdle.Domain.Services
                 if (item.Slot == EquipmentSlot.Artifact && item.BaseStats.Count > 0)
                     throw new InvalidOperationException(
                         $"Artifact '{item.Key}' has BaseStats — artifact stats are rolled per instance.");
+            }
+        }
+
+        /// <summary>Чи посилається нагорода на неіснуючий ключ або на ключ не того виду.</summary>
+        private static bool IsRewardBroken(RewardConfig reward, HashSet<string> resourceKeys,
+            Dictionary<string, ItemConfig> items, HashSet<string> heroKeys)
+            => reward.Type?.ToLowerInvariant() switch
+            {
+                null => true,
+                "resource" => reward.Key is null || !resourceKeys.Contains(reward.Key),
+                "hero" => reward.Key is null || !heroKeys.Contains(reward.Key),
+                "item" => reward.Key is null || items.GetValueOrDefault(reward.Key) is not { Slot: null },
+                "equipment" => reward.Key is null || items.GetValueOrDefault(reward.Key) is not { Slot: not null },
+                _ => false
+            };
+
+        /// <summary>Банери: категорія, пул, пороги pity й посилання лотів.</summary>
+        private static void ValidateBanners(GameConfig config)
+        {
+            if (config.Shop.Banners.Count == 0)
+                return;
+
+            RequireUniqueKeys(config.Shop.Banners.Select(b => b.Key), "Shop.Banners");
+
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+            var items = config.Items.ToDictionary(i => i.Key);
+            var heroes = config.Heroes.ToDictionary(h => h.Key);
+            var heroKeys = heroes.Keys.ToHashSet();
+
+            foreach (var banner in config.Shop.Banners)
+            {
+                if (!Enum.IsDefined(banner.Kind))
+                    throw new InvalidOperationException($"Banner '{banner.Key}' has no Kind.");
+
+                if (string.IsNullOrWhiteSpace(banner.PityGroup))
+                    throw new InvalidOperationException(
+                        $"Banner '{banner.Key}' has no PityGroup — pity carries between banners of one group, "
+                        + "so an empty group would reset progress with every new banner.");
+
+                if (banner.PriceGems < 1)
+                    throw new InvalidOperationException($"Banner '{banner.Key}' needs a positive PriceGems.");
+
+                if (banner.RarePity < 1 || banner.UniquePity < 1)
+                    throw new InvalidOperationException($"Banner '{banner.Key}' has a non-positive pity threshold.");
+
+                if (banner.RarePity >= banner.UniquePity)
+                    throw new InvalidOperationException(
+                        $"Banner '{banner.Key}' has RarePity {banner.RarePity} at or above UniquePity "
+                        + $"{banner.UniquePity} — the rare guarantee would never pay out on its own.");
+
+                if (banner.StartsAt is { } start && banner.EndsAt is { } end && start >= end)
+                    throw new InvalidOperationException($"Banner '{banner.Key}' ends before it starts.");
+
+                RequireUniqueKeys(banner.Drops.Select(d => d.Key), $"Banner '{banner.Key}' drops");
+
+                // Гарантія платить у категорії банера, тож пул цієї категорії
+                // мусить мати чим заплатити на обох порогах
+                foreach (var rarity in new[] { Rarity.Rare, Rarity.Unique })
+                    if (!banner.Drops.Any(d => d.Kind == banner.Kind && d.Rarity >= rarity))
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' has no {rarity} {banner.Kind} drop — its pity could never pay out.");
+
+                if (banner.FeaturedKey is { } featuredKey)
+                {
+                    var featured = banner.Drops.FirstOrDefault(d => d.Key == featuredKey)
+                        ?? throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' points at a featured drop '{featuredKey}' that is not in its pool.");
+
+                    if (featured.Rarity != Rarity.Unique || featured.Kind != banner.Kind)
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' has a featured drop that is not a unique {banner.Kind} — "
+                            + "50/50 applies to the banner's own category only.");
+                }
+
+                foreach (var drop in banner.Drops)
+                {
+                    if (drop.Kind is { } kind && !Enum.IsDefined(kind))
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' has an unknown Kind.");
+
+                    if (drop.Weight < 1)
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' has no weight and could never come out.");
+
+                    if (drop.Rewards.Count == 0)
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' grants nothing.");
+
+                    var broken = drop.Rewards
+                        .Where(r => IsRewardBroken(r, resourceKeys, items, heroKeys))
+                        .Select(r => $"{r.Type} '{r.Key ?? "(no key)"}'")
+                        .ToList();
+
+                    if (broken.Count > 0)
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' references unknown keys "
+                            + $"or keys of the wrong kind: {string.Join("; ", broken)}.");
+
+                    // Лот чужої категорії — це філер. Рідкісний філер виглядав би
+                    // як виплата гарантії, якою він не є
+                    if (drop.Kind != banner.Kind && drop.Rarity != Rarity.Common)
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' is a {drop.Rarity} filler — "
+                            + "only the banner's own category carries rare and unique drops.");
+
+                    if (drop.Kind == BannerKind.Hero
+                        && !drop.Rewards.Any(r => string.Equals(r.Type, "Hero", StringComparison.OrdinalIgnoreCase)))
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a hero drop but grants no hero.");
+
+                    if (drop.Kind == BannerKind.Weapon
+                        && !drop.Rewards.Any(r => string.Equals(r.Type, "Equipment", StringComparison.OrdinalIgnoreCase)
+                            && r.Key is not null
+                            && items.GetValueOrDefault(r.Key) is { Slot: EquipmentSlot.Weapon }))
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a weapon drop but grants no weapon.");
+
+                    // Звичайні герої купуються за золото в залі (§6.1).
+                    // У пулі за gems вони перетворили б банер на лотерею із золотим дном
+                    var commonHero = drop.Rewards
+                        .Where(r => string.Equals(r.Type, "Hero", StringComparison.OrdinalIgnoreCase) && r.Key is not null)
+                        .FirstOrDefault(r => heroes[r.Key!].Rank == Rarity.Common);
+
+                    if (commonHero is not null)
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' grants the common hero '{commonHero.Key}' — "
+                            + "banners carry rare and unique heroes only.");
+                }
             }
         }
     }
