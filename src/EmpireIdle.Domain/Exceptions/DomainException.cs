@@ -11,11 +11,22 @@ namespace EmpireIdle.Domain.Exceptions
         protected DomainException(string message) : base(message) { }
     }
 
-    /// <summary>Не вистачає ресурсу для операції.</summary>
+    /// <summary>Не вистачає ресурсу або валюти. Цифри — окремими полями: клієнт показує їх у відмові.</summary>
     public sealed class NotEnoughResourcesException : DomainException
     {
+        public string Resource { get; }
+
+        public long Need { get; }
+
+        public long Have { get; }
+
         public NotEnoughResourcesException(string resource, long need, long have)
-            : base($"Not enough {resource}: need {need}, have {have}.") { }
+            : base($"Not enough {resource}: need {need}, have {have}.")
+        {
+            Resource = resource;
+            Need = need;
+            Have = have;
+        }
     }
 
     /// <summary>Об'єкт, на який посилається запит, не належить агрегату або не існує.</summary>
@@ -46,4 +57,6 @@ namespace EmpireIdle.Domain.Exceptions
     {
         public InvalidStateException(string message) : base(message) { }
     }
+
+
 }
