@@ -1,7 +1,9 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -41,17 +43,21 @@ namespace EmpireIdle.API.Controllers
                         i.ItemKey,
                         config?.DisplayName ?? i.ItemKey,
                         config?.Description ?? string.Empty,
-                        config?.Rarity ?? "common",
+                        (config?.Rarity ?? Rarity.Common).ToString().ToLowerInvariant(),
                         config?.Type ?? "unknown",
                         i.Count);
                 })
                 .ToList();
 
+            // Приріст заточки береться з конфіга: гравець має бачити ті самі
+            // числа, з якими предмет піде в бій
+            var enhancementBonus = _catalog.Config.Equipment.EnhancementBonusPerLevel;
+
             var equipment = contents.Equipment
                 .Select(e => new EquipmentResponse(
-                    e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity,
+                    e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
                     e.EnhancementLevel, e.EquippedByHeroId,
-                    e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey))))
+                    e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey, enhancementBonus))))
                 .ToList();
 
             var activeEffects = contents.ActiveEffects.Select(e => new ActiveEffectResponse(e.Target.ToString(), e.Multiplier, e.ExpiresAt, e.SourceItemKey)).ToList();
@@ -78,6 +84,50 @@ namespace EmpireIdle.API.Controllers
                 playerId, request.ItemKey, request.Count, request.TargetId,
                 request.TargetX, request.TargetY), cancellationToken);
 
+            return NoContent();
+        }
+
+        /// <summary>Заточити зброю. Ідемпотентна операція — потрібен заголовок Idempotency-Key.</summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/enhance")]
+        [ProducesResponseType(typeof(EnhancementResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Enhance(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        {
+            var outcome = await _mediator.Send(new EnhanceWeaponCommand(playerId, equipmentId), cancellationToken);
+
+            return Ok(new EnhancementResponse(outcome.ToString().ToLowerInvariant()));
+        }
+
+        /// <summary>Полагодити зламану зброю.</summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/repair")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Repair(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RepairWeaponCommand(playerId, equipmentId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Прокачати артефакт. Ідемпотентна операція — потрібен заголовок
+        /// Idempotency-Key, інакше повтор запиту дав би другий ролл.
+        /// </summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/upgrade")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Upgrade(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new EnhanceArtifactCommand(playerId, equipmentId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Купити зброю в кузні. Ідемпотентна операція.</summary>
+        [HttpPost("{playerId:guid}/weapons/{itemKey}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> BuyWeapon(Guid playerId, string itemKey, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new BuyWeaponCommand(playerId, itemKey), cancellationToken);
             return NoContent();
         }
     }

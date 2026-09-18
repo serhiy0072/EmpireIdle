@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
@@ -8,6 +10,7 @@ namespace EmpireIdle.Domain.Tests.Services
         private readonly CombatCalculator _calculator;
         private readonly Dictionary<string, int> _attacker = new() { ["infantry"] = 20 };
         private readonly Dictionary<string, int> _defender = new() { ["infantry"] = 5 };
+        private static Dictionary<string, int> Army(int count) => new() { ["infantry"] = count };
 
         public CombatCalculatorTests()
         {
@@ -37,8 +40,8 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Resolve_ShouldBeReproducibleForTheSameSeed()
         {
-            var first = _calculator.Resolve(_attacker, _defender, "plain", seed: 42);
-            var second = _calculator.Resolve(_attacker, _defender, "plain", seed: 42);
+            var first = _calculator.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 42);
+            var second = _calculator.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 42);
 
             Assert.Equal(first.AttackerPower, second.AttackerPower);
             Assert.Equal(first.AttackerWon, second.AttackerWon);
@@ -89,6 +92,10 @@ namespace EmpireIdle.Domain.Tests.Services
             return new CombatCalculator(combatConfig, catalog);
         }
 
+        /// <summary>Частка втраченого від початкового складу.</summary>
+        private static double Share(IReadOnlyDictionary<string, int> army, IReadOnlyDictionary<string, int> losses)
+            => (double)losses.Values.Sum() / army.Values.Sum();
+
         [Fact]
         public void Resolve_ShouldHitFragileUnitsHarder_WhenSideWins()
         {
@@ -99,7 +106,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var defender = new Dictionary<string, int> { ["infantry"] = 10 };
 
             // Act
-            var result = calculator.Resolve(attacker, defender, "plain", seed: 42);
+            var result = calculator.Resolve(attacker, DefenceStacks.FromArmy(defender), "plain", seed: 42);
 
             // Assert
             Assert.True(result.AttackerWon);
@@ -122,7 +129,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var defender = new Dictionary<string, int> { ["infantry"] = 1000 };
 
             // Act
-            var result = calculator.Resolve(attacker, defender, "plain", seed: 42);
+            var result = calculator.Resolve(attacker, DefenceStacks.FromArmy(defender), "plain", seed: 42);
 
             // Assert
             Assert.False(result.AttackerWon);
@@ -131,6 +138,155 @@ namespace EmpireIdle.Domain.Tests.Services
             // різниця можлива хіба на одиницю залишку при непарних втратах
             Assert.True(Math.Abs(result.AttackerLosses["infantry"] - result.AttackerLosses["siege"]) <= 1,
                 $"infantry {result.AttackerLosses["infantry"]} проти siege {result.AttackerLosses["siege"]}");
+        }
+
+        // ---------- Смуги втрат ----------
+
+        /// <summary>
+        /// Переможений більше не втрачає все. До смуг це був би повний нуль,
+        /// і одна програна оборона викреслювала б гравця з гри на тижні.
+        /// </summary>
+        [Fact]
+        public void Resolve_ShouldNeverWipeTheLoser()
+        {
+            var attacker = Army(2000);
+            var defender = Army(100);
+
+            var result = _calculator.Resolve(attacker, DefenceStacks.FromArmy(defender), "plain", seed: 7);
+
+            Assert.True(result.AttackerWon);
+            Assert.True(Share(defender, result.DefenderLosses) < 0.55);
+        }
+
+        /// <summary>
+        /// Головний інваріант смуг: за будь-якого результату переможений
+        /// втрачає більшу частку, ніж переможець. Інакше оптимальною
+        /// стратегією стало б навмисно програвати.
+        /// </summary>
+        [Theory]
+        [InlineData(1)]
+        [InlineData(42)]
+        [InlineData(1337)]
+        [InlineData(90210)]
+        public void Resolve_ShouldCostTheLoserMoreThanTheWinner(int seed)
+        {
+            var attacker = Army(1000);
+            var defender = Army(900);
+
+            var result = _calculator.Resolve(attacker, DefenceStacks.FromArmy(defender), "plain", seed);
+
+            var attackerShare = Share(attacker, result.AttackerLosses);
+            var defenderShare = Share(defender, result.DefenderLosses);
+
+            if (result.AttackerWon)
+                Assert.True(defenderShare > attackerShare,
+                    $"loser {defenderShare:P1} vs winner {attackerShare:P1}");
+            else
+                Assert.True(attackerShare > defenderShare,
+                    $"loser {attackerShare:P1} vs winner {defenderShare:P1}");
+        }
+
+        /// <summary>Розгромлена оборона лишає селу половину війська.</summary>
+        [Fact]
+        public void Resolve_ShouldLeaveHalfTheArmy_WhenDefenceIsCrushed()
+        {
+            var attacker = Army(2000);
+            var defender = Army(100);
+
+            var result = _calculator.Resolve(attacker, DefenceStacks.FromArmy(defender), "plain", seed: 11);
+
+            Assert.True(result.AttackerWon);
+
+            // Стеля смуги 0.50, допуск на округлення вгору
+            Assert.True(Share(defender, result.DefenderLosses) <= 0.51);
+        }
+
+        /// <summary>
+        /// Провалена атака дорожча за провалену оборону: нападник сам
+        /// обрав бій, захисник — ні.
+        /// </summary>
+        [Fact]
+        public void Resolve_ShouldPunishAFailedAttackHarderThanAFailedDefence()
+        {
+            var weakAttacker = Army(100);
+            var strongDefender = Army(2000);
+            var failedAttack = _calculator.Resolve(weakAttacker, DefenceStacks.FromArmy(strongDefender), "plain", seed: 5);
+
+            var strongAttacker = Army(2000);
+            var weakDefender = Army(100);
+            var failedDefence = _calculator.Resolve(strongAttacker, DefenceStacks.FromArmy(weakDefender), "plain", seed: 5);
+
+            Assert.False(failedAttack.AttackerWon);
+            Assert.True(failedDefence.AttackerWon);
+
+            Assert.True(
+                Share(weakAttacker, failedAttack.AttackerLosses)
+                > Share(weakDefender, failedDefence.DefenderLosses));
+        }
+
+        /// <summary>Розгромна перемога лишається в межах своєї смуги.</summary>
+        [Fact]
+        public void Resolve_ShouldKeepWinnerLossesWithinTheBand()
+        {
+            var attacker = Army(2000);
+            var defender = Army(100);
+
+            var result = _calculator.Resolve(attacker, DefenceStacks.FromArmy(defender), "plain", seed: 3);
+
+            Assert.True(result.AttackerWon);
+            Assert.True(Share(attacker, result.AttackerLosses) <= 0.36);
+        }
+
+        // ---------- Пасивки в обороні ----------
+
+        /// <summary>Пасивка лідера піднімає силу оборони, не чіпаючи складу.</summary>
+        [Fact]
+        public void CalculateDefencePower_ShouldApplyTheOwnersBuff()
+        {
+            var stacks = new List<DefenceStack> { new(null, "infantry", 100) };
+
+            var plain = _calculator.CalculateDefencePower(stacks, "plain");
+            var buffed = _calculator.CalculateDefencePower(stacks, "plain",
+                new DefenceBuffs(TestKit.Passives.Buff(passives: TestKit.Passives.Defence(10)), new()));
+
+            Assert.Equal(plain * 1.10, buffed, 3);
+        }
+
+        /// <summary>
+        /// Бонус союзника не тече на юнітів господаря. Головна перевірка
+        /// коміту: один лідер на гарнізон підсилював би чужі стеки.
+        /// </summary>
+        [Fact]
+        public void CalculateDefencePower_ShouldNotLeakBetweenOwners()
+        {
+            var ally = Guid.NewGuid();
+
+            var stacks = new List<DefenceStack>
+            {
+                new(null, "infantry", 100),
+                new(ally, "infantry", 100)
+            };
+
+            var buffs = new DefenceBuffs(
+                StackBuff.None,
+                new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(20)) });
+
+            var actual = _calculator.CalculateDefencePower(stacks, "plain", buffs);
+            var plain = _calculator.CalculateDefencePower(stacks, "plain");
+
+            // Підсилилась рівно половина складу
+            Assert.Equal(plain * 1.10, actual, 3);
+        }
+
+        [Fact]
+        public void CalculateDefencePower_ShouldMatchThePlainSum_WhenThereAreNoBuffs()
+        {
+            var army = new Dictionary<string, int> { ["infantry"] = 50, ["archer"] = 20 };
+
+            Assert.Equal(
+                _calculator.CalculatePower(army, "plain", isAttacker: false),
+                _calculator.CalculateDefencePower(DefenceStacks.FromArmy(army), "plain"),
+                3);
         }
     }
 }

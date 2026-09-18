@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 
@@ -132,6 +133,107 @@ namespace EmpireIdle.Domain.Tests.Services
 
             // Assert
             Assert.Empty(losses);
+        }
+
+        /// <summary>
+        /// Підсилений стек утрачає менше за того самого розміру.
+        /// Це і є сенс коміту: до нього бонус піднімав силу, але не
+        /// рятував від утрат, тож лідер союзника захищав кого завгодно,
+        /// крім власних юнітів.
+        /// </summary>
+        [Fact]
+        public void Allocate_ShouldSpareTheBuffedStack()
+        {
+            var ally = Guid.NewGuid();
+
+            var stacks = new List<DefenceStack>
+            {
+                new(null, "infantry", 100),
+                new(ally, "infantry", 100)
+            };
+
+            var buffs = new DefenceBuffs(
+                StackBuff.None,
+                new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(100)) });
+
+            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 90 }, buffs);
+
+            var host = losses.Single(l => l.OwnerPlayerId is null).Lost;
+            var allied = losses.Single(l => l.OwnerPlayerId == ally).Lost;
+
+            // Подвоєний захист — удвічі менша частка: 60 проти 30
+            Assert.Equal(60, host);
+            Assert.Equal(30, allied);
+            Assert.Equal(90, host + allied);
+        }
+
+        /// <summary>Сума втрат по стеках дорівнює загальній за будь-яких бонусів.</summary>
+        [Theory]
+        [InlineData(1)]
+        [InlineData(7)]
+        [InlineData(99)]
+        [InlineData(150)]
+        public void Allocate_ShouldConserveTheTotal(int lost)
+        {
+            var ally = Guid.NewGuid();
+
+            var stacks = new List<DefenceStack>
+            {
+                new(null, "infantry", 100),
+                new(ally, "infantry", 60)
+            };
+
+            var buffs = new DefenceBuffs(
+                StackBuff.None,
+                new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(40)) });
+
+            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = lost }, buffs);
+
+            Assert.Equal(Math.Min(lost, 160), losses.Sum(l => l.Lost));
+        }
+
+        /// <summary>
+        /// Жоден стек не втрачає більше, ніж має. З вагами це вже не
+        /// випливає з арифметики: сильна пасивка в сусіда зсуває частку
+        /// на слабкого понад його розмір.
+        /// </summary>
+        [Fact]
+        public void Allocate_ShouldNeverExceedAStackSize()
+        {
+            var ally = Guid.NewGuid();
+
+            var stacks = new List<DefenceStack>
+            {
+                new(null, "infantry", 10),
+                new(ally, "infantry", 200)
+            };
+
+            var buffs = new DefenceBuffs(
+                StackBuff.None,
+                new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(300)) });
+
+            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 150 }, buffs);
+
+            Assert.True(losses.Single(l => l.OwnerPlayerId is null).Lost <= 10);
+            Assert.Equal(150, losses.Sum(l => l.Lost));
+        }
+
+        /// <summary>Без пасивок поділ той самий, що й до героїв.</summary>
+        [Fact]
+        public void Allocate_ShouldFallBackToCountShares_WhenThereAreNoBuffs()
+        {
+            var ally = Guid.NewGuid();
+
+            var stacks = new List<DefenceStack>
+            {
+                new(null, "infantry", 75),
+                new(ally, "infantry", 25)
+            };
+
+            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 40 });
+
+            Assert.Equal(30, losses.Single(l => l.OwnerPlayerId is null).Lost);
+            Assert.Equal(10, losses.Single(l => l.OwnerPlayerId == ally).Lost);
         }
     }
 }

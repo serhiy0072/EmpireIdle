@@ -192,4 +192,36 @@ public class OptimisticLockingTests : IAsyncLifetime
 
         return village.Id;
     }
+
+    /// <summary>Дюп уламків: призов, що закомітився першим, не має затертися купівлею.</summary>
+    [Fact]
+    public async Task HeroShards_ShouldRejectConcurrentCounterWrites()
+    {
+        var progress = new HeroShardProgress(Guid.NewGuid(), Guid.NewGuid(), 1, "warrior_bran");
+        progress.Add(10);
+
+        await using (var seed = CreateContext())
+        {
+            seed.Set<HeroShardProgress>().Add(progress);
+            await seed.SaveChangesAsync();
+        }
+
+        await using var purchase = CreateContext();
+        await using var summon = CreateContext();
+
+        var bought = await purchase.Set<HeroShardProgress>().IgnoreQueryFilters().SingleAsync(s => s.Id == progress.Id);
+        var spent = await summon.Set<HeroShardProgress>().IgnoreQueryFilters().SingleAsync(s => s.Id == progress.Id);
+
+        bought.Add(1);
+        Assert.True(spent.TryConsume(10));
+
+        await summon.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => purchase.SaveChangesAsync());
+
+        await using var verify = CreateContext();
+        var final = await verify.Set<HeroShardProgress>().IgnoreQueryFilters().SingleAsync(s => s.Id == progress.Id);
+
+        Assert.Equal(0, final.Count);
+    }
 }

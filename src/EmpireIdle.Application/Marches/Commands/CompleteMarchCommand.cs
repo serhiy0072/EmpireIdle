@@ -26,6 +26,7 @@ namespace EmpireIdle.Application.Marches.Commands
     {
         private readonly IMarchRepository _marchRepository;
         private readonly IGarrisonRepository _garrisonRepository;
+        private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TerrainGenerator _terrain;
         private readonly TimeProvider _timeProvider;
@@ -38,6 +39,7 @@ namespace EmpireIdle.Application.Marches.Commands
         public CompleteMarchCommandHandler(
             IMarchRepository marchRepository,
             IGarrisonRepository garrisonRepository,
+            IHeroRepository heroRepository,
             IUnitOfWork unitOfWork,
             TerrainGenerator terrain,
             TimeProvider timeProvider,
@@ -49,6 +51,7 @@ namespace EmpireIdle.Application.Marches.Commands
         {
             _marchRepository = marchRepository;
             _garrisonRepository = garrisonRepository;
+            _heroRepository = heroRepository;
             _unitOfWork = unitOfWork;
             _terrain = terrain;
             _timeProvider = timeProvider;
@@ -108,6 +111,18 @@ namespace EmpireIdle.Application.Marches.Commands
                 ?? throw new InvalidOperationException(
                     $"Garrison {march.GarrisonId} not found for march {march.Id}.");
 
+            if (march.HeroId is Guid heroId)
+            {
+                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
+
+                if (hero is not null)
+                {
+                    // Слот могли зайняти, поки герой ішов: тоді він стає рядовим
+                    var leader = await _heroRepository.GetLeaderAsync(garrison.Id, hero.PlayerId, cancellationToken);
+
+                    hero.Arrive(garrison.Id, leaderSlotFree: leader is null, utcNow);
+                }
+            }
             var survivors = march.GetUnits();
 
             if (survivors.Count > 0)

@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Конфігурація типу предмета.</summary>
@@ -12,17 +14,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Опис для гравця.</summary>
         public string Description { get; set; } = null!;
 
-        /// <summary>common / rare / legendary.</summary>
-        public string Rarity { get; set; } = "common";
+        /// <summary>Рідкість предмета.</summary>
+        public Rarity Rarity { get; set; } = Rarity.Common;
 
         /// <summary>Тип ефекту: speedup, resources, healing, boost, equipment.</summary>
         public string Type { get; set; } = null!;
-
-        /// <summary>
-        /// Чи складаються екземпляри в один стек.
-        /// Розхідники — так; спорядження з унікальними статами — ні.
-        /// </summary>
-        public bool IsStackable { get; set; } = true;
 
         // --- параметри за типами ---
 
@@ -37,5 +33,29 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>boost: скільки годин діє.</summary>
         public int DurationHours { get; set; }
+
+        // --- equipment ---
+
+        /// <summary>equipment: зброя чи артефакт.</summary>
+        public EquipmentSlot? Slot { get; set; }
+
+        /// <summary>
+        /// equipment: класи героїв, яким зброя підходить. Порожньо — підходить усім.
+        /// Пара одноручних рахується одним предметом і заточується разом:
+        /// це свідоме спрощення, окремого слота для лівої руки немає.
+        /// </summary>
+        public List<string> WeaponClasses { get; set; } = new();
+
+        /// <summary>
+        /// equipment: базові стати зброї. В артефактів порожні — їхні стати
+        /// випадкові й лежать на екземплярі, а не на типі.
+        /// </summary>
+        public Dictionary<string, double> BaseStats { get; set; } = new();
+
+        /// <summary>equipment: ключ набору, за повний комплект якого дається бонус.</summary>
+        public string? SetKey { get; set; }
+
+        /// <summary>equipment: ціна зброї в золоті; артефакти не продаються.</summary>
+        public int PriceGold { get; set; }
     }
 }

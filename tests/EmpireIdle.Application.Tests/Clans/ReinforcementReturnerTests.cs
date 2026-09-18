@@ -24,6 +24,7 @@ public class ReinforcementReturnerTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -43,9 +44,18 @@ public class ReinforcementReturnerTests
         var config = Config();
         var catalog = new GameCatalog(config);
 
+        // Підстановка без стабу віддає null замість порожньої колекції,
+        // і відкликання падає з NullReferenceException ще до першої перевірки
+        _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Hero>());
+        _heroes.GetForeignGarrisonIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Guid>());
+
         return new ReinforcementReturner(
-            _garrisons, _villages, _marches,
+            _garrisons, _villages, _marches, _heroes,
             new MarchCalculator(new TerrainGenerator(config.Map), catalog),
+            catalog,
+            new HeroProgression(config.HeroSettings),
             NullLogger<ReinforcementReturner>.Instance);
     }
 

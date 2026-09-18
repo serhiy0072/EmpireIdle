@@ -169,12 +169,16 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Переносить накопичене з буфера будівлі у сховище села.
-        /// Буфер спорожнюється повністю; те, що не вмістилось у сховище, згорає.
+        ///
+        /// Повний склад **відмовляє** в зборі, а не приймає частину: буфер
+        /// не під контролем гравця, тож часткове прийняття знищувало б
+        /// вироблене за клік, якого гравець не планував.
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
         /// <param name="utcNow">Момент збору.</param>
         /// <param name="boost">Вікно дії буста виробництва.</param>
+        /// <exception cref="RequirementNotMetException">На складі немає вільного місця.</exception>
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
         public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
@@ -191,18 +195,27 @@ namespace EmpireIdle.Domain.Entities
             if (config.ProducesResource is null)
                 return;
 
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
+
+            // Місце перевіряється ДО Collect: буфер спорожнюється беззастережно,
+            // тож перевірка після нього знищила б накопичене. Гравець не керує
+            // буфером будівлі — він керує лише тим, коли витратити зі складу.
+            var free = storageCap - (resource?.Amount ?? 0);
+
+            if (free <= 0)
+                throw new RequirementNotMetException(
+                    $"Storage for '{config.ProducesResource}' is full: spend before collecting.");
+
             var collected = building.Collect(config, utcNow, boost, locationMultiplier);
             if (collected == 0)
                 return; // порожній буфер — не подія і не зміна стану
 
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
             if (resource is null)
             {
                 resource = new VillageResource(Id, config.ProducesResource);
                 _resources.Add(resource);
             }
 
-            // Склад приймає скільки влізе, решта згорає
             var accepted = resource.AddUpTo(collected, storageCap);
 
             RaiseDomainEvent(new Events.BuildingCollected(
@@ -236,21 +249,39 @@ namespace EmpireIdle.Domain.Entities
         /// <exception cref="NotEnoughResourcesException">Не вистачає ресурсів.</exception>
         public void ChargeCost(List<ResourceCost> cost, DateTime utcNow, int multiplier = 1)
         {
-            foreach (var line in cost)
+            if (multiplier < 1)
+                throw new ArgumentOutOfRangeException(nameof(multiplier), multiplier, "Multiplier must be at least 1.");
+
+            if (cost.Any(line => line.Amount < 0))
+                throw new ArgumentOutOfRangeException(nameof(cost), "Cost lines cannot be negative.");
+
+            // Рядки одного ресурсу сумуються: перевірка кожного окремо проти повного
+            // запасу пропускала 100 + 100 при 150, і друге списання падало посередині.
+            // long і насичення: у int добуток загортається, у long — на кількох рядках
+            var charges = cost
+                .GroupBy(line => line.Resource)
+                .Select(group => (Resource: group.Key, Need: Saturate(group.Sum(line => (long)line.Amount), multiplier)))
+                .ToList();
+
+            foreach (var (resource, need) in charges)
             {
-                var need = line.Amount * multiplier;
-                var res = _resources.FirstOrDefault(r => r.ResourceType == line.Resource)
-                    ?? throw new InvalidOperationException($"Resource '{line.Resource}' not found in village {Id}.");
+                var res = _resources.FirstOrDefault(r => r.ResourceType == resource)
+                    ?? throw new InvalidOperationException($"Resource '{resource}' not found in village {Id}.");
 
                 if (res.Amount < need)
-                    throw new NotEnoughResourcesException(line.Resource, need, res.Amount);
+                    throw new NotEnoughResourcesException(resource, need, res.Amount);
             }
 
-            foreach (var line in cost)
-                _resources.First(r => r.ResourceType == line.Resource).Subtract(line.Amount * multiplier);
+            // Після перевірки кожне need не більше за запас, отже вміщається в int
+            foreach (var (resource, need) in charges)
+                _resources.First(r => r.ResourceType == resource).Subtract((int)need);
 
             Touch(utcNow);
         }
+
+        /// <summary>Добуток без переповнення: усе понад long.MaxValue і так більше за будь-який запас.</summary>
+        private static long Saturate(long perUnit, int multiplier)
+            => perUnit > long.MaxValue / multiplier ? long.MaxValue : perUnit * multiplier;
 
         /// <summary>
         /// Нараховує ресурси в село (нагорода за бій, подарунок тощо).

@@ -4,8 +4,7 @@ using EmpireIdle.API.Middleware;
 using EmpireIdle.API.Services;
 using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Rewards;
-using EmpireIdle.Application.Rewards.Granters;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
@@ -14,7 +13,6 @@ using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
@@ -37,7 +35,8 @@ builder.Configuration
     .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true); ;
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -50,6 +49,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Items.Count > 0, "GameConfig.Items is empty — check Config/items.json.")
     .Validate(c => c.Quests.Count > 0, "GameConfig.Quests is empty — check Config/quests.json.")
     .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
+    .Validate(c => c.Quests.SelectMany(q => q.Rewards.Concat(q.RewardTiers.SelectMany(t => t.Rewards))).All(r => r.Amount > 0), "GameConfig has a quest reward with non-positive Amount.")
     .Validate(c => c.Shop.GemPacks.Count > 0, "GameConfig.Shop.GemPacks is empty — check Config/shop.json.")
     .Validate(c => c.StartingResources.Count > 0, "GameConfig.StartingResources is empty.")
     .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
@@ -61,6 +61,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
+    .Validate(c => c.Heroes.Count > 0, "GameConfig.Heroes is empty — check Config/heroes.json.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -96,6 +97,12 @@ builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<Ter
 builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));
 builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
+builder.Services.AddSingleton(sp => new HeroProgression(gameConfig.HeroSettings));
+builder.Services.AddSingleton(sp => new HeroCombatModifiers(sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));
+builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));
+builder.Services.AddSingleton(sp => new BannerRoller(gameConfig.Shop));
+builder.Services.AddSingleton(sp => new HeroStats(sp.GetRequiredService<HeroProgression>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<DefenceLossAllocator>();
 builder.Services.AddSingleton<BattleResolver>();

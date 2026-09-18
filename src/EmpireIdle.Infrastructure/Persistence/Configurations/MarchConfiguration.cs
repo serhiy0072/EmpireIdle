@@ -19,6 +19,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(m => m.GarrisonId);
             builder.HasIndex(m => new { m.State, m.ArrivesAt }); // сканер шукає дозрілі
+            builder.HasIndex(m => m.HeroId);
 
             builder.HasMany(m => m.Units)
                 .WithOne()

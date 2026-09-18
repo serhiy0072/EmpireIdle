@@ -28,7 +28,13 @@ namespace EmpireIdle.Application.Rewards.Granters
 
             // Кидає, якщо предмета немає в каталозі — краще впасти при видачі,
             // ніж покласти в інвентар предмет, який неможливо використати
-            _catalog.Item(key);
+            var config = _catalog.Item(key);
+
+            // Спорядження не стакається: кожен екземпляр має власні стати
+            // й журнал роллів. Такій нагороді потрібен тип Equipment
+            if (config.Slot is not null)
+                throw new InvalidOperationException(
+                    $"Item reward from '{context.Reference}' points at equipment '{key}' — use the Equipment type.");
 
             var stack = await _inventoryRepository.GetItemAsync(context.PlayerId, key, cancellationToken);
 

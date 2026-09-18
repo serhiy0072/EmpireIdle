@@ -1,7 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Queries;
-using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Combat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +28,7 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> SendMarch(Guid playerId, [FromBody] SendMarchRequest request, CancellationToken cancellationToken)
         {
             var marchId = await _mediator.Send(
-                new SendMarchCommand(playerId, request.TargetType, request.TargetId, request.Units, request.Intent),
+                new SendMarchCommand(playerId, request.TargetType, request.TargetId, request.Units, request.HeroId, request.Intent),
                 cancellationToken);
 
             return Created((string?)null, marchId);
@@ -60,7 +60,7 @@ namespace EmpireIdle.API.Controllers
             [FromBody] SendMarchRequest request, CancellationToken cancellationToken)
         {
             var preview = await _mediator.Send(
-                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.Units),
+                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.HeroId, request.Units),
                 cancellationToken);
 
             return Ok(preview);

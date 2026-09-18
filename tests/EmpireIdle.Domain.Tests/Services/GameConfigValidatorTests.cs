@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
@@ -5,15 +6,10 @@ namespace EmpireIdle.Domain.Tests.Services
 {
     /// <summary>
     /// Валідатор конфіга — єдине, що стоїть між битим JSON і грою.
-    /// Кожен тест ламає рівно одну річ у валідному конфігу: так видно,
-    /// що саме правило спрацювало, а не якесь інше.
+    /// Кожен тест ламає рівно одну річ у валідному конфігу.
     /// </summary>
     public class GameConfigValidatorTests
     {
-        /// <summary>
-        /// Мінімально валідний конфіг: ратуша, ферма, склад, ресурс,
-        /// коректна геометрія й рейтинг.
-        /// </summary>
         private static GameConfig ValidConfig() => new()
         {
             Buildings =
@@ -25,8 +21,8 @@ namespace EmpireIdle.Domain.Tests.Services
                     UpgradeCostGrowth = 1.45,
                     Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
                 },
-                new BuildingConfig { Key = "warehouse", StoresResources = ["food"], BaseStorage = 1000,
-                    UpgradeCostGrowth = 1.45 }
+                new BuildingConfig { Key = "warehouse", StoresResources = ["food"], BaseStorage = 1000, UpgradeCostGrowth = 1.45 },
+                new BuildingConfig { Key = "hospital" }
             ],
             Resources = [new ResourceConfig { Key = "food" }],
             StartingResources = new Dictionary<string, int> { ["food"] = 100 },
@@ -199,5 +195,272 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Validate_ShouldRejectNonDecreasingPreviewThresholds()
             => Rejects(c => c.Combat.PreviewOddsThresholds = [0.8, 1.2]);
+
+        // ---------- Герої ----------
+
+        /// <summary>
+        /// Валідний конфіг героїв: зала героїв, два класи, три тіри,
+        /// два предмети еволюції, звичайний герой із ціною уламка.
+        /// </summary>
+        private static GameConfig WithHeroes()
+        {
+            var config = ValidConfig();
+
+            // Зала героїв додається тут, а не у ValidConfig: базова фікстура
+            // лишається мінімальною, а гейт потрібен лише героям
+            config.Buildings.Add(new BuildingConfig { Key = "heroeshall", UpgradeCostGrowth = 1.45 });
+
+            config.Items =
+            [
+                new ItemConfig { Key = "hero_essence_t2" },
+                new ItemConfig { Key = "hero_essence_t3" }
+            ];
+
+            config.HeroSettings = new HeroesConfig
+            {
+                LevelsPerTier = 10,
+                MaxTier = 3,
+                MaxMarches = 8,
+                TierStatMultipliers = [1.0, 1.35, 1.8],
+                EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
+                OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
+                BuildingKey = "heroeshall",
+                HealBuildingKey = "hospital",
+                HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
+                Classes = ["warrior", "archer"]
+            };
+
+            config.Heroes =
+            [
+                new HeroConfig
+                    {
+                        Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
+                        SummonShards = 10, ShardPriceGold = 1200,
+                        LevelUpCosts =
+                        [
+                            new HeroLevelCostBand
+                            {
+                                FromLevel = 1,
+                                Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
+                            }
+                        ]
+                    },
+                    new HeroConfig
+                    {
+                        Key = "archer_lyra", Class = "archer", Rank = Rarity.Unique,
+                        LevelUpCosts =
+                        [
+                            new HeroLevelCostBand
+                            {
+                                FromLevel = 1,
+                                Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
+                            }
+                        ]
+                    }
+            ];
+
+            return config;
+        }
+
+        private static InvalidOperationException RejectsHero(Action<GameConfig> break_)
+        {
+            var config = WithHeroes();
+            break_(config);
+
+            return Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+        }
+
+        [Fact]
+        public void Validate_ShouldAcceptAValidHeroRoster()
+            => GameConfigValidator.Validate(WithHeroes());
+
+        /// <summary>
+        /// Порожній ростер означає «конфіг героїв не описує» — мінімальні
+        /// фікстури тестів не мусять заповнювати всю секцію.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldIgnoreHeroRules_WhenTheRosterIsEmpty()
+        {
+            var config = WithHeroes();
+            config.Heroes = [];
+            config.HeroSettings.Classes = [];
+
+            GameConfigValidator.Validate(config);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectDuplicateHeroKeys()
+            => RejectsHero(c => c.Heroes =
+            [
+                new HeroConfig { Key = "warrior_bran", Class = "warrior", SummonShards = 1, ShardPriceGold = 1 },
+                new HeroConfig { Key = "warrior_bran", Class = "warrior", SummonShards = 1, ShardPriceGold = 1 }
+            ]);
+
+        /// <summary>
+        /// Клас із друкарською помилкою дав би героя, якому не підходить
+        /// жоден предмет — і виявилось би це вже в гравця.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectUnknownHeroClass()
+            => RejectsHero(c => c.Heroes[1].Class = "paladin");
+
+        [Fact]
+        public void Validate_ShouldRejectEmptyClassRoster()
+            => RejectsHero(c => c.HeroSettings.Classes = []);
+
+        [Fact]
+        public void Validate_ShouldRejectDuplicateClasses()
+            => RejectsHero(c => c.HeroSettings.Classes = ["warrior", "warrior", "archer"]);
+
+        /// <summary>Множників має бути рівно стільки, скільки тірів.</summary>
+        [Fact]
+        public void Validate_ShouldRejectTierMultiplierCountMismatch()
+            => RejectsHero(c => c.HeroSettings.TierStatMultipliers = [1.0, 1.35]);
+
+        /// <summary>
+        /// Незростаючі множники означають, що еволюція піднімає лише стелю,
+        /// і два герої різних тірів на тому самому рівні однакові.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectNonIncreasingTierMultipliers()
+            => RejectsHero(c => c.HeroSettings.TierStatMultipliers = [1.0, 1.35, 1.35]);
+
+        /// <summary>Переходів рівно на один менше, ніж тірів.</summary>
+        [Fact]
+        public void Validate_ShouldRejectEvolutionItemCountMismatch()
+            => RejectsHero(c => c.HeroSettings.EvolutionItemKeys = ["hero_essence_t2"]);
+
+        [Fact]
+        public void Validate_ShouldRejectUnknownEvolutionItem()
+            => RejectsHero(c => c.HeroSettings.EvolutionItemKeys = ["hero_essence_t2", "missing_essence"]);
+
+        /// <summary>
+        /// Звичайні герої — основний щоденний стік золота. Без ціни уламка
+        /// вони роздавались би безкоштовно.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectCommonHeroWithoutShardPrice()
+            => RejectsHero(c => c.Heroes[0].ShardPriceGold = 0);
+
+        [Fact]
+        public void Validate_ShouldRejectCommonHeroWithoutShardCount()
+            => RejectsHero(c => c.Heroes[0].SummonShards = 0);
+
+        /// <summary>Нуль маршів лишив би гравця з героями без доступу до карти.</summary>
+        [Fact]
+        public void Validate_ShouldRejectZeroMaxMarches()
+            => RejectsHero(c => c.HeroSettings.MaxMarches = 0);
+
+        /// <summary>Без будівлі героїв не було б де призивати.</summary>
+        [Fact]
+        public void Validate_ShouldRejectUnknownHeroBuilding()
+            => RejectsHero(c => c.HeroSettings.BuildingKey = "ghosthall");
+
+        /// <summary>
+        /// Забутий ранг означав би, що дублікат понад стелю сузір'я
+        /// зникає без сліду — саме те, чого ми уникали.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectMissingOverflowGemsForRank()
+            => RejectsHero(c => c.HeroSettings.OverflowGems.Remove("Unique"));
+
+        /// <summary>Герой без смуг вартості не качався б узагалі.</summary>
+        [Fact]
+        public void Validate_ShouldRejectHeroWithoutLevelUpCosts()
+            => RejectsHero(c => c.Heroes[0].LevelUpCosts = []);
+
+        /// <summary>
+        /// Смуга має починатися з першого рівня, інакше герой упреться
+        /// в дірку одразу після призову.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectLevelUpCostsNotStartingAtOne()
+            => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].FromLevel = 5);
+
+        [Fact]
+        public void Validate_ShouldRejectLevelUpCostWithUnknownResource()
+            => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].Cost =
+                [new ResourceCost { Resource = "mithril", Amount = 10 }]);
+
+        [Fact]
+        public void Validate_ShouldRejectAnUnknownHealBuilding()
+            => RejectsHero(c => c.HeroSettings.HealBuildingKey = "infirmary");
+
+        [Fact]
+        public void Validate_ShouldRejectFreeHealing()
+            => RejectsHero(c => c.HeroSettings.HealCostPerLevel.Clear());
+
+        [Fact]
+        public void Validate_ShouldRejectHealCostInAnUnknownResource()
+            => RejectsHero(c => c.HeroSettings.HealCostPerLevel =
+                [new ResourceCost { Resource = "mithril", Amount = 10 }]);
+
+        // ---------- Смуги втрат ----------
+
+        [Fact]
+        public void Validate_ShouldRejectABandWithMinAboveMax()
+        {
+            var error = Rejects(c => c.Combat.AttackerWinLosses = new LossBand { Min = 0.4, Max = 0.2 });
+
+            Assert.Contains("AttackerWinLosses", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectABandAboveOne()
+        {
+            var error = Rejects(c => c.Combat.DefenderLossLosses = new LossBand { Min = 0.3, Max = 1.2 });
+
+            Assert.Contains("DefenderLossLosses", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectANegativeBand()
+        {
+            var error = Rejects(c => c.Combat.DefenderWinLosses = new LossBand { Min = -0.1, Max = 0.2 });
+
+            Assert.Contains("DefenderWinLosses", error.Message);
+        }
+
+        /// <summary>
+        /// Головна перевірка: нижня межа програшу під верхньою межею перемоги
+        /// означає, що за певного співвідношення сил програти дешевше, ніж
+        /// перемогти, і оптимальною стратегією стає навмисна поразка.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectInvertedAttackerBands()
+        {
+            var error = Rejects(c =>
+            {
+                c.Combat.AttackerWinLosses = new LossBand { Min = 0.02, Max = 0.50 };
+                c.Combat.AttackerLossLosses = new LossBand { Min = 0.35, Max = 0.60 };
+            });
+
+            Assert.Contains("AttackerLossLosses", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectInvertedDefenderBands()
+        {
+            var error = Rejects(c =>
+            {
+                c.Combat.DefenderWinLosses = new LossBand { Min = 0.02, Max = 0.40 };
+                c.Combat.DefenderLossLosses = new LossBand { Min = 0.25, Max = 0.50 };
+            });
+
+            Assert.Contains("DefenderLossLosses", error.Message);
+        }
+
+        /// <summary>Дотик межі — не інверсія: 0.35 і 0.35 сходяться, не перетинаються.</summary>
+        [Fact]
+        public void Validate_ShouldAcceptTouchingBands()
+        {
+            var config = ValidConfig();
+            config.Combat.AttackerWinLosses = new LossBand { Min = 0.02, Max = 0.35 };
+            config.Combat.AttackerLossLosses = new LossBand { Min = 0.35, Max = 0.60 };
+
+            var exception = Record.Exception(() => GameConfigValidator.Validate(config));
+
+            Assert.Null(exception);
+        }
     }
 }

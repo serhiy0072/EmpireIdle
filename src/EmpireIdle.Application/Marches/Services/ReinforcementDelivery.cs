@@ -17,6 +17,7 @@ namespace EmpireIdle.Application.Marches.Services
     {
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly IHeroRepository _heroRepository;
         private readonly MarchLogistics _logistics;
         private readonly ReinforcementRules _rules;
         private readonly VillageCapacities _capacities;
@@ -25,6 +26,7 @@ namespace EmpireIdle.Application.Marches.Services
         public ReinforcementDelivery(
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
+            IHeroRepository heroRepository,
             MarchLogistics logistics,
             ReinforcementRules rules,
             VillageCapacities capacities,
@@ -32,6 +34,7 @@ namespace EmpireIdle.Application.Marches.Services
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
+            _heroRepository = heroRepository;
             _logistics = logistics;
             _rules = rules;
             _capacities = capacities;
@@ -69,11 +72,11 @@ namespace EmpireIdle.Application.Marches.Services
 
             var incoming = units.Values.Sum();
 
-            var refusal = await _rules.CheckOnArrivalAsync(
-               ownerVillage, targetVillage, units.Values.Sum(), cancellationToken);
+            var refusal = await _rules.CheckOnArrivalAsync(ownerVillage, targetVillage, cancellationToken);
 
             if (refusal is not null)
             {
+                // Клан розпався — назад їде вся колона разом із героєм
                 _logger.LogInformation("March {MarchId} turned back: {Reason}", march.Id, refusal);
 
                 _logistics.TurnMarchBack(march, units, utcNow);
@@ -81,12 +84,52 @@ namespace EmpireIdle.Application.Marches.Services
             }
 
             var capacity = _capacities.ReinforcementSlots(targetVillage);
+            var free = Math.Max(0, capacity - targetGarrison.ReinforcementCount);
 
-            targetGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, units, capacity, utcNow);
+            var (accepted, rejected) = ReinforcementSplit.Take(units, free);
+
+            if (accepted.Count > 0)
+                targetGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, accepted, capacity, utcNow);
+
+            // Герой лишається завжди, навіть коли не влізло нічого: він не
+            // займає слота посольства, і саме він тримає бонус над стеком
+            if (march.HeroId is Guid heroId)
+            {
+                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
+
+                if (hero is not null)
+                {
+                    // Лідерство рахується в межах власника: у господаря свій
+                    // лідер, у кожного союзника свій над своїм стеком
+                    var leader = await _heroRepository.GetLeaderAsync(
+                        targetGarrison.Id, hero.PlayerId, cancellationToken);
+
+                    hero.Arrive(targetGarrison.Id, leaderSlotFree: leader is null, utcNow);
+                }
+            }
+
+            if (rejected.Count > 0)
+            {
+                // Прийняте списується з колони як втрати: механіка та сама,
+                // юніти покидають марш. Герой уже зійшов, тож додому
+                // залишок їде без нього
+                march.ApplyLosses(accepted, utcNow);
+                march.LeaveHeroBehind(utcNow);
+
+                _logistics.TurnMarchBack(march, rejected, utcNow);
+
+                _logger.LogInformation(
+                    "March {MarchId} partially delivered {Accepted} of {Incoming} units to village {VillageId}",
+                    march.Id, accepted.Values.Sum(), incoming, targetVillage.Id);
+
+                return;
+            }
+
             march.Delivered(utcNow);
 
             _logger.LogInformation("March {MarchId} delivered {Incoming} units to village {VillageId}",
                 march.Id, incoming, targetVillage.Id);
+
         }
     }
 }

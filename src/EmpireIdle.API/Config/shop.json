@@ -31,36 +31,140 @@
           "BonusPercent": 30
         }
       ],
-      "LootBoxes": [
+      "Banners": [
         {
-          "Key": "box_wooden",
-          "DisplayName": "Wooden Chest",
+          "Key": "dawn_2026_09",
+          "DisplayName": "Світанок Ізель",
+          "Kind": "Hero",
+          "PityGroup": "hero",
           "PriceGems": 150,
-          "PityCount": 30,
+          "RarePity": 10,
+          "UniquePity": 50,
+          "FeaturedKey": "hero_mage_iselle",
+          "StartsAt": "2026-09-01T00:00:00Z",
+          "EndsAt": "2026-10-01T00:00:00Z",
           "Drops": [
             {
-              "Key": "resource_small",
-              "DisplayName": "Small resource cache",
-              "Rarity": "common",
-              "Weight": 60
+              "Key": "hero_mage_iselle",
+              "DisplayName": "Ізель",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "mage_iselle",
+                  "Amount": 1
+                }
+              ]
             },
             {
-              "Key": "resource_large",
-              "DisplayName": "Large resource cache",
-              "Rarity": "rare",
-              "Weight": 25
+              "Key": "hero_knight_ordwin",
+              "DisplayName": "Ордвін",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 10,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "knight_ordwin",
+                  "Amount": 1
+                }
+              ]
             },
             {
-              "Key": "speedup_1h",
-              "DisplayName": "1 hour speedup",
-              "Rarity": "rare",
-              "Weight": 12
+              "Key": "sword_iron",
+              "DisplayName": "Залізний меч",
+              "Rarity": "Common",
+              "Kind": "Weapon",
+              "Weight": 20,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "sword_iron",
+                  "Amount": 1
+                }
+              ]
             },
             {
-              "Key": "equipment_basic",
-              "DisplayName": "Basic equipment",
-              "Rarity": "legendary",
-              "Weight": 3
+              "Key": "boost_production",
+              "DisplayName": "Прискорення виробітку",
+              "Rarity": "Common",
+              "Weight": 68,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "boost_production_1h",
+                  "Amount": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Key": "forge_2026_09",
+          "DisplayName": "Кузня світанку",
+          "Kind": "Weapon",
+          "PityGroup": "weapon",
+          "PriceGems": 120,
+          "RarePity": 10,
+          "UniquePity": 50,
+          "FeaturedKey": "staff_ember",
+          "Drops": [
+            {
+              "Key": "staff_ember",
+              "DisplayName": "Посох жарини",
+              "Rarity": "Unique",
+              "Kind": "Weapon",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "staff_ember",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "bow_yew",
+              "DisplayName": "Тисовий лук",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 10,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "bow_yew",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "lance_iron",
+              "DisplayName": "Залізний спис",
+              "Rarity": "Common",
+              "Kind": "Weapon",
+              "Weight": 20,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "lance_iron",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "boost_production",
+              "DisplayName": "Прискорення виробітку",
+              "Rarity": "Common",
+              "Weight": 68,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "boost_production_1h",
+                  "Amount": 1
+                }
+              ]
             }
           ]
         }

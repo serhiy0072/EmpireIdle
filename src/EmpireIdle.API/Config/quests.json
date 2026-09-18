@@ -62,6 +62,11 @@
             "Type": "Resource",
             "Key": "wood",
             "Amount": 300
+          },
+          {
+            "Type": "Hero",
+            "Key": "warrior_bran",
+            "Amount": 1
           }
         ]
       },
@@ -102,6 +107,11 @@
           {
             "Type": "Gems",
             "Amount": 30
+          },
+          {
+            "Type": "Equipment",
+            "Key": "dawn_amulet",
+            "Amount": 1
           }
         ]
       },
@@ -145,7 +155,7 @@
           {
             "Type": "Item",
             "Key": "boost_production_1h",
-            "Count": 1
+            "Amount": 1
           }
         ]
       },

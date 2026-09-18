@@ -1,11 +1,10 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging;
-using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Marches.Services
 {
@@ -21,8 +20,8 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IServerRepository _serverRepository;
+        private readonly IHeroRepository _heroRepository;
         private readonly IRandomSource _random;
-        private readonly CombatConfig _combatConfig;
         private readonly BattleResolver _resolver;
         private readonly DefenceLossAllocator _lossAllocator;
         private readonly EffectResolver _effectResolver;
@@ -31,12 +30,14 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly BattleAftermath _aftermath;
         private readonly VillageStatus _status;
         private readonly PlunderCalculator _plunder;
+        private readonly HeroCombatModifiers _heroModifiers;
         private readonly ILogger<VillageBattleService> _logger;
 
         public VillageBattleService(
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
             IServerRepository serverRepository,
+            IHeroRepository heroRepository,
             IRandomSource random,
             GameCatalog catalog,
             BattleResolver resolver,
@@ -47,13 +48,14 @@ namespace EmpireIdle.Application.Marches.Services
             BattleAftermath aftermath,
             VillageStatus status,
             PlunderCalculator plunder,
+            HeroCombatModifiers heroModifiers,
             ILogger<VillageBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
             _serverRepository = serverRepository;
+            _heroRepository = heroRepository;
             _random = random;
-            _combatConfig = catalog.Config.Combat;
             _resolver = resolver;
             _lossAllocator = lossAllocator;
             _effectResolver = effectResolver;
@@ -62,6 +64,7 @@ namespace EmpireIdle.Application.Marches.Services
             _aftermath = aftermath;
             _status = status;
             _plunder = plunder;
+            _heroModifiers = heroModifiers;
             _logger = logger;
         }
 
@@ -84,8 +87,6 @@ namespace EmpireIdle.Application.Marches.Services
                 ? null
                 : await _garrisonRepository.GetByVillageIdAsync(targetVillage.Id, cancellationToken);
 
-            var shieldLevel = _combatConfig.NewbieShieldTownHallLevel;
-
             // Щит міг з'явитись хіба що в нападника, але село могло й зникнути.
             // Це прогін сканера, тож будь-яка невідповідність — розворот, не виняток
             if (targetVillage is null || targetGarrison is null
@@ -97,9 +98,23 @@ namespace EmpireIdle.Application.Marches.Services
             }
 
             var defence = targetGarrison.GetDefence();
-            var defenderArmy = defence
-                .GroupBy(s => s.UnitType)
-                .ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
+
+            // Бонуси знімаються до бою: хто лідер у момент удару, той і б'ється
+            var stationed = await _heroRepository.GetByGarrisonAsync(targetGarrison.Id, cancellationToken);
+
+            var defenceBuffs = new DefenceBuffs(
+                _heroModifiers.For(stationed.FirstOrDefault(h => h.IsLeader && h.PlayerId == targetVillage.PlayerId)),
+                stationed
+                    .Where(h => h.IsLeader && h.PlayerId != targetVillage.PlayerId)
+                    .ToDictionary(h => h.PlayerId, h => _heroModifiers.For(h)));
+
+            // Героя маршу читаємо тут, до RecordAttackerAsync: саме там його ранить
+            // поразка, і пасивки мусять бути зняті, поки він ще в строю
+            var attackerHero = march.HeroId is Guid heroId
+                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
+                : null;
+
+            var attackerBuff = _heroModifiers.For(attackerHero);
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                 attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
@@ -111,19 +126,20 @@ namespace EmpireIdle.Application.Marches.Services
 
             var attackerWoundedCapacity = _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison);
 
-            var outcome = _resolver.Resolve(attackerArmy, defenderArmy, terrain, seed,
-                attackerBonus, defenderBonus, attackerWoundedCapacity);
+            var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
+                attackerBonus, defenderBonus, attackerWoundedCapacity, attackerBuff, defenceBuffs);
+
 
             var result = outcome.Battle;
 
             march.ApplyLosses(result.AttackerLosses, utcNow);
             attackerGarrison.AdmitWounded(outcome.AttackerCasualties.Wounded, utcNow);
 
-            var defenderLosses = _lossAllocator.Allocate(defence, result.DefenderLosses);
+            var defenderLosses = _lossAllocator.Allocate(defence, result.DefenderLosses, defenceBuffs);
 
             targetGarrison.ApplyDefenceLosses(defenderLosses, utcNow);
 
-            await _aftermath.AdmitAlliedWoundedAsync(defenderLosses, seed, utcNow, cancellationToken);
+            await _aftermath.AdmitAlliedWoundedAsync(defenderLosses, targetGarrison, targetVillage.PlayerId, result.AttackerWon, seed, utcNow, cancellationToken);
 
             // Грабунок до звітів: вантаж має бути на марші, коли той його згадає
             if (result.AttackerWon)

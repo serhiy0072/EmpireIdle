@@ -15,6 +15,13 @@ namespace EmpireIdle.Domain.Entities
         public int ServerId { get; private set; }
         public Guid GarrisonId { get; private set; }
 
+        /// <summary>
+        /// Герой, що веде похід. Обов'язковий для будь-якого маршу: кап
+        /// одночасних походів дорівнює кількості вільних героїв, тож марш
+        /// без героя означав би слот, узятий нізвідки.
+        /// </summary>
+        public Guid? HeroId { get; private set; }
+
         /// <summary>Звідки вийшла армія (щоб знати, куди повертатись).</summary>
         public int OriginX { get; private set; }
         public int OriginY { get; private set; }
@@ -51,11 +58,12 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
-        public March(Guid id, int serverId, Guid garrisonId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
+        public March(Guid id, int serverId, Guid garrisonId, Guid? heroId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
             Guid targetId, IReadOnlyDictionary<string, int> units, DateTime arrivesAt, DateTime departedAt, MarchIntent intent = MarchIntent.Attack) : base(id)
         {
             ServerId = serverId;
             GarrisonId = garrisonId;
+            HeroId = heroId;
             OriginX = originX;
             OriginY = originY;
             TargetX = targetX;
@@ -78,12 +86,12 @@ namespace EmpireIdle.Domain.Entities
         /// гарнізону. Фази Outbound у нього немає — армія вже на місці.
         /// </summary>
         /// <param name="garrisonId">Гарнізон власника: саме туди повернуться юніти.</param>
-        public static March ReturningHome(Guid id, int serverId, Guid garrisonId,
+        public static March ReturningHome(Guid id, int serverId, Guid garrisonId, Guid? heroId,
             int homeX, int homeY, int fromX, int fromY, Guid fromVillageId,
             IReadOnlyDictionary<string, int> units, TimeSpan duration, DateTime utcNow)
         {
             // Origin — дім: гілка Returning у сканері веде армію саме туди
-            var march = new March(id, serverId, garrisonId, homeX, homeY, fromX, fromY,
+            var march = new March(id, serverId, garrisonId, heroId, homeX, homeY, fromX, fromY,
                 MarchTargetType.Village, fromVillageId, units, utcNow + duration, utcNow,
                 MarchIntent.Reinforce);
 
@@ -196,6 +204,16 @@ namespace EmpireIdle.Domain.Entities
             }
             _units.RemoveAll(u => u.Count <= 0);
 
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Герой лишився в чужому гарнізоні, а колона йде далі без нього.
+        /// Буває лише при частковій доставці підкріплення.
+        /// </summary>
+        public void LeaveHeroBehind(DateTime utcNow)
+        {
+            HeroId = null;
             Touch(utcNow);
         }
 

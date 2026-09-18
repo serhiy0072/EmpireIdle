@@ -25,3 +25,6 @@ public record ActiveEffectResponse(string Target, double Multiplier, DateTime Ex
 /// TargetId — для предметів, що діють на сутність; TargetX/TargetY — на клітину карти.
 /// </summary>
 public record UseItemRequest(string ItemKey, int Count, Guid? TargetId = null, int? TargetX = null, int? TargetY = null);
+
+/// <summary>Результат спроби заточки: success, failure або broken.</summary>
+public record EnhancementResponse(string Outcome);

@@ -22,6 +22,10 @@ namespace EmpireIdle.Domain.Services
         public IReadOnlyDictionary<string, MonsterConfig> Monsters { get; }
         public IReadOnlyDictionary<string, ItemConfig> Items { get; }
         public IReadOnlyDictionary<string, QuestConfig> Quests { get; }
+        public IReadOnlyDictionary<string, HeroConfig> Heroes { get; }
+
+        /// <summary>Які предмети входять у кожен набір.</summary>
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> SetPieces { get; }
 
         /// <summary>Ключ головної будівлі — гейт для решти.</summary>
         public string MainBuildingKey { get; }
@@ -41,7 +45,12 @@ namespace EmpireIdle.Domain.Services
             Monsters = config.Monsters.ToDictionary(m => m.Key);
             Items = config.Items.ToDictionary(i => i.Key);
             Quests = config.Quests.ToDictionary(q => q.Key);
+            Heroes = config.Heroes.ToDictionary(h => h.Key);
             MainBuildingKey = config.Buildings.Single(b => b.IsMainBuilding).Key;
+            SetPieces = config.Items
+                .Where(i => !string.IsNullOrWhiteSpace(i.SetKey))
+                .GroupBy(i => i.SetKey!)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(i => i.Key).ToList());
         }
 
         /// <summary>
@@ -56,6 +65,9 @@ namespace EmpireIdle.Domain.Services
         /// <inheritdoc cref="FindUnit"/>
         public ItemConfig? FindItem(string key) => Items.GetValueOrDefault(key);
 
+        /// <inheritdoc cref="FindUnit"/>
+        public HeroConfig? FindHero(string key) => Heroes.GetValueOrDefault(key);
+
         /// <summary>Будівля за ключем або виняток із зрозумілим текстом.</summary>
         public BuildingConfig Building(string key) => Buildings.TryGetValue(key, out var c)
             ? c : throw new InvalidOperationException($"Building '{key}' is not defined in the catalog.");
@@ -68,5 +80,8 @@ namespace EmpireIdle.Domain.Services
 
         public QuestConfig Quest(string key) => Quests.TryGetValue(key, out var c)
             ? c : throw new InvalidOperationException($"Quest '{key}' is not defined in the catalog.");
+
+        public HeroConfig Hero(string key) => Heroes.TryGetValue(key, out var c)
+            ? c : throw new InvalidOperationException($"Hero '{key}' is not defined in the catalog.");
     }
 }

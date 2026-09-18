@@ -61,6 +61,106 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("ActiveEffects", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.BannerPityProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("FeaturedGuaranteed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PityGroup")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("RareSince")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalRolls")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UniqueSince")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "PityGroup")
+                        .IsUnique();
+
+                    b.ToTable("BannerPity", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.BannerRollRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BannerKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("DropKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("FeaturedGuaranteedBefore")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("LostFiftyFifty")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PityGroup")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("PriceGems")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RareSinceBefore")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rarity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("RolledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Seed")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UniqueSinceBefore")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("WasPity")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "RolledAt")
+                        .IsDescending(false, true);
+
+                    b.ToTable("BannerRolls", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.BattleReport", b =>
                 {
                     b.Property<Guid>("Id")
@@ -431,6 +531,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid?>("EquippedByHeroId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsBroken")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ItemKey")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -439,21 +542,64 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Rarity")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                    b.Property<int>("Rarity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Slot")
                         .HasColumnType("integer");
 
+                    b.Property<int>("SlotIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("EquippedByHeroId");
+                    b.HasIndex("EquippedByHeroId", "ItemKey")
+                        .IsUnique()
+                        .HasFilter("\"EquippedByHeroId\" IS NOT NULL");
 
-                    b.HasIndex("PlayerId");
+                    b.HasIndex("PlayerId", "ServerId");
+
+                    b.HasIndex("EquippedByHeroId", "Slot", "SlotIndex")
+                        .IsUnique()
+                        .HasFilter("\"EquippedByHeroId\" IS NOT NULL");
 
                     b.ToTable("EquipmentItems", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentRoll", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EquipmentItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("RolledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Seed")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipmentItemId", "Level");
+
+                    b.ToTable("EquipmentRolls", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentStat", b =>
@@ -507,6 +653,133 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("Garrisons", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.Hero", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AcquiredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Constellation")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("HeroKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsLeader")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("StationedGarrisonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Tier")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StationedGarrisonId");
+
+                    b.HasIndex("PlayerId", "HeroKey")
+                        .IsUnique();
+
+                    b.HasIndex("PlayerId", "ServerId");
+
+                    b.HasIndex("StationedGarrisonId", "PlayerId")
+                        .IsUnique()
+                        .HasFilter("\"IsLeader\" AND \"StationedGarrisonId\" IS NOT NULL");
+
+                    b.ToTable("Heroes", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.HeroLevelOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CompletesAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HeroId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetLevel")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HeroId");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.HasIndex("ServerId", "CompletesAt");
+
+                    b.ToTable("HeroLevelOrders", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.HeroShardProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("HeroKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "HeroKey")
+                        .IsUnique();
+
+                    b.ToTable("HeroShards", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.IdempotencyRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -540,33 +813,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("IdempotencyRecords", (string)null);
-                });
-
-            modelBuilder.Entity("EmpireIdle.Domain.Entities.LootBoxProgress", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("BoxKey")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("SinceLastLegendary")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TotalOpened")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlayerId", "BoxKey")
-                        .IsUnique();
-
-                    b.ToTable("LootBoxProgress", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.MapCell", b =>
@@ -613,6 +859,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("GarrisonId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("HeroId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Intent")
                         .HasColumnType("integer");
 
@@ -652,6 +901,8 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GarrisonId");
+
+                    b.HasIndex("HeroId");
 
                     b.HasIndex("State", "ArrivesAt");
 
@@ -1743,11 +1994,29 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentRoll", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.EquipmentItem", null)
+                        .WithMany("Rolls")
+                        .HasForeignKey("EquipmentItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentStat", b =>
                 {
                     b.HasOne("EmpireIdle.Domain.Entities.EquipmentItem", null)
                         .WithMany("Stats")
                         .HasForeignKey("EquipmentItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.HeroLevelOrder", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.Hero", null)
+                        .WithMany()
+                        .HasForeignKey("HeroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1912,6 +2181,8 @@ namespace EmpireIdle.Infrastructure.Migrations
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentItem", b =>
                 {
+                    b.Navigation("Rolls");
+
                     b.Navigation("Stats");
                 });
 

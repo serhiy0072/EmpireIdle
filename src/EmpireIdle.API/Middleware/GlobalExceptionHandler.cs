@@ -4,6 +4,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace EmpireIdle.API.Middleware
 {
@@ -49,6 +50,9 @@ namespace EmpireIdle.API.Middleware
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 ArgumentException => (StatusCodes.Status400BadRequest, "Invalid Argument"),
                 DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "The resource was modified by another request. Retry with the current state."),
+                // Унікальний індекс — арбітр гонки (уламки, замовлення, дублікат героя).
+                // Його вердикт — конфлікт, а не інцидент: 409, без LogError
+                DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } } => (StatusCodes.Status409Conflict, "The resource already exists. Retry with the current state."),
                 _ => (StatusCodes.Status500InternalServerError, "Internal Server Error")
             };
 

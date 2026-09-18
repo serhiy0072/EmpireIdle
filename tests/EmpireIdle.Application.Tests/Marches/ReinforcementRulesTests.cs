@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
@@ -73,7 +74,7 @@ public class ReinforcementRulesTests
 
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
-        return new MarchTarget(village.X, village.Y, village.Name, 5, village, [], 1.0);
+        return new MarchTarget(village.X, village.Y, village.Name, 5, village, [], DefenceBuffs.None, 1.0);
     }
 
     private void GivenClans(Guid? ownerClan, Guid? hostClan)
@@ -187,7 +188,7 @@ public class ReinforcementRulesTests
         GivenTarget(destination);
         GivenClans(ClanId, Guid.NewGuid());
 
-        var refusal = await Rules().CheckOnArrivalAsync(origin, destination, 10, default);
+        var refusal = await Rules().CheckOnArrivalAsync(origin, destination, default);
 
         refusal.Should().NotBeNull();
     }
@@ -201,7 +202,7 @@ public class ReinforcementRulesTests
         GivenTarget(destination);
         GivenClans(ClanId, ClanId);
 
-        var refusal = await Rules().CheckOnArrivalAsync(origin, destination, 10, default);
+        var refusal = await Rules().CheckOnArrivalAsync(origin, destination, default);
 
         refusal.Should().BeNull();
     }

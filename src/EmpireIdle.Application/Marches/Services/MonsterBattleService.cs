@@ -1,9 +1,9 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Marches.Services
@@ -21,12 +21,14 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IMapRepository _mapRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly IHeroRepository _heroRepository;
         private readonly IRandomSource _random;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly BattleResolver _resolver;
         private readonly EffectResolver _effectResolver;
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
+        private readonly HeroCombatModifiers _heroModifiers;
         private readonly ILogger<MonsterBattleService> _logger;
 
         public MonsterBattleService(
@@ -34,24 +36,28 @@ namespace EmpireIdle.Application.Marches.Services
             IMapRepository mapRepository,
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
+            IHeroRepository heroRepository,
             IRandomSource random,
             MonsterArmyBuilder armyBuilder,
             BattleResolver resolver,
             EffectResolver effectResolver,
             MarchLogistics logistics,
             BattleAftermath aftermath,
+            HeroCombatModifiers heroModifiers,
             ILogger<MonsterBattleService> logger)
         {
             _monsterRepository = monsterRepository;
             _mapRepository = mapRepository;
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
+            _heroRepository = heroRepository;
             _random = random;
             _armyBuilder = armyBuilder;
             _resolver = resolver;
             _effectResolver = effectResolver;
             _logistics = logistics;
             _aftermath = aftermath;
+            _heroModifiers = heroModifiers;
             _logger = logger;
         }
 
@@ -87,9 +93,13 @@ namespace EmpireIdle.Application.Marches.Services
 
             var woundedCapacity = _logistics.CalculateWoundedCapacity(village, garrison);
 
-            // Монстр стін не має, тому бонус захисника лишається нейтральним
-            var outcome = _resolver.Resolve(attackerArmy, defenderArmy, terrain, seed,
-                attackerBonus, defenderBonus: 1.0, woundedCapacity);
+            var attackerHero = march.HeroId is Guid heroId
+                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
+                : null;
+
+            // Монстр ні стін, ні героїв не має, тому бік захисту йде без бонусів
+            var outcome = _resolver.Resolve(attackerArmy, DefenceStacks.FromArmy(defenderArmy), terrain, seed,
+                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.For(attackerHero));
 
             var result = outcome.Battle;
             var split = outcome.AttackerCasualties;

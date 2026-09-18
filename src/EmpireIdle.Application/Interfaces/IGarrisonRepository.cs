@@ -25,5 +25,12 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Гарнізони, де стоять підкріплення цього гравця. Для й для виходу з клану: свої війська розкидані по чужих селах.</summary>
         Task<List<Garrison>> GetHoldingReinforcementsAsync(Guid ownerPlayerId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Юніти гравця, що стоять підкріпленнями в чужих селах.
+        /// Потрібні для Power: §7.1 рахує їх власнику, і без цього
+        /// відправка підкріплення знижувала б рейтинг.
+        /// </summary>
+        Task<Dictionary<string, int>> GetDeployedReinforcementsAsync(Guid ownerPlayerId, CancellationToken cancellationToken = default);
     }
 }

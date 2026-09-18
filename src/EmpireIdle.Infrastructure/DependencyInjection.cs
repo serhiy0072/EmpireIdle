@@ -53,6 +53,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IBattleReportRepository, BattleReportRepository>();
             services.AddScoped<IVillageRepository, VillageRepository>();
             services.AddScoped<IGarrisonRepository, GarrisonRepository>();
+            services.AddScoped<IHeroRepository, HeroRepository>();
             services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
             services.AddScoped<IInventoryRepository, InventoryRepository>();
             services.AddScoped<IMapRepository, MapRepository>();
@@ -69,6 +70,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IClanRepository, ClanRepository>();
             services.AddScoped<IClanHelpRepository, ClanHelpRepository>();
             services.AddScoped<IClanRequestRepository, ClanRequestRepository>();
+            services.AddScoped<IHeroRepository, HeroRepository>();
+            services.AddScoped<IBannerRepository, BannerRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
@@ -78,6 +81,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
+            services.AddScoped<HeroGranter>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<MarchLogistics>();
             services.AddScoped<ReinforcementDelivery>();
@@ -95,6 +99,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IRewardGranter, GemRewardGranter>();
             services.AddScoped<IRewardGranter, ResourceRewardGranter>();
             services.AddScoped<IRewardGranter, ItemRewardGranter>();
+            services.AddScoped<IRewardGranter, HeroRewardGranter>();
+            services.AddScoped<IRewardGranter, EquipmentRewardGranter>();
             services.AddScoped<RewardDispatcher>();
 
             // Квести

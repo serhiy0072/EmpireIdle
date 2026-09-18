@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
@@ -49,10 +50,10 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Resolve_ShouldBeFullyReproducible_ForTheSameSeed()
         {
-            var first = _resolver.Resolve(_attacker, _defender, "plain", seed: 99,
+            var first = _resolver.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 99,
                 attackerBonus: 1.0, defenderBonus: 1.0, woundedCapacity: 50);
 
-            var second = _resolver.Resolve(_attacker, _defender, "plain", seed: 99,
+            var second = _resolver.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 99,
                 attackerBonus: 1.0, defenderBonus: 1.0, woundedCapacity: 50);
 
             Assert.Equal(first.Battle.AttackerWon, second.Battle.AttackerWon);
@@ -66,7 +67,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Resolve_ShouldSplitExactlyTheBattleLosses()
         {
-            var outcome = _resolver.Resolve(_attacker, _defender, "plain", seed: 5,
+            var outcome = _resolver.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 5,
                 attackerBonus: 1.0, defenderBonus: 1.0, woundedCapacity: 50);
 
             foreach (var (unitType, lost) in outcome.Battle.AttackerLosses)
@@ -83,10 +84,10 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Resolve_ShouldAccountForTheDefenderBonus()
         {
-            var neutral = _resolver.Resolve(_attacker, _defender, "plain", seed: 11,
+            var neutral = _resolver.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 11,
                 attackerBonus: 1.0, defenderBonus: 1.0, woundedCapacity: 50);
 
-            var fortified = _resolver.Resolve(_attacker, _defender, "plain", seed: 11,
+            var fortified = _resolver.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 11,
                 attackerBonus: 1.0, defenderBonus: 2.0, woundedCapacity: 50);
 
             Assert.True(fortified.Battle.DefenderPower > neutral.Battle.DefenderPower);

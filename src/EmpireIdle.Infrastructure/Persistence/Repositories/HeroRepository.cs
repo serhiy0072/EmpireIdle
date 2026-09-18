@@ -1,0 +1,124 @@
+using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
+
+namespace EmpireIdle.Infrastructure.Persistence.Repositories
+{
+    /// <summary>Репозиторій героїв (EF Core).</summary>
+    public class HeroRepository : IHeroRepository
+    {
+        private readonly AppDbContext _context;
+
+        public HeroRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        /// <inheritdoc/>
+        public Task<List<Hero>> GetByPlayerAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .Where(h => h.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<Hero?> GetByKeyAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .FirstOrDefaultAsync(h => h.PlayerId == playerId && h.HeroKey == heroKey, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<Hero?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .FirstOrDefaultAsync(h => h.Id == id, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .CountAsync(h => h.PlayerId == playerId, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> CountAvailableAsync(Guid playerId, Guid garrisonId,
+            CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .CountAsync(h => h.PlayerId == playerId
+                && h.StationedGarrisonId == garrisonId
+                && h.State == HeroState.Idle, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<Hero>> GetByGarrisonAsync(Guid garrisonId, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .Where(h => h.StationedGarrisonId == garrisonId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<Hero?> GetLeaderAsync(Guid garrisonId, Guid playerId, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .FirstOrDefaultAsync(h => h.StationedGarrisonId == garrisonId
+                && h.PlayerId == playerId
+                && h.IsLeader, cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetForeignGarrisonIdsAsync(Guid playerId,
+            CancellationToken cancellationToken = default)
+            => await _context.Heroes
+            .Where(h => h.PlayerId == playerId && h.StationedGarrisonId != null)
+            .Join(_context.Garrisons, h => h.StationedGarrisonId, g => g.Id, (h, g) => new { Hero = h, g.VillageId })
+            .Join(_context.Villages, x => x.VillageId, v => v.Id, (x, v) => new { x.Hero, v.PlayerId })
+            .Where(x => x.PlayerId != playerId)
+            .Select(x => x.Hero.StationedGarrisonId!.Value)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task AddAsync(Hero hero, CancellationToken cancellationToken = default)
+        {
+            await _context.Heroes.AddAsync(hero, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task<HeroShardProgress?> GetShardsAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
+            => _context.HeroShards
+            .FirstOrDefaultAsync(s => s.PlayerId == playerId && s.HeroKey == heroKey, cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task AddShardsAsync(HeroShardProgress progress, CancellationToken cancellationToken = default)
+        {
+            await _context.HeroShards.AddAsync(progress, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task<HeroLevelOrder?> GetActiveOrderAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.HeroLevelOrders
+            .FirstOrDefaultAsync(o => o.PlayerId == playerId, cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task AddOrderAsync(HeroLevelOrder order, CancellationToken cancellationToken = default)
+        {
+            await _context.HeroLevelOrders.AddAsync(order, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsWithDueLevelUpAsync(DateTime utcNow, int batchSize,
+            CancellationToken cancellationToken = default)
+            => await _context.HeroLevelOrders
+            .Where(o => o.CompletesAt <= utcNow)
+            .OrderBy(o => o.CompletesAt)
+            .Take(batchSize)
+            .Select(o => o.Id)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<HeroShardProgress>> GetAllShardsAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.HeroShards
+            .Where(s => s.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<HeroLevelOrder?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.HeroLevelOrders
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+
+        /// <inheritdoc/>
+        public void RemoveOrder(HeroLevelOrder order) => _context.HeroLevelOrders.Remove(order);
+    }
+}

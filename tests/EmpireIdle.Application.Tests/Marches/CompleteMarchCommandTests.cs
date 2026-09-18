@@ -1,7 +1,9 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -36,6 +38,7 @@ public class CompleteMarchCommandTests
     private readonly IRandomSource _random = Substitute.For<IRandomSource>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -120,32 +123,41 @@ public class CompleteMarchCommandTests
         var status = new VillageStatus(catalog);
         var plunder = new PlunderCalculator(catalog, capacities);
 
+        var heroModifiers = new HeroCombatModifiers(catalog);
+
         var logistics = new MarchLogistics(
             _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
 
+        var returner = new ReinforcementReturner(
+            _garrisons, _villages, _marches, _heroes, calculator, catalog,
+            new HeroProgression(config.HeroSettings),
+            NullLogger<ReinforcementReturner>.Instance);
+
         var aftermath = new BattleAftermath(
-            _reports, _garrisons, _villages, _notifier, casualties, catalog, logistics, status,
-            NullLogger<BattleAftermath>.Instance);
+            _reports, _garrisons, _villages, _heroes, _notifier, casualties, catalog, logistics, status,
+            returner, NullLogger<BattleAftermath>.Instance);
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
         var monsterBattle = new MonsterBattleService(
-            _monsters, _map, _garrisons, _villages, _random,
-            armyBuilder, resolver, effects, logistics, aftermath,
+            _monsters, _map, _garrisons, _villages, _heroes, _random,
+            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers,
             NullLogger<MonsterBattleService>.Instance);
 
         var villageBattle = new VillageBattleService(
-            _garrisons, _villages, _serverRepository, _random,
+            _garrisons, _villages, _serverRepository, _heroes, _random,
             catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, 
+            status, plunder, heroModifiers,
             NullLogger<VillageBattleService>.Instance);
 
+        _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
+
         var reinforcements = new ReinforcementDelivery(
-            _garrisons, _villages, logistics, reinforcementRules, capacities,
+            _garrisons, _villages, _heroes, logistics, reinforcementRules, capacities,
             NullLogger<ReinforcementDelivery>.Instance);
 
         return new CompleteMarchCommandHandler(
-            _marches, _garrisons, _unitOfWork, terrain,
+            _marches, _garrisons, _heroes, _unitOfWork, terrain,
             new FakeTimeProvider(at ?? Now),
             logistics, monsterBattle, villageBattle, reinforcements,
             NullLogger<CompleteMarchCommandHandler>.Instance);
@@ -185,7 +197,7 @@ public class CompleteMarchCommandTests
         var monster = new Monster(Guid.NewGuid(), 1, "wolves", monsterLevel, 55, 55, Now);
 
         var march = new March(
-            Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55,
+            Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
             MarchTargetType.Monster, monster.Id,
             new Dictionary<string, int> { ["infantry"] = attackerInfantry },
             Now, Now.AddMinutes(-30));
@@ -220,7 +232,7 @@ public class CompleteMarchCommandTests
             defenderGarrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = defenderInfantry }, Now);
 
         var march = new March(
-            Guid.NewGuid(), 1, attackerGarrison.Id, 50, 50, 55, 55,
+            Guid.NewGuid(), 1, attackerGarrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
             MarchTargetType.Village, defender.Id,
             new Dictionary<string, int> { ["infantry"] = attackerInfantry },
             Now, Now.AddMinutes(-30));
