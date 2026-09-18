@@ -1,56 +1,56 @@
+using EmpireIdle.API.Hubs.Events;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.API.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace EmpireIdle.API.Hubs
 {
     /// <summary>
-    /// Реалізація IGameNotifier через SignalR.
-    /// Пушить події в групу конкретного гравця.
+    /// Реалізація IGameNotifier через SignalR. Пушить події в групу гравця.
+    ///
+    /// Group, а не User: UserIdentifier у SignalR — це IdentityUser.Id (sub), а не playerId.
+    /// cancellationToken не передається далі: подія летить після вже закоміченої
+    /// транзакції, скасовувати її нема сенсу.
     /// </summary>
     public class SignalRGameNotifier : IGameNotifier
     {
-        private readonly IHubContext<GameHub> _hubContext;
-        public SignalRGameNotifier(IHubContext<GameHub> hubContext)
+        private readonly IHubContext<GameHub, IGameClient> _hubContext;
+
+        public SignalRGameNotifier(IHubContext<GameHub, IGameClient> hubContext)
         {
             _hubContext = hubContext;
         }
 
         /// <inheritdoc/>
-        public async Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected, int newVillageAmount, CancellationToken cancellationToken = default)
-        {
-            await _hubContext.Clients.Group(playerId.ToString())
-                .SendAsync("BuildingCollected", new { buildingId, resourceType, collected, newVillageAmount }, cancellationToken);
-        }
+        public Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected,
+            int newVillageAmount, CancellationToken cancellationToken = default)
+            => Player(playerId).BuildingCollected(
+                new BuildingCollectedEvent(buildingId, resourceType, collected, newVillageAmount));
 
         /// <inheritdoc/>
-        public async Task NotifyUpgradeStartedAsync(Guid playerId, Guid buildingId, DateTime completesAt, CancellationToken cancellationToken = default)
-        {
-            await _hubContext.Clients.Group(playerId.ToString()).SendAsync("UpgradeStarted", new {buildingId, completesAt}, cancellationToken);
-        }
-
-        /// <inheritdoc/>        
-        public async Task NotifyUpgradeCompletedAsync(Guid playerId, Guid buildingId, int newLevel, CancellationToken cancellationToken = default)
-        {
-            await _hubContext.Clients.Group(playerId.ToString()).SendAsync("UpgradeCompleted", new { buildingId, newLevel }, cancellationToken);
-        }
+        public Task NotifyUpgradeStartedAsync(Guid playerId, Guid buildingId, DateTime completesAt,
+            CancellationToken cancellationToken = default)
+            => Player(playerId).UpgradeStarted(new UpgradeStartedEvent(buildingId, completesAt));
 
         /// <inheritdoc/>
-        public Task NotifyBattleFinishedAsync(Guid playerId, Guid reportId, bool won, string targetName, CancellationToken cancellationToken = default)
-            // Group, не User: UserIdentifier у SignalR — це IdentityUser.Id (sub), а не playerId
-            => _hubContext.Clients.Group(playerId.ToString())
-                .SendAsync("BattleFinished", new { reportId, won, targetName }, cancellationToken);
+        public Task NotifyUpgradeCompletedAsync(Guid playerId, Guid buildingId, int newLevel,
+            CancellationToken cancellationToken = default)
+            => Player(playerId).UpgradeCompleted(new UpgradeCompletedEvent(buildingId, newLevel));
+
+        /// <inheritdoc/>
+        public Task NotifyBattleFinishedAsync(Guid playerId, Guid reportId, bool won, string targetName,
+            CancellationToken cancellationToken = default)
+            => Player(playerId).BattleFinished(new BattleFinishedEvent(reportId, won, targetName));
 
         /// <inheritdoc/>
         public Task NotifyServerQuestRewardedAsync(Guid playerId, string questKey, int rank, long contribution,
             CancellationToken cancellationToken = default)
-            => _hubContext.Clients.Group(playerId.ToString())
-                .SendAsync("ServerQuestRewarded", new { questKey, rank, contribution }, cancellationToken);
+            => Player(playerId).ServerQuestRewarded(new ServerQuestRewardedEvent(questKey, rank, contribution));
 
         /// <inheritdoc/>
         public Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag,
             DateTime expiresAt, CancellationToken cancellationToken = default)
-            => _hubContext.Clients.Group(playerId.ToString())
-                .SendAsync("ClanInvite", new { requestId, clanId, clanName, clanTag, expiresAt }, cancellationToken);
+            => Player(playerId).ClanInvite(new ClanInviteEvent(requestId, clanId, clanName, clanTag, expiresAt));
+
+        private IGameClient Player(Guid playerId) => _hubContext.Clients.Group(playerId.ToString());
     }
 }

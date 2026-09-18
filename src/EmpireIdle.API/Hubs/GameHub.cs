@@ -8,7 +8,7 @@ namespace EmpireIdle.API.Hubs
     /// Кожен гравець у своїй групі (group name = playerId) для адресних сповіщень.
     /// </summary>
     [Authorize]
-    public class GameHub : Hub
+    public class GameHub : Hub<IGameClient>
     {
         private readonly ILogger<GameHub> _logger;
 

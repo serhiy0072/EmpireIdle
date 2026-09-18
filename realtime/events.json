@@ -1,0 +1,33 @@
+{
+  "BattleFinished": [
+    "reportId",
+    "targetName",
+    "won"
+  ],
+  "BuildingCollected": [
+    "buildingId",
+    "collected",
+    "newVillageAmount",
+    "resourceType"
+  ],
+  "ClanInvite": [
+    "clanId",
+    "clanName",
+    "clanTag",
+    "expiresAt",
+    "requestId"
+  ],
+  "ServerQuestRewarded": [
+    "contribution",
+    "questKey",
+    "rank"
+  ],
+  "UpgradeCompleted": [
+    "buildingId",
+    "newLevel"
+  ],
+  "UpgradeStarted": [
+    "buildingId",
+    "completesAt"
+  ]
+}
