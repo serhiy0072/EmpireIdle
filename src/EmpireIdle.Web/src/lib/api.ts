@@ -3,7 +3,7 @@ import { fromAuthResponse, getSession, setSession, type AuthResponse } from "./s
 
 export { ApiError, isApiError } from "./problem";
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
+export const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
 
 export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
