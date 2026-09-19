@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "api:types": "openapi-typescript ../../openapi/v1.json -o src/lib/schema.d.ts",
+    "api:types": "npx -y -p typescript@5 -p openapi-typescript@7 openapi-typescript ../../openapi/v1.json -o src/lib/schema.d.ts",
     "predev": "npm run api:types",
     "dev": "vite",
     "prebuild": "npm run api:types",
