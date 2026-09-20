@@ -15,8 +15,9 @@ function useBuildingAction(playerId: string, action: "collect" | "upgrade" | "sp
   const queryClient = useQueryClient();
 
   return useMutation({
+    
     mutationFn: (buildingId: string) =>
-      api<void>(`/api/village/${playerId}/buildings/${buildingId}/${action}`, { method: "POST" }),
+      api<void>(`/api/village/${playerId}/buildings/${buildingId}/${action}`, { method: "POST", idempotent: true }),
     // Сервер порахує сам: свій підрахунок розійшовся б із виробітком по секундах
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.village(playerId) }),
   });

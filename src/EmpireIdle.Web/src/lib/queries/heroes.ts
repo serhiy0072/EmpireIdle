@@ -19,7 +19,7 @@ function useHeroAction(playerId: string, path: (heroId: string) => string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (heroId: string) => api<void>(path(heroId), { method: "POST" }),
+    mutationFn: (heroId: string) => api<void>(path(heroId), { method: "POST", idempotent: true }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.heroes(playerId) }),
   });
 }
@@ -45,7 +45,7 @@ export function useSummonHero(playerId: string) {
 
   return useMutation({
     mutationFn: (heroKey: string) =>
-      api<void>(`/api/heroes/${playerId}/summon`, { method: "POST", body: { heroKey } }),
+      api<void>(`/api/heroes/${playerId}/summon`, { method: "POST", body: { heroKey }, idempotent: true }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.heroes(playerId) }),
   });
 }
