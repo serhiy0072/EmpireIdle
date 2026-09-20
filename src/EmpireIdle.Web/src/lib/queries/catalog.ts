@@ -1,0 +1,94 @@
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { api } from "../api";
+import { queryKeys } from "../queryKeys";
+import type { components } from "../schema";
+
+export type CatalogResponse = components["schemas"]["CatalogResponse"];
+export type CatalogHero = components["schemas"]["CatalogHero"];
+export type CatalogItem = components["schemas"]["CatalogItem"];
+export type CatalogResource = components["schemas"]["CatalogResource"];
+export type CatalogPassive = components["schemas"]["CatalogPassive"];
+
+export interface Catalog {
+  /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
+  loaded: boolean;
+  hero: (key: string) => CatalogHero | null;
+  item: (key: string) => CatalogItem | null;
+  heroName: (key: string) => string;
+  itemName: (key: string) => string;
+  resourceName: (key: string) => string;
+  maxConstellation: number;
+  maxTier: number;
+}
+
+/**
+ * Довідник гри. Тягнеться один раз: у межах запуску сервера він незмінний,
+ * а після перезавантаження сторінки браузер отримає 304 за ETag.
+ */
+export function useCatalog(): Catalog {
+  const query = useQuery({
+    queryKey: queryKeys.catalog,
+    queryFn: () => api<CatalogResponse>("/api/catalog"),
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
+  return useMemo(() => {
+    const data = query.data;
+
+    const heroes = new Map((data?.heroes ?? []).map((hero) => [hero.key, hero]));
+    const items = new Map((data?.items ?? []).map((item) => [item.key, item]));
+    const resources = new Map((data?.resources ?? []).map((resource) => [resource.key, resource]));
+
+    return {
+      loaded: data !== undefined,
+      hero: (key) => heroes.get(key) ?? null,
+      item: (key) => items.get(key) ?? null,
+      // Ключ як запасна назва: краще технічний рядок, ніж порожнє місце
+      heroName: (key) => heroes.get(key)?.displayName ?? key,
+      itemName: (key) => items.get(key)?.displayName ?? key,
+      resourceName: (key) => resources.get(key)?.displayName ?? key,
+      maxConstellation: data?.maxConstellation ?? 6,
+      maxTier: data?.maxTier ?? 3,
+    };
+  }, [query.data]);
+}
+
+const RANK_STYLES: Record<string, string> = {
+  Common: "bg-slate-100 text-slate-600",
+  Rare: "bg-sky-100 text-sky-800",
+  Unique: "bg-amber-100 text-amber-800",
+};
+
+const RANK_LABELS: Record<string, string> = {
+  Common: "Звичайний",
+  Rare: "Рідкісний",
+  Unique: "Унікальний",
+};
+
+export function rankStyle(rank: string | undefined): string {
+  return RANK_STYLES[rank ?? ""] ?? "bg-slate-100 text-slate-600";
+}
+
+export function rankLabel(rank: string | undefined): string {
+  return RANK_LABELS[rank ?? ""] ?? "—";
+}
+
+const STATES: Record<string, string> = {
+  Idle: "Вдома",
+  Deployed: "У поході",
+  Wounded: "Поранений",
+  LevelingUp: "Качається",
+};
+
+export function heroState(state: string): string {
+  return STATES[state] ?? state;
+}
+
+/** Поточна сила пасивки: база плюс приріст за кожне сузір'я понад те, що її відкрило. */
+export function passivePercent(passive: CatalogPassive, constellation: number): number | null {
+  if (constellation < passive.unlockConstellation) return null;
+
+  return passive.basePercent + passive.percentPerConstellation * (constellation - passive.unlockConstellation);
+}

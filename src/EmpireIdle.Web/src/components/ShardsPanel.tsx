@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { heroName } from "../lib/heroNames";
+import { rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
 import type { HeroShardSummary } from "../lib/queries/heroes";
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
 }
 
 export default function ShardsPanel({ shards, busy, onBuy, onSummon }: Props) {
+  const catalog = useCatalog();
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   if (shards.length === 0) {
@@ -19,17 +20,25 @@ export default function ShardsPanel({ shards, busy, onBuy, onSummon }: Props) {
   return (
     <div className="space-y-3">
       {shards.map((shard) => {
+        const config = catalog.hero(shard.heroKey);
         const ready = shard.count >= shard.required;
         const count = counts[shard.heroKey] ?? 10;
 
         return (
           <div key={shard.heroKey} className="rounded-xl border border-slate-200 bg-white p-3">
-            <div className="flex items-baseline justify-between">
-              <span className="font-medium text-slate-800">{heroName(shard.heroKey)}</span>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="font-medium text-slate-800">{catalog.heroName(shard.heroKey)}</span>
               <span className="text-sm text-slate-600">
                 {shard.count} / {shard.required}
               </span>
             </div>
+
+            {config !== null && (
+              <div className="mt-1 flex items-center gap-1 text-xs">
+                <span className={`rounded px-2 py-0.5 ${rankStyle(config.rank)}`}>{rankLabel(config.rank)}</span>
+                <span className="text-slate-500">{config.shardPriceGold} золота за уламок</span>
+              </div>
+            )}
 
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div
