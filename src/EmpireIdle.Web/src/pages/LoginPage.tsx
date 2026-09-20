@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { login } from "../lib/auth";
 import { isApiError } from "../lib/api";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -56,8 +57,14 @@ export default function LoginPage() {
 
         <button type="submit" disabled={loading}
           className="w-full rounded-lg bg-emerald-600 text-white py-2 font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
-          {loading ? "Входимо…" : "Вхід"}
+          { loading? "Входимо…": "Вхід" }
         </button>
+        <p className="text-center text-sm text-slate-500">
+          Немає акаунта?{" "}
+          <Link to="/register" className="font-medium text-emerald-700 hover:underline">
+            Зареєструватись
+          </Link>
+        </p>
       </form>
     </div>
   );
@@ -65,7 +72,8 @@ export default function LoginPage() {
 
 /** Розгалуження за errorCode, а не за текстом: текст беку може змінитись будь-коли. */
 function describe(error: unknown): string {
-  if (!isApiError(error)) return "Не вдалося з'єднатися з сервером";
+    if (!isApiError(error)) return "Не вдалося з'єднатися з сервером";
+
 
   if (error.is("AuthenticationFailed")) return "Невірна пошта або пароль";
 
