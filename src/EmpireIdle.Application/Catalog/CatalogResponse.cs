@@ -1,0 +1,60 @@
+namespace EmpireIdle.Application.Catalog
+{
+    /// <summary>
+    /// Зріз конфіга для інтерфейсу: назви, ранги, класи й стати.
+    ///
+    /// Це не дублікат конфіга, а рівно те, що показують екрани. Без нього
+    /// клієнт або вигадує назви з ключів, або тримає власну копію JSON,
+    /// яка відстане від сервера на першій же правці балансу.
+    /// </summary>
+    /// <param name="Version">Хеш вмісту. Той самий рядок іде в ETag.</param>
+    public record CatalogResponse(
+        IReadOnlyList<CatalogHero> Heroes,
+        IReadOnlyList<CatalogItem> Items,
+        IReadOnlyList<CatalogResource> Resources,
+        IReadOnlyList<CatalogBuilding> Buildings,
+        IReadOnlyList<string> HeroClasses,
+        int MaxConstellation,
+        int MaxTier,
+        string Version);
+
+    /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
+    public record CatalogHero(
+        string Key,
+        string DisplayName,
+        string Class,
+        string Rank,
+        string? Description,
+        double Speed,
+        int SummonShards,
+        int ShardPriceGold,
+        IReadOnlyDictionary<string, double> BaseStats,
+        IReadOnlyDictionary<string, double> StatGrowth,
+        IReadOnlyList<CatalogPassive> Passives);
+
+    public record CatalogPassive(
+        string Key,
+        string DisplayName,
+        int UnlockConstellation,
+        string Target,
+        string Stat,
+        double BasePercent,
+        double PercentPerConstellation);
+
+    /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
+    public record CatalogItem(
+        string Key,
+        string DisplayName,
+        string Description,
+        string Rarity,
+        string Type,
+        string? Slot,
+        IReadOnlyList<string> WeaponClasses,
+        IReadOnlyDictionary<string, double> BaseStats,
+        string? SetKey,
+        int PriceGold);
+
+    public record CatalogResource(string Key, string DisplayName, string Icon);
+
+    public record CatalogBuilding(string Key, string DisplayName, string? ProducesResource);
+}

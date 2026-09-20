@@ -530,6 +530,39 @@
         }
       }
     },
+    "/api/catalog": {
+      "get": {
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "Catalog_GetCatalog",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogResponse"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified"
+          }
+        }
+      }
+    },
     "/api/clans": {
       "get": {
         "tags": [
@@ -4641,6 +4674,264 @@
         },
         "additionalProperties": false
       },
+      "CatalogBuilding": {
+        "required": [
+          "displayName",
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "producesResource": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogHero": {
+        "required": [
+          "baseStats",
+          "class",
+          "displayName",
+          "key",
+          "passives",
+          "rank",
+          "shardPriceGold",
+          "speed",
+          "statGrowth",
+          "summonShards"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "class": {
+            "type": "string"
+          },
+          "rank": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "speed": {
+            "type": "number",
+            "format": "double"
+          },
+          "summonShards": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shardPriceGold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baseStats": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "statGrowth": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "passives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogPassive"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogItem": {
+        "required": [
+          "baseStats",
+          "description",
+          "displayName",
+          "key",
+          "priceGold",
+          "rarity",
+          "type",
+          "weaponClasses"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "rarity": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "slot": {
+            "type": "string",
+            "nullable": true
+          },
+          "weaponClasses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "baseStats": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "setKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "priceGold": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogPassive": {
+        "required": [
+          "basePercent",
+          "displayName",
+          "key",
+          "percentPerConstellation",
+          "stat",
+          "target",
+          "unlockConstellation"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "unlockConstellation": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "target": {
+            "type": "string"
+          },
+          "stat": {
+            "type": "string"
+          },
+          "basePercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "percentPerConstellation": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogResource": {
+        "required": [
+          "displayName",
+          "icon",
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogResponse": {
+        "required": [
+          "buildings",
+          "heroClasses",
+          "heroes",
+          "items",
+          "maxConstellation",
+          "maxTier",
+          "resources",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "heroes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogHero"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogItem"
+            }
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogResource"
+            }
+          },
+          "buildings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogBuilding"
+            }
+          },
+          "heroClasses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxConstellation": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxTier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClanApplicationResponse": {
         "required": [
           "createdAt",
@@ -6256,6 +6547,9 @@
     },
     {
       "name": "BattleReport"
+    },
+    {
+      "name": "Catalog"
     },
     {
       "name": "Clan"
