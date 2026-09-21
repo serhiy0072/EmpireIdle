@@ -52,5 +52,41 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             Assert.Equal(int.MaxValue, ProgressionCurves.BufferCap(int.MaxValue / 10, level: 100));
         }
+
+        /// <summary>
+        /// Ранній податок на рівні 1 завжди ×3, незалежно від growth:
+        /// earlyMultiplier(1) = 1 + 2.0/1^1.2 = 3 рівно.
+        /// </summary>
+        [Theory]
+        [InlineData(4, 1.30, 12.0)]
+        [InlineData(5, 1.50, 15.0)]
+        public void BuildMinutes_ShouldTripleTheFirstLevel(int baseMinutes, double growth, double expected)
+        {
+            Assert.Equal(expected, ProgressionCurves.BuildMinutes(baseMinutes, growth, level: 1), precision: 6);
+        }
+
+        /// <summary>
+        /// Ефект згасає з рівнем: на growth 1.0 (щоб ізолювати сам податок від
+        /// геометрії) час на рівні 100 майже дорівнює базовому.
+        /// </summary>
+        [Fact]
+        public void BuildMinutes_ShouldFadeTheEarlyTaxAtHighLevels()
+        {
+            var atHighLevel = ProgressionCurves.BuildMinutes(10, growth: 1.0, level: 100);
+
+            Assert.True(atHighLevel < 10.1, $"Очікував майже без надбавки на рівні 100, отримав {atHighLevel}.");
+        }
+
+        /// <summary>Ранній множник строго спадає з рівнем — це і є "сильніше на ранніх".</summary>
+        [Fact]
+        public void BuildMinutes_EarlyTaxShouldDecreaseMonotonically()
+        {
+            var level2 = ProgressionCurves.BuildMinutes(10, growth: 1.0, level: 2);
+            var level10 = ProgressionCurves.BuildMinutes(10, growth: 1.0, level: 10);
+            var level50 = ProgressionCurves.BuildMinutes(10, growth: 1.0, level: 50);
+
+            Assert.True(level2 > level10);
+            Assert.True(level10 > level50);
+        }
     }
 }
