@@ -76,7 +76,7 @@
         "BuildTimeGrowth": 1.30,
         "ProducesResource": "food",
         "BaseProductionPerMinute": 10,
-        "BaseStorage": 600,
+        "BaseStorage": 1800,
         "UpgradeCostGrowth": 1.28
       },
       {
@@ -101,7 +101,7 @@
         "BuildTimeGrowth": 1.30,
         "ProducesResource": "wood",
         "BaseProductionPerMinute": 8,
-        "BaseStorage": 800,
+        "BaseStorage": 1440,
         "UpgradeCostGrowth": 1.28
       },
       {
@@ -126,7 +126,7 @@
         "BuildTimeGrowth": 1.30,
         "ProducesResource": "gold",
         "BaseProductionPerMinute": 10,
-        "BaseStorage": 600,
+        "BaseStorage": 1800,
         "UpgradeCostGrowth": 1.28
       },
       {
@@ -258,7 +258,7 @@
         "BuildTimeGrowth": 1.30,
         "ProducesResource": "iron",
         "BaseProductionPerMinute": 8,
-        "BaseStorage": 600,
+        "BaseStorage": 1440,
         "UpgradeCostGrowth": 1.28
       },
       {
@@ -493,7 +493,7 @@
         "BuildTimeGrowth": 1.30,
         "ProducesResource": "food",
         "BaseProductionPerMinute": 10,
-        "BaseStorage": 600,
+        "BaseStorage": 1800,
         "UpgradeCostGrowth": 1.28
       },
       {
