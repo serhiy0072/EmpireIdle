@@ -1,7 +1,7 @@
 import BuildingCard from "../components/BuildingCard";
 import { useSession } from "../hooks/useSession";
-import { describeError } from "../lib/errorMessages";
 import { useCollectBuilding, useSpeedUpBuilding, useUpgradeBuilding, useVillage } from "../lib/queries/village";
+import ErrorBanner from "../components/ErrorBanner";
 
 export default function VillagePage() {
   const session = useSession();
@@ -20,16 +20,14 @@ export default function VillagePage() {
   }
 
   if (village.isError) {
-    return <p className="text-red-600">{describeError(village.error)}</p>;
+    return <ErrorBanner error={village.error} />;
   }
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-medium text-slate-800">{village.data.name}</h1>
 
-      {failure !== null && failure !== undefined && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{describeError(failure)}</p>
-      )}
+      <ErrorBanner error={failure} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {village.data.buildings.map((building) => (

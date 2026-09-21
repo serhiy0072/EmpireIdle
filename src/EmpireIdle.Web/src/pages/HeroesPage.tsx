@@ -5,8 +5,8 @@ import HeroDetails from "../components/HeroDetails";
 import ShardsPanel from "../components/ShardsPanel";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
-import { describeError } from "../lib/errorMessages";
 import { queryKeys } from "../lib/queryKeys";
+import ErrorBanner from "../components/ErrorBanner";
 import {
   useAppointLeader,
   useBuyShards,
@@ -58,7 +58,7 @@ export default function HeroesPage() {
   }
 
   if (heroes.isError) {
-    return <p className="text-red-600">{describeError(heroes.error)}</p>;
+    return <ErrorBanner error={heroes.error} />;
   }
 
   const busy =
@@ -79,9 +79,7 @@ export default function HeroesPage() {
         </p>
       </div>
 
-      {failure !== null && failure !== undefined && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{describeError(failure)}</p>
-      )}
+      <ErrorBanner error={failure} />
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-4">
