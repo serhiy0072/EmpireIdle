@@ -30,6 +30,8 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
   const { transform, handlers, wasDragged } = usePanZoom(containerRef, WORLD);
 
   const wall = buildings.find((building) => building.type === WALL_KEY) ?? null;
+  const wallLocked = wall !== null && !wall.isUnlocked;
+  const wallGateLevel = catalog.building(WALL_KEY)?.requiresMainBuildingLevel ?? 0;
 
   const placed = buildings
     .filter((building) => building.type !== WALL_KEY)
@@ -67,6 +69,8 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                 level={wall.level}
                 name={catalog.buildingName(WALL_KEY)}
                 selected={wall.id === selectedId}
+                locked={wallLocked}
+                gateLevel={wallGateLevel}
                 onSelect={tap(() => onSelect(wall.id))}
               />
             )}
@@ -79,6 +83,7 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                 y={position.y}
                 selected={building.id === selectedId}
                 underConstruction={building.isUnderConstruction}
+                locked={!building.isUnlocked}
                 onSelect={tap(() => onSelect(building.id))}
               />
             ))}
@@ -89,14 +94,18 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                 level={wall.level}
                 name={catalog.buildingName(WALL_KEY)}
                 selected={wall.id === selectedId}
+                locked={wallLocked}
+                gateLevel={wallGateLevel}
                 onSelect={tap(() => onSelect(wall.id))}
               />
             )}
 
             {/* Підписи й бульбашки поверх усього — ніщо їх не перекриває */}
             {placed.map(({ building, position, art }) => {
+              const locked = !building.isUnlocked;
               const collectable =
-                !building.isUnderConstruction && building.storageCap > 0 && building.storedAmount > 0;
+                !locked && !building.isUnderConstruction && building.storageCap > 0 && building.storedAmount > 0;
+              const gateLevel = catalog.building(building.type)?.requiresMainBuildingLevel ?? 0;
 
               return (
                 <IsoBuildingOverlay
@@ -104,7 +113,7 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                   art={art}
                   x={position.x}
                   y={position.y}
-                  label={`${catalog.buildingName(building.type)} · ${building.level}`}
+                  label={locked ? `🔒 Ратуша ${gateLevel}` : `${catalog.buildingName(building.type)} · ${building.level}`}
                   bubble={collectable ? compact(building.storedAmount) : null}
                   onSelect={tap(() => onSelect(building.id))}
                   onCollect={tap(() => onCollect(building.id))}

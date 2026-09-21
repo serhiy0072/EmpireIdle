@@ -74,7 +74,8 @@ namespace EmpireIdle.Application.Catalog
                     building.Key,
                     building.DisplayName,
                     building.ProducesResource,
-                    building.Position is null ? null : new CatalogPosition(building.Position.X, building.Position.Y)))
+                    building.Position is null ? null : new CatalogPosition(building.Position.X, building.Position.Y),
+                    building.RequiresMainBuildingLevel))
                 .ToList();
 
             var units = config.Units

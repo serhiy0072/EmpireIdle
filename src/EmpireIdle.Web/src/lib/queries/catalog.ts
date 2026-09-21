@@ -10,6 +10,7 @@ export type CatalogItem = components["schemas"]["CatalogItem"];
 export type CatalogResource = components["schemas"]["CatalogResource"];
 export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
 export type CatalogPassive = components["schemas"]["CatalogPassive"];
+export type CatalogUnit = components["schemas"]["CatalogUnit"];
 
 export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
@@ -21,6 +22,9 @@ export interface Catalog {
   itemName: (key: string) => string;
   resourceName: (key: string) => string;
   buildingName: (key: string) => string;
+  unitName: (key: string) => string;
+  /** Юніти, які ця будівля вже може тренувати на своєму поточному рівні. */
+  unitsFor: (buildingType: string, buildingLevel: number) => CatalogUnit[];
   maxConstellation: number;
   maxTier: number;
 }
@@ -44,6 +48,7 @@ export function useCatalog(): Catalog {
     const items = new Map((data?.items ?? []).map((item) => [item.key, item]));
     const resources = new Map((data?.resources ?? []).map((resource) => [resource.key, resource]));
     const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
+    const units = new Map((data?.units ?? []).map((unit) => [unit.key, unit]));
 
     return {
       loaded: data !== undefined,
@@ -55,6 +60,11 @@ export function useCatalog(): Catalog {
       itemName: (key) => items.get(key)?.displayName ?? key,
       resourceName: (key) => resources.get(key)?.displayName ?? key,
       buildingName: (key) => buildings.get(key)?.displayName ?? key,
+      unitName: (key) => units.get(key)?.displayName ?? key,
+      unitsFor: (buildingType, buildingLevel) =>
+        (data?.units ?? []).filter(
+          (unit) => unit.requiresBuilding === buildingType && unit.requiresBuildingLevel <= buildingLevel,
+        ),
       maxConstellation: data?.maxConstellation ?? 6,
       maxTier: data?.maxTier ?? 3,
     };

@@ -32,7 +32,7 @@ namespace EmpireIdle.API.Controllers
                 village.Name,
                 village.Buildings.Select(b => new BuildingResponse(
                     b.Id, b.Type, b.Level, b.LastCollectedAt, b.StoredAmount, b.StorageCap,
-                    b.ConstructionCompletesAt, b.IsUnderConstruction, b.SpeedUpCostGems)).ToList(),
+                    b.ConstructionCompletesAt, b.IsUnderConstruction, b.SpeedUpCostGems, b.IsUnlocked)).ToList(),
                 village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount)).ToList());
 
             return Ok(response);

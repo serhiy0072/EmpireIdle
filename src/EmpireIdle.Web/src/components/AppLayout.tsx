@@ -5,6 +5,7 @@ import { useSession } from "../hooks/useSession";
 import { logout } from "../lib/auth";
 import { seedAccount } from "../lib/dev";
 import { useVillage } from "../lib/queries/village";
+import { useWallet } from "../lib/queries/wallet";
 import { NavLink } from "react-router-dom";
 import ResourceBar from "./ResourceBar";
 import ErrorBanner from "./ErrorBanner";
@@ -14,6 +15,7 @@ export default function AppLayout() {
   const queryClient = useQueryClient();
   const playerId = session?.playerId ?? "";
   const village = useVillage(playerId);
+  const wallet = useWallet(playerId);
 
   const seed = useMutation({
     mutationFn: () => seedAccount(playerId),
@@ -28,6 +30,10 @@ export default function AppLayout() {
           <ResourceBar village={village.data} />
 
           <div className="flex items-center gap-2">
+            <span className="rounded-full bg-violet-100 px-3 py-1 text-sm text-violet-800">
+              💎 <span className="font-medium">{(wallet.data?.gemBalance ?? 0).toLocaleString("uk-UA")}</span>
+            </span>
+
             {import.meta.env.DEV && (
               <button
                 type="button"

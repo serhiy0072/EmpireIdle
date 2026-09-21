@@ -101,4 +101,18 @@ public class GameCatalogProjectionTests
 
         Assert.Equal(new CatalogPosition(50, 30), building.Position);
     }
+
+    /// <summary>Умова відкриття туману війни (GDD §3.1) — клієнт мусить знати, на якому рівні ратуші показати кнопку замість силуету.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheMainBuildingLevelGate()
+    {
+        var config = new GameConfigBuilder().WithBuildings(TestKeys.Warehouse).Build();
+        var warehouse = config.Buildings.Single(b => b.Key == TestKeys.Warehouse);
+        warehouse.RequiresMainBuildingLevel = 4;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var building = response.Buildings.Single(b => b.Key == TestKeys.Warehouse);
+
+        Assert.Equal(4, building.RequiresMainBuildingLevel);
+    }
 }

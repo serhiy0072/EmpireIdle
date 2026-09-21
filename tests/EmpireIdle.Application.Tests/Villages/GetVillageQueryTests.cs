@@ -42,7 +42,8 @@ public class GetVillageQueryTests
                 Cost = [new ResourceCost { Resource = "food", Amount = 10 }]
             },
             new BuildingConfig { Key = "warehouse", StoresResources = ["food"], BaseStorage = 100_000,
-                UpgradeCostGrowth = 1.45 }
+                UpgradeCostGrowth = 1.45 },
+            new BuildingConfig { Key = "hospital", RequiresMainBuildingLevel = 5, UpgradeCostGrowth = 1.45 }
         ],
         Monetization = new MonetizationConfig
         {
@@ -70,6 +71,7 @@ public class GetVillageQueryTests
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 10_000 }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("farm", catalog.Buildings, Now);
+        village.AddBuilding("hospital", catalog.Buildings, Now);
 
         _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _servers.GetLevelAsync(village.ServerId, Arg.Any<CancellationToken>()).Returns(1);
@@ -120,5 +122,32 @@ public class GetVillageQueryTests
 
         var farmView = response.Buildings.Single(b => b.Type == "farm");
         Assert.Equal(0, farmView.SpeedUpCostGems);
+    }
+
+    /// <summary>
+    /// Туман війни (GDD §3.1): будівля існує з дня 1, але лишається закритою,
+    /// поки ратуша не досягне порогу. Гейт — за IsUnlocked, не за відсутністю будівлі.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldMarkAGatedBuilding_AsLocked_BelowTheRequiredMainBuildingLevel()
+    {
+        GivenVillage();
+
+        var response = await Handler().Handle(new GetVillageQuery(PlayerId), CancellationToken.None);
+
+        var hospital = response.Buildings.Single(b => b.Type == "hospital");
+        Assert.False(hospital.IsUnlocked);
+    }
+
+    /// <summary>Ратуша без гейта відкрита одразу — інакше й ферма зникла б з екрана.</summary>
+    [Fact]
+    public async Task Handle_ShouldMarkAnUngatedBuilding_AsUnlocked()
+    {
+        GivenVillage();
+
+        var response = await Handler().Handle(new GetVillageQuery(PlayerId), CancellationToken.None);
+
+        var farm = response.Buildings.Single(b => b.Type == "farm");
+        Assert.True(farm.IsUnlocked);
     }
 }

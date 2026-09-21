@@ -7,4 +7,5 @@ export const queryKeys = {
   battleReports: (playerId: string) => ["battleReports", playerId] as const,
   banners: (playerId: string) => ["banners", playerId] as const,
   wallet: (playerId: string) => ["wallet", playerId] as const,
+  garrison: (playerId: string) => ["garrison", playerId] as const,
 };

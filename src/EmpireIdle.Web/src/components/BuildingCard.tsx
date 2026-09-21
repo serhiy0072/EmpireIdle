@@ -1,8 +1,10 @@
 import { useNow } from "../hooks/useNow";
 import type { BuildingResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
+import TrainUnitsPanel from "./TrainUnitsPanel";
 
 interface Props {
+  playerId: string;
   building: BuildingResponse;
   busy: boolean;
   onCollect: () => void;
@@ -23,7 +25,7 @@ function remaining(completesAt: string, now: number): string {
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(rest)}` : `${minutes}:${pad(rest)}`;
 }
 
-export default function BuildingCard({ building, busy, onCollect, onUpgrade, onSpeedUp }: Props) {
+export default function BuildingCard({ playerId, building, busy, onCollect, onUpgrade, onSpeedUp }: Props) {
   const now = useNow();
 
   const fill = building.storageCap > 0 ? Math.min(1, building.storedAmount / building.storageCap) : 0;
@@ -59,7 +61,11 @@ export default function BuildingCard({ building, busy, onCollect, onUpgrade, onS
             disabled={busy}
             className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            Прискорити
+            {building.speedUpCostGems === null || building.speedUpCostGems === undefined
+              ? "Прискорити"
+              : building.speedUpCostGems === 0
+                ? "Прискорити (безкоштовно)"
+                : `Прискорити (${building.speedUpCostGems.toLocaleString("uk-UA")} 💎)`}
           </button>
         </div>
       ) : (
@@ -82,6 +88,8 @@ export default function BuildingCard({ building, busy, onCollect, onUpgrade, onS
           </button>
         </div>
       )}
+
+      <TrainUnitsPanel playerId={playerId} buildingType={building.type} buildingLevel={building.level} />
     </div>
   );
 }
