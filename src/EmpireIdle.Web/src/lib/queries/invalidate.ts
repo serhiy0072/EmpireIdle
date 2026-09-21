@@ -2,7 +2,15 @@ import type { QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../queryKeys";
 
 /** Що зачепила команда: кожна мутація перелічує всі агрегати, які вона змінює на сервері. */
-export type PlayerScope = "village" | "wallet" | "garrison" | "heroes" | "quests" | "serverQuests";
+export type PlayerScope =
+  | "village"
+  | "wallet"
+  | "garrison"
+  | "heroes"
+  | "quests"
+  | "serverQuests"
+  | "marches"
+  | "battleReports";
 
 /**
  * Інвалідація після мутації. Список — у самій мутації, а не в екрані:

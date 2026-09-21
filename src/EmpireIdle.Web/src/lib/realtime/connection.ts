@@ -32,11 +32,20 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
     UpgradeStarted: [queryKeys.village(playerId)],
     UpgradeCompleted: [queryKeys.village(playerId), queryKeys.quests(playerId)],
     // Бій ранить героїв і юнітів гарнізону
+    // Після бою марш розвертається, монстр міг зникнути з мапи
     BattleFinished: [
       queryKeys.battleReports(playerId),
       queryKeys.heroes(playerId),
       queryKeys.garrison(playerId),
       queryKeys.quests(playerId),
+      queryKeys.marches(playerId),
+      ["map"],
+    ],
+    MarchReturned: [
+      queryKeys.marches(playerId),
+      queryKeys.garrison(playerId),
+      queryKeys.village(playerId),
+      queryKeys.heroes(playerId),
     ],
     ServerQuestRewarded: [queryKeys.wallet(playerId), queryKeys.serverQuests(playerId)],
     ClanInvite: [],

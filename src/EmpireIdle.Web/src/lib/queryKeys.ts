@@ -9,4 +9,8 @@ export const queryKeys = {
   garrison: (playerId: string) => ["garrison", playerId] as const,
   quests: (playerId: string) => ["quests", playerId] as const,
   serverQuests: (playerId: string) => ["serverQuests", playerId] as const,
+  marches: (playerId: string) => ["marches", playerId] as const,
+  /** Ділянка мапи не належить гравцю: ключ — від центру й радіуса. */
+  mapArea: (x: number, y: number, radius: number) => ["map", "area", x, y, radius] as const,
+  mapCell: (x: number, y: number) => ["map", "cell", x, y] as const,
 };
