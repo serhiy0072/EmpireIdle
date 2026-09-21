@@ -19,7 +19,7 @@ namespace EmpireIdle.Application.Garrisons.ReadModels
     public record RecoverableUnitView(string UnitType, int Count, DateTime ExpiresAt, int CostGems);
 
     /// <summary>Замовлення тренування в черзі.</summary>
-    public record TrainingOrderView(Guid Id, string UnitType, int Count, DateTime CompletesAt);
+    public record TrainingOrderView(Guid Id, string UnitType, int Count, DateTime CompletesAt, int SpeedUpCostGems);
 
     /// <summary>
     /// Чужі юніти в гарнізоні. Ім'я власника обов'язкове: без нього

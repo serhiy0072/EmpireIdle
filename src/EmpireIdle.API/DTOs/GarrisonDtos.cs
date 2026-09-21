@@ -21,7 +21,7 @@ public record GarrisonResponse(Guid Id, Guid VillageId, List<UnitResponse> Units
 public record UnitResponse(string UnitType, int Count);
 
 /// <summary>Партія в черзі тренування.</summary>
-public record TrainingOrderResponse(Guid Id, string UnitType, int Count, DateTime CompletesAt);
+public record TrainingOrderResponse(Guid Id, string UnitType, int Count, DateTime CompletesAt, int SpeedUpCostGems);
 
 /// <summary>Стек, доступний до викупу; у кожного бою свій дедлайн.</summary>
 public record RecoverableUnitResponse(string UnitType, int Count, DateTime ExpiresAt, int CostGems);
