@@ -11,6 +11,13 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Іконка для фронтенду.</summary>
         public string Icon { get; set; } = null!;
+
+        /// <summary>
+        /// Мінімальний рівень ратуші для розблокування (туман війни).
+        /// Той самий гейт, що й у будівель — ресурс з'являється, коли з'являється
+        /// сенс його добувати чи витрачати.
+        /// </summary>
+        public int RequiresMainBuildingLevel { get; set; }
     }
 
     /// <summary>Одна складова вартості — скільки якого ресурсу.</summary>

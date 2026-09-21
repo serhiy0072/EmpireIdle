@@ -99,7 +99,7 @@ namespace EmpireIdle.Application.Villages.Queries
             }).ToList();
 
             var resources = village.Resources
-                .Select(r => new ResourceView(r.ResourceType, r.Amount))
+                .Select(r => new ResourceView(r.ResourceType, r.Amount, _status.IsResourceUnlocked(village, r.ResourceType)))
                 .ToList();
 
             return new VillageView(village.Id, village.Name, buildings, resources);

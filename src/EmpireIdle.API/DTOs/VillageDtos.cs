@@ -16,4 +16,4 @@ public record VillageResponse(Guid Id, string Name, List<BuildingResponse> Build
 public record BuildingResponse(Guid Id, string Type, int Level, DateTime LastCollectedAt, int StoredAmount, int StorageCap, DateTime? ConstructionCompletesAt, bool IsUnderConstruction, int? SpeedUpCostGems, bool IsUnlocked);
 
 /// <summary>Ресурс на складі села.</summary>
-public record ResourceResponse(string ResourceType, int Amount);
+public record ResourceResponse(string ResourceType, int Amount, bool IsUnlocked);

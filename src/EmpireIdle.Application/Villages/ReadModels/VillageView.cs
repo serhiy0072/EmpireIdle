@@ -24,5 +24,5 @@ namespace EmpireIdle.Application.Villages.ReadModels
         int? SpeedUpCostGems);
 
     /// <summary>Ресурс села.</summary>
-    public record ResourceView(string ResourceType, int Amount);
+    public record ResourceView(string ResourceType, int Amount, bool IsUnlocked);
 }

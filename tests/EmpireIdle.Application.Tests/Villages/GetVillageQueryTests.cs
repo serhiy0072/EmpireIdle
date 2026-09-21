@@ -45,6 +45,11 @@ public class GetVillageQueryTests
                 UpgradeCostGrowth = 1.45 },
             new BuildingConfig { Key = "hospital", RequiresMainBuildingLevel = 5, UpgradeCostGrowth = 1.45 }
         ],
+        Resources =
+        [
+            new ResourceConfig { Key = "gold", RequiresMainBuildingLevel = 0 },
+            new ResourceConfig { Key = "food", RequiresMainBuildingLevel = 3 }
+        ],
         Monetization = new MonetizationConfig
         {
             InstantFinishThresholdMinutes = 5,
@@ -66,9 +71,9 @@ public class GetVillageQueryTests
     private Village GivenVillage()
     {
         var catalog = Catalog();
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food", "gold"], 0, 0);
 
-        village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 10_000 }, Now);
+        village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 10_000, ["gold"] = 500 }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("farm", catalog.Buildings, Now);
         village.AddBuilding("hospital", catalog.Buildings, Now);
@@ -149,5 +154,29 @@ public class GetVillageQueryTests
 
         var farm = response.Buildings.Single(b => b.Type == "farm");
         Assert.True(farm.IsUnlocked);
+    }
+
+    /// <summary>Той самий туман для ресурсів: food недоступний, поки ратуша не 3 рівня.</summary>
+    [Fact]
+    public async Task Handle_ShouldMarkAGatedResource_AsLocked_BelowTheRequiredMainBuildingLevel()
+    {
+        GivenVillage();
+
+        var response = await Handler().Handle(new GetVillageQuery(PlayerId), CancellationToken.None);
+
+        var food = response.Resources.Single(r => r.ResourceType == "food");
+        Assert.False(food.IsUnlocked);
+    }
+
+    /// <summary>Ресурс без гейта (gold) видно з дня 1.</summary>
+    [Fact]
+    public async Task Handle_ShouldMarkAnUngatedResource_AsUnlocked()
+    {
+        GivenVillage();
+
+        var response = await Handler().Handle(new GetVillageQuery(PlayerId), CancellationToken.None);
+
+        var gold = response.Resources.Single(r => r.ResourceType == "gold");
+        Assert.True(gold.IsUnlocked);
     }
 }
