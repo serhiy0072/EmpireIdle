@@ -12,3 +12,25 @@ public record SendMarchRequest(
     Dictionary<string, int> Units,
     Guid HeroId,
     MarchIntent Intent = MarchIntent.Attack);
+
+/// <summary>
+/// Активний похід. TargetName null — ціль уже зникла з мапи (монстра вбили,
+/// село покинули), а армія ще повертається.
+/// </summary>
+public record MarchResponse(
+    Guid Id,
+    MarchTargetType TargetType,
+    Guid TargetId,
+    string? TargetName,
+    int TargetX,
+    int TargetY,
+    MarchIntent Intent,
+    MarchState State,
+    Guid? HeroId,
+    DateTime DepartedAt,
+    DateTime ArrivesAt,
+    List<MarchUnitResponse> Units,
+    int SpeedUpCostGems);
+
+/// <summary>Загін у поході.</summary>
+public record MarchUnitResponse(string UnitType, int Level, int Count);
