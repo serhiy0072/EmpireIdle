@@ -25,6 +25,9 @@ namespace EmpireIdle.API.Jobs
             await _runner.ForEachItemAsync(nameof(CompleteGarrisonTrainingCommand), mediator => mediator.Send(new GetGarrisonIdsWithDueTrainingQuery()),
                 (mediator, id) => mediator.Send(new CompleteGarrisonTrainingCommand(id)));
 
+            await _runner.ForEachItemAsync(nameof(CompleteGarrisonLevelUpsCommand), mediator => mediator.Send(new GetGarrisonIdsWithDueLevelUpsQuery()),
+                (mediator, id) => mediator.Send(new CompleteGarrisonLevelUpsCommand(id)));
+
             await _runner.ForEachItemAsync(nameof(CompleteHeroLevelUpCommand), mediator => mediator.Send(new GetHeroOrderIdsWithDueLevelUpQuery()),
                 (mediator, id) => mediator.Send(new CompleteHeroLevelUpCommand(id)));
 
