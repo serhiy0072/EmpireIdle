@@ -85,6 +85,7 @@ namespace EmpireIdle.Application.Catalog
                     unit.RequiresBuilding,
                     unit.RequiresBuildingLevel,
                     unit.BaseTrainMinutes,
+                    unit.LevelUpCostGrowth,
                     unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList()))
                 .ToList();
 
@@ -97,6 +98,8 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxConstellation,
                 config.HeroSettings.MaxTier,
+                config.MaxUnitLevel,
+                config.Monetization.HealGemsPerUnit,
                 Version: string.Empty);
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag

@@ -17,6 +17,8 @@ namespace EmpireIdle.Application.Catalog
         IReadOnlyList<string> HeroClasses,
         int MaxConstellation,
         int MaxTier,
+        int MaxUnitLevel,
+        int HealGemsPerUnit,
         string Version);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
@@ -74,5 +76,6 @@ namespace EmpireIdle.Application.Catalog
         string? RequiresBuilding,
         int RequiresBuildingLevel,
         int BaseTrainMinutes,
+        double LevelUpCostGrowth,
         IReadOnlyList<CatalogUnitCost> Cost);
 }
