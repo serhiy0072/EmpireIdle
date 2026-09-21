@@ -20,6 +20,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.Garrisons
             .Include(g => g.Units)
             .Include(g => g.TrainingOrders)
+            .Include(g => g.LevelUpOrders)
             .Include(g => g.Wounded)
             .Include(g => g.Recoverable)
             .Include(g => g.Reinforcements)
@@ -32,6 +33,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .Include(g => g.Units)
                 .Include(g => g.TrainingOrders)
+                .Include(g => g.LevelUpOrders)
                 .Include(g => g.Wounded)
                 .Include(g => g.Recoverable)
                 .Include(g => g.Reinforcements)
@@ -48,6 +50,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.Garrisons
             .Include(g => g.Units)
             .Include(g => g.TrainingOrders)
+            .Include(g => g.LevelUpOrders)
             .Include(g => g.Wounded)
             .Include(g => g.Recoverable)
             .Include(g => g.Reinforcements)
@@ -59,6 +62,16 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => await _context.Garrisons
             .AsNoTracking()
             .Where(g => g.TrainingOrders.Any(o => o.CompletesAt <= utcNow))
+            .OrderBy(g => g.Id)
+            .Take(batchSize)
+            .Select(g => g.Id)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsWithDueLevelUpsAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
+            => await _context.Garrisons
+            .AsNoTracking()
+            .Where(g => g.LevelUpOrders.Any(o => o.CompletesAt <= utcNow))
             .OrderBy(g => g.Id)
             .Take(batchSize)
             .Select(g => g.Id)
@@ -80,6 +93,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.Garrisons
                 .Include(g => g.Units)
                 .Include(g => g.TrainingOrders)
+                .Include(g => g.LevelUpOrders)
                 .Include(g => g.Wounded)
                 .Include(g => g.Recoverable)
                 .Include(g => g.Reinforcements)
