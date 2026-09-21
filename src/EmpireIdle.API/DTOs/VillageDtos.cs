@@ -7,7 +7,8 @@ namespace EmpireIdle.API.DTOs;
 public record AddBuildingRequest(string BuildingType);
 
 /// <summary>Село гравця: будівлі та склад ресурсів.</summary>
-public record VillageResponse(Guid Id, string Name, List<BuildingResponse> Buildings, List<ResourceResponse> Resources);
+/// <summary>Село гравця. X/Y — клітина на мапі світу: клієнт центрує на ній карту.</summary>
+public record VillageResponse(Guid Id, string Name, int X, int Y, List<BuildingResponse> Buildings, List<ResourceResponse> Resources);
 
 /// <summary>
 /// Будівля. StoredAmount — те, що накопичилось у буфері й чекає збору;

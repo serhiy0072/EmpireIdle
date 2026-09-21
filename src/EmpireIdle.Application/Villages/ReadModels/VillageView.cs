@@ -1,9 +1,11 @@
 namespace EmpireIdle.Application.Villages.ReadModels
 {
-    /// <summary>Село в поданні для клієнта.</summary>
+    /// <summary>Село в поданні для клієнта. X/Y — клітина на мапі світу: карта центрується на ній.</summary>
     public record VillageView(
         Guid Id,
         string Name,
+        int X,
+        int Y,
         List<BuildingView> Buildings,
         List<ResourceView> Resources);
 
