@@ -4273,6 +4273,47 @@
           }
         }
       }
+    },
+    "/api/Wallet/{playerId}": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "operationId": "Wallet_GetWallet",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4685,6 +4726,11 @@
           },
           "isUnderConstruction": {
             "type": "boolean"
+          },
+          "speedUpCostGems": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -6636,6 +6682,19 @@
           }
         },
         "additionalProperties": false
+      },
+      "WalletResponse": {
+        "required": [
+          "gemBalance"
+        ],
+        "type": "object",
+        "properties": {
+          "gemBalance": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
       }
     },
     "securitySchemes": {
@@ -6703,6 +6762,9 @@
     },
     {
       "name": "Village"
+    },
+    {
+      "name": "Wallet"
     }
   ]
 }

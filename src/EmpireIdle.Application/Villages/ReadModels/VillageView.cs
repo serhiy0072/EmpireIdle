@@ -20,7 +20,8 @@ namespace EmpireIdle.Application.Villages.ReadModels
         int StorageCap,
         DateTime? ConstructionCompletesAt,
         bool IsUnderConstruction,
-        bool IsUnlocked);
+        bool IsUnlocked,
+        int? SpeedUpCostGems);
 
     /// <summary>Ресурс села.</summary>
     public record ResourceView(string ResourceType, int Amount);
