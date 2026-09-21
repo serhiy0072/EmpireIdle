@@ -5,7 +5,7 @@ import { project, toPath, WORLD } from "../../lib/iso";
 import type { Catalog } from "../../lib/queries/catalog";
 import IsoBuilding from "./IsoBuilding";
 import IsoWall from "./IsoWall";
-import { artFor, buildingScale } from "./buildingArt";
+import { buildingArt } from "./buildingArt";
 import IsoBuildingOverlay from "./IsoBuildingOverlay";
 
 /** Стіна — периметр, а не будівля на плані. Прапорця в конфізі немає, тож ключ. */
@@ -39,7 +39,7 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
       const position = catalog.building(building.type)?.position;
             return position === null || position === undefined
         ? []
-        : [{ building, position, art: artFor(building.type)(position.x, position.y, buildingScale(building.level)) }];
+        : [{ building, position, art: buildingArt(building.type, building.level, position.x, position.y) }];
     })
     // Від дальніх до ближніх: ближня будівля має перекривати дальню
     .sort((a, b) => a.position.x + a.position.y - (b.position.x + b.position.y));
