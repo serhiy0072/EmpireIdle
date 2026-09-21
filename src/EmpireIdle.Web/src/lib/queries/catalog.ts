@@ -30,6 +30,8 @@ export interface Catalog {
   maxTier: number;
   /** Кап рівня юніта від тренування чи прокачки (§5.2 GDD). */
   maxUnitLevel: number;
+  /** Ціна лікування пораненого юніта в gems — та сама для будь-якого типу. */
+  healGemsPerUnit: number;
 }
 
 /**
@@ -72,6 +74,7 @@ export function useCatalog(): Catalog {
       maxConstellation: data?.maxConstellation ?? 6,
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
+      healGemsPerUnit: data?.healGemsPerUnit ?? 1,
     };
   }, [query.data]);
 }
