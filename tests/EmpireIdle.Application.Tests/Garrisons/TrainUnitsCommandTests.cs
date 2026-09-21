@@ -124,6 +124,23 @@ public class TrainUnitsCommandTests
     }
 
     /// <summary>
+    /// Створити юніта одразу 4 рівня має тривати як сума прокачки
+    /// 1+2+3+4 рівнів (§5.2 GDD) — інакше пряме тренування обходить
+    /// прокачку й та втрачає сенс.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldSumTrainingTime_AcrossAllLevelsUpToTheTarget()
+    {
+        var (_, garrison) = GivenVillage(food: 100_000);
+
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 4, 1), CancellationToken.None);
+
+        // Крок(L) = 2 × 1.35^(L-1); сума L=1..4 = 2 + 2.7 + 3.645 + 4.92075 = 13.26575 → 13 (усічення)
+        var order = Assert.Single(garrison.TrainingOrders);
+        Assert.Equal(Now.AddMinutes(13), order.CompletesAt);
+    }
+
+    /// <summary>
     /// Рівень будівлі гейтить тип юніта: інакше казарма 1 рівня відкриває
     /// всю армію одразу, і качати її немає причин.
     /// </summary>

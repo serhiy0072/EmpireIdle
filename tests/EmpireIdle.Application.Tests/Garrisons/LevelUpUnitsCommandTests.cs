@@ -67,6 +67,42 @@ public class LevelUpUnitsCommandTests
         return (village, garrison);
     }
 
+    /// <summary>Гарнізон із партією юнітів, готовою одразу на заданому рівні (без витрат часу на це в тесті).</summary>
+    private (Village Village, Garrison Garrison) GivenVillageWithStackAtLevel(int level, int count = 10, int food = 100_000)
+    {
+        var catalog = new GameCatalog(Config());
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+
+        village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
+        village.AddBuilding("townhall", catalog.Buildings, Now);
+        village.AddBuilding("barracks", catalog.Buildings, Now);
+
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
+        garrison.TrainUnits("infantry", level, count, 100, 1000, TimeSpan.Zero, Now);
+        garrison.CompleteDueTraining(Now);
+
+        _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
+
+        return (village, garrison);
+    }
+
+    /// <summary>
+    /// Прокачка з 3 на 4 коштує часом лише один крок (3→4), а не весь шлях
+    /// з рівня 1 (§5.2 GDD) — те, що юніт уже пройшов, повторно не рахується.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldChargeTimeOnlyForTheLevelsCrossed()
+    {
+        var (_, garrison) = GivenVillageWithStackAtLevel(level: 3, count: 10);
+
+        await Handler().Handle(new LevelUpUnitsCommand(PlayerId, "infantry", 3, 4, 1), CancellationToken.None);
+
+        // Крок(3) = 2 × 1.35² = 3.645 → 3 (усічення), для 1 юніта
+        var order = Assert.Single(garrison.LevelUpOrders);
+        Assert.Equal(Now.AddMinutes(3), order.CompletesAt);
+    }
+
     /// <summary>Вартість списується за кількість юнітів у партії, за кроком рівня.</summary>
     [Fact]
     public async Task Handle_ShouldChargeCostPerUnit()
