@@ -18,6 +18,7 @@ export interface Catalog {
   hero: (key: string) => CatalogHero | null;
   item: (key: string) => CatalogItem | null;
   building: (key: string) => CatalogBuilding | null;
+  unit: (key: string) => CatalogUnit | null;
   heroName: (key: string) => string;
   itemName: (key: string) => string;
   resourceName: (key: string) => string;
@@ -27,6 +28,8 @@ export interface Catalog {
   unitsFor: (buildingType: string, buildingLevel: number) => CatalogUnit[];
   maxConstellation: number;
   maxTier: number;
+  /** Кап рівня юніта від тренування чи прокачки (§5.2 GDD). */
+  maxUnitLevel: number;
 }
 
 /**
@@ -55,6 +58,7 @@ export function useCatalog(): Catalog {
       hero: (key) => heroes.get(key) ?? null,
       item: (key) => items.get(key) ?? null,
       building: (key) => buildings.get(key) ?? null,
+      unit: (key) => units.get(key) ?? null,
       // Ключ як запасна назва: краще технічний рядок, ніж порожнє місце
       heroName: (key) => heroes.get(key)?.displayName ?? key,
       itemName: (key) => items.get(key)?.displayName ?? key,
@@ -67,6 +71,7 @@ export function useCatalog(): Catalog {
         ),
       maxConstellation: data?.maxConstellation ?? 6,
       maxTier: data?.maxTier ?? 3,
+      maxUnitLevel: data?.maxUnitLevel ?? 10,
     };
   }, [query.data]);
 }

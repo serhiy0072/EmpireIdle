@@ -14,7 +14,7 @@ export function useTrainUnits(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (request: { unitType: string; count: number }) =>
+    mutationFn: (request: { unitType: string; level: number; count: number }) =>
       api<void>(`/api/garrisons/${playerId}/units/train`, {
         method: "POST",
         body: request,
@@ -30,6 +30,30 @@ export function useSpeedUpTraining(playerId: string) {
   return useMutation({
     mutationFn: (orderId: string) =>
       api<void>(`/api/garrisons/${playerId}/training/${orderId}/speedup`, { method: "POST", idempotent: true }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.garrison(playerId) }),
+  });
+}
+
+export function useLevelUpUnits(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: { unitType: string; fromLevel: number; toLevel: number; count: number }) =>
+      api<void>(`/api/garrisons/${playerId}/units/levelup`, {
+        method: "POST",
+        body: request,
+        idempotent: true,
+      }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.garrison(playerId) }),
+  });
+}
+
+export function useSpeedUpLevelUp(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: string) =>
+      api<void>(`/api/garrisons/${playerId}/levelup/${orderId}/speedup`, { method: "POST", idempotent: true }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.garrison(playerId) }),
   });
 }
