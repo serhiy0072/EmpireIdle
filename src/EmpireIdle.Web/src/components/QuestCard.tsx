@@ -66,6 +66,7 @@ export default function QuestCard({ quest, busy, onClaim }: Props) {
         {completed && (
           <button
             type="button"
+            data-tutorial={`claim:${quest.key}`}
             onClick={onClaim}
             disabled={busy}
             className="ml-auto rounded-lg bg-amber-500 px-3 py-1 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"

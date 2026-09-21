@@ -95,6 +95,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
               />
               <button
                 type="button"
+                data-tutorial={`train:${unit.key}`}
                 onClick={() => train.mutate({ unitType: unit.key, level, count })}
                 disabled={train.isPending || underConstruction}
                 className="rounded-lg bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700 disabled:opacity-50"

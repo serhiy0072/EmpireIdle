@@ -68,6 +68,7 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
           {produces && (
             <button
               type="button"
+              data-tutorial="collect"
               onClick={onCollect}
               disabled={busy || building.storedAmount === 0}
               className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
@@ -77,6 +78,7 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
           )}
           <button
             type="button"
+            data-tutorial="upgrade"
             onClick={onUpgrade}
             disabled={busy}
             className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"

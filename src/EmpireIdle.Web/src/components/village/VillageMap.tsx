@@ -79,6 +79,7 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
               <IsoBuilding
                 key={building.id}
                 art={art}
+                buildingType={building.type}
                 x={position.x}
                 y={position.y}
                 selected={building.id === selectedId}

@@ -26,6 +26,7 @@ export default function HeroCard({ hero, selected, levelingUntil, onSelect }: Pr
   return (
     <button
       type="button"
+      data-tutorial={selected ? "hero-card" : undefined}
       onClick={onSelect}
       className={`w-full rounded-xl border p-3 text-left transition ${
         selected ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"

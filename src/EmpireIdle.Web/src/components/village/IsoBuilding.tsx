@@ -3,6 +3,8 @@ import type { ArtResult } from "./buildingArt";
 
 interface Props {
   art: ArtResult;
+  /** Ключ будівлі — для data-tutorial: туторіал підсвічує будівлю на мапі. */
+  buildingType: string;
   x: number;
   y: number;
   selected: boolean;
@@ -13,12 +15,12 @@ interface Props {
 }
 
 /** Силует будівлі. Підпис і бульбашка — в окремому шарі поверх усієї мапи. */
-export default function IsoBuilding({ art, x, y, selected, underConstruction, locked, onSelect }: Props) {
+export default function IsoBuilding({ art, buildingType, x, y, selected, underConstruction, locked, onSelect }: Props) {
   const f = art.foot + 0.8;
   const ground = [at(x - f, y - f), at(x + f, y - f), at(x + f, y + f), at(x - f, y + f)];
 
   return (
-    <g className="cursor-pointer" onClick={onSelect}>
+    <g className="cursor-pointer" data-tutorial={`building:${buildingType}`} onClick={onSelect}>
       {(selected || underConstruction) && (
         <path
           d={toPath(ground)}

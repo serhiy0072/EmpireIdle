@@ -52,6 +52,7 @@ export default function CellDetails({ cell, isHome, onAttack }: Props) {
       {targetType !== null && !isHome && cell.occupantId !== null && cell.occupantId !== undefined && (
         <button
           type="button"
+          data-tutorial="attack"
           onClick={() => onAttack({ type: targetType, id: cell.occupantId as string, name })}
           className="w-full rounded-lg bg-rose-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-rose-700"
         >
