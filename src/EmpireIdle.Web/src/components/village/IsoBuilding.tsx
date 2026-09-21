@@ -30,6 +30,8 @@ export default function IsoBuilding({ art, x, y, selected, underConstruction, lo
       )}
 
       <g opacity={locked ? 0.45 : underConstruction ? 0.55 : 1} style={locked ? { filter: "grayscale(1)" } : undefined}>
+        {/* М'яка тінь під основою: і спрайт, і силует стоять на землі, а не висять */}
+        <path d={toPath(ground)} fill="rgba(15, 23, 42, 0.12)" />
         {art.node}
       </g>
     </g>

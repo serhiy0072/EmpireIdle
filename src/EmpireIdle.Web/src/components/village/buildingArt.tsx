@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
-import { at, faces } from "../../lib/iso";
+import { at, faces, UNIT_X } from "../../lib/iso";
 import { Box, Cone, Cylinder, Flag, Gable, Pyramid } from "./isoShapes";
+import { spriteFor } from "./sprites";
 
 /**
  * Силует кожної будівлі з примітивів. Плейсхолдер під спрайти:
@@ -374,6 +375,43 @@ const ART: Record<string, Art> = {
 /** Нова будівля в конфізі без власного силуету отримує типовий будинок, а не падіння. */
 export function artFor(buildingKey: string): Art {
   return ART[buildingKey] ?? fallback;
+}
+
+/** Половина сторони спрайтової будівлі на плані — як у більшості силуетів. */
+const SPRITE_FOOT = 4;
+
+/**
+ * Арт будівлі: спрайт із маніфесту, якщо є, інакше процедурний силует.
+ * Спрайт масштабується до ширини ромба основи, якір — його нижня вершина
+ * (див. public/sprites/README.md). Рівень росте так само, як і в силуетів.
+ */
+export function buildingArt(buildingKey: string, level: number, cx: number, cy: number): ArtResult {
+  const sprite = spriteFor(buildingKey, level);
+  const s = buildingScale(level);
+
+  if (sprite === null) {
+    return artFor(buildingKey)(cx, cy, s);
+  }
+
+  const width = 4 * SPRITE_FOOT * UNIT_X * s;
+  const height = width * sprite.aspect;
+  const anchor = at(cx + SPRITE_FOOT, cy + SPRITE_FOOT);
+
+  return {
+    foot: SPRITE_FOOT,
+    // Бульбашка збору висить трохи нижче верху PNG: угорі зазвичай прозорий запас
+    height: height * 0.8,
+    node: (
+      <image
+        href={sprite.href}
+        x={anchor.x - width / 2}
+        y={anchor.y - height}
+        width={width}
+        height={height}
+        preserveAspectRatio="xMidYMax meet"
+      />
+    ),
+  };
 }
 
 /** Будівля трохи росте з рівнем, але не безмежно — інакше закриє сусідів. */
