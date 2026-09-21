@@ -30,5 +30,22 @@ namespace EmpireIdle.Domain.Services
 
             return cap >= int.MaxValue ? int.MaxValue : (int)cap;
         }
+
+        /// <summary>
+        /// Час апгрейду з рівня. Поверх геометричного росту накладає спадний
+        /// "ранній податок": на рівні 1 час зростає найсильніше (×3), до рівня
+        /// ~15 ефект згасає до кількох відсотків. Перші рівні мали відчуватись
+        /// миттєвими — це їх сповільнює, не займаючи пізню гру.
+        /// </summary>
+        public static double BuildMinutes(int baseMinutes, double growth, int level)
+        {
+            const double earlyTaxStrength = 2.0;
+            const double earlyTaxDecay = 1.2;
+
+            var geometric = baseMinutes * Math.Pow(growth, level - 1);
+            var earlyMultiplier = 1 + earlyTaxStrength / Math.Pow(level, earlyTaxDecay);
+
+            return geometric * earlyMultiplier;
+        }
     }
 }
