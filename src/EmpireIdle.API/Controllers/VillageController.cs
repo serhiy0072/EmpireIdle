@@ -30,6 +30,8 @@ namespace EmpireIdle.API.Controllers
             var response = new VillageResponse(
                 village.Id,
                 village.Name,
+                village.X,
+                village.Y,
                 village.Buildings.Select(b => new BuildingResponse(
                     b.Id, b.Type, b.Level, b.LastCollectedAt, b.StoredAmount, b.StorageCap,
                     b.ConstructionCompletesAt, b.IsUnderConstruction, b.SpeedUpCostGems, b.IsUnlocked)).ToList(),
