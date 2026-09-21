@@ -63,6 +63,17 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
+        /// Зібрати накопичені ресурси з усіх будівель села разом.
+        /// </summary>
+        [HttpPost("{playerId:guid}/collect-all")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> CollectAllBuildings(Guid playerId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new CollectAllBuildingsCommand(playerId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>
         /// Миттєво завершити будівництво за gems. Ціна залежить від часу,
         /// що лишився; прострочений таймер сканер закриє сам.
         /// </summary>
