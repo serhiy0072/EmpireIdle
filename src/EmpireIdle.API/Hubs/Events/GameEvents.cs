@@ -11,6 +11,9 @@ namespace EmpireIdle.API.Hubs.Events
     /// <param name="ReportId">Повний звіт тягнеться окремим запитом: у подію він не влазить.</param>
     public record BattleFinishedEvent(Guid ReportId, bool Won, string TargetName);
 
+    /// <summary>Армія вдома: юніти в гарнізоні, здобич на складі. Клієнт перечитує гарнізон, село й марші.</summary>
+    public record MarchReturnedEvent(Guid MarchId);
+
     public record ServerQuestRewardedEvent(string QuestKey, int Rank, long Contribution);
 
     public record ClanInviteEvent(Guid RequestId, Guid ClanId, string ClanName, string ClanTag, DateTime ExpiresAt);

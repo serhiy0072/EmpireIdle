@@ -17,6 +17,9 @@
     "expiresAt",
     "requestId"
   ],
+  "MarchReturned": [
+    "marchId"
+  ],
   "ServerQuestRewarded": [
     "contribution",
     "questKey",
