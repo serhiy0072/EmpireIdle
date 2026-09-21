@@ -56,16 +56,20 @@ interface Props {
   level: number;
   name: string;
   selected: boolean;
+  /** Під туманом війни (GDD §3.1): силует видно, стіна ще не збудована по факту. */
+  locked: boolean;
+  gateLevel: number;
   onSelect: () => void;
 }
 
-export default function IsoWall({ part, level, name, selected, onSelect }: Props) {
+export default function IsoWall({ part, level, name, selected, locked, gateLevel, onSelect }: Props) {
   const h = wallHeight(level);
   const stroke = selected ? "#10b981" : undefined;
+  const style = locked ? { filter: "grayscale(1)", opacity: 0.45 } : undefined;
 
   if (part === "back") {
     return (
-      <g className="cursor-pointer" onClick={onSelect}>
+      <g className="cursor-pointer" onClick={onSelect} style={style}>
         <Box cx={50} cy={FAR} hx={NEAR - 50} hy={HALF} h={h} faces={WALL} stroke={stroke} />
         <Box cx={FAR} cy={50} hx={HALF} hy={NEAR - 50} h={h} faces={WALL} stroke={stroke} />
         <Merlons from={FAR} to={NEAR} fixed={FAR} alongX h={h} />
@@ -76,13 +80,13 @@ export default function IsoWall({ part, level, name, selected, onSelect }: Props
   }
 
   const label = at(50, NEAR, 0);
-  const text = `${name} · ${level}`;
+  const text = locked ? `🔒 Ратуша ${gateLevel}` : `${name} · ${level}`;
   const width = text.length * 7 + 20;
   const gateLeft = at(GATE_FROM, NEAR + HALF, 0);
   const gateRight = at(GATE_TO, NEAR + HALF, 0);
 
   return (
-    <g className="cursor-pointer" onClick={onSelect}>
+    <g className="cursor-pointer" onClick={onSelect} style={style}>
       <Box cx={NEAR} cy={50} hx={HALF} hy={NEAR - 50} h={h} faces={WALL} stroke={stroke} />
       <Box cx={(FAR + GATE_FROM) / 2} cy={NEAR} hx={(GATE_FROM - FAR) / 2} hy={HALF} h={h} faces={WALL} stroke={stroke} />
       <Box cx={(GATE_TO + NEAR) / 2} cy={NEAR} hx={(NEAR - GATE_TO) / 2} hy={HALF} h={h} faces={WALL} stroke={stroke} />

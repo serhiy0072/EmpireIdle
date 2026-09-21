@@ -1,6 +1,7 @@
 import { useState } from "react";
 import BuildingCard from "../components/BuildingCard";
 import ErrorBanner from "../components/ErrorBanner";
+import LockedBuildingCard from "../components/LockedBuildingCard";
 import VillageMap from "../components/village/VillageMap";
 import { useSession } from "../hooks/useSession";
 import { useCatalog } from "../lib/queries/catalog";
@@ -47,13 +48,18 @@ export default function VillagePage() {
 
         {selected !== null && (
           <div className="absolute inset-x-3 bottom-3 max-w-sm">
-            <BuildingCard
-              building={selected}
-              busy={busy}
-              onCollect={() => collect.mutate(selected.id)}
-              onUpgrade={() => upgrade.mutate(selected.id)}
-              onSpeedUp={() => speedUp.mutate(selected.id)}
-            />
+            {selected.isUnlocked ? (
+              <BuildingCard
+                playerId={playerId}
+                building={selected}
+                busy={busy}
+                onCollect={() => collect.mutate(selected.id)}
+                onUpgrade={() => upgrade.mutate(selected.id)}
+                onSpeedUp={() => speedUp.mutate(selected.id)}
+              />
+            ) : (
+              <LockedBuildingCard building={selected} />
+            )}
           </div>
         )}
       </div>

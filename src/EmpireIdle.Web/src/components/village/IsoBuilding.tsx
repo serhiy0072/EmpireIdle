@@ -8,11 +8,13 @@ interface Props {
   y: number;
   selected: boolean;
   underConstruction: boolean;
+  /** Під туманом війни (GDD §3.1): силует видно, взаємодія — лише щоб побачити умову відкриття. */
+  locked: boolean;
   onSelect: () => void;
 }
 
 /** Силует будівлі. Підпис і бульбашка — в окремому шарі поверх усієї мапи. */
-export default function IsoBuilding({ art, x, y, selected, underConstruction, onSelect }: Props) {
+export default function IsoBuilding({ art, x, y, selected, underConstruction, locked, onSelect }: Props) {
   const f = art.foot + 0.8;
   const ground = [at(x - f, y - f), at(x + f, y - f), at(x + f, y + f), at(x - f, y + f)];
 
@@ -28,7 +30,9 @@ export default function IsoBuilding({ art, x, y, selected, underConstruction, on
         />
       )}
 
-      <g opacity={underConstruction ? 0.55 : 1}>{art.node}</g>
+      <g opacity={locked ? 0.45 : underConstruction ? 0.55 : 1} style={locked ? { filter: "grayscale(1)" } : undefined}>
+        {art.node}
+      </g>
     </g>
   );
 }

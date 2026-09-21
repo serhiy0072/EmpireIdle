@@ -1,0 +1,100 @@
+import { useState } from "react";
+import { useNow } from "../hooks/useNow";
+import type { CatalogUnit } from "../lib/queries/catalog";
+import { useCatalog } from "../lib/queries/catalog";
+import { useGarrison, useTrainUnits } from "../lib/queries/garrison";
+import ErrorBanner from "./ErrorBanner";
+
+interface Props {
+  playerId: string;
+  buildingType: string;
+  buildingLevel: number;
+}
+
+/** Залишок до кінця тренування за серверним часом. */
+function remaining(completesAt: string, now: number): string {
+  const seconds = Math.max(0, Math.round((Date.parse(completesAt) - now) / 1_000));
+
+  const hours = Math.floor(seconds / 3_600);
+  const minutes = Math.floor((seconds % 3_600) / 60);
+  const rest = seconds % 60;
+
+  const pad = (value: number) => value.toString().padStart(2, "0");
+
+  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(rest)}` : `${minutes}:${pad(rest)}`;
+}
+
+function costLabel(unit: CatalogUnit, count: number, resourceName: (key: string) => string): string {
+  return unit.cost.map((line) => `${(line.amount * count).toLocaleString("uk-UA")} ${resourceName(line.resource)}`).join(", ");
+}
+
+/** Тренування юнітів на конкретній будівлі (казарми, стайня…) — список доступних типів і черга. */
+export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel }: Props) {
+  const now = useNow();
+  const catalog = useCatalog();
+  const garrison = useGarrison(playerId);
+  const train = useTrainUnits(playerId);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  const units = catalog.unitsFor(buildingType, buildingLevel);
+  const unitKeys = new Set(units.map((unit) => unit.key));
+  const queue = (garrison.data?.trainingOrders ?? []).filter((order) => unitKeys.has(order.unitType));
+
+  if (units.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-3 border-t border-slate-200 pt-3">
+      <h4 className="text-sm font-medium text-slate-700">Тренування</h4>
+
+      <ErrorBanner error={train.error} />
+
+      {units.map((unit) => {
+        const count = counts[unit.key] ?? 1;
+
+        return (
+          <div key={unit.key} className="flex items-center justify-between gap-2 text-sm">
+            <div>
+              <p className="text-slate-800">{unit.displayName}</p>
+              <p className="text-xs text-slate-500">
+                {costLabel(unit, count, catalog.resourceName)} · {unit.baseTrainMinutes * count} хв
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={1}
+                value={count}
+                onChange={(event) =>
+                  setCounts((prev) => ({ ...prev, [unit.key]: Math.max(1, Number(event.target.value)) }))
+                }
+                className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-right"
+              />
+              <button
+                type="button"
+                onClick={() => train.mutate({ unitType: unit.key, count })}
+                disabled={train.isPending}
+                className="rounded-lg bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                Тренувати
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {queue.length > 0 && (
+        <div className="space-y-1 border-t border-slate-100 pt-2">
+          <p className="text-xs font-medium text-slate-500">У черзі</p>
+          {queue.map((order) => (
+            <p key={order.id} className="text-sm text-slate-600">
+              {catalog.unitName(order.unitType)} ×{order.count} — {remaining(order.completesAt, now)}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
