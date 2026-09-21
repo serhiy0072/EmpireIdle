@@ -88,6 +88,40 @@ public class GameCatalogProjectionTests
         Assert.All(response.Units, unit => Assert.NotEmpty(unit.Cost));
     }
 
+    /// <summary>
+    /// Кап рівня й крива вартості прокачки мусять доїхати до клієнта: без них
+    /// екран не знає, скільки рівнів пропонувати й скільки це коштуватиме.
+    /// </summary>
+    [Fact]
+    public void Response_ShouldCarryTheUnitLevelCapAndGrowthCurve()
+    {
+        var config = new GameConfigBuilder().WithBuildings().WithUnits(unit =>
+        {
+            unit.LevelUpCostGrowth = 1.35;
+        }).Build();
+        config.MaxUnitLevel = 7;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+
+        Assert.Equal(7, response.MaxUnitLevel);
+        Assert.All(response.Units, unit => Assert.Equal(1.35, unit.LevelUpCostGrowth));
+    }
+
+    /// <summary>
+    /// Ціна лікування gems потрібна клієнту для прев'ю: юніти в госпіталі
+    /// не несуть власної вартості, на відміну від відновлюваних.
+    /// </summary>
+    [Fact]
+    public void Response_ShouldCarryTheHealGemsPrice()
+    {
+        var config = new GameConfigBuilder().WithBuildings().Build();
+        config.Monetization.HealGemsPerUnit = 3;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+
+        Assert.Equal(3, response.HealGemsPerUnit);
+    }
+
     /// <summary>Позиція будує розкладку села на клієнті: без неї будівлю нема куди поставити.</summary>
     [Fact]
     public void Response_ShouldCarryBuildingPositions()

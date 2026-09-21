@@ -5118,11 +5118,13 @@
       "CatalogResponse": {
         "required": [
           "buildings",
+          "healGemsPerUnit",
           "heroClasses",
           "heroes",
           "items",
           "maxConstellation",
           "maxTier",
+          "maxUnitLevel",
           "resources",
           "units",
           "version"
@@ -5173,6 +5175,14 @@
             "type": "integer",
             "format": "int32"
           },
+          "maxUnitLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "healGemsPerUnit": {
+            "type": "integer",
+            "format": "int32"
+          },
           "version": {
             "type": "string"
           }
@@ -5185,6 +5195,7 @@
           "cost",
           "displayName",
           "key",
+          "levelUpCostGrowth",
           "requiresBuildingLevel"
         ],
         "type": "object",
@@ -5206,6 +5217,10 @@
           "baseTrainMinutes": {
             "type": "integer",
             "format": "int32"
+          },
+          "levelUpCostGrowth": {
+            "type": "number",
+            "format": "double"
           },
           "cost": {
             "type": "array",
