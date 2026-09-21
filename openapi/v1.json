@@ -3445,6 +3445,74 @@
       }
     },
     "/api/marches/{playerId}": {
+      "get": {
+        "tags": [
+          "March"
+        ],
+        "operationId": "March_GetMarches",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MarchResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MarchResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MarchResponse"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "March"
@@ -6248,6 +6316,86 @@
         "type": "integer",
         "format": "int32"
       },
+      "MarchResponse": {
+        "required": [
+          "arrivesAt",
+          "departedAt",
+          "id",
+          "intent",
+          "speedUpCostGems",
+          "state",
+          "targetId",
+          "targetType",
+          "targetX",
+          "targetY",
+          "units"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetType": {
+            "$ref": "#/components/schemas/MarchTargetType"
+          },
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetName": {
+            "type": "string",
+            "nullable": true
+          },
+          "targetX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targetY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/MarchIntent"
+          },
+          "state": {
+            "$ref": "#/components/schemas/MarchState"
+          },
+          "heroId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "departedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "arrivesAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarchUnitResponse"
+            }
+          },
+          "speedUpCostGems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarchState": {
+        "enum": [
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
       "MarchTargetType": {
         "enum": [
           1,
@@ -6255,6 +6403,28 @@
         ],
         "type": "integer",
         "format": "int32"
+      },
+      "MarchUnitResponse": {
+        "required": [
+          "count",
+          "level",
+          "unitType"
+        ],
+        "type": "object",
+        "properties": {
+          "unitType": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
       },
       "MyClanResponse": {
         "required": [
@@ -6918,7 +7088,9 @@
           "buildings",
           "id",
           "name",
-          "resources"
+          "resources",
+          "x",
+          "y"
         ],
         "type": "object",
         "properties": {
@@ -6928,6 +7100,14 @@
           },
           "name": {
             "type": "string"
+          },
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
           },
           "buildings": {
             "type": "array",

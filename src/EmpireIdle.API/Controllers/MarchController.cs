@@ -22,6 +22,25 @@ namespace EmpireIdle.API.Controllers
             _mediator = mediator;
         }
 
+        /// <summary>Активні походи гравця: у дорозі до цілі або додому, найближче прибуття — першим.</summary>
+        [HttpGet("{playerId:guid}")]
+        [ProducesResponseType(typeof(List<MarchResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<List<MarchResponse>>> GetMarches(Guid playerId, CancellationToken cancellationToken)
+        {
+            var marches = await _mediator.Send(new GetMarchesQuery(playerId), cancellationToken);
+
+            var response = marches
+                .Select(m => new MarchResponse(
+                    m.Id, m.TargetType, m.TargetId, m.TargetName, m.TargetX, m.TargetY, m.Intent, m.State,
+                    m.HeroId, m.DepartedAt, m.ArrivesAt,
+                    m.Units.Select(u => new MarchUnitResponse(u.UnitType, u.Level, u.Count)).ToList(),
+                    m.SpeedUpCostGems))
+                .ToList();
+
+            return Ok(response);
+        }
+
         /// <summary>Відправити армію до цілі: в атаку на монстра або підкріпленням до села союзника.</summary>
         [HttpPost("{playerId:guid}")]
         [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
