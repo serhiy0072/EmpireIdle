@@ -1,5 +1,6 @@
 import { useNow } from "../hooks/useNow";
 import type { BuildingResponse } from "../lib/apiTypes";
+import { useCatalog } from "../lib/queries/catalog";
 
 interface Props {
   building: BuildingResponse;
@@ -27,11 +28,12 @@ export default function BuildingCard({ building, busy, onCollect, onUpgrade, onS
 
   const fill = building.storageCap > 0 ? Math.min(1, building.storedAmount / building.storageCap) : 0;
   const full = building.storageCap > 0 && building.storedAmount >= building.storageCap;
+  const catalog = useCatalog();
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
       <div className="flex items-baseline justify-between">
-        <h3 className="font-medium text-slate-800">{building.type}</h3>
+        <h3 className="font-medium text-slate-800">{catalog.buildingName(building.type)}</h3>
         <span className="text-sm text-slate-500">рів. {building.level}</span>
       </div>
 

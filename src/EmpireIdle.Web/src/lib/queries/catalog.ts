@@ -8,6 +8,7 @@ export type CatalogResponse = components["schemas"]["CatalogResponse"];
 export type CatalogHero = components["schemas"]["CatalogHero"];
 export type CatalogItem = components["schemas"]["CatalogItem"];
 export type CatalogResource = components["schemas"]["CatalogResource"];
+export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
 export type CatalogPassive = components["schemas"]["CatalogPassive"];
 
 export interface Catalog {
@@ -15,9 +16,11 @@ export interface Catalog {
   loaded: boolean;
   hero: (key: string) => CatalogHero | null;
   item: (key: string) => CatalogItem | null;
+  building: (key: string) => CatalogBuilding | null;
   heroName: (key: string) => string;
   itemName: (key: string) => string;
   resourceName: (key: string) => string;
+  buildingName: (key: string) => string;
   maxConstellation: number;
   maxTier: number;
 }
@@ -40,15 +43,18 @@ export function useCatalog(): Catalog {
     const heroes = new Map((data?.heroes ?? []).map((hero) => [hero.key, hero]));
     const items = new Map((data?.items ?? []).map((item) => [item.key, item]));
     const resources = new Map((data?.resources ?? []).map((resource) => [resource.key, resource]));
+    const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
 
     return {
       loaded: data !== undefined,
       hero: (key) => heroes.get(key) ?? null,
       item: (key) => items.get(key) ?? null,
+      building: (key) => buildings.get(key) ?? null,
       // Ключ як запасна назва: краще технічний рядок, ніж порожнє місце
       heroName: (key) => heroes.get(key)?.displayName ?? key,
       itemName: (key) => items.get(key)?.displayName ?? key,
       resourceName: (key) => resources.get(key)?.displayName ?? key,
+      buildingName: (key) => buildings.get(key)?.displayName ?? key,
       maxConstellation: data?.maxConstellation ?? 6,
       maxTier: data?.maxTier ?? 3,
     };
