@@ -1,12 +1,11 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import ErrorBanner from "../components/ErrorBanner";
 import HeroCard from "../components/HeroCard";
 import HeroDetails from "../components/HeroDetails";
 import ShardsPanel from "../components/ShardsPanel";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
-import { queryKeys } from "../lib/queryKeys";
-import ErrorBanner from "../components/ErrorBanner";
+import { formatRemaining } from "../lib/time";
 import {
   useAppointLeader,
   useBuyShards,
@@ -17,21 +16,10 @@ import {
   useSummonHero,
 } from "../lib/queries/heroes";
 
-function countdown(completesAt: string, now: number): string | null {
-  const seconds = Math.round((Date.parse(completesAt) - now) / 1_000);
-
-  if (seconds <= 0) return null;
-
-  const minutes = Math.floor(seconds / 60);
-
-  return minutes > 0 ? `${minutes} хв ${seconds % 60} с` : `${seconds} с`;
-}
-
 export default function HeroesPage() {
   const session = useSession();
   const playerId = session?.playerId ?? "";
   const now = useNow();
-  const queryClient = useQueryClient();
 
   const heroes = useHeroes(playerId);
   const levelUp = useLevelUpHero(playerId);
@@ -43,15 +31,9 @@ export default function HeroesPage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // Чергу завершує сканер на сервері; useHeroes сам перепитує ростер на її дедлайн
   const order = heroes.data?.activeOrder ?? null;
-  const orderLeft = order === null ? null : countdown(order.completesAt, now);
-
-  // Чергу завершує сканер на сервері: коли відлік вийшов, перезапитуємо ростер
-  useEffect(() => {
-    if (order !== null && orderLeft === null) {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.heroes(playerId) });
-    }
-  }, [order, orderLeft, playerId, queryClient]);
+  const orderLeft = order === null ? null : formatRemaining(order.completesAt, now);
 
   if (heroes.isPending) {
     return <p className="text-slate-500">Завантаження героїв…</p>;

@@ -1,5 +1,5 @@
-import { at, Box, Cone, Cylinder, faces } from "./isoShapes";
-import { toPath } from "../../lib/iso";
+import { at, faces, toPath } from "../../lib/iso";
+import { Box, Cone, Cylinder } from "./isoShapes";
 
 /** Відступ стіни від краю ділянки й половина товщини — в одиницях плану. */
 const INSET = 5;

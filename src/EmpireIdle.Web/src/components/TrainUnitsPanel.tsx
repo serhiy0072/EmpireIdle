@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNow } from "../hooks/useNow";
 import { cumulativeUnitLevelCost } from "../lib/progression";
+import { formatRemaining } from "../lib/time";
 import type { CatalogUnit } from "../lib/queries/catalog";
 import { useCatalog } from "../lib/queries/catalog";
 import { useGarrison, useSpeedUpTraining, useTrainUnits } from "../lib/queries/garrison";
@@ -10,19 +11,8 @@ interface Props {
   playerId: string;
   buildingType: string;
   buildingLevel: number;
-}
-
-/** Залишок до кінця тренування за серверним часом. */
-function remaining(completesAt: string, now: number): string {
-  const seconds = Math.max(0, Math.round((Date.parse(completesAt) - now) / 1_000));
-
-  const hours = Math.floor(seconds / 3_600);
-  const minutes = Math.floor((seconds % 3_600) / 60);
-  const rest = seconds % 60;
-
-  const pad = (value: number) => value.toString().padStart(2, "0");
-
-  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(rest)}` : `${minutes}:${pad(rest)}`;
+  /** Будівля на апгрейді не тренує (правило беку); черга, що вже йде, при цьому видна. */
+  underConstruction: boolean;
 }
 
 /**
@@ -39,7 +29,7 @@ function costLabel(unit: CatalogUnit, level: number, count: number, resourceName
 }
 
 /** Тренування юнітів на конкретній будівлі (казарми, стайня…) — список доступних типів і черга. */
-export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel }: Props) {
+export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel, underConstruction }: Props) {
   const now = useNow();
   const catalog = useCatalog();
   const garrison = useGarrison(playerId);
@@ -59,6 +49,10 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
   return (
     <div className="space-y-3 border-t border-slate-200 pt-3">
       <h4 className="text-sm font-medium text-slate-700">Тренування</h4>
+
+      {underConstruction && (
+        <p className="text-xs text-amber-700">Поки триває будівництво, нові партії не приймаються.</p>
+      )}
 
       <ErrorBanner error={train.error ?? speedUp.error} />
 
@@ -102,7 +96,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
               <button
                 type="button"
                 onClick={() => train.mutate({ unitType: unit.key, level, count })}
-                disabled={train.isPending}
+                disabled={train.isPending || underConstruction}
                 className="rounded-lg bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700 disabled:opacity-50"
               >
                 Тренувати
@@ -118,7 +112,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
           {queue.map((order) => (
             <div key={order.id} className="flex items-center justify-between text-sm text-slate-600">
               <span>
-                {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.level}) — {remaining(order.completesAt, now)}
+                {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.level}) — {formatRemaining(order.completesAt, now)}
               </span>
               <button
                 type="button"

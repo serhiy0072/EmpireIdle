@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNow } from "../hooks/useNow";
 import { cumulativeUnitLevelCost } from "../lib/progression";
+import { formatRemaining } from "../lib/time";
 import { useCatalog } from "../lib/queries/catalog";
 import { useGarrison, useLevelUpUnits, useSpeedUpLevelUp } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
@@ -8,19 +9,6 @@ import ErrorBanner from "./ErrorBanner";
 interface Props {
   playerId: string;
   buildingType: string;
-}
-
-/** Залишок до кінця прокачки за серверним часом. */
-function remaining(completesAt: string, now: number): string {
-  const seconds = Math.max(0, Math.round((Date.parse(completesAt) - now) / 1_000));
-
-  const hours = Math.floor(seconds / 3_600);
-  const minutes = Math.floor((seconds % 3_600) / 60);
-  const rest = seconds % 60;
-
-  const pad = (value: number) => value.toString().padStart(2, "0");
-
-  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(rest)}` : `${minutes}:${pad(rest)}`;
 }
 
 /**
@@ -133,7 +121,7 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
             <div key={order.id} className="flex items-center justify-between text-sm text-slate-600">
               <span>
                 {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.fromLevel}→{order.toLevel}) —{" "}
-                {remaining(order.completesAt, now)}
+                {formatRemaining(order.completesAt, now)}
               </span>
               <button
                 type="button"

@@ -10,7 +10,7 @@ import { useVillage } from "../lib/queries/village";
 /**
  * Військо: увесь гарнізон в одному місці, без переходу через конкретну
  * будівлю на мапі села. Тренування й прокачка тут — ті самі панелі,
- * що на картці казарм: одна дія, два входи.
+ * що на картці будівлі: одна дія, два входи.
  */
 export default function ArmyPage() {
   const session = useSession();
@@ -31,12 +31,13 @@ export default function ArmyPage() {
     return <ErrorBanner error={village.error} />;
   }
 
-  const barracks = village.data.buildings.find((building) => building.type === "barracks");
-  const barracksLevel = barracks?.level ?? 0;
+  // Будівлі, що тренують: список іде з довідника, а не зашитий у сторінку — стайня з'явиться сама
+  const trainingBuildings = village.data.buildings.filter(
+    (building) => building.isUnlocked && catalog.trainingBuildingKeys.includes(building.type),
+  );
 
   const units = garrison.data.units.filter((unit) => unit.count > 0);
   const total = units.reduce((sum, unit) => sum + unit.count, 0);
-  const hasHospitalContent = garrison.data.wounded.some((w) => w.count > 0) || garrison.data.recoverable.some((r) => r.count > 0);
 
   return (
     <div className="space-y-4">
@@ -45,7 +46,7 @@ export default function ArmyPage() {
         <p className="text-sm text-slate-500">Разом у гарнізоні: {total.toLocaleString("uk-UA")}</p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-medium text-slate-700">Гарнізон</h2>
 
         {units.length === 0 ? (
@@ -66,9 +67,19 @@ export default function ArmyPage() {
           </div>
         )}
 
-        <TrainUnitsPanel playerId={playerId} buildingType="barracks" buildingLevel={barracksLevel} />
-        <LevelUpUnitsPanel playerId={playerId} buildingType="barracks" />
-        {hasHospitalContent && <HospitalPanel playerId={playerId} />}
+        {trainingBuildings.map((building) => (
+          <div key={building.id}>
+            <TrainUnitsPanel
+              playerId={playerId}
+              buildingType={building.type}
+              buildingLevel={building.level}
+              underConstruction={building.isUnderConstruction}
+            />
+            <LevelUpUnitsPanel playerId={playerId} buildingType={building.type} />
+          </div>
+        ))}
+
+        <HospitalPanel playerId={playerId} />
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
+import { at } from "../../lib/iso";
 import type { ArtResult } from "./buildingArt";
-import { at } from "./isoShapes";
 
 interface Props {
   art: ArtResult;

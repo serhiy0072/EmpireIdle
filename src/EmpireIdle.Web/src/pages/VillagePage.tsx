@@ -5,7 +5,13 @@ import LockedBuildingCard from "../components/LockedBuildingCard";
 import VillageMap from "../components/village/VillageMap";
 import { useSession } from "../hooks/useSession";
 import { useCatalog } from "../lib/queries/catalog";
-import { useCollectBuilding, useSpeedUpBuilding, useUpgradeBuilding, useVillage } from "../lib/queries/village";
+import {
+  useCollectAll,
+  useCollectBuilding,
+  useSpeedUpBuilding,
+  useUpgradeBuilding,
+  useVillage,
+} from "../lib/queries/village";
 
 export default function VillagePage() {
   const session = useSession();
@@ -16,6 +22,7 @@ export default function VillagePage() {
   const collect = useCollectBuilding(playerId);
   const upgrade = useUpgradeBuilding(playerId);
   const speedUp = useSpeedUpBuilding(playerId);
+  const collectAll = useCollectAll(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -27,13 +34,26 @@ export default function VillagePage() {
     return <ErrorBanner error={village.error} />;
   }
 
-  const busy = collect.isPending || upgrade.isPending || speedUp.isPending;
-  const failure = collect.error ?? upgrade.error ?? speedUp.error;
+  const busy = collect.isPending || upgrade.isPending || speedUp.isPending || collectAll.isPending;
+  const failure = collect.error ?? upgrade.error ?? speedUp.error ?? collectAll.error;
   const selected = village.data.buildings.find((building) => building.id === selectedId) ?? null;
+  const collectable = village.data.buildings.some(
+    (building) => building.isUnlocked && !building.isUnderConstruction && building.storedAmount > 0,
+  );
 
   return (
     <div className="flex h-[calc(100vh-9rem)] flex-col gap-3">
-      <h1 className="text-xl font-medium text-slate-800">{village.data.name}</h1>
+      <div className="flex items-baseline justify-between gap-2">
+        <h1 className="text-xl font-medium text-slate-800">{village.data.name}</h1>
+        <button
+          type="button"
+          onClick={() => collectAll.mutate()}
+          disabled={busy || !collectable}
+          className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        >
+          Зібрати все
+        </button>
+      </div>
 
       <ErrorBanner error={failure} />
 

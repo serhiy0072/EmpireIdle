@@ -1,20 +1,5 @@
 import type { ReactElement } from "react";
-import { project, toPath, UNIT_X, UNIT_Y, type Point } from "../../lib/iso";
-
-/** Точка плану на висоті z пікселів над землею. */
-export function at(x: number, y: number, z = 0): Point {
-  const point = project(x, y);
-  return { x: point.x, y: point.y - z };
-}
-
-/** Три видимі грані: верх світліший, ліва середня, права в тіні. */
-export interface Faces {
-  top: string;
-  left: string;
-  right: string;
-}
-
-export const faces = (top: string, left: string, right: string): Faces => ({ top, left, right });
+import { at, toPath, UNIT_X, UNIT_Y, type Faces } from "../../lib/iso";
 
 interface BoxProps {
   cx: number;

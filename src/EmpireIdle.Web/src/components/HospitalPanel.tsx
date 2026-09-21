@@ -1,25 +1,16 @@
 import { useState } from "react";
 import { useNow } from "../hooks/useNow";
 import { useCatalog } from "../lib/queries/catalog";
-import { useGarrison, useHealWounded, useRecoverUnits } from "../lib/queries/garrison";
+import { formatRemaining } from "../lib/time";
+import { HEAL_PAYMENT, useGarrison, useHealWounded, useRecoverUnits } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
 
 interface Props {
   playerId: string;
 }
 
-/** Залишок часу до події за серверним часом. */
-function remaining(at: string, now: number): string {
-  const seconds = Math.max(0, Math.round((Date.parse(at) - now) / 1_000));
-
-  const hours = Math.floor(seconds / 3_600);
-  const minutes = Math.floor((seconds % 3_600) / 60);
-  const rest = seconds % 60;
-
-  const pad = (value: number) => value.toString().padStart(2, "0");
-
-  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(rest)}` : `${minutes}:${pad(rest)}`;
-}
+/** Дзеркалить HealCostFactor на беку: лікування ресурсами — половина ціни нового юніта. */
+const HEAL_COST_FACTOR = 0.5;
 
 /**
  * Госпіталь: лікування поранених (ресурсами або gems) і викуп юнітів,
@@ -58,7 +49,7 @@ export default function HospitalPanel({ playerId }: Props) {
 
             const resourceLabel = unit
               ? unit.cost
-                  .map((line) => `${Math.ceil(line.amount * count * 0.5).toLocaleString("uk-UA")} ${catalog.resourceName(line.resource)}`)
+                  .map((line) => `${Math.ceil(line.amount * count * HEAL_COST_FACTOR).toLocaleString("uk-UA")} ${catalog.resourceName(line.resource)}`)
                   .join(", ")
               : "";
             const gemsLabel = (count * catalog.healGemsPerUnit).toLocaleString("uk-UA");
@@ -87,7 +78,7 @@ export default function HospitalPanel({ playerId }: Props) {
                   />
                   <button
                     type="button"
-                    onClick={() => heal.mutate({ units: { [key]: count }, payment: 1 })}
+                    onClick={() => heal.mutate({ units: { [key]: count }, payment: HEAL_PAYMENT.resources })}
                     disabled={heal.isPending}
                     className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                   >
@@ -95,7 +86,7 @@ export default function HospitalPanel({ playerId }: Props) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => heal.mutate({ units: { [key]: count }, payment: 2 })}
+                    onClick={() => heal.mutate({ units: { [key]: count }, payment: HEAL_PAYMENT.gems })}
                     disabled={heal.isPending}
                     className="rounded-lg bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700 disabled:opacity-50"
                   >
@@ -123,7 +114,7 @@ export default function HospitalPanel({ playerId }: Props) {
                     {catalog.unitName(stack.unitType)} (рів. {stack.level}, доступно {stack.count})
                   </p>
                   <p className="text-xs text-slate-500">
-                    {gemsLabel} 💎 · згорить за {remaining(stack.expiresAt, now)}
+                    {gemsLabel} 💎 · згорить за {formatRemaining(stack.expiresAt, now)}
                   </p>
                 </div>
 
