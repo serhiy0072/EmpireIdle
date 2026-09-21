@@ -374,3 +374,8 @@ const ART: Record<string, Art> = {
 export function artFor(buildingKey: string): Art {
   return ART[buildingKey] ?? fallback;
 }
+
+/** Будівля трохи росте з рівнем, але не безмежно — інакше закриє сусідів. */
+export function buildingScale(level: number): number {
+  return 1 + Math.min(level, 30) * 0.015;
+}

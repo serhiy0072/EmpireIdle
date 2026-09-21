@@ -5,6 +5,8 @@ import { project, toPath, WORLD } from "../../lib/iso";
 import type { Catalog } from "../../lib/queries/catalog";
 import IsoBuilding from "./IsoBuilding";
 import IsoWall from "./IsoWall";
+import { artFor, buildingScale } from "./buildingArt";
+import IsoBuildingOverlay from "./IsoBuildingOverlay";
 
 /** Стіна — периметр, а не будівля на плані. Прапорця в конфізі немає, тож ключ. */
 const WALL_KEY = "wall";
@@ -33,7 +35,9 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
     .filter((building) => building.type !== WALL_KEY)
     .flatMap((building) => {
       const position = catalog.building(building.type)?.position;
-      return position === null || position === undefined ? [] : [{ building, position }];
+            return position === null || position === undefined
+        ? []
+        : [{ building, position, art: artFor(building.type)(position.x, position.y, buildingScale(building.level)) }];
     })
     // Від дальніх до ближніх: ближня будівля має перекривати дальню
     .sort((a, b) => a.position.x + a.position.y - (b.position.x + b.position.y));
@@ -67,26 +71,17 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
               />
             )}
 
-            {placed.map(({ building, position }) => {
-              const collectable =
-                !building.isUnderConstruction && building.storageCap > 0 && building.storedAmount > 0;
-
-              return (
-                <IsoBuilding
-                  key={building.id}
-                  buildingKey={building.type}
-                  name={catalog.buildingName(building.type)}
-                  x={position.x}
-                  y={position.y}
-                  level={building.level}
-                  selected={building.id === selectedId}
-                  underConstruction={building.isUnderConstruction}
-                  bubble={collectable ? compact(building.storedAmount) : null}
-                  onSelect={tap(() => onSelect(building.id))}
-                  onCollect={tap(() => onCollect(building.id))}
-                />
-              );
-            })}
+            {placed.map(({ building, position, art }) => (
+              <IsoBuilding
+                key={building.id}
+                art={art}
+                x={position.x}
+                y={position.y}
+                selected={building.id === selectedId}
+                underConstruction={building.isUnderConstruction}
+                onSelect={tap(() => onSelect(building.id))}
+              />
+            ))}
 
             {wall !== null && (
               <IsoWall
@@ -97,6 +92,25 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                 onSelect={tap(() => onSelect(wall.id))}
               />
             )}
+
+            {/* Підписи й бульбашки поверх усього — ніщо їх не перекриває */}
+            {placed.map(({ building, position, art }) => {
+              const collectable =
+                !building.isUnderConstruction && building.storageCap > 0 && building.storedAmount > 0;
+
+              return (
+                <IsoBuildingOverlay
+                  key={`overlay-${building.id}`}
+                  art={art}
+                  x={position.x}
+                  y={position.y}
+                  label={`${catalog.buildingName(building.type)} · ${building.level}`}
+                  bubble={collectable ? compact(building.storedAmount) : null}
+                  onSelect={tap(() => onSelect(building.id))}
+                  onCollect={tap(() => onCollect(building.id))}
+                />
+              );
+            })}
           </g>
         </svg>
       )}

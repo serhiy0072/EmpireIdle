@@ -33,8 +33,8 @@ export function useCatalog(): Catalog {
   const query = useQuery({
     queryKey: queryKeys.catalog,
     queryFn: () => api<CatalogResponse>("/api/catalog"),
-    staleTime: Infinity,
-    gcTime: Infinity,
+    // Відкрита вкладка раз на 5 хвилин перевіряє версію — з ETag це 304 без тіла
+    staleTime: 5 * 60_000,
   });
 
   return useMemo(() => {
