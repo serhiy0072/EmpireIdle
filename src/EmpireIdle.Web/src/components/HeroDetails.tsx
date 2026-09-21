@@ -1,19 +1,38 @@
 import { heroState, passivePercent, rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
+import { useNow } from "../hooks/useNow";
+import type { components } from "../lib/schema";
 import type { HeroSummary } from "../lib/queries/heroes";
+import { formatRemaining } from "../lib/time";
+
+type HeroLevelOrder = components["schemas"]["HeroLevelOrderSummary"];
 
 interface Props {
   hero: HeroSummary;
   /** Черга одна на гравця: поки вона зайнята, інші герої качатись не можуть. */
   queueBusy: boolean;
+  /** Активна прокачка саме цього героя; null — він не в черзі. */
+  order: HeroLevelOrder | null;
   busy: boolean;
   onLevelUp: () => void;
+  onSpeedUp: () => void;
   onEvolve: () => void;
   onAppointLeader: () => void;
   onHeal: () => void;
 }
 
-export default function HeroDetails({ hero, queueBusy, busy, onLevelUp, onEvolve, onAppointLeader, onHeal }: Props) {
+export default function HeroDetails({
+  hero,
+  queueBusy,
+  order,
+  busy,
+  onLevelUp,
+  onSpeedUp,
+  onEvolve,
+  onAppointLeader,
+  onHeal,
+}: Props) {
   const catalog = useCatalog();
+  const now = useNow();
   const config = catalog.hero(hero.heroKey);
 
   const atLevelCap = hero.level >= hero.maxLevel;
@@ -70,6 +89,24 @@ export default function HeroDetails({ hero, queueBusy, busy, onLevelUp, onEvolve
       )}
 
       <div className="space-y-2">
+        {order !== null && (
+          <div className="flex items-center justify-between gap-2 rounded-lg bg-sky-50 px-3 py-2 text-sm">
+            <span className="text-sky-900">
+              До рівня {order.targetLevel}: {formatRemaining(order.completesAt, now)}
+            </span>
+            <button
+              type="button"
+              onClick={onSpeedUp}
+              disabled={busy}
+              className="rounded-lg border border-sky-300 bg-white px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100 disabled:opacity-50"
+            >
+              {order.speedUpCostGems === 0
+                ? "Прискорити (безкоштовно)"
+                : `Прискорити (${order.speedUpCostGems.toLocaleString("uk-UA")} 💎)`}
+            </button>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={onLevelUp}
