@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: "/", label: "Село" },
   { to: "/army", label: "Військо" },
   { to: "/heroes", label: "Герої" },
+  { to: "/map", label: "Мапа" },
   { to: "/quests", label: "Квести" },
 ] as const;
 

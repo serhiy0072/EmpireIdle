@@ -4,6 +4,7 @@ import { useSession } from "../hooks/useSession";
 import ArmyPage from "../pages/ArmyPage";
 import HeroesPage from "../pages/HeroesPage";
 import LoginPage from "../pages/LoginPage";
+import MapPage from "../pages/MapPage";
 import QuestsPage from "../pages/QuestsPage";
 import RegisterPage from "../pages/RegisterPage";
 import VillagePage from "../pages/VillagePage";
@@ -30,6 +31,7 @@ export default function AppRoutes() {
             <Route path="/army" element={<ArmyPage />} />
             <Route path="/heroes" element={<HeroesPage />} />
             <Route path="/quests" element={<QuestsPage />} />
+            <Route path="/map" element={<MapPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         )}
