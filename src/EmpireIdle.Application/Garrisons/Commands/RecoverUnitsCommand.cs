@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace EmpireIdle.Application.Garrisons.Commands
 {
     /// <summary>Викупити відновлюваних юнітів за gems до спливання дедлайну.</summary>
-    public record RecoverUnitsCommand(Guid PlayerId, Dictionary<string, int> Units)
+    public record RecoverUnitsCommand(Guid PlayerId, Dictionary<UnitStackKey, int> Units)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     public sealed class RecoverUnitsCommandHandler : IRequestHandler<RecoverUnitsCommand>
@@ -78,14 +78,14 @@ namespace EmpireIdle.Application.Garrisons.Commands
         }
 
         /// <summary>Ціна викупу: сума RecoverCostGems по типах юнітів.</summary>
-        private int CalculateCost(IReadOnlyDictionary<string, int> recovered)
+        private int CalculateCost(IReadOnlyDictionary<UnitStackKey, int> recovered)
         {
             var total = 0;
 
-            foreach (var (unitType, count) in recovered)
+            foreach (var (stack, count) in recovered)
             {
-                var config = _catalog.FindUnit(unitType)
-                    ?? throw new EntityNotFoundException($"Unit type", unitType);
+                var config = _catalog.FindUnit(stack.UnitType)
+                    ?? throw new EntityNotFoundException($"Unit type", stack.UnitType);
 
                 total += config.RecoverCostGems * count;
             }

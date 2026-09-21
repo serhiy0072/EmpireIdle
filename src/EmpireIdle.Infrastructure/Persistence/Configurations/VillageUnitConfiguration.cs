@@ -10,6 +10,6 @@ public class VillageUnitConfiguration : IEntityTypeConfiguration<VillageUnit>
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id).ValueGeneratedNever();
         builder.Property(u => u.UnitType).IsRequired().HasMaxLength(50);
-        builder.HasIndex(u => new { u.GarrisonId, u.UnitType }).IsUnique();
+        builder.HasIndex(u => new { u.GarrisonId, u.UnitType, u.Level }).IsUnique();
     }
 }

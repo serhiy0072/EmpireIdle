@@ -70,7 +70,7 @@ public class ReinforcementRulesTests
 
         if (alreadyHosted > 0)
             garrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = alreadyHosted }, 1000, Now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = alreadyHosted }, 1000, Now);
 
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 

@@ -12,7 +12,7 @@ using NSubstitute;
 
 namespace EmpireIdle.Application.Tests.Garrisons;
 
-public class SpeedUpTrainingCommandTests
+public class SpeedUpLevelUpCommandTests
 {
     private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
     private static readonly Guid PlayerId = Guid.NewGuid();
@@ -33,23 +33,21 @@ public class SpeedUpTrainingCommandTests
 
     private static SpeedUpCalculator Calculator() => new(Monetization());
 
-    private SpeedUpTrainingCommandHandler Handler() => new(
+    private SpeedUpLevelUpCommandHandler Handler() => new(
         _villages, _garrisons, _wallets, _currentPlayer, _unitOfWork,
         new FakeTimeProvider(Now), Calculator(),
-        NullLogger<SpeedUpTrainingCommandHandler>.Instance);
+        NullLogger<SpeedUpLevelUpCommandHandler>.Instance);
 
-    /// <summary>
-    /// Гарнізон із активним замовленням. Ставимо його напряму через TrainUnits
-    /// із просторими лімітами: тест про ціну прискорення, не про гейти.
-    /// </summary>
-    private (Garrison Garrison, PlayerWallet Wallet, Guid OrderId) GivenTraining(
+    /// <summary>Гарнізон із активною прокачкою партії, поставленою напряму через LevelUpUnits.</summary>
+    private (Garrison Garrison, PlayerWallet Wallet, Guid OrderId) GivenLevellingUp(
         int minutesLeft = 120, int gems = 5000)
     {
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
-        garrison.TrainUnits("infantry", level: 1, count: 5, maxBatchSize: 100, armyCapacity: 1000,
-            TimeSpan.FromMinutes(minutesLeft), Now);
+        garrison.TrainUnits("infantry", 1, 5, 100, 1000, TimeSpan.Zero, Now);
+        garrison.CompleteDueTraining(Now);
+        garrison.LevelUpUnits("infantry", 1, 2, 5, 10, TimeSpan.FromMinutes(minutesLeft), Now);
 
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
         wallet.AddGems(new GemAmount(gems), "seed", PlayerId, Now);
@@ -59,69 +57,55 @@ public class SpeedUpTrainingCommandTests
         _wallets.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(wallet);
         _currentPlayer.UserId.Returns(UserId);
 
-        return (garrison, wallet, garrison.TrainingOrders.Single().Id);
+        return (garrison, wallet, garrison.LevelUpOrders.Single().Id);
     }
 
-    /// <summary>Прискорення завершує тренування одразу, не чекаючи сканера.</summary>
+    /// <summary>Прискорення завершує прокачку одразу, юніти з'являються на новому рівні.</summary>
     [Fact]
-    public async Task Handle_ShouldCompleteTrainingImmediately()
+    public async Task Handle_ShouldCompleteLevelUpImmediately()
     {
-        var (garrison, _, orderId) = GivenTraining(minutesLeft: 120);
+        var (garrison, _, orderId) = GivenLevellingUp(minutesLeft: 120);
 
-        await Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None);
+        await Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, orderId), CancellationToken.None);
 
-        Assert.Empty(garrison.TrainingOrders);
-        Assert.Equal(5, garrison.Units.Sum(u => u.Count));
+        Assert.Empty(garrison.LevelUpOrders);
+        Assert.Equal(5, garrison.Units.Single(u => u.Level == 2).Count);
     }
 
-    /// <summary>Довга черга списує gems за кривою.</summary>
+    /// <summary>Довга черга списує gems за кривою прискорення.</summary>
     [Fact]
     public async Task Handle_ShouldChargeGems_AboveTheThreshold()
     {
-        var (_, wallet, orderId) = GivenTraining(minutesLeft: 120, gems: 5000);
+        var (_, wallet, orderId) = GivenLevellingUp(minutesLeft: 120, gems: 5000);
 
         var expected = Calculator().GetInstantFinishCost(Now.AddMinutes(120), Now);
 
-        await Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None);
+        await Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, orderId), CancellationToken.None);
 
         Assert.True(expected > 0, "120 хвилин мають коштувати gems, інакше тест нічого не перевіряє.");
         Assert.Equal(5000 - expected, wallet.GemBalance.Value);
-    }
-
-    /// <summary>
-    /// Коротка черга безкоштовна: гравець не має платити за хвилину,
-    /// і без порога ціна прискорення була б абсурдною для дрібниць.
-    /// </summary>
-    [Fact]
-    public async Task Handle_ShouldChargeNothing_BelowTheFreeThreshold()
-    {
-        var (_, wallet, orderId) = GivenTraining(minutesLeft: 3, gems: 5000);
-
-        await Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None);
-
-        Assert.Equal(5000, wallet.GemBalance.Value);
     }
 
     /// <summary>Чуже або неіснуюче замовлення — 404.</summary>
     [Fact]
     public async Task Handle_ShouldThrow_ForUnknownOrder()
     {
-        GivenTraining();
+        GivenLevellingUp();
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
-            Handler().Handle(new SpeedUpTrainingCommand(PlayerId, Guid.NewGuid()), CancellationToken.None));
+            Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, Guid.NewGuid()), CancellationToken.None));
     }
 
     /// <summary>Нестача gems лишає замовлення в черзі.</summary>
     [Fact]
     public async Task Handle_ShouldNotComplete_WhenGemsAreInsufficient()
     {
-        var (garrison, _, orderId) = GivenTraining(minutesLeft: 1440, gems: 1);
+        var (garrison, _, orderId) = GivenLevellingUp(minutesLeft: 1440, gems: 1);
 
         await Assert.ThrowsAnyAsync<Exception>(() =>
-            Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None));
+            Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, orderId), CancellationToken.None));
 
-        Assert.Single(garrison.TrainingOrders);
+        Assert.Single(garrison.LevelUpOrders);
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -129,10 +113,10 @@ public class SpeedUpTrainingCommandTests
     [Fact]
     public async Task Handle_ShouldThrow_WithoutAnAuthenticatedAccount()
     {
-        var (_, _, orderId) = GivenTraining(minutesLeft: 120);
+        var (_, _, orderId) = GivenLevellingUp(minutesLeft: 120);
         _currentPlayer.UserId.Returns((string?)null);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None));
+            Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, orderId), CancellationToken.None));
     }
 }

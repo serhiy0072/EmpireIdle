@@ -2,6 +2,8 @@
   "GameConfig": {
     "GameName": "EmpireIdle",
     "MaxTrainingBatchSize": 5,
+    "MaxLevelUpBatchSize": 10,
+    "MaxUnitLevel": 10,
     "StartingResources": {
       "gold": 500,
       "wood": 400,

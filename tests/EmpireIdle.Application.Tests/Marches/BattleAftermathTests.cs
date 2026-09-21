@@ -6,6 +6,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
@@ -83,7 +84,7 @@ public class BattleAftermathTests
 
         if (reinforcements > 0)
             hostGarrison.AddReinforcements(AllyPlayerId, allyGarrison.Id,
-                new Dictionary<string, int> { ["infantry"] = reinforcements }, capacity: 1000, Now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = reinforcements }, capacity: 1000, Now);
 
         var hostLeader = new Hero(Guid.NewGuid(), HostPlayerId, 1, "warrior_bran",
             hostGarrison.Id, asLeader: true, Now);
@@ -107,7 +108,7 @@ public class BattleAftermathTests
     }
 
     private static List<StackLoss> Losses(int lost)
-        => [new StackLoss(AllyPlayerId, "infantry", lost)];
+        => [new StackLoss(AllyPlayerId, "infantry", 1, lost)];
 
     // ---------- Оборона вистояла ----------
 
