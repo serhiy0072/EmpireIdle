@@ -33,6 +33,17 @@ export function useLevelUpHero(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/level-up`, ["heroes", "village"]);
 }
 
+/** Прискорення платить gems; сервер завершує прокачку одразу — новий рівень видно в тій самій відповіді. */
+export function useSpeedUpHeroLevelUp(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: string) =>
+      api<void>(`/api/heroes/${playerId}/level-up/${orderId}/speedup`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "wallet"]),
+  });
+}
+
 export function useEvolveHero(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/evolve`, ["heroes"]);
 }

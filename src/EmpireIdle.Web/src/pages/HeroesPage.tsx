@@ -13,6 +13,7 @@ import {
   useHealHero,
   useHeroes,
   useLevelUpHero,
+  useSpeedUpHeroLevelUp,
   useSummonHero,
 } from "../lib/queries/heroes";
 
@@ -28,6 +29,7 @@ export default function HeroesPage() {
   const heal = useHealHero(playerId);
   const summon = useSummonHero(playerId);
   const buyShards = useBuyShards(playerId);
+  const speedUp = useSpeedUpHeroLevelUp(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -44,10 +46,22 @@ export default function HeroesPage() {
   }
 
   const busy =
-    levelUp.isPending || evolve.isPending || appointLeader.isPending || heal.isPending || summon.isPending || buyShards.isPending;
+    levelUp.isPending ||
+    evolve.isPending ||
+    appointLeader.isPending ||
+    heal.isPending ||
+    summon.isPending ||
+    buyShards.isPending ||
+    speedUp.isPending;
 
   const failure =
-    levelUp.error ?? evolve.error ?? appointLeader.error ?? heal.error ?? summon.error ?? buyShards.error;
+    levelUp.error ??
+    evolve.error ??
+    appointLeader.error ??
+    heal.error ??
+    summon.error ??
+    buyShards.error ??
+    speedUp.error;
 
   const selected = heroes.data.heroes.find((hero) => hero.id === selectedId) ?? heroes.data.heroes[0] ?? null;
   const free = heroes.data.heroes.filter((hero) => hero.state === "Idle").length;
@@ -96,7 +110,9 @@ export default function HeroesPage() {
           <HeroDetails
             hero={selected}
             queueBusy={order !== null}
+            order={order !== null && order.heroId === selected.id ? order : null}
             busy={busy}
+            onSpeedUp={() => order !== null && speedUp.mutate(order.id)}
             onLevelUp={() => levelUp.mutate(selected.id)}
             onEvolve={() => evolve.mutate(selected.id)}
             onAppointLeader={() => appointLeader.mutate(selected.id)}
