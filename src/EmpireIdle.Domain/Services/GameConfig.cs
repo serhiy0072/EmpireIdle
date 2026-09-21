@@ -14,6 +14,15 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Максимальний розмір партії тренування.</summary>
         public int MaxTrainingBatchSize { get; set; } = 5;
 
+        /// <summary>
+        /// Максимальний розмір партії прокачки. Більший за тренувальний навмисно:
+        /// прокачка виграє пропускною здатністю, не знижкою (§5.2 GDD).
+        /// </summary>
+        public int MaxLevelUpBatchSize { get; set; } = 10;
+
+        /// <summary>Максимальний рівень юніта.</summary>
+        public int MaxUnitLevel { get; set; } = 10;
+
 
         /// <summary>Назва гри (наприклад "EmpireIdle", "SpaceIdle").</summary>
         public string GameName { get; set; } = null!;

@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.ValueObjects;
+
 namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
@@ -27,7 +29,7 @@ namespace EmpireIdle.Domain.Combat
         /// Вільних місць у Госпіталі атакувальника. Надлишок поранених гине.
         /// </param>
         public BattleOutcome Resolve(
-            IReadOnlyDictionary<string, int> attackerArmy,
+            IReadOnlyDictionary<UnitStackKey, int> attackerArmy,
             IReadOnlyList<DefenceStack> defence,
             string terrainType,
             int seed,

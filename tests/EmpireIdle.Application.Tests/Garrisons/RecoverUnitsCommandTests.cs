@@ -59,7 +59,7 @@ public class RecoverUnitsCommandTests
         if (recoverable > 0)
         {
             garrison.AddRecoverable(
-                new Dictionary<string, int> { ["infantry"] = recoverable },
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = recoverable },
                 Guid.NewGuid(), Now.AddHours(expiresInHours), Now);
         }
 
@@ -75,7 +75,7 @@ public class RecoverUnitsCommandTests
     }
 
     private static RecoverUnitsCommand Recover(int count) =>
-        new(PlayerId, new Dictionary<string, int> { ["infantry"] = count });
+        new(PlayerId, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = count });
 
     /// <summary>Викуплені юніти повертаються в гарнізон.</summary>
     [Fact]

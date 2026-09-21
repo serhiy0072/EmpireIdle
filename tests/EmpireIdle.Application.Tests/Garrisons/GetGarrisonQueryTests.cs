@@ -53,7 +53,7 @@ public class GetGarrisonQueryTests
     public async Task Handle_ShouldPriceATrainingOrder_ByRemainingTime()
     {
         var (_, garrison) = GivenVillageWithGarrison();
-        garrison.TrainUnits("infantry", count: 5, maxBatchSize: 100, armyCapacity: 1000,
+        garrison.TrainUnits("infantry", level: 1, count: 5, maxBatchSize: 100, armyCapacity: 1000,
             trainDuration: TimeSpan.FromMinutes(120), utcNow: Now);
 
         var order = garrison.TrainingOrders.Single();
@@ -71,7 +71,7 @@ public class GetGarrisonQueryTests
     public async Task Handle_ShouldPriceZero_BelowTheFreeThreshold()
     {
         var (_, garrison) = GivenVillageWithGarrison();
-        garrison.TrainUnits("infantry", count: 1, maxBatchSize: 100, armyCapacity: 1000,
+        garrison.TrainUnits("infantry", level: 1, count: 1, maxBatchSize: 100, armyCapacity: 1000,
             trainDuration: TimeSpan.FromMinutes(2), utcNow: Now);
 
         var response = await Handler().Handle(new GetGarrisonQuery(PlayerId), CancellationToken.None);

@@ -5,6 +5,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -103,7 +104,7 @@ public class RecalculatePowerCommandTests
         _garrisons.GetDeployedReinforcementsAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(new Dictionary<string, int>());
 
         if (garrisonInfantry > 0)
-            garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = garrisonInfantry }, Now);
+            garrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = garrisonInfantry }, Now);
 
         _garrisons.GetByIdAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(garrison);
         _villages.GetByIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(village);
@@ -160,7 +161,7 @@ public class RecalculatePowerCommandTests
         var march = new March(
             Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 0, 0, 5, 5,
             MarchTargetType.Monster, Guid.NewGuid(),
-            new Dictionary<string, int> { ["infantry"] = 5 },
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 },
             Now.AddHours(1), Now);
 
         _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns([march]);

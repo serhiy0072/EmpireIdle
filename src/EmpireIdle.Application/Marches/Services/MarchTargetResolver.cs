@@ -4,6 +4,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Application.Marches.Services
 {
@@ -89,7 +90,9 @@ namespace EmpireIdle.Application.Marches.Services
                         $"{monster.Type} (lvl {monster.Level})",
                         monster.Level,
                         Village: null,
-                        DefenceStacks.FromArmy(_armyBuilder.BuildArmy(monster.Type, monster.Level)),
+                        // Монстри — не гравці, свого рівня юнітів не мають: завжди 1
+                        DefenceStacks.FromArmy(_armyBuilder.BuildArmy(monster.Type, monster.Level)
+                            .ToDictionary(kv => new UnitStackKey(kv.Key, 1), kv => kv.Value)),
                         // Монстр ні стін, ні героїв не має
                         DefenceBuffs.None,
                         DefenceMultiplier: 1.0);

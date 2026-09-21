@@ -2,6 +2,7 @@ using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Queries;
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,8 +28,10 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SendMarch(Guid playerId, [FromBody] SendMarchRequest request, CancellationToken cancellationToken)
         {
+            var units = request.Units.ToDictionary(kv => UnitStackKey.Parse(kv.Key), kv => kv.Value);
+
             var marchId = await _mediator.Send(
-                new SendMarchCommand(playerId, request.TargetType, request.TargetId, request.Units, request.HeroId, request.Intent),
+                new SendMarchCommand(playerId, request.TargetType, request.TargetId, units, request.HeroId, request.Intent),
                 cancellationToken);
 
             return Created((string?)null, marchId);
@@ -59,8 +62,10 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<BattlePreviewResult>> PreviewBattle(Guid playerId,
             [FromBody] SendMarchRequest request, CancellationToken cancellationToken)
         {
+            var units = request.Units.ToDictionary(kv => UnitStackKey.Parse(kv.Key), kv => kv.Value);
+
             var preview = await _mediator.Send(
-                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.HeroId, request.Units),
+                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.HeroId, units),
                 cancellationToken);
 
             return Ok(preview);

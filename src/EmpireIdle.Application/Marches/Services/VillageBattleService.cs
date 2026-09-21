@@ -4,6 +4,7 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Marches.Services
@@ -73,7 +74,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// клану; втрати кожної сторони розкидаються по власниках, і поранені
         /// йдуть у госпіталь того, чиї це юніти, а не того, хто оборонявся.
         /// </summary>
-        public async Task ResolveAsync(March march, Dictionary<string, int> attackerArmy,
+        public async Task ResolveAsync(March march, Dictionary<UnitStackKey, int> attackerArmy,
             string terrain, DateTime utcNow, CancellationToken cancellationToken)
         {
             var attackerGarrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken)

@@ -4,6 +4,7 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Marches.Services
@@ -65,7 +66,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// Проводить бій із монстром на клітині прибуття.
         /// Ціль могла загинути від чужої руки — тоді армія просто вертається.
         /// </summary>
-        public async Task ResolveAsync(March march, Dictionary<string, int> attackerArmy,
+        public async Task ResolveAsync(March march, Dictionary<UnitStackKey, int> attackerArmy,
             string terrain, DateTime utcNow, CancellationToken cancellationToken)
         {
             var monster = await _monsterRepository.GetByIdAsync(march.TargetId, cancellationToken);
@@ -77,7 +78,9 @@ namespace EmpireIdle.Application.Marches.Services
                 return;
             }
 
-            var defenderArmy = _armyBuilder.BuildArmy(monster.Type, monster.Level);
+            // Монстри — не гравці, свого рівня юнітів не мають: завжди 1
+            var defenderArmy = _armyBuilder.BuildArmy(monster.Type, monster.Level)
+                .ToDictionary(kv => new UnitStackKey(kv.Key, 1), kv => kv.Value);
 
             var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken)
                  ?? throw new InvalidOperationException($"Garrison {march.GarrisonId} not found for march {march.Id}.");

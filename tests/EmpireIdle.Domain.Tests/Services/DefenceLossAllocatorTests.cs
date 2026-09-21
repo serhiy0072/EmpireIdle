@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
@@ -21,12 +22,12 @@ namespace EmpireIdle.Domain.Tests.Services
             // Arrange: 30 своїх і 10 союзних, втрачено 20
             var stacks = new List<DefenceStack>
             {
-                new(null, "infantry", 30),
-                new(Ally, "infantry", 10)
+                new(null, "infantry", 1, 30),
+                new(Ally, "infantry", 1, 10)
             };
 
             // Act
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 20 });
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 20 });
 
             // Assert
             Assert.Equal(15, losses.Single(l => l.OwnerPlayerId is null).Lost);
@@ -39,13 +40,13 @@ namespace EmpireIdle.Domain.Tests.Services
             // Arrange: три рівні стеки й непарна втрата — дроби неминучі
             var stacks = new List<DefenceStack>
             {
-                new(null, "archer", 10),
-                new(Ally, "archer", 10),
-                new(SecondAlly, "archer", 10)
+                new(null, "archer", 1, 10),
+                new(Ally, "archer", 1, 10),
+                new(SecondAlly, "archer", 1, 10)
             };
 
             // Act
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["archer"] = 10 });
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("archer", 1)] = 10 });
 
             // Assert
             Assert.Equal(10, losses.Sum(l => l.Lost));
@@ -57,12 +58,12 @@ namespace EmpireIdle.Domain.Tests.Services
             // Arrange: 7 і 3, утрачено 5 → частки 3.5 і 1.5, залишок один
             var stacks = new List<DefenceStack>
             {
-                new(null, "cavalry", 7),
-                new(Ally, "cavalry", 3)
+                new(null, "cavalry", 1, 7),
+                new(Ally, "cavalry", 1, 3)
             };
 
             // Act
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["cavalry"] = 5 });
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("cavalry", 1)] = 5 });
 
             // Assert
             Assert.Equal(5, losses.Sum(l => l.Lost));
@@ -76,16 +77,16 @@ namespace EmpireIdle.Domain.Tests.Services
             // Arrange
             var stacks = new List<DefenceStack>
             {
-                new(null, "infantry", 20),
-                new(Ally, "infantry", 20),
-                new(null, "siege", 5)
+                new(null, "infantry", 1, 20),
+                new(Ally, "infantry", 1, 20),
+                new(null, "siege", 1, 5)
             };
 
             // Act
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int>
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int>
             {
-                ["infantry"] = 10,
-                ["siege"] = 5
+                [new UnitStackKey("infantry", 1)] = 10,
+                [new UnitStackKey("siege", 1)] = 5
             });
 
             // Assert
@@ -98,10 +99,10 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Allocate_ShouldNotKillMoreThanStood_WhenLossesExceedDefence()
         {
             // Arrange
-            var stacks = new List<DefenceStack> { new(null, "infantry", 8) };
+            var stacks = new List<DefenceStack> { new(null, "infantry", 1, 8) };
 
             // Act
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 99 });
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 99 });
 
             // Assert
             Assert.Equal(8, losses.Single().Lost);
@@ -113,12 +114,12 @@ namespace EmpireIdle.Domain.Tests.Services
             // Arrange
             var stacks = new List<DefenceStack>
             {
-                new(null, "infantry", 10),
-                new(null, "archer", 10)
+                new(null, "infantry", 1, 10),
+                new(null, "archer", 1, 10)
             };
 
             // Act
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 4 });
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 4 });
 
             // Assert
             Assert.Single(losses);
@@ -129,7 +130,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Allocate_ShouldReturnNothing_WhenDefenceIsEmpty()
         {
             // Act
-            var losses = _allocator.Allocate([], new Dictionary<string, int> { ["infantry"] = 10 });
+            var losses = _allocator.Allocate([], new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 });
 
             // Assert
             Assert.Empty(losses);
@@ -148,15 +149,15 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var stacks = new List<DefenceStack>
             {
-                new(null, "infantry", 100),
-                new(ally, "infantry", 100)
+                new(null, "infantry", 1, 100),
+                new(ally, "infantry", 1, 100)
             };
 
             var buffs = new DefenceBuffs(
                 StackBuff.None,
                 new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(100)) });
 
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 90 }, buffs);
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 90 }, buffs);
 
             var host = losses.Single(l => l.OwnerPlayerId is null).Lost;
             var allied = losses.Single(l => l.OwnerPlayerId == ally).Lost;
@@ -179,15 +180,15 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var stacks = new List<DefenceStack>
             {
-                new(null, "infantry", 100),
-                new(ally, "infantry", 60)
+                new(null, "infantry", 1, 100),
+                new(ally, "infantry", 1, 60)
             };
 
             var buffs = new DefenceBuffs(
                 StackBuff.None,
                 new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(40)) });
 
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = lost }, buffs);
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = lost }, buffs);
 
             Assert.Equal(Math.Min(lost, 160), losses.Sum(l => l.Lost));
         }
@@ -204,15 +205,15 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var stacks = new List<DefenceStack>
             {
-                new(null, "infantry", 10),
-                new(ally, "infantry", 200)
+                new(null, "infantry", 1, 10),
+                new(ally, "infantry", 1, 200)
             };
 
             var buffs = new DefenceBuffs(
                 StackBuff.None,
                 new Dictionary<Guid, StackBuff> { [ally] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(300)) });
 
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 150 }, buffs);
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 150 }, buffs);
 
             Assert.True(losses.Single(l => l.OwnerPlayerId is null).Lost <= 10);
             Assert.Equal(150, losses.Sum(l => l.Lost));
@@ -226,11 +227,11 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var stacks = new List<DefenceStack>
             {
-                new(null, "infantry", 75),
-                new(ally, "infantry", 25)
+                new(null, "infantry", 1, 75),
+                new(ally, "infantry", 1, 25)
             };
 
-            var losses = _allocator.Allocate(stacks, new Dictionary<string, int> { ["infantry"] = 40 });
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 40 });
 
             Assert.Equal(30, losses.Single(l => l.OwnerPlayerId is null).Lost);
             Assert.Equal(10, losses.Single(l => l.OwnerPlayerId == ally).Lost);

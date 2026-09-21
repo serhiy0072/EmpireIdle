@@ -3,6 +3,7 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -85,23 +86,28 @@ namespace EmpireIdle.Application.Power.Commands
             // Гарнізон плюс армії в поході. Марші рахуються обов'язково —
             // інакше Power падає під час атаки, і гравці тримали б військо
             // вдома заради рейтингу
-            var army = garrison.Units.ToDictionary(u => u.UnitType, u => u.Count);
+            var army = garrison.Units.ToDictionary(u => new UnitStackKey(u.UnitType, u.Level), u => u.Count);
 
             var marches = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
 
             foreach (var march in marches)
             {
-                foreach (var (unitType, count) in march.GetUnits())
-                    army[unitType] = army.GetValueOrDefault(unitType) + count;
+                foreach (var (stack, count) in march.GetUnits())
+                    army[stack] = army.GetValueOrDefault(stack) + count;
             }
 
             // Підкріплення в чужих селах рахуються власнику (§7.1): інакше
-            // допомога клану коштувала б рейтингу, і її перестали б надсилати
+            // допомога клану коштувала б рейтингу, і її перестали б надсилати.
+            // Рівень тут не зберігається (денормалізований підрахунок за типом) —
+            // рахуємо як рівень 1, це трохи занижує Power для прокачаних підкріплень.
             var deployed = await _garrisonRepository.GetDeployedReinforcementsAsync(
                 village.PlayerId, cancellationToken);
 
             foreach (var (unitType, count) in deployed)
-                army[unitType] = army.GetValueOrDefault(unitType) + count;
+            {
+                var stack = new UnitStackKey(unitType, 1);
+                army[stack] = army.GetValueOrDefault(stack) + count;
+            }
 
             // Поранені й відновлювані не входять: вони не б'ються
             var armyPower = _combat.CalculatePower(army, NeutralTerrain, isAttacker: true);

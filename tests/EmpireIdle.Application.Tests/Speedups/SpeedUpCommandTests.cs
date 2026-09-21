@@ -198,7 +198,7 @@ public class SpeedUpCommandTests
         var march = new March(
             Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 0, 0, 10, 10,
             MarchTargetType.Monster, Guid.NewGuid(),
-            new Dictionary<string, int> { ["infantry"] = 5 },
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 },
             Now.AddHours(2), Now);
 
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);

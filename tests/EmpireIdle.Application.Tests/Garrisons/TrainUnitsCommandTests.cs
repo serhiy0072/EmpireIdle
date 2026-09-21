@@ -103,7 +103,7 @@ public class TrainUnitsCommandTests
     {
         var (village, _) = GivenVillage(food: 1000);
 
-        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 5), CancellationToken.None);
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 5), CancellationToken.None);
 
         // 5 × 10 = 50
         Assert.Equal(950, village.Resources.Single(r => r.ResourceType == "food").Amount);
@@ -115,7 +115,7 @@ public class TrainUnitsCommandTests
     {
         var (_, garrison) = GivenVillage();
 
-        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 5), CancellationToken.None);
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 5), CancellationToken.None);
 
         var order = Assert.Single(garrison.TrainingOrders);
         Assert.Equal("infantry", order.UnitType);
@@ -133,7 +133,7 @@ public class TrainUnitsCommandTests
         GivenVillage(barracksLevel: 3);
 
         await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Handler().Handle(new TrainUnitsCommand(PlayerId, "siege", 1), CancellationToken.None));
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "siege", 1, 1), CancellationToken.None));
     }
 
     /// <summary>Той самий юніт доступний, коли казарма доросла.</summary>
@@ -142,7 +142,7 @@ public class TrainUnitsCommandTests
     {
         var (_, garrison) = GivenVillage(barracksLevel: 6);
 
-        await Handler().Handle(new TrainUnitsCommand(PlayerId, "siege", 1), CancellationToken.None);
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "siege", 1, 1), CancellationToken.None);
 
         Assert.Single(garrison.TrainingOrders);
     }
@@ -157,7 +157,7 @@ public class TrainUnitsCommandTests
         GivenVillage(barracksLevel: 1, barracksUnderConstruction: true);
 
         await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1), CancellationToken.None));
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 1), CancellationToken.None));
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public class TrainUnitsCommandTests
         GivenVillage(barracksLevel: 1);
 
         await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 21), CancellationToken.None));
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 21), CancellationToken.None));
     }
 
     /// <summary>Вища казарма піднімає стелю армії.</summary>
@@ -179,7 +179,7 @@ public class TrainUnitsCommandTests
     {
         var (_, garrison) = GivenVillage(barracksLevel: 3);
 
-        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 50), CancellationToken.None);
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 50), CancellationToken.None);
 
         Assert.Single(garrison.TrainingOrders);
     }
@@ -191,7 +191,7 @@ public class TrainUnitsCommandTests
         GivenVillage();
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
-            Handler().Handle(new TrainUnitsCommand(PlayerId, "dragon", 1), CancellationToken.None));
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "dragon", 1, 1), CancellationToken.None));
     }
 
     /// <summary>Нестача ресурсів зупиняє операцію до постановки в чергу.</summary>
@@ -201,7 +201,7 @@ public class TrainUnitsCommandTests
         var (_, garrison) = GivenVillage(food: 10);
 
         await Assert.ThrowsAsync<NotEnoughResourcesException>(() =>
-            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 5), CancellationToken.None));
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 5), CancellationToken.None));
 
         Assert.Empty(garrison.TrainingOrders);
     }

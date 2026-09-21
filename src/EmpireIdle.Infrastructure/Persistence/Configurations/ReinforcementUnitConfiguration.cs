@@ -16,7 +16,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             // Один стек на трійку: два рядки з тим самим власником і типом
             // розійшлися б у підрахунку втрат
-            builder.HasIndex(r => new { r.GarrisonId, r.OwnerPlayerId, r.UnitType }).IsUnique();
+            builder.HasIndex(r => new { r.GarrisonId, r.OwnerPlayerId, r.UnitType, r.Level }).IsUnique();
 
             // Пошук «де стоять мої війська» — по власнику
             builder.HasIndex(r => r.OwnerPlayerId);

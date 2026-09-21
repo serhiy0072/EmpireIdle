@@ -1,8 +1,9 @@
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
-{   
+{
     /// <summary>
     /// Похід армії до цілі. Юніти зняті з гарнізону на час маршу
     /// і зберігаються тут (склад армії).
@@ -59,7 +60,7 @@ namespace EmpireIdle.Domain.Entities
         public DateTime UpdatedAt { get; private set; }
 
         public March(Guid id, int serverId, Guid garrisonId, Guid? heroId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
-            Guid targetId, IReadOnlyDictionary<string, int> units, DateTime arrivesAt, DateTime departedAt, MarchIntent intent = MarchIntent.Attack) : base(id)
+            Guid targetId, IReadOnlyDictionary<UnitStackKey, int> units, DateTime arrivesAt, DateTime departedAt, MarchIntent intent = MarchIntent.Attack) : base(id)
         {
             ServerId = serverId;
             GarrisonId = garrisonId;
@@ -75,8 +76,8 @@ namespace EmpireIdle.Domain.Entities
             DepartedAt = departedAt;
             Intent = intent;
 
-            foreach (var (unitType, count) in units)
-                _units.Add(new MarchUnit(Guid.NewGuid(), id, unitType, count));
+            foreach (var (stack, count) in units)
+                _units.Add(new MarchUnit(Guid.NewGuid(), id, stack.UnitType, stack.Level, count));
         }
 
         protected March() { } // Для EF Core
@@ -88,7 +89,7 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="garrisonId">Гарнізон власника: саме туди повернуться юніти.</param>
         public static March ReturningHome(Guid id, int serverId, Guid garrisonId, Guid? heroId,
             int homeX, int homeY, int fromX, int fromY, Guid fromVillageId,
-            IReadOnlyDictionary<string, int> units, TimeSpan duration, DateTime utcNow)
+            IReadOnlyDictionary<UnitStackKey, int> units, TimeSpan duration, DateTime utcNow)
         {
             // Origin — дім: гілка Returning у сканері веде армію саме туди
             var march = new March(id, serverId, garrisonId, heroId, homeX, homeY, fromX, fromY,
@@ -101,7 +102,7 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>Склад армії у вигляді словника (для повернення в гарнізон).</summary>
-        public Dictionary<string, int> GetUnits() => _units.ToDictionary(u => u.UnitType, u => u.Count);
+        public Dictionary<UnitStackKey, int> GetUnits() => _units.ToDictionary(u => new UnitStackKey(u.UnitType, u.Level), u => u.Count);
 
         /// <summary>Складає здобич у марш. Викликається один раз, одразу після бою.</summary>
         public void LoadCargo(IReadOnlyDictionary<string, int> loot, DateTime utcNow)
@@ -193,11 +194,11 @@ namespace EmpireIdle.Domain.Entities
         /// Застосовує втрати після бою: зменшує склад армії.
         /// Загони, що загинули повністю, видаляються.
         /// </summary>
-        public void ApplyLosses(IReadOnlyDictionary<string, int> losses, DateTime utcNow)
+        public void ApplyLosses(IReadOnlyDictionary<UnitStackKey, int> losses, DateTime utcNow)
         {
-            foreach (var (unitType, lost) in losses)
+            foreach (var (key, lost) in losses)
             {
-                var stack = _units.FirstOrDefault(u => u.UnitType == unitType);
+                var stack = _units.FirstOrDefault(u => u.UnitType == key.UnitType && u.Level == key.Level);
                 if (stack is null || lost <= 0)
                     continue;
                 stack.Reduce(lost);

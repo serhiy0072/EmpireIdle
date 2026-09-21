@@ -47,5 +47,28 @@ namespace EmpireIdle.Domain.Services
 
             return geometric * earlyMultiplier;
         }
+
+        /// <summary>
+        /// Множник до бойових статів юніта від рівня. Лінійний: +10% за рівень,
+        /// рівень 1 — база (×1.0).
+        /// </summary>
+        public static double UnitStatMultiplier(int level) => 1 + 0.10 * (level - 1);
+
+        /// <summary>
+        /// Сумарна вартість (чи час) прокачки з fromLevel у toLevel: крок за
+        /// кроком, геометрична крива на кожен крок. Стрибок через кілька
+        /// рівнів коштує суму кроків, а не різницю кінцевих цін (§5.2 GDD) —
+        /// інакше якнайшвидший стрибок на топ-рівень був би вигіднішим за
+        /// поступову прокачку.
+        /// </summary>
+        public static int CumulativeUnitLevelCost(int baseAmount, int fromLevel, int toLevel, double growth)
+        {
+            var total = 0.0;
+
+            for (var level = fromLevel; level < toLevel; level++)
+                total += baseAmount * Math.Pow(growth, level - 1);
+
+            return total >= int.MaxValue ? int.MaxValue : (int)total;
+        }
     }
 }

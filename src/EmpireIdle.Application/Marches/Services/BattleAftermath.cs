@@ -4,6 +4,7 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Marches.Services
@@ -55,6 +56,10 @@ namespace EmpireIdle.Application.Marches.Services
             _logger = logger;
         }
 
+        /// <summary>Згортає стеки (тип+рівень) до типу — рядки звіту рівня не розрізняють.</summary>
+        private static Dictionary<string, int> ByType(IReadOnlyDictionary<UnitStackKey, int> stacks)
+            => stacks.GroupBy(p => p.Key.UnitType).ToDictionary(g => g.Key, g => g.Sum(p => p.Value));
+
         /// <summary>
         /// Записує бій нападнику: звіт із рядками по типах, кошик викупу
         /// й позначку на марші. Однаково для монстра й для села — з боку
@@ -69,7 +74,7 @@ namespace EmpireIdle.Application.Marches.Services
             Garrison garrison,
             string targetName,
             int targetLevel,
-            IReadOnlyDictionary<string, int> army,
+            IReadOnlyDictionary<UnitStackKey, int> army,
             BattleOutcome outcome,
             string terrain,
             int seed,
@@ -87,14 +92,19 @@ namespace EmpireIdle.Application.Marches.Services
                 targetName, targetLevel,
                 result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
 
-            foreach (var (unitType, sent) in army)
+            var armyByType = ByType(army);
+            var woundedByType = ByType(split.Wounded);
+            var recoverableByType = ByType(split.Recoverable);
+            var deadByType = ByType(split.Dead);
+
+            foreach (var (unitType, sent) in armyByType)
             {
                 report.AddLine(
                     unitType,
                     sent,
-                    split.Wounded.GetValueOrDefault(unitType),
-                    split.Recoverable.GetValueOrDefault(unitType),
-                    split.Dead.GetValueOrDefault(unitType));
+                    woundedByType.GetValueOrDefault(unitType),
+                    recoverableByType.GetValueOrDefault(unitType),
+                    deadByType.GetValueOrDefault(unitType));
             }
 
             await _battleReportRepository.AddAsync(report, cancellationToken);
@@ -148,12 +158,12 @@ namespace EmpireIdle.Application.Marches.Services
 
             var hostStood = defence
                 .Where(s => s.OwnerPlayerId is null)
-                .GroupBy(s => s.UnitType)
+                .GroupBy(s => new UnitStackKey(s.UnitType, s.Level))
                 .ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
 
             var hostLost = defenderLosses
                 .Where(l => l.OwnerPlayerId is null)
-                .GroupBy(l => l.UnitType)
+                .GroupBy(l => new UnitStackKey(l.UnitType, l.Level))
                 .ToDictionary(g => g.Key, g => g.Sum(l => l.Lost));
 
             var capacity = _logistics.CalculateWoundedCapacity(defenderVillage, defenderGarrison);
@@ -171,14 +181,19 @@ namespace EmpireIdle.Application.Marches.Services
                 leader?.Wound(utcNow);
             }
 
-            foreach (var (unitType, stood) in hostStood)
+            var hostStoodByType = ByType(hostStood);
+            var woundedByType = ByType(split.Wounded);
+            var recoverableByType = ByType(split.Recoverable);
+            var deadByType = ByType(split.Dead);
+
+            foreach (var (unitType, stood) in hostStoodByType)
             {
                 report.AddLine(
                     unitType,
                     stood,
-                    split.Wounded.GetValueOrDefault(unitType),
-                    split.Recoverable.GetValueOrDefault(unitType),
-                    split.Dead.GetValueOrDefault(unitType));
+                    woundedByType.GetValueOrDefault(unitType),
+                    recoverableByType.GetValueOrDefault(unitType),
+                    deadByType.GetValueOrDefault(unitType));
             }
 
             await _battleReportRepository.AddAsync(report, cancellationToken);
@@ -212,8 +227,8 @@ namespace EmpireIdle.Application.Marches.Services
                 if (group.Key is not { } ownerId)
                     continue;
 
-                var byType = group
-                    .GroupBy(l => l.UnitType)
+                var byStack = group
+                    .GroupBy(l => new UnitStackKey(l.UnitType, l.Level))
                     .ToDictionary(g => g.Key, g => g.Sum(l => l.Lost));
 
                 // Гарнізон союзника стоїть за сотню клітин, але транзакція одна
@@ -229,7 +244,7 @@ namespace EmpireIdle.Application.Marches.Services
                 }
 
                 var capacity = _logistics.CalculateWoundedCapacity(ownerVillage, ownerGarrison);
-                var split = _casualties.Split(byType, capacity, WoundedSeed(seed));
+                var split = _casualties.Split(byStack, capacity, WoundedSeed(seed));
 
                 ownerGarrison.AdmitWounded(split.Wounded, utcNow);
             }

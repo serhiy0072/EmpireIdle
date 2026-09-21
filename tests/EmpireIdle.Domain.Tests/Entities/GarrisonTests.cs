@@ -3,6 +3,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Tests.Entities
 {
@@ -21,7 +22,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
 
             // Act
-            garrison.TrainUnits("infantry", 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
 
             // Assert
             var order = Assert.Single(garrison.TrainingOrders);
@@ -41,7 +42,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
 
             Assert.Throws<RequirementNotMetException>(() =>
-                garrison.TrainUnits("infantry", count, 5, 100, TimeSpan.FromMinutes(1), DateTime.UtcNow));
+                garrison.TrainUnits("infantry", 1, count, 5, 100, TimeSpan.FromMinutes(1), DateTime.UtcNow));
         }
 
         /// <summary>
@@ -51,10 +52,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void TrainUnits_ShouldRejectSecondOrder_WhileFirstIsActive()
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
-            garrison.TrainUnits("infantry", 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
 
             Assert.Throws<InvalidStateException>(() =>
-                garrison.TrainUnits("archer", 1, 5, 100, TimeSpan.FromMinutes(2), DateTime.UtcNow));
+                garrison.TrainUnits("archer", 1, 1, 5, 100, TimeSpan.FromMinutes(2), DateTime.UtcNow));
         }
 
         /// <summary>
@@ -66,7 +67,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             // Arrange: замовлення на 3 юніти, що дозріє через 6 хв
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
-            garrison.TrainUnits("infantry", 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
 
             // Act: сканер приходить через 10 хв — час минув
             var completed = garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(10));
@@ -86,7 +87,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void CompleteDueTraining_ShouldIgnoreOrder_WhenTimeNotReached()
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
-            garrison.TrainUnits("infantry", 2, 5, 100, TimeSpan.FromMinutes(30), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 2, 5, 100, TimeSpan.FromMinutes(30), DateTime.UtcNow);
 
             var completed = garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
@@ -104,10 +105,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
 
-            garrison.TrainUnits("infantry", 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
-            garrison.TrainUnits("infantry", 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 3, 5, 100, TimeSpan.FromMinutes(6), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(10));
 
             var unit = Assert.Single(garrison.Units);
@@ -118,10 +119,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void SendUnits_ShouldRemoveUnitsFromGarrison()
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
-            garrison.TrainUnits("infantry", 5, 5, 100, TimeSpan.FromMinutes(10), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 5, 5, 100, TimeSpan.FromMinutes(10), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
 
-            garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 }, DateTime.UtcNow);
+            garrison.SendUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 3 }, DateTime.UtcNow);
 
             Assert.Equal(2, garrison.Units.Single().Count);
         }
@@ -131,11 +132,11 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void SendUnits_ShouldThrow_WhenNotEnoughUnits()
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
-            garrison.TrainUnits("infantry", 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
             Assert.Throws<NotEnoughResourcesException>(() =>
-                garrison.SendUnits(new Dictionary<string, int> { ["infantry"] = 5 }, DateTime.UtcNow));
+                garrison.SendUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }, DateTime.UtcNow));
 
             Assert.Equal(2, garrison.Units.Single().Count); // нічого не зняли
         }
@@ -145,10 +146,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void ReceiveUnits_ShouldReturnUnitsToGarrison()
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
-            garrison.TrainUnits("infantry", 5, 5, 100, TimeSpan.FromMinutes(10), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 5, 5, 100, TimeSpan.FromMinutes(10), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
 
-            var army = new Dictionary<string, int> { ["infantry"] = 3 };
+            var army = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 3 };
             garrison.SendUnits(army, DateTime.UtcNow);
             garrison.ReceiveUnits(army, DateTime.UtcNow);
 
@@ -160,12 +161,12 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
 
-            garrison.TrainUnits("infantry", 5, 10, armyCapacity:6, TimeSpan.FromMinutes(10), DateTime.UtcNow);
+            garrison.TrainUnits("infantry", 1, 5, 10, armyCapacity:6, TimeSpan.FromMinutes(10), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
 
             // 5 у гарнізоні + 2 в замовленні > 6
             Assert.Throws<RequirementNotMetException>(() =>
-                garrison.TrainUnits("infantry", 2, 10, 6, TimeSpan.FromMinutes(4), DateTime.UtcNow.AddMinutes(11)));
+                garrison.TrainUnits("infantry", 1, 2, 10, 6, TimeSpan.FromMinutes(4), DateTime.UtcNow.AddMinutes(11)));
         }
 
         /// <summary>
@@ -183,7 +184,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             // Act
             garrison.AddReinforcements(ownerId, ownerGarrisonId,
-                new Dictionary<string, int> { ["infantry"] = 10, ["archer"] = 5 }, 100, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10, [new UnitStackKey("archer", 1)] = 5 }, 100, now);
 
             // Assert
             Assert.Equal(15, garrison.ReinforcementCount);
@@ -205,11 +206,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             var now = DateTime.UtcNow;
 
             garrison.AddReinforcements(ownerId, ownerGarrisonId,
-                new Dictionary<string, int> { ["infantry"] = 10 }, 100, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, 100, now);
 
             // Act
             garrison.AddReinforcements(ownerId, ownerGarrisonId,
-                new Dictionary<string, int> { ["infantry"] = 7 }, 100, now.AddMinutes(30));
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 7 }, 100, now.AddMinutes(30));
 
             // Assert
             var stack = Assert.Single(garrison.Reinforcements);
@@ -231,9 +232,9 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             // Act
             garrison.AddReinforcements(first, Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 10 }, 100, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, 100, now);
             garrison.AddReinforcements(second, Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 4 }, 100, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 4 }, 100, now);
 
             // Assert
             Assert.Equal(2, garrison.Reinforcements.Count);
@@ -251,11 +252,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             var now = DateTime.UtcNow;
 
             garrison.AddReinforcements(ownerId, Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 18 }, 20, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 18 }, 20, now);
 
             // Act
             var act = () => garrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
-                new Dictionary<string, int> { ["archer"] = 5 }, 20, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("archer", 1)] = 5 }, 20, now);
 
             // Assert
             Assert.Throws<RequirementNotMetException>(act);
@@ -271,7 +272,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             // Act
             var act = () => garrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 0 }, 100, DateTime.UtcNow);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 0 }, 100, DateTime.UtcNow);
 
             // Assert
             Assert.Throws<RequirementNotMetException>(act);
@@ -291,16 +292,16 @@ namespace EmpireIdle.Domain.Tests.Entities
             var now = DateTime.UtcNow;
 
             garrison.AddReinforcements(leaving, Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 10, ["archer"] = 3 }, 100, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10, [new UnitStackKey("archer", 1)] = 3 }, 100, now);
             garrison.AddReinforcements(staying, Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 6 }, 100, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 6 }, 100, now);
 
             // Act
             var withdrawn = garrison.WithdrawReinforcements(leaving, now.AddHours(1));
 
             // Assert
-            Assert.Equal(10, withdrawn["infantry"]);
-            Assert.Equal(3, withdrawn["archer"]);
+            Assert.Equal(10, withdrawn[new UnitStackKey("infantry", 1)]);
+            Assert.Equal(3, withdrawn[new UnitStackKey("archer", 1)]);
             Assert.Equal(6, garrison.ReinforcementCount);
             Assert.DoesNotContain(garrison.Reinforcements, r => r.OwnerPlayerId == leaving);
         }
@@ -334,14 +335,162 @@ namespace EmpireIdle.Domain.Tests.Entities
             var now = DateTime.UtcNow;
 
             garrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 50 }, 100, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 50 }, 100, now);
 
             // Act
-            garrison.TrainUnits("infantry", 3, 5, 5, TimeSpan.FromMinutes(6), now);
+            garrison.TrainUnits("infantry", 1, 3, 5, 5, TimeSpan.FromMinutes(6), now);
 
             // Assert
             var order = Assert.Single(garrison.TrainingOrders);
             Assert.Equal(3, order.Count);
+        }
+
+        // ---------- Прокачка ----------
+
+        /// <summary>
+        /// Прокачка знімає юнітів із гарнізону одразу, партія стає в чергу,
+        /// на новому рівні юніти ще не з'явились.
+        /// </summary>
+        [Fact]
+        public void LevelUpUnits_ShouldRemoveUnitsImmediately_AndQueueTheOrder()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 1, 10, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            garrison.LevelUpUnits("infantry", fromLevel: 1, toLevel: 2, count: 4, maxBatchSize: 10,
+                TimeSpan.FromMinutes(10), now);
+
+            var order = Assert.Single(garrison.LevelUpOrders);
+            Assert.Equal("infantry", order.UnitType);
+            Assert.Equal(1, order.FromLevel);
+            Assert.Equal(2, order.ToLevel);
+            Assert.Equal(4, order.Count);
+
+            // 4 знято на прокачку, 6 лишилось у гарнізоні на старому рівні
+            Assert.Equal(6, garrison.Units.Single(u => u.Level == 1).Count);
+        }
+
+        /// <summary>Розмір партії прокачки обмежений maxBatchSize (10, §5.2 GDD).</summary>
+        [Theory]
+        [InlineData(0)]
+        [InlineData(11)]
+        public void LevelUpUnits_ShouldRejectInvalidBatchSize(int count)
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 1, 20, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            Assert.Throws<RequirementNotMetException>(() =>
+                garrison.LevelUpUnits("infantry", 1, 2, count, 10, TimeSpan.FromMinutes(1), now));
+        }
+
+        /// <summary>Цільовий рівень має бути вищим за поточний.</summary>
+        [Fact]
+        public void LevelUpUnits_ShouldReject_WhenTargetLevelIsNotHigher()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 2, 5, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            Assert.Throws<RequirementNotMetException>(() =>
+                garrison.LevelUpUnits("infantry", 2, 2, 1, 10, TimeSpan.FromMinutes(1), now));
+        }
+
+        /// <summary>Одночасно прокачується лише одна партія.</summary>
+        [Fact]
+        public void LevelUpUnits_ShouldRejectSecondOrder_WhileFirstIsActive()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 1, 10, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            garrison.LevelUpUnits("infantry", 1, 2, 4, 10, TimeSpan.FromMinutes(10), now);
+
+            Assert.Throws<InvalidStateException>(() =>
+                garrison.LevelUpUnits("infantry", 1, 2, 2, 10, TimeSpan.FromMinutes(5), now));
+        }
+
+        /// <summary>Не можна прокачати більше юнітів, ніж стоїть у стеку заданого рівня.</summary>
+        [Fact]
+        public void LevelUpUnits_ShouldThrow_WhenStackIsTooSmall()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 1, 3, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            Assert.Throws<NotEnoughResourcesException>(() =>
+                garrison.LevelUpUnits("infantry", 1, 2, 5, 10, TimeSpan.FromMinutes(1), now));
+
+            Assert.Equal(3, garrison.Units.Single().Count); // нічого не зняли
+        }
+
+        /// <summary>Завершена прокачка повертає юнітів у гарнізон уже на новому рівні.</summary>
+        [Fact]
+        public void CompleteDueLevelUps_ShouldReturnUnitsAtTheNewLevel()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 1, 10, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            garrison.LevelUpUnits("infantry", 1, 2, 4, 10, TimeSpan.FromMinutes(10), now);
+
+            var completed = garrison.CompleteDueLevelUps(now.AddMinutes(11));
+
+            Assert.Equal(1, completed);
+            Assert.Empty(garrison.LevelUpOrders);
+            Assert.Equal(6, garrison.Units.Single(u => u.Level == 1).Count);
+            Assert.Equal(4, garrison.Units.Single(u => u.Level == 2).Count);
+        }
+
+        /// <summary>Прокачка, чий час ще не настав, не завершується.</summary>
+        [Fact]
+        public void CompleteDueLevelUps_ShouldIgnoreOrder_WhenTimeNotReached()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 1, 10, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            garrison.LevelUpUnits("infantry", 1, 2, 4, 10, TimeSpan.FromMinutes(30), now);
+
+            var completed = garrison.CompleteDueLevelUps(now.AddMinutes(5));
+
+            Assert.Equal(0, completed);
+            Assert.Single(garrison.LevelUpOrders);
+            Assert.DoesNotContain(garrison.Units, u => u.Level == 2);
+        }
+
+        /// <summary>Прискорення прокачки зсуває час завершення (speedup за gems).</summary>
+        [Fact]
+        public void ReduceLevelUpTime_ShouldMoveCompletionEarlier()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 1, 10, 100, 100, TimeSpan.Zero, now);
+            garrison.CompleteDueTraining(now);
+
+            garrison.LevelUpUnits("infantry", 1, 2, 4, 10, TimeSpan.FromMinutes(30), now);
+            var order = garrison.LevelUpOrders.Single();
+
+            garrison.ReduceLevelUpTime(order.Id, TimeSpan.FromMinutes(30), now);
+
+            var completed = garrison.CompleteDueLevelUps(now);
+            Assert.Equal(1, completed);
         }
 
         /// <summary>Оборона — це свої юніти плюс підкріплення, окремими стеками.</summary>
@@ -353,11 +502,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             var ally = Guid.NewGuid();
             var now = DateTime.UtcNow;
 
-            garrison.TrainUnits("infantry", 10, 100, 100, TimeSpan.Zero, now);
+            garrison.TrainUnits("infantry", 1, 10, 100, 100, TimeSpan.Zero, now);
             garrison.CompleteDueTraining(now);
 
             garrison.AddReinforcements(ally, Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 4 }, 100, now);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 4 }, 100, now);
 
             // Act
             var defence = garrison.GetDefence();
@@ -376,7 +525,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
             var now = DateTime.UtcNow;
 
-            garrison.AdmitWounded(new Dictionary<string, int> { ["infantry"] = 6 }, now);
+            garrison.AdmitWounded(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 6 }, now);
 
             // Act
             var defence = garrison.GetDefence();
@@ -399,7 +548,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var ownerGarrisonId = Guid.NewGuid();
 
             garrison.AddReinforcements(Guid.NewGuid(), ownerGarrisonId,
-                new Dictionary<string, int> { ["infantry"] = 5 }, 100, DateTime.UtcNow);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }, 100, DateTime.UtcNow);
 
             var moved = Assert.Single(garrison.DomainEvents.OfType<ReinforcementsMoved>());
 
@@ -415,7 +564,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var ownerGarrisonId = Guid.NewGuid();
 
             garrison.AddReinforcements(ownerId, ownerGarrisonId,
-                new Dictionary<string, int> { ["infantry"] = 5 }, 100, DateTime.UtcNow);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }, 100, DateTime.UtcNow);
 
             garrison.ClearDomainEvents();
 
@@ -452,16 +601,16 @@ namespace EmpireIdle.Domain.Tests.Entities
             var secondGarrison = Guid.NewGuid();
 
             garrison.AddReinforcements(firstOwner, firstGarrison,
-                new Dictionary<string, int> { ["infantry"] = 10 }, 100, DateTime.UtcNow);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, 100, DateTime.UtcNow);
             garrison.AddReinforcements(secondOwner, secondGarrison,
-                new Dictionary<string, int> { ["infantry"] = 10 }, 100, DateTime.UtcNow);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, 100, DateTime.UtcNow);
 
             garrison.ClearDomainEvents();
 
             garrison.ApplyDefenceLosses(
             [
-                new StackLoss(firstOwner, "infantry", 3),
-                new StackLoss(secondOwner, "infantry", 4)
+                new StackLoss(firstOwner, "infantry", 1, 3),
+                new StackLoss(secondOwner, "infantry", 1, 4)
             ], DateTime.UtcNow);
 
             var owners = garrison.DomainEvents.OfType<ReinforcementsMoved>()
@@ -481,10 +630,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void ApplyDefenceLosses_ShouldNotRaiseEvent_ForOwnUnitsOnly()
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
-            garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = 10 }, DateTime.UtcNow);
+            garrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, DateTime.UtcNow);
             garrison.ClearDomainEvents();
 
-            garrison.ApplyDefenceLosses([new StackLoss(null, "infantry", 4)], DateTime.UtcNow);
+            garrison.ApplyDefenceLosses([new StackLoss(null, "infantry", 1, 4)], DateTime.UtcNow);
 
             Assert.Empty(garrison.DomainEvents.OfType<ReinforcementsMoved>());
         }

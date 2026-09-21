@@ -9,17 +9,19 @@ namespace EmpireIdle.Domain.Entities
         public Guid GarrisonId { get; private set; }
         public Guid BattleReportId { get; private set; }
         public string UnitType { get; private set; } = null!;
+        public int Level { get; private set; }
         public int Count { get; private set; }
 
         /// <summary>Після цього моменту стек згорає.</summary>
         public DateTime ExpiresAt { get; private set; }
 
         public RecoverableUnit(Guid id, Guid garrisonId, Guid battleReportId,
-            string unitType, int count, DateTime expiresAt) : base(id)
+            string unitType, int level, int count, DateTime expiresAt) : base(id)
         {
             GarrisonId = garrisonId;
             BattleReportId = battleReportId;
             UnitType = unitType;
+            Level = level;
             Count = count;
             ExpiresAt = expiresAt;
         }

@@ -2,6 +2,7 @@ using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +11,13 @@ namespace EmpireIdle.Application.Garrisons.Commands
     /// <summary>
     /// Команда тренування партії юнітів (1–5) у казармах села гравця.
     /// </summary>
-    public record TrainUnitsCommand(Guid PlayerId, string UnitType, int Count) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
+    /// <param name="Level">
+    /// Рівень, на якому юніти з'являться — з нуля, а не завжди 1. Ціна й час
+    /// сумують крок за кроком від рівня 1 (§5.2 GDD): дорожче за пряме
+    /// тренування, ніж прокачка потім, інакше прокачка втрачає сенс.
+    /// </param>
+    public record TrainUnitsCommand(Guid PlayerId, string UnitType, int Level, int Count)
+        : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
     /// Обробник TrainUnitsCommand: координує Village (списання вартості)
@@ -68,12 +75,28 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 throw new RequirementNotMetException(
                     $"Training '{request.UnitType}' requires '{config.RequiresBuilding}' at level {config.RequiresBuildingLevel}.");
 
+            if (request.Level < 1 || request.Level > _catalog.Config.MaxUnitLevel)
+                throw new RequirementNotMetException($"Unit level must be between 1 and {_catalog.Config.MaxUnitLevel}.");
+
             var armyCapacity = trainingBuilding.Level.Value * _catalog.Config.ArmyCapacityPerBarracksLevel;
 
-            village.ChargeCost(config.Cost, now, request.Count);
+            // Тренування з нуля на обраний рівень коштує суму кроків від 1 до нього —
+            // так само, як прокачка вже навченого юніта (§5.2 GDD)
+            var costPerUnit = config.Cost
+                .Select(line => new ResourceCost
+                {
+                    Resource = line.Resource,
+                    Amount = ProgressionCurves.CumulativeUnitLevelCost(line.Amount, 1, request.Level + 1, config.LevelUpCostGrowth)
+                })
+                .ToList();
 
-            garrison.TrainUnits(request.UnitType, request.Count, _catalog.Config.MaxTrainingBatchSize,
-                armyCapacity, TimeSpan.FromMinutes(config.BaseTrainMinutes * request.Count), now);
+            var minutesPerUnit = ProgressionCurves.CumulativeUnitLevelCost(
+                config.BaseTrainMinutes, 1, request.Level + 1, config.LevelUpCostGrowth);
+
+            village.ChargeCost(costPerUnit, now, request.Count);
+
+            garrison.TrainUnits(request.UnitType, request.Level, request.Count, _catalog.Config.MaxTrainingBatchSize,
+                armyCapacity, TimeSpan.FromMinutes(minutesPerUnit * request.Count), now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

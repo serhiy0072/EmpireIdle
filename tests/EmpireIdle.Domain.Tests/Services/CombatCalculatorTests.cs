@@ -2,15 +2,16 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
     public class CombatCalculatorTests
     {
         private readonly CombatCalculator _calculator;
-        private readonly Dictionary<string, int> _attacker = new() { ["infantry"] = 20 };
-        private readonly Dictionary<string, int> _defender = new() { ["infantry"] = 5 };
-        private static Dictionary<string, int> Army(int count) => new() { ["infantry"] = count };
+        private readonly Dictionary<UnitStackKey, int> _attacker = new() { [new UnitStackKey("infantry", 1)] = 20 };
+        private readonly Dictionary<UnitStackKey, int> _defender = new() { [new UnitStackKey("infantry", 1)] = 5 };
+        private static Dictionary<UnitStackKey, int> Army(int count) => new() { [new UnitStackKey("infantry", 1)] = count };
 
         public CombatCalculatorTests()
         {
@@ -57,6 +58,34 @@ namespace EmpireIdle.Domain.Tests.Services
         }
 
         /// <summary>
+        /// Рівень юніта підсилює його внесок у силу: +10%/рівень (§5.2 GDD).
+        /// Без цього прокачка була б косметикою, а не бойовою перевагою.
+        /// </summary>
+        [Fact]
+        public void CalculatePower_ShouldApplyTheLevelMultiplier()
+        {
+            var levelledArmy = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 3)] = 20 };
+
+            var power = _calculator.CalculatePower(levelledArmy, "plain", isAttacker: true);
+
+            // 20 × 10 атаки × (1 + 0.10 × (3-1)) = 240
+            Assert.Equal(240, power, 3);
+        }
+
+        /// <summary>Той самий множник рівня діє й на обороні.</summary>
+        [Fact]
+        public void CalculateDefencePower_ShouldApplyTheLevelMultiplier()
+        {
+            var plain = new List<DefenceStack> { new(null, "infantry", 1, 100) };
+            var levelled = new List<DefenceStack> { new(null, "infantry", 3, 100) };
+
+            var plainPower = _calculator.CalculateDefencePower(plain, "plain");
+            var levelledPower = _calculator.CalculateDefencePower(levelled, "plain");
+
+            Assert.Equal(plainPower * 1.20, levelledPower, 3);
+        }
+
+        /// <summary>
         /// Каталог із двома типами різної стійкості: облога втричі
         /// крихкіша за піхоту, атака однакова — щоб різниця у втратах
         /// пояснювалась саме захистом, а не внеском у силу.
@@ -93,7 +122,7 @@ namespace EmpireIdle.Domain.Tests.Services
         }
 
         /// <summary>Частка втраченого від початкового складу.</summary>
-        private static double Share(IReadOnlyDictionary<string, int> army, IReadOnlyDictionary<string, int> losses)
+        private static double Share(IReadOnlyDictionary<UnitStackKey, int> army, IReadOnlyDictionary<UnitStackKey, int> losses)
             => (double)losses.Values.Sum() / army.Values.Sum();
 
         [Fact]
@@ -102,8 +131,8 @@ namespace EmpireIdle.Domain.Tests.Services
             // Arrange: змішана армія проти явно слабшого захисника
             var calculator = CalculatorWithFragileSiege();
 
-            var attacker = new Dictionary<string, int> { ["infantry"] = 100, ["siege"] = 100 };
-            var defender = new Dictionary<string, int> { ["infantry"] = 10 };
+            var attacker = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 100, [new UnitStackKey("siege", 1)] = 100 };
+            var defender = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
 
             // Act
             var result = calculator.Resolve(attacker, DefenceStacks.FromArmy(defender), "plain", seed: 42);
@@ -111,8 +140,8 @@ namespace EmpireIdle.Domain.Tests.Services
             // Assert
             Assert.True(result.AttackerWon);
 
-            var infantryShare = result.AttackerLosses["infantry"] / 100.0;
-            var siegeShare = result.AttackerLosses["siege"] / 100.0;
+            var infantryShare = result.AttackerLosses[new UnitStackKey("infantry", 1)] / 100.0;
+            var siegeShare = result.AttackerLosses[new UnitStackKey("siege", 1)] / 100.0;
 
             // Захист 4 проти 12 — облога має танути помітно швидше
             Assert.True(siegeShare > infantryShare,
@@ -125,8 +154,8 @@ namespace EmpireIdle.Domain.Tests.Services
             // Arrange: змішана армія, яка гарантовано програє
             var calculator = CalculatorWithFragileSiege();
 
-            var attacker = new Dictionary<string, int> { ["infantry"] = 100, ["siege"] = 100 };
-            var defender = new Dictionary<string, int> { ["infantry"] = 1000 };
+            var attacker = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 100, [new UnitStackKey("siege", 1)] = 100 };
+            var defender = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 1000 };
 
             // Act
             var result = calculator.Resolve(attacker, DefenceStacks.FromArmy(defender), "plain", seed: 42);
@@ -136,8 +165,8 @@ namespace EmpireIdle.Domain.Tests.Services
 
             // Розгром не розбирає якість: однакова частка на обидва типи,
             // різниця можлива хіба на одиницю залишку при непарних втратах
-            Assert.True(Math.Abs(result.AttackerLosses["infantry"] - result.AttackerLosses["siege"]) <= 1,
-                $"infantry {result.AttackerLosses["infantry"]} проти siege {result.AttackerLosses["siege"]}");
+            Assert.True(Math.Abs(result.AttackerLosses[new UnitStackKey("infantry", 1)] - result.AttackerLosses[new UnitStackKey("siege", 1)]) <= 1,
+                $"infantry {result.AttackerLosses[new UnitStackKey("infantry", 1)]} проти siege {result.AttackerLosses[new UnitStackKey("siege", 1)]}");
         }
 
         // ---------- Смуги втрат ----------
@@ -243,7 +272,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void CalculateDefencePower_ShouldApplyTheOwnersBuff()
         {
-            var stacks = new List<DefenceStack> { new(null, "infantry", 100) };
+            var stacks = new List<DefenceStack> { new(null, "infantry", 1, 100) };
 
             var plain = _calculator.CalculateDefencePower(stacks, "plain");
             var buffed = _calculator.CalculateDefencePower(stacks, "plain",
@@ -263,8 +292,8 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var stacks = new List<DefenceStack>
             {
-                new(null, "infantry", 100),
-                new(ally, "infantry", 100)
+                new(null, "infantry", 1, 100),
+                new(ally, "infantry", 1, 100)
             };
 
             var buffs = new DefenceBuffs(
@@ -281,7 +310,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void CalculateDefencePower_ShouldMatchThePlainSum_WhenThereAreNoBuffs()
         {
-            var army = new Dictionary<string, int> { ["infantry"] = 50, ["archer"] = 20 };
+            var army = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 50, [new UnitStackKey("archer", 1)] = 20 };
 
             Assert.Equal(
                 _calculator.CalculatePower(army, "plain", isAttacker: false),

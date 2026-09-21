@@ -21,17 +21,20 @@ namespace EmpireIdle.Domain.Entities
 
         public string UnitType { get; private set; } = null!;
 
+        public int Level { get; private set; }
+
         public int Count { get; private set; }
 
         public DateTime ArrivedAt { get; private set; }
 
         public ReinforcementUnit(Guid id, Guid garrisonId, Guid ownerPlayerId, Guid ownerGarrisonId,
-            string unitType, int count, DateTime utcNow) : base(id)
+            string unitType, int level, int count, DateTime utcNow) : base(id)
         {
             GarrisonId = garrisonId;
             OwnerPlayerId = ownerPlayerId;
             OwnerGarrisonId = ownerGarrisonId;
             UnitType = unitType;
+            Level = level;
             Count = count;
             ArrivedAt = utcNow;
         }
