@@ -58,6 +58,7 @@ export default function AppLayout() {
                   <nav className="flex gap-1">
             {[
               { to: "/", label: "Село" },
+              { to: "/army", label: "Військо" },
               { to: "/heroes", label: "Герої" },
             ].map((item) => (
               <NavLink

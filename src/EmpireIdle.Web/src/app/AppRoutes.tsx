@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { useSession } from "../hooks/useSession";
+import ArmyPage from "../pages/ArmyPage";
 import LoginPage from "../pages/LoginPage";
 import VillagePage from "../pages/VillagePage";
 import HeroesPage from "../pages/HeroesPage";
@@ -28,6 +29,7 @@ export default function AppRoutes() {
             <Route path="*" element={<Navigate to="/" replace />} />
             
             <Route path="/heroes" element={<HeroesPage />} />
+            <Route path="/army" element={<ArmyPage />} />
           </Route>
         )}
       </Routes>
