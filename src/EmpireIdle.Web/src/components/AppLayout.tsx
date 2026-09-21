@@ -5,6 +5,8 @@ import { logout } from "../lib/auth";
 import { seedAccount } from "../lib/dev";
 import { useVillage } from "../lib/queries/village";
 import { useWallet } from "../lib/queries/wallet";
+import TutorialOverlay from "../tutorial/TutorialOverlay";
+import { useTutorial } from "../tutorial/useTutorial";
 import ErrorBanner from "./ErrorBanner";
 import ResourceBar from "./ResourceBar";
 
@@ -22,6 +24,7 @@ export default function AppLayout() {
   const playerId = session?.playerId ?? "";
   const village = useVillage(playerId);
   const wallet = useWallet(playerId);
+  const tutorial = useTutorial(playerId);
 
   const seed = useMutation({
     mutationFn: () => seedAccount(playerId),
@@ -67,6 +70,7 @@ export default function AppLayout() {
               <NavLink
                 key={item.to}
                 to={item.to}
+                data-tutorial={`nav:${item.to}`}
                 end
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-1 text-sm ${isActive ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"}`
@@ -84,6 +88,10 @@ export default function AppLayout() {
       <main className="mx-auto max-w-5xl px-4 py-6">
         <Outlet />
       </main>
+
+      {tutorial.step !== null && (
+        <TutorialOverlay step={tutorial.step} onDismiss={tutorial.dismiss} onSkip={tutorial.skip} />
+      )}
     </div>
   );
 }

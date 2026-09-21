@@ -27,3 +27,4 @@ export type SendMarchRequest = components["schemas"]["SendMarchRequest"];
 export type BattlePreviewResult = components["schemas"]["BattlePreviewResult"];
 export type BattleOdds = components["schemas"]["BattleOdds"];
 export type BattleReportResponse = components["schemas"]["BattleReportResponse"];
+export type TutorialProgressResponse = components["schemas"]["TutorialProgressResponse"];

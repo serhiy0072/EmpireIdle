@@ -114,7 +114,7 @@ export default function MapPage() {
         </div>
       </div>
 
-      <section className="space-y-2">
+      <section className="space-y-2" data-tutorial="reports">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Звіти боїв</h2>
         <BattleReportList playerId={playerId} />
       </section>
