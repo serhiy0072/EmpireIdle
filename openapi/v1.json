@@ -4690,6 +4690,9 @@
           "producesResource": {
             "type": "string",
             "nullable": true
+          },
+          "position": {
+            "$ref": "#/components/schemas/CatalogPosition"
           }
         },
         "additionalProperties": false
@@ -4849,6 +4852,24 @@
             "format": "double"
           },
           "percentPerConstellation": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogPosition": {
+        "required": [
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
             "type": "number",
             "format": "double"
           }

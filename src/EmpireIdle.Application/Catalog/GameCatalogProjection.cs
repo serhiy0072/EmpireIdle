@@ -70,7 +70,11 @@ namespace EmpireIdle.Application.Catalog
                 .ToList();
 
             var buildings = config.Buildings
-                .Select(building => new CatalogBuilding(building.Key, building.DisplayName, building.ProducesResource))
+                .Select(building => new CatalogBuilding(
+                    building.Key,
+                    building.DisplayName,
+                    building.ProducesResource,
+                    building.Position is null ? null : new CatalogPosition(building.Position.X, building.Position.Y)))
                 .ToList();
 
             var response = new CatalogResponse(

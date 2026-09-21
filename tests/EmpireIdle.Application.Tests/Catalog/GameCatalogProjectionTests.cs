@@ -1,4 +1,6 @@
 using EmpireIdle.Application.Catalog;
+using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.TestKit;
 
 namespace EmpireIdle.Application.Tests.Catalog;
@@ -63,5 +65,19 @@ public class GameCatalogProjectionTests
         var changed = new GameCatalogProjection(new EmpireIdle.Domain.Services.GameCatalog(other)).Response;
 
         Assert.NotEqual(_projection.Response.Version, changed.Version);
+    }
+
+    /// <summary>Позиція будує розкладку села на клієнті: без неї будівлю нема куди поставити.</summary>
+    [Fact]
+    public void Response_ShouldCarryBuildingPositions()
+    {
+        var config = new GameConfigBuilder().WithBuildings(TestKeys.Warehouse).Build();
+        var townhall = config.Buildings[0];
+        townhall.Position = new BuildingPosition { X = 50, Y = 30 };
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var building = response.Buildings.Single(b => b.Key == townhall.Key);
+
+        Assert.Equal(new CatalogPosition(50, 30), building.Position);
     }
 }
