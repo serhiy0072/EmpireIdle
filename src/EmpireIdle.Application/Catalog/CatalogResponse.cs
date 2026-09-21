@@ -13,6 +13,7 @@ namespace EmpireIdle.Application.Catalog
         IReadOnlyList<CatalogItem> Items,
         IReadOnlyList<CatalogResource> Resources,
         IReadOnlyList<CatalogBuilding> Buildings,
+        IReadOnlyList<CatalogUnit> Units,
         IReadOnlyList<string> HeroClasses,
         int MaxConstellation,
         int MaxTier,
@@ -61,4 +62,16 @@ namespace EmpireIdle.Application.Catalog
 
     /// <summary>Координати на плані села у відсотках: 0–100 по кожній осі.</summary>
     public record CatalogPosition(double X, double Y);
+
+    /// <summary>Вартість одного юніта в конкретному ресурсі.</summary>
+    public record CatalogUnitCost(string Resource, int Amount);
+
+    /// <param name="RequiresBuilding">Будівля, потрібна для тренування; null — без вимог.</param>
+    public record CatalogUnit(
+        string Key,
+        string DisplayName,
+        string? RequiresBuilding,
+        int RequiresBuildingLevel,
+        int BaseTrainMinutes,
+        IReadOnlyList<CatalogUnitCost> Cost);
 }
