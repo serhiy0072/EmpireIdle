@@ -130,7 +130,7 @@ async function unwrap<T>(response: Response): Promise<T> {
   }
 
   const text = await response.text();
-  const payload = text === "" ? null : (JSON.parse(text) as unknown);
+  const payload = parseJson(text);
 
   if (!response.ok) {
     // Бек завжди віддає ProblemDetails, але падати на відповіді проксі не варто
@@ -138,4 +138,15 @@ async function unwrap<T>(response: Response): Promise<T> {
   }
 
   return payload as T;
+}
+
+/** HTML-сторінка від проксі чи порожнє тіло — це не JSON: віддаємо null, а не SyntaxError. */
+function parseJson(text: string): unknown {
+  if (text === "") return null;
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
 }

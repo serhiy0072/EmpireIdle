@@ -26,6 +26,8 @@ export interface Catalog {
   unitName: (key: string) => string;
   /** Юніти, які ця будівля вже може тренувати на своєму поточному рівні. */
   unitsFor: (buildingType: string, buildingLevel: number) => CatalogUnit[];
+  /** Ключі будівель, що тренують хоч один тип юнітів. */
+  trainingBuildingKeys: string[];
   maxConstellation: number;
   maxTier: number;
   /** Кап рівня юніта від тренування чи прокачки (§5.2 GDD). */
@@ -71,6 +73,9 @@ export function useCatalog(): Catalog {
         (data?.units ?? []).filter(
           (unit) => unit.requiresBuilding === buildingType && unit.requiresBuildingLevel <= buildingLevel,
         ),
+      trainingBuildingKeys: [
+        ...new Set((data?.units ?? []).flatMap((unit) => (unit.requiresBuilding == null ? [] : [unit.requiresBuilding]))),
+      ],
       maxConstellation: data?.maxConstellation ?? 6,
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,

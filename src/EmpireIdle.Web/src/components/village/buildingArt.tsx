@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
-import { at, Box, Cone, Cylinder, faces, Flag, Gable, Pyramid } from "./isoShapes";
+import { at, faces } from "../../lib/iso";
+import { Box, Cone, Cylinder, Flag, Gable, Pyramid } from "./isoShapes";
 
 /**
  * Силует кожної будівлі з примітивів. Плейсхолдер під спрайти:

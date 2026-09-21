@@ -20,9 +20,20 @@ export function project(x: number, y: number): Point {
   return { x: (x - y) * UNIT_X, y: (x + y) * UNIT_Y };
 }
 
-export function lift(point: Point, height: number): Point {
-  return { x: point.x, y: point.y - height };
+/** Точка плану на висоті z пікселів над землею. */
+export function at(x: number, y: number, z = 0): Point {
+  const point = project(x, y);
+  return { x: point.x, y: point.y - z };
 }
+
+/** Три видимі грані: верх світліший, ліва середня, права в тіні. */
+export interface Faces {
+  top: string;
+  left: string;
+  right: string;
+}
+
+export const faces = (top: string, left: string, right: string): Faces => ({ top, left, right });
 
 export function toPath(points: Point[]): string {
   return `${points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ")} Z`;

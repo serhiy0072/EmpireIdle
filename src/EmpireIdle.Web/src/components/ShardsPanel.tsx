@@ -22,7 +22,8 @@ export default function ShardsPanel({ shards, busy, onBuy, onSummon }: Props) {
       {shards.map((shard) => {
         const config = catalog.hero(shard.heroKey);
         const ready = shard.count >= shard.required;
-        const count = counts[shard.heroKey] ?? 10;
+        // Порожнє поле дає 0 — сервер відхилить валідацією, а гравець побачить незрозумілу відмову
+        const count = Math.min(100, Math.max(1, counts[shard.heroKey] ?? 10));
 
         return (
           <div key={shard.heroKey} className="rounded-xl border border-slate-200 bg-white p-3">

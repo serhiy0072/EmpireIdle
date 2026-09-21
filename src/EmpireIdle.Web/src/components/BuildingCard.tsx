@@ -1,6 +1,7 @@
 import { useNow } from "../hooks/useNow";
 import type { BuildingResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
+import { formatRemaining } from "../lib/time";
 import HospitalPanel from "./HospitalPanel";
 import LevelUpUnitsPanel from "./LevelUpUnitsPanel";
 import TrainUnitsPanel from "./TrainUnitsPanel";
@@ -14,25 +15,15 @@ interface Props {
   onSpeedUp: () => void;
 }
 
-/** Залишок до кінця будівництва за серверним часом: годинник клієнта в розрахунку не бере участі. */
-function remaining(completesAt: string, now: number): string {
-  const seconds = Math.max(0, Math.round((Date.parse(completesAt) - now) / 1_000));
-
-  const hours = Math.floor(seconds / 3_600);
-  const minutes = Math.floor((seconds % 3_600) / 60);
-  const rest = seconds % 60;
-
-  const pad = (value: number) => value.toString().padStart(2, "0");
-
-  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(rest)}` : `${minutes}:${pad(rest)}`;
-}
-
 export default function BuildingCard({ playerId, building, busy, onCollect, onUpgrade, onSpeedUp }: Props) {
   const now = useNow();
 
+  const catalog = useCatalog();
+
+  // Сховище й збір є лише в будівель, що щось виробляють: ратуші чи казармам бар "0 / 0" ні до чого
+  const produces = catalog.building(building.type)?.producesResource != null;
   const fill = building.storageCap > 0 ? Math.min(1, building.storedAmount / building.storageCap) : 0;
   const full = building.storageCap > 0 && building.storedAmount >= building.storageCap;
-  const catalog = useCatalog();
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
@@ -41,22 +32,24 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         <span className="text-sm text-slate-500">рів. {building.level}</span>
       </div>
 
-      <div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-          <div
-            className={`h-full ${full ? "bg-amber-500" : "bg-emerald-500"}`}
-            style={{ width: `${fill * 100}%` }}
-          />
+      {produces && (
+        <div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full ${full ? "bg-amber-500" : "bg-emerald-500"}`}
+              style={{ width: `${fill * 100}%` }}
+            />
+          </div>
+          <p className="mt-1 text-xs text-slate-500">
+            {building.storedAmount.toLocaleString("uk-UA")} / {building.storageCap.toLocaleString("uk-UA")}
+            {full && " — сховище заповнене, виробіток стоїть"}
+          </p>
         </div>
-        <p className="mt-1 text-xs text-slate-500">
-          {building.storedAmount.toLocaleString("uk-UA")} / {building.storageCap.toLocaleString("uk-UA")}
-          {full && " — сховище заповнене, виробіток стоїть"}
-        </p>
-      </div>
+      )}
 
       {building.isUnderConstruction && building.constructionCompletesAt !== null && building.constructionCompletesAt !== undefined ? (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-600">Будується: {remaining(building.constructionCompletesAt, now)}</span>
+          <span className="text-sm text-slate-600">Будується: {formatRemaining(building.constructionCompletesAt, now)}</span>
           <button
             type="button"
             onClick={onSpeedUp}
@@ -72,14 +65,16 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         </div>
       ) : (
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onCollect}
-            disabled={busy || building.storedAmount === 0}
-            className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-          >
-            Зібрати
-          </button>
+          {produces && (
+            <button
+              type="button"
+              onClick={onCollect}
+              disabled={busy || building.storedAmount === 0}
+              className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              Зібрати
+            </button>
+          )}
           <button
             type="button"
             onClick={onUpgrade}
@@ -91,7 +86,12 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         </div>
       )}
 
-      <TrainUnitsPanel playerId={playerId} buildingType={building.type} buildingLevel={building.level} />
+      <TrainUnitsPanel
+        playerId={playerId}
+        buildingType={building.type}
+        buildingLevel={building.level}
+        underConstruction={building.isUnderConstruction}
+      />
       <LevelUpUnitsPanel playerId={playerId} buildingType={building.type} />
       {building.type === "hospital" && <HospitalPanel playerId={playerId} />}
     </div>

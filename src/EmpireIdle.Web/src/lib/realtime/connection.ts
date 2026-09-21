@@ -27,11 +27,18 @@ function emit<TName extends GameEventName>(name: TName, payload: GameEvents[TNam
 /** Що інвалідувати після кожної події. Точкові патчі кешу додамо разом з екранами. */
 function invalidate(name: GameEventName, queryClient: QueryClient, playerId: string): void {
   const keys: Record<GameEventName, readonly (readonly unknown[])[]> = {
-    BuildingCollected: [queryKeys.village(playerId), queryKeys.buildings(playerId)],
-    UpgradeStarted: [queryKeys.buildings(playerId)],
-    UpgradeCompleted: [queryKeys.buildings(playerId), queryKeys.village(playerId)],
-    BattleFinished: [queryKeys.battleReports(playerId), queryKeys.heroes(playerId)],
-    ServerQuestRewarded: [queryKeys.wallet(playerId)],
+    // Збір, апгрейд і бій рухають цілі квестів
+    BuildingCollected: [queryKeys.village(playerId), queryKeys.quests(playerId)],
+    UpgradeStarted: [queryKeys.village(playerId)],
+    UpgradeCompleted: [queryKeys.village(playerId), queryKeys.quests(playerId)],
+    // Бій ранить героїв і юнітів гарнізону
+    BattleFinished: [
+      queryKeys.battleReports(playerId),
+      queryKeys.heroes(playerId),
+      queryKeys.garrison(playerId),
+      queryKeys.quests(playerId),
+    ],
+    ServerQuestRewarded: [queryKeys.wallet(playerId), queryKeys.serverQuests(playerId)],
     ClanInvite: [],
   };
 
