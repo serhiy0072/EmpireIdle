@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNow } from "../hooks/useNow";
+import { cumulativeUnitLevelCost } from "../lib/progression";
 import type { CatalogUnit } from "../lib/queries/catalog";
 import { useCatalog } from "../lib/queries/catalog";
 import { useGarrison, useSpeedUpTraining, useTrainUnits } from "../lib/queries/garrison";
@@ -24,8 +25,17 @@ function remaining(completesAt: string, now: number): string {
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(rest)}` : `${minutes}:${pad(rest)}`;
 }
 
-function costLabel(unit: CatalogUnit, count: number, resourceName: (key: string) => string): string {
-  return unit.cost.map((line) => `${(line.amount * count).toLocaleString("uk-UA")} ${resourceName(line.resource)}`).join(", ");
+/**
+ * Тренування з нуля на обраний рівень коштує суму кроків від 1 до нього —
+ * так само, як прокачка вже навченого юніта (§5.2 GDD).
+ */
+function costLabel(unit: CatalogUnit, level: number, count: number, resourceName: (key: string) => string): string {
+  return unit.cost
+    .map((line) => {
+      const perUnit = cumulativeUnitLevelCost(line.amount, 1, level + 1, unit.levelUpCostGrowth);
+      return `${(perUnit * count).toLocaleString("uk-UA")} ${resourceName(line.resource)}`;
+    })
+    .join(", ");
 }
 
 /** Тренування юнітів на конкретній будівлі (казарми, стайня…) — список доступних типів і черга. */
@@ -36,6 +46,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
   const train = useTrainUnits(playerId);
   const speedUp = useSpeedUpTraining(playerId);
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [levels, setLevels] = useState<Record<string, number>>({});
 
   const units = catalog.unitsFor(buildingType, buildingLevel);
   const unitKeys = new Set(units.map((unit) => unit.key));
@@ -53,17 +64,32 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
 
       {units.map((unit) => {
         const count = counts[unit.key] ?? 1;
+        const level = levels[unit.key] ?? 1;
+        const minutes = cumulativeUnitLevelCost(unit.baseTrainMinutes, 1, level + 1, unit.levelUpCostGrowth) * count;
 
         return (
           <div key={unit.key} className="flex items-center justify-between gap-2 text-sm">
             <div>
               <p className="text-slate-800">{unit.displayName}</p>
               <p className="text-xs text-slate-500">
-                {costLabel(unit, count, catalog.resourceName)} · {unit.baseTrainMinutes * count} хв
+                {costLabel(unit, level, count, catalog.resourceName)} · {minutes} хв
               </p>
             </div>
 
             <div className="flex items-center gap-2">
+              <select
+                value={level}
+                onChange={(event) =>
+                  setLevels((prev) => ({ ...prev, [unit.key]: Number(event.target.value) }))
+                }
+                className="rounded-lg border border-slate-300 px-1 py-1 text-sm"
+              >
+                {Array.from({ length: catalog.maxUnitLevel }, (_, index) => index + 1).map((lvl) => (
+                  <option key={lvl} value={lvl}>
+                    рів. {lvl}
+                  </option>
+                ))}
+              </select>
               <input
                 type="number"
                 min={1}
@@ -75,7 +101,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
               />
               <button
                 type="button"
-                onClick={() => train.mutate({ unitType: unit.key, count })}
+                onClick={() => train.mutate({ unitType: unit.key, level, count })}
                 disabled={train.isPending}
                 className="rounded-lg bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700 disabled:opacity-50"
               >
@@ -92,7 +118,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
           {queue.map((order) => (
             <div key={order.id} className="flex items-center justify-between text-sm text-slate-600">
               <span>
-                {catalog.unitName(order.unitType)} ×{order.count} — {remaining(order.completesAt, now)}
+                {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.level}) — {remaining(order.completesAt, now)}
               </span>
               <button
                 type="button"

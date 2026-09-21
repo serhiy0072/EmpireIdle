@@ -1,6 +1,7 @@
 import { useNow } from "../hooks/useNow";
 import type { BuildingResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
+import LevelUpUnitsPanel from "./LevelUpUnitsPanel";
 import TrainUnitsPanel from "./TrainUnitsPanel";
 
 interface Props {
@@ -90,6 +91,7 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
       )}
 
       <TrainUnitsPanel playerId={playerId} buildingType={building.type} buildingLevel={building.level} />
+      <LevelUpUnitsPanel playerId={playerId} buildingType={building.type} />
     </div>
   );
 }
