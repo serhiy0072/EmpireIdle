@@ -13,9 +13,6 @@ namespace EmpireIdle.API.Controllers
     [Route("api/catalog")]
     public class CatalogController : ControllerBase
     {
-        /// <summary>Година в кеші браузера: конфіг міняється з деплоєм, а не в рантаймі.</summary>
-        private const int CacheSeconds = 3600;
-
         private readonly IMediator _mediator;
 
         public CatalogController(IMediator mediator)
@@ -32,7 +29,9 @@ namespace EmpireIdle.API.Controllers
             var catalog = await _mediator.Send(new GetCatalogQuery(), cancellationToken);
             var etag = $"\"{catalog.Version}\"";
 
-            Response.Headers.CacheControl = $"public, max-age={CacheSeconds}";
+            // no-cache не забороняє кеш, а вимагає перевірки: з ETag це 304 без тіла.
+            // max-age тримав старий каталог годину після зміни конфіга
+            Response.Headers.CacheControl = "no-cache";
             Response.Headers.ETag = etag;
 
             // Клієнт уже має цю версію: тіло не потрібне
