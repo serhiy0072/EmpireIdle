@@ -14,7 +14,7 @@ export default function ResourceBar({ village }: Props) {
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {village.resources.map((resource) => (
+      {village.resources.filter((resource) => resource.isUnlocked).map((resource) => (
         <span key={resource.resourceType} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
           {catalog.resourceName(resource.resourceType)}:{" "}
           <span className="font-medium">{resource.amount.toLocaleString("uk-UA")}</span>

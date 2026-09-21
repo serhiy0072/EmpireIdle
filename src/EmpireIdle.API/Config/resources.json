@@ -4,22 +4,26 @@
       {
         "Key": "gold",
         "DisplayName": "Gold",
-        "Icon": "gold.svg"
-      },
-      {
-        "Key": "food",
-        "DisplayName": "Food",
-        "Icon": "food.svg"
+        "Icon": "gold.svg",
+        "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "wood",
         "DisplayName": "Wood",
-        "Icon": "wood.svg"
+        "Icon": "wood.svg",
+        "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "iron",
         "DisplayName": "Iron",
-        "Icon": "iron.svg"
+        "Icon": "iron.svg",
+        "RequiresMainBuildingLevel": 2
+      },
+      {
+        "Key": "food",
+        "DisplayName": "Food",
+        "Icon": "food.svg",
+        "RequiresMainBuildingLevel": 3
       }
     ]
   }

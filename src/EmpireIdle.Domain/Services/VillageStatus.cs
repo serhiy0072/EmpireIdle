@@ -35,6 +35,15 @@ namespace EmpireIdle.Domain.Services
                && config.RequiresMainBuildingLevel <= MainBuildingLevel(village);
 
         /// <summary>
+        /// Чи відкритий ресурс гравцю. Той самий туман, що й у будівель:
+        /// ресурс існує на балансі з дня 1, але клієнт його не показує,
+        /// поки не настав сенс його добувати чи витрачати.
+        /// </summary>
+        public bool IsResourceUnlocked(Village village, string resourceType)
+            => _catalog.Resources.TryGetValue(resourceType, out var config)
+               && config.RequiresMainBuildingLevel <= MainBuildingLevel(village);
+
+        /// <summary>
         /// Множник до сили оборони від укріплень. 1.0 — стін немає.
         /// Належить селищу, тож підкріплення клану ними теж прикриті.
         /// </summary>
