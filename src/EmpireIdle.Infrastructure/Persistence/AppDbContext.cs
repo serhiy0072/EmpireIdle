@@ -41,6 +41,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<ServerQuestContribution> ServerQuestContributions => Set<ServerQuestContribution>();
         public DbSet<Server> Servers => Set<Server>();
         public DbSet<PlayerPower> PlayerPowers => Set<PlayerPower>();
+        public DbSet<TutorialProgress> TutorialProgress => Set<TutorialProgress>();
         public DbSet<PlayerRating> PlayerRatings => Set<PlayerRating>();
         public DbSet<Clan> Clans => Set<Clan>();
         public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
