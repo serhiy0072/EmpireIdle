@@ -6578,6 +6578,7 @@
           "completesAt",
           "count",
           "id",
+          "speedUpCostGems",
           "unitType"
         ],
         "type": "object",
@@ -6596,6 +6597,10 @@
           "completesAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "speedUpCostGems": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

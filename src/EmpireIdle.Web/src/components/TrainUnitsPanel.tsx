@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNow } from "../hooks/useNow";
 import type { CatalogUnit } from "../lib/queries/catalog";
 import { useCatalog } from "../lib/queries/catalog";
-import { useGarrison, useTrainUnits } from "../lib/queries/garrison";
+import { useGarrison, useSpeedUpTraining, useTrainUnits } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
 
 interface Props {
@@ -34,6 +34,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
   const catalog = useCatalog();
   const garrison = useGarrison(playerId);
   const train = useTrainUnits(playerId);
+  const speedUp = useSpeedUpTraining(playerId);
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   const units = catalog.unitsFor(buildingType, buildingLevel);
@@ -48,7 +49,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
     <div className="space-y-3 border-t border-slate-200 pt-3">
       <h4 className="text-sm font-medium text-slate-700">Тренування</h4>
 
-      <ErrorBanner error={train.error} />
+      <ErrorBanner error={train.error ?? speedUp.error} />
 
       {units.map((unit) => {
         const count = counts[unit.key] ?? 1;
@@ -89,9 +90,21 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel 
         <div className="space-y-1 border-t border-slate-100 pt-2">
           <p className="text-xs font-medium text-slate-500">У черзі</p>
           {queue.map((order) => (
-            <p key={order.id} className="text-sm text-slate-600">
-              {catalog.unitName(order.unitType)} ×{order.count} — {remaining(order.completesAt, now)}
-            </p>
+            <div key={order.id} className="flex items-center justify-between text-sm text-slate-600">
+              <span>
+                {catalog.unitName(order.unitType)} ×{order.count} — {remaining(order.completesAt, now)}
+              </span>
+              <button
+                type="button"
+                onClick={() => speedUp.mutate(order.id)}
+                disabled={speedUp.isPending}
+                className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                {order.speedUpCostGems === 0
+                  ? "Прискорити (безкоштовно)"
+                  : `Прискорити (${order.speedUpCostGems.toLocaleString("uk-UA")} 💎)`}
+              </button>
+            </div>
           ))}
         </div>
       )}

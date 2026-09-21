@@ -37,7 +37,7 @@ namespace EmpireIdle.API.Controllers
                 garrison.Recoverable.Select(r => new RecoverableUnitResponse(
                     r.UnitType, r.Count, r.ExpiresAt, r.CostGems)).ToList(),
                 garrison.TrainingOrders.Select(o => new TrainingOrderResponse(
-                    o.Id, o.UnitType, o.Count, o.CompletesAt)).ToList());
+                    o.Id, o.UnitType, o.Count, o.CompletesAt, o.SpeedUpCostGems)).ToList());
 
             return Ok(response);
         }
