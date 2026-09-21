@@ -67,6 +67,27 @@ public class GameCatalogProjectionTests
         Assert.NotEqual(_projection.Response.Version, changed.Version);
     }
 
+    /// <summary>Без вартості й вимог клієнт або мовчить про ціну, або вигадує її сам.</summary>
+    [Fact]
+    public void Response_ShouldCarryUnitsWithCostAndRequirements()
+    {
+        var catalog = new GameConfigBuilder().WithBuildings().WithUnits(unit =>
+        {
+            unit.RequiresBuilding = TestKeys.Barracks;
+            unit.RequiresBuildingLevel = 2;
+            unit.BaseTrainMinutes = 3;
+        }).BuildCatalog();
+
+        var response = new GameCatalogProjection(catalog).Response;
+
+        Assert.Equal(catalog.Config.Units.Count, response.Units.Count);
+        Assert.All(response.Units, unit => Assert.False(string.IsNullOrWhiteSpace(unit.DisplayName)));
+        Assert.All(response.Units, unit => Assert.Equal(TestKeys.Barracks, unit.RequiresBuilding));
+        Assert.All(response.Units, unit => Assert.Equal(2, unit.RequiresBuildingLevel));
+        Assert.All(response.Units, unit => Assert.Equal(3, unit.BaseTrainMinutes));
+        Assert.All(response.Units, unit => Assert.NotEmpty(unit.Cost));
+    }
+
     /// <summary>Позиція будує розкладку села на клієнті: без неї будівлю нема куди поставити.</summary>
     [Fact]
     public void Response_ShouldCarryBuildingPositions()

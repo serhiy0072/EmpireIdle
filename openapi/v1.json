@@ -4905,6 +4905,7 @@
           "maxConstellation",
           "maxTier",
           "resources",
+          "units",
           "version"
         ],
         "type": "object",
@@ -4933,6 +4934,12 @@
               "$ref": "#/components/schemas/CatalogBuilding"
             }
           },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogUnit"
+            }
+          },
           "heroClasses": {
             "type": "array",
             "items": {
@@ -4949,6 +4956,60 @@
           },
           "version": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogUnit": {
+        "required": [
+          "baseTrainMinutes",
+          "cost",
+          "displayName",
+          "key",
+          "requiresBuildingLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "requiresBuilding": {
+            "type": "string",
+            "nullable": true
+          },
+          "requiresBuildingLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baseTrainMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cost": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogUnitCost"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogUnitCost": {
+        "required": [
+          "amount",
+          "resource"
+        ],
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

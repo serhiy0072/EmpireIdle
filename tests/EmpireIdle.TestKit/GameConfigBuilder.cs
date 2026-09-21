@@ -243,6 +243,7 @@
         private static UnitConfig Unit(string key, double attack, double defence, double speed) => new()
         {
             Key = key,
+            DisplayName = $"Unit {key}",
             Stats = new Dictionary<string, double>
             {
                 ["Attack"] = attack,

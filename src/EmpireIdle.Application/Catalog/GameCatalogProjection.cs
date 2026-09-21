@@ -77,11 +77,22 @@ namespace EmpireIdle.Application.Catalog
                     building.Position is null ? null : new CatalogPosition(building.Position.X, building.Position.Y)))
                 .ToList();
 
+            var units = config.Units
+                .Select(unit => new CatalogUnit(
+                    unit.Key,
+                    unit.DisplayName,
+                    unit.RequiresBuilding,
+                    unit.RequiresBuildingLevel,
+                    unit.BaseTrainMinutes,
+                    unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList()))
+                .ToList();
+
             var response = new CatalogResponse(
                 heroes,
                 items,
                 resources,
                 buildings,
+                units,
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxConstellation,
                 config.HeroSettings.MaxTier,
