@@ -104,6 +104,7 @@ namespace EmpireIdle.Application.Catalog
                 config.Equipment.MaxEnhancement,
                 config.Equipment.RepairGemsBase,
                 config.Equipment.RepairGemsPerLevel,
+                config.Map.Width,
                 Version: string.Empty);
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag
