@@ -5622,6 +5622,8 @@
           "maxEnhancement",
           "maxTier",
           "maxUnitLevel",
+          "repairGemsBase",
+          "repairGemsPerLevel",
           "resources",
           "units",
           "version"
@@ -5685,6 +5687,14 @@
             "format": "int32"
           },
           "maxEnhancement": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "repairGemsBase": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "repairGemsPerLevel": {
             "type": "integer",
             "format": "int32"
           },
