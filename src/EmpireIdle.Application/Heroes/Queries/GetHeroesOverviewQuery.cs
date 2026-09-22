@@ -58,7 +58,8 @@ namespace EmpireIdle.Application.Heroes.Queries
                     h.Level,
                     _progression.MaxLevel(townHallLevel, h.Tier),
                     h.Constellation,
-                    h.State.ToString().ToLowerInvariant(),
+                    // Ім'я enum як є: клієнт розгалужується за "Idle", а не за "idle"
+                    h.State.ToString(),
                     h.StationedGarrisonId,
                     h.IsLeader))
                 .ToList();
