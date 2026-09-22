@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import { useNow } from "../hooks/useNow";
 import type { BuildingResponse } from "../lib/apiTypes";
+import { screenFor } from "../lib/buildingScreens";
 import { useCatalog } from "../lib/queries/catalog";
 import { formatRemaining } from "../lib/time";
 import HospitalPanel from "./HospitalPanel";
@@ -24,6 +26,7 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
   const produces = catalog.building(building.type)?.producesResource != null;
   const fill = building.storageCap > 0 ? Math.min(1, building.storedAmount / building.storageCap) : 0;
   const full = building.storageCap > 0 && building.storedAmount >= building.storageCap;
+  const screen = screenFor(building.type);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
@@ -31,6 +34,17 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         <h3 className="font-medium text-slate-800">{catalog.buildingName(building.type)}</h3>
         <span className="text-sm text-slate-500">рів. {building.level}</span>
       </div>
+
+      {/* Будівля веде на свій екран: казарма — до війська, зала героїв — до героїв */}
+      {screen !== null && (
+        <Link
+          to={screen.to}
+          className="flex items-center justify-between rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900"
+        >
+          <span>{screen.label}</span>
+          <span aria-hidden>→</span>
+        </Link>
+      )}
 
       {produces && (
         <div>
