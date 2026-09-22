@@ -9,6 +9,7 @@ namespace EmpireIdle.Application.Banners.Validators
         {
             RuleFor(x => x.PlayerId).NotEmpty();
             RuleFor(x => x.BannerKey).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.Count).InclusiveBetween(1, RollBannerCommand.MaxCount);
         }
     }
 }

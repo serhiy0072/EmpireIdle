@@ -11,21 +11,32 @@ using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Banners.Commands
 {
-    /// <summary>Один ролл банера за gems.</summary>
-    public record RollBannerCommand(Guid PlayerId, string BannerKey)
-        : IRequest<BannerRollResponse>, IPlayerScopedRequest, IIdempotentRequest;
+    /// <summary>
+    /// Серія роллів банера за gems — від одного до MaxCount за один запит.
+    /// Одна команда на серію, а не десять запитів: гравець не впирається
+    /// в ліміт запитів, а pity й гаманець змінюються однією транзакцією.
+    /// </summary>
+    public record RollBannerCommand(Guid PlayerId, string BannerKey, int Count = 1)
+        : IRequest<BannerRollResponse>, IPlayerScopedRequest, IIdempotentRequest
+    {
+        public const int MaxCount = 10;
+    }
 
+    /// <param name="Drops">Випади в порядку роллів.</param>
     /// <param name="GemBalance">Залишок після списання: клієнту не треба окремо перепитувати гаманець.</param>
     public record BannerRollResponse(
         string BannerKey,
+        IReadOnlyList<BannerDropResult> Drops,
+        int RareSince,
+        int UniqueSince,
+        int GemBalance);
+
+    public record BannerDropResult(
         string DropKey,
         string DisplayName,
         Rarity Rarity,
         bool WasPity,
-        bool LostFiftyFifty,
-        int RareSince,
-        int UniqueSince,
-        int GemBalance);
+        bool LostFiftyFifty);
 
     internal sealed class RollBannerCommandHandler : IRequestHandler<RollBannerCommand, BannerRollResponse>
     {
@@ -84,10 +95,13 @@ namespace EmpireIdle.Application.Banners.Commands
             var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
                 ?? throw new EntityNotFoundException("Wallet", player.UserId);
 
-            // Перевірка до списання: Subtract кинув би виняток рівня value object,
-            // а гравцю потрібна відмова з цифрами
-            if (wallet.GemBalance.Value < banner.PriceGems)
-                throw new NotEnoughResourcesException("gems", banner.PriceGems, wallet.GemBalance.Value);
+            // Перевірка до списання — на всю серію одразу: половина серії за
+            // рештки gems була б несподіванкою, а Subtract кинув би виняток рівня
+            // value object без цифр для гравця
+            var totalPrice = banner.PriceGems * request.Count;
+
+            if (wallet.GemBalance.Value < totalPrice)
+                throw new NotEnoughResourcesException("gems", totalPrice, wallet.GemBalance.Value);
 
             var progress = await _banners.GetPityAsync(request.PlayerId, banner.PityGroup, cancellationToken);
 
@@ -98,46 +112,51 @@ namespace EmpireIdle.Application.Banners.Commands
             }
 
             var utcNow = now.UtcDateTime;
-            var before = progress.State;
+            var drops = new List<BannerDropResult>(request.Count);
 
-            // Сід окремо від ролла: він іде в журнал і дозволяє переграти роздачу
-            var seed = _random.Next(int.MaxValue);
-            var roll = _roller.Roll(banner, before, seed);
+            // Кожен ролл серії бачить pity після попереднього: гарантія
+            // спрацьовує посеред серії так само, як і при окремих запитах
+            for (var i = 0; i < request.Count; i++)
+            {
+                var before = progress.State;
 
-            wallet.SpendGems(new GemAmount(banner.PriceGems), $"banner:{banner.Key}", request.PlayerId, utcNow);
-            progress.Apply(roll.State);
+                // Сід окремо від ролла: він іде в журнал і дозволяє переграти роздачу
+                var seed = _random.Next(int.MaxValue);
+                var roll = _roller.Roll(banner, before, seed);
 
-            await _banners.AddRollAsync(
-                new BannerRollRecord(
-                    Guid.NewGuid(),
-                    request.PlayerId,
-                    _serverContext.ServerId,
-                    banner.Key,
-                    banner.PityGroup,
-                    banner.PriceGems,
-                    seed,
-                    before,
-                    roll,
-                    utcNow),
-                cancellationToken);
+                wallet.SpendGems(new GemAmount(banner.PriceGems), $"banner:{banner.Key}", request.PlayerId, utcNow);
+                progress.Apply(roll.State);
 
-            await _dispatcher.GrantAllAsync(request.PlayerId, roll.Drop.Rewards, $"banner:{banner.Key}", utcNow, cancellationToken);
+                await _banners.AddRollAsync(
+                    new BannerRollRecord(
+                        Guid.NewGuid(),
+                        request.PlayerId,
+                        _serverContext.ServerId,
+                        banner.Key,
+                        banner.PityGroup,
+                        banner.PriceGems,
+                        seed,
+                        before,
+                        roll,
+                        utcNow),
+                    cancellationToken);
 
-            // Одна транзакція на списання, стан pity, журнал і видачу:
+                await _dispatcher.GrantAllAsync(request.PlayerId, roll.Drop.Rewards, $"banner:{banner.Key}", utcNow, cancellationToken);
+
+                drops.Add(new BannerDropResult(roll.Drop.Key, roll.Drop.DisplayName, roll.Drop.Rarity, roll.WasPity, roll.LostFiftyFifty));
+            }
+
+            // Одна транзакція на списання, стан pity, журнал і видачу всієї серії:
             // токен BannerPity робить другий паралельний ролл конфліктом, а не подвійною гарантією
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Player {PlayerId} rolled {DropKey} ({Rarity}) on banner {BannerKey}, pity {WasPity}",
-                request.PlayerId, roll.Drop.Key, roll.Drop.Rarity, banner.Key, roll.WasPity);
+                "Player {PlayerId} rolled {Count} times on banner {BannerKey}: {Drops}",
+                request.PlayerId, request.Count, banner.Key, string.Join(", ", drops.Select(d => d.DropKey)));
 
             return new BannerRollResponse(
                 banner.Key,
-                roll.Drop.Key,
-                roll.Drop.DisplayName,
-                roll.Drop.Rarity,
-                roll.WasPity,
-                roll.LostFiftyFifty,
+                drops,
                 progress.RareSince,
                 progress.UniqueSince,
                 wallet.GemBalance.Value);
