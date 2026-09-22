@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import HeroCard from "../components/HeroCard";
 import HeroDetails from "../components/HeroDetails";
@@ -71,7 +72,10 @@ export default function HeroesPage() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Герої</h1>
         <p className="text-sm text-slate-500">
-          Вільних: {free} · стеля маршів: {heroes.data.marchCapacity}
+          Вільних: {free} · стеля маршів: {heroes.data.marchCapacity} ·{" "}
+          <Link to="/heroes/codex" className="text-emerald-700 hover:underline">
+            кодекс
+          </Link>
         </p>
       </div>
 
