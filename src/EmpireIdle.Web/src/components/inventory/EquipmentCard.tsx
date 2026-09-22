@@ -9,13 +9,9 @@ interface Props {
   equipment: EquipmentResponse;
   heroes: HeroSummary[];
   artifactSlots: number;
-  maxEnhancement: number;
   busy: boolean;
   onEquip: (heroId: string, slotIndex: number) => void;
   onUnequip: () => void;
-  onEnhance: () => void;
-  onRepair: () => void;
-  onUpgrade: () => void;
 }
 
 const STAT_LABELS: Record<string, string> = {
@@ -25,22 +21,10 @@ const STAT_LABELS: Record<string, string> = {
 };
 
 /**
- * Екземпляр спорядження. Зброя точиться з ризиком зламатися, артефакт
- * прокачується без ризику — тому в них різні кнопки. Одягання — вибір
- * героя вдома і, для артефакта, слота.
+ * Екземпляр спорядження в інвентарі: одягнути на героя вдома (для артефакта —
+ * ще й слот) або зняти. Заточка, ремонт і прокачка — в кузні, це інший екран.
  */
-export default function EquipmentCard({
-  equipment,
-  heroes,
-  artifactSlots,
-  maxEnhancement,
-  busy,
-  onEquip,
-  onUnequip,
-  onEnhance,
-  onRepair,
-  onUpgrade,
-}: Props) {
+export default function EquipmentCard({ equipment, heroes, artifactSlots, busy, onEquip, onUnequip }: Props) {
   const catalog = useCatalog();
   const [picking, setPicking] = useState(false);
   const [heroId, setHeroId] = useState("");
@@ -51,7 +35,6 @@ export default function EquipmentCard({
   // Переодягаються лише вдома: герой у поході не кандидат
   const candidates = heroes.filter((hero) => hero.stationedGarrisonId != null);
   const chosenHero = heroId !== "" ? heroId : (candidates[0]?.id ?? "");
-  const atCap = equipment.enhancementLevel >= maxEnhancement;
 
   const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
 
@@ -109,25 +92,7 @@ export default function EquipmentCard({
           )
         )}
 
-        {isWeapon && equipment.isBroken && (
-          <button type="button" onClick={onRepair} disabled={busy} className={button}>
-            Полагодити
-          </button>
-        )}
-
-        {isWeapon && !equipment.isBroken && !atCap && (
-          <button type="button" onClick={onEnhance} disabled={busy} className={button}>
-            Заточити
-          </button>
-        )}
-
-        {!isWeapon && !atCap && (
-          <button type="button" onClick={onUpgrade} disabled={busy} className={button}>
-            Покращити
-          </button>
-        )}
-
-        {atCap && <span className="text-xs text-slate-500">Максимум +{maxEnhancement}</span>}
+        {equipment.isBroken && <span className="text-xs text-slate-500">Полагодити можна в кузні</span>}
       </div>
 
       {picking && (

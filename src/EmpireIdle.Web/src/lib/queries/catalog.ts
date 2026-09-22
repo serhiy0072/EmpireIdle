@@ -40,6 +40,9 @@ export interface Catalog {
   artifactSlots: number;
   /** Стеля заточки й прокачки спорядження. */
   maxEnhancement: number;
+  /** Ремонт зброї в gems: база плюс надбавка за рівень заточки. */
+  repairGemsBase: number;
+  repairGemsPerLevel: number;
 }
 
 /**
@@ -89,6 +92,8 @@ export function useCatalog(): Catalog {
       weaponsForSale: (data?.items ?? []).filter((item) => item.slot === "Weapon" && item.priceGold > 0),
       artifactSlots: data?.artifactSlots ?? 4,
       maxEnhancement: data?.maxEnhancement ?? 20,
+      repairGemsBase: data?.repairGemsBase ?? 20,
+      repairGemsPerLevel: data?.repairGemsPerLevel ?? 8,
     };
   }, [query.data]);
 }

@@ -3,23 +3,13 @@ import ErrorBanner from "../components/ErrorBanner";
 import ActiveEffects from "../components/inventory/ActiveEffects";
 import EquipmentCard from "../components/inventory/EquipmentCard";
 import ItemCard from "../components/inventory/ItemCard";
-import WeaponShop from "../components/inventory/WeaponShop";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
 import type { EquipmentResponse, InventoryItemResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
 import { rarityKey } from "../lib/rarity";
-import {
-  useBuyWeapon,
-  useEnhance,
-  useEquip,
-  useInventory,
-  useRepair,
-  useUnequip,
-  useUpgradeArtifact,
-  useUseItem,
-} from "../lib/queries/inventory";
+import { useEquip, useInventory, useUnequip, useUseItem } from "../lib/queries/inventory";
 
 type SortKey = "rarity" | "level" | "type";
 
@@ -57,12 +47,6 @@ function sortItems(items: InventoryItemResponse[], sort: SortKey): InventoryItem
   return [...items].sort((a, b) => primary(a, b) || byRarity(a, b) || byType(a, b));
 }
 
-const OUTCOME_LABELS: Record<string, string> = {
-  success: "Заточка вдалася",
-  failure: "Заточка не вдалася — рівень не змінився",
-  broken: "Зброя зламалася — потрібен ремонт",
-};
-
 export default function InventoryPage() {
   const session = useSession();
   const playerId = session?.playerId ?? "";
@@ -73,14 +57,10 @@ export default function InventoryPage() {
   const heroes = useHeroes(playerId);
 
   const consume = useUseItem(playerId);
-  const enhance = useEnhance(playerId);
-  const repair = useRepair(playerId);
-  const upgrade = useUpgradeArtifact(playerId);
-  const buy = useBuyWeapon(playerId);
   const equip = useEquip(playerId);
   const unequip = useUnequip(playerId);
 
-  const [tab, setTab] = useState<"items" | "equipment" | "shop">("equipment");
+  const [tab, setTab] = useState<"items" | "equipment">("equipment");
   const [sort, setSort] = useState<SortKey>("rarity");
 
   const equipment = useMemo(
@@ -97,25 +77,12 @@ export default function InventoryPage() {
     return <ErrorBanner error={inventory.error} />;
   }
 
-  const busy =
-    consume.isPending ||
-    enhance.isPending ||
-    repair.isPending ||
-    upgrade.isPending ||
-    buy.isPending ||
-    equip.isPending ||
-    unequip.isPending;
-
-  const failure =
-    consume.error ?? enhance.error ?? repair.error ?? upgrade.error ?? buy.error ?? equip.error ?? unequip.error;
-
-  // Останній результат заточки видно, поки гравець не натисне щось інше
-  const outcome = enhance.data?.outcome ?? null;
+  const busy = consume.isPending || equip.isPending || unequip.isPending;
+  const failure = consume.error ?? equip.error ?? unequip.error;
 
   const tabs = [
     { key: "equipment", label: `Спорядження · ${inventory.data.equipment.length}` },
     { key: "items", label: `Предмети · ${inventory.data.items.length}` },
-    { key: "shop", label: "Кузня" },
   ] as const;
 
   return (
@@ -126,17 +93,6 @@ export default function InventoryPage() {
       </div>
 
       <ErrorBanner error={failure} />
-
-      {outcome !== null && !enhance.isPending && (
-        <div
-          role="status"
-          className={`rounded-lg px-3 py-2 text-sm ${
-            outcome === "success" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900"
-          }`}
-        >
-          {OUTCOME_LABELS[outcome] ?? outcome}
-        </div>
-      )}
 
       <div className="flex flex-wrap items-center gap-1">
         <nav className="flex gap-1">
@@ -154,20 +110,18 @@ export default function InventoryPage() {
           ))}
         </nav>
 
-        {tab !== "shop" && (
-          <select
-            value={sort}
-            onChange={(event) => setSort(event.target.value as SortKey)}
-            aria-label="Сортування"
-            className="ml-auto rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
-          >
-            {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
-              <option key={key} value={key}>
-                {SORT_LABELS[key]}
-              </option>
-            ))}
-          </select>
-        )}
+        <select
+          value={sort}
+          onChange={(event) => setSort(event.target.value as SortKey)}
+          aria-label="Сортування"
+          className="ml-auto rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
+        >
+          {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+            <option key={key} value={key}>
+              {SORT_LABELS[key]}
+            </option>
+          ))}
+        </select>
       </div>
 
       {tab === "equipment" &&
@@ -181,13 +135,9 @@ export default function InventoryPage() {
                 equipment={equipment}
                 heroes={heroes.data?.heroes ?? []}
                 artifactSlots={catalog.artifactSlots}
-                maxEnhancement={catalog.maxEnhancement}
                 busy={busy}
                 onEquip={(heroId, slotIndex) => equip.mutate({ heroId, equipmentId: equipment.id, slotIndex })}
                 onUnequip={() => unequip.mutate(equipment.id)}
-                onEnhance={() => enhance.mutate(equipment.id)}
-                onRepair={() => repair.mutate(equipment.id)}
-                onUpgrade={() => upgrade.mutate(equipment.id)}
               />
             ))}
           </div>
@@ -203,8 +153,6 @@ export default function InventoryPage() {
             ))}
           </div>
         ))}
-
-      {tab === "shop" && <WeaponShop busy={busy} onBuy={(itemKey) => buy.mutate(itemKey)} />}
     </div>
   );
 }
