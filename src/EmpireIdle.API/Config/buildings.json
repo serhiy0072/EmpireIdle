@@ -33,8 +33,8 @@
         "RequiresMainBuildingLevel": 0,
         "ProtectedStorage": 250,
         "Position": {
-          "X": 50.0,
-          "Y": 18.0
+          "X": 48.0,
+          "Y": 12.0
         },
         "StoresResources": [ "wood", "iron", "food" ],
         "Cost": [
@@ -55,8 +55,8 @@
         "DisplayName": "Farm",
         "RequiresMainBuildingLevel": 3,
         "Position": {
-          "X": 18.0,
-          "Y": 66.0
+          "X": 14.0,
+          "Y": 74.0
         },
         "Cost": [
           {
@@ -80,8 +80,8 @@
         "DisplayName": "Sawmill",
         "RequiresMainBuildingLevel": 0,
         "Position": {
-          "X": 34.0,
-          "Y": 50.0
+          "X": 14.0,
+          "Y": 12.0
         },
         "Cost": [
           {
@@ -105,8 +105,8 @@
         "DisplayName": "Gold Mine",
         "RequiresMainBuildingLevel": 0,
         "Position": {
-          "X": 82.0,
-          "Y": 18.0
+          "X": 86.0,
+          "Y": 12.0
         },
         "Cost": [
           {
@@ -130,8 +130,8 @@
         "DisplayName": "House",
         "RequiresMainBuildingLevel": 0,
         "Position": {
-          "X": 66.0,
-          "Y": 18.0
+          "X": 30.0,
+          "Y": 60.0
         },
         "Cost": [
           {
@@ -155,8 +155,8 @@
         "DisplayName": "Barracks",
         "RequiresMainBuildingLevel": 1,
         "Position": {
-          "X": 66.0,
-          "Y": 50.0
+          "X": 30.0,
+          "Y": 72.0
         },
         "Cost": [
           {
@@ -181,8 +181,8 @@
         "RequiresMainBuildingLevel": 1,
         "ProtectedStorage": 250,
         "Position": {
-          "X": 34.0,
-          "Y": 18.0
+          "X": 32.0,
+          "Y": 40.0
         },
         "StoresResources": [ "gold" ],
         "Cost": [
@@ -208,7 +208,7 @@
         "RequiresMainBuildingLevel": 2,
         "Position": {
           "X": 50.0,
-          "Y": 34.0
+          "Y": 26.0
         },
         "HeroSlotsPerLevel": 1,
         "Cost": [
@@ -233,8 +233,8 @@
         "DisplayName": "Iron Mine",
         "RequiresMainBuildingLevel": 2,
         "Position": {
-          "X": 82.0,
-          "Y": 34.0
+          "X": 86.0,
+          "Y": 28.0
         },
         "Cost": [
           {
@@ -258,8 +258,8 @@
         "DisplayName": "Trading Post",
         "RequiresMainBuildingLevel": 3,
         "Position": {
-          "X": 34.0,
-          "Y": 34.0
+          "X": 68.0,
+          "Y": 26.0
         },
         "Cost": [
           {
@@ -284,7 +284,7 @@
         "RequiresMainBuildingLevel": 3,
         "Position": {
           "X": 66.0,
-          "Y": 34.0
+          "Y": 62.0
         },
         "WoundedCapacityPerLevel": 20,
         "Cost": [
@@ -309,8 +309,8 @@
         "DisplayName": "Market",
         "RequiresMainBuildingLevel": 4,
         "Position": {
-          "X": 18.0,
-          "Y": 34.0
+          "X": 68.0,
+          "Y": 42.0
         },
         "MarketSlotsPerLevel": 2,
         "Cost": [
@@ -357,8 +357,8 @@
         "DisplayName": "Stable",
         "RequiresMainBuildingLevel": 5,
         "Position": {
-          "X": 82.0,
-          "Y": 50.0
+          "X": 84.0,
+          "Y": 70.0
         },
         "Cost": [
           {
@@ -386,8 +386,8 @@
         "DisplayName": "Embassy",
         "RequiresMainBuildingLevel": 6,
         "Position": {
-          "X": 18.0,
-          "Y": 18.0
+          "X": 28.0,
+          "Y": 22.0
         },
         "ReinforcementSlotsPerLevel": 50,
         "Cost": [
@@ -416,8 +416,8 @@
         "DisplayName": "Scout Tower",
         "RequiresMainBuildingLevel": 6,
         "Position": {
-          "X": 50.0,
-          "Y": 66.0
+          "X": 62.0,
+          "Y": 86.0
         },
         "ScoutRangePerLevel": 5,
         "Cost": [
@@ -442,8 +442,8 @@
         "DisplayName": "Forge",
         "RequiresMainBuildingLevel": 7,
         "Position": {
-          "X": 34.0,
-          "Y": 66.0
+          "X": 86.0,
+          "Y": 46.0
         },
         "WeaponUpgradeSlotsPerLevel": 1,
         "Cost": [
@@ -468,8 +468,8 @@
         "DisplayName": "Fishing Hut",
         "RequiresMainBuildingLevel": 7,
         "Position": {
-          "X": 18.0,
-          "Y": 50.0
+          "X": 12.0,
+          "Y": 46.0
         },
         "Cost": [
           {
@@ -493,8 +493,8 @@
         "DisplayName": "Beast Pen",
         "RequiresMainBuildingLevel": 8,
         "Position": {
-          "X": 66.0,
-          "Y": 66.0
+          "X": 30.0,
+          "Y": 86.0
         },
         "BeastCapacityPerLevel": 2,
         "Cost": [

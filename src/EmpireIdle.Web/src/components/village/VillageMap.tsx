@@ -7,6 +7,7 @@ import IsoBuilding from "./IsoBuilding";
 import IsoWall from "./IsoWall";
 import { buildingArt } from "./buildingArt";
 import IsoBuildingOverlay from "./IsoBuildingOverlay";
+import VillageTerrain from "./VillageTerrain";
 
 /** Стіна — периметр, а не будівля на плані. Прапорця в конфізі немає, тож ключ. */
 const WALL_KEY = "wall";
@@ -48,7 +49,7 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
     if (!wasDragged()) action();
   };
 
-  const ground = [project(0, 0), project(100, 0), project(100, 100), project(0, 100)];
+  // Подвір'я всередині муру — втоптана земля; усе за муром малює VillageTerrain
   const courtyard = [project(5, 5), project(95, 5), project(95, 95), project(5, 95)];
 
   return (
@@ -60,8 +61,8 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
       {transform !== null && (
         <svg className="absolute inset-0 h-full w-full">
           <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}>
-            <path d={toPath(ground)} fill="#dbeafe" />
-            <path d={toPath(courtyard)} fill="#f1f5f9" />
+            <VillageTerrain part="ground" />
+            <path d={toPath(courtyard)} fill="#e9e4d3" />
 
             {wall !== null && (
               <IsoWall
@@ -100,6 +101,8 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                 onSelect={tap(() => onSelect(wall.id))}
               />
             )}
+
+            <VillageTerrain part="front" />
 
             {/* Підписи й бульбашки поверх усього — ніщо їх не перекриває */}
             {placed.map(({ building, position, art }) => {
