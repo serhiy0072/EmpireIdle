@@ -47,6 +47,8 @@ export interface Catalog {
   repairGemsPerLevel: number;
   /** Сторона світової мапи в клітинах. */
   mapSize: number;
+  /** Ключ головної будівлі — її рівень показуємо як рівень гравця. */
+  mainBuildingKey: string;
 }
 
 /**
@@ -100,6 +102,7 @@ export function useCatalog(): Catalog {
       repairGemsBase: data?.repairGemsBase ?? 20,
       repairGemsPerLevel: data?.repairGemsPerLevel ?? 8,
       mapSize: data?.mapSize ?? 500,
+      mainBuildingKey: data?.mainBuildingKey ?? "townhall",
     };
   }, [query.data]);
 }

@@ -48,7 +48,7 @@ export function useTrainUnits(playerId: string) {
   return useGarrisonCommand<{ unitType: string; level: number; count: number }>(
     playerId,
     () => `/api/garrisons/${playerId}/units/train`,
-    ["garrison", "village"],
+    ["garrison", "power", "village"],
   );
 }
 
@@ -57,7 +57,7 @@ export function useSpeedUpTraining(playerId: string) {
   return useGarrisonCommand<string>(
     playerId,
     (orderId) => `/api/garrisons/${playerId}/training/${orderId}/speedup`,
-    ["garrison", "wallet"],
+    ["garrison", "power", "wallet"],
   );
 }
 
@@ -66,7 +66,7 @@ export function useLevelUpUnits(playerId: string) {
   return useGarrisonCommand<{ unitType: string; fromLevel: number; toLevel: number; count: number }>(
     playerId,
     () => `/api/garrisons/${playerId}/units/levelup`,
-    ["garrison", "village"],
+    ["garrison", "power", "village"],
   );
 }
 
@@ -74,7 +74,7 @@ export function useSpeedUpLevelUp(playerId: string) {
   return useGarrisonCommand<string>(
     playerId,
     (orderId) => `/api/garrisons/${playerId}/levelup/${orderId}/speedup`,
-    ["garrison", "wallet"],
+    ["garrison", "power", "wallet"],
   );
 }
 
@@ -83,7 +83,7 @@ export function useHealWounded(playerId: string) {
   return useGarrisonCommand<{ units: Record<string, number>; payment: HealPaymentMethod }>(
     playerId,
     () => `/api/garrisons/${playerId}/units/heal`,
-    ["garrison", "village", "wallet"],
+    ["garrison", "power", "village", "wallet"],
   );
 }
 
@@ -92,6 +92,6 @@ export function useRecoverUnits(playerId: string) {
   return useGarrisonCommand<{ units: Record<string, number> }>(
     playerId,
     () => `/api/garrisons/${playerId}/units/recover`,
-    ["garrison", "wallet"],
+    ["garrison", "power", "wallet"],
   );
 }

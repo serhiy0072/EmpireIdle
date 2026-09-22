@@ -11,6 +11,7 @@ import InventoryPage from "../pages/InventoryPage";
 import LoginPage from "../pages/LoginPage";
 import MapPage from "../pages/MapPage";
 import QuestsPage from "../pages/QuestsPage";
+import RatingPage from "../pages/RatingPage";
 import RegisterPage from "../pages/RegisterPage";
 import ShopPage from "../pages/ShopPage";
 import VillagePage from "../pages/VillagePage";
@@ -42,6 +43,7 @@ export default function AppRoutes() {
             <Route path="/banners" element={<BannersPage />} />
             <Route path="/clan" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/rating" element={<RatingPage />} />
             <Route path="/quests" element={<QuestsPage />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
