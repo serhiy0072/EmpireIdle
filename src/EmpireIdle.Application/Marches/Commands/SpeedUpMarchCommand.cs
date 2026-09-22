@@ -27,6 +27,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly SpeedUpCalculator _calculator;
+        private readonly IMediator _mediator;
         private readonly ILogger<SpeedUpMarchCommandHandler> _logger;
 
         public SpeedUpMarchCommandHandler(
@@ -38,6 +39,7 @@ namespace EmpireIdle.Application.Marches.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             SpeedUpCalculator calculator,
+            IMediator mediator,
             ILogger<SpeedUpMarchCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -48,6 +50,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _timeProvider = timeProvider;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
+            _mediator = mediator;
             _logger = logger;
         }
 
@@ -88,6 +91,10 @@ namespace EmpireIdle.Application.Marches.Commands
 
             _logger.LogInformation("Player {PlayerId} sped up march {MarchId} for {Cost} gems",
                 request.PlayerId, request.MarchId, cost);
+
+            // Гравець заплатив за «зараз», а сканер ходить раз на хвилину: завершуємо
+            // тим самим обробником, що й сканер, — бій і повернення в одному місці коду
+            await _mediator.Send(new CompleteMarchCommand(march.Id), cancellationToken);
         }
     }
 }
