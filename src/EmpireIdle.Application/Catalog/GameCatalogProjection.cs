@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using EmpireIdle.Domain.Services;
@@ -100,6 +100,8 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.MaxTier,
                 config.MaxUnitLevel,
                 config.Monetization.HealGemsPerUnit,
+                config.Equipment.ArtifactSlots,
+                config.Equipment.MaxEnhancement,
                 Version: string.Empty);
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag

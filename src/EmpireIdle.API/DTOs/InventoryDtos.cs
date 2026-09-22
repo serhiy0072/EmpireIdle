@@ -1,4 +1,4 @@
-namespace EmpireIdle.API.DTOs;
+﻿namespace EmpireIdle.API.DTOs;
 
 /// <summary>Інвентар гравця.</summary>
 public record InventoryResponse(
@@ -12,9 +12,11 @@ public record InventoryItemResponse(
     string Rarity, string Type, int Count);
 
 /// <summary>Екземпляр спорядження.</summary>
+/// <param name="SlotIndex">Номер слота на герої: зброя завжди 0, артефакти — 0..ArtifactSlots-1.</param>
+/// <param name="IsBroken">Зламане заточкою: не одягається, поки не відремонтоване.</param>
 public record EquipmentResponse(
     Guid Id, string ItemKey, string Slot, string Rarity,
-    int EnhancementLevel, Guid? EquippedByHeroId,
+    int EnhancementLevel, Guid? EquippedByHeroId, int SlotIndex, bool IsBroken,
     Dictionary<string, double> Stats);
 
 /// <summary>Діючий буст.</summary>

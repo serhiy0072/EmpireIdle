@@ -1,4 +1,4 @@
-namespace EmpireIdle.Application.Catalog
+﻿namespace EmpireIdle.Application.Catalog
 {
     /// <summary>
     /// Зріз конфіга для інтерфейсу: назви, ранги, класи й стати.
@@ -7,6 +7,8 @@ namespace EmpireIdle.Application.Catalog
     /// клієнт або вигадує назви з ключів, або тримає власну копію JSON,
     /// яка відстане від сервера на першій же правці балансу.
     /// </summary>
+    /// <param name="ArtifactSlots">Скільки артефактів носить герой: клієнт малює саме стільки слотів.</param>
+    /// <param name="MaxEnhancement">Стеля заточки — після неї кнопка «Заточити» зникає.</param>
     /// <param name="Version">Хеш вмісту. Той самий рядок іде в ETag.</param>
     public record CatalogResponse(
         IReadOnlyList<CatalogHero> Heroes,
@@ -19,6 +21,8 @@ namespace EmpireIdle.Application.Catalog
         int MaxTier,
         int MaxUnitLevel,
         int HealGemsPerUnit,
+        int ArtifactSlots,
+        int MaxEnhancement,
         string Version);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
