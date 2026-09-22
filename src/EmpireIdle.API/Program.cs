@@ -327,6 +327,10 @@ if (app.Environment.IsDevelopment())
         await mediator.Send(new SeedDevAccountCommand(playerId), cancellationToken);
         return Results.NoContent();
     }).RequireAuthorization();
+
+    // Перегенерація мапи після зміни насіння чи ваг місцевості: монстри заново, села — на придатні клітини
+    app.MapPost("/api/dev/reset-map", async (IMediator mediator, IServerContext serverContext, CancellationToken cancellationToken)
+        => Results.Ok(await mediator.Send(new ResetMapCommand(serverContext.ServerId), cancellationToken))).RequireAuthorization();
 }
 else
 {
