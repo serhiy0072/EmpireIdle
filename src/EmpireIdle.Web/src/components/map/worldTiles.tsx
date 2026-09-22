@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import type { MapOccupantCell } from "../../lib/apiTypes";
 import { at, faces, project, toPath, type Faces } from "../../lib/iso";
 import { Tree } from "../village/isoDetails";
 import { Box, Cone, Cylinder, Flag, Pyramid } from "../village/isoShapes";
@@ -110,48 +111,110 @@ const OTHER_WALL = faces("#e7c9a0", "#b88a5a", "#8a6238");
 const HIDE = faces("#7c3aed", "#5b21b6", "#3b0764");
 const HORN = faces("#fef3c7", "#e7c9a0", "#b88a5a");
 const CLAW = faces("#1e293b", "#0f172a", "#020617");
+const FUR = { light: "#cbd5e1", body: "#94a3b8", dark: "#475569" };
+const ORC = { light: "#86efac", body: "#4ade80", dark: "#15803d" };
 
-/**
- * Монстр — істота, а не будівля: присадкувате тіло з рогами, пазурами
- * й червоними очима на витоптаній землі. Ключ клітини задає нахил
- * рогів і розмір, щоб зграя не була штампованою.
- */
-function monsterArt(cx: number, cy: number, x: number, y: number): ReactElement {
-  const size = 0.9 + hash(x, y, 7) * 0.3;
-  const body = at(cx, cy, 5 * size);
-  const head = at(cx + 0.35, cy + 0.35, 10 * size);
-  const scorched = project(cx, cy);
+/** Витоптана земля під істотою: спільна для всіх типів. */
+function scorched(cx: number, cy: number, size: number): ReactElement {
+  const p = project(cx, cy);
+  return <ellipse cx={p.x} cy={p.y} rx={14 * size} ry={7 * size} fill="#3f2a14" opacity={0.45} />;
+}
+
+/** Вовк: присадкуватий сірий звір на чотирьох лапах, вуха й хвіст. */
+function wolfArt(cx: number, cy: number, size: number): ReactElement {
+  const body = at(cx, cy, 4 * size);
+  const head = at(cx + 0.55, cy + 0.55, 7 * size);
+  const tail = at(cx - 0.7, cy - 0.7, 6 * size);
 
   return (
     <g>
-      <ellipse cx={scorched.x} cy={scorched.y} rx={14 * size} ry={7 * size} fill="#3f2a14" opacity={0.45} />
-      {/* Пазурі спереду, під тілом */}
+      {scorched(cx, cy, size)}
+      <Box cx={cx - 0.5} cy={cy + 0.4} hx={0.14} hy={0.14} h={3 * size} faces={CLAW} />
+      <Box cx={cx + 0.4} cy={cy - 0.5} hx={0.14} hy={0.14} h={3 * size} faces={CLAW} />
+      <Box cx={cx + 0.3} cy={cy + 0.5} hx={0.14} hy={0.14} h={3 * size} faces={CLAW} />
+      <Box cx={cx - 0.4} cy={cy - 0.4} hx={0.14} hy={0.14} h={3 * size} faces={CLAW} />
+      <path d={`M${tail.x} ${tail.y} q-6 -6 -3 -12`} fill="none" stroke={FUR.dark} strokeWidth={2.4 * size} strokeLinecap="round" />
+      <ellipse cx={body.x} cy={body.y} rx={10 * size} ry={5.5 * size} fill={FUR.body} stroke={FUR.dark} strokeWidth={0.6} />
+      <ellipse cx={body.x - 2 * size} cy={body.y - 2 * size} rx={6 * size} ry={2.5 * size} fill={FUR.light} opacity={0.7} />
+      <ellipse cx={head.x} cy={head.y} rx={4.5 * size} ry={3.8 * size} fill={FUR.body} stroke={FUR.dark} strokeWidth={0.6} />
+      <path d={`M${head.x - 3 * size} ${head.y - 2 * size} l-1.5 -4 l3 1.5 Z`} fill={FUR.dark} />
+      <path d={`M${head.x + 1 * size} ${head.y - 3 * size} l1 -4 l1.8 2.8 Z`} fill={FUR.dark} />
+      <ellipse cx={head.x + 3.5 * size} cy={head.y + 1 * size} rx={2.2 * size} ry={1.4 * size} fill={FUR.dark} />
+      <circle cx={head.x - 0.5 * size} cy={head.y - 0.6 * size} r={0.9 * size} fill="#fbbf24" />
+      <circle cx={head.x + 1.6 * size} cy={head.y - 0.8 * size} r={0.9 * size} fill="#fbbf24" />
+    </g>
+  );
+}
+
+/** Орк: зелений здоровань із кийком і іклами. */
+function orcArt(cx: number, cy: number, size: number): ReactElement {
+  const body = at(cx, cy, 7 * size);
+  const head = at(cx + 0.2, cy + 0.2, 15 * size);
+  const club = at(cx + 0.9, cy - 0.5, 2 * size);
+
+  return (
+    <g>
+      {scorched(cx, cy, size)}
+      <Box cx={cx - 0.35} cy={cy + 0.35} hx={0.22} hy={0.22} h={4 * size} faces={CLAW} />
+      <Box cx={cx + 0.35} cy={cy - 0.35} hx={0.22} hy={0.22} h={4 * size} faces={CLAW} />
+      <path d={`M${club.x} ${club.y} l6 -22`} stroke="#78350f" strokeWidth={2.2 * size} strokeLinecap="round" />
+      <ellipse cx={club.x + 6 * size} cy={club.y - 22 * size} rx={3.2 * size} ry={4 * size} fill="#57534e" stroke="#292524" strokeWidth={0.6} />
+      <ellipse cx={body.x} cy={body.y} rx={8 * size} ry={7 * size} fill={ORC.body} stroke={ORC.dark} strokeWidth={0.6} />
+      <path d={`M${body.x - 8 * size} ${body.y} q8 -3 16 0 v4 q-8 3 -16 0 Z`} fill="#78350f" />
+      <circle cx={head.x} cy={head.y} r={5 * size} fill={ORC.body} stroke={ORC.dark} strokeWidth={0.6} />
+      <circle cx={head.x - 1.8 * size} cy={head.y - 0.6 * size} r={1 * size} fill="#fef2f2" />
+      <circle cx={head.x + 1.8 * size} cy={head.y - 0.6 * size} r={1 * size} fill="#fef2f2" />
+      <circle cx={head.x - 1.8 * size} cy={head.y - 0.6 * size} r={0.5 * size} fill="#0f172a" />
+      <circle cx={head.x + 1.8 * size} cy={head.y - 0.6 * size} r={0.5 * size} fill="#0f172a" />
+      <path d={`M${head.x - 2.4 * size} ${head.y + 2.4 * size} l1 -3 l1 3 Z`} fill="#f8fafc" />
+      <path d={`M${head.x + 0.4 * size} ${head.y + 2.4 * size} l1 -3 l1 3 Z`} fill="#f8fafc" />
+    </g>
+  );
+}
+
+/** Невідомий тип: рогата туша — те, що було до появи типів. */
+function beastArt(cx: number, cy: number, size: number): ReactElement {
+  const body = at(cx, cy, 5 * size);
+  const head = at(cx + 0.35, cy + 0.35, 10 * size);
+
+  return (
+    <g>
+      {scorched(cx, cy, size)}
       <Box cx={cx - 0.7} cy={cy + 0.9} hx={0.28} hy={0.22} h={2.5 * size} faces={CLAW} />
       <Box cx={cx + 0.9} cy={cy - 0.7} hx={0.22} hy={0.28} h={2.5 * size} faces={CLAW} />
-      <Box cx={cx + 0.5} cy={cy + 0.6} hx={0.3} hy={0.3} h={3 * size} faces={CLAW} />
-      {/* Тіло — округла горбата туша */}
       <ellipse cx={body.x} cy={body.y} rx={11 * size} ry={8 * size} fill={HIDE.left} stroke="#1e1b4b" strokeWidth={0.6} />
       <ellipse cx={body.x - 3 * size} cy={body.y - 3 * size} rx={7 * size} ry={4.5 * size} fill={HIDE.top} opacity={0.8} />
-      {/* Голова з рогами й очима */}
       <circle cx={head.x} cy={head.y} r={5.5 * size} fill={HIDE.top} stroke="#1e1b4b" strokeWidth={0.6} />
       <Cone cx={cx + 0.1} cy={cy + 0.9} r={0.28} z={12 * size} h={7 * size} faces={HORN} />
       <Cone cx={cx + 0.9} cy={cy - 0.1} r={0.28} z={12 * size} h={7 * size} faces={HORN} />
       <circle cx={head.x - 2 * size} cy={head.y - 0.5} r={1.4 * size} fill="#ef4444" />
       <circle cx={head.x + 2 * size} cy={head.y - 0.5} r={1.4 * size} fill="#ef4444" />
-      <circle cx={head.x - 2 * size} cy={head.y - 0.5} r={0.6 * size} fill="#fef2f2" />
-      <circle cx={head.x + 2 * size} cy={head.y - 0.5} r={0.6 * size} fill="#fef2f2" />
-      {/* Ікла */}
-      <path d={`M${head.x - 2.2 * size} ${head.y + 3.5 * size} l1 3 l1 -3 Z`} fill="#f8fafc" />
-      <path d={`M${head.x + 0.4 * size} ${head.y + 3.5 * size} l1 3 l1 -3 Z`} fill="#f8fafc" />
     </g>
   );
 }
 
-/** Мітка окупанта клітини: своє село — червоний дах і прапор, чуже — синій, монстр — істота. */
-export function occupantArt(kind: string, x: number, y: number, isHome: boolean): ReactElement {
-  const { x: cx, y: cy } = cellOrigin(x, y);
+/**
+ * Монстр за типом із конфіга. Рівень задає розмір: вовк 1-го рівня — цуценя
+ * поруч із вовком 5-го. Невідомий тип отримує загальну істоту, а не порожнє місце.
+ */
+function monsterArt(cx: number, cy: number, type: string | null | undefined, level: number | null | undefined): ReactElement {
+  const size = 0.8 + Math.min(Math.max((level ?? 1) - 1, 0), 11) * 0.05;
 
-  if (kind === "Monster") return monsterArt(cx, cy, x, y);
+  switch (type) {
+    case "wolf":
+      return wolfArt(cx, cy, size);
+    case "orc":
+      return orcArt(cx, cy, size);
+    default:
+      return beastArt(cx, cy, size);
+  }
+}
+
+/** Мітка окупанта клітини: своє село — червоний дах і прапор, чуже — синій, монстр — істота свого типу. */
+export function occupantArt(occupant: MapOccupantCell, isHome: boolean): ReactElement {
+  const { x: cx, y: cy } = cellOrigin(occupant.x, occupant.y);
+
+  if (occupant.occupantType === "Monster") return monsterArt(cx, cy, occupant.monsterType, occupant.monsterLevel);
 
   const roof: Faces = isHome ? HOME_ROOF : OTHER_ROOF;
   const wall: Faces = isHome ? HOME_WALL : OTHER_WALL;
