@@ -16,6 +16,8 @@ export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
   loaded: boolean;
   hero: (key: string) => CatalogHero | null;
+  /** Увесь ростер гри — для кодексу. */
+  allHeroes: CatalogHero[];
   item: (key: string) => CatalogItem | null;
   building: (key: string) => CatalogBuilding | null;
   unit: (key: string) => CatalogUnit | null;
@@ -69,6 +71,7 @@ export function useCatalog(): Catalog {
     return {
       loaded: data !== undefined,
       hero: (key) => heroes.get(key) ?? null,
+      allHeroes: data?.heroes ?? [],
       item: (key) => items.get(key) ?? null,
       building: (key) => buildings.get(key) ?? null,
       unit: (key) => units.get(key) ?? null,
