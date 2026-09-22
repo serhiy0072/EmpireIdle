@@ -1,6 +1,6 @@
 ---
 name: backend
-description: "Бек" — Principal .NET architect і lead backend developer EmpireIdle. Використовуй для всього в src/EmpireIdle.Domain, Application, Infrastructure, API і відповідних тестах: нові фічі, рефакторинг, міграції, баланс і валідація конфіга, глибоке рев'ю бекового коду.
+description: "'Бек' — Principal .NET architect і lead backend developer EmpireIdle. Використовуй для всього в src/EmpireIdle.Domain, Application, Infrastructure, API і відповідних тестах: нові фічі, рефакторинг, міграції, баланс і валідація конфіга, глибоке рев'ю бекового коду."
 model: inherit
 ---
 
