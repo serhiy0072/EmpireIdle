@@ -108,7 +108,7 @@ internal static class HeroTestConfig
             SuccessDropPerLevel = 0.05,
             MinSuccessChance = 0.25,
             BreakChanceOnFailure = 0.2,
-            RepairCostShare = 0.5,
+            RepairGemsBase = 20, RepairGemsPerLevel = 8,
             ArtifactBaseStats = 2,
             ArtifactStatLevels = [4, 8],
             ArtifactUpgradeLevels = [12, 16, 20],
@@ -138,7 +138,7 @@ internal static class HeroTestConfig
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
             TierStatMultipliers = [1.0, 1.35, 1.8],
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-            OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
+            OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
             Classes = ["warrior", "mage"]
         },
         Heroes =

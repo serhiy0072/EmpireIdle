@@ -56,7 +56,7 @@ public class RecalculatePowerCommandTests
             Classes = ["warrior"],
             TierStatMultipliers = [1.0],
             EvolutionItemKeys = [],
-            OverflowGems = new Dictionary<string, int> { ["Common"] = 0 }
+            OverflowSeals = new Dictionary<string, int> { ["Common"] = 0 }
         },
         Heroes =
         [

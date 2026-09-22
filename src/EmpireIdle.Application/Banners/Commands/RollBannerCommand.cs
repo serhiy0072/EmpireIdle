@@ -16,10 +16,17 @@ namespace EmpireIdle.Application.Banners.Commands
     /// Одна команда на серію, а не десять запитів: гравець не впирається
     /// в ліміт запитів, а pity й гаманець змінюються однією транзакцією.
     /// </summary>
-    public record RollBannerCommand(Guid PlayerId, string BannerKey, int Count = 1)
+    public record RollBannerCommand(Guid PlayerId, string BannerKey, int Count = 1, BannerCurrency Currency = BannerCurrency.Gems)
         : IRequest<BannerRollResponse>, IPlayerScopedRequest, IIdempotentRequest
     {
         public const int MaxCount = 10;
+    }
+
+    /// <summary>Чим платити за ролл: gems або печатками призову.</summary>
+    public enum BannerCurrency
+    {
+        Gems = 0,
+        Seals = 1
     }
 
     /// <param name="Drops">Випади в порядку роллів.</param>
@@ -29,7 +36,8 @@ namespace EmpireIdle.Application.Banners.Commands
         IReadOnlyList<BannerDropResult> Drops,
         int RareSince,
         int UniqueSince,
-        int GemBalance);
+        int GemBalance,
+        int SealBalance);
 
     public record BannerDropResult(
         string DropKey,
@@ -96,11 +104,20 @@ namespace EmpireIdle.Application.Banners.Commands
                 ?? throw new EntityNotFoundException("Wallet", player.UserId);
 
             // Перевірка до списання — на всю серію одразу: половина серії за
-            // рештки gems була б несподіванкою, а Subtract кинув би виняток рівня
+            // рештки валюти була б несподіванкою, а Subtract кинув би виняток рівня
             // value object без цифр для гравця
-            var totalPrice = banner.PriceGems * request.Count;
+            var paySeals = request.Currency == BannerCurrency.Seals;
+            var unitPrice = paySeals ? banner.PriceSeals : banner.PriceGems;
 
-            if (wallet.GemBalance.Value < totalPrice)
+            if (unitPrice <= 0)
+                throw new RequirementNotMetException($"Banner '{banner.Key}' cannot be rolled with {request.Currency}.");
+
+            var totalPrice = unitPrice * request.Count;
+
+            if (paySeals && wallet.SealBalance < totalPrice)
+                throw new NotEnoughResourcesException("seals", totalPrice, wallet.SealBalance);
+
+            if (!paySeals && wallet.GemBalance.Value < totalPrice)
                 throw new NotEnoughResourcesException("gems", totalPrice, wallet.GemBalance.Value);
 
             var progress = await _banners.GetPityAsync(request.PlayerId, banner.PityGroup, cancellationToken);
@@ -124,7 +141,11 @@ namespace EmpireIdle.Application.Banners.Commands
                 var seed = _random.Next(int.MaxValue);
                 var roll = _roller.Roll(banner, before, seed);
 
-                wallet.SpendGems(new GemAmount(banner.PriceGems), $"banner:{banner.Key}", request.PlayerId, utcNow);
+                if (paySeals)
+                    wallet.SpendSeals(unitPrice, $"banner:{banner.Key}", utcNow);
+                else
+                    wallet.SpendGems(new GemAmount(unitPrice), $"banner:{banner.Key}", request.PlayerId, utcNow);
+
                 progress.Apply(roll.State);
 
                 await _banners.AddRollAsync(
@@ -134,7 +155,7 @@ namespace EmpireIdle.Application.Banners.Commands
                         _serverContext.ServerId,
                         banner.Key,
                         banner.PityGroup,
-                        banner.PriceGems,
+                        unitPrice,
                         seed,
                         before,
                         roll,
@@ -159,7 +180,8 @@ namespace EmpireIdle.Application.Banners.Commands
                 drops,
                 progress.RareSince,
                 progress.UniqueSince,
-                wallet.GemBalance.Value);
+                wallet.GemBalance.Value,
+                wallet.SealBalance);
         }
     }
 }

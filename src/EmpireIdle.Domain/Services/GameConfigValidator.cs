@@ -366,27 +366,27 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"HeroSettings.EvolutionItemKeys reference unknown items: {string.Join(", ", unknownItems)}.");
 
-            // Надлишок понад стелю сузір'я стає джемами. Забутий ранг означав би,
+            // Надлишок понад стелю сузір'я стає печатками призову. Забутий ранг означав би,
             // що дублікат зникає без сліду — саме те, чого ми уникали.
             var rankNames = Enum.GetNames<Rarity>().ToHashSet();
 
-            var unknownRanks = settings.OverflowGems.Keys
+            var unknownRanks = settings.OverflowSeals.Keys
                 .Where(k => !rankNames.Contains(k))
                 .ToList();
 
             if (unknownRanks.Count > 0)
                 throw new InvalidOperationException(
-                    $"HeroSettings.OverflowGems has keys that are not ranks: {string.Join(", ", unknownRanks)}.");
+                    $"HeroSettings.OverflowSeals has keys that are not ranks: {string.Join(", ", unknownRanks)}.");
 
             var missingRanks = config.Heroes
                 .Select(h => h.Rank.ToString())
                 .Distinct()
-                .Where(r => !settings.OverflowGems.ContainsKey(r))
+                .Where(r => !settings.OverflowSeals.ContainsKey(r))
                 .ToList();
 
             if (missingRanks.Count > 0)
                 throw new InvalidOperationException(
-                    "HeroSettings.OverflowGems has no entry for ranks in the roster: "
+                    "HeroSettings.OverflowSeals has no entry for ranks in the roster: "
                     + $"{string.Join(", ", missingRanks)}.");
 
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
@@ -640,9 +640,16 @@ namespace EmpireIdle.Domain.Services
                 // Гарантія платить у категорії банера, тож пул цієї категорії
                 // мусить мати чим заплатити на обох порогах
                 foreach (var rarity in new[] { Rarity.Rare, Rarity.Unique })
-                    if (!banner.Drops.Any(d => d.Kind == banner.Kind && d.Rarity >= rarity))
+                    if (!banner.Drops.Any(d => BannerRoller.Counts(banner, d) && d.Rarity >= rarity))
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' has no {rarity} {banner.Kind} drop — its pity could never pay out.");
+
+                if (banner.PriceGems <= 0 && banner.PriceSeals <= 0)
+                    throw new InvalidOperationException($"Banner '{banner.Key}' has no price in gems nor in seals.");
+
+                // Стандартний банер — без промо за визначенням: рівні шанси на будь-кого
+                if (banner.Kind == BannerKind.Standard && banner.FeaturedKey is not null)
+                    throw new InvalidOperationException($"Banner '{banner.Key}' is standard and cannot feature a drop.");
 
                 if (banner.FeaturedKey is { } featuredKey)
                 {
@@ -682,7 +689,7 @@ namespace EmpireIdle.Domain.Services
 
                     // Лот чужої категорії — це філер. Рідкісний філер виглядав би
                     // як виплата гарантії, якою він не є
-                    if (drop.Kind != banner.Kind && drop.Rarity != Rarity.Common)
+                    if (!BannerRoller.Counts(banner, drop) && drop.Rarity != Rarity.Common)
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' drop '{drop.Key}' is a {drop.Rarity} filler — "
                             + "only the banner's own category carries rare and unique drops.");

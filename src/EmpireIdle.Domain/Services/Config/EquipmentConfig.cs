@@ -43,7 +43,10 @@ namespace EmpireIdle.Domain.Services.Config
         public double BreakChanceOnFailure { get; set; } = 0.2;
 
         /// <summary>Вартість ремонту як частка від вартості поточного рівня заточки.</summary>
-        public double RepairCostShare { get; set; } = 0.5;
+        /// <summary>Ремонт зламаної зброї — за gems: база плюс надбавка за кожен рівень заточки.</summary>
+        public int RepairGemsBase { get; set; } = 20;
+
+        public int RepairGemsPerLevel { get; set; } = 8;
 
         /// <summary>Скільки статів артефакт має одразу.</summary>
         public int ArtifactBaseStats { get; set; } = 2;

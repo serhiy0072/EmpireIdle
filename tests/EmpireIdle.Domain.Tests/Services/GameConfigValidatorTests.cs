@@ -224,7 +224,7 @@ namespace EmpireIdle.Domain.Tests.Services
                 MaxMarches = 8,
                 TierStatMultipliers = [1.0, 1.35, 1.8],
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-                OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
+                OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 BuildingKey = "heroeshall",
                 HealBuildingKey = "hospital",
                 HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
@@ -362,8 +362,8 @@ namespace EmpireIdle.Domain.Tests.Services
         /// зникає без сліду — саме те, чого ми уникали.
         /// </summary>
         [Fact]
-        public void Validate_ShouldRejectMissingOverflowGemsForRank()
-            => RejectsHero(c => c.HeroSettings.OverflowGems.Remove("Unique"));
+        public void Validate_ShouldRejectMissingOverflowSealsForRank()
+            => RejectsHero(c => c.HeroSettings.OverflowSeals.Remove("Unique"));
 
         /// <summary>Герой без смуг вартості не качався б узагалі.</summary>
         [Fact]

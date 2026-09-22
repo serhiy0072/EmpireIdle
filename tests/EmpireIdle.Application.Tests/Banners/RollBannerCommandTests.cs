@@ -95,8 +95,8 @@ public class RollBannerCommandTests
             NullLogger<RollBannerCommandHandler>.Instance);
     }
 
-    private Task<BannerRollResponse> Roll(BannerConfig banner, int count = 1)
-        => Handler(banner).Handle(new RollBannerCommand(_playerId, banner.Key, count), CancellationToken.None);
+    private Task<BannerRollResponse> Roll(BannerConfig banner, int count = 1, BannerCurrency currency = BannerCurrency.Gems)
+        => Handler(banner).Handle(new RollBannerCommand(_playerId, banner.Key, count, currency), CancellationToken.None);
 
     [Fact]
     public async Task Handle_ShouldChargeGemsAndGrantTheDrop()
@@ -181,6 +181,32 @@ public class RollBannerCommandTests
         Assert.Equal(Price * 3, _wallet.GemBalance.Value);
         await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Печатки призову — друга валюта банера: списуються замість gems, gems не чіпаються.</summary>
+    [Fact]
+    public async Task Handle_ShouldChargeSeals_WhenPayingWithSeals()
+    {
+        var banner = Banner();
+        banner.PriceSeals = 40;
+        _wallet.AddSeals(100, "test", Now);
+
+        var response = await Roll(banner, count: 2, currency: BannerCurrency.Seals);
+
+        Assert.Equal(100 - 80, _wallet.SealBalance);
+        Assert.Equal(100 - 80, response.SealBalance);
+        Assert.Equal(1_000, _wallet.GemBalance.Value);
+    }
+
+    /// <summary>Банер без ціни в печатках за печатки не крутять — це відмова, а не безкоштовний ролл.</summary>
+    [Fact]
+    public async Task Handle_ShouldReject_SealsOnABannerWithoutASealPrice()
+    {
+        _wallet.AddSeals(100, "test", Now);
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(), currency: BannerCurrency.Seals));
+
+        Assert.Equal(100, _wallet.SealBalance);
     }
 
     [Fact]

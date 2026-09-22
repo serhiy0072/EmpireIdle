@@ -24,7 +24,7 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> GetWallet(Guid playerId, CancellationToken cancellationToken)
         {
             var wallet = await _mediator.Send(new GetWalletQuery(playerId), cancellationToken);
-            return Ok(new WalletResponse(wallet.GemBalance));
+            return Ok(new WalletResponse(wallet.GemBalance, wallet.SealBalance));
         }
     }
 }

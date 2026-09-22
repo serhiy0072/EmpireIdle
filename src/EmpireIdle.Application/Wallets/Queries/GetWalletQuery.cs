@@ -7,7 +7,7 @@ namespace EmpireIdle.Application.Wallets.Queries
     /// <summary>Запит на баланс гаманця гравця (акаунтний, не прив'язаний до села).</summary>
     public record GetWalletQuery(Guid PlayerId) : IRequest<WalletView>, IPlayerScopedRequest;
 
-    public record WalletView(int GemBalance);
+    public record WalletView(int GemBalance, int SealBalance);
 
     public sealed class GetWalletQueryHandler : IRequestHandler<GetWalletQuery, WalletView>
     {
@@ -28,7 +28,7 @@ namespace EmpireIdle.Application.Wallets.Queries
             var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
                 ?? throw new InvalidOperationException("Wallet not found.");
 
-            return new WalletView(wallet.GemBalance.Value);
+            return new WalletView(wallet.GemBalance.Value, wallet.SealBalance);
         }
     }
 }

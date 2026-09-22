@@ -37,8 +37,8 @@ namespace EmpireIdle.Domain.Services
             => (int)Math.Round(_config.EnhanceBaseGold * Math.Pow(_config.EnhanceCostGrowth, currentLevel));
 
         /// <summary>Вартість ремонту зброї, зламаної на цьому рівні.</summary>
-        public int RepairCost(int level)
-            => (int)Math.Round(EnhanceCost(Math.Max(0, level - 1)) * _config.RepairCostShare);
+        public int RepairGems(int level)
+            => _config.RepairGemsBase + _config.RepairGemsPerLevel * Math.Max(0, level);
 
         /// <summary>
         /// Шанс успіху на поточному рівні. До безпечного рівня — одиниця,
