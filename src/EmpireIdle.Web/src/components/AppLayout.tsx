@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: "/army", label: "Військо" },
   { to: "/heroes", label: "Герої" },
   { to: "/inventory", label: "Інвентар" },
+  { to: "/banners", label: "Банери" },
   { to: "/map", label: "Мапа" },
   { to: "/quests", label: "Квести" },
 ] as const;
