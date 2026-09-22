@@ -10,7 +10,7 @@ const SCREENS: Record<string, { to: string; label: string }> = {
   hospital: { to: "/army", label: "Лазарет" },
   heroeshall: { to: "/heroes", label: "Герої" },
   lootshop: { to: "/banners", label: "Банери" },
-  forge: { to: "/inventory", label: "Кузня" },
+  forge: { to: "/forge", label: "Кузня" },
   warehouse: { to: "/inventory", label: "Інвентар" },
   market: { to: "/shop", label: "Крамниця" },
   embassy: { to: "/clan", label: "Клан" },

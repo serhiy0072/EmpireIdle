@@ -80,7 +80,7 @@ export default function HeroesPage() {
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-4">
           {heroes.data.heroes.length === 0 ? (
-            <p className="text-sm text-slate-500">Героїв ще немає — призовіть першого з уламків.</p>
+            <p className="text-sm text-slate-500">Героїв ще немає — купіть уламки звичайного героя за золото або крутіть банери.</p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {heroes.data.heroes.map((hero) => (

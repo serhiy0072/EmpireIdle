@@ -4,6 +4,7 @@ import { useSession } from "../hooks/useSession";
 import ArmyPage from "../pages/ArmyPage";
 import BannersPage from "../pages/BannersPage";
 import ClanPage from "../pages/ClanPage";
+import ForgePage from "../pages/ForgePage";
 import HeroesPage from "../pages/HeroesPage";
 import InventoryPage from "../pages/InventoryPage";
 import LoginPage from "../pages/LoginPage";
@@ -35,6 +36,7 @@ export default function AppRoutes() {
             <Route path="/army" element={<ArmyPage />} />
             <Route path="/heroes" element={<HeroesPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/forge" element={<ForgePage />} />
             <Route path="/banners" element={<BannersPage />} />
             <Route path="/clan" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />
