@@ -45,6 +45,8 @@ export interface Catalog {
   /** Ремонт зброї в gems: база плюс надбавка за рівень заточки. */
   repairGemsBase: number;
   repairGemsPerLevel: number;
+  /** Сторона світової мапи в клітинах. */
+  mapSize: number;
 }
 
 /**
@@ -97,6 +99,7 @@ export function useCatalog(): Catalog {
       maxEnhancement: data?.maxEnhancement ?? 20,
       repairGemsBase: data?.repairGemsBase ?? 20,
       repairGemsPerLevel: data?.repairGemsPerLevel ?? 8,
+      mapSize: data?.mapSize ?? 500,
     };
   }, [query.data]);
 }

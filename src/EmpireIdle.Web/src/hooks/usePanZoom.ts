@@ -20,8 +20,16 @@ const DRAG_THRESHOLD = 6;
 const DEFAULT_ZOOM = { min: 0.9, max: 6 };
 
 export interface ZoomLimits {
+  /** Межі масштабу відносно «вся ділянка в кадрі». */
   min: number;
   max: number;
+  /**
+   * Абсолютна нижня межа масштабу від розміру кадру: світова мапа не дає
+   * віддалитись далі, ніж сервер віддає клітин за один запит.
+   */
+  minAbsolute?: (viewport: { width: number; height: number }) => number;
+  /** Межі світу в пікселях проєкції: камера не виїжджає за них, якщо світ більший за кадр. */
+  pan?: Bounds;
 }
 
 function distance(a: { x: number; y: number }, b: { x: number; y: number }): number {
@@ -89,19 +97,43 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
     [fitted],
   );
 
+  /** Камера в межах світу: край мапи не виїжджає в кадр, поки світ ширший за нього. */
+  const clamp = useCallback(
+    (t: Transform): Transform => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      const pan = limits.pan;
+      if (rect === undefined || pan === undefined) return t;
+
+      const clampAxis = (value: number, size: number, min: number, max: number) => {
+        const worldSize = (max - min) * t.k;
+        // Світ вужчий за кадр — центруємо, а не притискаємо до краю
+        if (worldSize <= size) return (size - worldSize) / 2 - min * t.k;
+        return Math.min(-min * t.k, Math.max(size - max * t.k, value));
+      };
+
+      return { k: t.k, x: clampAxis(t.x, rect.width, pan.minX, pan.maxX), y: clampAxis(t.y, rect.height, pan.minY, pan.maxY) };
+    },
+    [containerRef, limits.pan],
+  );
+
   const zoomAt = useCallback(
     (px: number, py: number, factor: number) => {
       setTransform((t) => {
         if (t === null) return t;
 
-        const k = Math.min(fitScale.current * limits.max, Math.max(fitScale.current * limits.min, t.k * factor));
+        const rect = containerRef.current?.getBoundingClientRect();
+        const floor = Math.max(
+          fitScale.current * limits.min,
+          rect === undefined || limits.minAbsolute === undefined ? 0 : limits.minAbsolute({ width: rect.width, height: rect.height }),
+        );
+        const k = Math.min(fitScale.current * limits.max, Math.max(floor, t.k * factor));
         const ratio = k / t.k;
 
         // Точка під курсором лишається на місці
-        return { k, x: px - (px - t.x) * ratio, y: py - (py - t.y) * ratio };
+        return clamp({ k, x: px - (px - t.x) * ratio, y: py - (py - t.y) * ratio });
       });
     },
-    [limits.max, limits.min],
+    [containerRef, limits, clamp],
   );
 
   const local = (event: { clientX: number; clientY: number }) => {
@@ -137,7 +169,7 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
           containerRef.current?.setPointerCapture(event.pointerId);
         }
 
-        setTransform((t) => (t === null ? t : { ...t, x: t.x + dx, y: t.y + dy }));
+        setTransform((t) => (t === null ? t : clamp({ ...t, x: t.x + dx, y: t.y + dy })));
       }
     } else if (pointers.current.size === 2) {
       const other = [...pointers.current.entries()].find(([id]) => id !== event.pointerId)?.[1];
