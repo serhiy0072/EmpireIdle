@@ -10,6 +10,7 @@
     /// <param name="ArtifactSlots">Скільки артефактів носить герой: клієнт малює саме стільки слотів.</param>
     /// <param name="MaxEnhancement">Стеля заточки — після неї кнопка «Заточити» зникає.</param>
     /// <param name="RepairGemsBase">Ремонт зброї в gems: база плюс RepairGemsPerLevel за кожен рівень заточки.</param>
+    /// <param name="MapSize">Сторона світової мапи в клітинах — клієнт малює землю до її краю.</param>
     /// <param name="Version">Хеш вмісту. Той самий рядок іде в ETag.</param>
     public record CatalogResponse(
         IReadOnlyList<CatalogHero> Heroes,
@@ -26,6 +27,7 @@
         int MaxEnhancement,
         int RepairGemsBase,
         int RepairGemsPerLevel,
+        int MapSize,
         string Version);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>

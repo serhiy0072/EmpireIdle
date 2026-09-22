@@ -5618,6 +5618,7 @@
           "heroClasses",
           "heroes",
           "items",
+          "mapSize",
           "maxConstellation",
           "maxEnhancement",
           "maxTier",
@@ -5695,6 +5696,10 @@
             "format": "int32"
           },
           "repairGemsPerLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mapSize": {
             "type": "integer",
             "format": "int32"
           },
