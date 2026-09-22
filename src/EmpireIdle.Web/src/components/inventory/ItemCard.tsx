@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { InventoryItemResponse, UseItemRequest } from "../../lib/apiTypes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
+import ItemIcon from "./ItemIcon";
 
 interface Props {
   item: InventoryItemResponse;
@@ -36,14 +37,20 @@ export default function ItemCard({ item, busy, onUse }: Props) {
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="font-medium text-slate-800">{item.displayName}</span>
-        <span className="text-sm text-slate-600">×{item.count}</span>
-      </div>
+      <div className="flex gap-3">
+        <ItemIcon itemKey={item.itemKey} type={item.type} rarity={item.rarity} size={48} />
 
-      <div className="mt-1 flex items-center gap-1 text-xs">
-        <span className={`rounded px-2 py-0.5 ${rarityStyle(item.rarity)}`}>{rarityLabel(item.rarity)}</span>
-        <span className="text-slate-500">{TYPE_LABELS[item.type] ?? item.type}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="truncate font-medium text-slate-800">{item.displayName}</span>
+            <span className="text-sm text-slate-600">×{item.count}</span>
+          </div>
+
+          <div className="mt-1 flex items-center gap-1 text-xs">
+            <span className={`rounded px-2 py-0.5 ${rarityStyle(item.rarity)}`}>{rarityLabel(item.rarity)}</span>
+            <span className="text-slate-500">{TYPE_LABELS[item.type] ?? item.type}</span>
+          </div>
+        </div>
       </div>
 
       {item.description !== "" && <p className="mt-2 text-sm text-slate-600">{item.description}</p>}
