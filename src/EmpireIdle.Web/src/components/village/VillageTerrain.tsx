@@ -117,46 +117,112 @@ const ROAD_PATH = [
   { x: 84, y: 145 },
 ];
 
-/** Пагорби на півночі й північному сході, кілька — за озером. */
-const HILLS: { x: number; y: number; r: number; h: number }[] = (() => {
-  const random = rng(11);
-  const spots = [
-    ...Array.from({ length: 7 }, () => ({ x: 104 + random() * 36, y: -38 + random() * 60 })),
-    ...Array.from({ length: 6 }, () => ({ x: -6 + random() * 70, y: -42 + random() * 24 })),
-    ...Array.from({ length: 3 }, () => ({ x: -44 + random() * 18, y: 6 + random() * 24 })),
-  ];
-
-  return spots.map((spot) => ({ ...spot, r: 5 + random() * 7, h: 24 + random() * 46 }));
-})();
-
-/** Ліс: узлісся на сході й південному сході, гай на північному заході, поодинокі дерева вздовж дороги. */
-const TREES: { x: number; y: number; s: number; kind: "pine" | "round" }[] = (() => {
-  const random = rng(23);
-  const cluster = (cx: number, cy: number, rx: number, ry: number, count: number, pine: number) =>
-    Array.from({ length: count }, () => ({
-      x: cx + (random() * 2 - 1) * rx,
-      y: cy + (random() * 2 - 1) * ry,
-      s: 1 + random() * 0.8,
-      kind: (random() < pine ? "pine" : "round") as "pine" | "round",
-    }));
-
-  return [
-    ...cluster(122, 84, 18, 26, 34, 0.6),
-    ...cluster(116, 124, 24, 14, 18, 0.4),
-    ...cluster(-22, -18, 20, 18, 24, 0.7),
-    ...cluster(32, -28, 24, 8, 14, 0.8),
-    ...cluster(-32, 108, 10, 18, 10, 0.3),
-    ...cluster(44, 120, 8, 5, 4, 0.2),
-    ...cluster(100, 130, 12, 8, 6, 0.5),
-  ];
-})();
-
 /** Три поля на південному заході, між річкою й дорогою. */
 const FIELDS = [
   { x: 24, y: 112, hx: 7, hy: 5 },
   { x: 24, y: 128, hx: 7, hy: 5 },
   { x: 42, y: 136, hx: 6, hy: 4 },
 ];
+
+/** Відстань від точки до ламаної — для річки й дороги. */
+function distanceToPolyline(p: Point, line: Point[]): number {
+  let best = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < line.length - 1; i++) {
+    const a = line[i] as Point;
+    const b = line[i + 1] as Point;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy)));
+    best = Math.min(best, Math.hypot(p.x - (a.x + dx * t), p.y - (a.y + dy * t)));
+  }
+
+  return best;
+}
+
+/**
+ * Чи можна поставити щось із радіусом r у точку p: не в мурі й не впритул до нього,
+ * не в озері, не на річці, не на дорозі й не на полі. Один предикат для пагорбів
+ * і дерев — інакше кожен вид декору вигадував би власні винятки.
+ */
+function blocked(p: Point, r: number): boolean {
+  const wallMargin = 4 + r;
+  if (p.x > -wallMargin && p.x < 100 + wallMargin && p.y > -wallMargin && p.y < 100 + wallMargin) return true;
+  if (Math.hypot(p.x + 24, (p.y - 62) / 0.85) < 26 + r) return true;
+  if (distanceToPolyline(p, RIVER) < 7 + r) return true;
+  if (distanceToPolyline(p, ROAD_PATH) < 6 + r) return true;
+
+  return FIELDS.some((f) => Math.abs(p.x - f.x) < f.hx + 2 + r && Math.abs(p.y - f.y) < f.hy + 2 + r);
+}
+
+/**
+ * Пагорби на півночі й північному сході, кілька — за озером. Кандидат
+ * відкидається, якщо стоїть на воді, дорозі, полі чи налазить на сусіда.
+ */
+const HILLS: { x: number; y: number; r: number; h: number }[] = (() => {
+  const random = rng(11);
+  const zones = [
+    { x: 104, w: 38, y: -40, h: 64, count: 7 },
+    { x: -8, w: 74, y: -44, h: 26, count: 6 },
+    { x: -45, w: 20, y: 2, h: 30, count: 3 },
+  ];
+  const placed: { x: number; y: number; r: number; h: number }[] = [];
+
+  for (const zone of zones) {
+    let accepted = 0;
+
+    for (let attempt = 0; attempt < zone.count * 12 && accepted < zone.count; attempt++) {
+      const r = 5 + random() * 7;
+      const candidate = { x: zone.x + random() * zone.w, y: zone.y + random() * zone.h, r, h: 24 + random() * 46 };
+
+      if (blocked(candidate, r)) continue;
+      if (placed.some((other) => Math.hypot(other.x - candidate.x, other.y - candidate.y) < other.r + r + 1)) continue;
+
+      placed.push(candidate);
+      accepted++;
+    }
+  }
+
+  return placed;
+})();
+
+/** Ліс: узлісся на сході й південному сході, гай на північному заході, поодинокі дерева вздовж дороги. */
+const TREES: { x: number; y: number; s: number; kind: "pine" | "round" }[] = (() => {
+  const random = rng(23);
+  const placed: { x: number; y: number; s: number; kind: "pine" | "round" }[] = [];
+
+  const cluster = (cx: number, cy: number, rx: number, ry: number, count: number, pine: number) => {
+    let accepted = 0;
+
+    for (let attempt = 0; attempt < count * 10 && accepted < count; attempt++) {
+      const candidate = {
+        x: cx + (random() * 2 - 1) * rx,
+        y: cy + (random() * 2 - 1) * ry,
+        s: 1 + random() * 0.8,
+        kind: (random() < pine ? "pine" : "round") as "pine" | "round",
+      };
+
+      if (candidate.x < LAND_FROM + 2 || candidate.x > LAND_TO - 2 || candidate.y < LAND_FROM + 2 || candidate.y > LAND_TO - 2) continue;
+      if (blocked(candidate, 1.5)) continue;
+      // Дерево на схилі пагорба висіло б у повітрі
+      if (HILLS.some((hill) => Math.hypot(hill.x - candidate.x, hill.y - candidate.y) < hill.r + 1.5)) continue;
+      if (placed.some((other) => Math.hypot(other.x - candidate.x, other.y - candidate.y) < 2.4)) continue;
+
+      placed.push(candidate);
+      accepted++;
+    }
+  };
+
+  cluster(122, 84, 18, 26, 34, 0.6);
+  cluster(116, 124, 24, 14, 18, 0.4);
+  cluster(-22, -18, 20, 18, 24, 0.7);
+  cluster(32, -28, 24, 8, 14, 0.8);
+  cluster(-32, 108, 10, 18, 10, 0.3);
+  cluster(44, 120, 8, 5, 4, 0.2);
+  cluster(100, 130, 12, 8, 6, 0.5);
+
+  return placed;
+})();
 
 function Field({ x, y, hx, hy }: { x: number; y: number; hx: number; hy: number }): ReactElement {
   const rows: number[] = [];
