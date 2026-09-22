@@ -12,16 +12,19 @@ interface BoxProps {
   stroke?: string;
 }
 
+/** Тонкий контур граней: без нього сусідні грані однієї барви зливаються в пляму. */
+export const EDGE = "rgba(15, 23, 42, 0.22)";
+
 export function Box({ cx, cy, hx, hy, h, z = 0, faces: f, stroke }: BoxProps): ReactElement {
   return (
-    <g>
+    <g stroke={EDGE} strokeWidth={0.6} strokeLinejoin="round">
       <path d={toPath([at(cx - hx, cy + hy, z), at(cx + hx, cy + hy, z), at(cx + hx, cy + hy, z + h), at(cx - hx, cy + hy, z + h)])} fill={f.left} />
       <path d={toPath([at(cx + hx, cy + hy, z), at(cx + hx, cy - hy, z), at(cx + hx, cy - hy, z + h), at(cx + hx, cy + hy, z + h)])} fill={f.right} />
       <path
         d={toPath([at(cx - hx, cy - hy, z + h), at(cx + hx, cy - hy, z + h), at(cx + hx, cy + hy, z + h), at(cx - hx, cy + hy, z + h)])}
         fill={f.top}
-        stroke={stroke}
-        strokeWidth={stroke === undefined ? undefined : 3}
+        stroke={stroke ?? EDGE}
+        strokeWidth={stroke === undefined ? 0.6 : 3}
       />
     </g>
   );
@@ -42,7 +45,7 @@ export function Pyramid({ cx, cy, hx, hy, z, h, faces: f }: RoofProps): ReactEle
   const apex = at(cx, cy, z + h);
 
   return (
-    <g>
+    <g stroke={EDGE} strokeWidth={0.6} strokeLinejoin="round">
       <path d={toPath([at(cx - hx, cy - hy, z), at(cx + hx, cy - hy, z), apex])} fill={f.top} />
       <path d={toPath([at(cx - hx, cy + hy, z), at(cx - hx, cy - hy, z), apex])} fill={f.top} />
       <path d={toPath([at(cx - hx, cy + hy, z), at(cx + hx, cy + hy, z), apex])} fill={f.left} />
@@ -57,7 +60,7 @@ export function Gable({ cx, cy, hx, hy, z, h, faces: f }: RoofProps): ReactEleme
   const end = at(cx + hx, cy, z + h);
 
   return (
-    <g>
+    <g stroke={EDGE} strokeWidth={0.6} strokeLinejoin="round">
       <path d={toPath([at(cx - hx, cy - hy, z), at(cx + hx, cy - hy, z), end, start])} fill={f.top} />
       <path d={toPath([at(cx - hx, cy + hy, z), at(cx + hx, cy + hy, z), end, start])} fill={f.left} />
       <path d={toPath([at(cx + hx, cy - hy, z), at(cx + hx, cy + hy, z), end])} fill={f.right} />
