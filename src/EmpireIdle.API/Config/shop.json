@@ -32,15 +32,43 @@
         }
       ],
       "Items": [
-      { "ItemKey": "hero_essence_t2", "PriceGems": 300, "MaxPerPurchase": 5 },
-      { "ItemKey": "hero_essence_t3", "PriceGems": 900, "MaxPerPurchase": 5 },
-      { "ItemKey": "crate_mixed_large", "PriceGems": 80, "MaxPerPurchase": 10 },
-      { "ItemKey": "boost_production_2x_4h", "PriceGems": 120, "MaxPerPurchase": 10 },
-      { "ItemKey": "boost_attack_25_1h", "PriceGems": 60, "MaxPerPurchase": 10 },
-      { "ItemKey": "boost_defense_25_8h", "PriceGems": 90, "MaxPerPurchase": 10 },
-      { "ItemKey": "teleport", "PriceGems": 500, "MaxPerPurchase": 1 }
-    ],
-    "Banners": [
+        {
+          "ItemKey": "hero_essence_t2",
+          "PriceGems": 300,
+          "MaxPerPurchase": 5
+        },
+        {
+          "ItemKey": "hero_essence_t3",
+          "PriceGems": 900,
+          "MaxPerPurchase": 5
+        },
+        {
+          "ItemKey": "crate_mixed_large",
+          "PriceGems": 80,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "boost_production_2x_4h",
+          "PriceGems": 120,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "boost_attack_25_1h",
+          "PriceGems": 60,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "boost_defense_25_8h",
+          "PriceGems": 90,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "teleport",
+          "PriceGems": 500,
+          "MaxPerPurchase": 1
+        }
+      ],
+      "Banners": [
         {
           "Key": "dawn_2026_09",
           "DisplayName": "Світанок Ізель",
@@ -55,7 +83,7 @@
           "Drops": [
             {
               "Key": "hero_mage_iselle",
-              "DisplayName": "Ізель",
+              "DisplayName": "Iselle of the Ninth Flame",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 2,
@@ -69,10 +97,10 @@
             },
             {
               "Key": "hero_knight_ordwin",
-              "DisplayName": "Ордвін",
+              "DisplayName": "Ordwin the Steadfast",
               "Rarity": "Rare",
               "Kind": "Hero",
-              "Weight": 10,
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "Hero",
@@ -82,11 +110,39 @@
               ]
             },
             {
+              "Key": "hero_archer_finn",
+              "DisplayName": "Фінн Далекоокий",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "archer_finn",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_mage_calder",
+              "DisplayName": "Кальдер Громовий",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "mage_calder",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
               "Key": "sword_iron",
               "DisplayName": "Залізний меч",
               "Rarity": "Common",
               "Kind": "Weapon",
-              "Weight": 20,
+              "Weight": 36,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -96,10 +152,24 @@
               ]
             },
             {
+              "Key": "lance_iron",
+              "DisplayName": "Залізний спис",
+              "Rarity": "Common",
+              "Kind": "Weapon",
+              "Weight": 35,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "lance_iron",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
               "Key": "boost_production",
               "DisplayName": "Прискорення виробітку",
               "Rarity": "Common",
-              "Weight": 68,
+              "Weight": 15,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -108,7 +178,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "PriceSeals": 100
         },
         {
           "Key": "forge_2026_09",
@@ -122,7 +193,7 @@
           "Drops": [
             {
               "Key": "staff_ember",
-              "DisplayName": "Посох жарини",
+              "DisplayName": "Жарний посох",
               "Rarity": "Unique",
               "Kind": "Weapon",
               "Weight": 2,
@@ -139,11 +210,443 @@
               "DisplayName": "Тисовий лук",
               "Rarity": "Rare",
               "Kind": "Weapon",
-              "Weight": 10,
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "Equipment",
                   "Key": "bow_yew",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "sword_steel",
+              "DisplayName": "Сталевий меч",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 3,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "sword_steel",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "bow_ash",
+              "DisplayName": "Ясеновий лук",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 3,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "bow_ash",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "lance_steel",
+              "DisplayName": "Сталевий спис",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 3,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "lance_steel",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "lance_iron",
+              "DisplayName": "Залізний спис",
+              "Rarity": "Common",
+              "Kind": "Weapon",
+              "Weight": 36,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "lance_iron",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "sword_iron",
+              "DisplayName": "Залізний меч",
+              "Rarity": "Common",
+              "Kind": "Weapon",
+              "Weight": 35,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "sword_iron",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "boost_production",
+              "DisplayName": "Прискорення виробітку",
+              "Rarity": "Common",
+              "Weight": 15,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "boost_production_1h",
+                  "Amount": 1
+                }
+              ]
+            }
+          ],
+          "PriceSeals": 80
+        },
+        {
+          "Key": "standard",
+          "DisplayName": "Стандартний призов",
+          "Kind": "Standard",
+          "PityGroup": "standard",
+          "PriceGems": 120,
+          "PriceSeals": 60,
+          "RarePity": 10,
+          "UniquePity": 60,
+          "Drops": [
+            {
+              "Key": "hero_mage_iselle",
+              "DisplayName": "Iselle of the Ninth Flame",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 1,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "mage_iselle",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_warrior_gunnar",
+              "DisplayName": "Гуннар Скеля",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 1,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "warrior_gunnar",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_knight_elowen",
+              "DisplayName": "Еловен Світанкова",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 1,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "knight_elowen",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_archer_kestrel",
+              "DisplayName": "Кестрель Соколиця",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 1,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "archer_kestrel",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_mage_vael",
+              "DisplayName": "Ваель Безмовний",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 1,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "mage_vael",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_mage_sabine",
+              "DisplayName": "Сабіна Морозна",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 1,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "mage_sabine",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "staff_ember",
+              "DisplayName": "Жарний посох",
+              "Rarity": "Unique",
+              "Kind": "Weapon",
+              "Weight": 1,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "staff_ember",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_knight_ordwin",
+              "DisplayName": "Ordwin the Steadfast",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "knight_ordwin",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_warrior_hedda",
+              "DisplayName": "Гедда Щитоносиця",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "warrior_hedda",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_warrior_torvald",
+              "DisplayName": "Торвальд Незламний",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "warrior_torvald",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_warrior_maren",
+              "DisplayName": "Марен Сокирниця",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "warrior_maren",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_knight_aldric",
+              "DisplayName": "Альдрік Списоносець",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "knight_aldric",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_knight_serah",
+              "DisplayName": "Сера Вартова",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "knight_serah",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_archer_finn",
+              "DisplayName": "Фінн Далекоокий",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "archer_finn",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_archer_ysolde",
+              "DisplayName": "Ізольда Тихоструна",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "archer_ysolde",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_archer_rook",
+              "DisplayName": "Рук Строкатий",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "archer_rook",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_mage_calder",
+              "DisplayName": "Кальдер Громовий",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "mage_calder",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "hero_mage_nerys",
+              "DisplayName": "Неріс Дзеркальна",
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Hero",
+                  "Key": "mage_nerys",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "bow_yew",
+              "DisplayName": "Тисовий лук",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "bow_yew",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "sword_steel",
+              "DisplayName": "Сталевий меч",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "sword_steel",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "lance_steel",
+              "DisplayName": "Сталевий спис",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "lance_steel",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "bow_ash",
+              "DisplayName": "Ясеновий лук",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "bow_ash",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "staff_oak",
+              "DisplayName": "Дубовий посох",
+              "Rarity": "Rare",
+              "Kind": "Weapon",
+              "Weight": 2,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "staff_oak",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "sword_iron",
+              "DisplayName": "Залізний меч",
+              "Rarity": "Common",
+              "Kind": "Weapon",
+              "Weight": 20,
+              "Rewards": [
+                {
+                  "Type": "Equipment",
+                  "Key": "sword_iron",
                   "Amount": 1
                 }
               ]
@@ -166,7 +669,7 @@
               "Key": "boost_production",
               "DisplayName": "Прискорення виробітку",
               "Rarity": "Common",
-              "Weight": 68,
+              "Weight": 15,
               "Rewards": [
                 {
                   "Type": "Item",

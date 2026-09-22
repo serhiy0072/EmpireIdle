@@ -3,8 +3,15 @@
     "HeroSettings": {
       "LevelsPerTier": 10,
       "MaxTier": 3,
-      "TierStatMultipliers": [ 1.0, 1.35, 1.8 ],
-      "EvolutionItemKeys": [ "hero_essence_t2", "hero_essence_t3" ],
+      "TierStatMultipliers": [
+        1.0,
+        1.35,
+        1.8
+      ],
+      "EvolutionItemKeys": [
+        "hero_essence_t2",
+        "hero_essence_t3"
+      ],
       "MaxConstellation": 6,
       "OverflowSeals": {
         "Common": 0,
@@ -25,9 +32,13 @@
       "HealBuildingKey": "hospital",
       "BaseLevelUpMinutes": 12,
       "BuildingKey": "heroeshall",
-      "Classes": [ "warrior", "knight", "archer", "mage" ]
+      "Classes": [
+        "warrior",
+        "knight",
+        "archer",
+        "mage"
+      ]
     },
-
     "Heroes": [
       {
         "Key": "warrior_bran",
@@ -411,6 +422,1446 @@
             "UnlockConstellation": 6,
             "Target": "all",
             "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 0
+          }
+        ]
+      },
+      {
+        "Key": "warrior_hedda",
+        "DisplayName": "Гедда Щитоносиця",
+        "Class": "warrior",
+        "Rank": "rare",
+        "Description": "Тримає стрій там, де інші відступають.",
+        "Lore": "Виросла в прикордонній заставі; перший щит отримала раніше за перший хліб.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 4,
+        "BaseStats": {
+          "Attack": 55,
+          "Defense": 90,
+          "Health": 420
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 6,
+          "Defense": 10,
+          "Health": 46
+        },
+        "Passives": [
+          {
+            "Key": "iron_stance",
+            "DisplayName": "Залізна стійка",
+            "UnlockConstellation": 0,
+            "Target": "infantry",
+            "Stat": "Defense",
+            "BasePercent": 7,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "rally",
+            "DisplayName": "Клич",
+            "UnlockConstellation": 3,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 4,
+            "PercentPerConstellation": 1.5
+          }
+        ]
+      },
+      {
+        "Key": "warrior_torvald",
+        "DisplayName": "Торвальд Незламний",
+        "Class": "warrior",
+        "Rank": "rare",
+        "Description": "Ветеран сотні облог, живий усім на диво.",
+        "Lore": "Кажуть, він не програв жодної оборони — бо ніколи не здавав стін.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 4,
+        "BaseStats": {
+          "Attack": 55,
+          "Defense": 90,
+          "Health": 420
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 6,
+          "Defense": 10,
+          "Health": 46
+        },
+        "Passives": [
+          {
+            "Key": "bulwark",
+            "DisplayName": "Бастіон",
+            "UnlockConstellation": 0,
+            "Target": "infantry",
+            "Stat": "Defense",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "last_stand",
+            "DisplayName": "Останній рубіж",
+            "UnlockConstellation": 4,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 4,
+            "PercentPerConstellation": 1.5
+          }
+        ]
+      },
+      {
+        "Key": "warrior_maren",
+        "DisplayName": "Марен Сокирниця",
+        "Class": "warrior",
+        "Rank": "rare",
+        "Description": "Б'є першою й не питає імен.",
+        "Lore": "Її сокира старша за неї — спадок від матері, теж сокирниці.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 4,
+        "BaseStats": {
+          "Attack": 55,
+          "Defense": 90,
+          "Health": 420
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 6,
+          "Defense": 10,
+          "Health": 46
+        },
+        "Passives": [
+          {
+            "Key": "cleave",
+            "DisplayName": "Розріз",
+            "UnlockConstellation": 0,
+            "Target": "infantry",
+            "Stat": "Attack",
+            "BasePercent": 7,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "frenzy",
+            "DisplayName": "Шал",
+            "UnlockConstellation": 3,
+            "Target": "infantry",
+            "Stat": "Attack",
+            "BasePercent": 5,
+            "PercentPerConstellation": 1.5
+          }
+        ]
+      },
+      {
+        "Key": "knight_aldric",
+        "DisplayName": "Альдрік Списоносець",
+        "Class": "knight",
+        "Rank": "rare",
+        "Description": "Веде кінноту клином, що не знає зупинки.",
+        "Lore": "Лицар без замку: усе, що має, — кінь, спис і слово.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 8,
+        "BaseStats": {
+          "Attack": 70,
+          "Defense": 75,
+          "Health": 380
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 8,
+          "Defense": 8,
+          "Health": 42
+        },
+        "Passives": [
+          {
+            "Key": "wedge",
+            "DisplayName": "Клин",
+            "UnlockConstellation": 0,
+            "Target": "cavalry",
+            "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 2.5
+          },
+          {
+            "Key": "barding",
+            "DisplayName": "Броня коней",
+            "UnlockConstellation": 3,
+            "Target": "cavalry",
+            "Stat": "Defense",
+            "BasePercent": 5,
+            "PercentPerConstellation": 2
+          }
+        ]
+      },
+      {
+        "Key": "knight_serah",
+        "DisplayName": "Сера Вартова",
+        "Class": "knight",
+        "Rank": "rare",
+        "Description": "Береже фланги так, ніби вони — її дім.",
+        "Lore": "Служила в кінній варті трьох володарів і жодного не зрадила.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 8,
+        "BaseStats": {
+          "Attack": 70,
+          "Defense": 75,
+          "Health": 380
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 8,
+          "Defense": 8,
+          "Health": 42
+        },
+        "Passives": [
+          {
+            "Key": "flank_guard",
+            "DisplayName": "Варта флангу",
+            "UnlockConstellation": 0,
+            "Target": "cavalry",
+            "Stat": "Defense",
+            "BasePercent": 7,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "escort",
+            "DisplayName": "Ескорт",
+            "UnlockConstellation": 4,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 3,
+            "PercentPerConstellation": 1.5
+          }
+        ]
+      },
+      {
+        "Key": "archer_finn",
+        "DisplayName": "Фінн Далекоокий",
+        "Class": "archer",
+        "Rank": "rare",
+        "Description": "Стріляє туди, куди інші ще не дивляться.",
+        "Lore": "Мисливець із північних лісів; уперше побачив місто в двадцять.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 6,
+        "BaseStats": {
+          "Attack": 95,
+          "Defense": 40,
+          "Health": 300
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 11,
+          "Defense": 4,
+          "Health": 32
+        },
+        "Passives": [
+          {
+            "Key": "long_shot",
+            "DisplayName": "Далекий постріл",
+            "UnlockConstellation": 0,
+            "Target": "archer",
+            "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "marksman",
+            "DisplayName": "Влучність",
+            "UnlockConstellation": 3,
+            "Target": "archer",
+            "Stat": "Attack",
+            "BasePercent": 4,
+            "PercentPerConstellation": 1.5
+          }
+        ]
+      },
+      {
+        "Key": "archer_ysolde",
+        "DisplayName": "Ізольда Тихоструна",
+        "Class": "archer",
+        "Rank": "rare",
+        "Description": "Її тятиви не чути, а стріли — не бачать.",
+        "Lore": "Учениця лісових розвідників; говорить мало, влучає завжди.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 6,
+        "BaseStats": {
+          "Attack": 95,
+          "Defense": 40,
+          "Health": 300
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 11,
+          "Defense": 4,
+          "Health": 32
+        },
+        "Passives": [
+          {
+            "Key": "silent_volley",
+            "DisplayName": "Тихий залп",
+            "UnlockConstellation": 0,
+            "Target": "archer",
+            "Stat": "Attack",
+            "BasePercent": 7,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "cover_fire",
+            "DisplayName": "Прикриття",
+            "UnlockConstellation": 4,
+            "Target": "infantry",
+            "Stat": "Defense",
+            "BasePercent": 4,
+            "PercentPerConstellation": 1.5
+          }
+        ]
+      },
+      {
+        "Key": "archer_rook",
+        "DisplayName": "Рук Строкатий",
+        "Class": "archer",
+        "Rank": "rare",
+        "Description": "Найманець із луком і сумлінням за окрему плату.",
+        "Lore": "Змінив п'ять прапорів, але жодного разу — сторону в бою.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 6,
+        "BaseStats": {
+          "Attack": 95,
+          "Defense": 40,
+          "Health": 300
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 11,
+          "Defense": 4,
+          "Health": 32
+        },
+        "Passives": [
+          {
+            "Key": "barrage",
+            "DisplayName": "Обстріл",
+            "UnlockConstellation": 0,
+            "Target": "archer",
+            "Stat": "Attack",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "harass",
+            "DisplayName": "Виснаження",
+            "UnlockConstellation": 3,
+            "Target": "cavalry",
+            "Stat": "Attack",
+            "BasePercent": 4,
+            "PercentPerConstellation": 1.5
+          }
+        ]
+      },
+      {
+        "Key": "mage_calder",
+        "DisplayName": "Кальдер Громовий",
+        "Class": "mage",
+        "Rank": "rare",
+        "Description": "Викликає грозу там, де стоїть ворог.",
+        "Lore": "Вигнаний з академії за надто гучні досліди — і надто вдалі.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 4,
+        "BaseStats": {
+          "Attack": 100,
+          "Defense": 35,
+          "Health": 250
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 12,
+          "Defense": 4,
+          "Health": 27
+        },
+        "Passives": [
+          {
+            "Key": "thunder",
+            "DisplayName": "Грім",
+            "UnlockConstellation": 0,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "storm_siege",
+            "DisplayName": "Буря над стінами",
+            "UnlockConstellation": 3,
+            "Target": "siege",
+            "Stat": "Attack",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          }
+        ]
+      },
+      {
+        "Key": "mage_nerys",
+        "DisplayName": "Неріс Дзеркальна",
+        "Class": "mage",
+        "Rank": "rare",
+        "Description": "Відбиває удари ще до того, як вони завдані.",
+        "Lore": "Її щити — з світла й розрахунку; жодного разу не тріснули.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 4,
+        "BaseStats": {
+          "Attack": 100,
+          "Defense": 35,
+          "Health": 250
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 12,
+          "Defense": 4,
+          "Health": 27
+        },
+        "Passives": [
+          {
+            "Key": "mirror_ward",
+            "DisplayName": "Дзеркальний оберіг",
+            "UnlockConstellation": 0,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "refraction",
+            "DisplayName": "Заломлення",
+            "UnlockConstellation": 4,
+            "Target": "siege",
+            "Stat": "Defense",
+            "BasePercent": 5,
+            "PercentPerConstellation": 1.5
+          }
+        ]
+      },
+      {
+        "Key": "warrior_gunnar",
+        "DisplayName": "Гуннар Скеля",
+        "Class": "warrior",
+        "Rank": "unique",
+        "Description": "Стіна, що йде в наступ.",
+        "Lore": "Кажуть, у нього немає серця — лише камінь, що б'ється повільно і вічно.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 4,
+        "BaseStats": {
+          "Attack": 72,
+          "Defense": 90,
+          "Health": 546
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 8,
+          "Defense": 10,
+          "Health": 60
+        },
+        "Passives": [
+          {
+            "Key": "stone_skin",
+            "DisplayName": "Кам'яна шкіра",
+            "UnlockConstellation": 0,
+            "Target": "infantry",
+            "Stat": "Defense",
+            "BasePercent": 9,
+            "PercentPerConstellation": 2.5
+          },
+          {
+            "Key": "avalanche",
+            "DisplayName": "Лавина",
+            "UnlockConstellation": 2,
+            "Target": "infantry",
+            "Stat": "Attack",
+            "BasePercent": 7,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "unbroken",
+            "DisplayName": "Незламність",
+            "UnlockConstellation": 4,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 5,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "mountain_heart",
+            "DisplayName": "Серце гори",
+            "UnlockConstellation": 6,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 6,
+            "PercentPerConstellation": 0
+          }
+        ]
+      },
+      {
+        "Key": "knight_elowen",
+        "DisplayName": "Еловен Світанкова",
+        "Class": "knight",
+        "Rank": "unique",
+        "Description": "Перший промінь і перший удар — завжди її.",
+        "Lore": "Народжена на світанку битви, яка вирішила долю трьох королівств.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 8,
+        "BaseStats": {
+          "Attack": 91,
+          "Defense": 75,
+          "Health": 494
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 10,
+          "Defense": 8,
+          "Health": 55
+        },
+        "Passives": [
+          {
+            "Key": "dawn_charge",
+            "DisplayName": "Світанковий наступ",
+            "UnlockConstellation": 0,
+            "Target": "cavalry",
+            "Stat": "Attack",
+            "BasePercent": 10,
+            "PercentPerConstellation": 2.5
+          },
+          {
+            "Key": "radiance",
+            "DisplayName": "Сяйво",
+            "UnlockConstellation": 2,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 5,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "aegis",
+            "DisplayName": "Егіда",
+            "UnlockConstellation": 4,
+            "Target": "cavalry",
+            "Stat": "Defense",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "first_light",
+            "DisplayName": "Перше світло",
+            "UnlockConstellation": 6,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 0
+          }
+        ]
+      },
+      {
+        "Key": "archer_kestrel",
+        "DisplayName": "Кестрель Соколиця",
+        "Class": "archer",
+        "Rank": "unique",
+        "Description": "Жодна ціль не надто далека, жодна — не надто швидка.",
+        "Lore": "Її сокіл бачить далі, ніж вона стріляє, — і це єдине, що її дратує.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 6,
+        "BaseStats": {
+          "Attack": 124,
+          "Defense": 40,
+          "Health": 390
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 14,
+          "Defense": 4,
+          "Health": 42
+        },
+        "Passives": [
+          {
+            "Key": "hawk_eye",
+            "DisplayName": "Соколине око",
+            "UnlockConstellation": 0,
+            "Target": "archer",
+            "Stat": "Attack",
+            "BasePercent": 10,
+            "PercentPerConstellation": 2.5
+          },
+          {
+            "Key": "piercing",
+            "DisplayName": "Пробиття",
+            "UnlockConstellation": 2,
+            "Target": "cavalry",
+            "Stat": "Attack",
+            "BasePercent": 6,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "high_ground",
+            "DisplayName": "Висота",
+            "UnlockConstellation": 4,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 5,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "stoop",
+            "DisplayName": "Пике",
+            "UnlockConstellation": 6,
+            "Target": "archer",
+            "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 0
+          }
+        ]
+      },
+      {
+        "Key": "mage_vael",
+        "DisplayName": "Ваель Безмовний",
+        "Class": "mage",
+        "Rank": "unique",
+        "Description": "Мовчить, поки вороги ще дихають.",
+        "Lore": "Обітниця мовчання — ціна сили, яку він узяв з мертвої академії.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 4,
+        "BaseStats": {
+          "Attack": 130,
+          "Defense": 35,
+          "Health": 325
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 16,
+          "Defense": 4,
+          "Health": 35
+        },
+        "Passives": [
+          {
+            "Key": "hush",
+            "DisplayName": "Тиша",
+            "UnlockConstellation": 0,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "shatter",
+            "DisplayName": "Розлом",
+            "UnlockConstellation": 2,
+            "Target": "siege",
+            "Stat": "Attack",
+            "BasePercent": 10,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "null_ward",
+            "DisplayName": "Порожній оберіг",
+            "UnlockConstellation": 4,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 5,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "silence",
+            "DisplayName": "Безмов'я",
+            "UnlockConstellation": 6,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 8,
+            "PercentPerConstellation": 0
+          }
+        ]
+      },
+      {
+        "Key": "mage_sabine",
+        "DisplayName": "Сабіна Морозна",
+        "Class": "mage",
+        "Rank": "unique",
+        "Description": "Зупиняє армії, не проливаючи крові.",
+        "Lore": "Її зима приходить у липні й іде, коли їй заманеться.",
+        "SummonShards": 0,
+        "ShardPriceGold": 0,
+        "Speed": 4,
+        "BaseStats": {
+          "Attack": 130,
+          "Defense": 35,
+          "Health": 325
+        },
+        "LevelUpCosts": [
+          {
+            "FromLevel": 1,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 400
+              },
+              {
+                "Resource": "food",
+                "Amount": 800
+              }
+            ]
+          },
+          {
+            "FromLevel": 11,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 900
+              },
+              {
+                "Resource": "food",
+                "Amount": 1500
+              },
+              {
+                "Resource": "iron",
+                "Amount": 300
+              }
+            ]
+          },
+          {
+            "FromLevel": 21,
+            "Cost": [
+              {
+                "Resource": "gold",
+                "Amount": 2000
+              },
+              {
+                "Resource": "food",
+                "Amount": 2600
+              },
+              {
+                "Resource": "iron",
+                "Amount": 900
+              }
+            ]
+          }
+        ],
+        "StatGrowth": {
+          "Attack": 16,
+          "Defense": 4,
+          "Health": 35
+        },
+        "Passives": [
+          {
+            "Key": "frost",
+            "DisplayName": "Мороз",
+            "UnlockConstellation": 0,
+            "Target": "all",
+            "Stat": "Defense",
+            "BasePercent": 7,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "glacier",
+            "DisplayName": "Льодовик",
+            "UnlockConstellation": 2,
+            "Target": "infantry",
+            "Stat": "Defense",
+            "BasePercent": 8,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "cold_snap",
+            "DisplayName": "Хапавка",
+            "UnlockConstellation": 4,
+            "Target": "all",
+            "Stat": "Attack",
+            "BasePercent": 5,
+            "PercentPerConstellation": 2
+          },
+          {
+            "Key": "deep_winter",
+            "DisplayName": "Глибока зима",
+            "UnlockConstellation": 6,
+            "Target": "all",
+            "Stat": "Defense",
             "BasePercent": 8,
             "PercentPerConstellation": 0
           }
