@@ -8,6 +8,7 @@ import SendMarchForm from "../components/map/SendMarchForm";
 import WorldMap from "../components/map/WorldMap";
 import { useSession } from "../hooks/useSession";
 import type { MarchTargetType } from "../lib/apiTypes";
+import { useCatalog } from "../lib/queries/catalog";
 import { useUseItem } from "../lib/queries/inventory";
 import { useMapArea, useMapCell, type MapView } from "../lib/queries/map";
 import { useMarches } from "../lib/queries/marches";
@@ -19,6 +20,7 @@ export default function MapPage() {
   const session = useSession();
   const playerId = session?.playerId ?? "";
 
+  const catalog = useCatalog();
   const village = useVillage(playerId);
   const marches = useMarches(playerId);
 
@@ -111,6 +113,7 @@ export default function MapPage() {
               marches={marches.data ?? []}
               selected={selected}
               homeRequest={homeRequest}
+              mapSize={catalog.mapSize}
               onSelect={(x, y) => {
                 setSelected({ x, y });
                 setTarget(null);

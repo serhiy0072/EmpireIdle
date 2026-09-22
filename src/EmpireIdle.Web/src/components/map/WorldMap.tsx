@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { usePanZoom } from "../../hooks/usePanZoom";
 import type { MapAreaResponse, MarchResponse } from "../../lib/apiTypes";
-import { at, project, UNIT_X, UNIT_Y } from "../../lib/iso";
+import { at, project, toPath, UNIT_X, UNIT_Y } from "../../lib/iso";
 import { MAP_RADIUS_MAX, MAP_RADIUS_MIN, type MapView } from "../../lib/queries/map";
 import { cellOrigin, groundFill, occupantArt, TILE, tileDetail, tilePath } from "./worldTiles";
 
@@ -15,6 +15,8 @@ interface Props {
   selected: { x: number; y: number } | null;
   /** Скільки разів натиснуто «Додому»: зміна значення повертає камеру на село. */
   homeRequest: number;
+  /** Сторона світу в клітинах — з каталогу; земля малюється до цього краю й далі камера не їде. */
+  mapSize: number;
   onSelect: (x: number, y: number) => void;
   /** Камера показує інші клітини — час завантажити ділянку під них. */
   onViewChange: (view: MapView) => void;
@@ -23,8 +25,30 @@ interface Props {
 /** Радіус для першого показу: стільки клітин довкола дому в кадрі. */
 const HOME_RADIUS = 12;
 
-/** Далі за це радіус ділянки не росте — дрібниці на тайлах уже не видно, зате видно весь регіон. */
-const ZOOM = { min: 0.35, max: 6 };
+/** Скільки клітин довкола центру має вміщати кадр щонайбільше: запас під стелю API (25), щоб край ділянки не показувався. */
+const VIEW_RADIUS_CAP = MAP_RADIUS_MAX - 3;
+
+/** Увесь світ у пікселях проєкції: камера не виїжджає за його край, а під незавантаженими клітинами лежить земля. */
+function worldBounds(size: number) {
+  return {
+    minX: -size * TILE * UNIT_X,
+    maxX: size * TILE * UNIT_X,
+    minY: -TILE * UNIT_Y,
+    maxY: 2 * size * TILE * UNIT_Y,
+  };
+}
+
+/**
+ * Масштаб, за якого кадр показує рівно VIEW_RADIUS_CAP клітин довкола центру —
+ * обернена radiusFor: далі віддалятись не можна, бо сервер більше не віддасть.
+ */
+function minScaleFor(viewport: { width: number; height: number }): number {
+  const span = (VIEW_RADIUS_CAP - 2) * 2 * TILE;
+  return (viewport.width / UNIT_X + viewport.height / UNIT_Y) / 2 / span;
+}
+
+const ZOOM_MIN = 0.2;
+const ZOOM_MAX = 6;
 
 /** Понад цей радіус дрібні деталі тайлів не малюємо: тисячі дерев не потрібні на огляді регіону. */
 const DETAIL_RADIUS = 16;
@@ -73,10 +97,11 @@ function radiusFor(width: number, height: number, k: number): number {
  * наблизив — менше клітин, віддалив — більше. Коли камера показує інші клітини,
  * сторінка перезапитує ділянку, а старі тайли лишаються до приходу нових.
  */
-export default function WorldMap({ area, home, view, marches, selected, homeRequest, onSelect, onViewChange }: Props) {
+export default function WorldMap({ area, home, view, marches, selected, homeRequest, mapSize, onSelect, onViewChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const initial = useMemo(() => boundsOf(home, HOME_RADIUS), [home]);
-  const { transform, handlers, wasDragged, focus } = usePanZoom(containerRef, initial, ZOOM);
+  const limits = useMemo(() => ({ min: ZOOM_MIN, max: ZOOM_MAX, minAbsolute: minScaleFor, pan: worldBounds(mapSize) }), [mapSize]);
+  const { transform, handlers, wasDragged, focus } = usePanZoom(containerRef, initial, limits);
 
   // «Додому» — камера назад на село; перший рендер уже вписаний хуком
   const firstHome = useRef(true);
@@ -133,6 +158,12 @@ export default function WorldMap({ area, home, view, marches, selected, homeRequ
       {transform !== null && (
         <svg className="absolute inset-0 h-full w-full">
           <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}>
+            {/* Земля під усім світом: незавантажені клітини — рівнина, а не небо, і краю сітки не видно */}
+            <path
+              d={toPath([at(0, 0), at(mapSize * TILE, 0), at(mapSize * TILE, mapSize * TILE), at(0, mapSize * TILE)])}
+              fill="#bfd9a0"
+            />
+
             {/* Основи всіх клітин — одним шаром, деталі окремо, інакше дерево далекої клітини лягало б поверх ближчої основи */}
             {terrain.map((cell) => (
               <path
