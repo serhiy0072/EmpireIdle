@@ -20,8 +20,11 @@ const SPRITES: Record<string, Sprite[]> = {
   // ],
 };
 
+/** Тір оздоблення: 0 — рівні 1–4, 1 — 5–9, 2 — 10+. Спільний для спрайтів і силуетів. */
+export type Tier = 0 | 1 | 2;
+
 /** Тір за рівнем — той самий поділ, що й у README спрайтів: 1–4, 5–9, 10+. */
-function tierOf(level: number): number {
+export function tierOf(level: number): Tier {
   return level >= 10 ? 2 : level >= 5 ? 1 : 0;
 }
 
