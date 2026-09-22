@@ -23,6 +23,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.Monsters.FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<Monster>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.Monsters.AsNoTracking().Where(m => ids.Contains(m.Id)).ToListAsync(cancellationToken);
+
         public async Task AddAsync(Monster monster, CancellationToken cancellationToken = default)
         {
             await _context.Monsters.AddAsync(monster, cancellationToken);
