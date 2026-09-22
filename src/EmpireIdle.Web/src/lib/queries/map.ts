@@ -16,6 +16,8 @@ export function useMapArea(centerX: number | null, centerY: number | null): UseQ
     queryFn: () => api<MapAreaResponse>(`/api/map?centerX=${centerX}&centerY=${centerY}&radius=${MAP_RADIUS}`),
     enabled: centerX !== null && centerY !== null,
     staleTime: 60_000,
+    // Камера поїхала далі — стара ділянка лишається на екрані, поки не приїде нова
+    placeholderData: (previous) => previous,
   });
 }
 
