@@ -3,10 +3,17 @@ import BannerCard from "../components/banners/BannerCard";
 import ErrorBanner from "../components/ErrorBanner";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
-import type { BannerRollResponse } from "../lib/apiTypes";
-import { useBanners, useRollBanner } from "../lib/queries/banners";
+import type { BannerDropResult } from "../lib/apiTypes";
+import { MAX_ROLLS_PER_REQUEST, useBanners, useRollBanner } from "../lib/queries/banners";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
+
+/** Скільки випадів тримаємо в історії сесії. */
+const HISTORY_LIMIT = 50;
+
+function tone(rarity: number): string {
+  return rarity === 3 ? "border-amber-300 bg-amber-50" : rarity === 2 ? "border-sky-300 bg-sky-50" : "border-slate-200 bg-white";
+}
 
 export default function BannersPage() {
   const session = useSession();
@@ -17,8 +24,9 @@ export default function BannersPage() {
   const wallet = useWallet(playerId);
   const roll = useRollBanner(playerId);
 
-  // Історія роллів цієї сесії: гравець бачить серію, а не лише останній випад
-  const [history, setHistory] = useState<BannerRollResponse[]>([]);
+  // Остання серія — розгорнуто, попередні — рядком: гравець бачить і серію, і смугу
+  const [latest, setLatest] = useState<BannerDropResult[]>([]);
+  const [history, setHistory] = useState<BannerDropResult[]>([]);
 
   if (banners.isPending) {
     return <p className="text-slate-500">Завантаження банерів…</p>;
@@ -29,7 +37,7 @@ export default function BannersPage() {
   }
 
   const gems = wallet.data?.gemBalance ?? 0;
-  const latest = history[0] ?? null;
+  const best = latest.reduce((max, drop) => Math.max(max, drop.rarity), 0);
 
   return (
     <div className="space-y-4">
@@ -40,22 +48,22 @@ export default function BannersPage() {
 
       <ErrorBanner error={roll.error} />
 
-      {latest !== null && (
-        <div
-          role="status"
-          className={`rounded-xl border px-4 py-3 ${
-            latest.rarity === 3 ? "border-amber-300 bg-amber-50" : latest.rarity === 2 ? "border-sky-300 bg-sky-50" : "border-slate-200 bg-white"
-          }`}
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(latest.rarity)}`}>{rarityLabel(latest.rarity)}</span>
-            <span className="text-lg font-medium text-slate-800">{latest.displayName}</span>
-            {latest.wasPity && <span className="text-xs text-slate-500">гарантія</span>}
-            {latest.lostFiftyFifty && <span className="text-xs text-slate-500">50/50 програно — наступний унікальний промо</span>}
-          </div>
-          {history.length > 1 && (
-            <p className="mt-1 text-xs text-slate-500">
-              Раніше: {history.slice(1, 6).map((entry) => entry.displayName).join(", ")}
+      {latest.length > 0 && (
+        <div role="status" className={`rounded-xl border px-4 py-3 ${tone(best)}`}>
+          <ul className="grid gap-1 sm:grid-cols-2">
+            {latest.map((drop, index) => (
+              <li key={index} className="flex flex-wrap items-center gap-2 text-sm">
+                <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(drop.rarity)}`}>{rarityLabel(drop.rarity)}</span>
+                <span className={drop.rarity >= 2 ? "font-medium text-slate-800" : "text-slate-700"}>{drop.displayName}</span>
+                {drop.wasPity && <span className="text-xs text-slate-500">гарантія</span>}
+                {drop.lostFiftyFifty && <span className="text-xs text-slate-500">50/50 програно</span>}
+              </li>
+            ))}
+          </ul>
+          {history.length > 0 && (
+            <p className="mt-2 text-xs text-slate-500">
+              Раніше: {history.slice(0, 10).map((entry) => entry.displayName).join(", ")}
+              {history.length > 10 && "…"}
             </p>
           )}
         </div>
@@ -72,10 +80,17 @@ export default function BannersPage() {
               gems={gems}
               now={now}
               busy={roll.isPending}
-              onRoll={() =>
-                roll.mutate(banner.key, {
-                  onSuccess: (result) => setHistory((previous) => [result, ...previous].slice(0, 20)),
-                })
+              maxRolls={MAX_ROLLS_PER_REQUEST}
+              onRoll={(count) =>
+                roll.mutate(
+                  { bannerKey: banner.key, count },
+                  {
+                    onSuccess: (result) => {
+                      setHistory((previous) => [...latest, ...previous].slice(0, HISTORY_LIMIT));
+                      setLatest(result.drops);
+                    },
+                  },
+                )
               }
             />
           ))}

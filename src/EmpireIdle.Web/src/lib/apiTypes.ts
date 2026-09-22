@@ -37,6 +37,7 @@ export type EnhancementResponse = components["schemas"]["EnhancementResponse"];
 export type BannerView = components["schemas"]["BannerView"];
 export type BannerDropView = components["schemas"]["BannerDropView"];
 export type BannerRollResponse = components["schemas"]["BannerRollResponse"];
+export type BannerDropResult = components["schemas"]["BannerDropResult"];
 export type MyClanResponse = components["schemas"]["MyClanResponse"];
 export type ClanMemberResponse = components["schemas"]["ClanMemberResponse"];
 export type ClanRoleResponse = components["schemas"]["ClanRoleResponse"];
