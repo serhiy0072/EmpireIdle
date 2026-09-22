@@ -3,18 +3,26 @@ import { api } from "../api";
 import type { MapAreaResponse, MapCellDetailsResponse } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 
-/** Скільки клітин навколо центру тягнемо за раз: 25×25 — один запит, без прокрутки в межах вікна. */
-export const MAP_RADIUS = 12;
+/** Межі радіуса ділянки: нижня — щоб не смикати сервер на кожен крок, верхня — стеля API (51×51). */
+export const MAP_RADIUS_MIN = 8;
+export const MAP_RADIUS_MAX = 25;
+
+/** Що показує камера: центр і скільки клітин довкола вміщає кадр. */
+export interface MapView {
+  x: number;
+  y: number;
+  radius: number;
+}
 
 /**
  * Ділянка мапи. Довго не стаpіє: місцевість незмінна, а окупантів оновлює
- * подія бою чи ручний рух центру. enabled — центр невідомий, поки не приїхало село.
+ * подія бою чи рух камери. enabled — центр невідомий, поки не приїхало село.
  */
-export function useMapArea(centerX: number | null, centerY: number | null): UseQueryResult<MapAreaResponse> {
+export function useMapArea(view: MapView | null): UseQueryResult<MapAreaResponse> {
   return useQuery({
-    queryKey: queryKeys.mapArea(centerX ?? 0, centerY ?? 0, MAP_RADIUS),
-    queryFn: () => api<MapAreaResponse>(`/api/map?centerX=${centerX}&centerY=${centerY}&radius=${MAP_RADIUS}`),
-    enabled: centerX !== null && centerY !== null,
+    queryKey: queryKeys.mapArea(view?.x ?? 0, view?.y ?? 0, view?.radius ?? 0),
+    queryFn: () => api<MapAreaResponse>(`/api/map?centerX=${view?.x}&centerY=${view?.y}&radius=${view?.radius}`),
+    enabled: view !== null,
     staleTime: 60_000,
     // Камера поїхала далі — стара ділянка лишається на екрані, поки не приїде нова
     placeholderData: (previous) => previous,

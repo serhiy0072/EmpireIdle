@@ -7,7 +7,7 @@ import SendMarchForm from "../components/map/SendMarchForm";
 import WorldMap from "../components/map/WorldMap";
 import { useSession } from "../hooks/useSession";
 import type { MarchTargetType } from "../lib/apiTypes";
-import { MAP_RADIUS, useMapArea, useMapCell } from "../lib/queries/map";
+import { useMapArea, useMapCell, type MapView } from "../lib/queries/map";
 import { useMarches } from "../lib/queries/marches";
 import { useVillage } from "../lib/queries/village";
 
@@ -20,8 +20,8 @@ export default function MapPage() {
   const village = useVillage(playerId);
   const marches = useMarches(playerId);
 
-  // Зсув від дому, а не абсолютний центр: до приходу села координат ще немає
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  // Ділянка задається камерою; до приходу села її немає, і мапа починає з дому
+  const [view, setView] = useState<MapView | null>(null);
   const [selected, setSelected] = useState<{ x: number; y: number } | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
   const [homeRequest, setHomeRequest] = useState(0);
@@ -30,18 +30,11 @@ export default function MapPage() {
   const homeX = village.data?.x;
   const homeY = village.data?.y;
   const home = useMemo(() => (homeX === undefined || homeY === undefined ? null : { x: homeX, y: homeY }), [homeX, homeY]);
-  const centerX = home === null ? null : home.x + offset.x;
-  const centerY = home === null ? null : home.y + offset.y;
+  const effectiveView = view ?? (home === null ? null : { x: home.x, y: home.y, radius: 12 });
+  const area = useMapArea(effectiveView);
 
-  const area = useMapArea(centerX, centerY);
-
-  // Камера від'їхала — мапа просить ділянку довкола нової клітини
-  const recenter = useCallback(
-    (x: number, y: number) => {
-      if (home !== null) setOffset({ x: x - home.x, y: y - home.y });
-    },
-    [home],
-  );
+  // Камера показує інше — мапа просить ділянку під нею
+  const changeView = useCallback((next: MapView) => setView(next), []);
   const cell = useMapCell(selected?.x ?? null, selected?.y ?? null);
 
   if (village.isPending) {
@@ -67,7 +60,7 @@ export default function MapPage() {
           <button
             type="button"
             onClick={() => {
-              setOffset({ x: 0, y: 0 });
+              setView(null);
               setHomeRequest((value) => value + 1);
             }}
             className="rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-100"
@@ -79,7 +72,7 @@ export default function MapPage() {
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div>
-          {area.data === undefined || home === null ? (
+          {area.data === undefined || home === null || effectiveView === null ? (
             area.isError ? (
               <ErrorBanner error={area.error} />
             ) : (
@@ -89,8 +82,7 @@ export default function MapPage() {
             <WorldMap
               area={area.data}
               home={home}
-              center={{ x: centerX ?? home.x, y: centerY ?? home.y }}
-              radius={MAP_RADIUS}
+              view={effectiveView}
               marches={marches.data ?? []}
               selected={selected}
               homeRequest={homeRequest}
@@ -98,7 +90,7 @@ export default function MapPage() {
                 setSelected({ x, y });
                 setTarget(null);
               }}
-              onCenterChange={recenter}
+              onViewChange={changeView}
             />
           )}
         </div>
