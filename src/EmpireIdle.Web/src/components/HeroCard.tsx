@@ -1,5 +1,6 @@
 import { heroState, rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
 import type { HeroSummary } from "../lib/queries/heroes";
+import HeroPortrait from "./heroes/HeroPortrait";
 
 interface Props {
   hero: HeroSummary;
@@ -32,17 +33,23 @@ export default function HeroCard({ hero, selected, levelingUntil, onSelect }: Pr
         selected ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"
       }`}
     >
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="font-medium text-slate-800">{catalog.heroName(hero.heroKey)}</span>
-        <span className="text-xs text-slate-500">T{hero.tier}</span>
-      </div>
+      <div className="flex gap-3">
+        <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={56} />
 
-      <div className="mt-1 flex items-center justify-between">
-        <span className="text-sm text-slate-600">
-          рів. {hero.level}
-          <span className="text-slate-400"> / {hero.maxLevel}</span>
-        </span>
-        <Constellation value={hero.constellation} max={catalog.maxConstellation} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="truncate font-medium text-slate-800">{catalog.heroName(hero.heroKey)}</span>
+            <span className="text-xs text-slate-500">T{hero.tier}</span>
+          </div>
+
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-sm text-slate-600">
+              рів. {hero.level}
+              <span className="text-slate-400"> / {hero.maxLevel}</span>
+            </span>
+            <Constellation value={hero.constellation} max={catalog.maxConstellation} />
+          </div>
+        </div>
       </div>
 
       <div className="mt-2 flex flex-wrap gap-1 text-xs">

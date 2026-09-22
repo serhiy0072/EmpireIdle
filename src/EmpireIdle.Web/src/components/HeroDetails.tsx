@@ -3,6 +3,7 @@ import { useNow } from "../hooks/useNow";
 import type { components } from "../lib/schema";
 import type { HeroSummary } from "../lib/queries/heroes";
 import { formatRemaining } from "../lib/time";
+import HeroPortrait from "./heroes/HeroPortrait";
 
 type HeroLevelOrder = components["schemas"]["HeroLevelOrderSummary"];
 
@@ -42,15 +43,21 @@ export default function HeroDetails({
   return (
     <aside className="rounded-xl border border-slate-200 bg-white p-4 space-y-4">
       <div>
-        <h2 className="text-lg font-medium text-slate-800">{catalog.heroName(hero.heroKey)}</h2>
+        <div className="flex gap-3">
+          <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={88} />
 
-        {config !== null && (
-          <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
-            <span className={`rounded px-2 py-0.5 ${rankStyle(config.rank)}`}>{rankLabel(config.rank)}</span>
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{config.class}</span>
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">швидкість {config.speed}</span>
+          <div className="min-w-0">
+            <h2 className="text-lg font-medium text-slate-800">{catalog.heroName(hero.heroKey)}</h2>
+
+            {config !== null && (
+              <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
+                <span className={`rounded px-2 py-0.5 ${rankStyle(config.rank)}`}>{rankLabel(config.rank)}</span>
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{config.class}</span>
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">швидкість {config.speed}</span>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         <p className="mt-2 text-sm text-slate-500">
           Тір {hero.tier} з {catalog.maxTier} · рівень {hero.level} з {hero.maxLevel} · сузір'я {hero.constellation}/
