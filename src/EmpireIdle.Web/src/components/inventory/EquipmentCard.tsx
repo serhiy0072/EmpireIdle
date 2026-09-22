@@ -3,6 +3,7 @@ import type { EquipmentResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import type { HeroSummary } from "../../lib/queries/heroes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
+import ItemIcon from "./ItemIcon";
 
 interface Props {
   equipment: EquipmentResponse;
@@ -56,23 +57,29 @@ export default function EquipmentCard({
 
   return (
     <div className={`rounded-xl border bg-white p-3 ${equipment.isBroken ? "border-red-300" : "border-slate-200"}`}>
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="font-medium text-slate-800">
-          {catalog.itemName(equipment.itemKey)}
-          {equipment.enhancementLevel > 0 && <span className="ml-1 text-amber-600">+{equipment.enhancementLevel}</span>}
-        </span>
-        <span className="text-xs text-slate-500">{isWeapon ? "Зброя" : `Артефакт`}</span>
-      </div>
+      <div className="flex gap-3">
+        <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} size={48} className={equipment.isBroken ? "grayscale" : ""} />
 
-      <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
-        <span className={`rounded px-2 py-0.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
-        {equipment.isBroken && <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Зламано</span>}
-        {wearer !== null && wearer !== undefined && (
-          <span className="rounded bg-emerald-100 px-2 py-0.5 text-emerald-800">
-            {catalog.heroName(wearer.heroKey)}
-            {!isWeapon && ` · слот ${equipment.slotIndex + 1}`}
-          </span>
-        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="truncate font-medium text-slate-800">
+              {catalog.itemName(equipment.itemKey)}
+              {equipment.enhancementLevel > 0 && <span className="ml-1 text-amber-600">+{equipment.enhancementLevel}</span>}
+            </span>
+            <span className="text-xs text-slate-500">{isWeapon ? "Зброя" : `Артефакт`}</span>
+          </div>
+
+          <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
+            <span className={`rounded px-2 py-0.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
+            {equipment.isBroken && <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Зламано</span>}
+            {wearer !== null && wearer !== undefined && (
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-emerald-800">
+                {catalog.heroName(wearer.heroKey)}
+                {!isWeapon && ` · слот ${equipment.slotIndex + 1}`}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       <dl className="mt-2 grid grid-cols-3 gap-1 text-sm">

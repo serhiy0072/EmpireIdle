@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import ErrorBanner from "../components/ErrorBanner";
 import ActiveEffects from "../components/inventory/ActiveEffects";
 import EquipmentCard from "../components/inventory/EquipmentCard";
@@ -6,8 +6,10 @@ import ItemCard from "../components/inventory/ItemCard";
 import WeaponShop from "../components/inventory/WeaponShop";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
+import type { EquipmentResponse, InventoryItemResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
+import { rarityKey } from "../lib/rarity";
 import {
   useBuyWeapon,
   useEnhance,
@@ -18,6 +20,42 @@ import {
   useUpgradeArtifact,
   useUseItem,
 } from "../lib/queries/inventory";
+
+type SortKey = "rarity" | "level" | "type";
+
+const SORT_LABELS: Record<SortKey, string> = { rarity: "за рідкістю", level: "за рівнем", type: "за типом" };
+
+const RARITY_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
+
+/** Стабільний порядок: обране поле, далі рідкість, далі назва — щоб однакові мечі не стрибали. */
+function sortEquipment(items: EquipmentResponse[], sort: SortKey, name: (key: string) => string): EquipmentResponse[] {
+  const byRarity = (a: EquipmentResponse, b: EquipmentResponse) =>
+    (RARITY_ORDER[rarityKey(a.rarity)] ?? 9) - (RARITY_ORDER[rarityKey(b.rarity)] ?? 9);
+  const byLevel = (a: EquipmentResponse, b: EquipmentResponse) => b.enhancementLevel - a.enhancementLevel;
+  const byType = (a: EquipmentResponse, b: EquipmentResponse) => a.slot.localeCompare(b.slot) || name(a.itemKey).localeCompare(name(b.itemKey), "uk");
+  const primary = sort === "rarity" ? byRarity : sort === "level" ? byLevel : byType;
+
+  // Одягнуте — завжди вгорі: це те, що гравець шукає найчастіше
+  return [...items].sort(
+    (a, b) =>
+      Number(b.equippedByHeroId != null) - Number(a.equippedByHeroId != null) ||
+      primary(a, b) ||
+      byRarity(a, b) ||
+      byLevel(a, b) ||
+      byType(a, b),
+  );
+}
+
+function sortItems(items: InventoryItemResponse[], sort: SortKey): InventoryItemResponse[] {
+  const byRarity = (a: InventoryItemResponse, b: InventoryItemResponse) =>
+    (RARITY_ORDER[rarityKey(a.rarity)] ?? 9) - (RARITY_ORDER[rarityKey(b.rarity)] ?? 9);
+  const byType = (a: InventoryItemResponse, b: InventoryItemResponse) => a.type.localeCompare(b.type) || a.displayName.localeCompare(b.displayName, "uk");
+  // «За рівнем» для стаків — за кількістю: рівня в них немає
+  const byCount = (a: InventoryItemResponse, b: InventoryItemResponse) => b.count - a.count;
+  const primary = sort === "rarity" ? byRarity : sort === "level" ? byCount : byType;
+
+  return [...items].sort((a, b) => primary(a, b) || byRarity(a, b) || byType(a, b));
+}
 
 const OUTCOME_LABELS: Record<string, string> = {
   success: "Заточка вдалася",
@@ -43,6 +81,13 @@ export default function InventoryPage() {
   const unequip = useUnequip(playerId);
 
   const [tab, setTab] = useState<"items" | "equipment" | "shop">("equipment");
+  const [sort, setSort] = useState<SortKey>("rarity");
+
+  const equipment = useMemo(
+    () => sortEquipment(inventory.data?.equipment ?? [], sort, catalog.itemName),
+    [inventory.data?.equipment, sort, catalog.itemName],
+  );
+  const items = useMemo(() => sortItems(inventory.data?.items ?? [], sort), [inventory.data?.items, sort]);
 
   if (inventory.isPending) {
     return <p className="text-slate-500">Завантаження інвентаря…</p>;
@@ -93,27 +138,44 @@ export default function InventoryPage() {
         </div>
       )}
 
-      <nav className="flex gap-1">
-        {tabs.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            onClick={() => setTab(item.key)}
-            className={`rounded-lg px-3 py-1 text-sm ${
-              tab === item.key ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"
-            }`}
+      <div className="flex flex-wrap items-center gap-1">
+        <nav className="flex gap-1">
+          {tabs.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setTab(item.key)}
+              className={`rounded-lg px-3 py-1 text-sm ${
+                tab === item.key ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {tab !== "shop" && (
+          <select
+            value={sort}
+            onChange={(event) => setSort(event.target.value as SortKey)}
+            aria-label="Сортування"
+            className="ml-auto rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
           >
-            {item.label}
-          </button>
-        ))}
-      </nav>
+            {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+              <option key={key} value={key}>
+                {SORT_LABELS[key]}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
 
       {tab === "equipment" &&
         (inventory.data.equipment.length === 0 ? (
           <p className="text-sm text-slate-500">Спорядження ще немає — купіть зброю в кузні або крутіть банери.</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {inventory.data.equipment.map((equipment) => (
+            {equipment.map((equipment) => (
               <EquipmentCard
                 key={equipment.id}
                 equipment={equipment}
@@ -136,7 +198,7 @@ export default function InventoryPage() {
           <p className="text-sm text-slate-500">Порожньо. Предмети дають квести й банери.</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {inventory.data.items.map((item) => (
+            {items.map((item) => (
               <ItemCard key={item.itemKey} item={item} busy={busy} onUse={(request) => consume.mutate(request)} />
             ))}
           </div>

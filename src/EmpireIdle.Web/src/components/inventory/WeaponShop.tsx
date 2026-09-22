@@ -1,5 +1,6 @@
 import { useCatalog } from "../../lib/queries/catalog";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
+import ItemIcon from "./ItemIcon";
 
 interface Props {
   busy: boolean;
@@ -19,17 +20,22 @@ export default function WeaponShop({ busy, onBuy }: Props) {
     <div className="grid gap-3 sm:grid-cols-2">
       {weapons.map((weapon) => (
         <div key={weapon.key} className="rounded-xl border border-slate-200 bg-white p-3">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-medium text-slate-800">{weapon.displayName}</span>
-            <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(weapon.rarity)}`}>{rarityLabel(weapon.rarity)}</span>
-          </div>
+          <div className="flex gap-3">
+            <ItemIcon itemKey={weapon.key} type="equipment" rarity={weapon.rarity} size={48} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="truncate font-medium text-slate-800">{weapon.displayName}</span>
+                <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(weapon.rarity)}`}>{rarityLabel(weapon.rarity)}</span>
+              </div>
 
-          <p className="mt-1 text-xs text-slate-500">
-            {Object.entries(weapon.baseStats)
-              .map(([stat, value]) => `${stat} ${value}`)
-              .join(" · ")}
-            {weapon.weaponClasses.length > 0 && ` · для: ${weapon.weaponClasses.join(", ")}`}
-          </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {Object.entries(weapon.baseStats)
+                  .map(([stat, value]) => `${stat} ${value}`)
+                  .join(" · ")}
+                {weapon.weaponClasses.length > 0 && ` · для: ${weapon.weaponClasses.join(", ")}`}
+              </p>
+            </div>
+          </div>
 
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-slate-600">{weapon.priceGold.toLocaleString("uk-UA")} золота</span>
