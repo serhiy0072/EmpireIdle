@@ -2,6 +2,9 @@
 export const queryKeys = {
   catalog: ["catalog"] as const,
   shop: ["shop"] as const,
+  leaderboard: ["rating", "top"] as const,
+  rank: (playerId: string) => ["rating", playerId] as const,
+  power: (playerId: string) => ["power", playerId] as const,
   village: (playerId: string) => ["village", playerId] as const,
   heroes: (playerId: string) => ["heroes", playerId] as const,
   battleReports: (playerId: string) => ["battleReports", playerId] as const,

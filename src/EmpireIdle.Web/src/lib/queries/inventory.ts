@@ -83,7 +83,7 @@ export function useEquip(playerId: string) {
         `/api/heroes/${playerId}/${input.heroId}/equipment/${input.equipmentId}?slotIndex=${input.slotIndex}`,
         { method: "POST", idempotent: true },
       ),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
   });
 }
 
@@ -93,6 +93,6 @@ export function useUnequip(playerId: string) {
   return useMutation({
     mutationFn: (equipmentId: string) =>
       api<void>(`/api/heroes/${playerId}/equipment/${equipmentId}`, { method: "DELETE", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
   });
 }

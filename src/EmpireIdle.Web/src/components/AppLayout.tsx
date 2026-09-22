@@ -8,6 +8,7 @@ import { useWallet } from "../lib/queries/wallet";
 import TutorialOverlay from "../tutorial/TutorialOverlay";
 import { useTutorial } from "../tutorial/useTutorial";
 import ErrorBanner from "./ErrorBanner";
+import PowerBadge from "./PowerBadge";
 import ResourceBar from "./ResourceBar";
 
 const NAV_ITEMS = [
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { to: "/clan", label: "Клан" },
   { to: "/map", label: "Мапа" },
   { to: "/quests", label: "Квести" },
+  { to: "/rating", label: "Рейтинг" },
 ] as const;
 
 export default function AppLayout() {
@@ -45,6 +47,7 @@ export default function AppLayout() {
             <ResourceBar village={village.data} />
 
             <div className="flex items-center gap-2">
+              <PowerBadge playerId={playerId} village={village.data} />
               <span className="rounded-full bg-violet-100 px-3 py-1 text-sm text-violet-800">
                 💎 <span className="font-medium">{(wallet.data?.gemBalance ?? 0).toLocaleString("uk-UA")}</span>
               </span>

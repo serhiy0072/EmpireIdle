@@ -39,6 +39,7 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
       queryKeys.garrison(playerId),
       queryKeys.quests(playerId),
       queryKeys.marches(playerId),
+      queryKeys.power(playerId),
       ["map"],
     ],
     MarchReturned: [
@@ -46,6 +47,7 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
       queryKeys.garrison(playerId),
       queryKeys.village(playerId),
       queryKeys.heroes(playerId),
+      queryKeys.power(playerId),
     ],
     ServerQuestRewarded: [queryKeys.wallet(playerId), queryKeys.serverQuests(playerId)],
     ClanInvite: [queryKeys.clanRequests(playerId)],
