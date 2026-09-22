@@ -22,15 +22,20 @@ export const MAX_ROLLS_PER_REQUEST = 10;
  * Лічильники гарантій приходять у відповіді, але список банерів усе одно
  * перечитуємо: pity спільний на групу, тож змінилися й сусідні банери.
  */
+/** Валюта ролла: числа з контракту BannerCurrency — сервер приймає enum числом. */
+export type BannerCurrency = "gems" | "seals";
+
+const CURRENCY_CODE: Record<BannerCurrency, number> = { gems: 0, seals: 1 };
+
 export function useRollBanner(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { bannerKey: string; count: number }) =>
-      api<BannerRollResponse>(`/api/banners/${playerId}/${input.bannerKey}/roll?count=${input.count}`, {
-        method: "POST",
-        idempotent: true,
-      }),
+    mutationFn: (input: { bannerKey: string; count: number; currency: BannerCurrency }) =>
+      api<BannerRollResponse>(
+        `/api/banners/${playerId}/${input.bannerKey}/roll?count=${input.count}&currency=${CURRENCY_CODE[input.currency]}`,
+        { method: "POST", idempotent: true },
+      ),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["banners", "wallet", "heroes", "inventory"]),
   });
 }
