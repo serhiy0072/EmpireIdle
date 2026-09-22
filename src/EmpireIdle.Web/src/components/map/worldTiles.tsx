@@ -107,24 +107,51 @@ const HOME_ROOF = faces("#f87171", "#dc2626", "#991b1b");
 const HOME_WALL = faces("#e2e8f0", "#94a3b8", "#64748b");
 const OTHER_ROOF = faces("#93c5fd", "#3b82f6", "#1d4ed8");
 const OTHER_WALL = faces("#e7c9a0", "#b88a5a", "#8a6238");
-const MONSTER = faces("#fca5a5", "#ef4444", "#991b1b");
-const BONE = faces("#f8fafc", "#e2e8f0", "#cbd5e1");
+const HIDE = faces("#7c3aed", "#5b21b6", "#3b0764");
+const HORN = faces("#fef3c7", "#e7c9a0", "#b88a5a");
+const CLAW = faces("#1e293b", "#0f172a", "#020617");
 
-/** Мітка окупанта клітини: своє село — червоний дах і прапор, чуже — синій, монстр — намет із черепом. */
+/**
+ * Монстр — істота, а не будівля: присадкувате тіло з рогами, пазурами
+ * й червоними очима на витоптаній землі. Ключ клітини задає нахил
+ * рогів і розмір, щоб зграя не була штампованою.
+ */
+function monsterArt(cx: number, cy: number, x: number, y: number): ReactElement {
+  const size = 0.9 + hash(x, y, 7) * 0.3;
+  const body = at(cx, cy, 5 * size);
+  const head = at(cx + 0.35, cy + 0.35, 10 * size);
+  const scorched = project(cx, cy);
+
+  return (
+    <g>
+      <ellipse cx={scorched.x} cy={scorched.y} rx={14 * size} ry={7 * size} fill="#3f2a14" opacity={0.45} />
+      {/* Пазурі спереду, під тілом */}
+      <Box cx={cx - 0.7} cy={cy + 0.9} hx={0.28} hy={0.22} h={2.5 * size} faces={CLAW} />
+      <Box cx={cx + 0.9} cy={cy - 0.7} hx={0.22} hy={0.28} h={2.5 * size} faces={CLAW} />
+      <Box cx={cx + 0.5} cy={cy + 0.6} hx={0.3} hy={0.3} h={3 * size} faces={CLAW} />
+      {/* Тіло — округла горбата туша */}
+      <ellipse cx={body.x} cy={body.y} rx={11 * size} ry={8 * size} fill={HIDE.left} stroke="#1e1b4b" strokeWidth={0.6} />
+      <ellipse cx={body.x - 3 * size} cy={body.y - 3 * size} rx={7 * size} ry={4.5 * size} fill={HIDE.top} opacity={0.8} />
+      {/* Голова з рогами й очима */}
+      <circle cx={head.x} cy={head.y} r={5.5 * size} fill={HIDE.top} stroke="#1e1b4b" strokeWidth={0.6} />
+      <Cone cx={cx + 0.1} cy={cy + 0.9} r={0.28} z={12 * size} h={7 * size} faces={HORN} />
+      <Cone cx={cx + 0.9} cy={cy - 0.1} r={0.28} z={12 * size} h={7 * size} faces={HORN} />
+      <circle cx={head.x - 2 * size} cy={head.y - 0.5} r={1.4 * size} fill="#ef4444" />
+      <circle cx={head.x + 2 * size} cy={head.y - 0.5} r={1.4 * size} fill="#ef4444" />
+      <circle cx={head.x - 2 * size} cy={head.y - 0.5} r={0.6 * size} fill="#fef2f2" />
+      <circle cx={head.x + 2 * size} cy={head.y - 0.5} r={0.6 * size} fill="#fef2f2" />
+      {/* Ікла */}
+      <path d={`M${head.x - 2.2 * size} ${head.y + 3.5 * size} l1 3 l1 -3 Z`} fill="#f8fafc" />
+      <path d={`M${head.x + 0.4 * size} ${head.y + 3.5 * size} l1 3 l1 -3 Z`} fill="#f8fafc" />
+    </g>
+  );
+}
+
+/** Мітка окупанта клітини: своє село — червоний дах і прапор, чуже — синій, монстр — істота. */
 export function occupantArt(kind: string, x: number, y: number, isHome: boolean): ReactElement {
   const { x: cx, y: cy } = cellOrigin(x, y);
 
-  if (kind === "Monster") {
-    const skull = at(cx, cy, 16);
-    return (
-      <g>
-        <Cone cx={cx} cy={cy} r={1.3} z={0} h={11} faces={MONSTER} />
-        <circle cx={skull.x} cy={skull.y} r={3.2} fill={BONE.top} stroke="#1e293b" strokeWidth={0.6} />
-        <circle cx={skull.x - 1.1} cy={skull.y - 0.4} r={0.7} fill="#1e293b" />
-        <circle cx={skull.x + 1.1} cy={skull.y - 0.4} r={0.7} fill="#1e293b" />
-      </g>
-    );
-  }
+  if (kind === "Monster") return monsterArt(cx, cy, x, y);
 
   const roof: Faces = isHome ? HOME_ROOF : OTHER_ROOF;
   const wall: Faces = isHome ? HOME_WALL : OTHER_WALL;
