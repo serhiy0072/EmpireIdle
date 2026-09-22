@@ -11,6 +11,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Знайти монстра за ідентифікатором.</summary>
         Task<Monster?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+        /// <summary>Усі монстри світу — для перегенерації мапи в розробці.</summary>
+        Task<List<Monster>> GetAllAsync(int serverId, CancellationToken cancellationToken = default);
+
         /// <summary>Монстри за списком ідентифікаторів — одним запитом на всю ділянку мапи.</summary>
         Task<List<Monster>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
 
