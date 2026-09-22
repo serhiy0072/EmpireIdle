@@ -74,6 +74,10 @@ export function useSpeedUpMarch(playerId: string) {
   return useMutation({
     mutationFn: (marchId: string) =>
       api<void>(`/api/marches/${playerId}/${marchId}/speedup`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["marches", "wallet"]),
+    // Сервер завершує похід одразу: бій, повернення армії й героя видно в тій самій відповіді
+    onSuccess: () => {
+      invalidatePlayer(queryClient, playerId, ["marches", "wallet", "garrison", "heroes", "village", "battleReports", "quests"]);
+      void queryClient.invalidateQueries({ queryKey: ["map"] });
+    },
   });
 }
