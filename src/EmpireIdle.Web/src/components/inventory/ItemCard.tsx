@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { InventoryItemResponse, UseItemRequest } from "../../lib/apiTypes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import ItemIcon from "./ItemIcon";
@@ -17,23 +18,16 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 /**
- * Стаковий предмет. Ящики й бусти вживаються відразу, телепорт просить
- * координати, есенції еволюції витрачає сам герой — їм кнопки не треба.
+ * Стаковий предмет. Ящики й бусти вживаються відразу, телепорт веде на мапу —
+ * місце обирають там, есенції еволюції витрачає сам герой — їм кнопки не треба.
  */
 export default function ItemCard({ item, busy, onUse }: Props) {
   const [count, setCount] = useState(1);
-  const [target, setTarget] = useState({ x: 0, y: 0 });
 
-  const usable = item.type === "resources" || item.type === "boost" || item.type === "teleport";
+  const usable = item.type === "resources" || item.type === "boost";
   const safeCount = Math.min(item.count, Math.max(1, count));
 
-  const use = () =>
-    onUse({
-      itemKey: item.itemKey,
-      count: item.type === "teleport" ? 1 : safeCount,
-      targetX: item.type === "teleport" ? target.x : null,
-      targetY: item.type === "teleport" ? target.y : null,
-    });
+  const use = () => onUse({ itemKey: item.itemKey, count: safeCount, targetX: null, targetY: null });
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3">
@@ -57,38 +51,15 @@ export default function ItemCard({ item, busy, onUse }: Props) {
 
       {usable && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          {item.type === "teleport" ? (
-            <>
-              <label className="text-xs text-slate-500">
-                X
-                <input
-                  type="number"
-                  value={target.x}
-                  onChange={(event) => setTarget((previous) => ({ ...previous, x: Number(event.target.value) }))}
-                  className="ml-1 w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-800"
-                />
-              </label>
-              <label className="text-xs text-slate-500">
-                Y
-                <input
-                  type="number"
-                  value={target.y}
-                  onChange={(event) => setTarget((previous) => ({ ...previous, y: Number(event.target.value) }))}
-                  className="ml-1 w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-800"
-                />
-              </label>
-            </>
-          ) : (
-            item.count > 1 && (
-              <input
-                type="number"
-                min={1}
-                max={item.count}
-                value={safeCount}
-                onChange={(event) => setCount(Number(event.target.value))}
-                className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-sm"
-              />
-            )
+          {item.count > 1 && (
+            <input
+              type="number"
+              min={1}
+              max={item.count}
+              value={safeCount}
+              onChange={(event) => setCount(Number(event.target.value))}
+              className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+            />
           )}
 
           <button
@@ -97,8 +68,19 @@ export default function ItemCard({ item, busy, onUse }: Props) {
             disabled={busy}
             className="ml-auto rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            {item.type === "teleport" ? "Переселитися" : "Використати"}
+            Використати
           </button>
+        </div>
+      )}
+
+      {item.type === "teleport" && (
+        <div className="mt-3 flex justify-end">
+          <Link
+            to={`/map?teleport=${encodeURIComponent(item.itemKey)}`}
+            className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700"
+          >
+            Обрати місце на мапі →
+          </Link>
         </div>
       )}
 
