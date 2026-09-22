@@ -102,6 +102,8 @@ namespace EmpireIdle.Application.Catalog
                 config.Monetization.HealGemsPerUnit,
                 config.Equipment.ArtifactSlots,
                 config.Equipment.MaxEnhancement,
+                config.Equipment.RepairGemsBase,
+                config.Equipment.RepairGemsPerLevel,
                 Version: string.Empty);
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag
