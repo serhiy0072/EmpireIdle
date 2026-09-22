@@ -196,7 +196,9 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // Решта API — по гравцю, а за його відсутності по IP
+    // Решта API — по гравцю, а за його відсутності по IP. Ліміт — від активної
+    // сесії, а не від бота: збір з усіх будівель, серія роллів і кілька екранів
+    // із таймерами за хвилину дають далеко за сотню запитів
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.User.FindFirst("playerId")?.Value
@@ -204,7 +206,7 @@ builder.Services.AddRateLimiter(options =>
                 ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 120,
+                PermitLimit = 600,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
