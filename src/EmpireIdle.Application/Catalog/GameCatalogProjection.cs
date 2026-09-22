@@ -105,6 +105,7 @@ namespace EmpireIdle.Application.Catalog
                 config.Equipment.RepairGemsBase,
                 config.Equipment.RepairGemsPerLevel,
                 config.Map.Width,
+                catalog.MainBuildingKey,
                 Version: string.Empty);
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag

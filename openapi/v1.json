@@ -5618,6 +5618,7 @@
           "heroClasses",
           "heroes",
           "items",
+          "mainBuildingKey",
           "mapSize",
           "maxConstellation",
           "maxEnhancement",
@@ -5702,6 +5703,9 @@
           "mapSize": {
             "type": "integer",
             "format": "int32"
+          },
+          "mainBuildingKey": {
+            "type": "string"
           },
           "version": {
             "type": "string"
