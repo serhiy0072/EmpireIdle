@@ -11,7 +11,12 @@ export type PlayerScope =
   | "serverQuests"
   | "marches"
   | "battleReports"
-  | "tutorial";
+  | "tutorial"
+  | "inventory"
+  | "banners"
+  | "clan"
+  | "clanHelp"
+  | "clanRequests";
 
 /**
  * Інвалідація після мутації. Список — у самій мутації, а не в екрані:

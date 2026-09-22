@@ -34,6 +34,12 @@ export interface Catalog {
   maxUnitLevel: number;
   /** Ціна лікування пораненого юніта в gems — та сама для будь-якого типу. */
   healGemsPerUnit: number;
+  /** Зброя з ціною в золоті — те, що продає кузня. */
+  weaponsForSale: CatalogItem[];
+  /** Скільки артефактів носить герой. */
+  artifactSlots: number;
+  /** Стеля заточки й прокачки спорядження. */
+  maxEnhancement: number;
 }
 
 /**
@@ -80,6 +86,9 @@ export function useCatalog(): Catalog {
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
+      weaponsForSale: (data?.items ?? []).filter((item) => item.slot === "Weapon" && item.priceGold > 0),
+      artifactSlots: data?.artifactSlots ?? 4,
+      maxEnhancement: data?.maxEnhancement ?? 20,
     };
   }, [query.data]);
 }

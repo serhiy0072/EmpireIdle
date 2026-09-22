@@ -48,7 +48,7 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
       queryKeys.heroes(playerId),
     ],
     ServerQuestRewarded: [queryKeys.wallet(playerId), queryKeys.serverQuests(playerId)],
-    ClanInvite: [],
+    ClanInvite: [queryKeys.clanRequests(playerId)],
   };
 
   keys[name].forEach((key) => void queryClient.invalidateQueries({ queryKey: key }));
