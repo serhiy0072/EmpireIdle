@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import BattleReportList from "../components/map/BattleReportList";
 import CellDetails from "../components/map/CellDetails";
@@ -7,6 +8,7 @@ import SendMarchForm from "../components/map/SendMarchForm";
 import WorldMap from "../components/map/WorldMap";
 import { useSession } from "../hooks/useSession";
 import type { MarchTargetType } from "../lib/apiTypes";
+import { useUseItem } from "../lib/queries/inventory";
 import { useMapArea, useMapCell, type MapView } from "../lib/queries/map";
 import { useMarches } from "../lib/queries/marches";
 import { useVillage } from "../lib/queries/village";
@@ -19,6 +21,12 @@ export default function MapPage() {
 
   const village = useVillage(playerId);
   const marches = useMarches(playerId);
+
+  // Телепорт: інвентар приводить сюди з ?teleport=<ключ>, місце обирають кліком, дію можна скасувати
+  const [searchParams, setSearchParams] = useSearchParams();
+  const teleportKey = searchParams.get("teleport");
+  const teleport = useUseItem(playerId);
+  const cancelTeleport = () => setSearchParams({});
 
   // Ділянка задається камерою; до приходу села її немає, і мапа починає з дому
   const [view, setView] = useState<MapView | null>(null);
@@ -49,6 +57,23 @@ export default function MapPage() {
 
   return (
     <div className="space-y-4">
+      {teleportKey !== null && (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+          <span className="text-sm text-emerald-900">
+            Переселення: оберіть вільну придатну клітину на мапі й підтвердіть у панелі праворуч.
+          </span>
+          <button
+            type="button"
+            onClick={cancelTeleport}
+            className="rounded-lg border border-emerald-300 px-3 py-1 text-sm text-emerald-900 hover:bg-emerald-100"
+          >
+            Скасувати
+          </button>
+        </div>
+      )}
+
+      <ErrorBanner error={teleport.error} />
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Мапа</h1>
         <div className="flex items-center gap-2 text-sm">
@@ -106,6 +131,45 @@ export default function MapPage() {
             <p className="text-sm text-slate-500">Дивимось…</p>
           ) : cell.isError ? (
             <ErrorBanner error={cell.error} />
+          ) : teleportKey !== null ? (
+            <div className="space-y-3 rounded-xl border border-emerald-300 bg-white p-4">
+              <div className="flex items-baseline justify-between gap-2">
+                <h3 className="font-medium text-slate-800">Переселитися сюди?</h3>
+                <span className="text-xs text-slate-500">
+                  ({cell.data.x}, {cell.data.y})
+                </span>
+              </div>
+              {/* Придатність вирішує сервер, але очевидне кажемо одразу: вода й зайняте не підходять */}
+              {!cell.data.habitable ? (
+                <p className="text-sm text-amber-800">Тут не оселитись — оберіть рівнину, ліс або гори.</p>
+              ) : cell.data.occupantType != null ? (
+                <p className="text-sm text-amber-800">Клітина зайнята — оберіть вільну.</p>
+              ) : (
+                <p className="text-sm text-slate-600">Село переїде разом із гарнізоном; армії в дорозі розвернуться додому.</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    teleport.mutate(
+                      { itemKey: teleportKey, count: 1, targetX: cell.data.x, targetY: cell.data.y },
+                      { onSuccess: () => {
+                        cancelTeleport();
+                        setView(null);
+                        setHomeRequest((value) => value + 1);
+                      } },
+                    )
+                  }
+                  disabled={teleport.isPending || !cell.data.habitable || cell.data.occupantType != null}
+                  className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  Переселитися
+                </button>
+                <button type="button" onClick={cancelTeleport} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
+                  Скасувати
+                </button>
+              </div>
+            </div>
           ) : (
             <CellDetails cell={cell.data} isHome={isHome} onAttack={setTarget} />
           )}
