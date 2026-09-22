@@ -1,6 +1,7 @@
 /** Ключі кешу в одному місці: події реального часу інвалідують те саме, що читають екрани. */
 export const queryKeys = {
   catalog: ["catalog"] as const,
+  shop: ["shop"] as const,
   village: (playerId: string) => ["village", playerId] as const,
   heroes: (playerId: string) => ["heroes", playerId] as const,
   battleReports: (playerId: string) => ["battleReports", playerId] as const,

@@ -49,3 +49,6 @@ export type ClanApplicationResponse = components["schemas"]["ClanApplicationResp
 export type ClanInviteResponse = components["schemas"]["ClanInviteResponse"];
 export type ClanJoinPolicy = components["schemas"]["ClanJoinPolicy"];
 export type ClanHelpTarget = components["schemas"]["ClanHelpTarget"];
+export type ShopView = components["schemas"]["ShopView"];
+export type ShopItemView = components["schemas"]["ShopItemView"];
+export type GemPackView = components["schemas"]["GemPackView"];
