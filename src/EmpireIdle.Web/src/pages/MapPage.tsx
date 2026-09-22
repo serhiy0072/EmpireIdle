@@ -108,7 +108,7 @@ export default function MapPage() {
             <SendMarchForm playerId={playerId} target={target} onSent={() => setTarget(null)} onCancel={() => setTarget(null)} />
           ) : selected === null ? (
             <p className="text-sm text-slate-500">
-              Оберіть клітину на мапі: намет із черепом — монстр, синій дах — чуже село, червоний з прапором — ваше.
+              Оберіть клітину на мапі: рогата істота — монстр, синій дах — чуже село, червоний з прапором — ваше.
             </p>
           ) : cell.isPending ? (
             <p className="text-sm text-slate-500">Дивимось…</p>
