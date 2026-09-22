@@ -37,13 +37,17 @@ export default function BannersPage() {
   }
 
   const gems = wallet.data?.gemBalance ?? 0;
+  const seals = wallet.data?.sealBalance ?? 0;
   const best = latest.reduce((max, drop) => Math.max(max, drop.rarity), 0);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Банери</h1>
-        <p className="text-sm text-slate-500">💎 {gems.toLocaleString("uk-UA")}</p>
+        <p className="text-sm text-slate-500">
+          💎 {gems.toLocaleString("uk-UA")} · 🔮 {seals.toLocaleString("uk-UA")}
+          <span className="ml-2 text-xs text-slate-400">печатки призову — за дублікати героїв понад стелю сузір'я</span>
+        </p>
       </div>
 
       <ErrorBanner error={roll.error} />
@@ -73,17 +77,19 @@ export default function BannersPage() {
         <p className="text-sm text-slate-500">Зараз немає активних банерів.</p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {banners.data.map((banner) => (
+          {/* Постійний банер — першим: він завжди є, події приходять і йдуть */}
+          {[...banners.data].sort((a, b) => Number(b.kind === 3) - Number(a.kind === 3)).map((banner) => (
             <BannerCard
               key={banner.key}
               banner={banner}
               gems={gems}
+              seals={seals}
               now={now}
               busy={roll.isPending}
               maxRolls={MAX_ROLLS_PER_REQUEST}
-              onRoll={(count) =>
+              onRoll={(count, currency) =>
                 roll.mutate(
-                  { bannerKey: banner.key, count },
+                  { bannerKey: banner.key, count, currency },
                   {
                     onSuccess: (result) => {
                       setHistory((previous) => [...latest, ...previous].slice(0, HISTORY_LIMIT));
