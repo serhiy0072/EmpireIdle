@@ -5419,12 +5419,14 @@
       },
       "CatalogResponse": {
         "required": [
+          "artifactSlots",
           "buildings",
           "healGemsPerUnit",
           "heroClasses",
           "heroes",
           "items",
           "maxConstellation",
+          "maxEnhancement",
           "maxTier",
           "maxUnitLevel",
           "resources",
@@ -5482,6 +5484,14 @@
             "format": "int32"
           },
           "healGemsPerUnit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "artifactSlots": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxEnhancement": {
             "type": "integer",
             "format": "int32"
           },
@@ -5949,9 +5959,11 @@
         "required": [
           "enhancementLevel",
           "id",
+          "isBroken",
           "itemKey",
           "rarity",
           "slot",
+          "slotIndex",
           "stats"
         ],
         "type": "object",
@@ -5977,6 +5989,13 @@
             "type": "string",
             "format": "uuid",
             "nullable": true
+          },
+          "slotIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isBroken": {
+            "type": "boolean"
           },
           "stats": {
             "type": "object",
