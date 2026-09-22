@@ -39,10 +39,16 @@ export function toPath(points: Point[]): string {
   return `${points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ")} Z`;
 }
 
-/** Межі всієї ділянки після проєкції плюс запас зверху під висоту будівель. */
+/**
+ * Кадр першого показу: мур із смужкою околиць, а не вся земля —
+ * інакше будівлі були б замалі. Панорамування меж не має.
+ */
+const FRAME_FROM = -6;
+const FRAME_TO = 106;
+
 export const WORLD = {
-  minX: -100 * UNIT_X,
-  maxX: 100 * UNIT_X,
-  minY: -120,
-  maxY: 200 * UNIT_Y,
+  minX: (FRAME_FROM - FRAME_TO) * UNIT_X,
+  maxX: (FRAME_TO - FRAME_FROM) * UNIT_X,
+  minY: 2 * FRAME_FROM * UNIT_Y - 120,
+  maxY: 2 * FRAME_TO * UNIT_Y,
 } as const;
