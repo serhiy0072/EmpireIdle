@@ -2,23 +2,32 @@ import { useEffect, useMemo, useRef } from "react";
 import { usePanZoom } from "../../hooks/usePanZoom";
 import type { MapAreaResponse, MarchResponse } from "../../lib/apiTypes";
 import { at, project, UNIT_X, UNIT_Y } from "../../lib/iso";
+import { MAP_RADIUS_MAX, MAP_RADIUS_MIN, type MapView } from "../../lib/queries/map";
 import { cellOrigin, groundFill, occupantArt, TILE, tileDetail, tilePath } from "./worldTiles";
 
 interface Props {
   area: MapAreaResponse;
   /** Клітина власного села — прапор і початок ліній маршів. */
   home: { x: number; y: number };
-  /** Центр завантаженої ділянки та її радіус — щоб знати, коли підтягнути сусідню. */
-  center: { x: number; y: number };
-  radius: number;
+  /** Завантажена ділянка: центр і радіус — щоб знати, коли підтягнути іншу. */
+  view: MapView;
   marches: MarchResponse[];
   selected: { x: number; y: number } | null;
   /** Скільки разів натиснуто «Додому»: зміна значення повертає камеру на село. */
   homeRequest: number;
   onSelect: (x: number, y: number) => void;
-  /** Камера від'їхала від центру ділянки — час завантажити нову навколо цієї клітини. */
-  onCenterChange: (x: number, y: number) => void;
+  /** Камера показує інші клітини — час завантажити ділянку під них. */
+  onViewChange: (view: MapView) => void;
 }
+
+/** Радіус для першого показу: стільки клітин довкола дому в кадрі. */
+const HOME_RADIUS = 12;
+
+/** Далі за це радіус ділянки не росте — дрібниці на тайлах уже не видно, зате видно весь регіон. */
+const ZOOM = { min: 0.35, max: 6 };
+
+/** Понад цей радіус дрібні деталі тайлів не малюємо: тисячі дерев не потрібні на огляді регіону. */
+const DETAIL_RADIUS = 16;
 
 /** Межі ділянки в пікселях проєкції — кадр для першого показу й для «Додому». */
 function boundsOf(center: { x: number; y: number }, radius: number) {
@@ -46,15 +55,28 @@ function cellAt(px: number, py: number, t: { x: number; y: number; k: number }) 
 }
 
 /**
- * Ізометрична мапа світу — та сама камера й примітиви, що в селі.
- * Ділянка навколо центру приїздить із сервера; коли камера відходить
- * від центру на пів радіуса, сторінка перезапитує ділянку довкола нової
- * клітини, а старі тайли лишаються на місці до приходу нових.
+ * Скільки клітин довкола центру вміщає кадр за цього масштабу. Кадр у плані —
+ * повернутий прямокутник, його охоплення по кожній осі плану — півсума проєкцій.
+ * Квантуємо кроком, щоб плавний зум не породжував запит на кожен тік колеса.
  */
-export default function WorldMap({ area, home, center, radius, marches, selected, homeRequest, onSelect, onCenterChange }: Props) {
+function radiusFor(width: number, height: number, k: number): number {
+  const span = (width / k / UNIT_X + height / k / UNIT_Y) / 2 / TILE;
+  const step = 4;
+  const raw = Math.ceil(span / 2) + 2;
+
+  return Math.min(MAP_RADIUS_MAX, Math.max(MAP_RADIUS_MIN, Math.ceil(raw / step) * step));
+}
+
+/**
+ * Ізометрична мапа світу — та сама камера й примітиви, що в селі.
+ * Ділянка навколо центру приїздить із сервера; її радіус залежить від масштабу:
+ * наблизив — менше клітин, віддалив — більше. Коли камера показує інші клітини,
+ * сторінка перезапитує ділянку, а старі тайли лишаються до приходу нових.
+ */
+export default function WorldMap({ area, home, view, marches, selected, homeRequest, onSelect, onViewChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const initial = useMemo(() => boundsOf(home, radius), [home, radius]);
-  const { transform, handlers, wasDragged, focus } = usePanZoom(containerRef, initial);
+  const initial = useMemo(() => boundsOf(home, HOME_RADIUS), [home]);
+  const { transform, handlers, wasDragged, focus } = usePanZoom(containerRef, initial, ZOOM);
 
   // «Додому» — камера назад на село; перший рендер уже вписаний хуком
   const firstHome = useRef(true);
@@ -63,10 +85,10 @@ export default function WorldMap({ area, home, center, radius, marches, selected
       firstHome.current = false;
       return;
     }
-    focus(boundsOf(home, radius));
-  }, [homeRequest, home, radius, focus]);
+    focus(boundsOf(home, HOME_RADIUS));
+  }, [homeRequest, home, focus]);
 
-  // Стрімінг: після паузи в русі дивимось, яка клітина під центром кадру
+  // Стрімінг: після паузи в русі чи зумі дивимось, що під кадром, і просимо відповідну ділянку
   useEffect(() => {
     if (transform === null) return;
     const element = containerRef.current;
@@ -75,18 +97,23 @@ export default function WorldMap({ area, home, center, radius, marches, selected
     const timer = window.setTimeout(() => {
       const rect = element.getBoundingClientRect();
       const cell = cellAt(rect.width / 2, rect.height / 2, transform);
+      const radius = radiusFor(rect.width, rect.height, transform.k);
+      const drift = Math.max(Math.abs(cell.x - view.x), Math.abs(cell.y - view.y));
 
-      if (Math.max(Math.abs(cell.x - center.x), Math.abs(cell.y - center.y)) > radius / 2) {
-        onCenterChange(cell.x, cell.y);
+      // Зсув на третину радіуса — ще в межах завантаженого, далі край ділянки вже в кадрі
+      if (radius !== view.radius || drift > view.radius / 3) {
+        onViewChange({ x: cell.x, y: cell.y, radius });
       }
     }, 250);
 
     return () => window.clearTimeout(timer);
-  }, [transform, center, radius, onCenterChange]);
+  }, [transform, view, onViewChange]);
 
   // Від дальніх до ближніх: пагорб чи дерево не має проступати крізь ближчий тайл
   const terrain = useMemo(() => [...area.terrain].sort((a, b) => a.x + a.y - (b.x + b.y) || a.x - b.x), [area.terrain]);
   const occupants = useMemo(() => new Map(area.occupants.map((o) => [`${o.x}:${o.y}`, o])), [area.occupants]);
+  const loadedRadius = Math.round((area.maxX - area.minX) / 2);
+  const detailed = loadedRadius <= DETAIL_RADIUS;
 
   const tap = (x: number, y: number) => () => {
     if (!wasDragged()) onSelect(x, y);
@@ -106,7 +133,7 @@ export default function WorldMap({ area, home, center, radius, marches, selected
       {transform !== null && (
         <svg className="absolute inset-0 h-full w-full">
           <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}>
-            {/* Основи всіх клітин — одним шаром, деталі окремо, інакше дерево далекої клітини лягало б поверх ближньої основи */}
+            {/* Основи всіх клітин — одним шаром, деталі окремо, інакше дерево далекої клітини лягало б поверх ближчої основи */}
             {terrain.map((cell) => (
               <path
                 key={`g${cell.x}:${cell.y}`}
@@ -143,13 +170,13 @@ export default function WorldMap({ area, home, center, radius, marches, selected
             {terrain.map((cell) => {
               const occupant = occupants.get(`${cell.x}:${cell.y}`);
               const isHome = cell.x === home.x && cell.y === home.y;
-              const detail = occupant === undefined ? tileDetail(cell.type, cell.x, cell.y) : null;
+              const detail = occupant === undefined && detailed ? tileDetail(cell.type, cell.x, cell.y) : null;
 
               if (occupant === undefined && detail === null) return null;
 
               return (
                 <g key={`d${cell.x}:${cell.y}`} className="cursor-pointer" onClick={tap(cell.x, cell.y)}>
-                  {occupant === undefined ? detail : occupantArt(occupant.occupantType, cell.x, cell.y, isHome)}
+                  {occupant === undefined ? detail : occupantArt(occupant, isHome)}
                 </g>
               );
             })}
@@ -163,7 +190,11 @@ export default function WorldMap({ area, home, center, radius, marches, selected
                 const origin = cellOrigin(occupant.x, occupant.y);
                 const p = project(origin.x, origin.y);
                 const isHome = occupant.x === home.x && occupant.y === home.y;
-                const text = isHome ? "Ваше село" : occupant.occupantType === "Monster" ? `☠ ${occupant.name ?? "Монстр"}` : (occupant.name ?? "Село");
+                const text = isHome
+                  ? "Ваше село"
+                  : occupant.occupantType === "Monster"
+                    ? `${occupant.name ?? "Монстр"}${occupant.monsterLevel == null ? "" : ` · ${occupant.monsterLevel}`}`
+                    : (occupant.name ?? "Село");
                 const width = text.length * 5.5 + 12;
 
                 return (

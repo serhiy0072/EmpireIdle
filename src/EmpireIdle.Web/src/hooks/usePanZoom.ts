@@ -16,9 +16,13 @@ interface Bounds {
 /** Зсув, після якого жест вважається тяганням, а не тапом. */
 const DRAG_THRESHOLD = 6;
 
-/** Межі масштабу відносно «вся ділянка в кадрі». */
-const MIN_ZOOM = 0.9;
-const MAX_ZOOM = 6;
+/** Межі масштабу відносно «вся ділянка в кадрі» — типові, село їх не змінює. */
+const DEFAULT_ZOOM = { min: 0.9, max: 6 };
+
+export interface ZoomLimits {
+  min: number;
+  max: number;
+}
 
 function distance(a: { x: number; y: number }, b: { x: number; y: number }): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -31,7 +35,7 @@ function distance(a: { x: number; y: number }, b: { x: number; y: number }): num
  * зсувом, без перерахунку одиниць. Тягання не плутається з тапом —
  * після зсуву понад поріг wasDragged() гасить клік по будівлі.
  */
-export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world: Bounds) {
+export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world: Bounds, limits: ZoomLimits = DEFAULT_ZOOM) {
   const [transform, setTransform] = useState<Transform | null>(null);
   const fitScale = useRef(1);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -85,17 +89,20 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
     [fitted],
   );
 
-  const zoomAt = useCallback((px: number, py: number, factor: number) => {
-    setTransform((t) => {
-      if (t === null) return t;
+  const zoomAt = useCallback(
+    (px: number, py: number, factor: number) => {
+      setTransform((t) => {
+        if (t === null) return t;
 
-      const k = Math.min(fitScale.current * MAX_ZOOM, Math.max(fitScale.current * MIN_ZOOM, t.k * factor));
-      const ratio = k / t.k;
+        const k = Math.min(fitScale.current * limits.max, Math.max(fitScale.current * limits.min, t.k * factor));
+        const ratio = k / t.k;
 
-      // Точка під курсором лишається на місці
-      return { k, x: px - (px - t.x) * ratio, y: py - (py - t.y) * ratio };
-    });
-  }, []);
+        // Точка під курсором лишається на місці
+        return { k, x: px - (px - t.x) * ratio, y: py - (py - t.y) * ratio };
+      });
+    },
+    [limits.max, limits.min],
+  );
 
   const local = (event: { clientX: number; clientY: number }) => {
     const rect = containerRef.current?.getBoundingClientRect();
