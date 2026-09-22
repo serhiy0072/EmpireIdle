@@ -18,6 +18,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Ignore(pw => pw.DomainEvents);
 
             builder.Property(pw => pw.GemBalance).HasConversion(g => g.Value, v => new GemAmount(v)).HasColumnName("GemBalance");
+            builder.Property(pw => pw.SealBalance).IsRequired().HasDefaultValue(0);
             builder.Property(pw => pw.UserId).IsRequired().HasMaxLength(450);
             builder.Property(pw => pw.UpdatedAt).IsRequired();
 

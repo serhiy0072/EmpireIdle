@@ -36,7 +36,8 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<BannerRollResponse>> Roll(
             Guid playerId, string bannerKey, [FromQuery][Range(1, RollBannerCommand.MaxCount)] int count = 1,
+            [FromQuery] BannerCurrency currency = BannerCurrency.Gems,
             CancellationToken cancellationToken = default)
-            => Ok(await _mediator.Send(new RollBannerCommand(playerId, bannerKey, count), cancellationToken));
+            => Ok(await _mediator.Send(new RollBannerCommand(playerId, bannerKey, count, currency), cancellationToken));
     }
 }

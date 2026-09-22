@@ -36,7 +36,7 @@ namespace EmpireIdle.Domain.Services.Config
         /// Це єдине місце, де джеми з'являються не з покупки й не з квесту,
         /// тому числа тут чіпати обережно.
         /// </summary>
-        public Dictionary<string, int> OverflowGems { get; set; } = new();
+        public Dictionary<string, int> OverflowSeals { get; set; } = new();
 
         /// <summary>
         /// Жорсткий кап одночасних маршів. Кількість маршів і так дорівнює

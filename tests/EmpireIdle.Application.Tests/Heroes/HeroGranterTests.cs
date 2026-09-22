@@ -74,11 +74,11 @@ public class HeroGranterTests
     }
 
     /// <summary>
-    /// На стелі дублікат стає джемами за рангом. Тихе поглинання означало б
+    /// На стелі дублікат стає печатками призову за рангом. Тихе поглинання означало б
     /// зникнення унікального дропу без сліду.
     /// </summary>
     [Fact]
-    public async Task Grant_ShouldConvertToGems_AtTheConstellationCap()
+    public async Task Grant_ShouldConvertToSeals_AtTheConstellationCap()
     {
         var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "mage_iselle", Guid.NewGuid(), asLeader: true, Now);
 
@@ -91,7 +91,7 @@ public class HeroGranterTests
 
         await Granter().GrantAsync(PlayerId, "mage_iselle", "banner", Now);
 
-        Assert.Equal(40, wallet.GemBalance.Value);
+        Assert.Equal(40, wallet.SealBalance);
         Assert.Equal(6, owned.Constellation);
     }
 

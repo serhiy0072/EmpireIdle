@@ -6,7 +6,7 @@
       "TierStatMultipliers": [ 1.0, 1.35, 1.8 ],
       "EvolutionItemKeys": [ "hero_essence_t2", "hero_essence_t3" ],
       "MaxConstellation": 6,
-      "OverflowGems": {
+      "OverflowSeals": {
         "Common": 0,
         "Rare": 15,
         "Unique": 60

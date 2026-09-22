@@ -140,7 +140,7 @@
                 HealCostPerLevel = [new ResourceCost { Resource = TestKeys.Food, Amount = 40 }],
                 TierStatMultipliers = [1.0, 1.5, 2.0],
                 EvolutionItemKeys = [TestKeys.EssenceT2, TestKeys.EssenceT3],
-                OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
+                OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 Classes = ["warrior", "knight", "archer", "mage"]
             };
 
@@ -177,7 +177,7 @@
                 SuccessDropPerLevel = 0.05,
                 MinSuccessChance = 0.25,
                 BreakChanceOnFailure = 0.2,
-                RepairCostShare = 0.5,
+                RepairGemsBase = 20, RepairGemsPerLevel = 8,
                 ArtifactBaseStats = 2,
                 ArtifactStatLevels = [4, 8],
                 ArtifactUpgradeLevels = [12, 16, 20],
