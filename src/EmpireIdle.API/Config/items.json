@@ -103,6 +103,7 @@
       {
         "Key": "sword_iron",
         "Type": "equipment",
+        "Rarity": "common",
         "DisplayName": "Залізний меч",
         "Slot": "Weapon",
         "WeaponClasses": [ "warrior" ],
@@ -112,6 +113,7 @@
       {
         "Key": "lance_iron",
         "Type": "equipment",
+        "Rarity": "common",
         "DisplayName": "Залізний спис",
         "Slot": "Weapon",
         "WeaponClasses": [ "knight" ],
@@ -121,6 +123,7 @@
       {
         "Key": "bow_yew",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Тисовий лук",
         "Slot": "Weapon",
         "WeaponClasses": [ "archer" ],
@@ -130,6 +133,7 @@
       {
         "Key": "staff_ember",
         "Type": "equipment",
+        "Rarity": "unique",
         "DisplayName": "Жарний посох",
         "Slot": "Weapon",
         "WeaponClasses": [ "mage" ],
@@ -139,6 +143,7 @@
       {
         "Key": "dawn_amulet",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Амулет світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"
@@ -146,6 +151,7 @@
       {
         "Key": "dawn_ring",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Перстень світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"
@@ -153,6 +159,7 @@
       {
         "Key": "dawn_sigil",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Знак світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"
@@ -160,6 +167,7 @@
       {
         "Key": "dawn_chime",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Дзвіночок світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"

@@ -699,6 +699,16 @@ namespace EmpireIdle.Domain.Services
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a weapon drop but grants no weapon.");
 
+                    // Рідкість лота — обіцянка гравцю; предмет в інвентарі несе рідкість зі свого конфіга.
+                    // Розбіжність означала б «унікальний» на вітрині і «звичайний» у руках
+                    foreach (var reward in drop.Rewards.Where(r =>
+                                 string.Equals(r.Type, "Equipment", StringComparison.OrdinalIgnoreCase) && r.Key is not null))
+                    {
+                        if (items.TryGetValue(reward.Key!, out var equipment) && equipment.Rarity != drop.Rarity)
+                            throw new InvalidOperationException(
+                                $"Banner '{banner.Key}' drop '{drop.Key}' is {drop.Rarity}, but item '{reward.Key}' is {equipment.Rarity} in Items.");
+                    }
+
                     // Звичайні герої купуються за золото в залі (§6.1).
                     // У пулі за gems вони перетворили б банер на лотерею із золотим дном
                     var commonHero = drop.Rewards

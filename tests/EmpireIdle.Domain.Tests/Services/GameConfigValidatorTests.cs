@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.TestKit;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
@@ -448,6 +449,35 @@ namespace EmpireIdle.Domain.Tests.Services
             });
 
             Assert.Contains("DefenderLossLosses", error.Message);
+        }
+
+        /// <summary>Вітрина обіцяє унікальний посох, а в Items він звичайний — гравець отримав би не те, що бачив.</summary>
+        [Fact]
+        public void Validate_ShouldRejectABannerDrop_WhoseRarityDiffersFromTheItem()
+        {
+            // Секція спорядження має власні вимоги — беремо валідну з TestKit і ламаємо лише рідкість лота
+            var config = new GameConfigBuilder().WithResources().WithBuildings().WithHeroes().WithEquipment().Build();
+            config.Shop.Banners =
+            [
+                new BannerConfig
+                {
+                    Key = "forge", DisplayName = "Forge", Kind = BannerKind.Weapon, PityGroup = "weapon", PriceGems = 100,
+                    RarePity = 10, UniquePity = 50,
+                    Drops =
+                    [
+                        new BannerDropConfig
+                        {
+                            Key = TestKeys.Weapon, DisplayName = "Weapon", Rarity = Rarity.Unique, Kind = BannerKind.Weapon, Weight = 1,
+                            Rewards = [new RewardConfig { Type = "Equipment", Key = TestKeys.Weapon, Amount = 1 }]
+                        }
+                    ]
+                }
+            ];
+
+            var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+
+            Assert.Contains(TestKeys.Weapon, error.Message);
+            Assert.Contains("Unique", error.Message);
         }
 
         [Fact]
