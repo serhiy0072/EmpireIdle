@@ -3,6 +3,7 @@ import AppLayout from "../components/AppLayout";
 import { useSession } from "../hooks/useSession";
 import ArmyPage from "../pages/ArmyPage";
 import BannersPage from "../pages/BannersPage";
+import ClanPage from "../pages/ClanPage";
 import HeroesPage from "../pages/HeroesPage";
 import InventoryPage from "../pages/InventoryPage";
 import LoginPage from "../pages/LoginPage";
@@ -34,6 +35,7 @@ export default function AppRoutes() {
             <Route path="/heroes" element={<HeroesPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/banners" element={<BannersPage />} />
+            <Route path="/clan" element={<ClanPage />} />
             <Route path="/quests" element={<QuestsPage />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
