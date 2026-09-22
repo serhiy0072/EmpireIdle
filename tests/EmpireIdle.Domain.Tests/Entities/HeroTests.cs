@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Tests.Entities
@@ -18,6 +19,26 @@ namespace EmpireIdle.Domain.Tests.Entities
             => new(Guid.NewGuid(), Guid.NewGuid(), serverId: 1, heroKey, Guid.NewGuid(), asLeader: true, Now);
 
         // ---------- Створення ----------
+
+        /// <summary>Сила рахується з ростера, тож кожна зміна героя, що її рухає, лишає подію.</summary>
+        [Fact]
+        public void HeroChanges_ShouldRaiseHeroChanged_ForPowerRecalculation()
+        {
+            var hero = CreateHero();
+            Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
+            hero.ClearDomainEvents();
+
+            hero.GainLevel(maxLevel: 10, Now);
+            Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
+            hero.ClearDomainEvents();
+
+            hero.EvolveTier(maxTier: 3, Now);
+            Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
+            hero.ClearDomainEvents();
+
+            Assert.True(hero.TryAddConstellation(maxConstellation: 6, Now));
+            Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
+        }
 
         [Fact]
         public void NewHero_ShouldStartIdleAtFirstLevelOfFirstTier()

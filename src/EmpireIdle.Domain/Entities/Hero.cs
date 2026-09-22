@@ -1,4 +1,5 @@
-using EmpireIdle.Domain.Enums;
+﻿using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
@@ -87,6 +88,8 @@ namespace EmpireIdle.Domain.Entities
             IsLeader = asLeader;
             AcquiredAt = utcNow;
             UpdatedAt = utcNow;
+
+            RaiseDomainEvent(new HeroChanged(playerId, id, utcNow));
         }
 
         protected Hero() { } // Для EF Core
@@ -245,6 +248,7 @@ namespace EmpireIdle.Domain.Entities
 
             Level++;
             Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
@@ -258,6 +262,7 @@ namespace EmpireIdle.Domain.Entities
 
             Tier++;
             Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
@@ -271,6 +276,7 @@ namespace EmpireIdle.Domain.Entities
 
             Constellation++;
             Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
 
             return true;
         }

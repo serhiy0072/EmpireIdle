@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Tests.Entities
@@ -16,6 +17,25 @@ namespace EmpireIdle.Domain.Tests.Entities
         private static EquipmentItem Artifact()
             => new(Guid.NewGuid(), Guid.NewGuid(), 1, "amulet_dawn", EquipmentSlot.Artifact,
                 Rarity.Rare, [("Attack", 5.0)], Now);
+
+        /// <summary>Усе, що міняє внесок предмета в силу героя, лишає подію для перерахунку.</summary>
+        [Fact]
+        public void EquipmentChanges_ShouldRaiseEquipmentChanged()
+        {
+            var item = Weapon();
+            var hero = Guid.NewGuid();
+
+            item.EquipTo(hero, 0, Now);
+            Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
+            item.ClearDomainEvents();
+
+            item.Enhance(Now);
+            Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
+            item.ClearDomainEvents();
+
+            item.Unequip(Now);
+            Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
+        }
 
         [Fact]
         public void EquipTo_ShouldRememberTheSlotIndex()
