@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { to: "/", label: "Село" },
   { to: "/army", label: "Військо" },
   { to: "/heroes", label: "Герої" },
+  { to: "/inventory", label: "Інвентар" },
   { to: "/map", label: "Мапа" },
   { to: "/quests", label: "Квести" },
 ] as const;
@@ -65,7 +66,7 @@ export default function AppLayout() {
             </div>
           </div>
 
-          <nav className="flex gap-1">
+          <nav className="flex flex-wrap gap-1">
             {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.to}
