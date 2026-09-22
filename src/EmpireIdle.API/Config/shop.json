@@ -31,7 +31,16 @@
           "BonusPercent": 30
         }
       ],
-      "Banners": [
+      "Items": [
+      { "ItemKey": "hero_essence_t2", "PriceGems": 300, "MaxPerPurchase": 5 },
+      { "ItemKey": "hero_essence_t3", "PriceGems": 900, "MaxPerPurchase": 5 },
+      { "ItemKey": "crate_mixed_large", "PriceGems": 80, "MaxPerPurchase": 10 },
+      { "ItemKey": "boost_production_2x_4h", "PriceGems": 120, "MaxPerPurchase": 10 },
+      { "ItemKey": "boost_attack_25_1h", "PriceGems": 60, "MaxPerPurchase": 10 },
+      { "ItemKey": "boost_defense_25_8h", "PriceGems": 90, "MaxPerPurchase": 10 },
+      { "ItemKey": "teleport", "PriceGems": 500, "MaxPerPurchase": 1 }
+    ],
+    "Banners": [
         {
           "Key": "dawn_2026_09",
           "DisplayName": "Світанок Ізель",

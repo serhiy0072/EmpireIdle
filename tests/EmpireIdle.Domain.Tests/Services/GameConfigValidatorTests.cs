@@ -450,6 +450,39 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Contains("DefenderLossLosses", error.Message);
         }
 
+        [Fact]
+        public void Validate_ShouldRejectAShopItem_ThatIsNotAnItem()
+        {
+            var error = Rejects(c => c.Shop.Items = [new ShopItemConfig { ItemKey = "no_such_item", PriceGems = 100 }]);
+
+            Assert.Contains("no_such_item", error.Message);
+        }
+
+        /// <summary>Зброя продається кузнею за золото — крамниця за gems її не дублює.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAShopItem_ThatIsEquipment()
+        {
+            var error = Rejects(c =>
+            {
+                c.Items = [new ItemConfig { Key = "sword_iron", DisplayName = "Sword", Description = "", Type = "equipment", Slot = EquipmentSlot.Weapon }];
+                c.Shop.Items = [new ShopItemConfig { ItemKey = "sword_iron", PriceGems = 100 }];
+            });
+
+            Assert.Contains("equipment", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldAcceptAShopItem_ThatSellsAnExistingConsumable()
+        {
+            var config = ValidConfig();
+            config.Items = [new ItemConfig { Key = "hero_essence_t2", DisplayName = "Essence", Description = "", Type = "evolution" }];
+            config.Shop.Items = [new ShopItemConfig { ItemKey = "hero_essence_t2", PriceGems = 300 }];
+
+            var exception = Record.Exception(() => GameConfigValidator.Validate(config));
+
+            Assert.Null(exception);
+        }
+
         /// <summary>Дотик межі — не інверсія: 0.35 і 0.35 сходяться, не перетинаються.</summary>
         [Fact]
         public void Validate_ShouldAcceptTouchingBands()

@@ -32,9 +32,27 @@ namespace EmpireIdle.Domain.Services
             ValidatePreview(config);
             ValidateHeroes(config);
             ValidateLossBands(config);
+            ValidateShopItems(config);
             ValidateEquipment(config);
             ValidateBanners(config);
             ValidateBuildingLayout(config);
+        }
+
+        /// <summary>Кожен товар крамниці — існуючий предмет; спорядження продає кузня за золото, не крамниця.</summary>
+        private static void ValidateShopItems(GameConfig config)
+        {
+            RequireUniqueKeys(config.Shop.Items.Select(i => i.ItemKey), "Shop.Items");
+
+            var items = config.Items.ToDictionary(i => i.Key);
+
+            foreach (var offer in config.Shop.Items)
+            {
+                if (!items.TryGetValue(offer.ItemKey, out var item))
+                    throw new InvalidOperationException($"Shop item '{offer.ItemKey}' is not in Items.");
+
+                if (item.Type == "equipment")
+                    throw new InvalidOperationException($"Shop item '{offer.ItemKey}' is equipment — weapons are sold by the forge for gold.");
+            }
         }
 
 
