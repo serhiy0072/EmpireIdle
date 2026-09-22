@@ -47,6 +47,30 @@ namespace EmpireIdle.Application.Power.Tracking
             => _mediator.Send(new RecalculatePowerCommand(notification.DomainEvent.GarrisonId), cancellationToken);
     }
 
+    /// <summary>Рівень, тір, сузір'я чи новий герой — сила ростера змінилась.</summary>
+    public sealed class RecalculatePowerOnHeroChanged
+        : INotificationHandler<DomainEventNotification<HeroChanged>>
+    {
+        private readonly IMediator _mediator;
+
+        public RecalculatePowerOnHeroChanged(IMediator mediator) => _mediator = mediator;
+
+        public Task Handle(DomainEventNotification<HeroChanged> notification, CancellationToken cancellationToken)
+            => _mediator.Send(new RecalculatePlayerPowerCommand(notification.DomainEvent.PlayerId), cancellationToken);
+    }
+
+    /// <summary>Вдягли, зняли, заточили чи прокачали — сила спорядження змінилась.</summary>
+    public sealed class RecalculatePowerOnEquipmentChanged
+        : INotificationHandler<DomainEventNotification<EquipmentChanged>>
+    {
+        private readonly IMediator _mediator;
+
+        public RecalculatePowerOnEquipmentChanged(IMediator mediator) => _mediator = mediator;
+
+        public Task Handle(DomainEventNotification<EquipmentChanged> notification, CancellationToken cancellationToken)
+            => _mediator.Send(new RecalculatePlayerPowerCommand(notification.DomainEvent.PlayerId), cancellationToken);
+    }
+
     public sealed class RecalculatePowerOnReinforcementsMoved
         : INotificationHandler<DomainEventNotification<ReinforcementsMoved>>
     {

@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
@@ -109,6 +110,7 @@ namespace EmpireIdle.Domain.Entities
             EquippedByHeroId = heroId;
             SlotIndex = slotIndex;
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>Знімає предмет із героя.</summary>
@@ -117,6 +119,7 @@ namespace EmpireIdle.Domain.Entities
             EquippedByHeroId = null;
             SlotIndex = 0;
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
@@ -130,6 +133,7 @@ namespace EmpireIdle.Domain.Entities
 
             EnhancementLevel++;
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
@@ -146,6 +150,7 @@ namespace EmpireIdle.Domain.Entities
             EquippedByHeroId = null;
             SlotIndex = 0;
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>Лагодить зброю. Ціну списує викликач.</summary>
@@ -156,6 +161,7 @@ namespace EmpireIdle.Domain.Entities
 
             IsBroken = false;
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
@@ -169,6 +175,7 @@ namespace EmpireIdle.Domain.Entities
 
             _stats.Add(new EquipmentStat(Guid.NewGuid(), Id, statKey, value));
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>Підсилює наявний стат на задану величину.</summary>
@@ -179,6 +186,7 @@ namespace EmpireIdle.Domain.Entities
 
             stat.Raise(delta);
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
