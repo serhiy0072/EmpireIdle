@@ -14,17 +14,23 @@ export function useBanners(playerId: string): UseQueryResult<BannerView[]> {
   });
 }
 
+/** Стеля серії за один запит — та сама, що й у RollBannerCommand.MaxCount на сервері. */
+export const MAX_ROLLS_PER_REQUEST = 10;
+
 /**
- * Ролл списує gems і кладе героя чи зброю в інвентар. Лічильники гарантій
- * приходять у відповіді, але список банерів усе одно перечитуємо: pity
- * спільний на групу, тож змінилися й сусідні банери.
+ * Серія роллів одним запитом: списує gems і кладе героїв чи зброю в інвентар.
+ * Лічильники гарантій приходять у відповіді, але список банерів усе одно
+ * перечитуємо: pity спільний на групу, тож змінилися й сусідні банери.
  */
 export function useRollBanner(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (bannerKey: string) =>
-      api<BannerRollResponse>(`/api/banners/${playerId}/${bannerKey}/roll`, { method: "POST", idempotent: true }),
+    mutationFn: (input: { bannerKey: string; count: number }) =>
+      api<BannerRollResponse>(`/api/banners/${playerId}/${input.bannerKey}/roll?count=${input.count}`, {
+        method: "POST",
+        idempotent: true,
+      }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["banners", "wallet", "heroes", "inventory"]),
   });
 }

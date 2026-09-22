@@ -7,14 +7,16 @@ interface Props {
   gems: number;
   now: number;
   busy: boolean;
-  onRoll: () => void;
+  /** Стеля серії за один запит. */
+  maxRolls: number;
+  onRoll: (count: number) => void;
 }
 
 /**
  * Банер із лічильниками гарантій. Pity спільний на групу, тож
  * "з останнього рідкісного" однаковий у банерів однієї групи.
  */
-export default function BannerCard({ banner, gems, now, busy, onRoll }: Props) {
+export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }: Props) {
   const isHero = banner.kind === 1;
   const rareLeft = Math.max(0, banner.rarePity - banner.rareSince);
   const uniqueLeft = Math.max(0, banner.uniquePity - banner.uniqueSince);
@@ -22,6 +24,7 @@ export default function BannerCard({ banner, gems, now, busy, onRoll }: Props) {
     ? null
     : (banner.drops.find((drop) => drop.key === banner.featuredKey) ?? null);
   const canPay = gems >= banner.priceGems;
+  const canPaySeries = gems >= banner.priceGems * maxRolls;
 
   return (
     <div className={`rounded-xl border bg-white p-4 ${isHero ? "border-violet-200" : "border-amber-200"}`}>
@@ -73,14 +76,25 @@ export default function BannerCard({ banner, gems, now, busy, onRoll }: Props) {
         </ul>
       </details>
 
-      <button
-        type="button"
-        onClick={onRoll}
-        disabled={busy || !canPay}
-        className="mt-4 w-full rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
-      >
-        {canPay ? `Крутити за ${banner.priceGems} 💎` : "Не вистачає самоцвітів"}
-      </button>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => onRoll(1)}
+          disabled={busy || !canPay}
+          className="rounded-lg border border-violet-300 px-3 py-2 text-sm font-medium text-violet-800 hover:bg-violet-50 disabled:opacity-50"
+        >
+          {canPay ? `×1 · ${banner.priceGems} 💎` : "Не вистачає 💎"}
+        </button>
+        {/* Серія — один запит: гравець не впирається в ліміт запитів, а гарантія рахується всередині серії */}
+        <button
+          type="button"
+          onClick={() => onRoll(maxRolls)}
+          disabled={busy || !canPaySeries}
+          className="rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+        >
+          ×{maxRolls} · {(banner.priceGems * maxRolls).toLocaleString("uk-UA")} 💎
+        </button>
+      </div>
     </div>
   );
 }
