@@ -38,26 +38,34 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
   const moved = useRef(0);
   const dragged = useRef(false);
 
+  /** Трансформ, за якого bounds вписані в контейнер; null — контейнер ще без розміру. */
+  const fitted = useCallback(
+    (bounds: Bounds): Transform | null => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect === undefined || rect.width === 0 || rect.height === 0) return null;
+
+      const k = Math.min(rect.width / (bounds.maxX - bounds.minX), rect.height / (bounds.maxY - bounds.minY)) * 0.95;
+
+      return {
+        k,
+        x: rect.width / 2 - ((bounds.minX + bounds.maxX) / 2) * k,
+        y: rect.height / 2 - ((bounds.minY + bounds.maxY) / 2) * k,
+      };
+    },
+    [containerRef],
+  );
+
   // Перший показ: уся ділянка в кадрі. Далі розмір контейнера камеру не скидає
   useEffect(() => {
     const element = containerRef.current;
     if (element === null) return;
 
     const fit = () => {
-      const { width, height } = element.getBoundingClientRect();
-      if (width === 0 || height === 0) return;
+      const next = fitted(world);
+      if (next === null) return;
 
-      const k = Math.min(width / (world.maxX - world.minX), height / (world.maxY - world.minY)) * 0.95;
-      fitScale.current = k;
-
-      setTransform(
-        (current) =>
-          current ?? {
-            k,
-            x: width / 2 - ((world.minX + world.maxX) / 2) * k,
-            y: height / 2 - ((world.minY + world.maxY) / 2) * k,
-          },
-      );
+      fitScale.current = next.k;
+      setTransform((current) => current ?? next);
     };
 
     fit();
@@ -66,7 +74,16 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [containerRef, world]);
+  }, [containerRef, world, fitted]);
+
+  /** Повернути камеру на задані межі — «Додому» на світовій мапі. */
+  const focus = useCallback(
+    (bounds: Bounds) => {
+      const next = fitted(bounds);
+      if (next !== null) setTransform(next);
+    },
+    [fitted],
+  );
 
   const zoomAt = useCallback((px: number, py: number, factor: number) => {
     setTransform((t) => {
@@ -146,5 +163,6 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
     transform,
     handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp, onWheel },
     wasDragged: () => dragged.current,
+    focus,
   };
 }
