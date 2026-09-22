@@ -3,8 +3,8 @@
     "Map": {
       "Width": 500,
       "Height": 500,
-      "TerrainSeed": 20260729,
-      "CellsPerMonster": 30,
+      "TerrainSeed": 20260922,
+      "CellsPerMonster": 90,
       "MaxServerLevel": 3,
       "Geometry": {
         "RingBoundaries": [ 0.20, 0.50 ],
@@ -21,7 +21,7 @@
       "Terrains": [
         {
           "Type": "plain",
-          "Weight": 50,
+          "Weight": 56,
           "Passable": true,
           "MoveCost": 1.0,
           "Habitable": true
@@ -35,14 +35,14 @@
         },
         {
           "Type": "mountain",
-          "Weight": 14,
+          "Weight": 10,
           "Passable": true,
           "MoveCost": 2.0,
           "Habitable": true
         },
         {
           "Type": "water",
-          "Weight": 8,
+          "Weight": 6,
           "Passable": false,
           "MoveCost": 1.0,
           "Habitable": false
