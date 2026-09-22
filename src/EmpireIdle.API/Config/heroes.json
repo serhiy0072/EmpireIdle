@@ -23,7 +23,7 @@
         }
       ],
       "HealBuildingKey": "hospital",
-      "BaseLevelUpMinutes": 4,
+      "BaseLevelUpMinutes": 12,
       "BuildingKey": "heroeshall",
       "Classes": [ "warrior", "knight", "archer", "mage" ]
     },

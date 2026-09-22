@@ -1,9 +1,9 @@
 {
   "GameConfig": {
     "Monetization": {
-      "SpeedUpFactor": 2.0,
-      "SpeedUpExponent": 0.75,
-      "InstantFinishThresholdMinutes": 5,
+      "SpeedUpFactor": 6.0,
+      "SpeedUpExponent": 0.85,
+      "InstantFinishThresholdMinutes": 3,
       "HealGemsPerUnit": 3
     }
   }
