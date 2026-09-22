@@ -18,12 +18,18 @@ namespace EmpireIdle.Domain.Tests.Entities
             => new(Guid.NewGuid(), Guid.NewGuid(), 1, "amulet_dawn", EquipmentSlot.Artifact,
                 Rarity.Rare, [("Attack", 5.0)], Now);
 
-        /// <summary>Усе, що міняє внесок предмета в силу героя, лишає подію для перерахунку.</summary>
+        /// <summary>Сила рахується лише з вдягнутого: подія перерахунку — тільки коли зміна торкається того, що на герої.</summary>
         [Fact]
-        public void EquipmentChanges_ShouldRaiseEquipmentChanged()
+        public void EquipmentChanges_ShouldRaiseEquipmentChanged_OnlyWhileEquipped()
         {
             var item = Weapon();
             var hero = Guid.NewGuid();
+
+            // На складі: заточка й поломка сили не рухають
+            item.Enhance(Now);
+            item.Break(Now);
+            item.Repair(Now);
+            Assert.Empty(item.DomainEvents.OfType<EquipmentChanged>());
 
             item.EquipTo(hero, 0, Now);
             Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
@@ -31,6 +37,15 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             item.Enhance(Now);
             Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
+            item.ClearDomainEvents();
+
+            // Поломка знімає з героя — це зміна сили
+            item.Break(Now);
+            Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
+            item.ClearDomainEvents();
+
+            item.Repair(Now);
+            item.EquipTo(hero, 0, Now);
             item.ClearDomainEvents();
 
             item.Unequip(Now);
