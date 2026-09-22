@@ -106,8 +106,12 @@
         "Rarity": "common",
         "DisplayName": "Залізний меч",
         "Slot": "Weapon",
-        "WeaponClasses": [ "warrior" ],
-        "BaseStats": { "Attack": 12 },
+        "WeaponClasses": [
+          "warrior"
+        ],
+        "BaseStats": {
+          "Attack": 12
+        },
         "PriceGold": 500
       },
       {
@@ -116,8 +120,12 @@
         "Rarity": "common",
         "DisplayName": "Залізний спис",
         "Slot": "Weapon",
-        "WeaponClasses": [ "knight" ],
-        "BaseStats": { "Attack": 14 },
+        "WeaponClasses": [
+          "knight"
+        ],
+        "BaseStats": {
+          "Attack": 14
+        },
         "PriceGold": 600
       },
       {
@@ -126,8 +134,12 @@
         "Rarity": "rare",
         "DisplayName": "Тисовий лук",
         "Slot": "Weapon",
-        "WeaponClasses": [ "archer" ],
-        "BaseStats": { "Attack": 11 },
+        "WeaponClasses": [
+          "archer"
+        ],
+        "BaseStats": {
+          "Attack": 11
+        },
         "PriceGold": 500
       },
       {
@@ -136,8 +148,12 @@
         "Rarity": "unique",
         "DisplayName": "Жарний посох",
         "Slot": "Weapon",
-        "WeaponClasses": [ "mage" ],
-        "BaseStats": { "Attack": 16 },
+        "WeaponClasses": [
+          "mage"
+        ],
+        "BaseStats": {
+          "Attack": 16
+        },
         "PriceGold": 750
       },
       {
@@ -171,6 +187,66 @@
         "DisplayName": "Дзвіночок світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"
+      },
+      {
+        "Key": "sword_steel",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Сталевий меч",
+        "Slot": "Weapon",
+        "WeaponClasses": [
+          "warrior"
+        ],
+        "BaseStats": {
+          "Attack": 22,
+          "Defense": 6
+        },
+        "PriceGold": 1400
+      },
+      {
+        "Key": "lance_steel",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Сталевий спис",
+        "Slot": "Weapon",
+        "WeaponClasses": [
+          "knight"
+        ],
+        "BaseStats": {
+          "Attack": 24,
+          "Health": 40
+        },
+        "PriceGold": 1600
+      },
+      {
+        "Key": "bow_ash",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Ясеновий лук",
+        "Slot": "Weapon",
+        "WeaponClasses": [
+          "archer"
+        ],
+        "BaseStats": {
+          "Attack": 20,
+          "Defense": 8
+        },
+        "PriceGold": 1400
+      },
+      {
+        "Key": "staff_oak",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дубовий посох",
+        "Slot": "Weapon",
+        "WeaponClasses": [
+          "mage"
+        ],
+        "BaseStats": {
+          "Attack": 26,
+          "Defense": 4
+        },
+        "PriceGold": 1800
       }
     ],
     "Equipment": {
@@ -187,8 +263,15 @@
       "RepairGemsBase": 20,
       "RepairGemsPerLevel": 8,
       "ArtifactBaseStats": 2,
-      "ArtifactStatLevels": [ 4, 8 ],
-      "ArtifactUpgradeLevels": [ 12, 16, 20 ],
+      "ArtifactStatLevels": [
+        4,
+        8
+      ],
+      "ArtifactUpgradeLevels": [
+        12,
+        16,
+        20
+      ],
       "DoubleUpgradeChance": 0.1,
       "SetBonuses": [
         {
