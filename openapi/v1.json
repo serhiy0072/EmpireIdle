@@ -6558,6 +6558,15 @@
           "name": {
             "type": "string",
             "nullable": true
+          },
+          "monsterType": {
+            "type": "string",
+            "nullable": true
+          },
+          "monsterLevel": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         },
         "additionalProperties": false
