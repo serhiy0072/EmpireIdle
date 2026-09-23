@@ -47,6 +47,16 @@ namespace EmpireIdle.Domain.Services.Config
         public List<string> WeaponClasses { get; set; } = new();
 
         /// <summary>
+        /// Бойова властивість унікального артефакта для данжів. Не росте від
+        /// прокачки предмета: це й відрізняє унікальний набір від рідкісного,
+        /// де більші лише звичайні стати.
+        /// </summary>
+        public DungeonStat? UniqueStat { get; set; }
+
+        /// <summary>Сила унікальної властивості часткою: 0.1 — плюс десять відсотків.</summary>
+        public double UniqueStatValue { get; set; }
+
+        /// <summary>
         /// equipment: базові стати зброї. В артефактів порожні — їхні стати
         /// випадкові й лежать на екземплярі, а не на типі.
         /// </summary>

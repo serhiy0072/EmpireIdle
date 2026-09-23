@@ -67,5 +67,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// стати вирішують силу самого героя, пасивки — силу його війська.
         /// </summary>
         public List<HeroPassiveConfig> Passives { get; set; } = new();
+
+        /// <summary>
+        /// Активні вміння для покрокового бою данжів: слабке й сильне.
+        /// Порожній список означає, що герой б'є лише звичайними ударами.
+        /// </summary>
+        public List<HeroAbilityConfig> Abilities { get; set; } = new();
     }
 }
