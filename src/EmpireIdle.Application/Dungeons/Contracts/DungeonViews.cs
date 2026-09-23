@@ -1,5 +1,4 @@
 using EmpireIdle.Domain.Dungeons;
-using EmpireIdle.Domain.Enums;
 
 namespace EmpireIdle.Application.Dungeons.Contracts
 {
@@ -41,7 +40,7 @@ namespace EmpireIdle.Application.Dungeons.Contracts
         Guid RunId,
         string DungeonKey,
         int Level,
-        DungeonRunState State,
+        string State,
         int Wave,
         int WaveCount,
         int? ActorIndex,
