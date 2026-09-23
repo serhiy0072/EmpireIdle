@@ -181,17 +181,27 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
   }, [auto, fast, finished, heroTurn, state, act]);
 
   // Правило ліній: поки жива передня лінія, задню дістають лише вміння,
-  // що її ігнорують. Рахуємо те саме, що й сервер, аби не пропонувати
-  // цілі, за які він однаково відмовить
+  // що її ігнорують. Провокація перебиває лінію: поки живий провокатор, бити
+  // можна лише його. Рахуємо те саме, що й BattleEngine.CanTarget, аби не
+  // пропонувати цілі, за які сервер однаково відмовить
   const frontAlive = useMemo(
     () => enemies.some((enemy) => enemy.line === "Front" && enemy.health > 0),
     [enemies],
   );
 
+  const taunting = useMemo(
+    () => enemies.filter((enemy) => enemy.health > 0 && enemy.statuses.some((status) => status.kind === "Taunt")),
+    [enemies],
+  );
+
   const reachable = useCallback(
-    (combatant: CombatantView, ignoresLine: boolean) =>
-      combatant.health > 0 && (ignoresLine || !frontAlive || combatant.line === "Front"),
-    [frontAlive],
+    (combatant: CombatantView, ignoresLine: boolean) => {
+      if (combatant.health <= 0) return false;
+      if (ignoresLine) return true;
+      if (taunting.length > 0) return taunting.some((enemy) => enemy.index === combatant.index);
+      return !frontAlive || combatant.line === "Front";
+    },
+    [frontAlive, taunting],
   );
 
   const target = targetIndex === null ? null : (combatants[targetIndex] ?? null);
