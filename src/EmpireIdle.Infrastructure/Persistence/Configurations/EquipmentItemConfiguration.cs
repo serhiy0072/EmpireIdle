@@ -30,9 +30,9 @@ public class EquipmentItemConfiguration : IEntityTypeConfiguration<EquipmentItem
             .IsUnique()
             .HasFilter("\"EquippedByHeroId\" IS NOT NULL");
 
-        // Один предмет одного типу на героя. Без цього два однакові
-        // артефакти в різних слотах закривали б набір удвічі дешевше,
-        // ніж задумано
+        // Один предмет одного типу на героя. Зі слотами за типом ключ уже
+        // однозначно задає слот, тож це страховка на випадок конфіга, де
+        // тип предмета змінили, а вдягнені екземпляри лишились у старому слоті
         builder.HasIndex(e => new { e.EquippedByHeroId, e.ItemKey })
             .IsUnique()
             .HasFilter("\"EquippedByHeroId\" IS NOT NULL");

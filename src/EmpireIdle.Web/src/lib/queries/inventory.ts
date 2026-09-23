@@ -78,11 +78,12 @@ export function useEquip(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { heroId: string; equipmentId: string; slotIndex: number }) =>
-      api<void>(
-        `/api/heroes/${playerId}/${input.heroId}/equipment/${input.equipmentId}?slotIndex=${input.slotIndex}`,
-        { method: "POST", idempotent: true },
-      ),
+    // Слот обирає сервер за типом предмета: намисто — у слот намиста
+    mutationFn: (input: { heroId: string; equipmentId: string }) =>
+      api<void>(`/api/heroes/${playerId}/${input.heroId}/equipment/${input.equipmentId}`, {
+        method: "POST",
+        idempotent: true,
+      }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
   });
 }

@@ -611,8 +611,22 @@ namespace EmpireIdle.Domain.Services
             if (equipment.Count == 0)
                 return;
 
-            if (config.Equipment.ArtifactSlots < 1)
-                throw new InvalidOperationException("Equipment.ArtifactSlots must be at least 1.");
+            var slots = config.Equipment.ArtifactSlots;
+
+            if (slots.Count < 1)
+                throw new InvalidOperationException("Equipment.ArtifactSlots must list at least one slot.");
+
+            RequireUniqueKeys(slots.Select(s => s.Key), "Equipment.ArtifactSlots");
+
+            // Артефакт без відомого типу слота нікуди не вдягнути
+            var slotless = equipment
+                .Where(i => i.Slot == EquipmentSlot.Artifact && config.Equipment.ArtifactSlotIndex(i.ArtifactSlot) is null)
+                .Select(i => $"{i.Key} ({i.ArtifactSlot ?? "none"})")
+                .ToList();
+
+            if (slotless.Count > 0)
+                throw new InvalidOperationException(
+                    $"Artifacts without a known ArtifactSlot: {string.Join(", ", slotless)}.");
 
             if (config.Equipment.MaxEnhancement < 1)
                 throw new InvalidOperationException("Equipment.MaxEnhancement must be at least 1.");
@@ -651,10 +665,18 @@ namespace EmpireIdle.Domain.Services
                     throw new InvalidOperationException(
                         $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but only {pieces} exist.");
 
-                if (bonus.RequiredPieces > config.Equipment.ArtifactSlots)
+                // Герой носить по одному артефакту кожного типу: частини одного
+                // слота не вдягнути разом, тож рахуються лише різні слоти
+                var wearable = config.Items
+                    .Where(i => i.SetKey == bonus.SetKey)
+                    .Select(i => i.ArtifactSlot)
+                    .Distinct()
+                    .Count();
+
+                if (bonus.RequiredPieces > wearable)
                     throw new InvalidOperationException(
-                        $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but a hero has only "
-                        + $"{config.Equipment.ArtifactSlots} artifact slots.");
+                        $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but they fit only "
+                        + $"{wearable} distinct artifact slots.");
 
                 if (bonus.Stats.Count == 0)
                     throw new InvalidOperationException($"Set bonus '{bonus.SetKey}' grants nothing.");

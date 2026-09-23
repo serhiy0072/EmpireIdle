@@ -21,14 +21,16 @@ internal static class HeroTestConfig
 
     public const string WarriorWeapon = "sword_iron";
     public const string BetterWarriorWeapon = "sword_steel";
-    public const string Artifact = "amulet_dawn";
+    public const string Artifact = "necklace_dawn";
     public const string SecondArtifact = "ring_ember";
 
     public const int ShardPriceGold = 100;
     public const int SummonShards = 10;
     public const int LevelUpGold = 100;
     public const int WeaponPriceGold = 500;
-    public const int ArtifactSlots = 4;
+    /// <summary>Номери слотів за типом — позиції в Equipment.ArtifactSlots.</summary>
+    public const int NecklaceSlot = 0;
+    public const int RingSlot = 2;
 
     public static GameConfig Create() => new()
     {
@@ -86,6 +88,7 @@ internal static class HeroTestConfig
                 Key = Artifact,
                 Type = "equipment",
                 Slot = EquipmentSlot.Artifact,
+                ArtifactSlot = "necklace",
                 SetKey = "dawn"
             },
             new ItemConfig
@@ -93,12 +96,19 @@ internal static class HeroTestConfig
                 Key = SecondArtifact,
                 Type = "equipment",
                 Slot = EquipmentSlot.Artifact,
+                ArtifactSlot = "ring",
                 SetKey = "dawn"
             }
         ],
         Equipment = new EquipmentConfig
         {
-            ArtifactSlots = ArtifactSlots,
+            ArtifactSlots =
+            [
+                new ArtifactSlotConfig { Key = "necklace", DisplayName = "Намисто" },
+                new ArtifactSlotConfig { Key = "crown", DisplayName = "Корона" },
+                new ArtifactSlotConfig { Key = "ring", DisplayName = "Кільце" },
+                new ArtifactSlotConfig { Key = "belt", DisplayName = "Пояс" }
+            ],
             MaxEnhancement = 20,
             EnhancementBonusPerLevel = 0.1,
             ForgeBuildingKey = Forge,

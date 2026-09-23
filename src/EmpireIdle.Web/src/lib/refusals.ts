@@ -138,7 +138,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   // ---------- Спорядження ----------
   "equipment.maxEnhancement": ({ max }) => `Уже максимальне посилення +${max}`,
   "equipment.broken": () => "Спершу відремонтуйте предмет у кузні",
-  "equipment.alreadyEquipped": ({ item }) => `«${item}» уже вдягнено на цього героя`,
   "equipment.classMismatch": ({ weapon }) => `«${weapon}» не підходить класу цього героя`,
 
   // ---------- Данжі ----------

@@ -10,13 +10,10 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
-    /// Вдягнути спорядження на героя.
+    /// Вдягнути спорядження на героя. Слот визначає сам предмет: зброя —
+    /// єдиний слот зброї, артефакт — слот свого типу (намисто, корона…).
     /// </summary>
-    /// <param name="SlotIndex">
-    /// Номер артефактного слота (0..ArtifactSlots-1). Для зброї ігнорується:
-    /// слот один.
-    /// </param>
-    public record EquipHeroItemCommand(Guid PlayerId, Guid HeroId, Guid EquipmentId, int SlotIndex = 0)
+    public record EquipHeroItemCommand(Guid PlayerId, Guid HeroId, Guid EquipmentId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
@@ -75,7 +72,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             var itemConfig = _catalog.Items.GetValueOrDefault(item.ItemKey)
                 ?? throw new EntityNotFoundException("Item", item.ItemKey);
 
-            var slotIndex = ResolveSlotIndex(item.Slot, request.SlotIndex);
+            var slotIndex = SlotIndexOf(item.Slot, itemConfig);
 
             EnsureFits(hero.HeroKey, item.Slot, itemConfig);
 
@@ -85,17 +82,10 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (item.EquippedByHeroId == hero.Id && item.SlotIndex == slotIndex)
                 return;
 
-            // Знімаємо з попереднього носія або зі старого слота
-            if (item.EquippedByHeroId is not null)
-                item.Unequip(now);
-
-            // Той, хто стоїть у цільовому слоті, зараз буде знятий — дублікатом він не рахується.
-            // Перевірка до будь-якої мутації: відмова не лишає предмет знятим у трекері
+            // Той, хто стоїть у цільовому слоті, зараз буде знятий. Окремої заборони
+            // дублікатів не треба: однаковий ключ — однаковий тип слота, тож другий
+            // такий самий артефакт просто замінює першого
             var occupant = equipped.FirstOrDefault(e => e.Slot == item.Slot && e.SlotIndex == slotIndex);
-
-            if (equipped.Any(e => e.Id != item.Id && e.Id != occupant?.Id && e.ItemKey == item.ItemKey))
-                throw new AlreadyExistsException(RefusalReasons.EquipmentAlreadyEquipped, "Equipped item", item.ItemKey,
-                    _catalog.FindItem(item.ItemKey)?.DisplayName ?? item.ItemKey);
 
             // Знімаємо з попереднього носія або зі старого слота
             if (item.EquippedByHeroId is not null)
@@ -112,21 +102,18 @@ namespace EmpireIdle.Application.Heroes.Commands
         }
 
         /// <summary>
-        /// Зброя завжди в нульовому слоті, артефакт — у межах конфіга.
-        /// Номер поза межами це помилка клієнта, а не мовчазне підставляння нуля.
+        /// Зброя завжди в нульовому слоті, артефакт — у слоті свого типу.
+        /// Артефакт без відомого типу валідатор не пропускає, тож тут це
+        /// битий конфіг, а не помилка гравця.
         /// </summary>
-        private int ResolveSlotIndex(EquipmentSlot slot, int requested)
+        private int SlotIndexOf(EquipmentSlot slot, ItemConfig itemConfig)
         {
             if (slot == EquipmentSlot.Weapon)
                 return 0;
 
-            var slots = _catalog.Config.Equipment.ArtifactSlots;
-
-            if (requested < 0 || requested >= slots)
-                throw new RequirementNotMetException(
-                    $"Artifact slot {requested} is outside 0..{slots - 1}.");
-
-            return requested;
+            return _catalog.Config.Equipment.ArtifactSlotIndex(itemConfig.ArtifactSlot)
+                ?? throw new InvalidOperationException(
+                    $"Artifact '{itemConfig.Key}' has no known ArtifactSlot '{itemConfig.ArtifactSlot}'.");
         }
 
         /// <summary>
