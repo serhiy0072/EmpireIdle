@@ -37,6 +37,11 @@
         /// <summary>Дія вимагає добудованої будівлі; building — її назва для гравця.</summary>
         public static readonly RefusalReason BuildingRequired = new("common.buildingRequired", "building");
 
+        // ---------- Акаунт ----------
+
+        /// <summary>Identity відхилив реєстрацію; codes — його коди через кому, текст за кожним дає клієнт.</summary>
+        public static readonly RefusalReason AuthRegistrationRejected = new("auth.registrationRejected", "codes");
+
         // ---------- Село й будівлі ----------
 
         /// <summary>resource — ключ ресурсу: назву в потрібному відмінку підставляє клієнт.</summary>

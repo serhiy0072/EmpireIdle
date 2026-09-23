@@ -1,4 +1,7 @@
 {
+  "auth.registrationRejected": [
+    "codes"
+  ],
   "building.alreadyCompleted": [],
   "building.serverCeiling": [
     "serverLevel",

@@ -46,9 +46,12 @@ namespace EmpireIdle.Infrastructure.Auth
 
             if (!result.Succeeded)
             {
-                // Коди, не описи: "DuplicateEmail" не видає, що email зареєстрований
-                var codes = string.Join("; ", result.Errors.Select(e => e.Code));
-                throw new RequirementNotMetException($"Registration failed: {codes}");
+                // Коди, не описи Identity: описи англійські, а текст для гравця за кожним
+                // кодом дає клієнт. DuplicateEmail він показує свідомо — сторінка
+                // реєстрації радить увійти, а не мовчить про причину
+                var codes = result.Errors.Select(e => e.Code).ToList();
+                throw new RequirementNotMetException(RefusalReasons.AuthRegistrationRejected,
+                    $"Registration failed: {string.Join("; ", codes)}", string.Join(",", codes));
             }
 
             return user.Id;
