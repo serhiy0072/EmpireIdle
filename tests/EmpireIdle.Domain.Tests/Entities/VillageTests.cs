@@ -1,4 +1,4 @@
-using EmpireIdle.Domain.Entities;
+﻿using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -61,6 +61,145 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             Assert.Equal(RefusalReasons.VillageStorageFull.Key, refusal.Reason);
             Assert.Equal(TestKit.TestKeys.Food, refusal.Args["resource"]);
+        }
+
+        /// <summary>Склад із місцем на частину буфера бере частину — решта чекає в будівлі.</summary>
+        [Fact]
+        public void CollectFromBuilding_ShouldTakeOnlyWhatFits_AndKeepTheRest()
+        {
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var building = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+
+            var collected = village.CollectFromBuilding(
+                building.Id, configs, storageCap: 1020, building.LastAccruedAt.AddMinutes(5), ProductionBoost.None, 1.0);
+
+            Assert.Equal(20, collected);
+            Assert.Equal(1020, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
+            Assert.Equal(30, building.AccruedAmount);
+        }
+
+        /// <summary>Під туманом будівля не виробляє, і збирати з неї нічого.</summary>
+        [Fact]
+        public void CollectFromBuilding_ShouldRefuse_UnderTheFog()
+        {
+            var configs = ConfigsWithFoggedMine();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 0);
+            var mineId = village.AddBuilding(Mine, configs, TestKit.Entities.Now);
+
+            Assert.False(village.IsProducing(village.Buildings.Single(b => b.Id == mineId), configs));
+            Assert.Throws<RequirementNotMetException>(() => village.CollectFromBuilding(
+                mineId, configs, storageCap: 100_000, TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0));
+        }
+
+        /// <summary>«Зібрати все» не чіпає будівлі під туманом.</summary>
+        [Fact]
+        public void CollectAll_ShouldSkipBuildingsUnderTheFog()
+        {
+            var configs = ConfigsWithFoggedMine();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 0);
+            village.AddBuilding(Mine, configs, TestKit.Entities.Now);
+
+            var summary = village.CollectAll(configs, _ => 100_000,
+                TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0);
+
+            Assert.Equal(50, summary.Collected[TestKit.TestKeys.Food]);
+            Assert.False(summary.Collected.ContainsKey(TestKit.TestKeys.Iron));
+            Assert.Equal(0, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Iron).Amount);
+        }
+
+        /// <summary>
+        /// Повний склад одного ресурсу не зупиняє збір решти — він лише
+        /// потрапляє в список, щоб клієнт пояснив, чому буфер лишився.
+        /// </summary>
+        [Fact]
+        public void CollectAll_ShouldCollectTheRest_WhenOneStorageIsFull()
+        {
+            var configs = ConfigsWithFoggedMine();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 2, resourceAmount: 1000);
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+            village.AddBuilding(Mine, configs, TestKit.Entities.Now);
+
+            var summary = village.CollectAll(configs,
+                resource => resource == TestKit.TestKeys.Food ? 1000 : 100_000,
+                TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0);
+
+            Assert.Equal([TestKit.TestKeys.Food], summary.FullStorages);
+            Assert.Equal(50, summary.Collected[TestKit.TestKeys.Iron]);
+            Assert.Equal(1050, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Iron).Amount);
+            Assert.Equal(50, farm.StoredAt(configs[TestKit.TestKeys.Farm], TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0));
+        }
+
+        /// <summary>Порожній буфер при повному складі — не привід скаржитись на склад.</summary>
+        [Fact]
+        public void CollectAll_ShouldNotReportAFullStorage_WhenTheBufferIsEmpty()
+        {
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
+
+            var summary = village.CollectAll(TestKit.Entities.FarmConfigs(), _ => 1000,
+                TestKit.Entities.Now, ProductionBoost.None, 1.0);
+
+            Assert.Empty(summary.FullStorages);
+            Assert.Empty(summary.Collected);
+        }
+
+        /// <summary>
+        /// Відкриття з-під туману стартує виробіток з моменту завершення ратуші:
+        /// ні запізнення сканера, ні час до відкриття не нараховуються.
+        /// </summary>
+        [Fact]
+        public void CompleteDueConstructions_ShouldStartTheUnlockedBuildings_FromTheTownHallCompletion()
+        {
+            var configs = ConfigsWithFoggedMine();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 0);
+            var mineId = village.AddBuilding(Mine, configs, TestKit.Entities.Now);
+            var mine = village.Buildings.Single(b => b.Id == mineId);
+            var townhall = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Townhall);
+
+            townhall.BeginUpgrade(configs[TestKit.TestKeys.Townhall], TimeSpan.FromMinutes(10),
+                TestKit.Entities.Now, ProductionBoost.None, 1.0);
+
+            // Сканер прийшов на 20 хвилин пізніше за завершення
+            village.CompleteDueConstructions(TestKit.Entities.Now.AddMinutes(30), configs);
+
+            Assert.True(village.IsProducing(mine, configs));
+            // 2 хвилини після відкриття × 10/хв; без скидання буфер стояв би на капі 60
+            Assert.Equal(20, mine.StoredAt(configs[Mine], TestKit.Entities.Now.AddMinutes(12), ProductionBoost.None, 1.0));
+        }
+
+        /// <summary>Фіксація перед зміною множника не банкує вироблене «під туманом».</summary>
+        [Fact]
+        public void MaterializeProduction_ShouldSkipBuildingsUnderTheFog()
+        {
+            var configs = ConfigsWithFoggedMine();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 0);
+            var mineId = village.AddBuilding(Mine, configs, TestKit.Entities.Now);
+
+            village.MaterializeProduction(configs, TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0);
+
+            Assert.Equal(0, village.Buildings.Single(b => b.Id == mineId).AccruedAmount);
+        }
+
+        private const string Mine = "mine";
+
+        /// <summary>Ферма з ратушею плюс шахта заліза, що відкривається з ратушею 2.</summary>
+        private static Dictionary<string, BuildingConfig> ConfigsWithFoggedMine()
+        {
+            var configs = TestKit.Entities.FarmConfigs();
+
+            configs[Mine] = new BuildingConfig
+            {
+                Key = Mine,
+                ProducesResource = TestKit.TestKeys.Iron,
+                BaseProductionPerMinute = 10,
+                BaseStorage = 60,
+                BaseBuildMinutes = 5,
+                BuildTimeGrowth = 1.5,
+                UpgradeCostGrowth = 1.45,
+                RequiresMainBuildingLevel = 2
+            };
+
+            return configs;
         }
 
         [Fact]
@@ -409,6 +548,34 @@ namespace EmpireIdle.Domain.Tests.Entities
             // Assert
             Assert.Equal(70, loot[TestKit.TestKeys.Wood]);
             Assert.Equal(0, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Wood).Amount);
+        }
+
+        /// <summary>Будівля під туманом нічого не виробила — нападнику з неї нічого.</summary>
+        [Fact]
+        public void Plunder_ShouldSkipBuildingsUnderTheFog()
+        {
+            // Каталог вимагає склад для кожного вироблюваного ресурсу
+            var configs = ConfigsWithFoggedMine();
+            configs[TestKit.TestKeys.Warehouse] = new BuildingConfig
+            {
+                Key = TestKit.TestKeys.Warehouse,
+                StoresResources = [TestKit.TestKeys.Food, TestKit.TestKeys.Iron],
+                BaseStorage = 500,
+                Cost = [new ResourceCost { Resource = TestKit.TestKeys.Wood, Amount = 100 }],
+                BaseBuildMinutes = 5,
+                BuildTimeGrowth = 1.5,
+                UpgradeCostGrowth = 1.45
+            };
+
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 0);
+            village.AddBuilding(Mine, configs, TestKit.Entities.Now);
+            village.AddBuilding(TestKit.TestKeys.Warehouse, configs, TestKit.Entities.Now);
+
+            var loot = Plunderer(configs).Plunder(village, carryCapacity: 1000, ProductionBoost.None, 1.0,
+                TestKit.Entities.Now.AddMinutes(5));
+
+            Assert.False(loot.ContainsKey(TestKit.TestKeys.Iron));
+            Assert.Equal(50, loot[TestKit.TestKeys.Food]);
         }
     }
 }
