@@ -1,7 +1,6 @@
 using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Dungeons.Contracts;
-using EmpireIdle.Application.Dungeons.Queries;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;
@@ -205,7 +204,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
                             item!.Key, item.DisplayName, item.Rarity.ToString().ToLowerInvariant(), item.SetKey ?? string.Empty))
                         .ToList());
 
-            return GetDungeonRunQueryHandler.Project(run.Id, run.DungeonKey, run.Level, run.State, state,
+            return DungeonRunProjection.Project(run.Id, run.DungeonKey, run.Level, run.State, state,
                 _builder.WaveCount(run.Level), turns, view, _catalog);
         }
 
