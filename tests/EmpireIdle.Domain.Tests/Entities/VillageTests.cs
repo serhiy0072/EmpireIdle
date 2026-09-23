@@ -45,6 +45,34 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(foodBefore, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
+        /// <summary>
+        /// Повний склад — відмова з ключем ресурсу: назву в потрібному відмінку
+        /// підставляє клієнт, а буфер будівлі лишається недоторканим.
+        /// </summary>
+        [Fact]
+        public void CollectFromBuilding_ShouldRefuse_WhenStorageIsFull()
+        {
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var building = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => village.CollectFromBuilding(
+                building.Id, configs, storageCap: 1000, building.LastAccruedAt.AddMinutes(5), ProductionBoost.None, 1.0));
+
+            Assert.Equal(RefusalReasons.VillageStorageFull.Key, refusal.Reason);
+            Assert.Equal(TestKit.TestKeys.Food, refusal.Args["resource"]);
+        }
+
+        [Fact]
+        public void RelocateTo_ShouldRefuse_TheCellItAlreadyStandsOn()
+        {
+            var village = TestKit.Entities.Village(x: 4, y: 7);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => village.RelocateTo(4, 7, TestKit.Entities.Now));
+
+            Assert.Equal(RefusalReasons.VillageAlreadyThere.Key, refusal.Reason);
+        }
+
         /// <summary>Додавання будівлі кладе її в колекцію з правильним VillageId.</summary>
         [Fact]
         public void AddBuilding_ShouldPlaceBuildingInVillage()
@@ -67,7 +95,8 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             village.AddBuilding(TestKit.TestKeys.Farm, configs, TestKit.Entities.Now);
 
-            Assert.Throws<AlreadyExistsException>(() => village.AddBuilding(TestKit.TestKeys.Farm, configs, TestKit.Entities.Now));
+            var refusal = Assert.Throws<AlreadyExistsException>(() => village.AddBuilding(TestKit.TestKeys.Farm, configs, TestKit.Entities.Now));
+            Assert.Null(refusal.Reason);
         }
 
         /// <summary>
@@ -139,9 +168,10 @@ namespace EmpireIdle.Domain.Tests.Entities
             var townhall = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Townhall);
 
             // Сервер 1 рівня дозволяє до 10; ратуша вже там
-            Assert.Throws<RequirementNotMetException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(townhall.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
                     mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: 1, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+            Assert.Equal(RefusalReasons.BuildingServerCeiling.Key, refusal.Reason);
         }
 
         /// <summary>
@@ -161,9 +191,10 @@ namespace EmpireIdle.Domain.Tests.Entities
             var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
             // (або якщо рівня за замовчуванням достатньо — головне, щоб ратуша була рівно на межі 10)
 
-            Assert.Throws<RequirementNotMetException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(townhall.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
                     mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+            Assert.Equal(RefusalReasons.BuildingVillageLagging.Key, refusal.Reason);
         }
 
         /// <summary>Правило C: жодна будівля не переростає ратушу.</summary>
@@ -175,9 +206,10 @@ namespace EmpireIdle.Domain.Tests.Entities
             var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
 
             // Ферма 1 → 2 при ратуші 1 (ратуша 1, тому ферма не може стати 2)
-            Assert.Throws<RequirementNotMetException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(farm.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
                     mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+            Assert.Equal(RefusalReasons.BuildingTownHallCeiling.Key, refusal.Reason);
         }
 
         /// <summary>

@@ -48,7 +48,7 @@ namespace EmpireIdle.Application.Villages.Commands
                 ?? throw new EntityNotFoundException("Building", request.BuildingId);
 
             if (!building.IsUnderConstruction)
-                throw new InvalidStateException($"Building {request.BuildingId} is not under construction.");
+                throw new InvalidStateException(RefusalReasons.BuildingAlreadyCompleted, $"Building {request.BuildingId} is not under construction.");
 
             var cost = _calculator.GetInstantFinishCost(building.ConstructionCompletesAt!.Value, now);
 

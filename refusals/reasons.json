@@ -1,4 +1,18 @@
 {
+  "building.alreadyCompleted": [],
+  "building.serverCeiling": [
+    "serverLevel",
+    "ceiling"
+  ],
+  "building.townHallCeiling": [
+    "building",
+    "level"
+  ],
+  "building.underConstruction": [],
+  "building.villageLagging": [
+    "level",
+    "buildings"
+  ],
   "common.buildingRequired": [
     "building"
   ],
@@ -45,5 +59,9 @@
   "hero.worldLevelRequired": [
     "required",
     "current"
+  ],
+  "village.alreadyThere": [],
+  "village.storageFull": [
+    "resource"
   ]
 }
