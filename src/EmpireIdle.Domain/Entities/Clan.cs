@@ -127,7 +127,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new AlreadyExistsException("Clan member", playerId.ToString());
 
             if (_members.Count >= capacity)
-                throw new RequirementNotMetException($"The clan is full ({capacity} members).");
+                throw new RequirementNotMetException(RefusalReasons.ClanFull, $"The clan is full ({capacity} members).", capacity);
 
             var role = _roles.Single(r => r.IsDefaultRole);
             _members.Add(new ClanMember(Guid.NewGuid(), Id, playerId, role.Id, utcNow));
@@ -142,7 +142,7 @@ namespace EmpireIdle.Domain.Entities
                 ?? throw new EntityNotFoundException("Clan member", playerId);
 
             if (_roles.Single(r => r.Id == member.RoleId).IsLeaderRole)
-                throw new InvalidStateException("Transfer leadership before leaving the clan.");
+                throw new InvalidStateException(RefusalReasons.ClanLeaderMustTransfer, "Transfer leadership before leaving the clan.");
 
             _members.Remove(member);
             Touch(utcNow);
@@ -161,8 +161,8 @@ namespace EmpireIdle.Domain.Entities
             var targetRole = _roles.Single(r => r.Id == target.RoleId);
 
             if (targetRole.Rank >= actor.Rank)
-                throw new RequirementNotMetException(
-                    $"'{actor.Name}' cannot kick a '{targetRole.Name}'.");
+                throw new RequirementNotMetException(RefusalReasons.ClanNoPermission,
+                    $"'{actor.Name}' cannot kick a '{targetRole.Name}'.", actor.Name);
 
             _members.Remove(target);
             Touch(utcNow);
@@ -183,7 +183,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new RequirementNotMetException("Leadership is transferred, not assigned.");
 
             if (role.Rank >= actor.Rank)
-                throw new RequirementNotMetException($"'{actor.Name}' cannot grant '{role.Name}'.");
+                throw new RequirementNotMetException(RefusalReasons.ClanNoPermission, $"'{actor.Name}' cannot grant '{role.Name}'.", actor.Name);
 
             var target = _members.FirstOrDefault(m => m.PlayerId == targetId)
                 ?? throw new EntityNotFoundException("Clan member", targetId);
@@ -191,8 +191,8 @@ namespace EmpireIdle.Domain.Entities
             var currentRole = _roles.Single(r => r.Id == target.RoleId);
 
             if (currentRole.Rank >= actor.Rank)
-                throw new RequirementNotMetException(
-                    $"'{actor.Name}' cannot change the role of a '{currentRole.Name}'.");
+                throw new RequirementNotMetException(RefusalReasons.ClanNoPermission,
+                    $"'{actor.Name}' cannot change the role of a '{currentRole.Name}'.", actor.Name);
 
             target.AssignRole(role.Id);
             Touch(utcNow);
@@ -207,7 +207,7 @@ namespace EmpireIdle.Domain.Entities
             var leaderRole = _roles.Single(r => r.IsLeaderRole);
 
             if (!_members.Any(m => m.PlayerId == fromPlayerId && m.RoleId == leaderRole.Id))
-                throw new RequirementNotMetException("Only the leader can transfer leadership.");
+                throw new RequirementNotMetException(RefusalReasons.ClanLeaderOnly, "Only the leader can transfer leadership.");
 
             PromoteToLeader(toPlayerId, utcNow);
         }
@@ -269,7 +269,7 @@ namespace EmpireIdle.Domain.Entities
                 ?? throw new EntityNotFoundException("Clan role", roleId);
 
             if (role.IsLeaderRole)
-                throw new RequirementNotMetException("The leader role cannot be edited.");
+                throw new RequirementNotMetException(RefusalReasons.ClanRoleProtected, "The leader role cannot be edited.");
 
             EnsureRankBelow(actor, role.Rank);
             EnsureRankBelow(actor, rank);
@@ -292,10 +292,11 @@ namespace EmpireIdle.Domain.Entities
                 ?? throw new EntityNotFoundException("Clan role", roleId);
 
             if (role.IsLeaderRole)
-                throw new RequirementNotMetException("The leader role cannot be deleted.");
+                throw new RequirementNotMetException(RefusalReasons.ClanRoleProtected, "The leader role cannot be deleted.");
 
             if (role.IsDefaultRole)
-                throw new RequirementNotMetException("The default role cannot be deleted — new members need one.");
+                throw new RequirementNotMetException(RefusalReasons.ClanRoleProtected,
+                    "The default role cannot be deleted — new members need one.");
 
             EnsureRankBelow(actor, role.Rank);
 
@@ -345,10 +346,11 @@ namespace EmpireIdle.Domain.Entities
         private ClanRole RequireRole(Guid actorId, ClanPermission permission)
         {
             var role = RoleOf(actorId)
-                ?? throw new RequirementNotMetException("Only clan members can do that.");
+                ?? throw new RequirementNotMetException(RefusalReasons.ClanNotMember, "Only clan members can do that.");
 
             if (!role.Can(permission))
-                throw new RequirementNotMetException($"'{role.Name}' lacks the {permission} permission.");
+                throw new RequirementNotMetException(RefusalReasons.ClanNoPermission,
+                    $"'{role.Name}' lacks the {permission} permission.", role.Name);
 
             return role;
         }
@@ -360,14 +362,14 @@ namespace EmpireIdle.Domain.Entities
         private static void EnsureRankBelow(ClanRole actor, int rank)
         {
             if (rank >= actor.Rank)
-                throw new RequirementNotMetException(
-                    $"'{actor.Name}' cannot manage roles at rank {rank} or above.");
+                throw new RequirementNotMetException(RefusalReasons.ClanNoPermission,
+                    $"'{actor.Name}' cannot manage roles at rank {rank} or above.", actor.Name);
         }
 
         private void EnsureNameFree(string name, Guid? exceptRoleId)
         {
             if (_roles.Any(r => r.Id != exceptRoleId && r.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
-                throw new AlreadyExistsException("Clan role", name);
+                throw new AlreadyExistsException(RefusalReasons.ClanRoleNameTaken, "Clan role", name, name);
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;

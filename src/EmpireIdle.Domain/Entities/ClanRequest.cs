@@ -74,12 +74,12 @@ namespace EmpireIdle.Domain.Entities
         private void Resolve(ClanRequestStatus status, Guid actorId, DateTime utcNow)
         {
             if (Status != ClanRequestStatus.Pending)
-                throw new InvalidStateException($"Clan request {Id} is already {Status}.");
+                throw new InvalidStateException(RefusalReasons.ClanRequestResolved, $"Clan request {Id} is already {Status}.");
 
             // Протермінована заявка не приймається, але й не «зникає»:
             // її закриває той самий перехід, лише іншим статусом
             if (ExpiresAt <= utcNow && status == ClanRequestStatus.Accepted)
-                throw new RequirementNotMetException("This request has expired.");
+                throw new RequirementNotMetException(RefusalReasons.ClanRequestExpired, "This request has expired.");
 
             Status = status;
             ResolvedBy = actorId;

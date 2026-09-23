@@ -57,7 +57,7 @@ namespace EmpireIdle.Application.Clans.Commands
                 ?? throw new EntityNotFoundException("Player", request.PlayerId);
 
             if (player.ClanId is not null)
-                throw new InvalidStateException("Leave your current clan before founding a new one.");
+                throw new InvalidStateException(RefusalReasons.ClanAlreadyInClan, "Leave your current clan before founding a new one.");
 
             await EnsureEmbassyAsync(player.Id, cancellationToken);
 
@@ -67,7 +67,7 @@ namespace EmpireIdle.Application.Clans.Commands
             // Перевірка тут, а унікальні індекси в базі — арбітр гонки:
             // між перевіркою і вставкою хтось інший може взяти ту саму назву
             if (await _clanRepository.ExistsAsync(name, tag, cancellationToken))
-                throw new AlreadyExistsException("Clan", $"{name} [{tag}]");
+                throw new AlreadyExistsException(RefusalReasons.ClanNameTaken, "Clan", $"{name} [{tag}]", name, tag);
 
             var clan = new Clan(Guid.NewGuid(), _serverContext.ServerId, name, tag, player.Id, now);
 
@@ -98,7 +98,8 @@ namespace EmpireIdle.Application.Clans.Commands
                 return;
 
             if (!_status.IsUnlocked(village, embassyKey))
-                throw new RequirementNotMetException($"Founding a clan requires the '{embassyKey}'.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    $"Founding a clan requires the '{embassyKey}'.", _catalog.Building(embassyKey).DisplayName);
         }
     }
 }

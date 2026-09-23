@@ -69,6 +69,31 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "building.underConstruction": () => "Ця будівля вже будується",
   "building.alreadyCompleted": () => "Будівництво вже завершено",
 
+  // ---------- Клани ----------
+  "clan.notMember": () => "Ви вже не в клані — оновіть сторінку",
+  "clan.alreadyInClan": () => "Ви вже в клані — спершу вийдіть із нього",
+  "clan.nameTaken": ({ name, tag }) => `Клан «${name}» [${tag}] уже існує — оберіть іншу назву або тег`,
+  "clan.full": ({ capacity }) => `У клані вже ${capacity} учасників — місць немає`,
+  "clan.inviteOnly": () => "Цей клан приймає лише за запрошенням",
+  "clan.alreadyApplied": () => "Ваша заявка до цього клану ще розглядається",
+  "clan.applyCooldown": ({ retryAt }) =>
+    `Повторну заявку можна подати після ${new Date(String(retryAt)).toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" })}`,
+  "clan.targetInClan": () => "Цей гравець уже в клані",
+  "clan.alreadyInvited": () => "Цього гравця вже запрошено — дочекайтеся відповіді",
+  "clan.applicantJoinedElsewhere": () => "Гравець уже вступив до іншого клану",
+  "clan.leaderMustTransfer": () => "Лідер не може просто вийти — спершу передайте лідерство",
+  "clan.noPermission": ({ role }) => `Роль «${role}» не дозволяє цю дію`,
+  "clan.leaderOnly": () => "Лідерство може передати лише лідер",
+  "clan.roleProtected": () => "Роль лідера й роль новачків не можна змінити чи видалити",
+  "clan.roleNameTaken": ({ name }) => `Роль «${name}» уже є в клані`,
+  "clan.requestResolved": () => "Цю заявку вже розглянули",
+  "clan.requestExpired": () => "Термін заявки минув",
+  "clan.helpAlreadyRequested": () => "Допомогу для цього вже попросили",
+  "clan.helpNotNeeded": () => "Це вже завершено — допомога не потрібна",
+  "clan.helpExpired": () => "Запит на допомогу вже неактуальний",
+  "clan.helpAlreadyHelped": () => "Ви вже допомогли з цим запитом",
+  "clan.helpFull": ({ max }) => `Запит уже отримав усі ${max} допомог`,
+
   // ---------- Марші й підкріплення ----------
   "march.heroUnavailable": ({ state }) =>
     state === "Wounded" ? "Герой у госпіталі — спершу вилікуйте його" : "Герой уже в поході",

@@ -53,7 +53,7 @@ namespace EmpireIdle.Application.Clans.Commands
                 throw new RequirementNotMetException("Use leave instead of kicking yourself.");
 
             var clan = await _clanRepository.GetByMemberAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidStateException("You are not in a clan.");
+                ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");
 
             var target = await _playerRepository.GetByIdAsync(request.TargetPlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Player", request.TargetPlayerId);

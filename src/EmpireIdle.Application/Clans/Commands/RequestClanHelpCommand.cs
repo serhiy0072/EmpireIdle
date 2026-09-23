@@ -55,10 +55,10 @@ namespace EmpireIdle.Application.Clans.Commands
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var clan = await _clanRepository.GetByMemberAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidStateException("You are not in a clan.");
+                ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");
 
             if (await _helpRepository.ExistsForTargetAsync(request.TargetId, cancellationToken))
-                throw new AlreadyExistsException("Help request", request.TargetId.ToString());
+                throw new AlreadyExistsException(RefusalReasons.ClanHelpAlreadyRequested, "Help request", request.TargetId.ToString());
 
             var (fullDuration, completesAt) = await ResolveTimerAsync(request, now, cancellationToken);
 
@@ -105,7 +105,7 @@ namespace EmpireIdle.Application.Clans.Commands
                         ?? throw new EntityNotFoundException("Building", request.TargetId);
 
                     if (!building.IsUnderConstruction)
-                        throw new InvalidStateException("That building is not under construction.");
+                        throw new InvalidStateException(RefusalReasons.ClanHelpNotNeeded, "That building is not under construction.");
 
                     var config = _catalog.Building(building.Type);
 
