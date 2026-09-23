@@ -80,6 +80,58 @@
         /// <summary>Прискорення прийшло, коли таймер уже добіг кінця.</summary>
         public static readonly RefusalReason BuildingAlreadyCompleted = new("building.alreadyCompleted");
 
+        // ---------- Клани ----------
+
+        /// <summary>Гравець не в клані — найчастіше його щойно вигнали, поки екран був відкритий.</summary>
+        public static readonly RefusalReason ClanNotMember = new("clan.notMember");
+
+        public static readonly RefusalReason ClanAlreadyInClan = new("clan.alreadyInClan");
+
+        public static readonly RefusalReason ClanNameTaken = new("clan.nameTaken", "name", "tag");
+
+        public static readonly RefusalReason ClanFull = new("clan.full", "capacity");
+
+        public static readonly RefusalReason ClanInviteOnly = new("clan.inviteOnly");
+
+        public static readonly RefusalReason ClanAlreadyApplied = new("clan.alreadyApplied");
+
+        /// <summary>retryAt — UTC у форматі ISO 8601: клієнт показує його в місцевому часі.</summary>
+        public static readonly RefusalReason ClanApplyCooldown = new("clan.applyCooldown", "retryAt");
+
+        public static readonly RefusalReason ClanTargetInClan = new("clan.targetInClan");
+
+        public static readonly RefusalReason ClanAlreadyInvited = new("clan.alreadyInvited");
+
+        /// <summary>Заявник устиг вступити до іншого клану, поки заявку розглядали.</summary>
+        public static readonly RefusalReason ClanApplicantJoinedElsewhere = new("clan.applicantJoinedElsewhere");
+
+        public static readonly RefusalReason ClanLeaderMustTransfer = new("clan.leaderMustTransfer");
+
+        /// <summary>Роль гравця не дозволяє дію; role — назва цієї ролі в клані.</summary>
+        public static readonly RefusalReason ClanNoPermission = new("clan.noPermission", "role");
+
+        public static readonly RefusalReason ClanLeaderOnly = new("clan.leaderOnly");
+
+        /// <summary>Роль лідера й роль за замовчуванням не редагуються й не видаляються.</summary>
+        public static readonly RefusalReason ClanRoleProtected = new("clan.roleProtected");
+
+        public static readonly RefusalReason ClanRoleNameTaken = new("clan.roleNameTaken", "name");
+
+        public static readonly RefusalReason ClanRequestResolved = new("clan.requestResolved");
+
+        public static readonly RefusalReason ClanRequestExpired = new("clan.requestExpired");
+
+        public static readonly RefusalReason ClanHelpAlreadyRequested = new("clan.helpAlreadyRequested");
+
+        /// <summary>Будівництво вже завершилось — допомагати чи просити допомоги немає з чим.</summary>
+        public static readonly RefusalReason ClanHelpNotNeeded = new("clan.helpNotNeeded");
+
+        public static readonly RefusalReason ClanHelpExpired = new("clan.helpExpired");
+
+        public static readonly RefusalReason ClanHelpAlreadyHelped = new("clan.helpAlreadyHelped");
+
+        public static readonly RefusalReason ClanHelpFull = new("clan.helpFull", "max");
+
         // ---------- Марші й підкріплення ----------
 
         /// <summary>state — ім'я HeroState (Deployed, Wounded): текст за ним дає клієнт.</summary>

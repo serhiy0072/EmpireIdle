@@ -52,7 +52,7 @@ namespace EmpireIdle.Application.Clans.Commands
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var clan = await _clanRepository.GetByMemberAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidStateException("You are not in a clan.");
+                ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");
 
             clan.EnsureCan(request.PlayerId, ClanPermission.Recruit);
 
@@ -60,13 +60,13 @@ namespace EmpireIdle.Application.Clans.Commands
                 ?? throw new EntityNotFoundException("Player", request.TargetPlayerId);
 
             if (target.ClanId is not null)
-                throw new RequirementNotMetException("This player is already in a clan.");
+                throw new RequirementNotMetException(RefusalReasons.ClanTargetInClan, "This player is already in a clan.");
 
             var previous = await _requestRepository.GetLatestAsync(
                 clan.Id, target.Id, ClanRequestKind.Invite, cancellationToken);
 
             if (previous is not null && previous.IsPending(now))
-                throw new AlreadyExistsException("Clan invite", target.Id.ToString());
+                throw new AlreadyExistsException(RefusalReasons.ClanAlreadyInvited, "Clan invite", target.Id.ToString());
 
             // Кулдауну на запрошення немає: відмова гравця не має карати клан,
             // а спам обмежує строк життя й одна відкрита пропозиція на пару

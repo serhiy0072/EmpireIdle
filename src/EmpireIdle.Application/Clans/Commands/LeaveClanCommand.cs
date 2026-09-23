@@ -46,7 +46,7 @@ namespace EmpireIdle.Application.Clans.Commands
                 ?? throw new EntityNotFoundException("Player", request.PlayerId);
 
             var clan = await _clanRepository.GetByMemberAsync(player.Id, cancellationToken)
-                ?? throw new InvalidStateException("You are not in a clan.");
+                ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");
 
             clan.Leave(player.Id, now);
             player.LeaveClan();

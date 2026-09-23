@@ -39,7 +39,7 @@ namespace EmpireIdle.Application.Clans.Commands
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var clan = await _clanRepository.GetByMemberAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidStateException("You are not in a clan.");
+                ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");
 
             // Дозвіл EditProfile перевіряє агрегат
             clan.UpdateSettings(request.PlayerId, request.Description, request.JoinPolicy, now);

@@ -16,6 +16,41 @@
     "level",
     "buildings"
   ],
+  "clan.alreadyApplied": [],
+  "clan.alreadyInClan": [],
+  "clan.alreadyInvited": [],
+  "clan.applicantJoinedElsewhere": [],
+  "clan.applyCooldown": [
+    "retryAt"
+  ],
+  "clan.full": [
+    "capacity"
+  ],
+  "clan.helpAlreadyHelped": [],
+  "clan.helpAlreadyRequested": [],
+  "clan.helpExpired": [],
+  "clan.helpFull": [
+    "max"
+  ],
+  "clan.helpNotNeeded": [],
+  "clan.inviteOnly": [],
+  "clan.leaderMustTransfer": [],
+  "clan.leaderOnly": [],
+  "clan.nameTaken": [
+    "name",
+    "tag"
+  ],
+  "clan.noPermission": [
+    "role"
+  ],
+  "clan.notMember": [],
+  "clan.requestExpired": [],
+  "clan.requestResolved": [],
+  "clan.roleNameTaken": [
+    "name"
+  ],
+  "clan.roleProtected": [],
+  "clan.targetInClan": [],
   "common.buildingLevelRequired": [
     "building",
     "level"

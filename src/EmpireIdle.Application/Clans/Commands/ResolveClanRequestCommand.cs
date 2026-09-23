@@ -81,7 +81,7 @@ namespace EmpireIdle.Application.Clans.Commands
 
             // Між поданням і рішенням гравець міг вступити деінде
             if (player.ClanId is not null)
-                throw new RequirementNotMetException("This player has joined another clan.");
+                throw new RequirementNotMetException(RefusalReasons.ClanApplicantJoinedElsewhere, "This player has joined another clan.");
 
             clanRequest.Accept(request.PlayerId, now);
 
