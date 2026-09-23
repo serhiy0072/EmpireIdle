@@ -45,8 +45,8 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var roller = Roller();
 
-            var first = roller.RollInitial(Rarity.Common, seed: 12345);
-            var second = roller.RollInitial(Rarity.Common, seed: 12345);
+            var first = roller.RollInitial(Rarity.Common, setKey: null, seed: 12345);
+            var second = roller.RollInitial(Rarity.Common, setKey: null, seed: 12345);
 
             Assert.Equal(first, second);
         }
@@ -54,7 +54,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void RollInitial_ShouldGiveExactlyTwoDistinctStats()
         {
-            var stats = Roller().RollInitial(Rarity.Common, seed: 7);
+            var stats = Roller().RollInitial(Rarity.Common, setKey: null, seed: 7);
 
             Assert.Equal(2, stats.Count);
             Assert.Equal(2, stats.Keys.Distinct().Count());
@@ -68,7 +68,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             for (var seed = 0; seed < 200; seed++)
             {
-                foreach (var (stat, value) in roller.RollInitial(Rarity.Common, seed))
+                foreach (var (stat, value) in roller.RollInitial(Rarity.Common, setKey: null, seed))
                 {
                     var band = config.ArtifactStats.Single(s => s.Stat == stat);
 
@@ -82,8 +82,8 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var roller = Roller();
 
-            var common = roller.RollInitial(Rarity.Common, seed: 7).Values.Sum();
-            var unique = roller.RollInitial(Rarity.Unique, seed: 7).Values.Sum();
+            var common = roller.RollInitial(Rarity.Common, setKey: null, seed: 7).Values.Sum();
+            var unique = roller.RollInitial(Rarity.Unique, setKey: null, seed: 7).Values.Sum();
 
             Assert.True(unique > common, $"unique={unique}, common={common}");
         }
@@ -95,7 +95,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var roller = Roller();
 
             var distinct = Enumerable.Range(0, 50)
-                .Select(seed => string.Join(",", roller.RollInitial(Rarity.Common, seed)
+                .Select(seed => string.Join(",", roller.RollInitial(Rarity.Common, setKey: null, seed)
                     .OrderBy(s => s.Key)
                     .Select(s => $"{s.Key}:{s.Value}")))
                 .Distinct()
@@ -111,7 +111,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [InlineData(8)]
         public void RollForLevel_ShouldAddAStat_OnUnlockLevels(int level)
         {
-            var roll = Roller().RollForLevel(level, Rarity.Common, ["Attack"], seed: 3);
+            var roll = Roller().RollForLevel(level, Rarity.Common, setKey: null, ["Attack"], seed: 3);
 
             Assert.Single(roll.Added);
             Assert.Empty(roll.Raised);
@@ -120,7 +120,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void RollForLevel_ShouldNotAddAStatTheItemAlreadyHas()
         {
-            var roll = Roller().RollForLevel(4, Rarity.Common, ["Attack", "Defense"], seed: 3);
+            var roll = Roller().RollForLevel(4, Rarity.Common, setKey: null, ["Attack", "Defense"], seed: 3);
 
             Assert.DoesNotContain("Attack", roll.Added.Keys);
             Assert.DoesNotContain("Defense", roll.Added.Keys);
@@ -130,7 +130,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void RollForLevel_ShouldAddNothing_WhenThePoolIsExhausted()
         {
-            var roll = Roller().RollForLevel(4, Rarity.Common, ["Attack", "Defense", "Health"], seed: 3);
+            var roll = Roller().RollForLevel(4, Rarity.Common, setKey: null, ["Attack", "Defense", "Health"], seed: 3);
 
             Assert.Empty(roll.Added);
         }
@@ -143,7 +143,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [InlineData(20)]
         public void RollForLevel_ShouldRaiseExistingStats_OnUpgradeLevels(int level)
         {
-            var roll = Roller().RollForLevel(level, Rarity.Common, ["Attack", "Defense"], seed: 3);
+            var roll = Roller().RollForLevel(level, Rarity.Common, setKey: null, ["Attack", "Defense"], seed: 3);
 
             Assert.Empty(roll.Added);
             Assert.InRange(roll.Raised.Count, 1, 2);
@@ -158,7 +158,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             for (var seed = 0; seed < 200; seed++)
             {
-                foreach (var (stat, delta) in roller.RollForLevel(12, Rarity.Common, ["Attack", "Defense"], seed).Raised)
+                foreach (var (stat, delta) in roller.RollForLevel(12, Rarity.Common, setKey: null, ["Attack", "Defense"], seed).Raised)
                 {
                     var band = config.ArtifactStats.Single(s => s.Stat == stat);
 
@@ -177,7 +177,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var roller = Roller();
 
             var doubles = Enumerable.Range(0, 2000)
-                .Count(seed => roller.RollForLevel(12, Rarity.Common, ["Attack", "Defense"], seed).Raised.Count == 2);
+                .Count(seed => roller.RollForLevel(12, Rarity.Common, setKey: null, ["Attack", "Defense"], seed).Raised.Count == 2);
 
             Assert.InRange(doubles / 2000.0, 0.06, 0.15);
         }
@@ -190,7 +190,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             for (var seed = 0; seed < 100; seed++)
             {
-                var roll = roller.RollForLevel(12, Rarity.Common, ["Attack"], seed);
+                var roll = roller.RollForLevel(12, Rarity.Common, setKey: null, ["Attack"], seed);
 
                 Assert.Single(roll.Raised);
                 Assert.Equal("Attack", roll.Raised.Keys.Single());
@@ -200,7 +200,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void RollForLevel_ShouldChangeNothing_WhenTheItemHasNoStats()
         {
-            var roll = Roller().RollForLevel(12, Rarity.Common, [], seed: 3);
+            var roll = Roller().RollForLevel(12, Rarity.Common, setKey: null, [], seed: 3);
 
             Assert.Empty(roll.Added);
             Assert.Empty(roll.Raised);
@@ -219,7 +219,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [InlineData(19)]
         public void RollForLevel_ShouldChangeNothing_OnPlainLevels(int level)
         {
-            var roll = Roller().RollForLevel(level, Rarity.Common, ["Attack"], seed: 3);
+            var roll = Roller().RollForLevel(level, Rarity.Common, setKey: null, ["Attack"], seed: 3);
 
             Assert.Empty(roll.Added);
             Assert.Empty(roll.Raised);
@@ -230,8 +230,8 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var roller = Roller();
 
-            var first = roller.RollForLevel(12, Rarity.Rare, ["Attack", "Defense"], seed: 999);
-            var second = roller.RollForLevel(12, Rarity.Rare, ["Attack", "Defense"], seed: 999);
+            var first = roller.RollForLevel(12, Rarity.Rare, setKey: null, ["Attack", "Defense"], seed: 999);
+            var second = roller.RollForLevel(12, Rarity.Rare, setKey: null, ["Attack", "Defense"], seed: 999);
 
             Assert.Equal(first.Added, second.Added);
             Assert.Equal(first.Raised, second.Raised);
@@ -262,7 +262,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
                 try
                 {
-                    return roller.RollInitial(Rarity.Common, seed: 7).Keys.Single();
+                    return roller.RollInitial(Rarity.Common, setKey: null, seed: 7).Keys.Single();
                 }
                 finally
                 {
@@ -271,6 +271,107 @@ namespace EmpireIdle.Domain.Tests.Services
             }
 
             Assert.Equal(PickUnder(CultureInfo.InvariantCulture), PickUnder(new CultureInfo("da-DK")));
+        }
+
+        // ---------- Рівень і характер набору ----------
+
+        /// <summary>
+        /// Дві родини: «ember» рівня 1 без характеру й «obsidian» рівня 3
+        /// із захисним характером. Решта конфіга — як у Config().
+        /// </summary>
+        private static EquipmentConfig ConfigWithSets()
+        {
+            var config = Config();
+
+            config.ArtifactTierMultipliers = [1.0, 1.5, 2.0];
+            config.ArtifactFocusWeight = 3.0;
+            config.ArtifactSets =
+            [
+                new ArtifactSetConfig { Key = "ember", Tier = 1 },
+                new ArtifactSetConfig { Key = "obsidian", Tier = 3, FocusStats = ["Defense", "Health"] }
+            ];
+
+            return config;
+        }
+
+        /// <summary>Набір вищого рівня множить значення — той самий сід, стати ×2.</summary>
+        [Fact]
+        public void RollInitial_ShouldScaleWithTheSetTier()
+        {
+            var config = ConfigWithSets();
+            config.ArtifactSets[1].FocusStats = []; // лише рівень: вибір статів той самий, що в ember
+            var roller = new ArtifactRoller(config);
+
+            var low = roller.RollInitial(Rarity.Common, setKey: "ember_common", seed: 7);
+            var high = roller.RollInitial(Rarity.Common, setKey: "obsidian_common", seed: 7);
+
+            Assert.Equal(low.Keys.OrderBy(k => k), high.Keys.OrderBy(k => k));
+
+            foreach (var (stat, value) in low)
+                Assert.Equal(Math.Round(value * 2.0, 2), high[stat], precision: 1);
+        }
+
+        /// <summary>
+        /// Набір без характеру ролить рівно те саме, що й предмет поза родинами:
+        /// журнали ролів старих предметів відтворюються тим самим сідом.
+        /// </summary>
+        [Fact]
+        public void RollInitial_ShouldMatchTheUnsetRoll_ForATierOneSetWithoutFocus()
+        {
+            var roller = new ArtifactRoller(ConfigWithSets());
+
+            for (var seed = 0; seed < 50; seed++)
+                Assert.Equal(
+                    roller.RollInitial(Rarity.Rare, setKey: null, seed),
+                    roller.RollInitial(Rarity.Rare, setKey: "ember_rare", seed));
+        }
+
+        /// <summary>
+        /// Характер тягне ролл: з вагою 3 у захисного набору атака (єдиний
+        /// нехарактерний стат) потрапляє в стартову пару помітно рідше.
+        /// </summary>
+        [Fact]
+        public void RollInitial_ShouldFavourTheFocusStats()
+        {
+            var roller = new ArtifactRoller(ConfigWithSets());
+
+            var withAttack = Enumerable.Range(0, 2000)
+                .Count(seed => roller.RollInitial(Rarity.Common, setKey: "obsidian_common", seed).ContainsKey("Attack"));
+
+            var withAttackUnfocused = Enumerable.Range(0, 2000)
+                .Count(seed => roller.RollInitial(Rarity.Common, setKey: null, seed).ContainsKey("Attack"));
+
+            // Без характеру атака в парі з трьох — 2/3 випадків; з вагою 3 — близько 1/3
+            Assert.InRange(withAttackUnfocused, 1200, 1470);
+            Assert.InRange(withAttack, 500, 800);
+        }
+
+        /// <summary>Прокачка бере той самий рівень набору, що й випадіння.</summary>
+        [Fact]
+        public void RollForLevel_ShouldScaleWithTheSetTier()
+        {
+            var config = ConfigWithSets();
+            config.ArtifactSets[1].FocusStats = [];
+            var roller = new ArtifactRoller(config);
+
+            var low = roller.RollForLevel(12, Rarity.Common, "ember_common", ["Attack", "Defense"], seed: 5);
+            var high = roller.RollForLevel(12, Rarity.Common, "obsidian_common", ["Attack", "Defense"], seed: 5);
+
+            Assert.Equal(low.Raised.Keys, high.Raised.Keys);
+
+            foreach (var (stat, delta) in low.Raised)
+                Assert.Equal(Math.Round(delta * 2.0, 2), high.Raised[stat], precision: 1);
+        }
+
+        /// <summary>Невідомий SetKey — не помилка: предмет ролиться без рівня й характеру.</summary>
+        [Fact]
+        public void RollInitial_ShouldIgnoreAnUnknownSet()
+        {
+            var roller = new ArtifactRoller(ConfigWithSets());
+
+            Assert.Equal(
+                roller.RollInitial(Rarity.Common, setKey: null, seed: 11),
+                roller.RollInitial(Rarity.Common, setKey: "nowhere_common", seed: 11));
         }
     }
 }

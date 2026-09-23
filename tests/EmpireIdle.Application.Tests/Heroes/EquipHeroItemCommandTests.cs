@@ -78,47 +78,41 @@ public class EquipHeroItemCommandTests
         Assert.Equal(hero.Id, fresh.EquippedByHeroId);
     }
 
+    /// <summary>Артефакт сам визначає слот: намисто — у слот намиста, кільце — у слот кільця.</summary>
     [Fact]
-    public async Task Handle_ShouldPutAnArtifactIntoTheRequestedSlot()
+    public async Task Handle_ShouldPutAnArtifactIntoTheSlotOfItsType()
     {
         var hero = GivenHero();
-        var amulet = GivenItem("amulet_dawn", EquipmentSlot.Artifact);
+        var necklace = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
+        var ring = GivenItem(HeroTestConfig.SecondArtifact, EquipmentSlot.Artifact);
         GivenEquipped(hero.Id);
 
-        await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, amulet.Id, SlotIndex: 3),
-            CancellationToken.None);
+        await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, necklace.Id), CancellationToken.None);
+        await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, ring.Id), CancellationToken.None);
 
-        Assert.Equal(3, amulet.SlotIndex);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldRejectASlotOutsideTheConfiguredRange()
-    {
-        var hero = GivenHero();
-        var amulet = GivenItem("amulet_dawn", EquipmentSlot.Artifact);
-        GivenEquipped(hero.Id);
-
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, amulet.Id, SlotIndex: 4),
-                CancellationToken.None));
+        Assert.Equal(HeroTestConfig.NecklaceSlot, necklace.SlotIndex);
+        Assert.Equal(HeroTestConfig.RingSlot, ring.SlotIndex);
     }
 
     /// <summary>
-    /// Два однакові артефакти закрили б набір удвічі дешевше, ніж задумано.
+    /// Слот одного типу один: друге намисто — навіть таке саме — замінює перше,
+    /// тож два однакові артефакти разом не вдягнути й набір дешевше не закрити.
     /// </summary>
     [Fact]
-    public async Task Handle_ShouldRejectADuplicateItemKey()
+    public async Task Handle_ShouldReplaceAnArtifactOfTheSameType()
     {
         var hero = GivenHero();
-        var first = GivenItem("amulet_dawn", EquipmentSlot.Artifact);
-        first.EquipTo(hero.Id, 0, Now);
+        var first = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
+        first.EquipTo(hero.Id, HeroTestConfig.NecklaceSlot, Now);
 
-        var second = GivenItem("amulet_dawn", EquipmentSlot.Artifact);
+        var second = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
         GivenEquipped(hero.Id, first);
 
-        await Assert.ThrowsAsync<AlreadyExistsException>(() =>
-            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, second.Id, SlotIndex: 1),
-                CancellationToken.None));
+        await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, second.Id), CancellationToken.None);
+
+        Assert.Null(first.EquippedByHeroId);
+        Assert.Equal(hero.Id, second.EquippedByHeroId);
+        Assert.Equal(HeroTestConfig.NecklaceSlot, second.SlotIndex);
     }
 
     [Fact]
@@ -128,8 +122,9 @@ public class EquipHeroItemCommandTests
         var sword = GivenItem("sword_iron", EquipmentSlot.Weapon);
         GivenEquipped(hero.Id);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.EquipmentClassMismatch.Key, refusal.Reason);
     }
 
     [Fact]
@@ -140,8 +135,9 @@ public class EquipHeroItemCommandTests
 
         var sword = GivenItem("sword_iron", EquipmentSlot.Weapon);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroOnTheMove.Key, refusal.Reason);
     }
 
     [Fact]
@@ -152,8 +148,9 @@ public class EquipHeroItemCommandTests
         sword.Break(Now);
         GivenEquipped(hero.Id);
 
-        await Assert.ThrowsAsync<InvalidStateException>(() =>
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
             Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
     }
 
     [Fact]

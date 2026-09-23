@@ -1,13 +1,6 @@
 import { isApiError } from "./problem";
-
-const RESOURCE_NAMES: Record<string, string> = {
-  gold: "золота",
-  wood: "деревини",
-  stone: "каменю",
-  iron: "заліза",
-  food: "їжі",
-  gems: "самоцвітів",
-};
+import { refusalText } from "./refusals";
+import { resourceGenitive } from "./resourceNames";
 
 export interface ErrorMessage {
   text: string;
@@ -33,20 +26,31 @@ export function explainError(error: unknown): ErrorMessage {
   const shortfall = error.shortfall;
 
   if (shortfall !== null) {
-    const name = RESOURCE_NAMES[shortfall.resource] ?? shortfall.resource;
-
     return {
-      text: `Не вистачає ${name}: потрібно ${shortfall.need.toLocaleString("uk-UA")}, є ${shortfall.have.toLocaleString("uk-UA")}`,
+      text: `Не вистачає ${resourceGenitive(shortfall.resource)}: потрібно ${shortfall.need.toLocaleString("uk-UA")}, є ${shortfall.have.toLocaleString("uk-UA")}`,
       actionable: true,
     };
   }
 
+  // Причина з сервера — власний текст для гравця з підставленими параметрами
+  const refusal = refusalText(error.problem.reason, error.problem.args);
+
+  if (refusal !== null) {
+    return { text: refusal, actionable: true };
+  }
+
+  // Відмова без відомої причини: англійський Detail гравцю не показуємо — лише в консоль
   if (error.is("RequirementNotMet")) {
-    return { text: error.problem.detail ?? "Умову не виконано", actionable: true };
+    console.warn("Відмова без тексту для гравця", error.problem);
+    return { text: "Зараз це недоступно", actionable: true };
   }
 
   if (error.is("OperationInProgress")) {
     return { text: "Дія вже виконується", actionable: true };
+  }
+
+  if (error.is("StaleTurn")) {
+    return { text: "Бій уже пішов далі — оновіть сторінку", actionable: true };
   }
 
   if (error.is("ConcurrencyConflict")) {

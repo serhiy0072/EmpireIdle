@@ -60,12 +60,12 @@ namespace EmpireIdle.Application.Heroes.Commands
             // Поранений качається вільно: госпіталь забирає його з карти,
             // але не з зали героїв
             if (hero.State == HeroState.Deployed)
-                throw new InvalidStateException($"Hero {hero.Id} is on a march and cannot be trained.");
+                throw new InvalidStateException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on a march and cannot be trained.");
 
             var active = await _heroRepository.GetActiveOrderAsync(request.PlayerId, cancellationToken);
 
             if (active is not null)
-                throw new RequirementNotMetException(
+                throw new RequirementNotMetException(RefusalReasons.HeroTrainingBusy,
                     $"The heroes hall is already training a hero until {active.CompletesAt:u}.");
 
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
@@ -73,17 +73,22 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var hall = village.Buildings
                 .FirstOrDefault(b => b.Type == settings.BuildingKey && !b.IsUnderConstruction)
-                ?? throw new RequirementNotMetException($"Training heroes requires a '{settings.BuildingKey}'.");
+                ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    $"Training heroes requires a '{settings.BuildingKey}'.", _catalog.Building(settings.BuildingKey).DisplayName);
 
+            // Ратуша на апгрейді стоїть на своєму поточному рівні — стелю героя
+            // вона тримає так само, як і до початку будівництва
             var townHall = village.Buildings
-                .FirstOrDefault(b => b.Type == _catalog.MainBuildingKey && !b.IsUnderConstruction)
-                ?? throw new RequirementNotMetException("Training heroes requires a completed town hall.");
+                .FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)
+                ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    "Training heroes requires a town hall.", _catalog.Building(_catalog.MainBuildingKey).DisplayName);
 
             var ceiling = _progression.MaxLevel(townHall.Level.Value, hero.Tier);
 
             if (hero.Level >= ceiling)
-                throw new RequirementNotMetException(
-                    $"Hero {hero.Id} is at level {hero.Level} of {ceiling}: raise the town hall or evolve the tier.");
+                throw new RequirementNotMetException(RefusalReasons.HeroLevelCeiling,
+                    $"Hero {hero.Id} is at level {hero.Level} of {ceiling}: raise the town hall or evolve the tier.",
+                    _catalog.FindHero(hero.HeroKey)?.DisplayName ?? hero.HeroKey, ceiling);
 
             var target = hero.Level + 1;
             var config = _catalog.Hero(hero.HeroKey);

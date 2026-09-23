@@ -10,6 +10,10 @@ export interface ProblemDetails {
   resource?: string;
   need?: number;
   have?: number;
+  /** Ключ причини відмови з refusals/reasons.json; текст гравцю — в refusals.ts. */
+  reason?: string;
+  /** Параметри тексту відмови: рівні, назви, кількості. */
+  args?: Record<string, string | number>;
   /** ValidationProblemDetails: поле -> перелік повідомлень. */
   errors?: Record<string, string[]>;
 }

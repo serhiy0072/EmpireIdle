@@ -129,16 +129,18 @@ namespace EmpireIdle.Domain.Entities
             TimeSpan trainDuration, DateTime utcNow)
         {
             if (count < 1 || count > maxBatchSize)
-                throw new RequirementNotMetException($"Training batch size must be between 1 and {maxBatchSize}.");
+                throw new RequirementNotMetException(RefusalReasons.GarrisonBatchSize,
+                    $"Training batch size must be between 1 and {maxBatchSize}.", maxBatchSize);
 
             if (_trainingOrders.Any())
-                throw new InvalidStateException("Barracks are already training a batch.");
+                throw new InvalidStateException(RefusalReasons.GarrisonTrainingBusy, "Barracks are already training a batch.");
 
             var occupied = Occupied();
 
             if (occupied + count > armyCapacity)
-                throw new RequirementNotMetException(
-                    $"Army capacity exceeded: {occupied} of {armyCapacity} used, requested {count}.");
+                throw new RequirementNotMetException(RefusalReasons.GarrisonArmyCapacity,
+                    $"Army capacity exceeded: {occupied} of {armyCapacity} used, requested {count}.",
+                    occupied, armyCapacity, count);
 
             _trainingOrders.Add(new UnitTrainingOrder(
                 Guid.NewGuid(), Id, unitType, level, count, utcNow + trainDuration));
@@ -191,19 +193,23 @@ namespace EmpireIdle.Domain.Entities
             TimeSpan duration, DateTime utcNow)
         {
             if (count < 1 || count > maxBatchSize)
-                throw new RequirementNotMetException($"Level-up batch size must be between 1 and {maxBatchSize}.");
+                throw new RequirementNotMetException(RefusalReasons.GarrisonBatchSize,
+                    $"Level-up batch size must be between 1 and {maxBatchSize}.", maxBatchSize);
 
             if (toLevel <= fromLevel)
                 throw new RequirementNotMetException("Target level must be higher than the current level.");
 
             if (_levelUpOrders.Any())
-                throw new InvalidStateException("Barracks are already levelling up a batch.");
+                throw new InvalidStateException(RefusalReasons.GarrisonLevelUpBusy, "Barracks are already levelling up a batch.");
 
-            var stack = _units.FirstOrDefault(u => u.UnitType == unitType && u.Level == fromLevel)
-                ?? throw new NotEnoughResourcesException(unitType, count, 0);
+            // Юніти — не ресурс: NotEnoughResources показав би гравцю «не вистачає swordsman»
+            var available = _units.FirstOrDefault(u => u.UnitType == unitType && u.Level == fromLevel)?.Count ?? 0;
 
-            if (stack.Count < count)
-                throw new NotEnoughResourcesException(unitType, count, stack.Count);
+            if (available < count)
+                throw new RequirementNotMetException(RefusalReasons.GarrisonNotEnoughUnits,
+                    $"Only {available} '{unitType}' at level {fromLevel}, requested {count}.", count, available);
+
+            var stack = _units.First(u => u.UnitType == unitType && u.Level == fromLevel);
 
             stack.Subtract(count);
 
@@ -265,11 +271,13 @@ namespace EmpireIdle.Domain.Entities
                 if (count < 1)
                     throw new RequirementNotMetException($"Invalid unit count for '{stack}'.");
 
-                var unit = _units.FirstOrDefault(u => u.UnitType == stack.UnitType && u.Level == stack.Level)
-                     ?? throw new NotEnoughResourcesException(stack.UnitType, count, 0);
+                // Юніти — не ресурс: NotEnoughResources показав би гравцю «не вистачає swordsman».
+                // Сюди приводить гонка — бій забрав частину загону, поки гравець заповнював форму
+                var available = _units.FirstOrDefault(u => u.UnitType == stack.UnitType && u.Level == stack.Level)?.Count ?? 0;
 
-                if (unit.Count < count)
-                    throw new NotEnoughResourcesException(stack.UnitType, count, unit.Count);
+                if (available < count)
+                    throw new RequirementNotMetException(RefusalReasons.GarrisonNotEnoughUnits,
+                        $"Only {available} of '{stack}' in the garrison, requested {count}.", count, available);
             }
 
             foreach (var (stack, count) in units)

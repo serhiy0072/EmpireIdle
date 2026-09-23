@@ -50,7 +50,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new EntityNotFoundException("Hero", request.HeroId);
 
             var garrisonId = hero.StationedGarrisonId
-                ?? throw new RequirementNotMetException($"Hero {request.HeroId} is on the move.");
+                ?? throw new RequirementNotMetException(RefusalReasons.HeroOnTheMove, $"Hero {request.HeroId} is on the move.");
 
             if (hero.IsLeader)
                 return;

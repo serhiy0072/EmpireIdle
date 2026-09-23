@@ -258,7 +258,7 @@ namespace EmpireIdle.Domain.Entities
         public void EvolveTier(int maxTier, DateTime utcNow)
         {
             if (Tier >= maxTier)
-                throw new RequirementNotMetException($"Hero {Id} is already at the highest tier {maxTier}.");
+                throw new RequirementNotMetException(RefusalReasons.HeroMaxTier, $"Hero {Id} is already at the highest tier {maxTier}.", maxTier);
 
             Tier++;
             Touch(utcNow);

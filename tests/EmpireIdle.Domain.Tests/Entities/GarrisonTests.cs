@@ -41,8 +41,9 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
 
-            Assert.Throws<RequirementNotMetException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 garrison.TrainUnits("infantry", 1, count, 5, 100, TimeSpan.FromMinutes(1), DateTime.UtcNow));
+            Assert.Equal(RefusalReasons.GarrisonBatchSize.Key, refusal.Reason);
         }
 
         /// <summary>
@@ -54,8 +55,9 @@ namespace EmpireIdle.Domain.Tests.Entities
             var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
             garrison.TrainUnits("infantry", 1, 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
 
-            Assert.Throws<InvalidStateException>(() =>
+            var refusal = Assert.Throws<InvalidStateException>(() =>
                 garrison.TrainUnits("archer", 1, 1, 5, 100, TimeSpan.FromMinutes(2), DateTime.UtcNow));
+            Assert.Equal(RefusalReasons.GarrisonTrainingBusy.Key, refusal.Reason);
         }
 
         /// <summary>
@@ -135,8 +137,10 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.TrainUnits("infantry", 1, 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(5));
 
-            Assert.Throws<NotEnoughResourcesException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 garrison.SendUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }, DateTime.UtcNow));
+            Assert.Equal(RefusalReasons.GarrisonNotEnoughUnits.Key, refusal.Reason);
+            Assert.Equal(2, refusal.Args["have"]);
 
             Assert.Equal(2, garrison.Units.Single().Count); // нічого не зняли
         }
@@ -165,8 +169,9 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.CompleteDueTraining(DateTime.UtcNow.AddMinutes(11));
 
             // 5 у гарнізоні + 2 в замовленні > 6
-            Assert.Throws<RequirementNotMetException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 garrison.TrainUnits("infantry", 1, 2, 10, 6, TimeSpan.FromMinutes(4), DateTime.UtcNow.AddMinutes(11)));
+            Assert.Equal(RefusalReasons.GarrisonArmyCapacity.Key, refusal.Reason);
         }
 
         /// <summary>
@@ -385,8 +390,9 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.TrainUnits("infantry", 1, 20, 100, 100, TimeSpan.Zero, now);
             garrison.CompleteDueTraining(now);
 
-            Assert.Throws<RequirementNotMetException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 garrison.LevelUpUnits("infantry", 1, 2, count, 10, TimeSpan.FromMinutes(1), now));
+            Assert.Equal(RefusalReasons.GarrisonBatchSize.Key, refusal.Reason);
         }
 
         /// <summary>Цільовий рівень має бути вищим за поточний.</summary>
@@ -399,8 +405,9 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.TrainUnits("infantry", 2, 5, 100, 100, TimeSpan.Zero, now);
             garrison.CompleteDueTraining(now);
 
-            Assert.Throws<RequirementNotMetException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 garrison.LevelUpUnits("infantry", 2, 2, 1, 10, TimeSpan.FromMinutes(1), now));
+            Assert.Null(refusal.Reason);
         }
 
         /// <summary>Одночасно прокачується лише одна партія.</summary>
@@ -415,8 +422,9 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             garrison.LevelUpUnits("infantry", 1, 2, 4, 10, TimeSpan.FromMinutes(10), now);
 
-            Assert.Throws<InvalidStateException>(() =>
+            var refusal = Assert.Throws<InvalidStateException>(() =>
                 garrison.LevelUpUnits("infantry", 1, 2, 2, 10, TimeSpan.FromMinutes(5), now));
+            Assert.Equal(RefusalReasons.GarrisonLevelUpBusy.Key, refusal.Reason);
         }
 
         /// <summary>Не можна прокачати більше юнітів, ніж стоїть у стеку заданого рівня.</summary>
@@ -429,8 +437,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.TrainUnits("infantry", 1, 3, 100, 100, TimeSpan.Zero, now);
             garrison.CompleteDueTraining(now);
 
-            Assert.Throws<NotEnoughResourcesException>(() =>
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 garrison.LevelUpUnits("infantry", 1, 2, 5, 10, TimeSpan.FromMinutes(1), now));
+            Assert.Equal(RefusalReasons.GarrisonNotEnoughUnits.Key, refusal.Reason);
+            Assert.Equal(5, refusal.Args["need"]);
+            Assert.Equal(3, refusal.Args["have"]);
 
             Assert.Equal(3, garrison.Units.Single().Count); // нічого не зняли
         }

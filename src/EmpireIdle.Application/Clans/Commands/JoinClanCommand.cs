@@ -64,7 +64,7 @@ namespace EmpireIdle.Application.Clans.Commands
                 ?? throw new EntityNotFoundException("Player", request.PlayerId);
 
             if (player.ClanId is not null)
-                throw new InvalidStateException("Leave your current clan first.");
+                throw new InvalidStateException(RefusalReasons.ClanAlreadyInClan, "Leave your current clan first.");
 
             var clan = await _clanRepository.GetByIdAsync(request.ClanId, cancellationToken)
                 ?? throw new EntityNotFoundException("Clan", request.ClanId);
@@ -72,7 +72,7 @@ namespace EmpireIdle.Application.Clans.Commands
             var clanConfig = _catalog.Config.Clan;
 
             if (clan.JoinPolicy == ClanJoinPolicy.InviteOnly)
-                throw new RequirementNotMetException("This clan is invite-only.");
+                throw new RequirementNotMetException(RefusalReasons.ClanInviteOnly, "This clan is invite-only.");
 
             if (clan.JoinPolicy == ClanJoinPolicy.ByApproval)
             {
@@ -113,7 +113,7 @@ namespace EmpireIdle.Application.Clans.Commands
             if (previous is not null)
             {
                 if (previous.IsPending(now))
-                    throw new AlreadyExistsException("Clan application", clan.Id.ToString());
+                    throw new AlreadyExistsException(RefusalReasons.ClanAlreadyApplied, "Clan application", clan.Id.ToString());
 
                 // Кулдаун рахується від моменту відмови, а не від подання:
                 // інакше довга черга офіцерів здешевлювала б повторну спробу
@@ -123,7 +123,8 @@ namespace EmpireIdle.Application.Clans.Commands
                 {
                     var retryAt = resolvedAt.AddHours(clanConfig.RejectedCooldownHours);
 
-                    throw new RequirementNotMetException($"You can apply to this clan again after {retryAt:u}.");
+                    throw new RequirementNotMetException(RefusalReasons.ClanApplyCooldown,
+                        $"You can apply to this clan again after {retryAt:u}.", DateTime.SpecifyKind(retryAt, DateTimeKind.Utc).ToString("O"));
                 }
             }
 

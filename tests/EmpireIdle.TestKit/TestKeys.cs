@@ -36,12 +36,21 @@ public static class TestKeys
 
     public const string Weapon = "sword_iron";
     public const string BetterWeapon = "sword_steel";
-    public const string Artifact = "dawn_amulet";
+    public const string Artifact = "dawn_necklace";
     public const string SecondArtifact = "dawn_ring";
-    public const string ThirdArtifact = "dawn_sigil";
-    public const string FourthArtifact = "dawn_chime";
+    public const string ThirdArtifact = "dawn_crown";
+    public const string FourthArtifact = "dawn_belt";
     public const string LooseArtifact = "lone_charm";
     public const string SetKey = "dawn";
+
+    public const string Dungeon = "test_pit";
+    public const string DungeonEnemy = "test_brute";
+    public const string DungeonBoss = "test_warden";
+
+    /// <summary>Базовий ключ набору данжу; справжні набори — «pit_common» і далі за рідкістю.</summary>
+    public const string DungeonSetKey = "pit";
+
+    public const string DungeonAbility = "test_slash";
 
     public const string Terrain = "plain";
 }

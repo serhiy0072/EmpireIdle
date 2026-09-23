@@ -117,7 +117,7 @@ public class ClanRequestCommandTests
 
         var act = () => Resolver().Handle(new ResolveClanRequestCommand(MemberId, application.Id, true), default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ClanNoPermission.Key);
 
         application.Status.Should().Be(ClanRequestStatus.Pending);
     }
@@ -166,7 +166,7 @@ public class ClanRequestCommandTests
 
         var act = () => Resolver().Handle(new ResolveClanRequestCommand(LeaderId, application.Id, true), default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ClanApplicantJoinedElsewhere.Key);
 
         application.Status.Should().Be(ClanRequestStatus.Pending);
         clan.Members.Should().NotContain(m => m.PlayerId == OutsiderId);
@@ -184,7 +184,7 @@ public class ClanRequestCommandTests
 
         var act = () => Resolver().Handle(new ResolveClanRequestCommand(LeaderId, application.Id, true), default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ClanRequestExpired.Key);
 
         clan.Members.Should().NotContain(m => m.PlayerId == OutsiderId);
     }
@@ -248,7 +248,7 @@ public class ClanRequestCommandTests
 
         var act = () => Canceller().Handle(new CancelClanRequestCommand(MemberId, invite.Id), default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ClanNoPermission.Key);
 
         invite.Status.Should().Be(ClanRequestStatus.Pending);
     }

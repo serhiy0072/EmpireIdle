@@ -91,13 +91,15 @@ namespace EmpireIdle.Application.Marches.Commands
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
             if (!hero.IsAvailable)
-                throw new RequirementNotMetException($"Hero {request.HeroId} is {hero.State}.");
+                throw new RequirementNotMetException(RefusalReasons.MarchHeroUnavailable,
+                    $"Hero {request.HeroId} is {hero.State}.", hero.State.ToString());
 
             // Герой веде похід звідти, де стоїть. Без цієї перевірки герой
             // із гарнізону союзника телепортувався б додому, лишивши там
             // свій стек без лідера
             if (hero.StationedGarrisonId != garrison.Id)
-                throw new RequirementNotMetException($"Hero {request.HeroId} is stationed in another garrison.");
+                throw new RequirementNotMetException(RefusalReasons.MarchHeroElsewhere,
+                    $"Hero {request.HeroId} is stationed in another garrison.");
 
             var active = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
 
@@ -110,7 +112,8 @@ namespace EmpireIdle.Application.Marches.Commands
             var capacity = _progression.MarchCapacity(availableHeroes + active.Count);
 
             if (active.Count >= capacity)
-                throw new RequirementNotMetException($"Cannot send more than {capacity} marches at once.");
+                throw new RequirementNotMetException(RefusalReasons.MarchCapacity,
+                    $"Cannot send more than {capacity} marches at once.", capacity);
 
             // Ціль читається один раз: далі її перевіряють і щит, і підкріплення
             var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, cancellationToken);
@@ -122,7 +125,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 await _reinforcementRules.EnsureAllowedAsync(
                     village, target, request.Units.Values.Sum(), cancellationToken);
             else if (request.Units.Values.Sum() < 1)
-                throw new RequirementNotMetException("An attack needs at least one unit.");
+                throw new RequirementNotMetException(RefusalReasons.MarchEmptyAttack, "An attack needs at least one unit.");
             else
                 _targets.EnsureAttackAllowed(village, target);
 

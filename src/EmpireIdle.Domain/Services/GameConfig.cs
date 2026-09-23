@@ -50,6 +50,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Асортимент офіційного магазину: пакети gems і лутбокси.</summary>
         public ShopConfig Shop { get; set; } = new();
 
+        /// <summary>Данжі: покроковий бій, енергія, набори артефактів.</summary>
+        public DungeonsConfig Dungeons { get; set; } = new();
+
         /// <summary>Усі типи предметів інвентаря.</summary>
         public List<ItemConfig> Items { get; set; } = new();
 

@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Application.Common.Services
 {
@@ -45,24 +46,26 @@ namespace EmpireIdle.Application.Common.Services
 
         /// <summary>
         /// Видає унікальний екземпляр спорядження.
+        ///
+        /// Зброя отримує BaseStats з конфіга. Артефакт їх ігнорує: його стати
+        /// рольовані, а тип задає слот, рідкість і набір — від набору залежать
+        /// рівень і характер ролу.
         /// </summary>
-        /// <param name="stats">
-        /// Стати зброї. Для артефактів ігноруються: їхній набір рольований,
-        /// і тип задає лише слот та належність до набору.
-        /// </param>
+        /// <exception cref="InvalidOperationException">Предмет без слота — не спорядження, битий конфіг.</exception>
         public async Task GrantEquipmentAsync(
-            Guid playerId, string itemKey, EquipmentSlot slot, Rarity rarity,
-            IEnumerable<(string Stat, double Value)> stats,
-            DateTime utcNow, CancellationToken cancellationToken = default)
+            Guid playerId, ItemConfig config, DateTime utcNow, CancellationToken cancellationToken = default)
         {
+            var slot = config.Slot
+                ?? throw new InvalidOperationException($"Item '{config.Key}' is not equipment and has no slot.");
+
             int? seed = slot == EquipmentSlot.Artifact ? _random.Next(int.MaxValue) : null;
 
-            var rolled = seed is { } artifactSeed
-                ? _roller.RollInitial(rarity, artifactSeed).Select(s => (s.Key, s.Value)).ToList()
-                : stats;
+            var stats = seed is { } artifactSeed
+                ? _roller.RollInitial(config.Rarity, config.SetKey, artifactSeed).Select(s => (s.Key, s.Value)).ToList()
+                : config.BaseStats.Select(s => (s.Key, s.Value)).ToList();
 
             var item = new EquipmentItem(Guid.NewGuid(), playerId, _serverContext.ServerId,
-                itemKey, slot, rarity, rolled, utcNow);
+                config.Key, slot, config.Rarity, stats, utcNow);
 
             // Стартовий набір теж іде в журнал: нульовий рівень відтворюється
             // так само, як і будь-яка подальша прокачка

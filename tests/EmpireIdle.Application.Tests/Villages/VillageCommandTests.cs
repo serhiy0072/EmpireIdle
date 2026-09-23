@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Villages.Commands;
+using EmpireIdle.Application.Villages.ReadModels;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
@@ -181,26 +182,44 @@ public class VillageCommandTests
     {
         var village = GivenVillage(food: 0, accruedMinutes: 60);
 
-        await CollectAllHandler().Handle(new CollectAllBuildingsCommand(PlayerId), CancellationToken.None);
+        var result = await CollectAllHandler().Handle(new CollectAllBuildingsCommand(PlayerId), CancellationToken.None);
 
         // Та сама математика, що й для одиночного збору: одна виробнича будівля (farm)
         Assert.Equal(600, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        Assert.Equal([new CollectedResourceView("food", 600)], result.Collected);
+        Assert.Empty(result.FullStorages);
     }
 
-    /// <summary>Будівля під будівництвом не встигла нічого накопичити — і не повинна впасти в циклі.</summary>
+    /// <summary>
+    /// Будівля під будівництвом не виробляє, але накопичене до апгрейду
+    /// забанковане — «зібрати все» віддає його так само, як одиночний збір.
+    /// </summary>
     [Fact]
-    public async Task CollectAll_ShouldSkipBuildingsUnderConstruction()
+    public async Task CollectAll_ShouldCollectTheBankedBuffer_OfBuildingsUnderConstruction()
     {
-        var village = GivenVillage(food: 10_000, accruedMinutes: 60);
+        var village = GivenVillage(food: 0, accruedMinutes: 60);
         var farm = village.Buildings.Single(b => b.Type == "farm");
 
         farm.BeginUpgrade(Catalog().Buildings["farm"], TimeSpan.FromMinutes(10), Now, ProductionBoost.None, locationMultiplier: 1.0);
 
-        var before = village.Resources.Single(r => r.ResourceType == "food").Amount;
-
         await CollectAllHandler().Handle(new CollectAllBuildingsCommand(PlayerId), CancellationToken.None);
 
-        Assert.Equal(before, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        Assert.Equal(600, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        Assert.Equal(0, farm.AccruedAmount);
+    }
+
+    /// <summary>Повний склад — не відмова всієї команди, а рядок у відповіді.</summary>
+    [Fact]
+    public async Task CollectAll_ShouldReportAFullStorage_InsteadOfRefusing()
+    {
+        // Склад їжі — 100 000 від warehouse; заповнюємо під стелю
+        var village = GivenVillage(food: 100_000, accruedMinutes: 60);
+
+        var result = await CollectAllHandler().Handle(new CollectAllBuildingsCommand(PlayerId), CancellationToken.None);
+
+        Assert.Equal(["food"], result.FullStorages);
+        Assert.Empty(result.Collected);
+        Assert.Equal(100_000, village.Resources.Single(r => r.ResourceType == "food").Amount);
     }
 
     /// <summary>Апгрейд списує вартість і ставить будівлю в стан будівництва.</summary>
@@ -228,8 +247,9 @@ public class VillageCommandTests
         var village = GivenVillage(food: 10_000, accruedMinutes: 0, townhallLevel: 1);
         var farm = village.Buildings.Single(b => b.Type == "farm");
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             UpgradeHandler().Handle(new UpgradeBuildingCommand(PlayerId, farm.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingTownHallCeiling.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -242,8 +262,9 @@ public class VillageCommandTests
         var village = GivenVillage(serverLevel: 1, food: 1_000_000, accruedMinutes: 0, townhallLevel: 10);
         var townhall = village.Buildings.Single(b => b.Type == "townhall");
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             UpgradeHandler().Handle(new UpgradeBuildingCommand(PlayerId, townhall.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingServerCeiling.Key, refusal.Reason);
     }
 
     /// <summary>Нестача ресурсів не лишає будівлю в напівстані.</summary>

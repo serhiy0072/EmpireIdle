@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useSession } from "../hooks/useSession";
 import { logout } from "../lib/auth";
 import { seedAccount } from "../lib/dev";
@@ -8,6 +8,7 @@ import { useWallet } from "../lib/queries/wallet";
 import TutorialOverlay from "../tutorial/TutorialOverlay";
 import { useTutorial } from "../tutorial/useTutorial";
 import ErrorBanner from "./ErrorBanner";
+import ErrorBoundary from "./ErrorBoundary";
 import PowerBadge from "./PowerBadge";
 import ResourceBar from "./ResourceBar";
 
@@ -15,6 +16,7 @@ const NAV_ITEMS = [
   { to: "/", label: "Село" },
   { to: "/army", label: "Військо" },
   { to: "/heroes", label: "Герої" },
+  { to: "/dungeons", label: "Данжі" },
   { to: "/inventory", label: "Інвентар" },
   { to: "/forge", label: "Кузня" },
   { to: "/banners", label: "Банери" },
@@ -28,6 +30,7 @@ const NAV_ITEMS = [
 export default function AppLayout() {
   const session = useSession();
   const queryClient = useQueryClient();
+  const location = useLocation();
   const playerId = session?.playerId ?? "";
   const village = useVillage(playerId);
   const wallet = useWallet(playerId);
@@ -99,7 +102,10 @@ export default function AppLayout() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
-        <Outlet />
+        {/* key скидає впалий екран при переході: навігація лишається живою */}
+        <ErrorBoundary key={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       {tutorial.step !== null && (

@@ -63,7 +63,7 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
-    test: /amulet|pendant/,
+    test: /necklace|amulet|pendant/,
     draw: () => (
       <g>
         <path d="M30 22 Q50 60 70 22" fill="none" stroke="#b45309" strokeWidth={3} />
@@ -81,21 +81,22 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
-    test: /sigil|seal|rune/,
+    test: /crown/,
     draw: () => (
       <g>
-        <circle cx={50} cy={50} r={24} fill="#c4b5fd" stroke="#5b21b6" strokeWidth={2} />
-        <path d="M38 62 L50 34 L62 62 M42 54 L58 54" fill="none" stroke="#3b0764" strokeWidth={3} strokeLinecap="round" />
+        <path d="M26 66 L30 34 L42 50 L50 28 L58 50 L70 34 L74 66 Z" fill="#fbbf24" stroke="#b45309" strokeWidth={2} strokeLinejoin="round" />
+        <rect x={26} y={64} width={48} height={8} rx={2} fill="#d97706" stroke="#b45309" strokeWidth={1.5} />
+        <circle cx={50} cy={58} r={4} fill="#f87171" stroke="#991b1b" strokeWidth={1} />
       </g>
     ),
   },
   {
-    test: /chime|bell/,
+    test: /belt/,
     draw: () => (
       <g>
-        <path d="M34 62 Q34 30 50 26 Q66 30 66 62 Z" fill="#fbbf24" stroke="#b45309" strokeWidth={2} />
-        <rect x={30} y={62} width={40} height={6} rx={3} fill="#b45309" />
-        <circle cx={50} cy={74} r={4} fill="#78350f" />
+        <rect x={16} y={42} width={68} height={16} rx={4} fill="#92400e" stroke="#78350f" strokeWidth={2} />
+        <rect x={40} y={38} width={20} height={24} rx={3} fill="none" stroke="#fbbf24" strokeWidth={4} />
+        <line x1={50} y1={42} x2={50} y2={58} stroke="#fbbf24" strokeWidth={3} />
       </g>
     ),
   },

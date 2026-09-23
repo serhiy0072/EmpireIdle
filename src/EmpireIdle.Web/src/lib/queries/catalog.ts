@@ -11,6 +11,9 @@ export type CatalogResource = components["schemas"]["CatalogResource"];
 export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
 export type CatalogPassive = components["schemas"]["CatalogPassive"];
 export type CatalogUnit = components["schemas"]["CatalogUnit"];
+export type CatalogArtifactSet = components["schemas"]["CatalogArtifactSet"];
+export type CatalogSetRarity = components["schemas"]["CatalogSetRarity"];
+export type CatalogArtifactSlot = components["schemas"]["CatalogArtifactSlot"];
 
 export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
@@ -38,8 +41,10 @@ export interface Catalog {
   healGemsPerUnit: number;
   /** Зброя з ціною в золоті — те, що продає кузня. */
   weaponsForSale: CatalogItem[];
-  /** Скільки артефактів носить герой. */
-  artifactSlots: number;
+  /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
+  artifactSlots: CatalogArtifactSlot[];
+  /** Назва слота, у який вдягається артефакт; null — не артефакт. */
+  artifactSlotName: (itemKey: string) => string | null;
   /** Стеля заточки й прокачки спорядження. */
   maxEnhancement: number;
   /** Ремонт зброї в gems: база плюс надбавка за рівень заточки. */
@@ -49,6 +54,10 @@ export interface Catalog {
   mapSize: number;
   /** Ключ головної будівлі — її рівень показуємо як рівень гравця. */
   mainBuildingKey: string;
+  /** Родини наборів артефактів у порядку рівнів. */
+  artifactSets: CatalogArtifactSet[];
+  /** Родина, до якої належить предмет; null — предмет поза наборами. */
+  setOfItem: (itemKey: string) => CatalogArtifactSet | null;
 }
 
 /**
@@ -71,6 +80,10 @@ export function useCatalog(): Catalog {
     const resources = new Map((data?.resources ?? []).map((resource) => [resource.key, resource]));
     const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
     const units = new Map((data?.units ?? []).map((unit) => [unit.key, unit]));
+    // SetKey предмета («dawn_rare») → родина («dawn»): так картка артефакту знає свій набір
+    const familyBySetKey = new Map(
+      (data?.artifactSets ?? []).flatMap((set) => set.rarities.map((rarity) => [rarity.setKey, set] as const)),
+    );
 
     return {
       loaded: data !== undefined,
@@ -97,12 +110,21 @@ export function useCatalog(): Catalog {
       maxUnitLevel: data?.maxUnitLevel ?? 10,
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
       weaponsForSale: (data?.items ?? []).filter((item) => item.slot === "Weapon" && item.priceGold > 0),
-      artifactSlots: data?.artifactSlots ?? 4,
+      artifactSlots: data?.artifactSlots ?? [],
+      artifactSlotName: (itemKey) => {
+        const slot = items.get(itemKey)?.artifactSlot;
+        return slot == null ? null : (data?.artifactSlots.find((s) => s.key === slot)?.displayName ?? slot);
+      },
       maxEnhancement: data?.maxEnhancement ?? 20,
       repairGemsBase: data?.repairGemsBase ?? 20,
       repairGemsPerLevel: data?.repairGemsPerLevel ?? 8,
       mapSize: data?.mapSize ?? 500,
       mainBuildingKey: data?.mainBuildingKey ?? "townhall",
+      artifactSets: data?.artifactSets ?? [],
+      setOfItem: (itemKey) => {
+        const setKey = items.get(itemKey)?.setKey;
+        return setKey == null ? null : (familyBySetKey.get(setKey) ?? null);
+      },
     };
   }, [query.data]);
 }

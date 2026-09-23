@@ -518,6 +518,111 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("ClanRoles", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.DungeonClear", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ClearedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DungeonKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "DungeonKey", "Level")
+                        .IsUnique();
+
+                    b.ToTable("DungeonClears", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.DungeonEnergy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("RefreshedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.ToTable("DungeonEnergy", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.DungeonRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Battle")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("DungeonKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique()
+                        .HasFilter("\"State\" = 0");
+
+                    b.ToTable("DungeonRuns", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.EquipmentItem", b =>
                 {
                     b.Property<Guid>("Id")

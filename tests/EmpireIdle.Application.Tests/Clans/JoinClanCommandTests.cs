@@ -107,7 +107,7 @@ public class JoinClanCommandTests
 
         var act = () => CreateHandler().Handle(new JoinClanCommand(PlayerId, ClanId), default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ClanInviteOnly.Key);
 
         await _requests.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
@@ -128,7 +128,7 @@ public class JoinClanCommandTests
 
         var act = () => CreateHandler().Handle(new JoinClanCommand(PlayerId, ClanId), default);
 
-        await act.Should().ThrowAsync<AlreadyExistsException>();
+        await act.Should().ThrowAsync<AlreadyExistsException>().Where(e => e.Reason == RefusalReasons.ClanAlreadyApplied.Key);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class JoinClanCommandTests
 
         var act = () => CreateHandler().Handle(new JoinClanCommand(PlayerId, ClanId), default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ClanApplyCooldown.Key);
 
         await _requests.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
@@ -207,7 +207,7 @@ public class JoinClanCommandTests
 
         var act = () => CreateHandler().Handle(new JoinClanCommand(PlayerId, ClanId), default);
 
-        await act.Should().ThrowAsync<InvalidStateException>();
+        await act.Should().ThrowAsync<InvalidStateException>().Where(e => e.Reason == RefusalReasons.ClanAlreadyInClan.Key);
 
         await _clans.DidNotReceiveWithAnyArgs().GetByIdAsync(default, default);
     }

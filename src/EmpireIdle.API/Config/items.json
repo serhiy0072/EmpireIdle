@@ -157,38 +157,6 @@
         "PriceGold": 750
       },
       {
-        "Key": "dawn_amulet",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Амулет світанку",
-        "Slot": "Artifact",
-        "SetKey": "dawn"
-      },
-      {
-        "Key": "dawn_ring",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Перстень світанку",
-        "Slot": "Artifact",
-        "SetKey": "dawn"
-      },
-      {
-        "Key": "dawn_sigil",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Знак світанку",
-        "Slot": "Artifact",
-        "SetKey": "dawn"
-      },
-      {
-        "Key": "dawn_chime",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Дзвіночок світанку",
-        "Slot": "Artifact",
-        "SetKey": "dawn"
-      },
-      {
         "Key": "sword_steel",
         "Type": "equipment",
         "Rarity": "rare",
@@ -247,10 +215,1175 @@
           "Defense": 4
         },
         "PriceGold": 1800
+      },
+      {
+        "Key": "dawn_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Світанку (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "dawn_common"
+      },
+      {
+        "Key": "dawn_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Світанку (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "dawn_common"
+      },
+      {
+        "Key": "dawn_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Світанку (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "dawn_common"
+      },
+      {
+        "Key": "dawn_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Світанку (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "dawn_common"
+      },
+      {
+        "Key": "dawn_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Світанку (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "dawn_rare"
+      },
+      {
+        "Key": "dawn_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Світанку (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "dawn_rare"
+      },
+      {
+        "Key": "dawn_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Світанку (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "dawn_rare"
+      },
+      {
+        "Key": "dawn_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Світанку (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "dawn_rare"
+      },
+      {
+        "Key": "dawn_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Світанку (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "dawn_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "dawn_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Світанку (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "dawn_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "dawn_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Світанку (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "dawn_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "dawn_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Світанку (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "dawn_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "ember_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Жарини (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "ember_common"
+      },
+      {
+        "Key": "ember_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Жарини (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "ember_common"
+      },
+      {
+        "Key": "ember_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Жарини (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "ember_common"
+      },
+      {
+        "Key": "ember_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Жарини (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "ember_common"
+      },
+      {
+        "Key": "ember_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Жарини (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "ember_rare"
+      },
+      {
+        "Key": "ember_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Жарини (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "ember_rare"
+      },
+      {
+        "Key": "ember_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Жарини (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "ember_rare"
+      },
+      {
+        "Key": "ember_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Жарини (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "ember_rare"
+      },
+      {
+        "Key": "ember_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Жарини (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "ember_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ember_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Жарини (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "ember_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ember_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Жарини (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "ember_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ember_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Жарини (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "ember_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "frost_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Морозу (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "frost_common"
+      },
+      {
+        "Key": "frost_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Морозу (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "frost_common"
+      },
+      {
+        "Key": "frost_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Морозу (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "frost_common"
+      },
+      {
+        "Key": "frost_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Морозу (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "frost_common"
+      },
+      {
+        "Key": "frost_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Морозу (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "frost_rare"
+      },
+      {
+        "Key": "frost_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Морозу (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "frost_rare"
+      },
+      {
+        "Key": "frost_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Морозу (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "frost_rare"
+      },
+      {
+        "Key": "frost_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Морозу (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "frost_rare"
+      },
+      {
+        "Key": "frost_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Морозу (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "frost_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "frost_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Морозу (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "frost_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "frost_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Морозу (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "frost_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "frost_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Морозу (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "frost_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "tide_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Припливу (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "tide_common"
+      },
+      {
+        "Key": "tide_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Припливу (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "tide_common"
+      },
+      {
+        "Key": "tide_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Припливу (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "tide_common"
+      },
+      {
+        "Key": "tide_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Припливу (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "tide_common"
+      },
+      {
+        "Key": "tide_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Припливу (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "tide_rare"
+      },
+      {
+        "Key": "tide_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Припливу (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "tide_rare"
+      },
+      {
+        "Key": "tide_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Припливу (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "tide_rare"
+      },
+      {
+        "Key": "tide_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Припливу (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "tide_rare"
+      },
+      {
+        "Key": "tide_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Припливу (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "tide_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 10
+      },
+      {
+        "Key": "tide_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Припливу (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "tide_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 10
+      },
+      {
+        "Key": "tide_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Припливу (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "tide_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 10
+      },
+      {
+        "Key": "tide_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Припливу (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "tide_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 10
+      },
+      {
+        "Key": "storm_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Бурі (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "storm_common"
+      },
+      {
+        "Key": "storm_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Бурі (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "storm_common"
+      },
+      {
+        "Key": "storm_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Бурі (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "storm_common"
+      },
+      {
+        "Key": "storm_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Бурі (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "storm_common"
+      },
+      {
+        "Key": "storm_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Бурі (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "storm_rare"
+      },
+      {
+        "Key": "storm_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Бурі (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "storm_rare"
+      },
+      {
+        "Key": "storm_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Бурі (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "storm_rare"
+      },
+      {
+        "Key": "storm_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Бурі (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "storm_rare"
+      },
+      {
+        "Key": "storm_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Бурі (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "storm_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "storm_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Бурі (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "storm_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "storm_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Бурі (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "storm_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "storm_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Бурі (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "storm_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "thorn_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Терену (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "thorn_common"
+      },
+      {
+        "Key": "thorn_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Терену (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "thorn_common"
+      },
+      {
+        "Key": "thorn_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Терену (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "thorn_common"
+      },
+      {
+        "Key": "thorn_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Терену (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "thorn_common"
+      },
+      {
+        "Key": "thorn_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Терену (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "thorn_rare"
+      },
+      {
+        "Key": "thorn_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Терену (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "thorn_rare"
+      },
+      {
+        "Key": "thorn_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Терену (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "thorn_rare"
+      },
+      {
+        "Key": "thorn_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Терену (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "thorn_rare"
+      },
+      {
+        "Key": "thorn_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Терену (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "thorn_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "thorn_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Терену (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "thorn_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "thorn_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Терену (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "thorn_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "thorn_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Терену (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "thorn_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "ash_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Попелу (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "ash_common"
+      },
+      {
+        "Key": "ash_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Попелу (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "ash_common"
+      },
+      {
+        "Key": "ash_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Попелу (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "ash_common"
+      },
+      {
+        "Key": "ash_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Попелу (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "ash_common"
+      },
+      {
+        "Key": "ash_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Попелу (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "ash_rare"
+      },
+      {
+        "Key": "ash_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Попелу (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "ash_rare"
+      },
+      {
+        "Key": "ash_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Попелу (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "ash_rare"
+      },
+      {
+        "Key": "ash_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Попелу (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "ash_rare"
+      },
+      {
+        "Key": "ash_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Попелу (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "ash_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ash_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Попелу (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "ash_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ash_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Попелу (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "ash_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ash_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Попелу (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "ash_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "hollow_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Пустки (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "hollow_common"
+      },
+      {
+        "Key": "hollow_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Пустки (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "hollow_common"
+      },
+      {
+        "Key": "hollow_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Пустки (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "hollow_common"
+      },
+      {
+        "Key": "hollow_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Пустки (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "hollow_common"
+      },
+      {
+        "Key": "hollow_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Пустки (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "hollow_rare"
+      },
+      {
+        "Key": "hollow_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Пустки (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "hollow_rare"
+      },
+      {
+        "Key": "hollow_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Пустки (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "hollow_rare"
+      },
+      {
+        "Key": "hollow_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Пустки (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "hollow_rare"
+      },
+      {
+        "Key": "hollow_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Пустки (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "hollow_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 12
+      },
+      {
+        "Key": "hollow_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Пустки (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "hollow_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 12
+      },
+      {
+        "Key": "hollow_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Пустки (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "hollow_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 12
+      },
+      {
+        "Key": "hollow_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Пустки (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "hollow_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 12
+      },
+      {
+        "Key": "gale_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Вітру (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "gale_common"
+      },
+      {
+        "Key": "gale_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Вітру (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "gale_common"
+      },
+      {
+        "Key": "gale_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Вітру (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "gale_common"
+      },
+      {
+        "Key": "gale_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Вітру (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "gale_common"
+      },
+      {
+        "Key": "gale_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Вітру (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "gale_rare"
+      },
+      {
+        "Key": "gale_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Вітру (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "gale_rare"
+      },
+      {
+        "Key": "gale_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Вітру (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "gale_rare"
+      },
+      {
+        "Key": "gale_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Вітру (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "gale_rare"
+      },
+      {
+        "Key": "gale_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Вітру (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "gale_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.1
+      },
+      {
+        "Key": "gale_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Вітру (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "gale_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.1
+      },
+      {
+        "Key": "gale_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Вітру (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "gale_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.1
+      },
+      {
+        "Key": "gale_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Вітру (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "gale_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.1
+      },
+      {
+        "Key": "obsidian_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Обсидіану (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "obsidian_common"
+      },
+      {
+        "Key": "obsidian_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Обсидіану (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "obsidian_common"
+      },
+      {
+        "Key": "obsidian_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Обсидіану (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "obsidian_common"
+      },
+      {
+        "Key": "obsidian_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Обсидіану (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "obsidian_common"
+      },
+      {
+        "Key": "obsidian_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Обсидіану (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "obsidian_rare"
+      },
+      {
+        "Key": "obsidian_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Обсидіану (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "obsidian_rare"
+      },
+      {
+        "Key": "obsidian_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Обсидіану (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "obsidian_rare"
+      },
+      {
+        "Key": "obsidian_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Обсидіану (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "obsidian_rare"
+      },
+      {
+        "Key": "obsidian_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Обсидіану (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "obsidian_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.18
+      },
+      {
+        "Key": "obsidian_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Обсидіану (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "obsidian_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.18
+      },
+      {
+        "Key": "obsidian_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Обсидіану (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "obsidian_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.18
+      },
+      {
+        "Key": "obsidian_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Обсидіану (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "obsidian_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.18
       }
     ],
     "Equipment": {
-      "ArtifactSlots": 4,
+      "ArtifactSlots": [
+        { "Key": "necklace", "DisplayName": "Намисто" },
+        { "Key": "crown", "DisplayName": "Корона" },
+        { "Key": "ring", "DisplayName": "Кільце" },
+        { "Key": "belt", "DisplayName": "Пояс" }
+      ],
       "MaxEnhancement": 20,
       "EnhancementBonusPerLevel": 0.1,
       "ForgeBuildingKey": "forge",
@@ -275,11 +1408,253 @@
       "DoubleUpgradeChance": 0.1,
       "SetBonuses": [
         {
-          "SetKey": "dawn",
+          "SetKey": "dawn_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Defense": 20,
+            "Health": 50
+          }
+        },
+        {
+          "SetKey": "dawn_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 33,
+            "Health": 85
+          }
+        },
+        {
+          "SetKey": "dawn_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 20,
+            "Defense": 55,
+            "Health": 140
+          }
+        },
+        {
+          "SetKey": "ember_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 20,
+            "Health": 50
+          }
+        },
+        {
+          "SetKey": "ember_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 33,
+            "Health": 85
+          }
+        },
+        {
+          "SetKey": "ember_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 55,
+            "Defense": 20,
+            "Health": 140
+          }
+        },
+        {
+          "SetKey": "frost_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 27,
+            "Health": 68
+          }
+        },
+        {
+          "SetKey": "frost_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 45,
+            "Health": 115
+          }
+        },
+        {
+          "SetKey": "frost_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 27,
+            "Defense": 74,
+            "Health": 189
+          }
+        },
+        {
+          "SetKey": "tide_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 27,
+            "Health": 68
+          }
+        },
+        {
+          "SetKey": "tide_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 45,
+            "Health": 115
+          }
+        },
+        {
+          "SetKey": "tide_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 74,
+            "Defense": 27,
+            "Health": 189
+          }
+        },
+        {
+          "SetKey": "storm_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 36,
+            "Health": 90
+          }
+        },
+        {
+          "SetKey": "storm_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 59,
+            "Health": 153
+          }
+        },
+        {
+          "SetKey": "storm_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 99,
+            "Defense": 36,
+            "Health": 252
+          }
+        },
+        {
+          "SetKey": "thorn_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 36,
+            "Health": 90
+          }
+        },
+        {
+          "SetKey": "thorn_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 59,
+            "Health": 153
+          }
+        },
+        {
+          "SetKey": "thorn_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 36,
+            "Defense": 99,
+            "Health": 252
+          }
+        },
+        {
+          "SetKey": "ash_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 48,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "ash_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 79,
+            "Health": 204
+          }
+        },
+        {
+          "SetKey": "ash_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 132,
+            "Defense": 48,
+            "Health": 336
+          }
+        },
+        {
+          "SetKey": "hollow_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 48,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "hollow_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 79,
+            "Health": 204
+          }
+        },
+        {
+          "SetKey": "hollow_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 48,
+            "Defense": 132,
+            "Health": 336
+          }
+        },
+        {
+          "SetKey": "gale_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 64,
+            "Health": 160
+          }
+        },
+        {
+          "SetKey": "gale_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 106,
+            "Health": 272
+          }
+        },
+        {
+          "SetKey": "gale_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 176,
+            "Defense": 64,
+            "Health": 448
+          }
+        },
+        {
+          "SetKey": "obsidian_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 64,
+            "Health": 160
+          }
+        },
+        {
+          "SetKey": "obsidian_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Defense": 106,
+            "Health": 272
+          }
+        },
+        {
+          "SetKey": "obsidian_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 64,
+            "Defense": 176,
+            "Health": 448
           }
         }
       ],
@@ -310,7 +1685,107 @@
         "Common": 1.0,
         "Rare": 1.4,
         "Unique": 2.0
-      }
+      },
+      "ArtifactTierMultipliers": [
+        1.0,
+        1.35,
+        1.8,
+        2.4,
+        3.2
+      ],
+      "ArtifactFocusWeight": 3.0,
+      "ArtifactSets": [
+        {
+          "Key": "dawn",
+          "DisplayName": "Набір Світанку",
+          "Tier": 1,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "ember",
+          "DisplayName": "Набір Жарини",
+          "Tier": 1,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "frost",
+          "DisplayName": "Набір Морозу",
+          "Tier": 2,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "tide",
+          "DisplayName": "Набір Припливу",
+          "Tier": 2,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "storm",
+          "DisplayName": "Набір Бурі",
+          "Tier": 3,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "thorn",
+          "DisplayName": "Набір Терену",
+          "Tier": 3,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "ash",
+          "DisplayName": "Набір Попелу",
+          "Tier": 4,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "hollow",
+          "DisplayName": "Набір Пустки",
+          "Tier": 4,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "gale",
+          "DisplayName": "Набір Вітру",
+          "Tier": 5,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "obsidian",
+          "DisplayName": "Набір Обсидіану",
+          "Tier": 5,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        }
+      ]
     }
   }
 }

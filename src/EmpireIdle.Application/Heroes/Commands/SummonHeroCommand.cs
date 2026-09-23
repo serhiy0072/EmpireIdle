@@ -55,11 +55,13 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new RequirementNotMetException($"Hero '{request.HeroKey}' cannot be summoned from shards.");
 
             var progress = await _heroRepository.GetShardsAsync(request.PlayerId, request.HeroKey, cancellationToken)
-                ?? throw new RequirementNotMetException($"No shards of '{request.HeroKey}' collected yet.");
+                ?? throw new RequirementNotMetException(RefusalReasons.HeroNotEnoughShards,
+                    $"No shards of '{request.HeroKey}' collected yet.", config.DisplayName, config.SummonShards, 0);
 
             if (!progress.TryConsume(config.SummonShards))
-                throw new RequirementNotMetException(
-                    $"Summoning '{request.HeroKey}' needs {config.SummonShards} shards, {progress.Count} collected.");
+                throw new RequirementNotMetException(RefusalReasons.HeroNotEnoughShards,
+                    $"Summoning '{request.HeroKey}' needs {config.SummonShards} shards, {progress.Count} collected.",
+                    config.DisplayName, config.SummonShards, progress.Count);
 
             await _heroGranter.GrantAsync(request.PlayerId, request.HeroKey, "shard-summon", now, cancellationToken);
 

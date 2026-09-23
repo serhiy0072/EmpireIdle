@@ -91,10 +91,11 @@ namespace EmpireIdle.Application.Banners.Commands
                 ?? throw new EntityNotFoundException("Banner", request.BannerKey);
 
             if (banner.StartsAt is { } start && now < start)
-                throw new RequirementNotMetException($"Banner '{banner.Key}' opens at {start:u}.");
+                throw new RequirementNotMetException(RefusalReasons.BannerNotOpen,
+                    $"Banner '{banner.Key}' opens at {start:u}.", start.UtcDateTime.ToString("O"));
 
             if (banner.EndsAt is { } end && now >= end)
-                throw new RequirementNotMetException($"Banner '{banner.Key}' closed at {end:u}.");
+                throw new RequirementNotMetException(RefusalReasons.BannerClosed, $"Banner '{banner.Key}' closed at {end:u}.");
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
             var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)

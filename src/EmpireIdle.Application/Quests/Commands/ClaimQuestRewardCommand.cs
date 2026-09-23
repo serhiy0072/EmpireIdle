@@ -57,7 +57,8 @@ namespace EmpireIdle.Application.Quests.Commands
 
             // Claim повертає false, якщо квест не завершений або вже забраний
             if (!progress.Claim(now))
-                throw new InvalidStateException($"Quest '{request.QuestKey}' is not claimable (state: {progress.State}).");
+                throw new InvalidStateException(RefusalReasons.QuestNotClaimable,
+                    $"Quest '{request.QuestKey}' is not claimable (state: {progress.State}).");
 
             await _rewards.GrantAllAsync(request.PlayerId, config.Rewards, $"quest:{request.QuestKey}", now, cancellationToken);
 

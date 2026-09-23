@@ -72,6 +72,30 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Null(exception);
         }
 
+        // ---------- Пороги відкриття ----------
+
+        /// <summary>
+        /// Поріг вище за ратушу, яку взагалі можна збудувати (3 × 10 = 30),
+        /// робить вміст недосяжним назавжди — так було з данжем на 32.
+        /// </summary>
+        [Fact]
+        public void Validate_ShouldRejectABuildingUnlockedAboveTheTownHallCeiling()
+            => Assert.Contains("building farm (31)", Rejects(c => c.Buildings.Single(b => b.Key == "farm").RequiresMainBuildingLevel = 31).Message);
+
+        [Fact]
+        public void Validate_ShouldRejectAResourceUnlockedAboveTheTownHallCeiling()
+            => Assert.Contains("resource food (31)", Rejects(c => c.Resources.Single().RequiresMainBuildingLevel = 31).Message);
+
+        /// <summary>Сама стеля — ще досяжна: максимальна ратуша її відкриває.</summary>
+        [Fact]
+        public void Validate_ShouldAcceptAThresholdExactlyAtTheCeiling()
+        {
+            var config = ValidConfig();
+            config.Buildings.Single(b => b.Key == "hospital").RequiresMainBuildingLevel = 30;
+
+            Assert.Null(Record.Exception(() => GameConfigValidator.Validate(config)));
+        }
+
         // ---------- Ключі ----------
 
         [Fact]

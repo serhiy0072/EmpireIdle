@@ -175,7 +175,7 @@ public class BuildingTests
         var building = CreateFarm();
         var at = building.LastAccruedAt.AddMinutes(5);
 
-        var collected = building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0);
+        var collected = building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0, limit: int.MaxValue);
 
         Assert.Equal(50, collected);
         Assert.Equal(0, building.AccruedAmount);
@@ -189,9 +189,37 @@ public class BuildingTests
         var building = CreateFarm();
         var at = building.LastAccruedAt.AddMinutes(5);
 
-        building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0);
+        building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0, limit: int.MaxValue);
 
-        Assert.Equal(0, building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0));
+        Assert.Equal(0, building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0, limit: int.MaxValue));
+    }
+
+    /// <summary>Ліміт забирає частину, решта лишається в буфері, а не згорає.</summary>
+    [Fact]
+    public void Collect_ShouldLeaveTheRemainderInTheBuffer_WhenLimited()
+    {
+        var building = CreateFarm();
+        var at = building.LastAccruedAt.AddMinutes(5);
+
+        var collected = building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0, limit: 20);
+
+        Assert.Equal(20, collected);
+        Assert.Equal(30, building.AccruedAmount);
+        Assert.Equal(30, building.StoredAt(Farm, at, ProductionBoost.None, locationMultiplier: 1.0));
+    }
+
+    /// <summary>Відкриття з-під туману обнуляє буфер і стартує відлік з цього моменту.</summary>
+    [Fact]
+    public void StartProducing_ShouldDropTheBufferAndCountFromThatMoment()
+    {
+        var building = CreateFarm();
+        var unlockedAt = building.LastAccruedAt.AddMinutes(5);
+        building.Materialize(Farm, unlockedAt, ProductionBoost.None, locationMultiplier: 1.0);
+
+        building.StartProducing(unlockedAt);
+
+        Assert.Equal(0, building.AccruedAmount);
+        Assert.Equal(20, building.StoredAt(Farm, unlockedAt.AddMinutes(2), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>Невиробнича будівля нічого не накопичує.</summary>
@@ -213,8 +241,9 @@ public class BuildingTests
 
         building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None, locationMultiplier: 1.0);
 
-        Assert.Throws<InvalidStateException>(() =>
+        var refusal = Assert.Throws<InvalidStateException>(() =>
             building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None, locationMultiplier: 1.0));
+        Assert.Equal(RefusalReasons.BuildingUnderConstruction.Key, refusal.Reason);
     }
 
     /// <summary>

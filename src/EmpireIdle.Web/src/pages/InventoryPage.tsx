@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ActiveEffects from "../components/inventory/ActiveEffects";
 import EquipmentCard from "../components/inventory/EquipmentCard";
@@ -89,7 +90,12 @@ export default function InventoryPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Інвентар</h1>
-        <ActiveEffects effects={inventory.data.activeEffects} now={now} />
+        <div className="flex flex-wrap items-baseline gap-3">
+          <Link to="/inventory/sets" className="text-sm text-emerald-700 hover:underline">
+            набори артефактів
+          </Link>
+          <ActiveEffects effects={inventory.data.activeEffects} now={now} />
+        </div>
       </div>
 
       <ErrorBanner error={failure} />
@@ -134,9 +140,8 @@ export default function InventoryPage() {
                 key={equipment.id}
                 equipment={equipment}
                 heroes={heroes.data?.heroes ?? []}
-                artifactSlots={catalog.artifactSlots}
                 busy={busy}
-                onEquip={(heroId, slotIndex) => equip.mutate({ heroId, equipmentId: equipment.id, slotIndex })}
+                onEquip={(heroId) => equip.mutate({ heroId, equipmentId: equipment.id })}
                 onUnequip={() => unequip.mutate(equipment.id)}
               />
             ))}

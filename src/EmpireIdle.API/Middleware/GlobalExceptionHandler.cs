@@ -49,6 +49,7 @@ namespace EmpireIdle.API.Middleware
                 EntityNotFoundException => (StatusCodes.Status404NotFound, "Not Found", "NotFound"),
                 IdempotencyKeyReusedException => (StatusCodes.Status422UnprocessableEntity, "Idempotency Key Reused", "IdempotencyKeyReused"),
                 OperationInProgressException => (StatusCodes.Status409Conflict, "Operation In Progress", "OperationInProgress"),
+                StaleTurnException => (StatusCodes.Status409Conflict, "Stale Turn", "StaleTurn"),
                 NotEnoughResourcesException => (StatusCodes.Status400BadRequest, "Not Enough Resources", "NotEnoughResources"),
                 RequirementNotMetException => (StatusCodes.Status400BadRequest, "Requirement Not Met", "RequirementNotMet"),
                 AlreadyExistsException => (StatusCodes.Status400BadRequest, "Already Exists", "AlreadyExists"),
@@ -95,6 +96,14 @@ namespace EmpireIdle.API.Middleware
                 problemDetails.Extensions["resource"] = shortfall.Resource;
                 problemDetails.Extensions["need"] = shortfall.Need;
                 problemDetails.Extensions["have"] = shortfall.Have;
+            }
+
+            // Причина відмови з параметрами: клієнт показує гравцю свій текст за
+            // ключем, а англійський Detail лишається для консолі й логів
+            if (exception is DomainException { Reason: { } reason } refusal)
+            {
+                problemDetails.Extensions["reason"] = reason;
+                problemDetails.Extensions["args"] = refusal.Args;
             }
 
             httpContext.Response.StatusCode = statusCode;

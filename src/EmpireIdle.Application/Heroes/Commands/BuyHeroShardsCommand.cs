@@ -67,8 +67,8 @@ namespace EmpireIdle.Application.Heroes.Commands
             // можна було б купувати наперед
             var hall = village.Buildings
                 .FirstOrDefault(b => b.Type == settings.BuildingKey && !b.IsUnderConstruction)
-                ?? throw new RequirementNotMetException(
-                    $"Summoning heroes requires a '{settings.BuildingKey}'.");
+                ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    $"Summoning heroes requires a '{settings.BuildingKey}'.", _catalog.Building(settings.BuildingKey).DisplayName);
 
             var cost = new List<ResourceCost> { new() { Resource = "gold", Amount = config.ShardPriceGold } };
 

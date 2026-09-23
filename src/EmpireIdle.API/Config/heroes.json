@@ -128,6 +128,36 @@
             "BasePercent": 4,
             "PercentPerConstellation": 1.5
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "warrior_bran_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "EnergyCost": 50,
+            "Target": "Self",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.25,
+            "IgnoresLine": false,
+            "Status": "Taunt",
+            "StatusMagnitude": 0,
+            "StatusTurns": 2
+          },
+          {
+            "Key": "warrior_bran_smash",
+            "DisplayName": "Розтрощення",
+            "Description": "Важкий удар по цілі зі зниженням її захисту.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.2,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false,
+            "Status": "DefenseDown",
+            "StatusMagnitude": 0.25,
+            "StatusTurns": 2
+          }
         ]
       },
       {
@@ -217,6 +247,33 @@
             "Stat": "Attack",
             "BasePercent": 3,
             "PercentPerConstellation": 1.5
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "archer_lyra_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.5,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
+          },
+          {
+            "Key": "archer_lyra_venom",
+            "DisplayName": "Отруйна стріла",
+            "Description": "Постріл, що лишає отруту.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.8,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true,
+            "Status": "Poison",
+            "StatusMagnitude": 45,
+            "StatusTurns": 3
           }
         ]
       },
@@ -316,6 +373,30 @@
             "Stat": "Attack",
             "BasePercent": 5,
             "PercentPerConstellation": 2
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "knight_ordwin_charge",
+            "DisplayName": "Наскок",
+            "Description": "Швидкий удар списом.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.6,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "knight_ordwin_lance",
+            "DisplayName": "Пробій",
+            "Description": "Удар, що дістає й тил.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.4,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
           }
         ]
       },
@@ -425,6 +506,33 @@
             "BasePercent": 8,
             "PercentPerConstellation": 0
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "mage_iselle_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "EnergyCost": 50,
+            "Target": "SingleAlly",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.3,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "mage_iselle_storm",
+            "DisplayName": "Буря",
+            "Description": "Магічний удар по всіх ворогах з оглушенням.",
+            "EnergyCost": 100,
+            "Target": "AllEnemies",
+            "DamageMultiplier": 1.5,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true,
+            "Status": "Stun",
+            "StatusMagnitude": 0,
+            "StatusTurns": 1
+          }
         ]
       },
       {
@@ -514,6 +622,36 @@
             "Stat": "Attack",
             "BasePercent": 4,
             "PercentPerConstellation": 1.5
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "warrior_hedda_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "EnergyCost": 50,
+            "Target": "Self",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.25,
+            "IgnoresLine": false,
+            "Status": "Taunt",
+            "StatusMagnitude": 0,
+            "StatusTurns": 2
+          },
+          {
+            "Key": "warrior_hedda_smash",
+            "DisplayName": "Розтрощення",
+            "Description": "Важкий удар по цілі зі зниженням її захисту.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.2,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false,
+            "Status": "DefenseDown",
+            "StatusMagnitude": 0.25,
+            "StatusTurns": 2
           }
         ]
       },
@@ -605,6 +743,36 @@
             "BasePercent": 4,
             "PercentPerConstellation": 1.5
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "warrior_torvald_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "EnergyCost": 50,
+            "Target": "Self",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.25,
+            "IgnoresLine": false,
+            "Status": "Taunt",
+            "StatusMagnitude": 0,
+            "StatusTurns": 2
+          },
+          {
+            "Key": "warrior_torvald_smash",
+            "DisplayName": "Розтрощення",
+            "Description": "Важкий удар по цілі зі зниженням її захисту.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.2,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false,
+            "Status": "DefenseDown",
+            "StatusMagnitude": 0.25,
+            "StatusTurns": 2
+          }
         ]
       },
       {
@@ -694,6 +862,36 @@
             "Stat": "Attack",
             "BasePercent": 5,
             "PercentPerConstellation": 1.5
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "warrior_maren_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "EnergyCost": 50,
+            "Target": "Self",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.25,
+            "IgnoresLine": false,
+            "Status": "Taunt",
+            "StatusMagnitude": 0,
+            "StatusTurns": 2
+          },
+          {
+            "Key": "warrior_maren_smash",
+            "DisplayName": "Розтрощення",
+            "Description": "Важкий удар по цілі зі зниженням її захисту.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.2,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false,
+            "Status": "DefenseDown",
+            "StatusMagnitude": 0.25,
+            "StatusTurns": 2
           }
         ]
       },
@@ -785,6 +983,30 @@
             "BasePercent": 5,
             "PercentPerConstellation": 2
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "knight_aldric_charge",
+            "DisplayName": "Наскок",
+            "Description": "Швидкий удар списом.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.6,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "knight_aldric_lance",
+            "DisplayName": "Пробій",
+            "Description": "Удар, що дістає й тил.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.4,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
+          }
         ]
       },
       {
@@ -874,6 +1096,30 @@
             "Stat": "Defense",
             "BasePercent": 3,
             "PercentPerConstellation": 1.5
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "knight_serah_charge",
+            "DisplayName": "Наскок",
+            "Description": "Швидкий удар списом.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.6,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "knight_serah_lance",
+            "DisplayName": "Пробій",
+            "Description": "Удар, що дістає й тил.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.4,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
           }
         ]
       },
@@ -965,6 +1211,33 @@
             "BasePercent": 4,
             "PercentPerConstellation": 1.5
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "archer_finn_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.5,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
+          },
+          {
+            "Key": "archer_finn_venom",
+            "DisplayName": "Отруйна стріла",
+            "Description": "Постріл, що лишає отруту.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.8,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true,
+            "Status": "Poison",
+            "StatusMagnitude": 45,
+            "StatusTurns": 3
+          }
         ]
       },
       {
@@ -1054,6 +1327,33 @@
             "Stat": "Defense",
             "BasePercent": 4,
             "PercentPerConstellation": 1.5
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "archer_ysolde_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.5,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
+          },
+          {
+            "Key": "archer_ysolde_venom",
+            "DisplayName": "Отруйна стріла",
+            "Description": "Постріл, що лишає отруту.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.8,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true,
+            "Status": "Poison",
+            "StatusMagnitude": 45,
+            "StatusTurns": 3
           }
         ]
       },
@@ -1145,6 +1445,33 @@
             "BasePercent": 4,
             "PercentPerConstellation": 1.5
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "archer_rook_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.5,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
+          },
+          {
+            "Key": "archer_rook_venom",
+            "DisplayName": "Отруйна стріла",
+            "Description": "Постріл, що лишає отруту.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.8,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true,
+            "Status": "Poison",
+            "StatusMagnitude": 45,
+            "StatusTurns": 3
+          }
         ]
       },
       {
@@ -1235,6 +1562,30 @@
             "BasePercent": 6,
             "PercentPerConstellation": 2
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "mage_calder_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "EnergyCost": 50,
+            "Target": "SingleAlly",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.3,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "mage_calder_bolt",
+            "DisplayName": "Розряд",
+            "Description": "Удар магією повз передню лінію.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.3,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
+          }
         ]
       },
       {
@@ -1324,6 +1675,30 @@
             "Stat": "Defense",
             "BasePercent": 5,
             "PercentPerConstellation": 1.5
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "mage_nerys_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "EnergyCost": 50,
+            "Target": "SingleAlly",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.3,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "mage_nerys_bolt",
+            "DisplayName": "Розряд",
+            "Description": "Удар магією повз передню лінію.",
+            "EnergyCost": 100,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 2.3,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
           }
         ]
       },
@@ -1433,6 +1808,36 @@
             "BasePercent": 6,
             "PercentPerConstellation": 0
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "warrior_gunnar_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "EnergyCost": 50,
+            "Target": "Self",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.25,
+            "IgnoresLine": false,
+            "Status": "Taunt",
+            "StatusMagnitude": 0,
+            "StatusTurns": 2
+          },
+          {
+            "Key": "warrior_gunnar_quake",
+            "DisplayName": "Струс",
+            "Description": "Удар по всіх ворогах зі зниженням захисту.",
+            "EnergyCost": 100,
+            "Target": "AllEnemies",
+            "DamageMultiplier": 1.3,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false,
+            "Status": "DefenseDown",
+            "StatusMagnitude": 0.25,
+            "StatusTurns": 2
+          }
         ]
       },
       {
@@ -1540,6 +1945,33 @@
             "Stat": "Attack",
             "BasePercent": 8,
             "PercentPerConstellation": 0
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "knight_elowen_charge",
+            "DisplayName": "Наскок",
+            "Description": "Швидкий удар списом.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.6,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "knight_elowen_banner",
+            "DisplayName": "Штандарт",
+            "Description": "Удар і бойовий клич усій команді.",
+            "EnergyCost": 100,
+            "Target": "AllAllies",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false,
+            "Status": "AttackUp",
+            "StatusMagnitude": 0.3,
+            "StatusTurns": 3
           }
         ]
       },
@@ -1649,6 +2081,30 @@
             "BasePercent": 8,
             "PercentPerConstellation": 0
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "archer_kestrel_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "EnergyCost": 50,
+            "Target": "SingleEnemy",
+            "DamageMultiplier": 1.5,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
+          },
+          {
+            "Key": "archer_kestrel_rain",
+            "DisplayName": "Злива стріл",
+            "Description": "Залп по всіх ворогах.",
+            "EnergyCost": 100,
+            "Target": "AllEnemies",
+            "DamageMultiplier": 1.4,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true
+          }
         ]
       },
       {
@@ -1757,6 +2213,33 @@
             "BasePercent": 8,
             "PercentPerConstellation": 0
           }
+        ],
+        "Abilities": [
+          {
+            "Key": "mage_vael_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "EnergyCost": 50,
+            "Target": "SingleAlly",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.3,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "mage_vael_storm",
+            "DisplayName": "Буря",
+            "Description": "Магічний удар по всіх ворогах з оглушенням.",
+            "EnergyCost": 100,
+            "Target": "AllEnemies",
+            "DamageMultiplier": 1.5,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true,
+            "Status": "Stun",
+            "StatusMagnitude": 0,
+            "StatusTurns": 1
+          }
         ]
       },
       {
@@ -1864,6 +2347,33 @@
             "Stat": "Defense",
             "BasePercent": 8,
             "PercentPerConstellation": 0
+          }
+        ],
+        "Abilities": [
+          {
+            "Key": "mage_sabine_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "EnergyCost": 50,
+            "Target": "SingleAlly",
+            "DamageMultiplier": 0.0,
+            "HealPercent": 0.3,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": false
+          },
+          {
+            "Key": "mage_sabine_storm",
+            "DisplayName": "Буря",
+            "Description": "Магічний удар по всіх ворогах з оглушенням.",
+            "EnergyCost": 100,
+            "Target": "AllEnemies",
+            "DamageMultiplier": 1.5,
+            "HealPercent": 0.0,
+            "ShieldPercent": 0.0,
+            "IgnoresLine": true,
+            "Status": "Stun",
+            "StatusMagnitude": 0,
+            "StatusTurns": 1
           }
         ]
       }
