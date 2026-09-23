@@ -1286,250 +1286,250 @@
           "SetKey": "dawn_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Defense": 20,
+            "Health": 50
           }
         },
         {
           "SetKey": "dawn_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Defense": 33,
+            "Health": 85
           }
         },
         {
           "SetKey": "dawn_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 20,
+            "Defense": 55,
+            "Health": 140
           }
         },
         {
           "SetKey": "ember_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Attack": 20,
+            "Health": 50
           }
         },
         {
           "SetKey": "ember_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Attack": 33,
+            "Health": 85
           }
         },
         {
           "SetKey": "ember_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 55,
+            "Defense": 20,
+            "Health": 140
           }
         },
         {
           "SetKey": "frost_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Defense": 27,
+            "Health": 68
           }
         },
         {
           "SetKey": "frost_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Defense": 45,
+            "Health": 115
           }
         },
         {
           "SetKey": "frost_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 27,
+            "Defense": 74,
+            "Health": 189
           }
         },
         {
           "SetKey": "tide_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Attack": 27,
+            "Health": 68
           }
         },
         {
           "SetKey": "tide_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Attack": 45,
+            "Health": 115
           }
         },
         {
           "SetKey": "tide_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 74,
+            "Defense": 27,
+            "Health": 189
           }
         },
         {
           "SetKey": "storm_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Attack": 36,
+            "Health": 90
           }
         },
         {
           "SetKey": "storm_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Attack": 59,
+            "Health": 153
           }
         },
         {
           "SetKey": "storm_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 99,
+            "Defense": 36,
+            "Health": 252
           }
         },
         {
           "SetKey": "thorn_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Defense": 36,
+            "Health": 90
           }
         },
         {
           "SetKey": "thorn_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Defense": 59,
+            "Health": 153
           }
         },
         {
           "SetKey": "thorn_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 36,
+            "Defense": 99,
+            "Health": 252
           }
         },
         {
           "SetKey": "ash_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Attack": 48,
+            "Health": 120
           }
         },
         {
           "SetKey": "ash_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Attack": 79,
+            "Health": 204
           }
         },
         {
           "SetKey": "ash_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 132,
+            "Defense": 48,
+            "Health": 336
           }
         },
         {
           "SetKey": "hollow_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Defense": 48,
+            "Health": 120
           }
         },
         {
           "SetKey": "hollow_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Defense": 79,
+            "Health": 204
           }
         },
         {
           "SetKey": "hollow_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 48,
+            "Defense": 132,
+            "Health": 336
           }
         },
         {
           "SetKey": "gale_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Attack": 64,
+            "Health": 160
           }
         },
         {
           "SetKey": "gale_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Attack": 106,
+            "Health": 272
           }
         },
         {
           "SetKey": "gale_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 176,
+            "Defense": 64,
+            "Health": 448
           }
         },
         {
           "SetKey": "obsidian_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 15,
-            "Defense": 15
+            "Defense": 64,
+            "Health": 160
           }
         },
         {
           "SetKey": "obsidian_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 25,
-            "Defense": 25
+            "Defense": 106,
+            "Health": 272
           }
         },
         {
           "SetKey": "obsidian_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 40,
-            "Defense": 40,
-            "Health": 120
+            "Attack": 64,
+            "Defense": 176,
+            "Health": 448
           }
         }
       ],
@@ -1560,7 +1560,97 @@
         "Common": 1.0,
         "Rare": 1.4,
         "Unique": 2.0
-      }
+      },
+      "ArtifactTierMultipliers": [
+        1.0,
+        1.35,
+        1.8,
+        2.4,
+        3.2
+      ],
+      "ArtifactFocusWeight": 3.0,
+      "ArtifactSets": [
+        {
+          "Key": "dawn",
+          "Tier": 1,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "ember",
+          "Tier": 1,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "frost",
+          "Tier": 2,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "tide",
+          "Tier": 2,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "storm",
+          "Tier": 3,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "thorn",
+          "Tier": 3,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "ash",
+          "Tier": 4,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "hollow",
+          "Tier": 4,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "gale",
+          "Tier": 5,
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "obsidian",
+          "Tier": 5,
+          "FocusStats": [
+            "Defense",
+            "Health"
+          ]
+        }
+      ]
     }
   }
 }
