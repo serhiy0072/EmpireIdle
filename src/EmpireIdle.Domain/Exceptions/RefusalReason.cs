@@ -80,6 +80,31 @@
         /// <summary>Прискорення прийшло, коли таймер уже добіг кінця.</summary>
         public static readonly RefusalReason BuildingAlreadyCompleted = new("building.alreadyCompleted");
 
+        // ---------- Марші й підкріплення ----------
+
+        /// <summary>state — ім'я HeroState (Deployed, Wounded): текст за ним дає клієнт.</summary>
+        public static readonly RefusalReason MarchHeroUnavailable = new("march.heroUnavailable", "state");
+
+        /// <summary>Герой стоїть у гарнізоні союзника й веде похід лише звідти.</summary>
+        public static readonly RefusalReason MarchHeroElsewhere = new("march.heroElsewhere");
+
+        public static readonly RefusalReason MarchCapacity = new("march.capacity", "capacity");
+
+        public static readonly RefusalReason MarchEmptyAttack = new("march.emptyAttack");
+
+        /// <summary>Власний щит новачка: атакувати гравців можна з level ратуші.</summary>
+        public static readonly RefusalReason MarchOwnShield = new("march.ownShield", "level");
+
+        public static readonly RefusalReason MarchTargetShielded = new("march.targetShielded");
+
+        public static readonly RefusalReason ReinforceOwnShield = new("reinforce.ownShield", "level");
+
+        public static readonly RefusalReason ReinforceTargetShielded = new("reinforce.targetShielded");
+
+        public static readonly RefusalReason ReinforceClanmatesOnly = new("reinforce.clanmatesOnly");
+
+        public static readonly RefusalReason ReinforceEmbassyFull = new("reinforce.embassyFull", "free", "incoming");
+
         // ---------- Герої ----------
 
         public static readonly RefusalReason HeroOnTheMove = new("hero.onTheMove");

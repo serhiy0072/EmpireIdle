@@ -104,7 +104,7 @@ public class ReinforcementRulesTests
 
         var act = () => Rules().EnsureAllowedAsync(origin, target, 10, default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == null);
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class ReinforcementRulesTests
 
         var act = () => Rules().EnsureAllowedAsync(origin, target, 10, default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ReinforceOwnShield.Key);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class ReinforcementRulesTests
 
         var act = () => Rules().EnsureAllowedAsync(origin, target, 10, default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ReinforceTargetShielded.Key);
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public class ReinforcementRulesTests
 
         var act = () => Rules().EnsureAllowedAsync(origin, target, 10, default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ReinforceClanmatesOnly.Key);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class ReinforcementRulesTests
 
         var act = () => Rules().EnsureAllowedAsync(origin, target, 10, default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ReinforceClanmatesOnly.Key);
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class ReinforcementRulesTests
 
         var act = () => Rules().EnsureAllowedAsync(origin, target, incomingUnits: 10, default);
 
-        await act.Should().ThrowAsync<RequirementNotMetException>();
+        await act.Should().ThrowAsync<RequirementNotMetException>().Where(e => e.Reason == RefusalReasons.ReinforceEmbassyFull.Key);
     }
 
     /// <summary>

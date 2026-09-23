@@ -158,11 +158,11 @@ namespace EmpireIdle.Application.Marches.Services
             var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
 
             if (_status.IsShielded(origin))
-                throw new RequirementNotMetException(
-                    $"Attacking other players is available from town hall level {shieldLevel}.");
+                throw new RequirementNotMetException(RefusalReasons.MarchOwnShield,
+                    $"Attacking other players is available from town hall level {shieldLevel}.", shieldLevel);
 
             if (_status.IsShielded(target.Village))
-                throw new RequirementNotMetException("This village is under a newbie shield.");
+                throw new RequirementNotMetException(RefusalReasons.MarchTargetShielded, "This village is under a newbie shield.");
         }
     }
 }

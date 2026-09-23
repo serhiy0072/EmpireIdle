@@ -69,6 +69,21 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "building.underConstruction": () => "Ця будівля вже будується",
   "building.alreadyCompleted": () => "Будівництво вже завершено",
 
+  // ---------- Марші й підкріплення ----------
+  "march.heroUnavailable": ({ state }) =>
+    state === "Wounded" ? "Герой у госпіталі — спершу вилікуйте його" : "Герой уже в поході",
+  "march.heroElsewhere": () => "Герой стоїть у гарнізоні союзника й може вести похід лише звідти",
+  "march.capacity": ({ capacity }) => `Одночасно можна вести не більше ${capacity} походів`,
+  "march.emptyAttack": () => "Для атаки потрібен хоча б один воїн",
+  "march.ownShield": ({ level }) =>
+    `Атакувати інших гравців можна з ратуші ${level} рівня — доти діє щит новачка`,
+  "march.targetShielded": () => "Це поселення під щитом новачка — атакувати його поки не можна",
+  "reinforce.ownShield": ({ level }) => `Підкріплення відкриваються з ратуші ${level} рівня`,
+  "reinforce.targetShielded": () => "Це поселення ще під щитом новачка й не приймає підкріплень",
+  "reinforce.clanmatesOnly": () => "Підкріплення можна слати лише гравцям свого клану",
+  "reinforce.embassyFull": ({ free, incoming }) =>
+    `У посольстві є місце лише для ${free} воїнів, а ви відправляєте ${incoming}`,
+
   // ---------- Герої ----------
   "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
   "hero.levelCeiling": ({ hero, ceiling }) =>

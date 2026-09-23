@@ -81,6 +81,27 @@
     "required",
     "current"
   ],
+  "march.capacity": [
+    "capacity"
+  ],
+  "march.emptyAttack": [],
+  "march.heroElsewhere": [],
+  "march.heroUnavailable": [
+    "state"
+  ],
+  "march.ownShield": [
+    "level"
+  ],
+  "march.targetShielded": [],
+  "reinforce.clanmatesOnly": [],
+  "reinforce.embassyFull": [
+    "free",
+    "incoming"
+  ],
+  "reinforce.ownShield": [
+    "level"
+  ],
+  "reinforce.targetShielded": [],
   "village.alreadyThere": [],
   "village.storageFull": [
     "resource"

@@ -162,8 +162,9 @@ public class SendMarchCommandTests
     {
         var (_, monster, hero) = GivenState(activeMarches: 3, availableHeroes: 5);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.MarchCapacity.Key, refusal.Reason);
     }
 
     /// <summary>Не можна відправити більше, ніж є в гарнізоні.</summary>
@@ -186,11 +187,12 @@ public class SendMarchCommandTests
     {
         var (_, monster, hero) = GivenState();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(
                 new SendMarchCommand(PlayerId, MarchTargetType.Monster, monster.Id,
                     new Dictionary<UnitStackKey, int>(), hero.Id),
                 CancellationToken.None));
+        Assert.Equal(RefusalReasons.MarchEmptyAttack.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -260,8 +262,9 @@ public class SendMarchCommandTests
         var (_, monster, hero) = GivenState(activeMarches: 1, availableHeroes: 0);
         hero.Deploy(Now);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.MarchHeroUnavailable.Key, refusal.Reason);
     }
 
     [Fact]
@@ -270,8 +273,9 @@ public class SendMarchCommandTests
         var (_, monster, hero) = GivenState();
         hero.Wound(Now);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.MarchHeroUnavailable.Key, refusal.Reason);
     }
 
     /// <summary>Чужий герой не відрізняється від неіснуючого.</summary>
@@ -307,8 +311,9 @@ public class SendMarchCommandTests
     {
         var (_, monster, hero) = GivenState(activeMarches: 3, availableHeroes: 5);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.MarchCapacity.Key, refusal.Reason);
     }
 
     /// <summary>Три герої дають три походи, а не два.</summary>
@@ -329,7 +334,8 @@ public class SendMarchCommandTests
         var (_, monster, hero) = GivenState();
         hero.StationIn(Guid.NewGuid(), asLeader: false, Now);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.MarchHeroElsewhere.Key, refusal.Reason);
     }
 }
