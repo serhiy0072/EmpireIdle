@@ -9,6 +9,7 @@ const SCREENS: Record<string, { to: string; label: string }> = {
   beastpen: { to: "/army", label: "Військо" },
   hospital: { to: "/army", label: "Лазарет" },
   heroeshall: { to: "/heroes", label: "Герої" },
+  scouttower_dungeons: { to: "/dungeons", label: "Данжі" },
   lootshop: { to: "/banners", label: "Банери" },
   forge: { to: "/forge", label: "Кузня" },
   warehouse: { to: "/inventory", label: "Інвентар" },
