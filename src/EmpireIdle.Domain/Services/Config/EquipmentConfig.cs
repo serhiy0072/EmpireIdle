@@ -3,8 +3,19 @@ namespace EmpireIdle.Domain.Services.Config
     /// <summary>Спільні правила спорядження: слоти, заточка, набори.</summary>
     public class EquipmentConfig
     {
-        /// <summary>Скільки артефактів носить герой.</summary>
-        public int ArtifactSlots { get; set; } = 4;
+        /// <summary>
+        /// Артефактні слоти героя за типом, по одному кожного. Номер слота —
+        /// позиція в списку, тож порядок тут — порядок на екрані героя.
+        /// </summary>
+        public List<ArtifactSlotConfig> ArtifactSlots { get; set; } = new();
+
+        /// <summary>Номер слота для типу артефакта; null — такого типу немає.</summary>
+        public int? ArtifactSlotIndex(string? slotKey)
+        {
+            var index = ArtifactSlots.FindIndex(slot => slot.Key == slotKey);
+
+            return index < 0 ? null : index;
+        }
 
         /// <summary>Стеля заточки, однакова для зброї й артефактів.</summary>
         public int MaxEnhancement { get; set; } = 20;

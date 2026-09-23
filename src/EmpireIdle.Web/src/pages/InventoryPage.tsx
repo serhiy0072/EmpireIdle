@@ -140,9 +140,8 @@ export default function InventoryPage() {
                 key={equipment.id}
                 equipment={equipment}
                 heroes={heroes.data?.heroes ?? []}
-                artifactSlots={catalog.artifactSlots}
                 busy={busy}
-                onEquip={(heroId, slotIndex) => equip.mutate({ heroId, equipmentId: equipment.id, slotIndex })}
+                onEquip={(heroId) => equip.mutate({ heroId, equipmentId: equipment.id })}
                 onUnequip={() => unequip.mutate(equipment.id)}
               />
             ))}

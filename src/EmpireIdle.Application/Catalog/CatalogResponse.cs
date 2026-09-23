@@ -7,7 +7,7 @@
     /// клієнт або вигадує назви з ключів, або тримає власну копію JSON,
     /// яка відстане від сервера на першій же правці балансу.
     /// </summary>
-    /// <param name="ArtifactSlots">Скільки артефактів носить герой: клієнт малює саме стільки слотів.</param>
+    /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
     /// <param name="MaxEnhancement">Стеля заточки — після неї кнопка «Заточити» зникає.</param>
     /// <param name="RepairGemsBase">Ремонт зброї в gems: база плюс RepairGemsPerLevel за кожен рівень заточки.</param>
     /// <param name="MapSize">Сторона світової мапи в клітинах — клієнт малює землю до її краю.</param>
@@ -25,7 +25,7 @@
         int MaxTier,
         int MaxUnitLevel,
         int HealGemsPerUnit,
-        int ArtifactSlots,
+        IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
         int MaxEnhancement,
         int RepairGemsBase,
         int RepairGemsPerLevel,
@@ -57,6 +57,7 @@
         double PercentPerConstellation);
 
     /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
+    /// <param name="ArtifactSlot">Тип слота артефакта (ключ з ArtifactSlots); null — не артефакт.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -67,7 +68,11 @@
         IReadOnlyList<string> WeaponClasses,
         IReadOnlyDictionary<string, double> BaseStats,
         string? SetKey,
+        string? ArtifactSlot,
         int PriceGold);
+
+    /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
+    public record CatalogArtifactSlot(string Key, string DisplayName);
 
     /// <summary>
     /// Родина наборів артефактів — одна на данж, у трьох рідкостях.

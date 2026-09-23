@@ -202,7 +202,6 @@
         public static readonly RefusalReason EquipmentBroken = new("equipment.broken");
 
         /// <summary>Такий самий предмет уже вдягнений на цього героя.</summary>
-        public static readonly RefusalReason EquipmentAlreadyEquipped = new("equipment.alreadyEquipped", "item");
 
         public static readonly RefusalReason EquipmentClassMismatch = new("equipment.classMismatch", "weapon");
 

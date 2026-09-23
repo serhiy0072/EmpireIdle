@@ -63,6 +63,7 @@ namespace EmpireIdle.Application.Catalog
                     item.WeaponClasses,
                     item.BaseStats,
                     item.SetKey,
+                    item.ArtifactSlot,
                     item.PriceGold))
                 .ToList();
 
@@ -102,7 +103,7 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.MaxTier,
                 config.MaxUnitLevel,
                 config.Monetization.HealGemsPerUnit,
-                config.Equipment.ArtifactSlots,
+                config.Equipment.ArtifactSlots.Select(slot => new CatalogArtifactSlot(slot.Key, slot.DisplayName)).ToList(),
                 config.Equipment.MaxEnhancement,
                 config.Equipment.RepairGemsBase,
                 config.Equipment.RepairGemsPerLevel,

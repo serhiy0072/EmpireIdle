@@ -167,7 +167,13 @@
 
             _config.Equipment = new EquipmentConfig
             {
-                ArtifactSlots = 4,
+                ArtifactSlots =
+                [
+                    new ArtifactSlotConfig { Key = "necklace", DisplayName = "Намисто" },
+                    new ArtifactSlotConfig { Key = "crown", DisplayName = "Корона" },
+                    new ArtifactSlotConfig { Key = "ring", DisplayName = "Кільце" },
+                    new ArtifactSlotConfig { Key = "belt", DisplayName = "Пояс" }
+                ],
                 MaxEnhancement = 20,
                 EnhancementBonusPerLevel = 0.1,
                 ForgeBuildingKey = TestKeys.Forge,
@@ -209,11 +215,11 @@
             [
                 WeaponItem(TestKeys.Weapon, attack: 12, price: 500),
                 WeaponItem(TestKeys.BetterWeapon, attack: 18, price: 1000),
-                ArtifactItem(TestKeys.Artifact, TestKeys.SetKey),
-                ArtifactItem(TestKeys.SecondArtifact, TestKeys.SetKey),
-                ArtifactItem(TestKeys.ThirdArtifact, TestKeys.SetKey),
-                ArtifactItem(TestKeys.FourthArtifact, TestKeys.SetKey),
-                ArtifactItem(TestKeys.LooseArtifact, setKey: null)
+                ArtifactItem(TestKeys.Artifact, TestKeys.SetKey, "necklace"),
+                ArtifactItem(TestKeys.SecondArtifact, TestKeys.SetKey, "ring"),
+                ArtifactItem(TestKeys.ThirdArtifact, TestKeys.SetKey, "crown"),
+                ArtifactItem(TestKeys.FourthArtifact, TestKeys.SetKey, "belt"),
+                ArtifactItem(TestKeys.LooseArtifact, setKey: null, "ring")
             ]);
 
             tune?.Invoke(_config.Equipment);
@@ -253,7 +259,7 @@
                 var setKey = $"{TestKeys.DungeonSetKey}_{rarity.ToLowerInvariant()}";
 
                 foreach (var piece in DungeonSetPieces)
-                    _config.Items.Add(ArtifactItem($"{setKey}_{piece}", setKey));
+                    _config.Items.Add(ArtifactItem($"{setKey}_{piece}", setKey, piece));
 
                 _config.Equipment.SetBonuses.Add(new SetBonusConfig
                 {
@@ -373,7 +379,8 @@
         };
 
         /// <summary>Набір данжу має рівно стільки частин, скільки вимагає бонус набору.</summary>
-        private static readonly string[] DungeonSetPieces = ["ring", "amulet", "sigil", "chime"];
+        /// <summary>Частини набору данжу — по одній на кожен тип слота.</summary>
+        private static readonly string[] DungeonSetPieces = ["necklace", "crown", "ring", "belt"];
 
         /// <summary>Ворог данжу з такою горою здоров'я, щоб бій не скінчився сам.</summary>
         private static DungeonEnemyConfig DungeonEnemy(string key, string displayName) => new()
@@ -387,13 +394,14 @@
             Speed = 20
         };
 
-        private static ItemConfig ArtifactItem(string key, string? setKey) => new()
+        private static ItemConfig ArtifactItem(string key, string? setKey, string artifactSlot) => new()
         {
             Key = key,
             Type = "equipment",
             DisplayName = $"Item {key}",
             Description = $"Test item {key}",
             Slot = EquipmentSlot.Artifact,
+            ArtifactSlot = artifactSlot,
             SetKey = setKey
         };
 

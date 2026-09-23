@@ -47,6 +47,12 @@ namespace EmpireIdle.Domain.Services.Config
         public List<string> WeaponClasses { get; set; } = new();
 
         /// <summary>
+        /// equipment, лише артефакт: тип слота (ключ з Equipment.ArtifactSlots).
+        /// Артефакт сам визначає, куди вдягається, — гравець слот не обирає.
+        /// </summary>
+        public string? ArtifactSlot { get; set; }
+
+        /// <summary>
         /// Бойова властивість унікального артефакта для данжів. Не росте від
         /// прокачки предмета: це й відрізняє унікальний набір від рідкісного,
         /// де більші лише звичайні стати.

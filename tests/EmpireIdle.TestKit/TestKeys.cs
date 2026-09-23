@@ -36,10 +36,10 @@ public static class TestKeys
 
     public const string Weapon = "sword_iron";
     public const string BetterWeapon = "sword_steel";
-    public const string Artifact = "dawn_amulet";
+    public const string Artifact = "dawn_necklace";
     public const string SecondArtifact = "dawn_ring";
-    public const string ThirdArtifact = "dawn_sigil";
-    public const string FourthArtifact = "dawn_chime";
+    public const string ThirdArtifact = "dawn_crown";
+    public const string FourthArtifact = "dawn_belt";
     public const string LooseArtifact = "lone_charm";
     public const string SetKey = "dawn";
 

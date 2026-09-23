@@ -13,6 +13,7 @@ export type CatalogPassive = components["schemas"]["CatalogPassive"];
 export type CatalogUnit = components["schemas"]["CatalogUnit"];
 export type CatalogArtifactSet = components["schemas"]["CatalogArtifactSet"];
 export type CatalogSetRarity = components["schemas"]["CatalogSetRarity"];
+export type CatalogArtifactSlot = components["schemas"]["CatalogArtifactSlot"];
 
 export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
@@ -40,8 +41,10 @@ export interface Catalog {
   healGemsPerUnit: number;
   /** Зброя з ціною в золоті — те, що продає кузня. */
   weaponsForSale: CatalogItem[];
-  /** Скільки артефактів носить герой. */
-  artifactSlots: number;
+  /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
+  artifactSlots: CatalogArtifactSlot[];
+  /** Назва слота, у який вдягається артефакт; null — не артефакт. */
+  artifactSlotName: (itemKey: string) => string | null;
   /** Стеля заточки й прокачки спорядження. */
   maxEnhancement: number;
   /** Ремонт зброї в gems: база плюс надбавка за рівень заточки. */
@@ -107,7 +110,11 @@ export function useCatalog(): Catalog {
       maxUnitLevel: data?.maxUnitLevel ?? 10,
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
       weaponsForSale: (data?.items ?? []).filter((item) => item.slot === "Weapon" && item.priceGold > 0),
-      artifactSlots: data?.artifactSlots ?? 4,
+      artifactSlots: data?.artifactSlots ?? [],
+      artifactSlotName: (itemKey) => {
+        const slot = items.get(itemKey)?.artifactSlot;
+        return slot == null ? null : (data?.artifactSlots.find((s) => s.key === slot)?.displayName ?? slot);
+      },
       maxEnhancement: data?.maxEnhancement ?? 20,
       repairGemsBase: data?.repairGemsBase ?? 20,
       repairGemsPerLevel: data?.repairGemsPerLevel ?? 8,

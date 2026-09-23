@@ -75,9 +75,6 @@
     "dungeon",
     "level"
   ],
-  "equipment.alreadyEquipped": [
-    "item"
-  ],
   "equipment.broken": [],
   "equipment.classMismatch": [
     "weapon"
