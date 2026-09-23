@@ -160,4 +160,76 @@ public class TakeDungeonTurnCommandTests
         Assert.Empty(result.Turns);
         Assert.Equal(0, result.ActorIndex);
     }
+
+    // ---------- Стеля раундів (MaxRoundsPerWave = 30 у фікстурі) ----------
+
+    /// <summary>Останній хід 30-го раунду нікого не вбив — забіг закривається нічиєю, а не висить.</summary>
+    [Fact]
+    public async Task Handle_WhenTheLastAllowedRoundEnds_ShouldTimeOutWithoutReward()
+    {
+        var handler = Handler(Battle() with { Round = 30, Queue = [0] });
+
+        var result = await handler.Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            CancellationToken.None);
+
+        Assert.Equal(nameof(DungeonRunState.TimedOut), result.State);
+        Assert.Single(result.Turns);
+        Assert.Null(result.Reward);
+        Assert.Null(result.ActorIndex);
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Зачищена хвиля важить більше за стелю: нова хвиля рахує раунди з нуля.</summary>
+    [Fact]
+    public async Task Handle_WhenTheWaveIsClearedOnTheLastRound_ShouldMoveOnInsteadOfTimingOut()
+    {
+        var state = Battle();
+        state = state with
+        {
+            Round = 30,
+            Queue = [0],
+            Combatants = [state.Combatants[0], state.Combatants[1] with { Health = 1 }],
+        };
+
+        var result = await Handler(state).Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            CancellationToken.None);
+
+        Assert.Equal(nameof(DungeonRunState.InProgress), result.State);
+        Assert.Equal(2, result.Wave);
+    }
+
+    /// <summary>Загибель команди на останньому ході — поразка, а не нічия.</summary>
+    [Fact]
+    public async Task Handle_WhenTheTeamFallsOnTheLastRound_ShouldLoseRatherThanTimeOut()
+    {
+        var state = Battle();
+        state = state with
+        {
+            Round = 30,
+            Queue = [1],
+            Combatants = [state.Combatants[0] with { Health = 1 }, state.Combatants[1]],
+        };
+
+        var result = await Handler(state).Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            CancellationToken.None);
+
+        Assert.Equal(nameof(DungeonRunState.Lost), result.State);
+    }
+
+    /// <summary>Забіг, що застряг до появи стелі, закривається першим же запитом — без зайвого ходу.</summary>
+    [Fact]
+    public async Task Handle_OnARunAlreadyPastTheCeiling_ShouldTimeOutWithoutPlaying()
+    {
+        var handler = Handler(Battle() with { Round = 57, Queue = [0] });
+
+        var result = await handler.Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            CancellationToken.None);
+
+        Assert.Equal(nameof(DungeonRunState.TimedOut), result.State);
+        Assert.Empty(result.Turns);
+    }
 }

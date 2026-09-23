@@ -83,6 +83,10 @@ namespace EmpireIdle.Application.Dungeons.Commands
             var state = EnsureRound(BattleSerializer.Read(run.Battle));
             var turns = new List<TurnLog>();
 
+            // Забіг, що застряг до появи стелі (або після її зменшення), закривається без зайвого ходу
+            if (_engine.IsOutOfRounds(state))
+                return await FinishAsync(run, state, turns, DungeonRunState.TimedOut, now, cancellationToken);
+
             if (BattleEngine.CurrentActor(state) is { } actorIndex)
             {
                 var actor = state.Combatants[actorIndex];
@@ -119,13 +123,19 @@ namespace EmpireIdle.Application.Dungeons.Commands
                 if (state.Wave < _builder.WaveCount(run.Level))
                     state = _builder.NextWave(state, dungeon, run.Level);
                 else
-                    return await FinishAsync(run, state, turns, won: true, now, cancellationToken);
+                    return await FinishAsync(run, state, turns, DungeonRunState.Won, now, cancellationToken);
             }
 
             if (!state.HeroesAlive)
-                return await FinishAsync(run, state, turns, won: false, now, cancellationToken);
+                return await FinishAsync(run, state, turns, DungeonRunState.Lost, now, cancellationToken);
 
             state = EnsureRound(state);
+
+            // Новий раунд народжується лише тут — тут і перевіряємо стелю.
+            // Інакше нічия тримала б єдиний слот забігу, поки гравець не вийде сам
+            if (_engine.IsOutOfRounds(state))
+                return await FinishAsync(run, state, turns, DungeonRunState.TimedOut, now, cancellationToken);
+
             run.Advance(BattleSerializer.Write(state), now);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -133,19 +143,25 @@ namespace EmpireIdle.Application.Dungeons.Commands
         }
 
         private async Task<DungeonRunView> FinishAsync(DungeonRun run, BattleState state,
-            List<TurnLog> turns, bool won, DateTime now, CancellationToken cancellationToken)
+            List<TurnLog> turns, DungeonRunState outcome, DateTime now, CancellationToken cancellationToken)
         {
             var battle = BattleSerializer.Write(state);
             DungeonReward? reward = null;
 
-            if (won)
+            switch (outcome)
             {
-                run.Win(battle, now);
-                reward = await _rewarder.GrantAsync(run, now, cancellationToken);
-            }
-            else
-            {
-                run.Lose(battle, now);
+                case DungeonRunState.Won:
+                    run.Win(battle, now);
+                    reward = await _rewarder.GrantAsync(run, now, cancellationToken);
+                    break;
+                case DungeonRunState.Lost:
+                    run.Lose(battle, now);
+                    break;
+                case DungeonRunState.TimedOut:
+                    run.TimeOut(battle, now);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(outcome), outcome, "Not a battle outcome.");
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

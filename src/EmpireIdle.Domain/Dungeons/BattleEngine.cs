@@ -118,6 +118,12 @@ namespace EmpireIdle.Domain.Dungeons
                     .ToList(),
             };
 
+        /// <summary>
+        /// Хвиля вичерпала стелю раундів. Рахується на старті нового раунду,
+        /// тож гравець отримує рівно MaxRoundsPerWave повних раундів.
+        /// </summary>
+        public bool IsOutOfRounds(BattleState state) => state.Round > _config.MaxRoundsPerWave;
+
         /// <summary>Чи можна бити саме цю ціль за правилом ліній.</summary>
         public static bool CanTarget(BattleState state, Combatant actor, HeroAbilityConfig? ability, int targetIndex)
         {

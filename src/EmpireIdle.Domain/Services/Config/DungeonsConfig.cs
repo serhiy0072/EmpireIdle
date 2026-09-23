@@ -48,7 +48,7 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Частка шкоди, нижче за яку удар не падає навіть проти величезного захисту.</summary>
         public double MinDamageShare { get; set; } = 0.1;
 
-        /// <summary>Стеля ходів на хвилю: нічия рахується поразкою, щоб бій не висів вічно.</summary>
+        /// <summary>Стеля раундів на хвилю: нічия завершує забіг, щоб бій не висів вічно.</summary>
         public int MaxRoundsPerWave { get; set; } = 30;
 
         /// <summary>Шанс критичного удару без артефактів.</summary>
