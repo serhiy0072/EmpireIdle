@@ -2,6 +2,7 @@
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Events;
+using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
@@ -73,6 +74,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IClanRequestRepository, ClanRequestRepository>();
             services.AddScoped<IHeroRepository, HeroRepository>();
             services.AddScoped<IBannerRepository, BannerRepository>();
+            services.AddScoped<IDungeonRepository, DungeonRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
@@ -103,6 +105,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IRewardGranter, HeroRewardGranter>();
             services.AddScoped<IRewardGranter, EquipmentRewardGranter>();
             services.AddScoped<RewardDispatcher>();
+            services.AddScoped<DungeonTeamFactory>();
+            services.AddScoped<DungeonRewarder>();
 
             // Квести
             services.AddScoped<QuestSignalResolver>();

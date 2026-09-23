@@ -59,6 +59,9 @@ namespace EmpireIdle.Infrastructure.Persistence
         /// і підтримка має бачити всю історію гравця, а не зріз одного світу.
         /// </summary>
         public DbSet<BannerRollRecord> BannerRolls => Set<BannerRollRecord>();
+        public DbSet<DungeonRun> DungeonRuns => Set<DungeonRun>();
+        public DbSet<DungeonEnergy> DungeonEnergy => Set<DungeonEnergy>();
+        public DbSet<DungeonClear> DungeonClears => Set<DungeonClear>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

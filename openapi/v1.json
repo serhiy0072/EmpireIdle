@@ -1837,6 +1837,375 @@
         }
       }
     },
+    "/api/dungeons/{playerId}": {
+      "get": {
+        "tags": [
+          "Dungeons"
+        ],
+        "operationId": "Dungeons_GetDungeons",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonsOverview"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonsOverview"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonsOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dungeons/{playerId}/run": {
+      "get": {
+        "tags": [
+          "Dungeons"
+        ],
+        "operationId": "Dungeons_GetRun",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonRunView"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonRunView"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonRunView"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Dungeons"
+        ],
+        "operationId": "Dungeons_StartRun",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDungeonRunRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDungeonRunRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDungeonRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonRunView"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonRunView"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonRunView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dungeons/{playerId}/run/{runId}/turn": {
+      "post": {
+        "tags": [
+          "Dungeons"
+        ],
+        "operationId": "Dungeons_TakeTurn",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DungeonTurnRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DungeonTurnRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/DungeonTurnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonTurnResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonTurnResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonTurnResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dungeons/{playerId}/run/{runId}/abandon": {
+      "post": {
+        "tags": [
+          "Dungeons"
+        ],
+        "operationId": "Dungeons_Abandon",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/garrisons/{playerId}": {
       "get": {
         "tags": [
@@ -4911,6 +5280,39 @@
   },
   "components": {
     "schemas": {
+      "AbilityView": {
+        "required": [
+          "description",
+          "displayName",
+          "energyCost",
+          "key",
+          "ready",
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "energyCost": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "target": {
+            "type": "string"
+          },
+          "ready": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "ActiveEffectResponse": {
         "required": [
           "expiresAt",
@@ -4932,6 +5334,30 @@
             "format": "date-time"
           },
           "sourceItemKey": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArtifactDropView": {
+        "required": [
+          "displayName",
+          "itemKey",
+          "rarity",
+          "setKey"
+        ],
+        "type": "object",
+        "properties": {
+          "itemKey": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "rarity": {
+            "type": "string"
+          },
+          "setKey": {
             "type": "string"
           }
         },
@@ -5157,6 +5583,14 @@
         },
         "additionalProperties": false
       },
+      "BattleLine": {
+        "enum": [
+          0,
+          1
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
       "BattleOdds": {
         "enum": [
           0,
@@ -5310,6 +5744,102 @@
           }
         },
         "additionalProperties": false
+      },
+      "BattleSide": {
+        "enum": [
+          0,
+          1
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "BattleState": {
+        "required": [
+          "combatants",
+          "enemiesAlive",
+          "heroesAlive",
+          "queue",
+          "round",
+          "seed",
+          "turnNumber",
+          "wave"
+        ],
+        "type": "object",
+        "properties": {
+          "combatants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Combatant"
+            }
+          },
+          "wave": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "round": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "queue": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "seed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "turnNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "heroesAlive": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "enemiesAlive": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BattleStatus": {
+        "required": [
+          "kind",
+          "magnitude",
+          "turnsLeft"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/BattleStatusKind"
+          },
+          "magnitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "turnsLeft": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BattleStatusKind": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "type": "integer",
+        "format": "int32"
       },
       "BuildingResponse": {
         "required": [
@@ -6139,6 +6669,189 @@
         },
         "additionalProperties": false
       },
+      "Combatant": {
+        "required": [
+          "attack",
+          "defense",
+          "energy",
+          "health",
+          "index",
+          "isAlive",
+          "key",
+          "line",
+          "maxHealth",
+          "shieldPoints",
+          "side",
+          "speed",
+          "statuses",
+          "uniqueStats"
+        ],
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "side": {
+            "$ref": "#/components/schemas/BattleSide"
+          },
+          "line": {
+            "$ref": "#/components/schemas/BattleLine"
+          },
+          "key": {
+            "type": "string"
+          },
+          "heroId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "attack": {
+            "type": "number",
+            "format": "double"
+          },
+          "defense": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxHealth": {
+            "type": "number",
+            "format": "double"
+          },
+          "health": {
+            "type": "number",
+            "format": "double"
+          },
+          "speed": {
+            "type": "number",
+            "format": "double"
+          },
+          "energy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shieldPoints": {
+            "type": "number",
+            "format": "double"
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BattleStatus"
+            }
+          },
+          "uniqueStats": {
+            "type": "object",
+            "properties": {
+              "CritChance": {
+                "type": "number",
+                "format": "double"
+              },
+              "Lifesteal": {
+                "type": "number",
+                "format": "double"
+              },
+              "DamageReduction": {
+                "type": "number",
+                "format": "double"
+              },
+              "EnergyOnAttack": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "additionalProperties": false
+          },
+          "isAlive": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CombatantView": {
+        "required": [
+          "abilities",
+          "attack",
+          "defense",
+          "displayName",
+          "energy",
+          "health",
+          "index",
+          "key",
+          "line",
+          "maxHealth",
+          "shield",
+          "side",
+          "speed",
+          "statuses"
+        ],
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "side": {
+            "type": "string"
+          },
+          "line": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "heroId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "attack": {
+            "type": "number",
+            "format": "double"
+          },
+          "defense": {
+            "type": "number",
+            "format": "double"
+          },
+          "health": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxHealth": {
+            "type": "number",
+            "format": "double"
+          },
+          "shield": {
+            "type": "number",
+            "format": "double"
+          },
+          "speed": {
+            "type": "number",
+            "format": "double"
+          },
+          "energy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatusView"
+            }
+          },
+          "abilities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AbilityView"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "CreateClanRequest": {
         "required": [
           "name",
@@ -6151,6 +6864,316 @@
           },
           "tag": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonLevelView": {
+        "required": [
+          "artifactRarity",
+          "level",
+          "powerMultiplier",
+          "reward",
+          "waves"
+        ],
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "artifactRarity": {
+            "type": "string"
+          },
+          "waves": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "powerMultiplier": {
+            "type": "number",
+            "format": "double"
+          },
+          "reward": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RewardLine"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonRewardLine": {
+        "required": [
+          "amount",
+          "resource"
+        ],
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonRewardResponse": {
+        "required": [
+          "artifacts",
+          "resources"
+        ],
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DungeonRewardLine"
+            }
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonRewardView": {
+        "required": [
+          "artifacts",
+          "resources"
+        ],
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RewardLine"
+            }
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtifactDropView"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonRunState": {
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "DungeonRunView": {
+        "required": [
+          "combatants",
+          "dungeonKey",
+          "level",
+          "runId",
+          "state",
+          "turns",
+          "wave",
+          "waveCount"
+        ],
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dungeonKey": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "state": {
+            "$ref": "#/components/schemas/DungeonRunState"
+          },
+          "wave": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "waveCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "actorIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "combatants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CombatantView"
+            }
+          },
+          "turns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TurnLog"
+            }
+          },
+          "reward": {
+            "$ref": "#/components/schemas/DungeonRewardView"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonTurnRequest": {
+        "required": [
+          "auto"
+        ],
+        "type": "object",
+        "properties": {
+          "auto": {
+            "type": "boolean"
+          },
+          "abilityKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "targetIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonTurnResponse": {
+        "required": [
+          "battle",
+          "state",
+          "turns"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "turns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TurnLog"
+            }
+          },
+          "battle": {
+            "$ref": "#/components/schemas/BattleState"
+          },
+          "nextActorIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "reward": {
+            "$ref": "#/components/schemas/DungeonRewardResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonView": {
+        "required": [
+          "artifactSetKey",
+          "clearedLevel",
+          "description",
+          "displayName",
+          "isUnlocked",
+          "key",
+          "levels",
+          "requiresMainBuildingLevel",
+          "unlockedLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "artifactSetKey": {
+            "type": "string"
+          },
+          "requiresMainBuildingLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isUnlocked": {
+            "type": "boolean"
+          },
+          "clearedLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unlockedLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "levels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DungeonLevelView"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "DungeonsOverview": {
+        "required": [
+          "dungeons",
+          "energy",
+          "energyPerRun",
+          "maxEnergy",
+          "teamSize"
+        ],
+        "type": "object",
+        "properties": {
+          "energy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxEnergy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "energyPerRun": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "energyFullAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "teamSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeRunId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "dungeons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DungeonView"
+            }
           }
         },
         "additionalProperties": false
@@ -7373,6 +8396,23 @@
         },
         "additionalProperties": false
       },
+      "RewardLine": {
+        "required": [
+          "amount",
+          "resource"
+        ],
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "SendMarchRequest": {
         "required": [
           "heroId",
@@ -7516,6 +8556,53 @@
         },
         "additionalProperties": false
       },
+      "StartDungeonRunRequest": {
+        "required": [
+          "dungeonKey",
+          "heroIds",
+          "level"
+        ],
+        "type": "object",
+        "properties": {
+          "dungeonKey": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "heroIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "StatusView": {
+        "required": [
+          "kind",
+          "magnitude",
+          "turnsLeft"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "magnitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "turnsLeft": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "SummonHeroRequest": {
         "required": [
           "heroKey"
@@ -7583,6 +8670,93 @@
           "speedUpCostGems": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TurnEffect": {
+        "required": [
+          "critical",
+          "damage",
+          "died",
+          "healed",
+          "shieldAbsorbed",
+          "shieldGained",
+          "targetIndex"
+        ],
+        "type": "object",
+        "properties": {
+          "targetIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "damage": {
+            "type": "number",
+            "format": "double"
+          },
+          "critical": {
+            "type": "boolean"
+          },
+          "healed": {
+            "type": "number",
+            "format": "double"
+          },
+          "shieldGained": {
+            "type": "number",
+            "format": "double"
+          },
+          "shieldAbsorbed": {
+            "type": "number",
+            "format": "double"
+          },
+          "statusApplied": {
+            "$ref": "#/components/schemas/BattleStatusKind"
+          },
+          "died": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TurnLog": {
+        "required": [
+          "actorIndex",
+          "effects",
+          "round",
+          "stunned",
+          "turnNumber",
+          "wave"
+        ],
+        "type": "object",
+        "properties": {
+          "turnNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wave": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "round": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "actorIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "abilityKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "stunned": {
+            "type": "boolean"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TurnEffect"
+            }
           }
         },
         "additionalProperties": false
@@ -7769,6 +8943,9 @@
     },
     {
       "name": "ClanRequest"
+    },
+    {
+      "name": "Dungeons"
     },
     {
       "name": "Garrison"
