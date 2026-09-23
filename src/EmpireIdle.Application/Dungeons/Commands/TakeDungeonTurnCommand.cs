@@ -250,7 +250,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
                 throw new RequirementNotMetException("This action needs a target.");
 
             if (!BattleEngine.CanTarget(state, actor, ability, target))
-                throw new RequirementNotMetException("That target cannot be reached right now.");
+                throw new RequirementNotMetException(RefusalReasons.DungeonTargetUnreachable, "That target cannot be reached right now.");
         }
     }
 }
