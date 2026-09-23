@@ -39,62 +39,8 @@ namespace EmpireIdle.Application.Dungeons.Queries
 
             var state = BattleSerializer.Read(run.Battle);
 
-            return Project(run.Id, run.DungeonKey, run.Level, run.State, state,
+            return DungeonRunProjection.Project(run.Id, run.DungeonKey, run.Level, run.State, state,
                 _builder.WaveCount(run.Level), turns: [], reward: null, _catalog);
-        }
-
-        /// <summary>
-        /// Стан бою у вигляді для клієнта: назви, вміння й готовність кожного
-        /// з них. Готовність рахує сервер, бо саме він відмовить у ході.
-        /// </summary>
-        public static DungeonRunView Project(Guid runId, string dungeonKey, int level, DungeonRunState state,
-            BattleState battle, int waveCount, IReadOnlyList<TurnLog> turns, DungeonRewardView? reward, GameCatalog catalog)
-        {
-            var dungeon = catalog.Dungeons.GetValueOrDefault(dungeonKey);
-
-            var combatants = battle.Combatants
-                .Select(c =>
-                {
-                    var hero = c.HeroId is null ? null : catalog.FindHero(c.Key);
-
-                    var abilities = (hero?.Abilities ?? [])
-                        .Select(a => new AbilityView(a.Key, a.DisplayName, a.Description, a.EnergyCost,
-                            a.Target.ToString(), c.Energy >= a.EnergyCost, a.IgnoresLine))
-                        .ToList();
-
-                    var enemyName = dungeon?.Waves.Concat(dungeon.Boss).FirstOrDefault(e => e.Key == c.Key)?.DisplayName;
-
-                    return new CombatantView(
-                        c.Index,
-                        c.Side.ToString(),
-                        c.Line.ToString(),
-                        c.Key,
-                        hero?.DisplayName ?? enemyName ?? c.Key,
-                        c.HeroId,
-                        c.Attack,
-                        c.Defense,
-                        c.Health,
-                        c.MaxHealth,
-                        c.ShieldPoints,
-                        c.Speed,
-                        c.Energy,
-                        c.Statuses.Select(s => new StatusView(s.Kind.ToString(), s.Magnitude, s.TurnsLeft)).ToList(),
-                        abilities);
-                })
-                .ToList();
-
-            return new DungeonRunView(
-                runId,
-                dungeonKey,
-                level,
-                state.ToString(),
-                battle.Wave,
-                waveCount,
-                battle.TurnNumber,
-                state == DungeonRunState.InProgress ? BattleEngine.CurrentActor(battle) : null,
-                combatants,
-                turns,
-                reward);
         }
     }
 }
