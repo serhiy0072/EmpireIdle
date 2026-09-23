@@ -87,6 +87,128 @@ namespace EmpireIdle.Domain.Services
                         throw new InvalidOperationException(
                             $"Dungeon '{dungeon.Key}' enemy '{enemy.Key}' has non-positive attack or health.");
             }
+
+            ValidateArtifactSets(config);
+        }
+
+        /// <summary>
+        /// Родини наборів: кожен данж має опис свого набору, рівень у межах
+        /// множників, характерні стати — з пулу. Інакше артефакт тихо
+        /// ролився б без рівня, а «характер» — у стат, якого не існує.
+        /// </summary>
+        private static void ValidateArtifactSets(GameConfig config)
+        {
+            var equipment = config.Equipment;
+
+            RequireUniqueKeys(equipment.ArtifactSets.Select(s => s.Key), "Equipment.ArtifactSets");
+
+            var families = equipment.ArtifactSets.ToDictionary(s => s.Key);
+
+            var undescribed = config.Dungeons.Dungeons
+                .Where(d => !families.ContainsKey(d.ArtifactSetKey))
+                .Select(d => d.ArtifactSetKey)
+                .Distinct()
+                .ToList();
+
+            if (undescribed.Count > 0)
+                throw new InvalidOperationException(
+                    $"Dungeon artifact sets have no Equipment.ArtifactSets entry: {string.Join(", ", undescribed)}.");
+
+            var tiers = Math.Max(1, equipment.ArtifactTierMultipliers.Count);
+
+            var badTiers = equipment.ArtifactSets
+                .Where(s => s.Tier < 1 || s.Tier > tiers)
+                .Select(s => $"{s.Key} ({s.Tier})")
+                .ToList();
+
+            if (badTiers.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactSets have tiers outside 1–{tiers}: {string.Join(", ", badTiers)}.");
+
+            var pool = equipment.ArtifactStats.Select(s => s.Stat).ToHashSet();
+
+            var unknownFocus = equipment.ArtifactSets
+                .SelectMany(s => s.FocusStats.Where(stat => !pool.Contains(stat)).Select(stat => $"{s.Key}: {stat}"))
+                .ToList();
+
+            if (unknownFocus.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactSets focus on stats outside ArtifactStats: {string.Join(", ", unknownFocus)}.");
+        }
+
+        /// <summary>
+        /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна
+        /// збудувати (MaxServerLevel × BuildingLevelsPerTier). Інакше вміст
+        /// недосяжний назавжди, а гравець бачить замок, який не відімкнеться.
+        /// </summary>
+        private static void ValidateUnlockThresholds(GameConfig config)
+        {
+            var ceiling = config.Map.MaxServerLevel * config.BuildingLevelsPerTier;
+
+            var unreachable = config.Buildings
+                .Where(b => b.RequiresMainBuildingLevel > ceiling)
+                .Select(b => $"building {b.Key} ({b.RequiresMainBuildingLevel})")
+                .Concat(config.Resources
+                    .Where(r => r.RequiresMainBuildingLevel > ceiling)
+                    .Select(r => $"resource {r.Key} ({r.RequiresMainBuildingLevel})"))
+                .Concat(config.Dungeons.Dungeons
+                    .Where(d => d.RequiresMainBuildingLevel > ceiling)
+                    .Select(d => $"dungeon {d.Key} ({d.RequiresMainBuildingLevel})"))
+                .ToList();
+
+            if (unreachable.Count > 0)
+                throw new InvalidOperationException(
+                    $"Unlock thresholds above the town hall ceiling {ceiling}: {string.Join(", ", unreachable)}.");
+        }
+
+        /// <summary>
+        /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна
+        /// збудувати (MaxServerLevel × BuildingLevelsPerTier). Інакше вміст
+        /// недосяжний назавжди, а гравець бачить замок, який не відімкнеться.
+        /// </summary>
+        private static void ValidateUnlockThresholds(GameConfig config)
+        {
+            var ceiling = config.Map.MaxServerLevel * config.BuildingLevelsPerTier;
+
+            var unreachable = config.Buildings
+                .Where(b => b.RequiresMainBuildingLevel > ceiling)
+                .Select(b => $"building {b.Key} ({b.RequiresMainBuildingLevel})")
+                .Concat(config.Resources
+                    .Where(r => r.RequiresMainBuildingLevel > ceiling)
+                    .Select(r => $"resource {r.Key} ({r.RequiresMainBuildingLevel})"))
+                .Concat(config.Dungeons.Dungeons
+                    .Where(d => d.RequiresMainBuildingLevel > ceiling)
+                    .Select(d => $"dungeon {d.Key} ({d.RequiresMainBuildingLevel})"))
+                .ToList();
+
+            if (unreachable.Count > 0)
+                throw new InvalidOperationException(
+                    $"Unlock thresholds above the town hall ceiling {ceiling}: {string.Join(", ", unreachable)}.");
+        }
+
+        /// <summary>
+        /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна
+        /// збудувати (MaxServerLevel × BuildingLevelsPerTier). Інакше вміст
+        /// недосяжний назавжди, а гравець бачить замок, який не відімкнеться.
+        /// </summary>
+        private static void ValidateUnlockThresholds(GameConfig config)
+        {
+            var ceiling = config.Map.MaxServerLevel * config.BuildingLevelsPerTier;
+
+            var unreachable = config.Buildings
+                .Where(b => b.RequiresMainBuildingLevel > ceiling)
+                .Select(b => $"building {b.Key} ({b.RequiresMainBuildingLevel})")
+                .Concat(config.Resources
+                    .Where(r => r.RequiresMainBuildingLevel > ceiling)
+                    .Select(r => $"resource {r.Key} ({r.RequiresMainBuildingLevel})"))
+                .Concat(config.Dungeons.Dungeons
+                    .Where(d => d.RequiresMainBuildingLevel > ceiling)
+                    .Select(d => $"dungeon {d.Key} ({d.RequiresMainBuildingLevel})"))
+                .ToList();
+
+            if (unreachable.Count > 0)
+                throw new InvalidOperationException(
+                    $"Unlock thresholds above the town hall ceiling {ceiling}: {string.Join(", ", unreachable)}.");
         }
 
         /// <summary>

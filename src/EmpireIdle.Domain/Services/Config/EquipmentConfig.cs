@@ -71,5 +71,27 @@ namespace EmpireIdle.Domain.Services.Config
         /// unique-артефакті вартий більше, ніж на common.
         /// </summary>
         public Dictionary<string, double> ArtifactRarityMultipliers { get; set; } = new();
+
+        /// <summary>Рівні й характер родин наборів артефактів.</summary>
+        public List<ArtifactSetConfig> ArtifactSets { get; set; } = new();
+
+        /// <summary>
+        /// Множник значень за рівнем набору: артефакт із важчого данжу сильніший.
+        /// Діє разом із множником рідкості. Порожньо — множник 1.0.
+        /// </summary>
+        public List<double> ArtifactTierMultipliers { get; set; } = new();
+
+        /// <summary>У скільки разів характерний стат імовірніший за звичайний при ролі.</summary>
+        public double ArtifactFocusWeight { get; set; } = 1.0;
+
+        /// <summary>
+        /// Родина набору за SetKey предмета (<c>{Key}_{рідкість}</c>);
+        /// null — предмет поза родинами, ролиться без рівня й характеру.
+        /// </summary>
+        public ArtifactSetConfig? FindArtifactSet(string? setKey)
+            => setKey is null
+                ? null
+                : ArtifactSets.FirstOrDefault(set => Enum.GetNames<Enums.Rarity>()
+                    .Any(rarity => setKey == $"{set.Key}_{rarity.ToLowerInvariant()}"));
     }
 }

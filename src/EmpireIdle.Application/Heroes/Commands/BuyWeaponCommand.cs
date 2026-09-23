@@ -76,9 +76,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             village.ChargeCost([new ResourceCost { Resource = "gold", Amount = config.PriceGold }], now);
 
-            await _granter.GrantEquipmentAsync(
-                request.PlayerId, config.Key, EquipmentSlot.Weapon, config.Rarity,
-                config.BaseStats.Select(s => (s.Key, s.Value)), now, cancellationToken);
+            await _granter.GrantEquipmentAsync(request.PlayerId, config, now, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

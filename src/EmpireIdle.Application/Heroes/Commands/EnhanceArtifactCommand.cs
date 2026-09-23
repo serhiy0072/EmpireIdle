@@ -89,8 +89,9 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var seed = _random.Next(int.MaxValue);
 
+            // Набір задає рівень і характер ролу — той самий, що й при випадінні
             var roll = _roller.RollForLevel(
-                item.EnhancementLevel, item.Rarity,
+                item.EnhancementLevel, item.Rarity, _catalog.FindItem(item.ItemKey)?.SetKey,
                 item.Stats.Select(s => s.StatKey).ToList(), seed);
 
             foreach (var (stat, value) in roll.Added)
