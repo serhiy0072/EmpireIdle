@@ -21,7 +21,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     }
 
     /// <summary>Вилікувати поранених: вони повертаються в гарнізон.</summary>
-    public record HealWoundedCommand(Guid PlayerId, Dictionary<string, int> Units, HealPaymentMethod Payment)
+    public record HealWoundedCommand(Guid PlayerId, Dictionary<UnitStackKey, int> Units, HealPaymentMethod Payment)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     public sealed class HealWoundedCommandHandler : IRequestHandler<HealWoundedCommand>
@@ -84,7 +84,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         }
 
         /// <summary>Списує gems: фіксована ціна за кожного вилікуваного.</summary>
-        private async Task ChargeGemsAsync(IReadOnlyDictionary<string, int> healed, Guid playerId, DateTime utcNow, CancellationToken cancellationToken)
+        private async Task ChargeGemsAsync(IReadOnlyDictionary<UnitStackKey, int> healed, Guid playerId, DateTime utcNow, CancellationToken cancellationToken)
         {
             var total = healed.Values.Where(c => c > 0).Sum();
             var cost = total * _catalog.Config.Monetization.HealGemsPerUnit;
@@ -99,17 +99,17 @@ namespace EmpireIdle.Application.Garrisons.Commands
         }
 
         /// <summary>Списує ресурси: половина вартості створення юніта.</summary>
-        private void ChargeResources(IReadOnlyDictionary<string, int> healed, Domain.Entities.Village village, DateTime utcNow)
+        private void ChargeResources(IReadOnlyDictionary<UnitStackKey, int> healed, Domain.Entities.Village village, DateTime utcNow)
         {
             var cost = new List<ResourceCost>();
 
-            foreach (var (unitType, count) in healed)
+            foreach (var (stack, count) in healed)
             {
                 if (count <= 0)
                     continue;
 
-                var config = _catalog.FindUnit(unitType)
-                    ?? throw new EntityNotFoundException($"Unit type", unitType);
+                var config = _catalog.FindUnit(stack.UnitType)
+                    ?? throw new EntityNotFoundException($"Unit type", stack.UnitType);
 
                 foreach (var line in config.Cost)
                 {

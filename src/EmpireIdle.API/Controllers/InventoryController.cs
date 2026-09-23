@@ -1,4 +1,4 @@
-using EmpireIdle.API.DTOs;
+﻿using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
@@ -56,7 +56,7 @@ namespace EmpireIdle.API.Controllers
             var equipment = contents.Equipment
                 .Select(e => new EquipmentResponse(
                     e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
-                    e.EnhancementLevel, e.EquippedByHeroId,
+                    e.EnhancementLevel, e.EquippedByHeroId, e.SlotIndex, e.IsBroken,
                     e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey, enhancementBonus))))
                 .ToList();
 

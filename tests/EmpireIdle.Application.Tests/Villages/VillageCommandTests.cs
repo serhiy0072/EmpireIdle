@@ -76,6 +76,11 @@ public class VillageCommandTests
         Catalog(), new FakeTimeProvider(Now), Geometry(), new VillageCapacities(Catalog()),
         NullLogger<CollectBuildingCommandHandler>.Instance);
 
+    private CollectAllBuildingsCommandHandler CollectAllHandler() => new(
+        _villages, _unitOfWork, _servers, new EffectResolver(_effects),
+        Catalog(), new FakeTimeProvider(Now), Geometry(), new VillageCapacities(Catalog()),
+        NullLogger<CollectAllBuildingsCommandHandler>.Instance);
+
     private UpgradeBuildingCommandHandler UpgradeHandler() => new(
         _villages, _unitOfWork, _servers, new EffectResolver(_effects),
         new FakeTimeProvider(Now), Catalog(), Geometry(),
@@ -168,6 +173,34 @@ public class VillageCommandTests
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
             CollectHandler().Handle(new CollectBuildingCommand(PlayerId, Guid.NewGuid()), CancellationToken.None));
+    }
+
+    /// <summary>«Зібрати все» переносить буфер кожної виробничої будівлі за один виклик.</summary>
+    [Fact]
+    public async Task CollectAll_ShouldMoveEveryBuildingsBufferIntoResources()
+    {
+        var village = GivenVillage(food: 0, accruedMinutes: 60);
+
+        await CollectAllHandler().Handle(new CollectAllBuildingsCommand(PlayerId), CancellationToken.None);
+
+        // Та сама математика, що й для одиночного збору: одна виробнича будівля (farm)
+        Assert.Equal(600, village.Resources.Single(r => r.ResourceType == "food").Amount);
+    }
+
+    /// <summary>Будівля під будівництвом не встигла нічого накопичити — і не повинна впасти в циклі.</summary>
+    [Fact]
+    public async Task CollectAll_ShouldSkipBuildingsUnderConstruction()
+    {
+        var village = GivenVillage(food: 10_000, accruedMinutes: 60);
+        var farm = village.Buildings.Single(b => b.Type == "farm");
+
+        farm.BeginUpgrade(Catalog().Buildings["farm"], TimeSpan.FromMinutes(10), Now, ProductionBoost.None, locationMultiplier: 1.0);
+
+        var before = village.Resources.Single(r => r.ResourceType == "food").Amount;
+
+        await CollectAllHandler().Handle(new CollectAllBuildingsCommand(PlayerId), CancellationToken.None);
+
+        Assert.Equal(before, village.Resources.Single(r => r.ResourceType == "food").Amount);
     }
 
     /// <summary>Апгрейд списує вартість і ставить будівлю в стан будівництва.</summary>

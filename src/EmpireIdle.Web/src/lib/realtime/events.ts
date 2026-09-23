@@ -29,6 +29,11 @@ export interface BattleFinishedEvent {
   targetName: string;
 }
 
+/** Армія вдома: юніти в гарнізоні, здобич на складі. */
+export interface MarchReturnedEvent {
+  marchId: string;
+}
+
 export interface ServerQuestRewardedEvent {
   questKey: string;
   rank: number;
@@ -48,6 +53,7 @@ export interface GameEvents {
   UpgradeStarted: UpgradeStartedEvent;
   UpgradeCompleted: UpgradeCompletedEvent;
   BattleFinished: BattleFinishedEvent;
+  MarchReturned: MarchReturnedEvent;
   ServerQuestRewarded: ServerQuestRewardedEvent;
   ClanInvite: ClanInviteEvent;
 }
@@ -59,6 +65,7 @@ export const gameEventNames: GameEventName[] = [
   "UpgradeStarted",
   "UpgradeCompleted",
   "BattleFinished",
+  "MarchReturned",
   "ServerQuestRewarded",
   "ClanInvite",
 ];

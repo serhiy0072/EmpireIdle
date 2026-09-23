@@ -59,6 +59,17 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Миттєво завершити прокачку героя за gems. Новий рівень видно одразу.</summary>
+        [HttpPost("{playerId:guid}/level-up/{orderId:guid}/speedup")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SpeedUpLevelUp(Guid playerId, Guid orderId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new SpeedUpHeroLevelUpCommand(playerId, orderId), cancellationToken);
+            return NoContent();
+        }
+
         /// <summary>Підняти тір героя за предмет еволюції.</summary>
         [HttpPost("{playerId:guid}/{heroId:guid}/evolve")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Combat
 {
@@ -17,11 +18,11 @@ namespace EmpireIdle.Domain.Combat
         }
 
         /// <param name="seed">Сід розподілу — робить розкладку втрат відтворюваною.</param>
-        public CasualtySplit Split(IReadOnlyDictionary<string, int> losses, int woundedCapacity, int seed)
+        public CasualtySplit Split(IReadOnlyDictionary<UnitStackKey, int> losses, int woundedCapacity, int seed)
         {
-            var wounded = new Dictionary<string, int>();
-            var recoverable = new Dictionary<string, int>();
-            var dead = new Dictionary<string, int>();
+            var wounded = new Dictionary<UnitStackKey, int>();
+            var recoverable = new Dictionary<UnitStackKey, int>();
+            var dead = new Dictionary<UnitStackKey, int>();
 
             // Власний PRNG з тієї самої причини, що й у CombatCalculator:
             // послідовність Random не гарантована між версіями рантайму,
@@ -32,7 +33,7 @@ namespace EmpireIdle.Domain.Combat
             // Порядок обходу Dictionary не визначений специфікацією, а кожен тип
             // тягне свій кидок — без сортування переграш міг би роздати ті самі
             // числа іншим типам і змінити розкладку поранених. Ordinal, як у Spread.
-            foreach (var (unitType, lost) in losses.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            foreach (var (stack, lost) in losses.OrderBy(pair => pair.Key.UnitType, StringComparer.Ordinal).ThenBy(pair => pair.Key.Level))
             {
                 if(lost<=0)
                     continue;
@@ -54,11 +55,11 @@ namespace EmpireIdle.Domain.Combat
                 }
 
                 if (admitted > 0)
-                    wounded[unitType] = admitted;
+                    wounded[stack] = admitted;
                 if(recoverableCount > 0)
-                    recoverable[unitType] = recoverableCount;
+                    recoverable[stack] = recoverableCount;
                 if(deadCount > 0)
-                    dead[unitType] = deadCount;
+                    dead[stack] = deadCount;
             }
 
             return new CasualtySplit(wounded, recoverable, dead);

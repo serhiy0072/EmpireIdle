@@ -15,17 +15,20 @@ namespace EmpireIdle.Application.Garrisons.Queries
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly SpeedUpCalculator _calculator;
 
         public GetGarrisonQueryHandler(
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             GameCatalog catalog,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            SpeedUpCalculator calculator)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _catalog = catalog;
             _timeProvider = timeProvider;
+            _calculator = calculator;
         }
 
         public async Task<GarrisonView> Handle(GetGarrisonQuery request, CancellationToken cancellationToken)
@@ -44,16 +47,19 @@ namespace EmpireIdle.Application.Garrisons.Queries
                 .Where(r => r.IsActive(now))
                 .OrderBy(r => r.ExpiresAt)
                 .Select(r => new RecoverableUnitView(
-                    r.UnitType, r.Count, r.ExpiresAt, RecoverCost(r.UnitType) * r.Count))
+                    r.UnitType, r.Level, r.Count, r.ExpiresAt, RecoverCost(r.UnitType) * r.Count))
                 .ToList();
 
             return new GarrisonView(
                 garrison.Id,
                 garrison.VillageId,
-                garrison.Units.Select(u => new UnitView(u.UnitType, u.Count)).ToList(),
-                garrison.Wounded.Select(w => new UnitView(w.UnitType, w.Count)).ToList(),
+                garrison.Units.Select(u => new UnitView(u.UnitType, u.Level, u.Count)).ToList(),
+                garrison.Wounded.Select(w => new UnitView(w.UnitType, w.Level, w.Count)).ToList(),
                 recoverable,
-                garrison.TrainingOrders.Select(o => new TrainingOrderView(o.Id, o.UnitType, o.Count, o.CompletesAt)).ToList());
+                garrison.TrainingOrders.Select(o => new TrainingOrderView(
+                    o.Id, o.UnitType, o.Level, o.Count, o.CompletesAt, _calculator.GetInstantFinishCost(o.CompletesAt, now))).ToList(),
+                garrison.LevelUpOrders.Select(o => new LevelUpOrderView(
+                    o.Id, o.UnitType, o.FromLevel, o.ToLevel, o.Count, o.CompletesAt, _calculator.GetInstantFinishCost(o.CompletesAt, now))).ToList());
         }
 
         private int RecoverCost(string unitType)

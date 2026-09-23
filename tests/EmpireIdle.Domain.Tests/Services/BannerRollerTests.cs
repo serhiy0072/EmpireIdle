@@ -209,4 +209,51 @@ public class BannerRollerTests
 
         Assert.Equal(BannerKind.Hero, result.Drop.Kind);
     }
+
+    private static BannerConfig StandardBanner() => new()
+    {
+        Key = "standard",
+        Kind = BannerKind.Standard,
+        PityGroup = "standard",
+        PriceGems = 100,
+        RarePity = 10,
+        UniquePity = 50,
+        Drops =
+        [
+            Drop("unique_hero", Rarity.Unique, weight: 1, BannerKind.Hero),
+            Drop("unique_weapon", Rarity.Unique, weight: 1, BannerKind.Weapon),
+            Drop("rare_hero", Rarity.Rare, weight: 5, BannerKind.Hero),
+            Drop("rare_weapon", Rarity.Rare, weight: 5, BannerKind.Weapon),
+            Drop("junk", Rarity.Common, weight: 88)
+        ]
+    };
+
+    /// <summary>На стандартному банері і герой, і зброя — «свої»: обидва рухають гарантії.</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public void Roll_ShouldPayTheRarePity_WithAHeroOrAWeapon_OnAStandardBanner(int seed)
+    {
+        var result = Roll(StandardBanner(), new PityState(RareSince: 9, UniqueSince: 0, FeaturedGuaranteed: false), seed);
+
+        Assert.True(result.Drop.Kind is BannerKind.Hero or BannerKind.Weapon);
+        Assert.True(result.Drop.Rarity >= Rarity.Rare);
+        Assert.Equal(0, result.State.RareSince);
+    }
+
+    /// <summary>Без промо на стандартному банері немає 50/50: унікальний ніколи не «програний».</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(9)]
+    public void Roll_ShouldNeverLoseTheFiftyFifty_OnAStandardBanner(int seed)
+    {
+        var result = Roll(StandardBanner(), new PityState(RareSince: 0, UniqueSince: 49, FeaturedGuaranteed: false), seed);
+
+        Assert.Equal(Rarity.Unique, result.Drop.Rarity);
+        Assert.False(result.LostFiftyFifty);
+        Assert.False(result.State.FeaturedGuaranteed);
+    }
 }

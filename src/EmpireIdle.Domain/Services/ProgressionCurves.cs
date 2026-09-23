@@ -30,5 +30,45 @@ namespace EmpireIdle.Domain.Services
 
             return cap >= int.MaxValue ? int.MaxValue : (int)cap;
         }
+
+        /// <summary>
+        /// Час апгрейду з рівня. Поверх геометричного росту накладає спадний
+        /// "ранній податок": на рівні 1 час зростає найсильніше (×3), до рівня
+        /// ~15 ефект згасає до кількох відсотків. Перші рівні мали відчуватись
+        /// миттєвими — це їх сповільнює, не займаючи пізню гру.
+        /// </summary>
+        public static double BuildMinutes(int baseMinutes, double growth, int level)
+        {
+            const double earlyTaxStrength = 2.0;
+            const double earlyTaxDecay = 1.2;
+
+            var geometric = baseMinutes * Math.Pow(growth, level - 1);
+            var earlyMultiplier = 1 + earlyTaxStrength / Math.Pow(level, earlyTaxDecay);
+
+            return geometric * earlyMultiplier;
+        }
+
+        /// <summary>
+        /// Множник до бойових статів юніта від рівня. Лінійний: +10% за рівень,
+        /// рівень 1 — база (×1.0).
+        /// </summary>
+        public static double UnitStatMultiplier(int level) => 1 + 0.10 * (level - 1);
+
+        /// <summary>
+        /// Сумарна вартість (чи час) прокачки з fromLevel у toLevel: крок за
+        /// кроком, геометрична крива на кожен крок. Стрибок через кілька
+        /// рівнів коштує суму кроків, а не різницю кінцевих цін (§5.2 GDD) —
+        /// інакше якнайшвидший стрибок на топ-рівень був би вигіднішим за
+        /// поступову прокачку.
+        /// </summary>
+        public static int CumulativeUnitLevelCost(int baseAmount, int fromLevel, int toLevel, double growth)
+        {
+            var total = 0.0;
+
+            for (var level = fromLevel; level < toLevel; level++)
+                total += baseAmount * Math.Pow(growth, level - 1);
+
+            return total >= int.MaxValue ? int.MaxValue : (int)total;
+        }
     }
 }

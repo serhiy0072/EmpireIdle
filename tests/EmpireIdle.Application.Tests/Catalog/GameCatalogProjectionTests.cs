@@ -1,0 +1,152 @@
+using EmpireIdle.Application.Catalog;
+using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.TestKit;
+
+namespace EmpireIdle.Application.Tests.Catalog;
+
+/// <summary>
+/// Каталог — єдине джерело назв для клієнта. Якщо він загубить героя
+/// чи предмет, екран покаже голий ключ і ніхто цього не помітить до релізу.
+/// </summary>
+public class GameCatalogProjectionTests
+{
+    private readonly GameCatalogProjection _projection =
+        new(new GameConfigBuilder().WithHeroes().WithEquipment().BuildCatalog());
+
+    [Fact]
+    public void Response_ShouldCarryEveryHeroWithItsName()
+    {
+        var catalog = new GameConfigBuilder().WithHeroes().WithEquipment().BuildCatalog();
+
+        var response = new GameCatalogProjection(catalog).Response;
+
+        Assert.Equal(catalog.Config.Heroes.Count, response.Heroes.Count);
+        Assert.All(response.Heroes, hero => Assert.False(string.IsNullOrWhiteSpace(hero.DisplayName)));
+    }
+
+    /// <summary>Ранг і слот ідуть рядками: число в типах клієнта вимагало б власної мапи.</summary>
+    [Fact]
+    public void Response_ShouldSpellOutRankAndSlot()
+    {
+        var response = _projection.Response;
+
+        Assert.All(response.Heroes, hero => Assert.Contains(hero.Rank, new[] { "Common", "Rare", "Unique" }));
+        Assert.All(response.Items.Where(item => item.Slot is not null),
+            item => Assert.Contains(item.Slot, new[] { "Weapon", "Artifact" }));
+    }
+
+    /// <summary>Швидкість підставляється з налаштувань, якщо в героя її немає.</summary>
+    [Fact]
+    public void Response_ShouldResolveSpeedFromSettings()
+        => Assert.All(_projection.Response.Heroes, hero => Assert.True(hero.Speed > 0));
+
+    [Fact]
+    public void Response_ShouldCarryResourcesAndBuildings()
+    {
+        var response = _projection.Response;
+
+        Assert.NotEmpty(response.Resources);
+        Assert.All(response.Resources, resource => Assert.False(string.IsNullOrWhiteSpace(resource.DisplayName)));
+        Assert.All(response.Buildings, building => Assert.False(string.IsNullOrWhiteSpace(building.DisplayName)));
+    }
+
+    /// <summary>Та сама проєкція — та сама версія: інакше ETag мінявся б щозапиту.</summary>
+    [Fact]
+    public void Version_ShouldBeStableAcrossReads()
+        => Assert.Equal(_projection.Response.Version, _projection.Response.Version);
+
+    [Fact]
+    public void Version_ShouldChangeWithTheConfig()
+    {
+        var other = new GameConfigBuilder().WithHeroes().Build();
+        other.Heroes[0].DisplayName = "Renamed";
+
+        var changed = new GameCatalogProjection(new EmpireIdle.Domain.Services.GameCatalog(other)).Response;
+
+        Assert.NotEqual(_projection.Response.Version, changed.Version);
+    }
+
+    /// <summary>Без вартості й вимог клієнт або мовчить про ціну, або вигадує її сам.</summary>
+    [Fact]
+    public void Response_ShouldCarryUnitsWithCostAndRequirements()
+    {
+        var catalog = new GameConfigBuilder().WithBuildings().WithUnits(unit =>
+        {
+            unit.RequiresBuilding = TestKeys.Barracks;
+            unit.RequiresBuildingLevel = 2;
+            unit.BaseTrainMinutes = 3;
+        }).BuildCatalog();
+
+        var response = new GameCatalogProjection(catalog).Response;
+
+        Assert.Equal(catalog.Config.Units.Count, response.Units.Count);
+        Assert.All(response.Units, unit => Assert.False(string.IsNullOrWhiteSpace(unit.DisplayName)));
+        Assert.All(response.Units, unit => Assert.Equal(TestKeys.Barracks, unit.RequiresBuilding));
+        Assert.All(response.Units, unit => Assert.Equal(2, unit.RequiresBuildingLevel));
+        Assert.All(response.Units, unit => Assert.Equal(3, unit.BaseTrainMinutes));
+        Assert.All(response.Units, unit => Assert.NotEmpty(unit.Cost));
+    }
+
+    /// <summary>
+    /// Кап рівня й крива вартості прокачки мусять доїхати до клієнта: без них
+    /// екран не знає, скільки рівнів пропонувати й скільки це коштуватиме.
+    /// </summary>
+    [Fact]
+    public void Response_ShouldCarryTheUnitLevelCapAndGrowthCurve()
+    {
+        var config = new GameConfigBuilder().WithBuildings().WithUnits(unit =>
+        {
+            unit.LevelUpCostGrowth = 1.35;
+        }).Build();
+        config.MaxUnitLevel = 7;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+
+        Assert.Equal(7, response.MaxUnitLevel);
+        Assert.All(response.Units, unit => Assert.Equal(1.35, unit.LevelUpCostGrowth));
+    }
+
+    /// <summary>
+    /// Ціна лікування gems потрібна клієнту для прев'ю: юніти в госпіталі
+    /// не несуть власної вартості, на відміну від відновлюваних.
+    /// </summary>
+    [Fact]
+    public void Response_ShouldCarryTheHealGemsPrice()
+    {
+        var config = new GameConfigBuilder().WithBuildings().Build();
+        config.Monetization.HealGemsPerUnit = 3;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+
+        Assert.Equal(3, response.HealGemsPerUnit);
+    }
+
+    /// <summary>Позиція будує розкладку села на клієнті: без неї будівлю нема куди поставити.</summary>
+    [Fact]
+    public void Response_ShouldCarryBuildingPositions()
+    {
+        var config = new GameConfigBuilder().WithBuildings(TestKeys.Warehouse).Build();
+        var townhall = config.Buildings[0];
+        townhall.Position = new BuildingPosition { X = 50, Y = 30 };
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var building = response.Buildings.Single(b => b.Key == townhall.Key);
+
+        Assert.Equal(new CatalogPosition(50, 30), building.Position);
+    }
+
+    /// <summary>Умова відкриття туману війни (GDD §3.1) — клієнт мусить знати, на якому рівні ратуші показати кнопку замість силуету.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheMainBuildingLevelGate()
+    {
+        var config = new GameConfigBuilder().WithBuildings(TestKeys.Warehouse).Build();
+        var warehouse = config.Buildings.Single(b => b.Key == TestKeys.Warehouse);
+        warehouse.RequiresMainBuildingLevel = 4;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var building = response.Buildings.Single(b => b.Key == TestKeys.Warehouse);
+
+        Assert.Equal(4, building.RequiresMainBuildingLevel);
+    }
+}

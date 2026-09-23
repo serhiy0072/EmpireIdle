@@ -3,12 +3,12 @@
     "Quests": [
       {
         "Key": "intro_farm",
-        "DisplayName": "Перший урожай",
+        "DisplayName": "Перше золото",
         "Window": "Chain",
         "Objectives": [
           {
             "Type": "BuildingCollected",
-            "Target": "food",
+            "Target": "gold",
             "Count": 50,
             "Mode": "Accumulate"
           }

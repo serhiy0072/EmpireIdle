@@ -48,7 +48,7 @@ public class SpeedUpTrainingCommandTests
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
-        garrison.TrainUnits("infantry", count: 5, maxBatchSize: 100, armyCapacity: 1000,
+        garrison.TrainUnits("infantry", level: 1, count: 5, maxBatchSize: 100, armyCapacity: 1000,
             TimeSpan.FromMinutes(minutesLeft), Now);
 
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);

@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
 {
@@ -13,6 +14,7 @@ namespace EmpireIdle.Domain.Entities
 
         private readonly List<VillageUnit> _units = new();
         private readonly List<UnitTrainingOrder> _trainingOrders = new();
+        private readonly List<UnitLevelUpOrder> _levelUpOrders = new();
         private readonly List<WoundedUnit> _wounded = new();
         private readonly List<RecoverableUnit> _recoverable = new();
         private readonly List<ReinforcementUnit> _reinforcements = new();
@@ -22,6 +24,9 @@ namespace EmpireIdle.Domain.Entities
 
         public IReadOnlyCollection<VillageUnit> Units => _units.AsReadOnly();
         public IReadOnlyCollection<UnitTrainingOrder> TrainingOrders => _trainingOrders.AsReadOnly();
+
+        /// <summary>Активні замовлення прокачки (тільки для читання).</summary>
+        public IReadOnlyCollection<UnitLevelUpOrder> LevelUpOrders => _levelUpOrders.AsReadOnly();
 
         /// <summary>Поранені в Госпіталі (тільки для читання).</summary>
         public IReadOnlyCollection<WoundedUnit> Wounded => _wounded.AsReadOnly();
@@ -78,11 +83,11 @@ namespace EmpireIdle.Domain.Entities
         {
             var own = _units
                 .Where(u => u.Count > 0)
-                .Select(u => new DefenceStack(null, u.UnitType, u.Count));
+                .Select(u => new DefenceStack(null, u.UnitType, u.Level, u.Count));
 
             var allied = _reinforcements
                 .Where(r => r.Count > 0)
-                .Select(r => new DefenceStack(r.OwnerPlayerId, r.UnitType, r.Count));
+                .Select(r => new DefenceStack(r.OwnerPlayerId, r.UnitType, r.Level, r.Count));
 
             return own.Concat(allied).ToList();
         }
@@ -94,6 +99,14 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
         public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
 
+        /// <summary>
+        /// Скільки місця в гарнізоні зайнято: свої юніти плюс усе, що тимчасово
+        /// зняте на тренування чи прокачку. Марші й чужі підкріплення сюди
+        /// не входять (§5.3, §5.2 GDD).
+        /// </summary>
+        private int Occupied()
+            => _units.Sum(u => u.Count) + _trainingOrders.Sum(o => o.Count) + _levelUpOrders.Sum(o => o.Count);
+
         #endregion
 
         #region Тренування
@@ -102,13 +115,17 @@ namespace EmpireIdle.Domain.Entities
         /// Ставить партію юнітів у чергу тренування.
         /// Інваріанти: розмір партії, одне активне замовлення, ліміт армії.
         /// </summary>
+        /// <param name="level">
+        /// Рівень, на якому юніти з'являться — тренування з нуля на обраний
+        /// рівень, а не завжди на 1 (§5.2 GDD: "апати або створювати з нуля").
+        /// </param>
         /// <param name="armyCapacity">
         /// Скільки юнітів гарнізон може тримати. Рахується від рівня казарм.
         /// Юніти в маршах у ліміт не входять: вони вже зняті з гарнізону, і
         /// перевіряти їх означало б тягнути в агрегат чужий стан. Чужі
         /// підкріплення теж не входять — у них свій ліміт від посольства.
         /// </param>
-        public void TrainUnits(string unitType, int count, int maxBatchSize, int armyCapacity,
+        public void TrainUnits(string unitType, int level, int count, int maxBatchSize, int armyCapacity,
             TimeSpan trainDuration, DateTime utcNow)
         {
             if (count < 1 || count > maxBatchSize)
@@ -117,16 +134,14 @@ namespace EmpireIdle.Domain.Entities
             if (_trainingOrders.Any())
                 throw new InvalidStateException("Barracks are already training a batch.");
 
-            // Черга рахується разом із гарнізоном — інакше ліміт обходиться
-            // послідовними замовленнями до завершення першого
-            var occupied = _units.Sum(u => u.Count) + _trainingOrders.Sum(o => o.Count);
+            var occupied = Occupied();
 
             if (occupied + count > armyCapacity)
                 throw new RequirementNotMetException(
                     $"Army capacity exceeded: {occupied} of {armyCapacity} used, requested {count}.");
 
             _trainingOrders.Add(new UnitTrainingOrder(
-                Guid.NewGuid(), Id, unitType, count, utcNow + trainDuration));
+                Guid.NewGuid(), Id, unitType, level, count, utcNow + trainDuration));
         }
 
         /// <summary>Завершує дозрілі замовлення: юніти йдуть у гарнізон.</summary>
@@ -136,10 +151,10 @@ namespace EmpireIdle.Domain.Entities
 
             foreach (var order in due)
             {
-                var unit = _units.FirstOrDefault(u => u.UnitType == order.UnitType);
+                var unit = _units.FirstOrDefault(u => u.UnitType == order.UnitType && u.Level == order.Level);
                 if (unit is null)
                 {
-                    unit = new VillageUnit(Guid.NewGuid(), Id, order.UnitType);
+                    unit = new VillageUnit(Guid.NewGuid(), Id, order.UnitType, order.Level);
                     _units.Add(unit);
                 }
                 unit.Add(order.Count);
@@ -165,48 +180,116 @@ namespace EmpireIdle.Domain.Entities
 
         #endregion
 
+        #region Прокачка
+
+        /// <summary>
+        /// Ставить партію юнітів у чергу прокачки. Юніти знімаються з гарнізону
+        /// одразу (§5.2 GDD): недоступні для маршів і оборони, поки не завершиться.
+        /// Ліміту армії прокачка не підлягає — кількість не змінюється.
+        /// </summary>
+        public void LevelUpUnits(string unitType, int fromLevel, int toLevel, int count, int maxBatchSize,
+            TimeSpan duration, DateTime utcNow)
+        {
+            if (count < 1 || count > maxBatchSize)
+                throw new RequirementNotMetException($"Level-up batch size must be between 1 and {maxBatchSize}.");
+
+            if (toLevel <= fromLevel)
+                throw new RequirementNotMetException("Target level must be higher than the current level.");
+
+            if (_levelUpOrders.Any())
+                throw new InvalidStateException("Barracks are already levelling up a batch.");
+
+            var stack = _units.FirstOrDefault(u => u.UnitType == unitType && u.Level == fromLevel)
+                ?? throw new NotEnoughResourcesException(unitType, count, 0);
+
+            if (stack.Count < count)
+                throw new NotEnoughResourcesException(unitType, count, stack.Count);
+
+            stack.Subtract(count);
+
+            _levelUpOrders.Add(new UnitLevelUpOrder(
+                Guid.NewGuid(), Id, unitType, fromLevel, toLevel, count, utcNow + duration));
+
+            Touch(utcNow);
+        }
+
+        /// <summary>Завершує дозрілі прокачки: юніти повертаються в гарнізон на новому рівні.</summary>
+        public int CompleteDueLevelUps(DateTime utcNow)
+        {
+            var due = _levelUpOrders.Where(o => o.CompletesAt <= utcNow).ToList();
+
+            foreach (var order in due)
+            {
+                var unit = _units.FirstOrDefault(u => u.UnitType == order.UnitType && u.Level == order.ToLevel);
+                if (unit is null)
+                {
+                    unit = new VillageUnit(Guid.NewGuid(), Id, order.UnitType, order.ToLevel);
+                    _units.Add(unit);
+                }
+                unit.Add(order.Count);
+                _levelUpOrders.Remove(order);
+            }
+
+            if (due.Count > 0)
+                Touch(utcNow);
+
+            return due.Count;
+        }
+
+        /// <summary>Прискорює замовлення прокачки (speedup за gems).</summary>
+        public void ReduceLevelUpTime(Guid orderId, TimeSpan reduction, DateTime utcNow)
+        {
+            var order = _levelUpOrders.FirstOrDefault(o => o.Id == orderId)
+                 ?? throw new EntityNotFoundException("Level-up order", orderId);
+
+            order.Reduce(reduction);
+            Touch(utcNow);
+        }
+
+        #endregion
+
         #region Марші
 
         /// <summary>
         /// Знімає юнітів із гарнізону для походу.
         /// </summary>
-        /// <param name="units">Тип юніта → кількість.</param>
-        public void SendUnits(IReadOnlyDictionary<string, int> units, DateTime utcNow)
+        /// <param name="units">Стек (тип+рівень) → кількість.</param>
+        public void SendUnits(IReadOnlyDictionary<UnitStackKey, int> units, DateTime utcNow)
         {
             if (units.Count == 0)
                 throw new RequirementNotMetException("Cannot send an empty army.");
 
             // Спершу перевіряємо ВСІ позиції — щоб не зняти частину і впасти
-            foreach (var (unitType, count) in units)
+            foreach (var (stack, count) in units)
             {
                 if (count < 1)
-                    throw new RequirementNotMetException($"Invalid unit count for '{unitType}'.");
+                    throw new RequirementNotMetException($"Invalid unit count for '{stack}'.");
 
-                var unit = _units.FirstOrDefault(u => u.UnitType == unitType)
-                     ?? throw new NotEnoughResourcesException(unitType, count, 0);
+                var unit = _units.FirstOrDefault(u => u.UnitType == stack.UnitType && u.Level == stack.Level)
+                     ?? throw new NotEnoughResourcesException(stack.UnitType, count, 0);
 
                 if (unit.Count < count)
-                    throw new NotEnoughResourcesException(unitType, count, unit.Count);
+                    throw new NotEnoughResourcesException(stack.UnitType, count, unit.Count);
             }
 
-            foreach (var (unitType, count) in units)
-                _units.First(u => u.UnitType == unitType).Subtract(count);
+            foreach (var (stack, count) in units)
+                _units.First(u => u.UnitType == stack.UnitType && u.Level == stack.Level).Subtract(count);
 
             Touch(utcNow);
         }
 
         /// <summary>Повертає юнітів у гарнізон (після походу).</summary>
-        public void ReceiveUnits(IReadOnlyDictionary<string, int> units, DateTime utcNow)
+        public void ReceiveUnits(IReadOnlyDictionary<UnitStackKey, int> units, DateTime utcNow)
         {
-            foreach (var (unitType, count) in units)
+            foreach (var (stack, count) in units)
             {
                 if (count < 1)
                     continue;
 
-                var unit = _units.FirstOrDefault(u => u.UnitType == unitType);
+                var unit = _units.FirstOrDefault(u => u.UnitType == stack.UnitType && u.Level == stack.Level);
                 if (unit is null)
                 {
-                    unit = new VillageUnit(Guid.NewGuid(), Id, unitType);
+                    unit = new VillageUnit(Guid.NewGuid(), Id, stack.UnitType, stack.Level);
                     _units.Add(unit);
                 }
                 unit.Add(count);
@@ -227,7 +310,7 @@ namespace EmpireIdle.Domain.Entities
         /// й не звільняють місця під власну армію.
         /// </param>
         public void AddReinforcements(Guid ownerPlayerId, Guid ownerGarrisonId,
-            IReadOnlyDictionary<string, int> units, int capacity, DateTime utcNow)
+            IReadOnlyDictionary<UnitStackKey, int> units, int capacity, DateTime utcNow)
         {
             var incoming = units.Values.Where(c => c > 0).Sum();
 
@@ -238,22 +321,22 @@ namespace EmpireIdle.Domain.Entities
                 throw new RequirementNotMetException(
                     $"Embassy capacity exceeded: {ReinforcementCount} of {capacity} used, incoming {incoming}.");
 
-            foreach (var (unitType, count) in units)
+            foreach (var (stack, count) in units)
             {
                 if (count < 1)
                     continue;
 
-                var stack = _reinforcements.FirstOrDefault(r =>
-                    r.OwnerPlayerId == ownerPlayerId && r.UnitType == unitType);
+                var reinforcement = _reinforcements.FirstOrDefault(r =>
+                    r.OwnerPlayerId == ownerPlayerId && r.UnitType == stack.UnitType && r.Level == stack.Level);
 
-                if (stack is null)
+                if (reinforcement is null)
                 {
-                    stack = new ReinforcementUnit(Guid.NewGuid(), Id, ownerPlayerId, ownerGarrisonId,
-                        unitType, 0, utcNow);
-                    _reinforcements.Add(stack);
+                    reinforcement = new ReinforcementUnit(Guid.NewGuid(), Id, ownerPlayerId, ownerGarrisonId,
+                        stack.UnitType, stack.Level, 0, utcNow);
+                    _reinforcements.Add(reinforcement);
                 }
 
-                stack.Add(count);
+                reinforcement.Add(count);
             }
 
             RaiseDomainEvent(new Events.ReinforcementsMoved(ownerGarrisonId, utcNow));
@@ -264,7 +347,7 @@ namespace EmpireIdle.Domain.Entities
         /// Знімає підкріплення одного союзника — відкликання, кік або вихід
         /// із клану. Повертає склад, який має вирушити додому.
         /// </summary>
-        public Dictionary<string, int> WithdrawReinforcements(Guid ownerPlayerId, DateTime utcNow)
+        public Dictionary<UnitStackKey, int> WithdrawReinforcements(Guid ownerPlayerId, DateTime utcNow)
         {
             var stacks = _reinforcements
                 .Where(r => r.OwnerPlayerId == ownerPlayerId)
@@ -272,7 +355,7 @@ namespace EmpireIdle.Domain.Entities
 
             var withdrawn = stacks
                 .Where(r => r.Count > 0)
-                .ToDictionary(r => r.UnitType, r => r.Count);
+                .ToDictionary(r => new UnitStackKey(r.UnitType, r.Level), r => r.Count);
 
             if (withdrawn.Count == 0)
                 return [];
@@ -312,7 +395,7 @@ namespace EmpireIdle.Domain.Entities
 
                 if (loss.OwnerPlayerId is null)
                 {
-                    var own = _units.FirstOrDefault(u => u.UnitType == loss.UnitType);
+                    var own = _units.FirstOrDefault(u => u.UnitType == loss.UnitType && u.Level == loss.Level);
 
                     own?.Subtract(loss.Lost);
 
@@ -320,7 +403,7 @@ namespace EmpireIdle.Domain.Entities
                 }
 
                 var stack = _reinforcements.FirstOrDefault(r =>
-                    r.OwnerPlayerId == loss.OwnerPlayerId && r.UnitType == loss.UnitType);
+                    r.OwnerPlayerId == loss.OwnerPlayerId && r.UnitType == loss.UnitType && r.Level == loss.Level);
 
                 if (stack is null)
                     continue;
@@ -338,20 +421,20 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>Приймає поранених після бою (у межах вільної місткості).</summary>
-        public void AdmitWounded(IReadOnlyDictionary<string, int> wounded, DateTime utcNow)
+        public void AdmitWounded(IReadOnlyDictionary<UnitStackKey, int> wounded, DateTime utcNow)
         {
-            foreach (var (unitType, count) in wounded)
+            foreach (var (stack, count) in wounded)
             {
                 if (count <= 0)
                     continue;
 
-                var stack = _wounded.FirstOrDefault(w => w.UnitType == unitType);
-                if (stack is null)
+                var wound = _wounded.FirstOrDefault(w => w.UnitType == stack.UnitType && w.Level == stack.Level);
+                if (wound is null)
                 {
-                    stack = new WoundedUnit(Guid.NewGuid(), Id, unitType, 0);
-                    _wounded.Add(stack);
+                    wound = new WoundedUnit(Guid.NewGuid(), Id, stack.UnitType, stack.Level, 0);
+                    _wounded.Add(wound);
                 }
-                stack.Add(count);
+                wound.Add(count);
             }
             Touch(utcNow);
         }
@@ -359,19 +442,19 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>
         /// Виліковує поранених: вони повертаються в гарнізон.
         /// </summary>
-        public Dictionary<string, int> HealWounded(IReadOnlyDictionary<string, int> toHeal, DateTime utcNow)
+        public Dictionary<UnitStackKey, int> HealWounded(IReadOnlyDictionary<UnitStackKey, int> toHeal, DateTime utcNow)
         {
-            var healed = new Dictionary<string, int>();
+            var healed = new Dictionary<UnitStackKey, int>();
 
-            foreach (var (unitType, requested) in toHeal)
+            foreach (var (stack, requested) in toHeal)
             {
-                var stack = _wounded.FirstOrDefault(w => w.UnitType == unitType);
-                if (stack is null || requested <= 0)
+                var wound = _wounded.FirstOrDefault(w => w.UnitType == stack.UnitType && w.Level == stack.Level);
+                if (wound is null || requested <= 0)
                     continue;
 
-                var count = Math.Min(requested, stack.Count);
-                stack.Reduce(count);
-                healed[unitType] = count;
+                var count = Math.Min(requested, wound.Count);
+                wound.Reduce(count);
+                healed[stack] = count;
             }
 
             _wounded.RemoveAll(w => w.Count <= 0);
@@ -384,14 +467,14 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>Записує відновлюваних після бою — окремим стеком зі своїм дедлайном.</summary>
-        public void AddRecoverable(IReadOnlyDictionary<string, int> units, Guid battleReportId, DateTime expiresAt, DateTime utcNow)
+        public void AddRecoverable(IReadOnlyDictionary<UnitStackKey, int> units, Guid battleReportId, DateTime expiresAt, DateTime utcNow)
         {
-            foreach (var (unitType, count) in units)
+            foreach (var (stack, count) in units)
             {
                 if (count <= 0)
                     continue;
 
-                _recoverable.Add(new RecoverableUnit(Guid.NewGuid(), Id, battleReportId, unitType, count, expiresAt));
+                _recoverable.Add(new RecoverableUnit(Guid.NewGuid(), Id, battleReportId, stack.UnitType, stack.Level, count, expiresAt));
             }
             Touch(utcNow);
         }
@@ -400,33 +483,33 @@ namespace EmpireIdle.Domain.Entities
         /// Викуповує юнітів: вони повертаються в гарнізон.
         /// Списує зі стеків у порядку найближчого дедлайну — щоб гравець не втратив те, що згорає першим.
         /// </summary>
-        public Dictionary<string, int> RecoverUnits(IReadOnlyDictionary<string, int> toRecover, DateTime utcNow)
+        public Dictionary<UnitStackKey, int> RecoverUnits(IReadOnlyDictionary<UnitStackKey, int> toRecover, DateTime utcNow)
         {
-            var recovered = new Dictionary<string, int>();
+            var recovered = new Dictionary<UnitStackKey, int>();
 
-            foreach (var (unitType, requested) in toRecover)
+            foreach (var (stack, requested) in toRecover)
             {
                 if (requested <= 0)
                     continue;
 
                 var remaining = requested;
-                var stacks = _recoverable
-                    .Where(r => r.UnitType == unitType && r.IsActive(utcNow))
+                var candidates = _recoverable
+                    .Where(r => r.UnitType == stack.UnitType && r.Level == stack.Level && r.IsActive(utcNow))
                     .OrderBy(r => r.ExpiresAt);
 
-                foreach (var stack in stacks)
+                foreach (var candidate in candidates)
                 {
                     if (remaining <= 0)
                         break;
 
-                    var taken = Math.Min(remaining, stack.Count);
-                    stack.Reduce(taken);
+                    var taken = Math.Min(remaining, candidate.Count);
+                    candidate.Reduce(taken);
                     remaining -= taken;
                 }
 
                 var total = requested - remaining;
                 if (total > 0)
-                    recovered[unitType] = total;
+                    recovered[stack] = total;
             }
 
             _recoverable.RemoveAll(r => r.Count <= 0);

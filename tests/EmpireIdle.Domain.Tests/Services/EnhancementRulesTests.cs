@@ -15,7 +15,7 @@ namespace EmpireIdle.Domain.Tests.Services
             SuccessDropPerLevel = 0.05,
             MinSuccessChance = 0.25,
             BreakChanceOnFailure = 0.2,
-            RepairCostShare = 0.5
+            RepairGemsBase = 20, RepairGemsPerLevel = 8,
         };
 
         private static EnhancementRules Rules() => new(Config());
@@ -33,12 +33,14 @@ namespace EmpireIdle.Domain.Tests.Services
         /// Ремонт дешевший за спробу, що зламала предмет: поломка забирає
         /// спробу, а не прогрес, і лагодити має бути вигідніше, ніж кидати.
         /// </summary>
+        /// <summary>Ремонт — за gems, лінійно від рівня: +0 коштує базу, кожен рівень заточки додає надбавку.</summary>
         [Fact]
-        public void RepairCost_ShouldBeCheaperThanTheAttempt()
+        public void RepairGems_ShouldGrowLinearlyWithTheLevel()
         {
             var rules = Rules();
 
-            Assert.True(rules.RepairCost(10) < rules.EnhanceCost(10));
+            Assert.Equal(20, rules.RepairGems(0));
+            Assert.Equal(20 + 8 * 10, rules.RepairGems(10));
         }
 
         [Theory]

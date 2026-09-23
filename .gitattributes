@@ -1,0 +1,11 @@
+# У репозиторії все зберігається з LF. Робоча копія на Windows
+# отримує CRLF автоматично — код однаковий на всіх машинах і в CI.
+* text=auto eol=lf
+
+# Бінарні: Git не має лізти в їхній вміст
+*.png binary
+*.jpg binary
+*.ico binary
+*.zip binary
+*.woff binary
+*.woff2 binary

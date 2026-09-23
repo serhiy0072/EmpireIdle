@@ -199,7 +199,7 @@ public class CompleteMarchCommandTests
         var march = new March(
             Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
             MarchTargetType.Monster, monster.Id,
-            new Dictionary<string, int> { ["infantry"] = attackerInfantry },
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = attackerInfantry },
             Now, Now.AddMinutes(-30));
 
         _marches.GetByIdAsync(march.Id, Arg.Any<CancellationToken>()).Returns(march);
@@ -229,12 +229,12 @@ public class CompleteMarchCommandTests
         var defenderGarrison = new Garrison(Guid.NewGuid(), defender.Id, 1);
 
         if (defenderInfantry > 0)
-            defenderGarrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = defenderInfantry }, Now);
+            defenderGarrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = defenderInfantry }, Now);
 
         var march = new March(
             Guid.NewGuid(), 1, attackerGarrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
             MarchTargetType.Village, defender.Id,
-            new Dictionary<string, int> { ["infantry"] = attackerInfantry },
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = attackerInfantry },
             Now, Now.AddMinutes(-30));
 
         _marches.GetByIdAsync(march.Id, Arg.Any<CancellationToken>()).Returns(march);
@@ -443,7 +443,7 @@ public class CompleteMarchCommandTests
         _villages.GetByPlayerIdAsync(allyId, Arg.Any<CancellationToken>()).Returns(allyVillage);
 
         defenderGarrison.AddReinforcements(allyId, allyGarrison.Id,
-            new Dictionary<string, int> { ["infantry"] = 10 }, 100, Now);
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, 100, Now);
 
         await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
 

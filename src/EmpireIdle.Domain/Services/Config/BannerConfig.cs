@@ -24,6 +24,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Ціна одного ролла.</summary>
         public int PriceGems { get; set; }
 
+        /// <summary>Ціна ролла в печатках призову; 0 — цей банер за печатки не крутять.</summary>
+        public int PriceSeals { get; set; }
+
         /// <summary>Через скільки роллів без рідкісного він гарантований.</summary>
         public int RarePity { get; set; } = 10;
 

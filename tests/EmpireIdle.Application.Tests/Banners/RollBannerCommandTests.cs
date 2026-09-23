@@ -95,8 +95,8 @@ public class RollBannerCommandTests
             NullLogger<RollBannerCommandHandler>.Instance);
     }
 
-    private Task<BannerRollResponse> Roll(BannerConfig banner)
-        => Handler(banner).Handle(new RollBannerCommand(_playerId, banner.Key), CancellationToken.None);
+    private Task<BannerRollResponse> Roll(BannerConfig banner, int count = 1, BannerCurrency currency = BannerCurrency.Gems)
+        => Handler(banner).Handle(new RollBannerCommand(_playerId, banner.Key, count, currency), CancellationToken.None);
 
     [Fact]
     public async Task Handle_ShouldChargeGemsAndGrantTheDrop()
@@ -139,7 +139,74 @@ public class RollBannerCommandTests
         Assert.Equal(4242, record!.Seed);
         Assert.Equal(4, record.RareSinceBefore);
         Assert.Equal(Price, record.PriceGems);
-        Assert.Equal(response.DropKey, record.DropKey);
+        Assert.Equal(response.Drops[0].DropKey, record.DropKey);
+    }
+
+    /// <summary>Серія — одна транзакція: десять списань, десять записів журналу, один SaveChanges.</summary>
+    [Fact]
+    public async Task Handle_ShouldRollTheWholeSeries_InOneTransaction()
+    {
+        var response = await Roll(Banner(), count: 5);
+
+        Assert.Equal(5, response.Drops.Count);
+        Assert.Equal(1_000 - Price * 5, _wallet.GemBalance.Value);
+        Assert.Equal(1_000 - Price * 5, response.GemBalance);
+        await _banners.Received(5).AddRollAsync(Arg.Any<BannerRollRecord>(), Arg.Any<CancellationToken>());
+        await _granter.Received(5).GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Гарантія рахується всередині серії: pity після серії відповідає п'яти окремим роллам.</summary>
+    [Fact]
+    public async Task Handle_ShouldAdvancePity_AcrossTheSeries()
+    {
+        BannerPityProgress? added = null;
+        await _banners.AddPityAsync(Arg.Do<BannerPityProgress>(p => added = p), Arg.Any<CancellationToken>());
+
+        await Roll(Banner(), count: 5);
+
+        Assert.NotNull(added);
+        Assert.Equal(5, added!.TotalRolls);
+    }
+
+    /// <summary>Gems вистачає на три роллі з п'яти — серія відхиляється цілком, нічого не списано.</summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenGemsCoverOnlyPartOfTheSeries()
+    {
+        _wallet.SpendGems(new GemAmount(1_000 - Price * 3), "test", _playerId, Now);
+
+        var error = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Roll(Banner(), count: 5));
+
+        Assert.Equal(Price * 5, error.Need);
+        Assert.Equal(Price * 3, _wallet.GemBalance.Value);
+        await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Печатки призову — друга валюта банера: списуються замість gems, gems не чіпаються.</summary>
+    [Fact]
+    public async Task Handle_ShouldChargeSeals_WhenPayingWithSeals()
+    {
+        var banner = Banner();
+        banner.PriceSeals = 40;
+        _wallet.AddSeals(100, "test", Now);
+
+        var response = await Roll(banner, count: 2, currency: BannerCurrency.Seals);
+
+        Assert.Equal(100 - 80, _wallet.SealBalance);
+        Assert.Equal(100 - 80, response.SealBalance);
+        Assert.Equal(1_000, _wallet.GemBalance.Value);
+    }
+
+    /// <summary>Банер без ціни в печатках за печатки не крутять — це відмова, а не безкоштовний ролл.</summary>
+    [Fact]
+    public async Task Handle_ShouldReject_SealsOnABannerWithoutASealPrice()
+    {
+        _wallet.AddSeals(100, "test", Now);
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(), currency: BannerCurrency.Seals));
+
+        Assert.Equal(100, _wallet.SealBalance);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Marches.Services
@@ -39,7 +40,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// Час зворотної дороги рахується по вцілілих: втратив кавалерію,
         /// вертаєшся зі швидкістю піхоти.
         /// </summary>
-        public void TurnMarchBack(March march, IReadOnlyDictionary<string, int> survivors, DateTime utcNow)
+        public void TurnMarchBack(March march, IReadOnlyDictionary<UnitStackKey, int> survivors, DateTime utcNow)
         {
             if (survivors.Count == 0 || survivors.Values.All(c => c <= 0))
             {
@@ -84,8 +85,8 @@ namespace EmpireIdle.Application.Marches.Services
         /// Скільки армія здатна винести: сума CarryCapacity по вцілілих.
         /// Саме по вцілілих — інакше вигідно вести гарматне м'ясо заради місця.
         /// </summary>
-        public int CalculateCarryCapacity(IReadOnlyDictionary<string, int> survivors)
-            => survivors.Sum(pair => _catalog.Units.TryGetValue(pair.Key, out var config)
+        public int CalculateCarryCapacity(IReadOnlyDictionary<UnitStackKey, int> survivors)
+            => survivors.Sum(pair => _catalog.Units.TryGetValue(pair.Key.UnitType, out var config)
                 ? (int)(config.Stats.GetValueOrDefault("CarryCapacity", 0) * pair.Value)
                 : 0);
 
@@ -95,7 +96,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// сума частин розійшлася б із лімітом.
         /// </summary>
         public Dictionary<string, int> LimitToCarryCapacity(
-            IReadOnlyDictionary<string, int> loot, IReadOnlyDictionary<string, int> survivors)
+            IReadOnlyDictionary<string, int> loot, IReadOnlyDictionary<UnitStackKey, int> survivors)
         {
             var total = loot.Values.Sum();
             var capacity = CalculateCarryCapacity(survivors);

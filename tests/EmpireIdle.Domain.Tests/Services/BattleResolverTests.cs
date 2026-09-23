@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
@@ -7,8 +8,8 @@ namespace EmpireIdle.Domain.Tests.Services
     public class BattleResolverTests
     {
         private readonly BattleResolver _resolver;
-        private readonly Dictionary<string, int> _attacker = new() { ["infantry"] = 20 };
-        private readonly Dictionary<string, int> _defender = new() { ["infantry"] = 15 };
+        private readonly Dictionary<UnitStackKey, int> _attacker = new() { [new UnitStackKey("infantry", 1)] = 20 };
+        private readonly Dictionary<UnitStackKey, int> _defender = new() { [new UnitStackKey("infantry", 1)] = 15 };
 
         public BattleResolverTests()
         {

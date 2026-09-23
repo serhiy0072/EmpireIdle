@@ -22,7 +22,8 @@ namespace EmpireIdle.Application.Marches.Validators
 
             RuleForEach(x => x.Units).ChildRules(unit =>
             {
-                unit.RuleFor(u => u.Key).NotEmpty().MaximumLength(50);
+                unit.RuleFor(u => u.Key.UnitType).NotEmpty().MaximumLength(50);
+                unit.RuleFor(u => u.Key.Level).GreaterThanOrEqualTo(1);
                 unit.RuleFor(u => u.Value).GreaterThan(0);
             });
         }

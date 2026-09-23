@@ -3,6 +3,7 @@ using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Middleware;
 using EmpireIdle.API.Services;
 using EmpireIdle.API.Swagger;
+using EmpireIdle.Application.Catalog;
 using EmpireIdle.Application.Dev.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Combat;
@@ -54,6 +55,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
     .Validate(c => c.Quests.SelectMany(q => q.Rewards.Concat(q.RewardTiers.SelectMany(t => t.Rewards))).All(r => r.Amount > 0), "GameConfig has a quest reward with non-positive Amount.")
     .Validate(c => c.Shop.GemPacks.Count > 0, "GameConfig.Shop.GemPacks is empty — check Config/shop.json.")
+    .Validate(c => c.Shop.Items.All(i => i.PriceGems > 0 && i.MaxPerPurchase is >= 1 and <= 100), "GameConfig.Shop.Items has an offer with a non-positive price or MaxPerPurchase outside 1–100.")
     .Validate(c => c.StartingResources.Count > 0, "GameConfig.StartingResources is empty.")
     .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
     .Validate(c => c.Map.Terrains.Any(t => t.Weight > 0), "GameConfig.Map has no terrain with positive weight.")
@@ -65,6 +67,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
     .Validate(c => c.Heroes.Count > 0, "GameConfig.Heroes is empty — check Config/heroes.json.")
+    .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -106,6 +109,7 @@ builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new BannerRoller(gameConfig.Shop));
 builder.Services.AddSingleton(sp => new HeroStats(sp.GetRequiredService<HeroProgression>(), sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton<GameCatalogProjection>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<DefenceLossAllocator>();
 builder.Services.AddSingleton<BattleResolver>();
@@ -193,7 +197,9 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // Решта API — по гравцю, а за його відсутності по IP
+    // Решта API — по гравцю, а за його відсутності по IP. Ліміт — від активної
+    // сесії, а не від бота: збір з усіх будівель, серія роллів і кілька екранів
+    // із таймерами за хвилину дають далеко за сотню запитів
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.User.FindFirst("playerId")?.Value
@@ -201,7 +207,7 @@ builder.Services.AddRateLimiter(options =>
                 ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 120,
+                PermitLimit = 600,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
@@ -321,6 +327,10 @@ if (app.Environment.IsDevelopment())
         await mediator.Send(new SeedDevAccountCommand(playerId), cancellationToken);
         return Results.NoContent();
     }).RequireAuthorization();
+
+    // Перегенерація мапи після зміни насіння чи ваг місцевості: монстри заново, села — на придатні клітини
+    app.MapPost("/api/dev/reset-map", async (IMediator mediator, IServerContext serverContext, CancellationToken cancellationToken)
+        => Results.Ok(await mediator.Send(new ResetMapCommand(serverContext.ServerId), cancellationToken))).RequireAuthorization();
 }
 else
 {

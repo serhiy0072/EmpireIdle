@@ -8,11 +8,7 @@
         "Cost": [
           {
             "Resource": "gold",
-            "Amount": 10
-          },
-          {
-            "Resource": "food",
-            "Amount": 5
+            "Amount": 15
           }
         ],
         "BaseTrainMinutes": 2,

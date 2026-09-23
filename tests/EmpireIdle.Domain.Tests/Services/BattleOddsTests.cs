@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -83,8 +84,8 @@ namespace EmpireIdle.Domain.Tests.Services
         public void EstimateOdds_ShouldUseTheSamePowerFormulaAsTheBattle()
         {
             var calculator = Calculator();
-            var attacker = new Dictionary<string, int> { ["infantry"] = 20 };
-            var defender = new Dictionary<string, int> { ["infantry"] = 10 };
+            var attacker = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 20 };
+            var defender = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
 
             var attackerPower = calculator.CalculatePower(attacker, "plain", isAttacker: true);
             var defenderPower = calculator.CalculatePower(defender, "plain", isAttacker: false);

@@ -1,0 +1,132 @@
+import { useRef } from "react";
+import { usePanZoom } from "../../hooks/usePanZoom";
+import type { BuildingResponse } from "../../lib/apiTypes";
+import { project, toPath, WORLD } from "../../lib/iso";
+import type { Catalog } from "../../lib/queries/catalog";
+import IsoBuilding from "./IsoBuilding";
+import IsoWall from "./IsoWall";
+import { buildingArt } from "./buildingArt";
+import IsoBuildingOverlay from "./IsoBuildingOverlay";
+import VillageTerrain from "./VillageTerrain";
+
+/** Стіна — периметр, а не будівля на плані. Прапорця в конфізі немає, тож ключ. */
+const WALL_KEY = "wall";
+
+function compact(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+  return value.toString();
+}
+
+interface Props {
+  buildings: BuildingResponse[];
+  catalog: Catalog;
+  selectedId: string | null;
+  onSelect: (buildingId: string) => void;
+  onCollect: (buildingId: string) => void;
+}
+
+export default function VillageMap({ buildings, catalog, selectedId, onSelect, onCollect }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { transform, handlers, wasDragged } = usePanZoom(containerRef, WORLD);
+
+  const wall = buildings.find((building) => building.type === WALL_KEY) ?? null;
+  const wallLocked = wall !== null && !wall.isUnlocked;
+  const wallGateLevel = catalog.building(WALL_KEY)?.requiresMainBuildingLevel ?? 0;
+
+  const placed = buildings
+    .filter((building) => building.type !== WALL_KEY)
+    .flatMap((building) => {
+      const position = catalog.building(building.type)?.position;
+            return position === null || position === undefined
+        ? []
+        : [{ building, position, art: buildingArt(building.type, building.level, position.x, position.y) }];
+    })
+    // Від дальніх до ближніх: ближня будівля має перекривати дальню
+    .sort((a, b) => a.position.x + a.position.y - (b.position.x + b.position.y));
+
+  const tap = (action: () => void) => () => {
+    if (!wasDragged()) action();
+  };
+
+  // Подвір'я всередині муру — втоптана земля; усе за муром малює VillageTerrain
+  const courtyard = [project(5, 5), project(95, 5), project(95, 95), project(5, 95)];
+
+  return (
+    <div
+      ref={containerRef}
+      {...handlers}
+      className="relative h-full w-full touch-none select-none overflow-hidden rounded-xl bg-gradient-to-b from-sky-200 to-sky-50"
+    >
+      {transform !== null && (
+        <svg className="absolute inset-0 h-full w-full">
+          <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}>
+            <VillageTerrain part="ground" />
+            <path d={toPath(courtyard)} fill="#e9e4d3" />
+
+            {wall !== null && (
+              <IsoWall
+                part="back"
+                level={wall.level}
+                name={catalog.buildingName(WALL_KEY)}
+                selected={wall.id === selectedId}
+                locked={wallLocked}
+                gateLevel={wallGateLevel}
+                onSelect={tap(() => onSelect(wall.id))}
+              />
+            )}
+
+            {placed.map(({ building, position, art }) => (
+              <IsoBuilding
+                key={building.id}
+                art={art}
+                buildingType={building.type}
+                x={position.x}
+                y={position.y}
+                selected={building.id === selectedId}
+                underConstruction={building.isUnderConstruction}
+                locked={!building.isUnlocked}
+                onSelect={tap(() => onSelect(building.id))}
+              />
+            ))}
+
+            {wall !== null && (
+              <IsoWall
+                part="front"
+                level={wall.level}
+                name={catalog.buildingName(WALL_KEY)}
+                selected={wall.id === selectedId}
+                locked={wallLocked}
+                gateLevel={wallGateLevel}
+                onSelect={tap(() => onSelect(wall.id))}
+              />
+            )}
+
+            <VillageTerrain part="front" />
+
+            {/* Підписи й бульбашки поверх усього — ніщо їх не перекриває */}
+            {placed.map(({ building, position, art }) => {
+              const locked = !building.isUnlocked;
+              const collectable =
+                !locked && !building.isUnderConstruction && building.storageCap > 0 && building.storedAmount > 0;
+              const gateLevel = catalog.building(building.type)?.requiresMainBuildingLevel ?? 0;
+
+              return (
+                <IsoBuildingOverlay
+                  key={`overlay-${building.id}`}
+                  art={art}
+                  x={position.x}
+                  y={position.y}
+                  label={locked ? `🔒 Ратуша ${gateLevel}` : `${catalog.buildingName(building.type)} · ${building.level}`}
+                  bubble={collectable ? compact(building.storedAmount) : null}
+                  onSelect={tap(() => onSelect(building.id))}
+                  onCollect={tap(() => onCollect(building.id))}
+                />
+              );
+            })}
+          </g>
+        </svg>
+      )}
+    </div>
+  );
+}

@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Tests.Services
@@ -12,10 +13,10 @@ namespace EmpireIdle.Domain.Tests.Services
             RecoverableShare = 0.2
         });
 
-        private static readonly Dictionary<string, int> Losses = new()
+        private static readonly Dictionary<UnitStackKey, int> Losses = new()
         {
-            ["infantry"] = 100,
-            ["archer"] = 40
+            [new UnitStackKey("infantry", 1)] = 100,
+            [new UnitStackKey("archer", 1)] = 40
         };
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Split_ShouldIgnoreZeroLosses()
         {
-            var losses = new Dictionary<string, int> { ["infantry"] = 0 };
+            var losses = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 0 };
 
             var result = Splitter().Split(losses, woundedCapacity: 100, seed: 7);
 

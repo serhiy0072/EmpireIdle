@@ -17,17 +17,23 @@ namespace EmpireIdle.Application.Heroes.Queries
         private readonly IVillageRepository _villageRepository;
         private readonly HeroProgression _progression;
         private readonly GameCatalog _catalog;
+        private readonly TimeProvider _timeProvider;
+        private readonly SpeedUpCalculator _calculator;
 
         public GetHeroesOverviewQueryHandler(
             IHeroRepository heroRepository,
             IVillageRepository villageRepository,
             HeroProgression progression,
-            GameCatalog catalog)
+            GameCatalog catalog,
+            TimeProvider timeProvider,
+            SpeedUpCalculator calculator)
         {
             _heroRepository = heroRepository;
             _villageRepository = villageRepository;
             _progression = progression;
             _catalog = catalog;
+            _timeProvider = timeProvider;
+            _calculator = calculator;
         }
 
         public async Task<HeroesOverview> Handle(GetHeroesOverviewQuery request, CancellationToken cancellationToken)
@@ -52,7 +58,8 @@ namespace EmpireIdle.Application.Heroes.Queries
                     h.Level,
                     _progression.MaxLevel(townHallLevel, h.Tier),
                     h.Constellation,
-                    h.State.ToString().ToLowerInvariant(),
+                    // Ім'я enum як є: клієнт розгалужується за "Idle", а не за "idle"
+                    h.State.ToString(),
                     h.StationedGarrisonId,
                     h.IsLeader))
                 .ToList();
@@ -73,7 +80,8 @@ namespace EmpireIdle.Application.Heroes.Queries
                 shardSummaries,
                 order is null
                     ? null
-                    : new HeroLevelOrderSummary(order.Id, order.HeroId, order.TargetLevel, order.CompletesAt),
+                    : new HeroLevelOrderSummary(order.Id, order.HeroId, order.TargetLevel, order.CompletesAt,
+                        _calculator.GetInstantFinishCost(order.CompletesAt, _timeProvider.GetUtcNow().UtcDateTime)),
                 _progression.MarchCapacity(heroes.Count(h => h.IsAvailable)));
         }
     }

@@ -1,4 +1,5 @@
-using EmpireIdle.Domain.Enums;
+﻿using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
@@ -109,6 +110,7 @@ namespace EmpireIdle.Domain.Entities
             EquippedByHeroId = heroId;
             SlotIndex = slotIndex;
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>Знімає предмет із героя.</summary>
@@ -117,6 +119,7 @@ namespace EmpireIdle.Domain.Entities
             EquippedByHeroId = null;
             SlotIndex = 0;
             Touch(utcNow);
+            RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
@@ -130,6 +133,10 @@ namespace EmpireIdle.Domain.Entities
 
             EnhancementLevel++;
             Touch(utcNow);
+
+            // Сила рахується лише з вдягнутого: заточка на складі її не рухає
+            if (EquippedByHeroId is not null)
+                RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
@@ -142,10 +149,15 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void Break(DateTime utcNow)
         {
+            var wasEquipped = EquippedByHeroId is not null;
+
             IsBroken = true;
             EquippedByHeroId = null;
             SlotIndex = 0;
             Touch(utcNow);
+
+            if (wasEquipped)
+                RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>Лагодить зброю. Ціну списує викликач.</summary>
@@ -154,6 +166,7 @@ namespace EmpireIdle.Domain.Entities
             if (!IsBroken)
                 throw new InvalidStateException($"Equipment {Id} is not broken.");
 
+            // Зламане завжди зняте, тож ремонт сили не міняє — події немає
             IsBroken = false;
             Touch(utcNow);
         }
@@ -169,6 +182,10 @@ namespace EmpireIdle.Domain.Entities
 
             _stats.Add(new EquipmentStat(Guid.NewGuid(), Id, statKey, value));
             Touch(utcNow);
+
+            // Сила рахується лише з вдягнутого: заточка на складі її не рухає
+            if (EquippedByHeroId is not null)
+                RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>Підсилює наявний стат на задану величину.</summary>
@@ -179,6 +196,10 @@ namespace EmpireIdle.Domain.Entities
 
             stat.Raise(delta);
             Touch(utcNow);
+
+            // Сила рахується лише з вдягнутого: заточка на складі її не рухає
+            if (EquippedByHeroId is not null)
+                RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>

@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.ValueObjects;
+
 namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
@@ -25,13 +27,13 @@ namespace EmpireIdle.Domain.Combat
         /// <returns>Втрати по стеках; стеки без втрат не повертаються.</returns>
         public IReadOnlyList<StackLoss> Allocate(
             IReadOnlyList<DefenceStack> stacks,
-            IReadOnlyDictionary<string, int> lossesByType,
+            IReadOnlyDictionary<UnitStackKey, int> lossesByType,
             DefenceBuffs? buffs = null)
         {
             var resolved = buffs ?? DefenceBuffs.None;
             var result = new List<StackLoss>();
 
-            foreach (var group in stacks.GroupBy(s => s.UnitType))
+            foreach (var group in stacks.GroupBy(s => new UnitStackKey(s.UnitType, s.Level)))
             {
                 if (!lossesByType.TryGetValue(group.Key, out var lost) || lost <= 0)
                     continue;
@@ -114,7 +116,7 @@ namespace EmpireIdle.Domain.Combat
                 if (totalLost <= 0)
                     continue;
 
-                yield return new StackLoss(exact[i].Stack.OwnerPlayerId, exact[i].Stack.UnitType, totalLost);
+                yield return new StackLoss(exact[i].Stack.OwnerPlayerId, exact[i].Stack.UnitType, exact[i].Stack.Level, totalLost);
             }
         }
     }

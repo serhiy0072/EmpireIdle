@@ -51,7 +51,7 @@ public class HealWoundedCommandTests
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
 
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
-        garrison.AdmitWounded(new Dictionary<string, int> { ["infantry"] = woundedInfantry }, Now);
+        garrison.AdmitWounded(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = woundedInfantry }, Now);
 
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
         wallet.AddGems(new GemAmount(gems), "seed", PlayerId, Now);
@@ -65,7 +65,7 @@ public class HealWoundedCommandTests
     }
 
     private static HealWoundedCommand Heal(int count, HealPaymentMethod payment) =>
-        new(PlayerId, new Dictionary<string, int> { ["infantry"] = count }, payment);
+        new(PlayerId, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = count }, payment);
 
     /// <summary>Оплата gems: фіксована ціна за юніта, помножена на кількість.</summary>
     [Fact]

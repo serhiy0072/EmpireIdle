@@ -30,10 +30,12 @@ namespace EmpireIdle.API.Controllers
             var response = new VillageResponse(
                 village.Id,
                 village.Name,
+                village.X,
+                village.Y,
                 village.Buildings.Select(b => new BuildingResponse(
                     b.Id, b.Type, b.Level, b.LastCollectedAt, b.StoredAmount, b.StorageCap,
-                    b.ConstructionCompletesAt, b.IsUnderConstruction)).ToList(),
-                village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount)).ToList());
+                    b.ConstructionCompletesAt, b.IsUnderConstruction, b.SpeedUpCostGems, b.IsUnlocked)).ToList(),
+                village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount, r.IsUnlocked)).ToList());
 
             return Ok(response);
         }
@@ -59,6 +61,17 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> CollectBuilding(Guid playerId, Guid buildingId, CancellationToken cancellationToken)
         {
             await _mediator.Send(new CollectBuildingCommand(playerId, buildingId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Зібрати накопичені ресурси з усіх будівель села разом.
+        /// </summary>
+        [HttpPost("{playerId:guid}/collect-all")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> CollectAllBuildings(Guid playerId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new CollectAllBuildingsCommand(playerId), cancellationToken);
             return NoContent();
         }
 

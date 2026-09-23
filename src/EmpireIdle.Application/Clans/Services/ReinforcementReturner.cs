@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Clans.Services
@@ -182,13 +183,13 @@ namespace EmpireIdle.Application.Clans.Services
 
                 var soloDuration = _calculator.CalculateDuration(
                     host.ServerId, hostVillage.X, hostVillage.Y, ownerVillage.X, ownerVillage.Y,
-                    new Dictionary<string, int>(),
+                    new Dictionary<UnitStackKey, int>(),
                     _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey)));
 
                 await _marchRepository.AddAsync(March.ReturningHome(
                     Guid.NewGuid(), host.ServerId, ownerGarrison.Id, extra.Id,
                     ownerVillage.X, ownerVillage.Y, hostVillage.X, hostVillage.Y, hostVillage.Id,
-                    new Dictionary<string, int>(), soloDuration, utcNow), cancellationToken);
+                    new Dictionary<UnitStackKey, int>(), soloDuration, utcNow), cancellationToken);
             }
 
             _logger.LogInformation(

@@ -3,6 +3,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,8 +46,8 @@ public class OptimisticLockingTests : IAsyncLifetime
         var garrisonA = await LoadAsync(contextA, garrisonId);
         var garrisonB = await LoadAsync(contextB, garrisonId);
 
-        garrisonA.SendUnits(new Dictionary<string, int> { ["infantry"] = 10 }, DateTime.UtcNow);
-        garrisonB.SendUnits(new Dictionary<string, int> { ["infantry"] = 10 }, DateTime.UtcNow);
+        garrisonA.SendUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, DateTime.UtcNow);
+        garrisonB.SendUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, DateTime.UtcNow);
 
         await contextA.SaveChangesAsync();
 
@@ -76,8 +77,8 @@ public class OptimisticLockingTests : IAsyncLifetime
 
         // SendUnits міняє тільки VillageUnit.Count — рядок Garrisons
         // оновиться лише завдяки Touch()
-        garrisonA.SendUnits(new Dictionary<string, int> { ["infantry"] = 3 }, DateTime.UtcNow);
-        garrisonB.SendUnits(new Dictionary<string, int> { ["infantry"] = 4 }, DateTime.UtcNow);
+        garrisonA.SendUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 3 }, DateTime.UtcNow);
+        garrisonB.SendUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 4 }, DateTime.UtcNow);
 
         await contextA.SaveChangesAsync();
 
@@ -160,7 +161,7 @@ public class OptimisticLockingTests : IAsyncLifetime
         await using var context = CreateContext();
 
         var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), 1);
-        garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = infantry }, DateTime.UtcNow);
+        garrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, DateTime.UtcNow);
 
         context.Garrisons.Add(garrison);
         await context.SaveChangesAsync();

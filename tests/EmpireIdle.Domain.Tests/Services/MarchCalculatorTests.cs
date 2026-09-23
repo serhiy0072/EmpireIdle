@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Tests.Services
@@ -55,7 +56,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void CalculateDuration_ShouldGrowWithDistance()
         {
             var calc = Calculator();
-            var army = new Dictionary<string, int> { ["infantry"] = 10 };
+            var army = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
 
             var near = calc.CalculateDuration(1, 100, 100, 105, 100, army);
             var far = calc.CalculateDuration(1, 100, 100, 150, 100, army);
@@ -73,10 +74,10 @@ namespace EmpireIdle.Domain.Tests.Services
             var calc = Calculator();
 
             var cavalryOnly = calc.CalculateDuration(1, 100, 100, 150, 100,
-                new Dictionary<string, int> { ["cavalry"] = 10 });
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("cavalry", 1)] = 10 });
 
             var withSiege = calc.CalculateDuration(1, 100, 100, 150, 100,
-                new Dictionary<string, int> { ["cavalry"] = 10, ["siege"] = 1 });
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("cavalry", 1)] = 10, [new UnitStackKey("siege", 1)] = 1 });
 
             Assert.True(withSiege > cavalryOnly,
                 $"Siege must slow the column down: cavalry={cavalryOnly}, withSiege={withSiege}");
@@ -89,7 +90,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var calc = Calculator();
 
             var duration = calc.CalculateDuration(1, 50, 50, 50, 50,
-                new Dictionary<string, int> { ["infantry"] = 1 });
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 1 });
 
             Assert.Equal(TimeSpan.Zero, duration);
         }
@@ -98,7 +99,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void CalculateDuration_ShouldAccountForTerrainMoveCost()
         {
-            var army = new Dictionary<string, int> { ["infantry"] = 5 };
+            var army = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 };
 
             var easyConfig = MapConfig();
             var easy = new MarchCalculator(new TerrainGenerator(easyConfig), Catalog())
@@ -125,7 +126,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void CalculateDuration_ShouldFollowTheSlowestParticipant()
         {
             var calc = Calculator();
-            var cavalry = new Dictionary<string, int> { ["cavalry"] = 10 };
+            var cavalry = new Dictionary<UnitStackKey, int> { [new UnitStackKey("cavalry", 1)] = 10 };
 
             var alone = calc.CalculateDuration(1, 100, 100, 150, 100, cavalry);
             var withSlowHero = calc.CalculateDuration(1, 100, 100, 150, 100, cavalry, heroSpeed: 2);
@@ -142,7 +143,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void CalculateDuration_ShouldIgnoreAFasterHero()
         {
             var calc = Calculator();
-            var infantry = new Dictionary<string, int> { ["infantry"] = 10 };
+            var infantry = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
 
             var alone = calc.CalculateDuration(1, 100, 100, 150, 100, infantry);
             var withFastHero = calc.CalculateDuration(1, 100, 100, 150, 100, infantry, heroSpeed: 20);
@@ -159,11 +160,11 @@ namespace EmpireIdle.Domain.Tests.Services
         public void CalculateDuration_ShouldUseTheHeroSpeed_WhenThereAreNoUnits()
         {
             var calc = Calculator();
-            var empty = new Dictionary<string, int>();
+            var empty = new Dictionary<UnitStackKey, int>();
 
             var solo = calc.CalculateDuration(1, 100, 100, 150, 100, empty, heroSpeed: 8);
             var withCavalry = calc.CalculateDuration(1, 100, 100, 150, 100,
-                new Dictionary<string, int> { ["cavalry"] = 1 }, heroSpeed: 8);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("cavalry", 1)] = 1 }, heroSpeed: 8);
 
             Assert.Equal(withCavalry, solo);
         }
@@ -176,7 +177,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void CalculateDuration_ShouldMatchTheOldResult_WhenNoHeroIsGiven()
         {
             var calc = Calculator();
-            var infantry = new Dictionary<string, int> { ["infantry"] = 10 };
+            var infantry = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
 
             Assert.Equal(
                 calc.CalculateDuration(1, 100, 100, 150, 100, infantry),
@@ -190,7 +191,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void CalculateDuration_ShouldIgnoreANonPositiveHeroSpeed(double heroSpeed)
         {
             var calc = Calculator();
-            var infantry = new Dictionary<string, int> { ["infantry"] = 10 };
+            var infantry = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
 
             Assert.Equal(
                 calc.CalculateDuration(1, 100, 100, 150, 100, infantry),

@@ -13,7 +13,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(w => w.Id).ValueGeneratedNever();
 
             builder.Property(w => w.UnitType).IsRequired().HasMaxLength(50);
-            builder.HasIndex(w => new { w.GarrisonId, w.UnitType }).IsUnique();
+            builder.HasIndex(w => new { w.GarrisonId, w.UnitType, w.Level }).IsUnique();
 
             builder.Ignore(w => w.DomainEvents);
         }
