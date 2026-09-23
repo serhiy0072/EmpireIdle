@@ -1,1 +1,15 @@
-{}
+{
+  "dungeon.heroWounded": [
+    "hero"
+  ],
+  "dungeon.levelLocked": [
+    "level",
+    "previous"
+  ],
+  "dungeon.runInProgress": [],
+  "dungeon.targetUnreachable": [],
+  "dungeon.townHallRequired": [
+    "dungeon",
+    "level"
+  ]
+}

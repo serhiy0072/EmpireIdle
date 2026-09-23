@@ -6,6 +6,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.TestKit;
@@ -164,6 +165,24 @@ public class TakeDungeonTurnCommandTests
 
         Assert.Empty(result.Turns);
         Assert.Equal(0, result.ActorIndex);
+    }
+
+    /// <summary>
+    /// Ціль за передньою лінією — відмова з причиною: клієнт дзеркалить правило,
+    /// але якщо розійдеться, гравець побачить пояснення, а не англійський Detail.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ManualAtABackLineTarget_ShouldRefuseWithTheReason()
+    {
+        var state = Battle();
+        var backLine = state.Combatants[1] with { Index = 2, Line = BattleLine.Back };
+        var handler = Handler(state with { Combatants = [.. state.Combatants, backLine], Queue = [0] });
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => handler.Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: false, AbilityKey: null, TargetIndex: 2),
+            CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.DungeonTargetUnreachable.Key, refusal.Reason);
     }
 
     // ---------- Захист номером ходу ----------

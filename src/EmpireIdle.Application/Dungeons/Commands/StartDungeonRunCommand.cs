@@ -75,7 +75,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
 
             // Один забіг на гравця: інакше друга вкладка розпочала б паралельний бій
             if (await _dungeons.GetActiveRunAsync(request.PlayerId, cancellationToken) is not null)
-                throw new AlreadyExistsException("Dungeon run", request.PlayerId.ToString());
+                throw new AlreadyExistsException(RefusalReasons.DungeonRunInProgress, "Dungeon run", request.PlayerId.ToString());
 
             var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Village for player", request.PlayerId);
@@ -84,16 +84,18 @@ namespace EmpireIdle.Application.Dungeons.Commands
                 .FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)?.Level.Value ?? 0;
 
             if (mainLevel < dungeon.RequiresMainBuildingLevel)
-                throw new RequirementNotMetException(
-                    $"Dungeon '{dungeon.Key}' opens at town hall {dungeon.RequiresMainBuildingLevel}.");
+                throw new RequirementNotMetException(RefusalReasons.DungeonTownHallRequired,
+                    $"Dungeon '{dungeon.Key}' opens at town hall {dungeon.RequiresMainBuildingLevel}.",
+                    dungeon.DisplayName, dungeon.RequiresMainBuildingLevel);
 
             var cleared = await _dungeons.GetClearedLevelsAsync(request.PlayerId, cancellationToken);
             var clearedLevel = cleared.GetValueOrDefault(dungeon.Key);
 
             // Рівень відкривається попереднім: перескочити третій рівень не можна
             if (request.Level > clearedLevel + 1)
-                throw new RequirementNotMetException(
-                    $"Dungeon '{dungeon.Key}' level {request.Level} opens after clearing level {request.Level - 1}.");
+                throw new RequirementNotMetException(RefusalReasons.DungeonLevelLocked,
+                    $"Dungeon '{dungeon.Key}' level {request.Level} opens after clearing level {request.Level - 1}.",
+                    request.Level, request.Level - 1);
 
             var energy = await _dungeons.GetEnergyAsync(request.PlayerId, cancellationToken);
 

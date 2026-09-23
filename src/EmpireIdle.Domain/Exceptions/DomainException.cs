@@ -64,6 +64,9 @@ namespace EmpireIdle.Domain.Exceptions
     {
         public AlreadyExistsException(string what, string key)
             : base($"{what} '{key}' already exists.") { }
+
+        public AlreadyExistsException(RefusalReason reason, string what, string key, params object[] values)
+            : base(reason, $"{what} '{key}' already exists.", values) { }
     }
 
     /// <summary>Не виконана передумова: рівень, розблокування, вільний слот.</summary>

@@ -51,11 +51,13 @@ namespace EmpireIdle.Application.Dungeons.Services
                 if (hero.PlayerId != playerId)
                     throw new EntityNotFoundException("Hero", heroId.ToString());
 
-                if (hero.State == HeroState.Wounded)
-                    throw new RequirementNotMetException($"Hero {hero.Id} is wounded and cannot enter a dungeon.");
-
                 var config = _catalog.FindHero(hero.HeroKey)
                     ?? throw new EntityNotFoundException("Hero config", hero.HeroKey);
+
+                // Поранити героя могли між вибором складу й стартом — наприклад, у бою маршу
+                if (hero.State == HeroState.Wounded)
+                    throw new RequirementNotMetException(RefusalReasons.DungeonHeroWounded,
+                        $"Hero {hero.Id} is wounded and cannot enter a dungeon.", config.DisplayName);
 
                 var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
                 var stats = _heroStats.Compute(hero, config, equipped);
