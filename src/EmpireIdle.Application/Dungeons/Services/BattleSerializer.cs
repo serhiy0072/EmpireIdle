@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using EmpireIdle.Domain.Dungeons;
 
@@ -11,10 +11,11 @@ namespace EmpireIdle.Application.Dungeons.Services
     /// </summary>
     public static class BattleSerializer
     {
+        // Нульові значення пишуться теж: index, side й energy позначені required,
+        // і пропуск нуля зробив би збережений бій нечитним
         private static readonly JsonSerializerOptions Options = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Converters = { new JsonStringEnumConverter() },
         };
 
