@@ -1572,6 +1572,7 @@
       "ArtifactSets": [
         {
           "Key": "dawn",
+          "DisplayName": "Набір Світанку",
           "Tier": 1,
           "FocusStats": [
             "Defense",
@@ -1580,6 +1581,7 @@
         },
         {
           "Key": "ember",
+          "DisplayName": "Набір Жарини",
           "Tier": 1,
           "FocusStats": [
             "Attack",
@@ -1588,6 +1590,7 @@
         },
         {
           "Key": "frost",
+          "DisplayName": "Набір Морозу",
           "Tier": 2,
           "FocusStats": [
             "Defense",
@@ -1596,6 +1599,7 @@
         },
         {
           "Key": "tide",
+          "DisplayName": "Набір Припливу",
           "Tier": 2,
           "FocusStats": [
             "Attack",
@@ -1604,6 +1608,7 @@
         },
         {
           "Key": "storm",
+          "DisplayName": "Набір Бурі",
           "Tier": 3,
           "FocusStats": [
             "Attack",
@@ -1612,6 +1617,7 @@
         },
         {
           "Key": "thorn",
+          "DisplayName": "Набір Терену",
           "Tier": 3,
           "FocusStats": [
             "Defense",
@@ -1620,6 +1626,7 @@
         },
         {
           "Key": "ash",
+          "DisplayName": "Набір Попелу",
           "Tier": 4,
           "FocusStats": [
             "Attack",
@@ -1628,6 +1635,7 @@
         },
         {
           "Key": "hollow",
+          "DisplayName": "Набір Пустки",
           "Tier": 4,
           "FocusStats": [
             "Defense",
@@ -1636,6 +1644,7 @@
         },
         {
           "Key": "gale",
+          "DisplayName": "Набір Вітру",
           "Tier": 5,
           "FocusStats": [
             "Attack",
@@ -1644,6 +1653,7 @@
         },
         {
           "Key": "obsidian",
+          "DisplayName": "Набір Обсидіану",
           "Tier": 5,
           "FocusStats": [
             "Defense",

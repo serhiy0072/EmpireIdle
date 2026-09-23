@@ -264,7 +264,13 @@
             }
 
             // Валідатор вимагає опис родини для набору кожного данжу
-            _config.Equipment.ArtifactSets.Add(new ArtifactSetConfig { Key = TestKeys.DungeonSetKey, Tier = 1 });
+            _config.Equipment.ArtifactSets.Add(new ArtifactSetConfig
+            {
+                Key = TestKeys.DungeonSetKey,
+                DisplayName = "Набір Ями",
+                Tier = 1,
+                FocusStats = ["Attack", "Health"]
+            });
 
             _config.Dungeons = new DungeonsConfig
             {

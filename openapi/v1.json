@@ -5863,6 +5863,49 @@
         },
         "additionalProperties": false
       },
+      "CatalogArtifactSet": {
+        "required": [
+          "displayName",
+          "focusStats",
+          "key",
+          "rarities",
+          "statMultiplier",
+          "tier"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "statMultiplier": {
+            "type": "number",
+            "format": "double"
+          },
+          "focusStats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dungeon": {
+            "$ref": "#/components/schemas/CatalogSetSource"
+          },
+          "rarities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogSetRarity"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogBuilding": {
         "required": [
           "displayName",
@@ -6092,6 +6135,7 @@
       },
       "CatalogResponse": {
         "required": [
+          "artifactSets",
           "artifactSlots",
           "buildings",
           "healGemsPerUnit",
@@ -6142,6 +6186,12 @@
               "$ref": "#/components/schemas/CatalogUnit"
             }
           },
+          "artifactSets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogArtifactSet"
+            }
+          },
           "heroClasses": {
             "type": "array",
             "items": {
@@ -6189,6 +6239,63 @@
           },
           "version": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogSetRarity": {
+        "required": [
+          "bonus",
+          "pieceKeys",
+          "rarity",
+          "requiredPieces",
+          "setKey"
+        ],
+        "type": "object",
+        "properties": {
+          "rarity": {
+            "type": "string"
+          },
+          "setKey": {
+            "type": "string"
+          },
+          "requiredPieces": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bonus": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "pieceKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogSetSource": {
+        "required": [
+          "displayName",
+          "key",
+          "requiresMainBuildingLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "requiresMainBuildingLevel": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
