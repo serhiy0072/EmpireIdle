@@ -116,17 +116,24 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
             targetIndex,
           });
         } catch (error: unknown) {
-          if (!isApiError(error) || !error.is("StaleTurn")) throw error;
+          // Сервер уже пішов далі (втрачена відповідь, друга вкладка) або дві
+          // вкладки влучили в той самий момент: дію не застосовано, тож беремо
+          // свіжий стан і граємо з нього — це не збій
+          if (isApiError(error) && (error.is("StaleTurn") || error.is("ConcurrencyConflict"))) {
+            turn.reset();
+            const fresh = await fetchDungeonRun(playerId);
 
-          // Сервер уже пішов далі (втрачена відповідь, друга вкладка): дію не
-          // застосовано, тож беремо свіжий стан і граємо з нього — це не збій
-          turn.reset();
-          const fresh = await fetchDungeonRun(playerId);
+            if (fresh === null) onFinished();
+            else setState(fresh);
 
-          if (fresh === null) onFinished();
-          else setState(fresh);
+            setTargetIndex(null);
+            return;
+          }
 
-          setTargetIndex(null);
+          // Інший збій (мережа, сервер): автобій зупиняємо явно, а не завмираємо
+          // мовчки — банер покаже причину, гравець увімкне автобій, коли схоче.
+          // Виняток не прокидаємо: його вже тримає turn.error
+          setAuto(false);
           return;
         }
 
