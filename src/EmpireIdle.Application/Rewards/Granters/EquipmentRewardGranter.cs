@@ -41,10 +41,8 @@ namespace EmpireIdle.Application.Rewards.Granters
             var key = context.Reward.Key
                 ?? throw new InvalidOperationException($"Equipment reward from '{context.Reference}' has no Key.");
 
+            // Предмет без слота відхиляє сам ItemGranter — до першої видачі
             var config = _catalog.Item(key);
-
-            var slot = config.Slot
-                ?? throw new InvalidOperationException($"Item '{key}' is not equipment and has no slot.");
 
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
@@ -57,8 +55,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             var count = context.Reward.Amount;
 
             for (var i = 0; i < count; i++)
-                await _granter.GrantEquipmentAsync(context.PlayerId, key, slot, config.Rarity,
-                    config.BaseStats.Select(s => (s.Key, s.Value)), now, cancellationToken);
+                await _granter.GrantEquipmentAsync(context.PlayerId, config, now, cancellationToken);
 
             _logger.LogInformation("Granted {Count} × {Key} equipment to player {PlayerId} from {Reference}",
                 count, key, context.PlayerId, context.Reference);

@@ -72,8 +72,7 @@ namespace EmpireIdle.Application.Dungeons.Services
                 // Одна частина за забіг: набір із чотирьох — це мета на кілька заходів
                 var piece = pieces[_random.Next(pieces.Count)];
 
-                await _items.GrantEquipmentAsync(run.PlayerId, piece.Key, EquipmentSlot.Artifact, piece.Rarity,
-                    piece.BaseStats.Select(s => (s.Key, s.Value)), now, cancellationToken);
+                await _items.GrantEquipmentAsync(run.PlayerId, piece, now, cancellationToken);
 
                 artifacts.Add(piece.Key);
             }
