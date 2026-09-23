@@ -53,6 +53,32 @@ public class DungeonEnergyTests
         Assert.Equal(0, energy.Current(Max, RegenHours, Now.AddHours(2)));
     }
 
+    /// <summary>
+    /// Одиниця росте 12 хвилин. Забіг об 0:11 не має з'їсти ці 11 хвилин:
+    /// о 0:12 одиниця дозріває так само, як і без забігу.
+    /// </summary>
+    [Fact]
+    public void Spend_ShouldKeepThePartialUnitAccrued()
+    {
+        var energy = Energy(50);
+
+        energy.Spend(10, Max, RegenHours, Now.AddMinutes(11));
+
+        Assert.Equal(41, energy.Current(Max, RegenHours, Now.AddMinutes(12)));
+    }
+
+    /// <summary>Повна шкала не росте: після забігу відлік іде з моменту витрати, а не з давнього дотику.</summary>
+    [Fact]
+    public void Spend_FromAFullGauge_ShouldRefillFromTheMomentOfSpending()
+    {
+        var energy = Energy(Max);
+
+        energy.Spend(10, Max, RegenHours, Now.AddHours(5));
+
+        Assert.Equal(90, energy.Current(Max, RegenHours, Now.AddHours(5).AddMinutes(11)));
+        Assert.Equal(91, energy.Current(Max, RegenHours, Now.AddHours(5).AddMinutes(12)));
+    }
+
     [Fact]
     public void Spend_ShouldReject_WhenTheGaugeIsShort()
     {

@@ -70,8 +70,8 @@ namespace EmpireIdle.Domain.Entities
             if (current < cost)
                 throw new NotEnoughResourcesException("dungeon-energy", cost, current);
 
-            Amount = current - cost;
-            RefreshedAt = utcNow;
+            Accrue(maxEnergy, regenHours, utcNow);
+            Amount -= cost;
         }
 
         /// <summary>Нараховує енергію понад накопичене — нагорода або покупка.</summary>
@@ -80,8 +80,32 @@ namespace EmpireIdle.Domain.Entities
             if (amount <= 0)
                 throw new ArgumentOutOfRangeException(nameof(amount), "Energy amount must be positive.");
 
-            Amount = Math.Min(maxEnergy, Current(maxEnergy, regenHours, utcNow) + amount);
-            RefreshedAt = utcNow;
+            Accrue(maxEnergy, regenHours, utcNow);
+            Amount = Math.Min(maxEnergy, Amount + amount);
+        }
+
+        /// <summary>
+        /// Фіксує накопичене в Amount. RefreshedAt зсувається рівно на час, що дав
+        /// цілі одиниці: дробовий залишок лишається й доростає далі. Колишнє
+        /// RefreshedAt = utcNow губило його при кожному списанні — до одиниці за забіг.
+        /// Повна шкала не росте, тож із неї відлік починається з цього моменту.
+        /// </summary>
+        private void Accrue(int maxEnergy, double regenHours, DateTime utcNow)
+        {
+            var current = Current(maxEnergy, regenHours, utcNow);
+
+            if (current >= maxEnergy)
+            {
+                if (utcNow > RefreshedAt)
+                    RefreshedAt = utcNow;
+            }
+            else if (utcNow > RefreshedAt)
+            {
+                var gained = current - Amount;
+                RefreshedAt = RefreshedAt.AddHours(gained / (maxEnergy / regenHours));
+            }
+
+            Amount = current;
         }
     }
 }
