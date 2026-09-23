@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CombatantView, DungeonRunView, TurnLog } from "../../lib/apiTypes";
+import type { AbilityView, CombatantView, DungeonRunView, TurnLog } from "../../lib/apiTypes";
 import { useAbandonDungeonRun, useDungeonTurn } from "../../lib/queries/dungeons";
 import ErrorBanner from "../ErrorBanner";
 import CombatantCard from "./CombatantCard";
@@ -32,7 +32,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
   const [state, setState] = useState<DungeonRunView>(run);
   const [auto, setAuto] = useState(true);
   const [fast, setFast] = useState(false);
-  const [target, setTarget] = useState<number | null>(null);
+  const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [splashes, setSplashes] = useState<Record<number, Splash>>({});
   const [log, setLog] = useState<string[]>([]);
   const [finished, setFinished] = useState<DungeonRunView | null>(null);
@@ -47,10 +47,19 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
   const heroes = useMemo(() => combatants.filter((c) => c.side === "Heroes"), [combatants]);
 
   const describe = useCallback(
-    (entries: TurnLog[], people: CombatantView[]) =>
-      entries.map((entry) => {
+    (entries: TurnLog[], people: CombatantView[]) => {
+      // Хід несе лише ключ вміння — назву знають самі бійці
+      const abilityNames = new Map(
+        people.flatMap((person) => person.abilities.map((ability) => [ability.key, ability.displayName] as const)),
+      );
+
+      return entries.map((entry) => {
         const who = people[entry.actorIndex]?.displayName ?? "?";
-        const what = entry.stunned ? "оглушений" : (entry.abilityKey ?? "удар");
+        const what = entry.stunned
+          ? "оглушений"
+          : entry.abilityKey === null || entry.abilityKey === undefined
+            ? "удар"
+            : (abilityNames.get(entry.abilityKey) ?? entry.abilityKey);
         const effects = entry.effects
           .map((effect) => {
             const name = people[effect.targetIndex]?.displayName ?? "?";
@@ -61,7 +70,8 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
           .join(", ");
 
         return `${who}: ${what}${effects === "" ? "" : ` → ${effects}`}`;
-      }),
+      });
+    },
     [],
   );
 
@@ -75,8 +85,10 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         const result = await turn.mutateAsync({ runId: state.runId, auto: isAuto, abilityKey, targetIndex });
 
         setState(result);
-        setTarget(null);
-        setLog((previous) => [...describe(result.turns, result.combatants), ...previous].slice(0, 40));
+        setTargetIndex(null);
+        // Склад до ходу, а не після: коли відповідь уже перевела бій на
+        // наступну хвилю, індекси ходів указують на попередній ростер
+        setLog((previous) => [...describe(result.turns, state.combatants), ...previous].slice(0, 40));
 
         const fresh: Record<number, Splash> = {};
         for (const entry of result.turns)
@@ -122,8 +134,49 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
     return () => window.clearTimeout(timer);
   }, [auto, fast, finished, heroTurn, state, act]);
 
-  const canTarget = (combatant: CombatantView) =>
-    !auto && heroTurn && finished === null && combatant.side === "Enemies" && combatant.health > 0;
+  // Правило ліній: поки жива передня лінія, задню дістають лише вміння,
+  // що її ігнорують. Рахуємо те саме, що й сервер, аби не пропонувати
+  // цілі, за які він однаково відмовить
+  const frontAlive = useMemo(
+    () => enemies.some((enemy) => enemy.line === "Front" && enemy.health > 0),
+    [enemies],
+  );
+
+  const reachable = useCallback(
+    (combatant: CombatantView, ignoresLine: boolean) =>
+      combatant.health > 0 && (ignoresLine || !frontAlive || combatant.line === "Front"),
+    [frontAlive],
+  );
+
+  const target = targetIndex === null ? null : (combatants[targetIndex] ?? null);
+
+  /** Вміння, які саме зараз можуть чекати на ціль того чи того боку. */
+  const readyAbilities = (actor?.abilities ?? []).filter((ability) => ability.ready);
+
+  const canTarget = (combatant: CombatantView) => {
+    if (auto || !heroTurn || finished !== null || combatant.health <= 0) return false;
+
+    // Лікування й щити наводяться на своїх, атаки — на ворога
+    if (combatant.side === "Heroes")
+      return readyAbilities.some((ability) => ability.target === "SingleAlly");
+
+    return (
+      reachable(combatant, false) ||
+      readyAbilities.some((ability) => ability.ignoresLine && ability.target === "SingleEnemy")
+    );
+  };
+
+  /** Чи можна застосувати вміння до вже обраної цілі. */
+  const canUse = (ability: AbilityView) => {
+    if (!ability.ready) return false;
+
+    if (ability.target === "SingleAlly") return target !== null && target.side === "Heroes" && target.health > 0;
+
+    if (ability.target === "SingleEnemy")
+      return target !== null && target.side === "Enemies" && reachable(target, ability.ignoresLine);
+
+    return true;
+  };
 
   const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
 
@@ -200,9 +253,10 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
               key={combatant.index}
               combatant={combatant}
               active={state.actorIndex === combatant.index}
-              targetable={false}
-              selected={false}
+              targetable={canTarget(combatant)}
+              selected={targetIndex === combatant.index}
               splash={splashes[combatant.index] ?? null}
+              onSelect={() => setTargetIndex(combatant.index)}
             />
           ))}
         </section>
@@ -215,9 +269,9 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
               combatant={combatant}
               active={state.actorIndex === combatant.index}
               targetable={canTarget(combatant)}
-              selected={target === combatant.index}
+              selected={targetIndex === combatant.index}
               splash={splashes[combatant.index] ?? null}
-              onSelect={() => setTarget(combatant.index)}
+              onSelect={() => setTargetIndex(combatant.index)}
             />
           ))}
         </section>
@@ -232,8 +286,8 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => void act(false, null, target)}
-              disabled={turn.isPending || target === null}
+              onClick={() => void act(false, null, targetIndex)}
+              disabled={turn.isPending || target === null || target.side !== "Enemies" || !reachable(target, false)}
               className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
             >
               Удар
@@ -243,8 +297,8 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
                 key={ability.key}
                 type="button"
                 title={ability.description}
-                onClick={() => void act(false, ability.key, target)}
-                disabled={turn.isPending || !ability.ready || (ability.target.startsWith("Single") && target === null)}
+                onClick={() => void act(false, ability.key, targetIndex)}
+                disabled={turn.isPending || !canUse(ability)}
                 className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
               >
                 {ability.displayName} · {ability.energyCost}⚡

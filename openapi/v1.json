@@ -5285,6 +5285,7 @@
           "description",
           "displayName",
           "energyCost",
+          "ignoresLine",
           "key",
           "ready",
           "target"
@@ -5308,6 +5309,9 @@
             "type": "string"
           },
           "ready": {
+            "type": "boolean"
+          },
+          "ignoresLine": {
             "type": "boolean"
           }
         },
