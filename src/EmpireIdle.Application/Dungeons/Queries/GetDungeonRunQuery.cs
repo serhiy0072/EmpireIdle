@@ -59,7 +59,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
 
                     var abilities = (hero?.Abilities ?? [])
                         .Select(a => new AbilityView(a.Key, a.DisplayName, a.Description, a.EnergyCost,
-                            a.Target.ToString(), c.Energy >= a.EnergyCost))
+                            a.Target.ToString(), c.Energy >= a.EnergyCost, a.IgnoresLine))
                         .ToList();
 
                     var enemyName = dungeon?.Waves.Concat(dungeon.Boss).FirstOrDefault(e => e.Key == c.Key)?.DisplayName;

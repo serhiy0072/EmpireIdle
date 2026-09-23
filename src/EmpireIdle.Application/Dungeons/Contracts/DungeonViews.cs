@@ -69,13 +69,15 @@ namespace EmpireIdle.Application.Dungeons.Contracts
     public record StatusView(string Kind, double Magnitude, int TurnsLeft);
 
     /// <param name="Ready">Енергії вистачає просто зараз.</param>
+    /// <param name="IgnoresLine">Дістає задню лінію попри живу передню — клієнт не пропонує недосяжних цілей.</param>
     public record AbilityView(
         string Key,
         string DisplayName,
         string Description,
         int EnergyCost,
         string Target,
-        bool Ready);
+        bool Ready,
+        bool IgnoresLine);
 
     /// <summary>Що видано за успішний забіг.</summary>
     public record DungeonRewardView(IReadOnlyList<RewardLine> Resources, IReadOnlyList<ArtifactDropView> Artifacts);
