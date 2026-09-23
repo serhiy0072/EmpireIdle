@@ -72,14 +72,15 @@ namespace EmpireIdle.Application.Heroes.Commands
             var equipment = _catalog.Config.Equipment;
 
             if (item.EnhancementLevel >= equipment.MaxEnhancement)
-                throw new RequirementNotMetException(
-                    $"Artifact {item.Id} is already at the ceiling of +{equipment.MaxEnhancement}.");
+                throw new RequirementNotMetException(RefusalReasons.EquipmentMaxEnhancement,
+                    $"Artifact {item.Id} is already at the ceiling of +{equipment.MaxEnhancement}.", equipment.MaxEnhancement);
 
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
             if (!village.HasBuilding(equipment.ForgeBuildingKey))
-                throw new RequirementNotMetException($"Upgrading requires the {equipment.ForgeBuildingKey}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    $"Upgrading requires the {equipment.ForgeBuildingKey}.", _catalog.Building(equipment.ForgeBuildingKey).DisplayName);
 
             village.ChargeCost(
                 [new ResourceCost { Resource = "gold", Amount = _rules.EnhanceCost(item.EnhancementLevel) }], now);

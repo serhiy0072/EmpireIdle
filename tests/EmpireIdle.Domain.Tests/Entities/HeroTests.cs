@@ -229,7 +229,8 @@ namespace EmpireIdle.Domain.Tests.Entities
             hero.EvolveTier(maxTier: 3, Now);
             hero.EvolveTier(maxTier: 3, Now);
 
-            Assert.Throws<RequirementNotMetException>(() => hero.EvolveTier(maxTier: 3, Now));
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.EvolveTier(maxTier: 3, Now));
+            Assert.Equal(RefusalReasons.HeroMaxTier.Key, refusal.Reason);
             Assert.Equal(3, hero.Tier);
         }
 

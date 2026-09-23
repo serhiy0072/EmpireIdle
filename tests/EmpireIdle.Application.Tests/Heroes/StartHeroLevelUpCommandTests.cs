@@ -117,8 +117,9 @@ public class StartHeroLevelUpCommandTests
         _heroes.GetActiveOrderAsync(PlayerId, Arg.Any<CancellationToken>())
             .Returns(new HeroLevelOrder(Guid.NewGuid(), Guid.NewGuid(), PlayerId, ServerId, 2, Now.AddMinutes(5)));
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroTrainingBusy.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -131,8 +132,9 @@ public class StartHeroLevelUpCommandTests
         GivenVillage(townHallLevel: 5);
         var hero = GivenHero(level: 5);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
     }
 
     /// <summary>Тір стелить окремо: T1 не переступає десятий рівень.</summary>
@@ -142,8 +144,9 @@ public class StartHeroLevelUpCommandTests
         GivenVillage(townHallLevel: 25);
         var hero = GivenHero(level: 10, tier: 1);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
     }
 
     /// <summary>Після еволюції той самий герой качається далі.</summary>
@@ -165,8 +168,9 @@ public class StartHeroLevelUpCommandTests
         GivenVillage();
         var hero = GivenHero(state: HeroState.Deployed);
 
-        await Assert.ThrowsAsync<InvalidStateException>(() =>
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroOnTheMove.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -204,8 +208,9 @@ public class StartHeroLevelUpCommandTests
         GivenVillage(hallUnderConstruction: true);
         var hero = GivenHero();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
     }
 
     /// <summary>Нестача ресурсів зупиняє операцію до постановки в чергу.</summary>

@@ -32,6 +32,39 @@
     /// </summary>
     public static class RefusalReasons
     {
+        // ---------- Спільні ----------
+
+        /// <summary>Дія вимагає добудованої будівлі; building — її назва для гравця.</summary>
+        public static readonly RefusalReason BuildingRequired = new("common.buildingRequired", "building");
+
+        // ---------- Герої ----------
+
+        public static readonly RefusalReason HeroOnTheMove = new("hero.onTheMove");
+
+        public static readonly RefusalReason HeroLevelCeiling = new("hero.levelCeiling", "hero", "ceiling");
+
+        /// <summary>Зала героїв тренує одного героя за раз.</summary>
+        public static readonly RefusalReason HeroTrainingBusy = new("hero.trainingBusy");
+
+        public static readonly RefusalReason HeroWorldLevelRequired = new("hero.worldLevelRequired", "required", "current");
+
+        public static readonly RefusalReason HeroEvolutionItemRequired = new("hero.evolutionItemRequired", "item");
+
+        public static readonly RefusalReason HeroMaxTier = new("hero.maxTier", "tier");
+
+        public static readonly RefusalReason HeroNotEnoughShards = new("hero.notEnoughShards", "hero", "need", "have");
+
+        // ---------- Спорядження ----------
+
+        public static readonly RefusalReason EquipmentMaxEnhancement = new("equipment.maxEnhancement", "max");
+
+        public static readonly RefusalReason EquipmentBroken = new("equipment.broken");
+
+        /// <summary>Такий самий предмет уже вдягнений на цього героя.</summary>
+        public static readonly RefusalReason EquipmentAlreadyEquipped = new("equipment.alreadyEquipped", "item");
+
+        public static readonly RefusalReason EquipmentClassMismatch = new("equipment.classMismatch", "weapon");
+
         // ---------- Данжі ----------
 
         public static readonly RefusalReason DungeonTownHallRequired = new("dungeon.townHallRequired", "dungeon", "level");
