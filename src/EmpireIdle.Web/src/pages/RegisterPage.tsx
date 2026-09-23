@@ -3,7 +3,6 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { register } from "../lib/auth";
 import { describeError } from "../lib/errorMessages";
-import { isApiError } from "../lib/problem";
 import { passwordIsValid, passwordRules } from "../lib/passwordRules";
 
 export default function RegisterPage() {
@@ -119,7 +118,7 @@ export default function RegisterPage() {
           <p className="text-sm text-slate-500">Заповніть усі поля й виконайте вимоги до пароля.</p>
         )}
 
-        {mutation.isError && <p className="text-sm text-red-600">{describeRegistration(mutation.error)}</p>}
+        {mutation.isError && <p className="text-sm text-red-600">{describeError(mutation.error)}</p>}
 
         <button
           type="submit"
@@ -138,13 +137,4 @@ export default function RegisterPage() {
       </form>
     </div>
   );
-}
-
-/** Найчастіша відмова — зайнята пошта. Решту віддаємо спільному розбору. */
-function describeRegistration(error: unknown): string {
-  if (isApiError(error) && error.is("AlreadyExists")) {
-    return "Такий акаунт уже існує. Спробуйте увійти.";
-  }
-
-  return describeError(error);
 }

@@ -11,7 +11,39 @@ type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
 type RefusalArgs = Record<string, string | number>;
 
+/**
+ * Коди Identity з відмови в реєстрації. Невідомий код не ховаємо за
+ * загальною фразою мовчки — він іде в консоль, а гравець бачить нейтральний текст.
+ */
+const REGISTRATION_CODES: Record<string, string> = {
+  DuplicateEmail: "цю пошту вже зареєстровано — спробуйте увійти",
+  DuplicateUserName: "це ім'я вже зайняте — оберіть інше",
+  InvalidEmail: "пошта виглядає некоректно",
+  InvalidUserName: "ім'я містить недозволені символи",
+  PasswordTooShort: "пароль закороткий",
+  PasswordRequiresDigit: "у паролі має бути цифра",
+  PasswordRequiresLower: "у паролі має бути мала літера",
+  PasswordRequiresUpper: "у паролі має бути велика літера",
+  PasswordRequiresNonAlphanumeric: "у паролі має бути символ, що не є літерою чи цифрою",
+};
+
+function registrationText(codes: string): string {
+  const known = codes.split(",").flatMap((code) => {
+    const text = REGISTRATION_CODES[code];
+    if (text === undefined) console.warn("Невідомий код відмови в реєстрації", code);
+    return text === undefined ? [] : [text];
+  });
+
+  if (known.length === 0) return "Не вдалося створити акаунт — перевірте дані й спробуйте ще раз";
+
+  const sentence = known.join("; ");
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+}
+
 const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
+  // ---------- Акаунт ----------
+  "auth.registrationRejected": ({ codes }) => registrationText(String(codes)),
+
   // ---------- Спільні ----------
   "common.buildingRequired": ({ building }) => `Потрібна будівля «${building}»`,
 
