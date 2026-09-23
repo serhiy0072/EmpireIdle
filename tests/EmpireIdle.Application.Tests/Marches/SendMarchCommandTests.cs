@@ -172,8 +172,9 @@ public class SendMarchCommandTests
     {
         var (garrison, monster, hero) = GivenState(infantry: 5);
 
-        await Assert.ThrowsAsync<NotEnoughResourcesException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id, infantry: 10), CancellationToken.None));
+        Assert.Equal(RefusalReasons.GarrisonNotEnoughUnits.Key, refusal.Reason);
 
         Assert.Equal(5, garrison.Units.Sum(u => u.Count));
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());

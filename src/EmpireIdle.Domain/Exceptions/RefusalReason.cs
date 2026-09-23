@@ -37,6 +37,23 @@
         /// <summary>Дія вимагає добудованої будівлі; building — її назва для гравця.</summary>
         public static readonly RefusalReason BuildingRequired = new("common.buildingRequired", "building");
 
+        /// <summary>Будівля є, але замалого рівня.</summary>
+        public static readonly RefusalReason BuildingLevelRequired = new("common.buildingLevelRequired", "building", "level");
+
+        // ---------- Гарнізон ----------
+
+        public static readonly RefusalReason GarrisonBatchSize = new("garrison.batchSize", "max");
+
+        /// <summary>Казарма тренує одну партію за раз.</summary>
+        public static readonly RefusalReason GarrisonTrainingBusy = new("garrison.trainingBusy");
+
+        public static readonly RefusalReason GarrisonLevelUpBusy = new("garrison.levelUpBusy");
+
+        public static readonly RefusalReason GarrisonArmyCapacity = new("garrison.armyCapacity", "occupied", "capacity", "requested");
+
+        /// <summary>У стеку цього рівня менше юнітів, ніж просять прокачати.</summary>
+        public static readonly RefusalReason GarrisonNotEnoughUnits = new("garrison.notEnoughUnits", "need", "have");
+
         // ---------- Акаунт ----------
 
         /// <summary>Identity відхилив реєстрацію; codes — його коди через кому, текст за кожним дає клієнт.</summary>
