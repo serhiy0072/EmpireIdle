@@ -49,6 +49,7 @@ namespace EmpireIdle.API.Middleware
                 EntityNotFoundException => (StatusCodes.Status404NotFound, "Not Found", "NotFound"),
                 IdempotencyKeyReusedException => (StatusCodes.Status422UnprocessableEntity, "Idempotency Key Reused", "IdempotencyKeyReused"),
                 OperationInProgressException => (StatusCodes.Status409Conflict, "Operation In Progress", "OperationInProgress"),
+                StaleTurnException => (StatusCodes.Status409Conflict, "Stale Turn", "StaleTurn"),
                 NotEnoughResourcesException => (StatusCodes.Status400BadRequest, "Not Enough Resources", "NotEnoughResources"),
                 RequirementNotMetException => (StatusCodes.Status400BadRequest, "Requirement Not Met", "RequirementNotMet"),
                 AlreadyExistsException => (StatusCodes.Status400BadRequest, "Already Exists", "AlreadyExists"),

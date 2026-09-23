@@ -58,17 +58,20 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Один хід. auto=true — хід обирає політика автобою й прокручуються
-        /// ходи ворогів; інакше потрібні ability й target.
+        /// Рівно один хід. auto=true — хід обирає політика автобою; інакше
+        /// хід ворога грає сервер, а для героя потрібні ability й target.
+        /// Захищений номером ходу (expectedTurn), а не Idempotency-Key:
+        /// 409 StaleTurn — перечитай забіг. Завершений забіг віддається як є.
         /// </summary>
         [HttpPost("{playerId:guid}/run/{runId:guid}/turn")]
         [ProducesResponseType(typeof(DungeonRunView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<ActionResult<DungeonRunView>> TakeTurn(
             Guid playerId, Guid runId, [FromBody] DungeonTurnRequest request, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(
-                new TakeDungeonTurnCommand(playerId, runId, request.Auto, request.AbilityKey, request.TargetIndex),
+                new TakeDungeonTurnCommand(playerId, runId, request.ExpectedTurn, request.Auto, request.AbilityKey, request.TargetIndex),
                 cancellationToken));
 
         /// <summary>Вийти із забігу. Енергія не повертається. Ідемпотентна.</summary>

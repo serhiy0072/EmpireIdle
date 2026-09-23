@@ -22,6 +22,7 @@ namespace EmpireIdle.Application.Dungeons.Validators
         {
             RuleFor(x => x.PlayerId).NotEmpty();
             RuleFor(x => x.RunId).NotEmpty();
+            RuleFor(x => x.ExpectedTurn).GreaterThanOrEqualTo(0);
             RuleFor(x => x.AbilityKey).MaximumLength(50);
             RuleFor(x => x.TargetIndex).GreaterThanOrEqualTo(0).When(x => x.TargetIndex.HasValue);
         }

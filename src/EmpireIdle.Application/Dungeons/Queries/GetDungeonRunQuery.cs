@@ -90,6 +90,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
                 state.ToString(),
                 battle.Wave,
                 waveCount,
+                battle.TurnNumber,
                 state == DungeonRunState.InProgress ? BattleEngine.CurrentActor(battle) : null,
                 combatants,
                 turns,

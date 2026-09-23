@@ -49,6 +49,10 @@ export function explainError(error: unknown): ErrorMessage {
     return { text: "Дія вже виконується", actionable: true };
   }
 
+  if (error.is("StaleTurn")) {
+    return { text: "Бій уже пішов далі — оновіть сторінку", actionable: true };
+  }
+
   if (error.is("ConcurrencyConflict")) {
     return { text: "Дані щойно змінились, спробуйте ще раз", actionable: true };
   }

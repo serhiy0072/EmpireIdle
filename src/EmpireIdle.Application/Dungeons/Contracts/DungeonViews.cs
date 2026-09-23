@@ -37,6 +37,7 @@ namespace EmpireIdle.Application.Dungeons.Contracts
 
     /// <summary>Поточний бій для клієнта: стан плюс журнал ходів, які ще не програні.</summary>
     /// <param name="State">Ім'я DungeonRunState: InProgress, Won, Lost, TimedOut або Abandoned — клієнт розгалужується за ним.</param>
+    /// <param name="TurnNumber">Номер наступного ходу — клієнт повертає його як ExpectedTurn.</param>
     public record DungeonRunView(
         Guid RunId,
         string DungeonKey,
@@ -44,6 +45,7 @@ namespace EmpireIdle.Application.Dungeons.Contracts
         string State,
         int Wave,
         int WaveCount,
+        int TurnNumber,
         int? ActorIndex,
         IReadOnlyList<CombatantView> Combatants,
         IReadOnlyList<TurnLog> Turns,
