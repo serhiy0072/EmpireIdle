@@ -263,6 +263,9 @@
                 });
             }
 
+            // Валідатор вимагає опис родини для набору кожного данжу
+            _config.Equipment.ArtifactSets.Add(new ArtifactSetConfig { Key = TestKeys.DungeonSetKey, Tier = 1 });
+
             _config.Dungeons = new DungeonsConfig
             {
                 BaseWaves = 1,
