@@ -221,6 +221,75 @@
             return this;
         }
 
+        /// <summary>
+        /// Данжі: один данж із хвилею й босом, набір артефактів на кожну
+        /// рідкість (валідатор вимагає всі три) і одне активне вміння
+        /// звичайному героєві.
+        /// </summary>
+        public GameConfigBuilder WithDungeons(Action<DungeonsConfig>? tune = null)
+        {
+            EnsureResources();
+
+            if (_config.Heroes.Count == 0)
+                WithHeroes();
+
+            if (_config.Equipment.SetBonuses.Count == 0)
+                WithEquipment();
+
+            _config.Heroes.First(h => h.Key == TestKeys.CommonHero).Abilities =
+            [
+                new HeroAbilityConfig
+                {
+                    Key = TestKeys.DungeonAbility,
+                    DisplayName = "Розтин",
+                    EnergyCost = 50,
+                    Target = AbilityTarget.SingleEnemy,
+                    DamageMultiplier = 1.8
+                }
+            ];
+
+            foreach (var rarity in Enum.GetNames<Rarity>())
+            {
+                var setKey = $"{TestKeys.DungeonSetKey}_{rarity.ToLowerInvariant()}";
+
+                foreach (var piece in DungeonSetPieces)
+                    _config.Items.Add(ArtifactItem($"{setKey}_{piece}", setKey));
+
+                _config.Equipment.SetBonuses.Add(new SetBonusConfig
+                {
+                    SetKey = setKey,
+                    RequiredPieces = 4,
+                    Stats = new Dictionary<string, double> { ["Attack"] = 10 }
+                });
+            }
+
+            _config.Dungeons = new DungeonsConfig
+            {
+                BaseWaves = 1,
+                BaseCritChance = 0,
+                FrontLineClasses = ["warrior"],
+                LevelPowerMultipliers = [1.0, 1.8, 3.2],
+                LevelRewardMultipliers = [1.0, 2.0, 3.5],
+                Dungeons =
+                [
+                    new DungeonConfig
+                    {
+                        Key = TestKeys.Dungeon,
+                        DisplayName = "Яма",
+                        ArtifactSetKey = TestKeys.DungeonSetKey,
+                        RequiresMainBuildingLevel = 1,
+                        Waves = [DungeonEnemy(TestKeys.DungeonEnemy, "Громило")],
+                        Boss = [DungeonEnemy(TestKeys.DungeonBoss, "Наглядач")],
+                        Reward = [new ResourceCost { Resource = TestKeys.Gold, Amount = 100 }]
+                    }
+                ]
+            };
+
+            tune?.Invoke(_config.Dungeons);
+
+            return this;
+        }
+
         public GameConfig Build() => _config;
 
         /// <summary>Конфіг разом із каталогом — тобто вже провалідований.</summary>
@@ -292,6 +361,21 @@
             Description = $"Test item {key}",
             BaseStats = new Dictionary<string, double> { ["Attack"] = attack },
             PriceGold = price
+        };
+
+        /// <summary>Набір данжу має рівно стільки частин, скільки вимагає бонус набору.</summary>
+        private static readonly string[] DungeonSetPieces = ["ring", "amulet", "sigil", "chime"];
+
+        /// <summary>Ворог данжу з такою горою здоров'я, щоб бій не скінчився сам.</summary>
+        private static DungeonEnemyConfig DungeonEnemy(string key, string displayName) => new()
+        {
+            Key = key,
+            DisplayName = displayName,
+            Line = BattleLine.Front,
+            Attack = 40,
+            Defense = 20,
+            Health = 100_000,
+            Speed = 20
         };
 
         private static ItemConfig ArtifactItem(string key, string? setKey) => new()
