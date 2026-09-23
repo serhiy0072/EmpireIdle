@@ -85,12 +85,17 @@ namespace EmpireIdle.Application.Villages.Queries
 
                 var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
 
+                // Під туманом буфер не росте: число з формули було б фантомом
+                var stored = village.IsProducing(b, _catalog.Buildings)
+                    ? b.StoredAt(config, now, boost, locationMultiplier)
+                    : 0;
+
                 return new BuildingView(
                     b.Id,
                     b.Type,
                     b.Level.Value,
                     b.LastCollectedAt,
-                    b.StoredAt(config, now, boost, locationMultiplier),
+                    stored,
                     b.GetStorageCap(config.BaseStorage),
                     b.ConstructionCompletesAt,
                     b.IsUnderConstruction,

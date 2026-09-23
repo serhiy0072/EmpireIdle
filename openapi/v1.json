@@ -5189,8 +5189,25 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectAllResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectAllResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectAllResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -6598,6 +6615,45 @@
           },
           "isDefaultRole": {
             "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectAllResponse": {
+        "required": [
+          "collected",
+          "fullStorages"
+        ],
+        "type": "object",
+        "properties": {
+          "collected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectedResourceResponse"
+            }
+          },
+          "fullStorages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectedResourceResponse": {
+        "required": [
+          "amount",
+          "resourceType"
+        ],
+        "type": "object",
+        "properties": {
+          "resourceType": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

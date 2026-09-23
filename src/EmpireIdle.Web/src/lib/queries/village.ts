@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
-import type { VillageResponse } from "../apiTypes";
+import type { CollectAllResponse, VillageResponse } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer, type PlayerScope } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -45,12 +45,16 @@ export function useSpeedUpBuilding(playerId: string) {
   return useBuildingAction(playerId, "speedup", ["village", "wallet"]);
 }
 
-/** Зібрати все одразу: один запит замість кліку по кожній будівлі. */
+/**
+ * Зібрати все одразу: один запит замість кліку по кожній будівлі.
+ * Повний склад не валить запит — він приходить у fullStorages.
+ */
 export function useCollectAll(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => api<void>(`/api/village/${playerId}/collect-all`, { method: "POST", idempotent: true }),
+    mutationFn: () =>
+      api<CollectAllResponse>(`/api/village/${playerId}/collect-all`, { method: "POST", idempotent: true }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["village"]),
   });
 }

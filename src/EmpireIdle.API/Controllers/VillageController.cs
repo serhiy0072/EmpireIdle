@@ -66,13 +66,17 @@ namespace EmpireIdle.API.Controllers
 
         /// <summary>
         /// Зібрати накопичені ресурси з усіх будівель села разом.
+        /// Повний склад не зупиняє збір решти — він повертається у FullStorages.
         /// </summary>
         [HttpPost("{playerId:guid}/collect-all")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(CollectAllResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> CollectAllBuildings(Guid playerId, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new CollectAllBuildingsCommand(playerId), cancellationToken);
-            return NoContent();
+            var result = await _mediator.Send(new CollectAllBuildingsCommand(playerId), cancellationToken);
+
+            return Ok(new CollectAllResponse(
+                result.Collected.Select(c => new CollectedResourceResponse(c.ResourceType, c.Amount)).ToList(),
+                result.FullStorages));
         }
 
         /// <summary>
