@@ -7,6 +7,7 @@ using EmpireIdle.Application.Catalog;
 using EmpireIdle.Application.Dev.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
@@ -109,6 +110,8 @@ builder.Services.AddSingleton(sp => new HeroCombatModifiers(sp.GetRequiredServic
 builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new BannerRoller(gameConfig.Shop));
+builder.Services.AddSingleton(sp => new BattleEngine(gameConfig.Dungeons));
+builder.Services.AddSingleton(sp => new BattleBuilder(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new HeroStats(sp.GetRequiredService<HeroProgression>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton<GameCatalogProjection>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
