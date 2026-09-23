@@ -76,10 +76,12 @@ namespace EmpireIdle.Application.Heroes.Commands
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Training heroes requires a '{settings.BuildingKey}'.", _catalog.Building(settings.BuildingKey).DisplayName);
 
+            // Ратуша на апгрейді стоїть на своєму поточному рівні — стелю героя
+            // вона тримає так само, як і до початку будівництва
             var townHall = village.Buildings
-                .FirstOrDefault(b => b.Type == _catalog.MainBuildingKey && !b.IsUnderConstruction)
+                .FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
-                    "Training heroes requires a completed town hall.", _catalog.Building(_catalog.MainBuildingKey).DisplayName);
+                    "Training heroes requires a town hall.", _catalog.Building(_catalog.MainBuildingKey).DisplayName);
 
             var ceiling = _progression.MaxLevel(townHall.Level.Value, hero.Tier);
 
