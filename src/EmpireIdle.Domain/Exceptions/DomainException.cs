@@ -2,13 +2,33 @@ namespace EmpireIdle.Domain.Exceptions
 {
     /// <summary>
     /// Порушення доменного правила — очікувана ситуація, а не баг.
-    /// Мапиться на 400 і її Message безпечно віддавати клієнту.
+    /// Мапиться на 400. Message англійський — для логів і розробника;
+    /// гравцю пояснює Reason з Args, текст за ним живе на клієнті.
     /// Усе, що лишається InvalidOperationException, вважається помилкою
     /// коду й після завершення міграції поїде в 500.
     /// </summary>
     public abstract class DomainException : Exception
     {
         protected DomainException(string message) : base(message) { }
+
+        /// <param name="values">Значення параметрів у порядку RefusalReason.ArgNames.</param>
+        protected DomainException(RefusalReason reason, string message, object[] values) : base(message)
+        {
+            // Розбіжність — баг у місці кидка, а не відмова гравцю: клієнт підставив
+            // би в текст порожнє місце замість рівня чи назви
+            if (values.Length != reason.ArgNames.Count)
+                throw new ArgumentException(
+                    $"Refusal '{reason.Key}' expects {reason.ArgNames.Count} values, got {values.Length}.", nameof(values));
+
+            Reason = reason.Key;
+            Args = reason.ArgNames.Zip(values).ToDictionary(pair => pair.First, pair => pair.Second);
+        }
+
+        /// <summary>Ключ причини для тексту гравцю; null — відмова без пояснення (баг клієнта).</summary>
+        public string? Reason { get; }
+
+        /// <summary>Параметри тексту: рівні, назви, кількості.</summary>
+        public IReadOnlyDictionary<string, object> Args { get; } = new Dictionary<string, object>();
     }
 
     /// <summary>Не вистачає ресурсу або валюти. Цифри — окремими полями: клієнт показує їх у відмові.</summary>
@@ -50,12 +70,18 @@ namespace EmpireIdle.Domain.Exceptions
     public sealed class RequirementNotMetException : DomainException
     {
         public RequirementNotMetException(string message) : base(message) { }
+
+        public RequirementNotMetException(RefusalReason reason, string message, params object[] values)
+            : base(reason, message, values) { }
     }
 
     /// <summary>Дія неможлива в поточному стані сутності.</summary>
     public sealed class InvalidStateException : DomainException
     {
         public InvalidStateException(string message) : base(message) { }
+
+        public InvalidStateException(RefusalReason reason, string message, params object[] values)
+            : base(reason, message, values) { }
     }
 
 

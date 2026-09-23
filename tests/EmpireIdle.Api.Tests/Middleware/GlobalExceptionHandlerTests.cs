@@ -71,6 +71,29 @@ public class GlobalExceptionHandlerTests
         Assert.DoesNotContain("secret", body.GetProperty("detail").GetString());
     }
 
+    /// <summary>Клієнт показує гравцю текст за reason, підставляючи args, — Detail лишається для консолі.</summary>
+    [Fact]
+    public async Task Handle_ShouldPassTheRefusalReasonWithArgs()
+    {
+        var reason = new RefusalReason("test.levelLocked", "level");
+
+        var (status, body) = await HandleAsync(new RequirementNotMetException(reason, "Requires town hall 5.", 5));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, status);
+        Assert.Equal("RequirementNotMet", body.GetProperty("errorCode").GetString());
+        Assert.Equal("test.levelLocked", body.GetProperty("reason").GetString());
+        Assert.Equal(5, body.GetProperty("args").GetProperty("level").GetInt32());
+    }
+
+    [Fact]
+    public async Task Handle_ShouldOmitTheReason_ForARefusalWithoutOne()
+    {
+        var (_, body) = await HandleAsync(new RequirementNotMetException("Weapon 'x' has no price."));
+
+        Assert.False(body.TryGetProperty("reason", out _));
+        Assert.False(body.TryGetProperty("args", out _));
+    }
+
     [Fact]
     public async Task Handle_ShouldAlwaysCarryATraceId()
     {
