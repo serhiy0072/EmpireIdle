@@ -124,7 +124,9 @@ export default function DungeonsPage() {
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium text-slate-800">{dungeon.displayName}</span>
                 <span className="text-xs text-slate-500">
-                  {dungeon.isUnlocked ? `пройдено ${dungeon.clearedLevel}/3` : `🔒 ратуша ${dungeon.requiresMainBuildingLevel}`}
+                  {dungeon.isUnlocked
+                    ? `пройдено ${dungeon.clearedLevel}/${dungeon.levels.length}`
+                    : `🔒 ратуша ${dungeon.requiresMainBuildingLevel}`}
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-500">{dungeon.description}</p>
