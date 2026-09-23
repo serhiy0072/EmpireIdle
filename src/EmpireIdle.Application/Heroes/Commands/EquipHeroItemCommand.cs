@@ -64,7 +64,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             // Спорядження міняють удома: герой у дорозі не переодягається
             if (hero.StationedGarrisonId is null)
-                throw new RequirementNotMetException($"Hero {hero.Id} is on the move.");
+                throw new RequirementNotMetException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on the move.");
 
             var item = await _inventoryRepository.GetEquipmentByIdAsync(request.EquipmentId, cancellationToken)
                 ?? throw new EntityNotFoundException("Equipment", request.EquipmentId.ToString());
@@ -94,7 +94,8 @@ namespace EmpireIdle.Application.Heroes.Commands
             var occupant = equipped.FirstOrDefault(e => e.Slot == item.Slot && e.SlotIndex == slotIndex);
 
             if (equipped.Any(e => e.Id != item.Id && e.Id != occupant?.Id && e.ItemKey == item.ItemKey))
-                throw new AlreadyExistsException("Equipped item", item.ItemKey);
+                throw new AlreadyExistsException(RefusalReasons.EquipmentAlreadyEquipped, "Equipped item", item.ItemKey,
+                    _catalog.FindItem(item.ItemKey)?.DisplayName ?? item.ItemKey);
 
             // Знімаємо з попереднього носія або зі старого слота
             if (item.EquippedByHeroId is not null)
@@ -141,8 +142,8 @@ namespace EmpireIdle.Application.Heroes.Commands
             var heroClass = _catalog.FindHero(heroKey)?.Class;
 
             if (heroClass is null || !itemConfig.WeaponClasses.Contains(heroClass))
-                throw new RequirementNotMetException(
-                    $"Weapon '{itemConfig.Key}' does not fit a {heroClass ?? "unknown"} hero.");
+                throw new RequirementNotMetException(RefusalReasons.EquipmentClassMismatch,
+                    $"Weapon '{itemConfig.Key}' does not fit a {heroClass ?? "unknown"} hero.", itemConfig.DisplayName);
         }
     }
 }

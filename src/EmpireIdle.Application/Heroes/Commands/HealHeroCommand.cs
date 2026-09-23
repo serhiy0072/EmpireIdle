@@ -63,7 +63,8 @@ namespace EmpireIdle.Application.Heroes.Commands
             var buildingKey = _catalog.Config.HeroSettings.HealBuildingKey;
 
             if (!village.HasBuilding(buildingKey))
-                throw new RequirementNotMetException($"Healing a hero requires the {buildingKey}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    $"Healing a hero requires the {buildingKey}.", _catalog.Building(buildingKey).DisplayName);
 
             // Стан перевіряє агрегат: він же не дасть лікувати того, хто в дорозі
             hero.Heal(now);

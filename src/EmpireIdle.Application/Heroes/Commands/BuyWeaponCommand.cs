@@ -71,7 +71,8 @@ namespace EmpireIdle.Application.Heroes.Commands
             var forge = _catalog.Config.Equipment.ForgeBuildingKey;
 
             if (!village.HasBuilding(forge))
-                throw new RequirementNotMetException($"Buying a weapon requires the {forge}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    $"Buying a weapon requires the {forge}.", _catalog.Building(forge).DisplayName);
 
             village.ChargeCost([new ResourceCost { Resource = "gold", Amount = config.PriceGold }], now);
 

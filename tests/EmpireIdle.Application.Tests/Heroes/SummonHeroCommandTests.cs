@@ -89,8 +89,9 @@ public class SummonHeroCommandTests
     {
         var progress = GivenShards(9);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroNotEnoughShards.Key, refusal.Reason);
 
         Assert.Equal(9, progress.Count);
         await _heroes.DidNotReceive().AddAsync(Arg.Any<Hero>(), Arg.Any<CancellationToken>());
@@ -103,8 +104,9 @@ public class SummonHeroCommandTests
         _heroes.GetShardsAsync(PlayerId, "warrior_bran", Arg.Any<CancellationToken>())
             .Returns((HeroShardProgress?)null);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroNotEnoughShards.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -142,8 +144,9 @@ public class SummonHeroCommandTests
         progress.Add(5);
         _heroes.GetShardsAsync(PlayerId, HeroTestConfig.UniqueHero, Arg.Any<CancellationToken>()).Returns(progress);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new SummonHeroCommand(PlayerId, HeroTestConfig.UniqueHero), CancellationToken.None));
+        Assert.Null(refusal.Reason);
 
         await _heroes.DidNotReceive().AddAsync(Arg.Any<Hero>(), Arg.Any<CancellationToken>());
     }

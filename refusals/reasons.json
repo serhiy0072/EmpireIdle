@@ -1,4 +1,7 @@
 {
+  "common.buildingRequired": [
+    "building"
+  ],
   "dungeon.heroWounded": [
     "hero"
   ],
@@ -11,5 +14,36 @@
   "dungeon.townHallRequired": [
     "dungeon",
     "level"
+  ],
+  "equipment.alreadyEquipped": [
+    "item"
+  ],
+  "equipment.broken": [],
+  "equipment.classMismatch": [
+    "weapon"
+  ],
+  "equipment.maxEnhancement": [
+    "max"
+  ],
+  "hero.evolutionItemRequired": [
+    "item"
+  ],
+  "hero.levelCeiling": [
+    "hero",
+    "ceiling"
+  ],
+  "hero.maxTier": [
+    "tier"
+  ],
+  "hero.notEnoughShards": [
+    "hero",
+    "need",
+    "have"
+  ],
+  "hero.onTheMove": [],
+  "hero.trainingBusy": [],
+  "hero.worldLevelRequired": [
+    "required",
+    "current"
   ]
 }

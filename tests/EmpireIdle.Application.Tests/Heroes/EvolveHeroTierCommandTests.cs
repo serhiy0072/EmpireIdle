@@ -93,8 +93,9 @@ public class EvolveHeroTierCommandTests
         var hero = GivenHero(tier: 1);
         GivenEssence("hero_essence_t2");
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new EvolveHeroTierCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroWorldLevelRequired.Key, refusal.Reason);
 
         Assert.Equal(1, hero.Tier);
     }
@@ -107,8 +108,9 @@ public class EvolveHeroTierCommandTests
         var hero = GivenHero(tier: 2);
         GivenEssence("hero_essence_t3");
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new EvolveHeroTierCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroWorldLevelRequired.Key, refusal.Reason);
     }
 
     /// <summary>Кожен перехід вимагає свого предмета.</summary>
@@ -122,8 +124,9 @@ public class EvolveHeroTierCommandTests
         _inventory.GetItemAsync(PlayerId, "hero_essence_t3", Arg.Any<CancellationToken>())
             .Returns((PlayerItem?)null);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new EvolveHeroTierCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroEvolutionItemRequired.Key, refusal.Reason);
     }
 
     /// <summary>Без предмета тір не піднімається.</summary>
@@ -136,8 +139,9 @@ public class EvolveHeroTierCommandTests
         _inventory.GetItemAsync(PlayerId, "hero_essence_t2", Arg.Any<CancellationToken>())
             .Returns((PlayerItem?)null);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new EvolveHeroTierCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroEvolutionItemRequired.Key, refusal.Reason);
 
         Assert.Equal(1, hero.Tier);
     }
@@ -149,8 +153,9 @@ public class EvolveHeroTierCommandTests
         GivenServer(level: 3);
         var hero = GivenHero(tier: 3);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new EvolveHeroTierCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroMaxTier.Key, refusal.Reason);
     }
 
     /// <summary>Героя в поході не еволюціонують.</summary>
@@ -161,8 +166,9 @@ public class EvolveHeroTierCommandTests
         var hero = GivenHero(tier: 1, state: HeroState.Deployed);
         GivenEssence("hero_essence_t2");
 
-        await Assert.ThrowsAsync<InvalidStateException>(() =>
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
             Handler().Handle(new EvolveHeroTierCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroOnTheMove.Key, refusal.Reason);
     }
 
     /// <summary>Чужий герой не існує з погляду цього гравця.</summary>

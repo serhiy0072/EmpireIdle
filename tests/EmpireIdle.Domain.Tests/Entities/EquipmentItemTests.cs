@@ -114,7 +114,8 @@ namespace EmpireIdle.Domain.Tests.Entities
             var item = Weapon();
             item.Break(Now);
 
-            Assert.Throws<InvalidStateException>(() => item.EquipTo(Guid.NewGuid(), 0, Now));
+            var refusal = Assert.Throws<InvalidStateException>(() => item.EquipTo(Guid.NewGuid(), 0, Now));
+            Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
         }
 
         [Fact]

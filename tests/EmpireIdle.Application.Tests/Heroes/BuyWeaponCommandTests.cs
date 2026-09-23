@@ -94,9 +94,10 @@ public class BuyWeaponCommandTests
     {
         GivenVillage(withForge: false);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new BuyWeaponCommand(PlayerId, HeroTestConfig.WarriorWeapon),
                 CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
 
         await _inventory.DidNotReceive().AddEquipmentAsync(
             Arg.Any<EquipmentItem>(), Arg.Any<CancellationToken>());
@@ -121,9 +122,10 @@ public class BuyWeaponCommandTests
     {
         GivenVillage();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new BuyWeaponCommand(PlayerId, HeroTestConfig.Artifact),
                 CancellationToken.None));
+        Assert.Null(refusal.Reason);
     }
 
     [Fact]

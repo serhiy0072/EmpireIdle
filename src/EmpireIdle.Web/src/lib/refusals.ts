@@ -10,6 +10,26 @@ type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 type RefusalArgs = Record<string, string | number>;
 
 const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
+  // ---------- Спільні ----------
+  "common.buildingRequired": ({ building }) => `Потрібна будівля «${building}»`,
+
+  // ---------- Герої ----------
+  "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
+  "hero.levelCeiling": ({ hero, ceiling }) =>
+    `${hero} досяг стелі ${ceiling} рівня: підніміть ратушу або еволюціонуйте тір`,
+  "hero.trainingBusy": () => "Зала героїв уже тренує іншого героя",
+  "hero.worldLevelRequired": ({ required, current }) =>
+    `Наступний тір відкриється на рівні світу ${required} (зараз ${current})`,
+  "hero.evolutionItemRequired": ({ item }) => `Для еволюції потрібен предмет «${item}»`,
+  "hero.maxTier": ({ tier }) => `Герой уже на найвищому тірі (${tier})`,
+  "hero.notEnoughShards": ({ hero, need, have }) => `Для призову «${hero}» потрібно ${need} уламків, зібрано ${have}`,
+
+  // ---------- Спорядження ----------
+  "equipment.maxEnhancement": ({ max }) => `Уже максимальне посилення +${max}`,
+  "equipment.broken": () => "Спершу відремонтуйте предмет у кузні",
+  "equipment.alreadyEquipped": ({ item }) => `«${item}» уже вдягнено на цього героя`,
+  "equipment.classMismatch": ({ weapon }) => `«${weapon}» не підходить класу цього героя`,
+
   // ---------- Данжі ----------
   "dungeon.townHallRequired": ({ dungeon, level }) => `«${dungeon}» відкривається з ратушею ${level} рівня`,
   "dungeon.levelLocked": ({ level, previous }) => `Рівень ${level} відкриється після проходження рівня ${previous}`,
