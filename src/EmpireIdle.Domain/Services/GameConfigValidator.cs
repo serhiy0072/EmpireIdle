@@ -32,10 +32,60 @@ namespace EmpireIdle.Domain.Services
             ValidatePreview(config);
             ValidateHeroes(config);
             ValidateLossBands(config);
+            ValidateDungeons(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
             ValidateBanners(config);
             ValidateBuildingLayout(config);
+        }
+
+        /// <summary>
+        /// Данжі: унікальні ключі, набір артефактів під кожну рідкість, бос і хвилі.
+        /// Данж без боса чи без набору віддав би гравцю порожній забіг.
+        /// </summary>
+        private static void ValidateDungeons(GameConfig config)
+        {
+            var dungeons = config.Dungeons;
+
+            if (dungeons.Dungeons.Count == 0)
+                return;
+
+            RequireUniqueKeys(dungeons.Dungeons.Select(d => d.Key), "Dungeons");
+
+            if (dungeons.EnergyPerRun <= 0 || dungeons.MaxEnergy < dungeons.EnergyPerRun)
+                throw new InvalidOperationException(
+                    "Dungeons.EnergyPerRun must be positive and fit into MaxEnergy — otherwise no run is ever affordable.");
+
+            if (dungeons.LevelPowerMultipliers.Count < dungeons.MaxLevel || dungeons.LevelRewardMultipliers.Count < dungeons.MaxLevel)
+                throw new InvalidOperationException(
+                    $"Dungeons has fewer level multipliers than MaxLevel {dungeons.MaxLevel}.");
+
+            var setKeys = config.Items
+                .Where(i => i.SetKey is not null)
+                .Select(i => i.SetKey!)
+                .ToHashSet();
+
+            var rarities = Enum.GetNames<Rarity>().Select(r => r.ToLowerInvariant()).ToList();
+
+            foreach (var dungeon in dungeons.Dungeons)
+            {
+                if (dungeon.Boss.Count == 0)
+                    throw new InvalidOperationException($"Dungeon '{dungeon.Key}' has no boss wave.");
+
+                if (dungeon.Waves.Count == 0)
+                    throw new InvalidOperationException($"Dungeon '{dungeon.Key}' has no regular waves.");
+
+                // Рівень забігу обирає рідкість набору, тож бракує хоч одного — і нагорода зникає
+                foreach (var rarity in rarities)
+                    if (!setKeys.Contains($"{dungeon.ArtifactSetKey}_{rarity}"))
+                        throw new InvalidOperationException(
+                            $"Dungeon '{dungeon.Key}' has no artifact set '{dungeon.ArtifactSetKey}_{rarity}' in Items.");
+
+                foreach (var enemy in dungeon.Waves.Concat(dungeon.Boss))
+                    if (enemy.Health <= 0 || enemy.Attack <= 0)
+                        throw new InvalidOperationException(
+                            $"Dungeon '{dungeon.Key}' enemy '{enemy.Key}' has non-positive attack or health.");
+            }
         }
 
         /// <summary>Кожен товар крамниці — існуючий предмет; спорядження продає кузня за золото, не крамниця.</summary>

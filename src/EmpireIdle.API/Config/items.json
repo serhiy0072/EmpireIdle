@@ -157,38 +157,6 @@
         "PriceGold": 750
       },
       {
-        "Key": "dawn_amulet",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Амулет світанку",
-        "Slot": "Artifact",
-        "SetKey": "dawn"
-      },
-      {
-        "Key": "dawn_ring",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Перстень світанку",
-        "Slot": "Artifact",
-        "SetKey": "dawn"
-      },
-      {
-        "Key": "dawn_sigil",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Знак світанку",
-        "Slot": "Artifact",
-        "SetKey": "dawn"
-      },
-      {
-        "Key": "dawn_chime",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Дзвіночок світанку",
-        "Slot": "Artifact",
-        "SetKey": "dawn"
-      },
-      {
         "Key": "sword_steel",
         "Type": "equipment",
         "Rarity": "rare",
@@ -247,6 +215,1046 @@
           "Defense": 4
         },
         "PriceGold": 1800
+      },
+      {
+        "Key": "dawn_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Світанку (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_common"
+      },
+      {
+        "Key": "dawn_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Світанку (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_common"
+      },
+      {
+        "Key": "dawn_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Світанку (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_common"
+      },
+      {
+        "Key": "dawn_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Світанку (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_common"
+      },
+      {
+        "Key": "dawn_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Світанку (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_rare"
+      },
+      {
+        "Key": "dawn_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Світанку (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_rare"
+      },
+      {
+        "Key": "dawn_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Світанку (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_rare"
+      },
+      {
+        "Key": "dawn_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Світанку (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_rare"
+      },
+      {
+        "Key": "dawn_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Світанку (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "dawn_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Світанку (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "dawn_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Світанку (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "dawn_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Світанку (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "dawn_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "ember_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Жарини (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_common"
+      },
+      {
+        "Key": "ember_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Жарини (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_common"
+      },
+      {
+        "Key": "ember_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Жарини (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_common"
+      },
+      {
+        "Key": "ember_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Жарини (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_common"
+      },
+      {
+        "Key": "ember_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Жарини (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_rare"
+      },
+      {
+        "Key": "ember_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Жарини (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_rare"
+      },
+      {
+        "Key": "ember_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Жарини (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_rare"
+      },
+      {
+        "Key": "ember_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Жарини (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_rare"
+      },
+      {
+        "Key": "ember_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Жарини (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ember_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Жарини (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ember_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Жарини (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ember_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Жарини (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "ember_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "frost_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Морозу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_common"
+      },
+      {
+        "Key": "frost_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Морозу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_common"
+      },
+      {
+        "Key": "frost_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Морозу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_common"
+      },
+      {
+        "Key": "frost_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Морозу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_common"
+      },
+      {
+        "Key": "frost_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Морозу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_rare"
+      },
+      {
+        "Key": "frost_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Морозу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_rare"
+      },
+      {
+        "Key": "frost_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Морозу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_rare"
+      },
+      {
+        "Key": "frost_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Морозу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_rare"
+      },
+      {
+        "Key": "frost_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Морозу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "frost_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Морозу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "frost_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Морозу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "frost_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Морозу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "frost_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "tide_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Припливу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_common"
+      },
+      {
+        "Key": "tide_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Припливу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_common"
+      },
+      {
+        "Key": "tide_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Припливу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_common"
+      },
+      {
+        "Key": "tide_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Припливу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_common"
+      },
+      {
+        "Key": "tide_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Припливу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_rare"
+      },
+      {
+        "Key": "tide_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Припливу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_rare"
+      },
+      {
+        "Key": "tide_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Припливу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_rare"
+      },
+      {
+        "Key": "tide_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Припливу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_rare"
+      },
+      {
+        "Key": "tide_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Припливу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 10
+      },
+      {
+        "Key": "tide_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Припливу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 10
+      },
+      {
+        "Key": "tide_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Припливу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 10
+      },
+      {
+        "Key": "tide_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Припливу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "tide_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 10
+      },
+      {
+        "Key": "storm_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Бурі (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_common"
+      },
+      {
+        "Key": "storm_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Бурі (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_common"
+      },
+      {
+        "Key": "storm_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Бурі (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_common"
+      },
+      {
+        "Key": "storm_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Бурі (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_common"
+      },
+      {
+        "Key": "storm_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Бурі (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_rare"
+      },
+      {
+        "Key": "storm_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Бурі (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_rare"
+      },
+      {
+        "Key": "storm_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Бурі (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_rare"
+      },
+      {
+        "Key": "storm_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Бурі (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_rare"
+      },
+      {
+        "Key": "storm_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Бурі (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "storm_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Бурі (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "storm_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Бурі (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "storm_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Бурі (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "storm_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "thorn_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Терену (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_common"
+      },
+      {
+        "Key": "thorn_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Терену (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_common"
+      },
+      {
+        "Key": "thorn_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Терену (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_common"
+      },
+      {
+        "Key": "thorn_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Терену (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_common"
+      },
+      {
+        "Key": "thorn_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Терену (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_rare"
+      },
+      {
+        "Key": "thorn_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Терену (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_rare"
+      },
+      {
+        "Key": "thorn_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Терену (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_rare"
+      },
+      {
+        "Key": "thorn_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Терену (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_rare"
+      },
+      {
+        "Key": "thorn_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Терену (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "thorn_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Терену (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "thorn_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Терену (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "thorn_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Терену (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "thorn_unique",
+        "UniqueStat": "Lifesteal",
+        "UniqueStatValue": 0.12
+      },
+      {
+        "Key": "ash_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Попелу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_common"
+      },
+      {
+        "Key": "ash_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Попелу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_common"
+      },
+      {
+        "Key": "ash_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Попелу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_common"
+      },
+      {
+        "Key": "ash_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Попелу (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_common"
+      },
+      {
+        "Key": "ash_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Попелу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_rare"
+      },
+      {
+        "Key": "ash_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Попелу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_rare"
+      },
+      {
+        "Key": "ash_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Попелу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_rare"
+      },
+      {
+        "Key": "ash_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Попелу (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_rare"
+      },
+      {
+        "Key": "ash_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Попелу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ash_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Попелу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ash_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Попелу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "ash_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Попелу (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "ash_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.15
+      },
+      {
+        "Key": "hollow_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Пустки (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_common"
+      },
+      {
+        "Key": "hollow_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Пустки (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_common"
+      },
+      {
+        "Key": "hollow_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Пустки (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_common"
+      },
+      {
+        "Key": "hollow_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Пустки (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_common"
+      },
+      {
+        "Key": "hollow_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Пустки (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_rare"
+      },
+      {
+        "Key": "hollow_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Пустки (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_rare"
+      },
+      {
+        "Key": "hollow_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Пустки (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_rare"
+      },
+      {
+        "Key": "hollow_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Пустки (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_rare"
+      },
+      {
+        "Key": "hollow_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Пустки (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 12
+      },
+      {
+        "Key": "hollow_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Пустки (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 12
+      },
+      {
+        "Key": "hollow_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Пустки (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 12
+      },
+      {
+        "Key": "hollow_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Пустки (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "hollow_unique",
+        "UniqueStat": "EnergyOnAttack",
+        "UniqueStatValue": 12
+      },
+      {
+        "Key": "gale_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Вітру (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_common"
+      },
+      {
+        "Key": "gale_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Вітру (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_common"
+      },
+      {
+        "Key": "gale_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Вітру (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_common"
+      },
+      {
+        "Key": "gale_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Вітру (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_common"
+      },
+      {
+        "Key": "gale_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Вітру (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_rare"
+      },
+      {
+        "Key": "gale_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Вітру (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_rare"
+      },
+      {
+        "Key": "gale_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Вітру (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_rare"
+      },
+      {
+        "Key": "gale_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Вітру (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_rare"
+      },
+      {
+        "Key": "gale_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Вітру (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.1
+      },
+      {
+        "Key": "gale_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Вітру (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.1
+      },
+      {
+        "Key": "gale_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Вітру (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.1
+      },
+      {
+        "Key": "gale_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Вітру (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "gale_unique",
+        "UniqueStat": "CritChance",
+        "UniqueStatValue": 0.1
+      },
+      {
+        "Key": "obsidian_amulet_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Амулет Обсидіану (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_common"
+      },
+      {
+        "Key": "obsidian_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Перстень Обсидіану (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_common"
+      },
+      {
+        "Key": "obsidian_sigil_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Печать Обсидіану (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_common"
+      },
+      {
+        "Key": "obsidian_chime_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Дзвіночок Обсидіану (звичайний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_common"
+      },
+      {
+        "Key": "obsidian_amulet_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Амулет Обсидіану (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_rare"
+      },
+      {
+        "Key": "obsidian_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Перстень Обсидіану (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_rare"
+      },
+      {
+        "Key": "obsidian_sigil_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Печать Обсидіану (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_rare"
+      },
+      {
+        "Key": "obsidian_chime_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дзвіночок Обсидіану (рідкісний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_rare"
+      },
+      {
+        "Key": "obsidian_amulet_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Амулет Обсидіану (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.18
+      },
+      {
+        "Key": "obsidian_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Перстень Обсидіану (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.18
+      },
+      {
+        "Key": "obsidian_sigil_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Печать Обсидіану (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.18
+      },
+      {
+        "Key": "obsidian_chime_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Дзвіночок Обсидіану (унікальний)",
+        "Slot": "Artifact",
+        "SetKey": "obsidian_unique",
+        "UniqueStat": "DamageReduction",
+        "UniqueStatValue": 0.18
       }
     ],
     "Equipment": {
@@ -275,11 +1283,253 @@
       "DoubleUpgradeChance": 0.1,
       "SetBonuses": [
         {
-          "SetKey": "dawn",
+          "SetKey": "dawn_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "dawn_rare",
           "RequiredPieces": 4,
           "Stats": {
             "Attack": 25,
             "Defense": 25
+          }
+        },
+        {
+          "SetKey": "dawn_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "ember_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "ember_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "ember_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "frost_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "frost_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "frost_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "tide_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "tide_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "tide_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "storm_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "storm_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "storm_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "thorn_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "thorn_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "thorn_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "ash_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "ash_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "ash_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "hollow_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "hollow_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "hollow_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "gale_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "gale_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "gale_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
+          }
+        },
+        {
+          "SetKey": "obsidian_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 15,
+            "Defense": 15
+          }
+        },
+        {
+          "SetKey": "obsidian_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 25,
+            "Defense": 25
+          }
+        },
+        {
+          "SetKey": "obsidian_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Attack": 40,
+            "Defense": 40,
+            "Health": 120
           }
         }
       ],
