@@ -96,16 +96,33 @@ namespace EmpireIdle.Domain.Entities
             LastAccruedAt = utcNow;
         }
 
-        /// <summary>Забирає накопичене з буфера. Повертає зібрану кількість.</summary>
-        public int Collect(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        /// <summary>
+        /// Забирає з буфера не більше, ніж <paramref name="limit"/>. Решта лишається
+        /// в буфері: місце на складі визначає, скільки взяти, а не скільки знищити.
+        /// </summary>
+        /// <returns>Зібрана кількість.</returns>
+        public int Collect(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier, int limit)
         {
-            var collected = StoredAt(config, utcNow, boost, locationMultiplier);
+            var stored = StoredAt(config, utcNow, boost, locationMultiplier);
+            var collected = Math.Min(stored, Math.Max(0, limit));
 
-            AccruedAmount = 0;
+            AccruedAmount = stored - collected;
             LastAccruedAt = utcNow;
             LastCollectedAt = utcNow;
 
             return collected;
+        }
+
+        /// <summary>
+        /// Будівля виходить з-під туману: виробіток стартує з цього моменту.
+        /// Усе, що нарахувалось до відкриття, не існує — гравець цієї будівлі
+        /// не бачив і нічого в неї не вклав.
+        /// </summary>
+        public void StartProducing(DateTime utcNow)
+        {
+            AccruedAmount = 0;
+            LastAccruedAt = utcNow;
+            LastCollectedAt = utcNow;
         }
 
         /// <summary>
@@ -134,7 +151,7 @@ namespace EmpireIdle.Domain.Entities
             double locationMultiplier)
         {
             if (IsUnderConstruction)
-                throw new InvalidStateException($"Building {Id} is already under construction.");
+                throw new InvalidStateException(RefusalReasons.BuildingUnderConstruction, $"Building {Id} is already under construction.");
 
             // Банкуємо вироблене ДО зупинки: під час будівництва виробництва немає,
             // і без цього накопичене за попередній період загубилось би

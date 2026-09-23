@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Villages.ReadModels;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -8,9 +9,9 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Villages.Commands
 {
     /// <summary>Команда: зібрати накопичені ресурси з усіх будівель села разом.</summary>
-    public record CollectAllBuildingsCommand(Guid PlayerId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
+    public record CollectAllBuildingsCommand(Guid PlayerId) : IRequest<CollectAllView>, IPlayerScopedRequest, IIdempotentRequest;
 
-    public sealed class CollectAllBuildingsCommandHandler : IRequestHandler<CollectAllBuildingsCommand>
+    public sealed class CollectAllBuildingsCommandHandler : IRequestHandler<CollectAllBuildingsCommand, CollectAllView>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
@@ -44,7 +45,7 @@ namespace EmpireIdle.Application.Villages.Commands
             _logger = logger;
         }
 
-        public async Task Handle(CollectAllBuildingsCommand request, CancellationToken cancellationToken)
+        public async Task<CollectAllView> Handle(CollectAllBuildingsCommand request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
@@ -55,27 +56,17 @@ namespace EmpireIdle.Application.Villages.Commands
             var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
             var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
 
-            // Список ідентифікаторів знімаємо наперед: Collect змінює буфер,
-            // а перебирати колекцію, яку сам же й міняєш, — джерело багів
-            var collectableIds = village.Buildings
-                .Where(b => !b.IsUnderConstruction
-                    && _catalog.Buildings.TryGetValue(b.Type, out var config)
-                    && config.ProducesResource is not null)
-                .Select(b => b.Id)
-                .ToList();
-
-            foreach (var buildingId in collectableIds)
-            {
-                var building = village.Buildings.First(b => b.Id == buildingId);
-                var config = _catalog.Buildings[building.Type];
-                var storageCap = _capacities.StorageCapFor(village, config.ProducesResource!);
-
-                village.CollectFromBuilding(buildingId, _catalog.Buildings, storageCap, now, boost, locationMultiplier);
-            }
+            var summary = village.CollectAll(_catalog.Buildings,
+                resource => _capacities.StorageCapFor(village, resource), now, boost, locationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Collected all buildings for player {PlayerId}", request.PlayerId);
+            _logger.LogInformation("Collected all buildings for player {PlayerId}; full storages: {FullStorages}",
+                request.PlayerId, summary.FullStorages);
+
+            return new CollectAllView(
+                summary.Collected.Select(c => new CollectedResourceView(c.Key, c.Value)).ToList(),
+                summary.FullStorages.ToList());
         }
     }
 }

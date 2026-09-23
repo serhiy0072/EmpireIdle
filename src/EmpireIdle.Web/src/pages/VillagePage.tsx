@@ -5,6 +5,7 @@ import LockedBuildingCard from "../components/LockedBuildingCard";
 import VillageMap from "../components/village/VillageMap";
 import { useSession } from "../hooks/useSession";
 import { useCatalog } from "../lib/queries/catalog";
+import { resourceGenitive } from "../lib/resourceNames";
 import {
   useCollectAll,
   useCollectBuilding,
@@ -12,6 +13,8 @@ import {
   useUpgradeBuilding,
   useVillage,
 } from "../lib/queries/village";
+
+type VillageAction = "collect" | "upgrade" | "speedUp" | "collectAll";
 
 export default function VillagePage() {
   const session = useSession();
@@ -25,6 +28,8 @@ export default function VillagePage() {
   const collectAll = useCollectAll(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Банер належить останній дії: помилка давнього кліку після успішного нового лише плутає
+  const [lastAction, setLastAction] = useState<VillageAction | null>(null);
 
   if (village.isPending) {
     return <p className="text-slate-500">Завантаження села…</p>;
@@ -35,10 +40,18 @@ export default function VillagePage() {
   }
 
   const busy = collect.isPending || upgrade.isPending || speedUp.isPending || collectAll.isPending;
-  const failure = collect.error ?? upgrade.error ?? speedUp.error ?? collectAll.error;
+  const actions = { collect, upgrade, speedUp, collectAll };
+  const failure = lastAction === null ? null : actions[lastAction].error;
+  const fullStorages = lastAction === "collectAll" ? (collectAll.data?.fullStorages ?? []) : [];
+
+  const run = (action: VillageAction, perform: () => void) => {
+    setLastAction(action);
+    perform();
+  };
+
   const selected = village.data.buildings.find((building) => building.id === selectedId) ?? null;
   const collectable = village.data.buildings.some(
-    (building) => building.isUnlocked && !building.isUnderConstruction && building.storedAmount > 0,
+    (building) => building.isUnlocked && building.storedAmount > 0,
   );
 
   return (
@@ -47,7 +60,7 @@ export default function VillagePage() {
         <h1 className="text-xl font-medium text-slate-800">{village.data.name}</h1>
         <button
           type="button"
-          onClick={() => collectAll.mutate()}
+          onClick={() => run("collectAll", () => collectAll.mutate())}
           disabled={busy || !collectable}
           className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
         >
@@ -57,13 +70,22 @@ export default function VillagePage() {
 
       <ErrorBanner error={failure} />
 
+      {fullStorages.length > 0 && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {fullStorages.length === 1 ? "Склад" : "Склади"}{" "}
+          {fullStorages.map(resourceGenitive).join(", ")}{" "}
+          {fullStorages.length === 1 ? "заповнений" : "заповнені"} — решта чекає
+          в будівлях. Витратьте частину, щоб зібрати.
+        </p>
+      )}
+
       <div className="relative min-h-0 flex-1">
         <VillageMap
           buildings={village.data.buildings}
           catalog={catalog}
           selectedId={selectedId}
           onSelect={setSelectedId}
-          onCollect={(buildingId) => collect.mutate(buildingId)}
+          onCollect={(buildingId) => run("collect", () => collect.mutate(buildingId))}
         />
 
         {selected !== null && (
@@ -73,9 +95,9 @@ export default function VillagePage() {
                 playerId={playerId}
                 building={selected}
                 busy={busy}
-                onCollect={() => collect.mutate(selected.id)}
-                onUpgrade={() => upgrade.mutate(selected.id)}
-                onSpeedUp={() => speedUp.mutate(selected.id)}
+                onCollect={() => run("collect", () => collect.mutate(selected.id))}
+                onUpgrade={() => run("upgrade", () => upgrade.mutate(selected.id))}
+                onSpeedUp={() => run("speedUp", () => speedUp.mutate(selected.id))}
               />
             ) : (
               <LockedBuildingCard building={selected} />

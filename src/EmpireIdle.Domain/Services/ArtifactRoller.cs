@@ -30,18 +30,20 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>Стартовий набір: два випадкові стати з пулу.</summary>
-        public IReadOnlyDictionary<string, double> RollInitial(Rarity rarity, int seed)
+        /// <param name="setKey">SetKey предмета: задає рівень і характер набору; null — без них.</param>
+        public IReadOnlyDictionary<string, double> RollInitial(Rarity rarity, string? setKey, int seed)
         {
             var random = new DeterministicRandom(seed);
+            var set = _config.FindArtifactSet(setKey);
             var pool = _config.ArtifactStats.OrderBy(s => s.Stat, StringComparer.Ordinal).ToList();
             var result = new Dictionary<string, double>();
 
             for (var i = 0; i < _config.ArtifactBaseStats && pool.Count > 0; i++)
             {
-                var pick = pool[random.Next(pool.Count)];
+                var pick = Pick(pool, set, random);
                 pool.Remove(pick);
 
-                result[pick.Stat] = Value(pick.Min, pick.Max, rarity, random);
+                result[pick.Stat] = Value(pick.Min, pick.Max, rarity, set, random);
             }
 
             return result;
@@ -52,9 +54,11 @@ namespace EmpireIdle.Domain.Services
         /// ArtifactStatLevels, ні в ArtifactUpgradeLevels, не дають нічого:
         /// прокачка все одно коштує золота, але міняє лише число на предметі.
         /// </summary>
-        public ArtifactRoll RollForLevel(int level, Rarity rarity, IReadOnlyCollection<string> currentStats, int seed)
+        public ArtifactRoll RollForLevel(int level, Rarity rarity, string? setKey,
+            IReadOnlyCollection<string> currentStats, int seed)
         {
             var random = new DeterministicRandom(seed);
+            var set = _config.FindArtifactSet(setKey);
             var added = new Dictionary<string, double>();
             var raised = new Dictionary<string, double>();
 
@@ -69,8 +73,8 @@ namespace EmpireIdle.Domain.Services
                 // просто не додає нічого, і це не помилка
                 if (pool.Count > 0)
                 {
-                    var pick = pool[random.Next(pool.Count)];
-                    added[pick.Stat] = Value(pick.Min, pick.Max, rarity, random);
+                    var pick = Pick(pool, set, random);
+                    added[pick.Stat] = Value(pick.Min, pick.Max, rarity, set, random);
                 }
             }
 
@@ -92,18 +96,58 @@ namespace EmpireIdle.Domain.Services
                     if (band is null)
                         continue;
 
-                    raised[stat] = Value(band.UpgradeMin, band.UpgradeMax, rarity, random);
+                    raised[stat] = Value(band.UpgradeMin, band.UpgradeMax, rarity, set, random);
                 }
             }
 
             return new ArtifactRoll(added, raised);
         }
 
-        private double Value(double min, double max, Rarity rarity, DeterministicRandom random)
+        /// <summary>
+        /// Вибір стату з пулу. Без характеру — рівноймовірно й тим самим кидком,
+        /// що й до появи характерів: журнали ролів старих предметів відтворюються.
+        /// З характером — характерні стати важать ArtifactFocusWeight.
+        /// </summary>
+        private ArtifactStatConfig Pick(List<ArtifactStatConfig> pool, ArtifactSetConfig? set, DeterministicRandom random)
         {
-            var multiplier = _config.ArtifactRarityMultipliers.GetValueOrDefault(rarity.ToString(), 1.0);
+            if (set is null || set.FocusStats.Count == 0)
+                return pool[random.Next(pool.Count)];
+
+            var weights = pool
+                .Select(s => set.FocusStats.Contains(s.Stat) ? _config.ArtifactFocusWeight : 1.0)
+                .ToList();
+
+            var roll = random.NextDouble() * weights.Sum();
+
+            for (var i = 0; i < pool.Count; i++)
+            {
+                roll -= weights[i];
+
+                if (roll < 0)
+                    return pool[i];
+            }
+
+            // Похибка double на останньому кроці — беремо останній
+            return pool[^1];
+        }
+
+        private double Value(double min, double max, Rarity rarity, ArtifactSetConfig? set, DeterministicRandom random)
+        {
+            var multiplier = _config.ArtifactRarityMultipliers.GetValueOrDefault(rarity.ToString(), 1.0)
+                * TierMultiplier(set);
 
             return Math.Round((min + random.NextDouble() * (max - min)) * multiplier, 2);
+        }
+
+        /// <summary>Рівень поза списком множників бере останній відомий — як і тір героя.</summary>
+        private double TierMultiplier(ArtifactSetConfig? set)
+        {
+            var multipliers = _config.ArtifactTierMultipliers;
+
+            if (set is null || multipliers.Count == 0)
+                return 1.0;
+
+            return multipliers[Math.Clamp(set.Tier - 1, 0, multipliers.Count - 1)];
         }
     }
 }

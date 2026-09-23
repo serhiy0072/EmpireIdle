@@ -3,6 +3,7 @@ import type { components } from "./schema";
 /** Псевдоніми згенерованих типів: екрани не лізуть у components руками. */
 export type VillageResponse = components["schemas"]["VillageResponse"];
 export type BuildingResponse = components["schemas"]["BuildingResponse"];
+export type CollectAllResponse = components["schemas"]["CollectAllResponse"];
 export type WalletResponse = components["schemas"]["WalletResponse"];
 export type GarrisonResponse = components["schemas"]["GarrisonResponse"];
 export type UnitResponse = components["schemas"]["UnitResponse"];
@@ -49,6 +50,13 @@ export type ClanApplicationResponse = components["schemas"]["ClanApplicationResp
 export type ClanInviteResponse = components["schemas"]["ClanInviteResponse"];
 export type ClanJoinPolicy = components["schemas"]["ClanJoinPolicy"];
 export type ClanHelpTarget = components["schemas"]["ClanHelpTarget"];
+export type DungeonsOverview = components["schemas"]["DungeonsOverview"];
+export type DungeonView = components["schemas"]["DungeonView"];
+export type DungeonLevelView = components["schemas"]["DungeonLevelView"];
+export type DungeonRunView = components["schemas"]["DungeonRunView"];
+export type CombatantView = components["schemas"]["CombatantView"];
+export type AbilityView = components["schemas"]["AbilityView"];
+export type TurnLog = components["schemas"]["TurnLog"];
 export type PowerResponse = components["schemas"]["PowerResponse"];
 export type PlayerRankResponse = components["schemas"]["PlayerRankResponse"];
 export type LeaderboardEntryResponse = components["schemas"]["LeaderboardEntryResponse"];

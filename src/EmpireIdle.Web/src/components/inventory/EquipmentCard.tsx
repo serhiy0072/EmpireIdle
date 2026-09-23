@@ -1,36 +1,33 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { EquipmentResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import type { HeroSummary } from "../../lib/queries/heroes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
+import { statLabel } from "../../lib/statNames";
 import ItemIcon from "./ItemIcon";
 
 interface Props {
   equipment: EquipmentResponse;
   heroes: HeroSummary[];
-  artifactSlots: number;
   busy: boolean;
-  onEquip: (heroId: string, slotIndex: number) => void;
+  onEquip: (heroId: string) => void;
   onUnequip: () => void;
 }
-
-const STAT_LABELS: Record<string, string> = {
-  Attack: "Атака",
-  Defense: "Захист",
-  Health: "Здоров'я",
-};
 
 /**
  * Екземпляр спорядження в інвентарі: одягнути на героя вдома (для артефакта —
  * ще й слот) або зняти. Заточка, ремонт і прокачка — в кузні, це інший екран.
  */
-export default function EquipmentCard({ equipment, heroes, artifactSlots, busy, onEquip, onUnequip }: Props) {
+export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUnequip }: Props) {
   const catalog = useCatalog();
   const [picking, setPicking] = useState(false);
   const [heroId, setHeroId] = useState("");
-  const [slotIndex, setSlotIndex] = useState(0);
 
   const isWeapon = equipment.slot === "Weapon";
+  const set = catalog.setOfItem(equipment.itemKey);
+  // Артефакт сам визначає слот — показуємо його тип замість номера
+  const slotName = catalog.artifactSlotName(equipment.itemKey);
   const wearer = equipment.equippedByHeroId === null ? null : heroes.find((hero) => hero.id === equipment.equippedByHeroId);
   // Переодягаються лише вдома: герой у поході не кандидат
   const candidates = heroes.filter((hero) => hero.stationedGarrisonId != null);
@@ -49,16 +46,23 @@ export default function EquipmentCard({ equipment, heroes, artifactSlots, busy, 
               {catalog.itemName(equipment.itemKey)}
               {equipment.enhancementLevel > 0 && <span className="ml-1 text-amber-600">+{equipment.enhancementLevel}</span>}
             </span>
-            <span className="text-xs text-slate-500">{isWeapon ? "Зброя" : `Артефакт`}</span>
+            <span className="text-xs text-slate-500">{isWeapon ? "Зброя" : (slotName ?? "Артефакт")}</span>
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
             {equipment.isBroken && <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Зламано</span>}
+            {set !== null && (
+              <Link
+                to={`/inventory/sets?set=${set.key}`}
+                className="rounded bg-slate-100 px-2 py-0.5 text-slate-700 hover:bg-slate-200"
+              >
+                {set.displayName} · рів. {set.tier}
+              </Link>
+            )}
             {wearer !== null && wearer !== undefined && (
               <span className="rounded bg-emerald-100 px-2 py-0.5 text-emerald-800">
                 {catalog.heroName(wearer.heroKey)}
-                {!isWeapon && ` · слот ${equipment.slotIndex + 1}`}
               </span>
             )}
           </div>
@@ -68,7 +72,7 @@ export default function EquipmentCard({ equipment, heroes, artifactSlots, busy, 
       <dl className="mt-2 grid grid-cols-3 gap-1 text-sm">
         {Object.entries(equipment.stats).map(([stat, value]) => (
           <div key={stat} className="rounded bg-slate-50 px-2 py-1">
-            <dt className="text-xs text-slate-500">{STAT_LABELS[stat] ?? stat}</dt>
+            <dt className="text-xs text-slate-500">{statLabel(stat)}</dt>
             <dd className="font-medium text-slate-800">{Math.round(value)}</dd>
           </div>
         ))}
@@ -109,24 +113,14 @@ export default function EquipmentCard({ equipment, heroes, artifactSlots, busy, 
             ))}
           </select>
 
-          {!isWeapon && (
-            <select
-              value={slotIndex}
-              onChange={(event) => setSlotIndex(Number(event.target.value))}
-              className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm"
-            >
-              {Array.from({ length: artifactSlots }, (_, index) => (
-                <option key={index} value={index}>
-                  Слот {index + 1}
-                </option>
-              ))}
-            </select>
+          {!isWeapon && slotName !== null && (
+            <span className="text-xs text-slate-500">замінить те, що в слоті «{slotName.toLowerCase()}»</span>
           )}
 
           <button
             type="button"
             onClick={() => {
-              onEquip(chosenHero, isWeapon ? 0 : slotIndex);
+              onEquip(chosenHero);
               setPicking(false);
             }}
             disabled={busy || chosenHero === ""}

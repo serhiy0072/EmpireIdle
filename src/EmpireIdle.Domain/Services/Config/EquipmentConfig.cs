@@ -3,8 +3,19 @@ namespace EmpireIdle.Domain.Services.Config
     /// <summary>Спільні правила спорядження: слоти, заточка, набори.</summary>
     public class EquipmentConfig
     {
-        /// <summary>Скільки артефактів носить герой.</summary>
-        public int ArtifactSlots { get; set; } = 4;
+        /// <summary>
+        /// Артефактні слоти героя за типом, по одному кожного. Номер слота —
+        /// позиція в списку, тож порядок тут — порядок на екрані героя.
+        /// </summary>
+        public List<ArtifactSlotConfig> ArtifactSlots { get; set; } = new();
+
+        /// <summary>Номер слота для типу артефакта; null — такого типу немає.</summary>
+        public int? ArtifactSlotIndex(string? slotKey)
+        {
+            var index = ArtifactSlots.FindIndex(slot => slot.Key == slotKey);
+
+            return index < 0 ? null : index;
+        }
 
         /// <summary>Стеля заточки, однакова для зброї й артефактів.</summary>
         public int MaxEnhancement { get; set; } = 20;
@@ -71,5 +82,27 @@ namespace EmpireIdle.Domain.Services.Config
         /// unique-артефакті вартий більше, ніж на common.
         /// </summary>
         public Dictionary<string, double> ArtifactRarityMultipliers { get; set; } = new();
+
+        /// <summary>Рівні й характер родин наборів артефактів.</summary>
+        public List<ArtifactSetConfig> ArtifactSets { get; set; } = new();
+
+        /// <summary>
+        /// Множник значень за рівнем набору: артефакт із важчого данжу сильніший.
+        /// Діє разом із множником рідкості. Порожньо — множник 1.0.
+        /// </summary>
+        public List<double> ArtifactTierMultipliers { get; set; } = new();
+
+        /// <summary>У скільки разів характерний стат імовірніший за звичайний при ролі.</summary>
+        public double ArtifactFocusWeight { get; set; } = 1.0;
+
+        /// <summary>
+        /// Родина набору за SetKey предмета (<c>{Key}_{рідкість}</c>);
+        /// null — предмет поза родинами, ролиться без рівня й характеру.
+        /// </summary>
+        public ArtifactSetConfig? FindArtifactSet(string? setKey)
+            => setKey is null
+                ? null
+                : ArtifactSets.FirstOrDefault(set => Enum.GetNames<Enums.Rarity>()
+                    .Any(rarity => setKey == $"{set.Key}_{rarity.ToLowerInvariant()}"));
     }
 }

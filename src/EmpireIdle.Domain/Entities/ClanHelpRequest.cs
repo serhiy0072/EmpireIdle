@@ -71,13 +71,14 @@ namespace EmpireIdle.Domain.Entities
                 throw new RequirementNotMetException("You cannot help yourself.");
 
             if (utcNow >= ExpiresAt)
-                throw new InvalidStateException("The request has expired.");
+                throw new InvalidStateException(RefusalReasons.ClanHelpExpired, "The request has expired.");
 
             if (_helpers.Any(h => h.HelperId == helperId))
-                throw new AlreadyExistsException("Clan help", helperId.ToString());
+                throw new AlreadyExistsException(RefusalReasons.ClanHelpAlreadyHelped, "Clan help", helperId.ToString());
 
             if (_helpers.Count >= maxHelpers)
-                throw new InvalidStateException($"The request already received all {maxHelpers} helps.");
+                throw new InvalidStateException(RefusalReasons.ClanHelpFull,
+                    $"The request already received all {maxHelpers} helps.", maxHelpers);
 
             _helpers.Add(new ClanHelpContribution(Guid.NewGuid(), Id, helperId, utcNow));
 

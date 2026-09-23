@@ -32,10 +32,133 @@ namespace EmpireIdle.Domain.Services
             ValidatePreview(config);
             ValidateHeroes(config);
             ValidateLossBands(config);
+            ValidateDungeons(config);
+            ValidateUnlockThresholds(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
             ValidateBanners(config);
             ValidateBuildingLayout(config);
+        }
+
+        /// <summary>
+        /// Данжі: унікальні ключі, набір артефактів під кожну рідкість, бос і хвилі.
+        /// Данж без боса чи без набору віддав би гравцю порожній забіг.
+        /// </summary>
+        private static void ValidateDungeons(GameConfig config)
+        {
+            var dungeons = config.Dungeons;
+
+            if (dungeons.Dungeons.Count == 0)
+                return;
+
+            RequireUniqueKeys(dungeons.Dungeons.Select(d => d.Key), "Dungeons");
+
+            if (dungeons.EnergyPerRun <= 0 || dungeons.MaxEnergy < dungeons.EnergyPerRun)
+                throw new InvalidOperationException(
+                    "Dungeons.EnergyPerRun must be positive and fit into MaxEnergy — otherwise no run is ever affordable.");
+
+            if (dungeons.LevelPowerMultipliers.Count < dungeons.MaxLevel || dungeons.LevelRewardMultipliers.Count < dungeons.MaxLevel)
+                throw new InvalidOperationException(
+                    $"Dungeons has fewer level multipliers than MaxLevel {dungeons.MaxLevel}.");
+
+            var setKeys = config.Items
+                .Where(i => i.SetKey is not null)
+                .Select(i => i.SetKey!)
+                .ToHashSet();
+
+            var rarities = Enum.GetNames<Rarity>().Select(r => r.ToLowerInvariant()).ToList();
+
+            foreach (var dungeon in dungeons.Dungeons)
+            {
+                if (dungeon.Boss.Count == 0)
+                    throw new InvalidOperationException($"Dungeon '{dungeon.Key}' has no boss wave.");
+
+                if (dungeon.Waves.Count == 0)
+                    throw new InvalidOperationException($"Dungeon '{dungeon.Key}' has no regular waves.");
+
+                // Рівень забігу обирає рідкість набору, тож бракує хоч одного — і нагорода зникає
+                foreach (var rarity in rarities)
+                    if (!setKeys.Contains($"{dungeon.ArtifactSetKey}_{rarity}"))
+                        throw new InvalidOperationException(
+                            $"Dungeon '{dungeon.Key}' has no artifact set '{dungeon.ArtifactSetKey}_{rarity}' in Items.");
+
+                foreach (var enemy in dungeon.Waves.Concat(dungeon.Boss))
+                    if (enemy.Health <= 0 || enemy.Attack <= 0)
+                        throw new InvalidOperationException(
+                            $"Dungeon '{dungeon.Key}' enemy '{enemy.Key}' has non-positive attack or health.");
+            }
+
+            ValidateArtifactSets(config);
+        }
+
+        /// <summary>
+        /// Родини наборів: кожен данж має опис свого набору, рівень у межах
+        /// множників, характерні стати — з пулу. Інакше артефакт тихо
+        /// ролився б без рівня, а «характер» — у стат, якого не існує.
+        /// </summary>
+        private static void ValidateArtifactSets(GameConfig config)
+        {
+            var equipment = config.Equipment;
+
+            RequireUniqueKeys(equipment.ArtifactSets.Select(s => s.Key), "Equipment.ArtifactSets");
+
+            var families = equipment.ArtifactSets.ToDictionary(s => s.Key);
+
+            var undescribed = config.Dungeons.Dungeons
+                .Where(d => !families.ContainsKey(d.ArtifactSetKey))
+                .Select(d => d.ArtifactSetKey)
+                .Distinct()
+                .ToList();
+
+            if (undescribed.Count > 0)
+                throw new InvalidOperationException(
+                    $"Dungeon artifact sets have no Equipment.ArtifactSets entry: {string.Join(", ", undescribed)}.");
+
+            var tiers = Math.Max(1, equipment.ArtifactTierMultipliers.Count);
+
+            var badTiers = equipment.ArtifactSets
+                .Where(s => s.Tier < 1 || s.Tier > tiers)
+                .Select(s => $"{s.Key} ({s.Tier})")
+                .ToList();
+
+            if (badTiers.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactSets have tiers outside 1–{tiers}: {string.Join(", ", badTiers)}.");
+
+            var pool = equipment.ArtifactStats.Select(s => s.Stat).ToHashSet();
+
+            var unknownFocus = equipment.ArtifactSets
+                .SelectMany(s => s.FocusStats.Where(stat => !pool.Contains(stat)).Select(stat => $"{s.Key}: {stat}"))
+                .ToList();
+
+            if (unknownFocus.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactSets focus on stats outside ArtifactStats: {string.Join(", ", unknownFocus)}.");
+        }
+
+        /// <summary>
+        /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна
+        /// збудувати (MaxServerLevel × BuildingLevelsPerTier). Інакше вміст
+        /// недосяжний назавжди, а гравець бачить замок, який не відімкнеться.
+        /// </summary>
+        private static void ValidateUnlockThresholds(GameConfig config)
+        {
+            var ceiling = config.Map.MaxServerLevel * config.BuildingLevelsPerTier;
+
+            var unreachable = config.Buildings
+                .Where(b => b.RequiresMainBuildingLevel > ceiling)
+                .Select(b => $"building {b.Key} ({b.RequiresMainBuildingLevel})")
+                .Concat(config.Resources
+                    .Where(r => r.RequiresMainBuildingLevel > ceiling)
+                    .Select(r => $"resource {r.Key} ({r.RequiresMainBuildingLevel})"))
+                .Concat(config.Dungeons.Dungeons
+                    .Where(d => d.RequiresMainBuildingLevel > ceiling)
+                    .Select(d => $"dungeon {d.Key} ({d.RequiresMainBuildingLevel})"))
+                .ToList();
+
+            if (unreachable.Count > 0)
+                throw new InvalidOperationException(
+                    $"Unlock thresholds above the town hall ceiling {ceiling}: {string.Join(", ", unreachable)}.");
         }
 
         /// <summary>Кожен товар крамниці — існуючий предмет; спорядження продає кузня за золото, не крамниця.</summary>
@@ -488,8 +611,22 @@ namespace EmpireIdle.Domain.Services
             if (equipment.Count == 0)
                 return;
 
-            if (config.Equipment.ArtifactSlots < 1)
-                throw new InvalidOperationException("Equipment.ArtifactSlots must be at least 1.");
+            var slots = config.Equipment.ArtifactSlots;
+
+            if (slots.Count < 1)
+                throw new InvalidOperationException("Equipment.ArtifactSlots must list at least one slot.");
+
+            RequireUniqueKeys(slots.Select(s => s.Key), "Equipment.ArtifactSlots");
+
+            // Артефакт без відомого типу слота нікуди не вдягнути
+            var slotless = equipment
+                .Where(i => i.Slot == EquipmentSlot.Artifact && config.Equipment.ArtifactSlotIndex(i.ArtifactSlot) is null)
+                .Select(i => $"{i.Key} ({i.ArtifactSlot ?? "none"})")
+                .ToList();
+
+            if (slotless.Count > 0)
+                throw new InvalidOperationException(
+                    $"Artifacts without a known ArtifactSlot: {string.Join(", ", slotless)}.");
 
             if (config.Equipment.MaxEnhancement < 1)
                 throw new InvalidOperationException("Equipment.MaxEnhancement must be at least 1.");
@@ -528,10 +665,18 @@ namespace EmpireIdle.Domain.Services
                     throw new InvalidOperationException(
                         $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but only {pieces} exist.");
 
-                if (bonus.RequiredPieces > config.Equipment.ArtifactSlots)
+                // Герой носить по одному артефакту кожного типу: частини одного
+                // слота не вдягнути разом, тож рахуються лише різні слоти
+                var wearable = config.Items
+                    .Where(i => i.SetKey == bonus.SetKey)
+                    .Select(i => i.ArtifactSlot)
+                    .Distinct()
+                    .Count();
+
+                if (bonus.RequiredPieces > wearable)
                     throw new InvalidOperationException(
-                        $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but a hero has only "
-                        + $"{config.Equipment.ArtifactSlots} artifact slots.");
+                        $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but they fit only "
+                        + $"{wearable} distinct artifact slots.");
 
                 if (bonus.Stats.Count == 0)
                     throw new InvalidOperationException($"Set bonus '{bonus.SetKey}' grants nothing.");

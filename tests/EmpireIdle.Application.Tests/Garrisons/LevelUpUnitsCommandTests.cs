@@ -136,8 +136,9 @@ public class LevelUpUnitsCommandTests
     {
         GivenVillage();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new LevelUpUnitsCommand(PlayerId, "infantry", 1, 11, 1), CancellationToken.None));
+        Assert.Null(refusal.Reason);
     }
 
     /// <summary>Невідомий тип юніта — 404, а не 500.</summary>

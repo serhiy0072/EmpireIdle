@@ -74,7 +74,8 @@ namespace EmpireIdle.Application.Heroes.Commands
             var forge = _catalog.Config.Equipment.ForgeBuildingKey;
 
             if (!village.HasBuilding(forge))
-                throw new RequirementNotMetException($"Repairing requires the {forge}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    $"Repairing requires the {forge}.", _catalog.Building(forge).DisplayName);
 
             var cost = _rules.RepairGems(item.EnhancementLevel);
 

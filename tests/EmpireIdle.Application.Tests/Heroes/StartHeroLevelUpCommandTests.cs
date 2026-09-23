@@ -117,8 +117,9 @@ public class StartHeroLevelUpCommandTests
         _heroes.GetActiveOrderAsync(PlayerId, Arg.Any<CancellationToken>())
             .Returns(new HeroLevelOrder(Guid.NewGuid(), Guid.NewGuid(), PlayerId, ServerId, 2, Now.AddMinutes(5)));
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroTrainingBusy.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -131,8 +132,29 @@ public class StartHeroLevelUpCommandTests
         GivenVillage(townHallLevel: 5);
         var hero = GivenHero(level: 5);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
+    }
+
+    /// <summary>
+    /// Ратуша на апгрейді тримає свій поточний рівень: будівництво не
+    /// знімає стелю героя до нуля й не робить ратушу «відсутньою».
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldKeepTheCurrentCeiling_WhileTheTownHallIsUpgrading()
+    {
+        var village = GivenVillage(townHallLevel: 3);
+        village.Buildings.Single(b => b.Type == "townhall")
+            .BeginUpgrade(HeroTestConfig.Catalog().Buildings["townhall"], TimeSpan.FromHours(1), Now,
+                ProductionBoost.None, locationMultiplier: 1.0);
+        var hero = GivenHero(level: 1);
+
+        await Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None);
+
+        await _heroes.Received(1).AddOrderAsync(
+            Arg.Is<HeroLevelOrder>(o => o.HeroId == hero.Id && o.TargetLevel == 2),
+            Arg.Any<CancellationToken>());
     }
 
     /// <summary>Тір стелить окремо: T1 не переступає десятий рівень.</summary>
@@ -142,8 +164,9 @@ public class StartHeroLevelUpCommandTests
         GivenVillage(townHallLevel: 25);
         var hero = GivenHero(level: 10, tier: 1);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
     }
 
     /// <summary>Після еволюції той самий герой качається далі.</summary>
@@ -165,8 +188,9 @@ public class StartHeroLevelUpCommandTests
         GivenVillage();
         var hero = GivenHero(state: HeroState.Deployed);
 
-        await Assert.ThrowsAsync<InvalidStateException>(() =>
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.HeroOnTheMove.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -204,8 +228,9 @@ public class StartHeroLevelUpCommandTests
         GivenVillage(hallUnderConstruction: true);
         var hero = GivenHero();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
     }
 
     /// <summary>Нестача ресурсів зупиняє операцію до постановки в чергу.</summary>

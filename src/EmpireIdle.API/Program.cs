@@ -7,6 +7,7 @@ using EmpireIdle.Application.Catalog;
 using EmpireIdle.Application.Dev.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
@@ -40,7 +41,8 @@ builder.Configuration
     .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true); ;
+    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: true);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -67,6 +69,10 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
     .Validate(c => c.Heroes.Count > 0, "GameConfig.Heroes is empty — check Config/heroes.json.")
+    .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
+    .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")
+    .Validate(c => c.Equipment.ArtifactTierMultipliers.All(m => m > 0), "GameConfig.Equipment.ArtifactTierMultipliers must be positive — otherwise higher-tier artifacts roll zero stats.")
+    .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
     .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
     .ValidateOnStart();
 
@@ -108,6 +114,8 @@ builder.Services.AddSingleton(sp => new HeroCombatModifiers(sp.GetRequiredServic
 builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new BannerRoller(gameConfig.Shop));
+builder.Services.AddSingleton(sp => new BattleEngine(gameConfig.Dungeons));
+builder.Services.AddSingleton(sp => new BattleBuilder(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new HeroStats(sp.GetRequiredService<HeroProgression>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton<GameCatalogProjection>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);

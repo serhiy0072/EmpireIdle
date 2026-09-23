@@ -1,0 +1,156 @@
+{
+  "auth.registrationRejected": [
+    "codes"
+  ],
+  "banner.closed": [],
+  "banner.notOpen": [
+    "startsAt"
+  ],
+  "building.alreadyCompleted": [],
+  "building.serverCeiling": [
+    "serverLevel",
+    "ceiling"
+  ],
+  "building.townHallCeiling": [
+    "building",
+    "level"
+  ],
+  "building.underConstruction": [],
+  "building.villageLagging": [
+    "level",
+    "buildings"
+  ],
+  "clan.alreadyApplied": [],
+  "clan.alreadyInClan": [],
+  "clan.alreadyInvited": [],
+  "clan.applicantJoinedElsewhere": [],
+  "clan.applyCooldown": [
+    "retryAt"
+  ],
+  "clan.full": [
+    "capacity"
+  ],
+  "clan.helpAlreadyHelped": [],
+  "clan.helpAlreadyRequested": [],
+  "clan.helpExpired": [],
+  "clan.helpFull": [
+    "max"
+  ],
+  "clan.helpNotNeeded": [],
+  "clan.inviteOnly": [],
+  "clan.leaderMustTransfer": [],
+  "clan.leaderOnly": [],
+  "clan.nameTaken": [
+    "name",
+    "tag"
+  ],
+  "clan.noPermission": [
+    "role"
+  ],
+  "clan.notMember": [],
+  "clan.requestExpired": [],
+  "clan.requestResolved": [],
+  "clan.roleNameTaken": [
+    "name"
+  ],
+  "clan.roleProtected": [],
+  "clan.targetInClan": [],
+  "common.buildingLevelRequired": [
+    "building",
+    "level"
+  ],
+  "common.buildingRequired": [
+    "building"
+  ],
+  "dungeon.heroWounded": [
+    "hero"
+  ],
+  "dungeon.levelLocked": [
+    "level",
+    "previous"
+  ],
+  "dungeon.runInProgress": [],
+  "dungeon.targetUnreachable": [],
+  "dungeon.townHallRequired": [
+    "dungeon",
+    "level"
+  ],
+  "equipment.broken": [],
+  "equipment.classMismatch": [
+    "weapon"
+  ],
+  "equipment.maxEnhancement": [
+    "max"
+  ],
+  "garrison.armyCapacity": [
+    "occupied",
+    "capacity",
+    "requested"
+  ],
+  "garrison.batchSize": [
+    "max"
+  ],
+  "garrison.levelUpBusy": [],
+  "garrison.notEnoughUnits": [
+    "need",
+    "have"
+  ],
+  "garrison.trainingBusy": [],
+  "hero.evolutionItemRequired": [
+    "item"
+  ],
+  "hero.levelCeiling": [
+    "hero",
+    "ceiling"
+  ],
+  "hero.maxTier": [
+    "tier"
+  ],
+  "hero.notEnoughShards": [
+    "hero",
+    "need",
+    "have"
+  ],
+  "hero.onTheMove": [],
+  "hero.trainingBusy": [],
+  "hero.worldLevelRequired": [
+    "required",
+    "current"
+  ],
+  "item.strongerBoostActive": [
+    "multiplier",
+    "until"
+  ],
+  "march.capacity": [
+    "capacity"
+  ],
+  "march.emptyAttack": [],
+  "march.heroElsewhere": [],
+  "march.heroUnavailable": [
+    "state"
+  ],
+  "march.ownShield": [
+    "level"
+  ],
+  "march.targetShielded": [],
+  "quest.notClaimable": [],
+  "reinforce.clanmatesOnly": [],
+  "reinforce.embassyFull": [
+    "free",
+    "incoming"
+  ],
+  "reinforce.ownShield": [
+    "level"
+  ],
+  "reinforce.targetShielded": [],
+  "shop.maxPerPurchase": [
+    "max"
+  ],
+  "teleport.cellOccupied": [],
+  "teleport.cellUnsuitable": [],
+  "teleport.outsideRegion": [],
+  "village.alreadyThere": [],
+  "village.storageFull": [
+    "resource"
+  ]
+}

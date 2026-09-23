@@ -18,3 +18,9 @@ public record BuildingResponse(Guid Id, string Type, int Level, DateTime LastCol
 
 /// <summary>Ресурс на складі села.</summary>
 public record ResourceResponse(string ResourceType, int Amount, bool IsUnlocked);
+
+/// <summary>Підсумок «зібрати все». FullStorages — ресурси, чий склад не прийняв буфер.</summary>
+public record CollectAllResponse(List<CollectedResourceResponse> Collected, List<string> FullStorages);
+
+/// <summary>Скільки ресурсу зараховано на склад.</summary>
+public record CollectedResourceResponse(string ResourceType, int Amount);

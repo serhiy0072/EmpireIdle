@@ -139,8 +139,9 @@ public class BuyHeroShardsCommandTests
         GivenVillage();
         GivenShardStore();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new BuyHeroShardsCommand(PlayerId, "mage_iselle", 1), CancellationToken.None));
+        Assert.Null(refusal.Reason);
     }
 
     /// <summary>Без зали героїв купувати нема де.</summary>
@@ -156,8 +157,9 @@ public class BuyHeroShardsCommandTests
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         GivenShardStore();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new BuyHeroShardsCommand(PlayerId, "warrior_bran", 1), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -170,8 +172,9 @@ public class BuyHeroShardsCommandTests
         GivenVillage(hallUnderConstruction: true);
         GivenShardStore();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new BuyHeroShardsCommand(PlayerId, "warrior_bran", 1), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
     }
 
     /// <summary>Невідомий герой — 404, а не 500.</summary>

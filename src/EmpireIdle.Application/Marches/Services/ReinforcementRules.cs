@@ -53,20 +53,21 @@ namespace EmpireIdle.Application.Marches.Services
             var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
 
             if (_status.IsShielded(origin))
-                throw new RequirementNotMetException(
-                    $"Reinforcements are available from town hall level {shieldLevel}.");
+                throw new RequirementNotMetException(RefusalReasons.ReinforceOwnShield,
+                    $"Reinforcements are available from town hall level {shieldLevel}.", shieldLevel);
 
             if (_status.IsShielded(destination))
-                throw new RequirementNotMetException("This village cannot receive reinforcements yet.");
+                throw new RequirementNotMetException(RefusalReasons.ReinforceTargetShielded,
+                    "This village cannot receive reinforcements yet.");
 
             if (!await AreClanmatesAsync(origin.PlayerId, destination.PlayerId, cancellationToken))
-                throw new RequirementNotMetException("Reinforcements go to clanmates only.");
+                throw new RequirementNotMetException(RefusalReasons.ReinforceClanmatesOnly, "Reinforcements go to clanmates only.");
 
             var free = await FreeEmbassySlotsAsync(destination, cancellationToken);
 
             if (incomingUnits > free)
-                throw new RequirementNotMetException(
-                    $"The embassy has room for {free} more units, you are sending {incomingUnits}.");
+                throw new RequirementNotMetException(RefusalReasons.ReinforceEmbassyFull,
+                    $"The embassy has room for {free} more units, you are sending {incomingUnits}.", free, incomingUnits);
         }
 
         /// <summary>

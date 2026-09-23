@@ -1,85 +1,100 @@
 # 🏰 EmpireIdle
 
-Browser-based idle empire builder with city management, world map exploration, and PvE combat — built with **ASP.NET Core (.NET 10)**, **Clean Architecture**, **DDD**, and **CQRS**.
-
-Build your village across terrain zones, train armies, march across a 1000×1000 procedurally generated world, and fight monsters — even while you're offline.
+Browser-based idle empire builder: a village that produces while you're away, an army and heroes, a 500×500 procedurally generated world with monsters and PvP, clans, banners, and turn-based dungeons — built with **ASP.NET Core (.NET 10)**, **Clean Architecture**, **DDD**, **CQRS**, and a **React + TypeScript** client.
 
 ## 🏗️ Architecture
 
 ```
-┌──────────────────────────────────────┐
-│            External                   │
-│  PostgreSQL · Hangfire · Stripe (TBD)│
-└───────────┬──────────┬───────────────┘
+┌──────────────────────────────────────────┐
+│               External                    │
+│   PostgreSQL · Hangfire · Stripe          │
+└───────────┬──────────┬───────────────────┘
             │          │
-┌───────────┴──┐  ┌────┴──────────────┐
-│Infrastructure│  │       API          │
-│ EF Core      │  │ Controllers, DTOs │
-│ Repositories │  │ Hangfire, Swagger  │
-│ Identity/JWT │  │ Auth, Middleware   │
-└──────┬───┬───┘  └────────┬──────────┘
+┌───────────┴──┐  ┌────┴──────────────────┐
+│Infrastructure│  │          API           │
+│ EF Core      │  │ Controllers, DTOs      │
+│ Repositories │  │ SignalR hub, Hangfire  │
+│ Identity/JWT │  │ ProblemDetails, config │
+└──────┬───┬───┘  └────────┬──────────────┘
        │   │               │
        │   └───────┬───────┘
        │           │
-┌──────┴───────────┴───────┐
-│       Application        │
-│  CQRS · MediatR          │
-└──────────┬───────────────┘
+┌──────┴───────────┴───────┐        ┌──────────────────────┐
+│       Application        │        │   Web (React + TS)   │
+│  CQRS · MediatR          │ ◄────► │ types from OpenAPI   │
+│  pipeline behaviors      │  HTTP  │ React Query, SignalR │
+└──────────┬───────────────┘        └──────────────────────┘
            │
 ┌──────────┴───────────────┐
 │          Domain           │
-│ Entities · Value Objects  │
+│ Aggregates · Value Objects│
 │ Events · Services · Config│
 └──────────────────────────┘
 ```
 
-**Key patterns:** Clean Architecture, DDD (Aggregates, Value Objects, Domain Events), Repository + Unit of Work, CQRS with MediatR.
+**Key patterns:** Clean Architecture, DDD (aggregates, value objects, domain events), Repository + Unit of Work, CQRS with MediatR pipeline behaviors, Transactional Outbox, optimistic concurrency (`xmin`).
 
 ## 💡 Design Highlights
 
-**Domain knows nothing about infrastructure.** Config and operations arrive as parameters, never through DI. `SettlementPlacer` takes a `Func<int,int,Task<bool>> isOccupied` delegate instead of a repository — so it's tested with a lambda, no mocks, no database.
+**Domain knows nothing about infrastructure.** Config and operations arrive as parameters, never through DI. Game rules — the tier gate on upgrades, the dungeon battle engine, casualty buckets — live in the domain and are tested without a database.
 
-**Config-driven gameplay.** Resources, buildings, units, monsters, terrain and combat modifiers live in JSON. Change the config — change the game, no recompilation. The same backend could power a reskin (SpaceIdle, ZombieIdle).
+**Config-driven gameplay.** Resources, buildings, units, heroes, items, monsters, dungeons and combat modifiers live in JSON (`src/EmpireIdle.API/Config`) and are validated at startup. Change the config — change the game, no recompilation.
 
-**Computed over stored.** Terrain for the 1000×1000 world isn't persisted — it's a deterministic function of `(serverId, x, y)` with a seed. Only occupied cells hit the database. Monster power and rewards are derived from type + level the same way.
+**Computed over stored.** Terrain isn't persisted — it's a deterministic function of `(serverId, x, y)` with a seed. Production is lazy: a building's buffer is a pure function of time, so there is no per-minute tick over every village.
 
-**Domain events via EF interceptor.** A `SaveChangesInterceptor` collects events from tracked aggregates *after* a successful commit and publishes them through MediatR — so a SignalR push never announces something the database rolled back.
+**Domain events through a Transactional Outbox.** Events are written in the same transaction as the change and published afterwards — a SignalR push never announces something the database rolled back.
 
-**Timers as recurring scans, not delayed jobs.** `CompletesAt` in the database is the single source of truth, so speeding up or cancelling is a field update — no job rescheduling, and the scanner self-heals after a restart.
+**Timers as recurring scans, not delayed jobs.** `CompletesAt` in the database is the single source of truth, so speeding up is a field update and the scanner self-heals after a restart.
 
-**IDOR protection by construction.** A MediatR behavior verifies that the `PlayerId` in any request matches the player in the JWT. New endpoints are protected automatically — you can't forget the check.
+**IDOR protection by construction.** A MediatR behavior checks that the `PlayerId` in every request matches the player in the JWT. New endpoints are protected automatically.
+
+**Idempotent commands.** State-changing commands require an `Idempotency-Key`; a retry returns the stored response instead of charging twice. The client sends one key per action and retries a lost response with the same key. Dungeon turns are guarded by the turn number instead (`expectedTurn` → 409 `StaleTurn`).
+
+**Refusals the player can read.** Every refusal a player can reach by fair play carries a stable reason key and arguments in `ProblemDetails`; the client owns the Ukrainian text. The keys are a committed contract (`refusals/reasons.json`), and the client won't typecheck while a key has no text.
+
+**Server-authoritative turn-based dungeons.** The battle state lives in the database, so a run survives a page reload. One request plays exactly one turn, which is what lets autoplay and manual control switch mid-battle.
 
 ## 🛠️ Tech Stack
 
 - **Backend:** ASP.NET Core / .NET 10, EF Core, PostgreSQL
-- **Auth:** ASP.NET Identity, JWT with refresh token rotation
-- **CQRS:** MediatR (commands/queries, pipeline behaviors for logging, validation and player scope)
-- **Realtime:** SignalR (per-player groups, JWT auth over WebSocket)
-- **Background Jobs:** Hangfire with PostgreSQL storage
-- **Testing:** xUnit (domain logic, deterministic time and terrain)
-- **API:** REST, Swagger/OpenAPI, ProblemDetails error handling
-- **Frontend:** React 19 + TypeScript + Vite + Tailwind (in progress — login implemented, game UI pending)
-- **Monetization:** Stripe (planned)
+- **Auth:** ASP.NET Identity, JWT with refresh-token rotation and reuse detection
+- **CQRS:** MediatR with behaviors for logging, validation (FluentValidation), player scope and idempotency
+- **Realtime:** SignalR (per-player groups, JWT over WebSocket)
+- **Background jobs:** Hangfire with PostgreSQL storage
+- **Payments:** Stripe Checkout + webhook (test mode)
+- **Frontend:** React 19, TypeScript, Vite, Tailwind, React Query, React Router; API types generated from OpenAPI
+- **Testing:** xUnit, NSubstitute, AwesomeAssertions, Testcontainers (PostgreSQL), NetArchTest architecture rules
 
 ## 📦 Projects
 
 | Project | Responsibility |
 |---------|---------------|
-| `EmpireIdle.Domain` | Entities, Value Objects, Domain Events, domain services (terrain generation, combat, march timing, settlement placement), Game Config |
-| `EmpireIdle.Application` | CQRS commands/queries, MediatR pipeline behaviors, repository interfaces |
-| `EmpireIdle.Infrastructure` | EF Core, PostgreSQL, Identity/JWT, repository implementations, domain event interceptor, DI |
-| `EmpireIdle.API` | Controllers, DTOs, Auth, Hangfire jobs, Swagger, Middleware, SignalR Hub, game config files |
-| `EmpireIdle.Web` | React + TypeScript frontend (login implemented; game UI pending) |
+| `EmpireIdle.Domain` | Aggregates, value objects, domain events, domain services (terrain, combat, march timing, dungeon battle engine, progression curves), game config models and validation |
+| `EmpireIdle.Application` | CQRS commands/queries, pipeline behaviors, repository interfaces |
+| `EmpireIdle.Infrastructure` | EF Core, PostgreSQL, Identity/JWT, repositories, outbox, migrations |
+| `EmpireIdle.API` | Controllers, DTOs, SignalR hub, Hangfire jobs, error handling, game config files |
+| `EmpireIdle.Web` | React + TypeScript client — every main screen of the game |
+| `tests/*` | Domain, application, API/integration and architecture tests; `EmpireIdle.TestKit` holds shared fixtures |
+
+Committed contracts: `openapi/v1.json` (HTTP API), `realtime/events.json` (SignalR events), `refusals/reasons.json` (refusal reasons). Contract tests fail when the code and the committed file drift apart.
 
 ## 🎮 Game Systems
 
-**City building.** Terrain zones (plain / forest / mountain / water) with limited slots, buildings with production buffers and geometric storage growth, real-time construction with builder limits, town hall level gating, multi-resource costs.
+**Village.** 20 unique buildings with lazy production, storage caps and a three-rule tier gate: a server-level ceiling, nothing above the town hall, and the town hall can't cross a tier while open buildings lag behind.
 
-**Army.** Population from housing, batch training in barracks, garrison management, hospital with a three-bucket casualty system (wounded / instantly recoverable / permanently lost).
+**Army.** Unit training and levelling in batches, an army cap from the barracks, a hospital with wounded / recoverable / lost buckets.
 
-**World map.** A 1000×1000 world with procedural terrain, monsters scaled by distance from the center, marches timed by `distance ÷ slowest unit speed × terrain difficulty`.
+**World.** A 500×500 map with concentric rings, fog that expands as the server evolves, monsters scaled by distance, marches led by heroes, teleports, a battle preview that matches the real battle.
 
-**Combat.** Symmetric formula for PvE and future PvP, terrain modifiers per unit type (cavalry +25% on plains, archers +25% in mountains), normally distributed randomness, battle reports with per-unit casualty breakdown.
+**PvP.** Attacking villages, a protected stash and plunder, a newbie shield checked on departure and on arrival, clan reinforcements that share losses.
+
+**Heroes and gear.** Common / rare / unique heroes with tiers, levels and constellations; weapons and artifacts with enhancement, breaking and repair; set bonuses; combat power and rating.
+
+**Banners.** Typed pools, two pity counters carried across banners of one group, the 50/50 rule, a roll journal with seed and pity state.
+
+**Dungeons.** Turn-based battles for a team of up to four heroes in front and back lines, two active abilities per hero, statuses, energy that refills over time, three difficulty levels and thirty artifact sets as rewards.
+
+**Social and progression.** Clans with roles and permissions, applications and invites, help with timers, reinforcements; daily, chain and server quests; a guided onboarding.
 
 ## 🚀 Getting Started
 
@@ -87,111 +102,96 @@ Build your village across terrain zones, train armies, march across a 1000×1000
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [PostgreSQL 17+](https://www.postgresql.org/download/)
+- [Node.js 22+](https://nodejs.org/) for the client
 - [EF Core CLI Tools](https://learn.microsoft.com/en-us/ef/core/cli/dotnet) (`dotnet tool install --global dotnet-ef`)
+- Docker (only for the integration tests — they start PostgreSQL through Testcontainers)
 
 ### Setup
 
 1. **Clone the repository:**
 ```bash
-   git clone https://github.com/serhiy0072/EmpireIdle.git
-   cd EmpireIdle
+git clone https://github.com/serhiy0072/EmpireIdle.git
+cd EmpireIdle
 ```
 
-2. **Create PostgreSQL database and user:**
+2. **Create a PostgreSQL database and user:**
 ```sql
-   CREATE USER empireidle_user WITH PASSWORD 'your_password';
-   CREATE DATABASE empireidle OWNER empireidle_user;
+CREATE USER empireidle_user WITH PASSWORD 'your_password';
+CREATE DATABASE empireidle OWNER empireidle_user;
 ```
 
 3. **Configure secrets via User Secrets:**
 ```bash
-   cd src/EmpireIdle.API
-   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=empireidle;Username=empireidle_user;Password=your_password"
-   dotnet user-secrets set "JwtSettings:Secret" "your-very-long-random-secret-at-least-32-chars"
-   dotnet user-secrets set "JwtSettings:Issuer" "EmpireIdle"
-   dotnet user-secrets set "JwtSettings:Audience" "EmpireIdle.Players"
+cd src/EmpireIdle.API
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=empireidle;Username=empireidle_user;Password=your_password"
+dotnet user-secrets set "JwtSettings:Secret" "your-very-long-random-secret-at-least-32-chars"
+dotnet user-secrets set "JwtSettings:Issuer" "EmpireIdle"
+dotnet user-secrets set "JwtSettings:Audience" "EmpireIdle.Players"
 ```
 
 4. **Apply migrations:**
 ```bash
-   cd ../..
-   dotnet ef database update --project src/EmpireIdle.Infrastructure --startup-project src/EmpireIdle.API
+cd ../..
+dotnet ef database update --project src/EmpireIdle.Infrastructure --startup-project src/EmpireIdle.API
 ```
 
 5. **Run the API:**
 ```bash
-   dotnet run --project src/EmpireIdle.API
+dotnet run --project src/EmpireIdle.API --launch-profile https
 ```
 
-6. **Open in browser:**
-   - Swagger UI: `http://localhost:5253/swagger`
-   - Hangfire Dashboard: `http://localhost:5253/hangfire`
+6. **Run the client** (in another terminal):
+```bash
+cd src/EmpireIdle.Web
+npm install
+npm run dev
+```
+   The client runs on `http://localhost:5173`; the API allows that origin by default.
 
-## 📡 API Endpoints
+7. **Useful pages:**
+   - Swagger UI: `https://localhost:7031/swagger`
+   - Hangfire Dashboard: `https://localhost:7031/hangfire`
 
-### Auth
+### Tests
 
-| Method | URL | Description |
-|--------|-----|-------------|
-| `POST` | `/api/auth/register` | Register player (IdentityUser + Village + Garrison + Wallet), returns JWT |
-| `POST` | `/api/auth/login` | Authenticate, returns access + refresh tokens |
-| `POST` | `/api/auth/refresh` | Rotate tokens (with reuse detection) |
+```bash
+dotnet test EmpireIdle.slnx
+cd src/EmpireIdle.Web && npm run typecheck && npm run lint
+```
 
-### Village (requires JWT)
+## 📡 API
 
-| Method | URL | Description |
-|--------|-----|-------------|
-| `GET` | `/api/village/{playerId}` | Village state: buildings, resources, construction timers |
-| `POST` | `/api/village/{playerId}/buildings` | Construct a building (zone, slot and town hall checks) |
-| `POST` | `/api/village/{playerId}/buildings/{buildingId}/upgrade` | Start an upgrade |
-| `POST` | `/api/village/{playerId}/buildings/{buildingId}/collect` | Collect from a production buffer |
+The full HTTP contract is `openapi/v1.json` (also served by Swagger in development). Controllers are grouped by feature: auth, village, garrison, heroes, inventory, banners, shop, wallet, map, marches, battle reports, clans, quests, server quests, rating, power, dungeons, tutorial, payments and a public game catalog.
 
-### Garrison (requires JWT)
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| `GET` | `/api/garrisons/{playerId}` | Units, wounded, active training orders |
-| `POST` | `/api/garrisons/{playerId}/units/train` | Queue a batch of 1–5 units |
-| `POST` | `/api/garrisons/{playerId}/units/heal` | Heal wounded units for half their cost |
-
-### World Map (requires JWT)
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| `GET` | `/api/map?centerX&centerY&radius` | Terrain and occupants for a viewport (radius ≤ 25) |
-| `GET` | `/api/map/cell/{x}/{y}` | Cell details, including monster composition |
-| `POST` | `/api/marches/{playerId}` | Send an army to a target |
-
-### Battle Reports (requires JWT)
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| `GET` | `/api/reports/{playerId}` | Recent battle reports with per-unit casualty breakdown |
-| `POST` | `/api/reports/{playerId}/{reportId}/read` | Mark a report as read |
+Errors are `ProblemDetails` with a stable `errorCode`; refusals a player can hit also carry `reason` and `args` from `refusals/reasons.json`.
 
 ## ⚙️ Background Jobs
 
 | Job | Schedule | Purpose |
 |-----|----------|---------|
-| `resource-tick` | every minute | Accumulate production into building buffers |
-| `timer-scan` | every minute | Complete due constructions, trainings and marches |
-| `monster-spawn` | every 5 minutes | Maintain monster population across the map |
+| `timer-scan` | every minute | Complete due constructions, trainings, level-ups and marches |
+| `server-quest-totals` | every minute | Aggregate contributions to server quests |
+| `monster-spawn` | every 5 minutes | Keep the monster population across the map |
+| `outbox-maintenance` | hourly | Clean up processed outbox messages |
+| `rating-recalculation` | hourly | Recalculate player ratings |
+| `daily-quest-reset` | daily | Reset daily quests |
+| `server-evolution` | daily | Evolve servers and expand the fog |
+| `clan-leadership` | daily | Hand clan leadership over from inactive leaders |
 
 ## 🗺️ Roadmap
 
-- [x] Clean Architecture + DDD domain model
-- [x] Game logic (resources, buildings, Hangfire ticks)
-- [x] REST API, Swagger, ProblemDetails
-- [x] Authentication (Identity + JWT with refresh rotation)
-- [x] Realtime updates (SignalR)
-- [x] CQRS with MediatR
-- [x] Core hardening (buffers, storage caps, xUnit tests)
-- [x] Timed construction with builder limits
-- [x] Zones, building roster, town hall gating
-- [x] Units, garrison, training queue
-- [x] World map, monsters, marches
-- [x] Combat, casualties, hospital, battle reports
-- [ ] Production chains (ore → ingots → weapons)
-- [ ] Monetization (Stripe, gems, speedups)
-- [ ] Game UI (React)
-- [ ] Docker + CI/CD
+- [x] Clean Architecture + DDD domain model, CQRS with MediatR
+- [x] Authentication (Identity + JWT with refresh rotation), SignalR
+- [x] Village, lazy production, tier gate
+- [x] Units, garrison, hospital, world map, monsters, marches, combat
+- [x] Monetization basics (gems, speed-ups, Stripe Checkout in test mode)
+- [x] Transactional Outbox, idempotency, optimistic concurrency, multi-server filters
+- [x] Quests, server quests, rating, power and battle preview
+- [x] Clans, PvP and plunder
+- [x] Heroes, equipment, banners
+- [x] Game UI (React) for every main screen, onboarding
+- [x] Turn-based dungeons
+- [ ] Balance pass (numbers in the configs are placeholders)
+- [ ] Chat, mailbox, market and auction
+- [ ] Clan territory, city fall and shields
+- [ ] Docker + deployment

@@ -62,20 +62,28 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
             if (hero.State == HeroState.Deployed)
-                throw new InvalidStateException($"Hero {hero.Id} is on a march and cannot evolve.");
+                throw new InvalidStateException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on a march and cannot evolve.");
+
+            // Стеля тіру — окремо й раніше за гейт світу: CanEvolve відмовляє на обох,
+            // і гравець на найвищому тірі чув би «чекайте рівня світу», якого не буде
+            if (hero.Tier >= settings.MaxTier)
+                throw new RequirementNotMetException(RefusalReasons.HeroMaxTier,
+                    $"Hero {hero.Id} is already at the highest tier {settings.MaxTier}.", settings.MaxTier);
 
             var server = await _serverRepository.GetByIdAsync(_serverContext.ServerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Server {_serverContext.ServerId} not found.");
 
             if (!_progression.CanEvolve(hero.Tier, server.Level))
-                throw new RequirementNotMetException(
-                    $"Evolving past tier {hero.Tier} opens at world level {hero.Tier + 1}; this world is {server.Level}.");
+                throw new RequirementNotMetException(RefusalReasons.HeroWorldLevelRequired,
+                    $"Evolving past tier {hero.Tier} opens at world level {hero.Tier + 1}; this world is {server.Level}.",
+                    hero.Tier + 1, server.Level);
 
             var itemKey = _progression.EvolutionItemKey(hero.Tier)
                 ?? throw new InvalidOperationException($"No evolution item configured for tier {hero.Tier}.");
 
             var item = await _inventoryRepository.GetItemAsync(request.PlayerId, itemKey, cancellationToken)
-                ?? throw new RequirementNotMetException($"Evolving this hero requires '{itemKey}'.");
+                ?? throw new RequirementNotMetException(RefusalReasons.HeroEvolutionItemRequired,
+                    $"Evolving this hero requires '{itemKey}'.", _catalog.FindItem(itemKey)?.DisplayName ?? itemKey);
 
             // Предмет списується до підняття тіру: зворотний порядок
             // лишив би тір піднятим, якби списання впало

@@ -42,15 +42,18 @@ namespace EmpireIdle.Domain.Services
                 if (remaining == 0)
                     break;
 
-                if (!_catalog.Buildings.TryGetValue(building.Type, out var config) || config.ProducesResource is null)
+                // Будівля під туманом нічого не виробила — і грабувати в ній нічого
+                if (!village.IsProducing(building, _catalog.Buildings))
                     continue;
+
+                var config = _catalog.Buildings[building.Type];
 
                 var taken = building.Plunder(remaining);
 
                 if (taken == 0)
                     continue;
 
-                Add(loot, config.ProducesResource, taken);
+                Add(loot, config.ProducesResource!, taken);
                 remaining -= taken;
             }
 

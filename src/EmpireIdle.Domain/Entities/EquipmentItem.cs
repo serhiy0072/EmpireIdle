@@ -105,7 +105,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidStateException($"Equipment {Id} is already equipped.");
 
             if (IsBroken)
-                throw new InvalidStateException($"Equipment {Id} is broken and must be repaired first.");
+                throw new InvalidStateException(RefusalReasons.EquipmentBroken, $"Equipment {Id} is broken and must be repaired first.");
 
             EquippedByHeroId = heroId;
             SlotIndex = slotIndex;

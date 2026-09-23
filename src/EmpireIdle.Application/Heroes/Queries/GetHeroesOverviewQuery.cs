@@ -43,10 +43,11 @@ namespace EmpireIdle.Application.Heroes.Queries
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            // Ратуша в процесі будівництва стелі не піднімає — береться рівень,
-            // який уже стоїть. FirstOrDefault дає 0, і стеля чесно стає нулем.
+            // Ратуша в процесі будівництва стелі не піднімає, але й не знімає:
+            // Level росте лише по завершенні, тож це рівень, який уже стоїть.
+            // Ратуші немає зовсім — FirstOrDefault дає 0, і стеля чесно стає нулем.
             var townHallLevel = village.Buildings
-                .Where(b => b.Type == _catalog.MainBuildingKey && !b.IsUnderConstruction)
+                .Where(b => b.Type == _catalog.MainBuildingKey)
                 .Select(b => b.Level.Value)
                 .FirstOrDefault();
 

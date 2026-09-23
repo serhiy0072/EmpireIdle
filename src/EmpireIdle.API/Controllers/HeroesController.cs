@@ -105,9 +105,9 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Equip(Guid playerId, Guid heroId, Guid equipmentId,
-            [FromQuery] int slotIndex, CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            await _mediator.Send(new EquipHeroItemCommand(playerId, heroId, equipmentId, slotIndex), cancellationToken);
+            await _mediator.Send(new EquipHeroItemCommand(playerId, heroId, equipmentId), cancellationToken);
             return NoContent();
         }
 

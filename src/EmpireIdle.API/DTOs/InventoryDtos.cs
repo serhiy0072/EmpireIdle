@@ -12,7 +12,7 @@ public record InventoryItemResponse(
     string Rarity, string Type, int Count);
 
 /// <summary>Екземпляр спорядження.</summary>
-/// <param name="SlotIndex">Номер слота на герої: зброя завжди 0, артефакти — 0..ArtifactSlots-1.</param>
+/// <param name="SlotIndex">Номер слота на герої: зброя завжди 0, артефакт — позиція його типу в каталозі (ArtifactSlots).</param>
 /// <param name="IsBroken">Зламане заточкою: не одягається, поки не відремонтоване.</param>
 public record EquipmentResponse(
     Guid Id, string ItemKey, string Slot, string Rarity,

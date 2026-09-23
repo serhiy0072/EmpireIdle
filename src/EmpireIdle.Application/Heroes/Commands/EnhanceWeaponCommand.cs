@@ -69,19 +69,20 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new RequirementNotMetException($"Equipment {item.Id} is not a weapon.");
 
             if (item.IsBroken)
-                throw new RequirementNotMetException($"Equipment {item.Id} is broken and must be repaired first.");
+                throw new RequirementNotMetException(RefusalReasons.EquipmentBroken, $"Equipment {item.Id} is broken and must be repaired first.");
 
             var equipment = _catalog.Config.Equipment;
 
             if (item.EnhancementLevel >= equipment.MaxEnhancement)
-                throw new RequirementNotMetException(
-                    $"Equipment {item.Id} is already at the ceiling of +{equipment.MaxEnhancement}.");
+                throw new RequirementNotMetException(RefusalReasons.EquipmentMaxEnhancement,
+                    $"Equipment {item.Id} is already at the ceiling of +{equipment.MaxEnhancement}.", equipment.MaxEnhancement);
 
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
             if (!village.HasBuilding(equipment.ForgeBuildingKey))
-                throw new RequirementNotMetException($"Enhancing requires the {equipment.ForgeBuildingKey}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
+                    $"Enhancing requires the {equipment.ForgeBuildingKey}.", _catalog.Building(equipment.ForgeBuildingKey).DisplayName);
 
             // Платимо за спробу, а не за результат
             village.ChargeCost(

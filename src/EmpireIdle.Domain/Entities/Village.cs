@@ -75,6 +75,18 @@ namespace EmpireIdle.Domain.Entities
         public bool HasBuilding(string buildingType)
             => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
 
+        /// <summary>
+        /// Чи виробляє будівля. Під туманом — ні: інакше гравець відкривав би
+        /// будівлю з повним буфером, якого не бачив і не заробляв.
+        ///
+        /// Виводиться з рівня ратуші, а не зберігається прапорцем у рядку:
+        /// збережений прапорець розійшовся б із конфігом при першій зміні порогів.
+        /// </summary>
+        public bool IsProducing(Building building, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+            => buildingConfigs.TryGetValue(building.Type, out var config)
+               && config.ProducesResource is not null
+               && config.RequiresMainBuildingLevel <= MainBuildingLevel(buildingConfigs);
+
 
         #endregion
 
@@ -155,12 +167,37 @@ namespace EmpireIdle.Domain.Entities
 
             foreach (var building in due)
             {
+                var completedAt = building.ConstructionCompletesAt!.Value;
+                var levelBefore = MainBuildingLevel(buildingConfigs);
+
                 building.CompleteConstruction(utcNow);
+
+                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.IsMainBuilding)
+                    StartProductionUnlockedAbove(levelBefore, buildingConfigs, completedAt);
+
                 RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level, utcNow));
             }
 
             Touch(utcNow);
             return due.Count;
+        }
+
+        /// <summary>
+        /// Запускає виробіток будівель, що вийшли з-під туману з новим рівнем ратуші.
+        /// Відлік — від моменту завершення ратуші, а не приходу сканера.
+        /// </summary>
+        private void StartProductionUnlockedAbove(int levelBefore,
+            IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime unlockedAt)
+        {
+            var levelAfter = MainBuildingLevel(buildingConfigs);
+
+            foreach (var building in _buildings)
+            {
+                if (buildingConfigs.TryGetValue(building.Type, out var config)
+                    && config.RequiresMainBuildingLevel > levelBefore
+                    && config.RequiresMainBuildingLevel <= levelAfter)
+                    building.StartProducing(unlockedAt);
+            }
         }
 
         #endregion
@@ -170,18 +207,19 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>
         /// Переносить накопичене з буфера будівлі у сховище села.
         ///
-        /// Повний склад **відмовляє** в зборі, а не приймає частину: буфер
-        /// не під контролем гравця, тож часткове прийняття знищувало б
-        /// вироблене за клік, якого гравець не планував.
+        /// Береться лише те, що влазить; решта лишається в буфері. Повний склад
+        /// **відмовляє** в зборі: буфер не під контролем гравця, і збір,
+        /// що нічого не взяв, мовчки виглядав би як успіх.
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
         /// <param name="utcNow">Момент збору.</param>
         /// <param name="boost">Вікно дії буста виробництва.</param>
-        /// <exception cref="RequirementNotMetException">На складі немає вільного місця.</exception>
+        /// <returns>Скільки зараховано на склад.</returns>
+        /// <exception cref="RequirementNotMetException">На складі немає місця або будівля під туманом.</exception>
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
-        public void CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+        public int CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
             int storageCap, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
@@ -193,48 +231,102 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
 
             if (config.ProducesResource is null)
-                return;
+                return 0;
 
-            var resource = _resources.FirstOrDefault(r => r.ResourceType == config.ProducesResource);
+            // Без причини для клієнта: будівлю під туманом гравець не бачить
+            if (!IsProducing(building, buildingConfigs))
+                throw new RequirementNotMetException($"Building '{building.Type}' is still under the fog.");
 
-            // Місце перевіряється ДО Collect: буфер спорожнюється беззастережно,
-            // тож перевірка після нього знищила б накопичене. Гравець не керує
-            // буфером будівлі — він керує лише тим, коли витратити зі складу.
+            return TryCollect(building, config, storageCap, utcNow, boost, locationMultiplier)
+                ?? throw new RequirementNotMetException(RefusalReasons.VillageStorageFull,
+                    $"Storage for '{config.ProducesResource}' is full: spend before collecting.", config.ProducesResource);
+        }
+
+        /// <summary>
+        /// Збирає всі виробничі будівлі поза туманом. Повний склад одного
+        /// ресурсу не зупиняє збір решти — інакше одна переповнена ферма
+        /// блокувала б кнопку для всього селища.
+        /// </summary>
+        /// <param name="storageCapFor">Кап складу для ресурсу — рахує доменний сервіс місткостей.</param>
+        public CollectionSummary CollectAll(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            Func<string, int> storageCapFor, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        {
+            var collected = new Dictionary<string, int>();
+            var fullStorages = new List<string>();
+
+            // Знімок наперед: збір змінює стан будівель, які перебираємо
+            var producing = _buildings.Where(b => IsProducing(b, buildingConfigs)).ToList();
+
+            foreach (var building in producing)
+            {
+                var config = buildingConfigs[building.Type];
+                var resourceKey = config.ProducesResource!;
+
+                var accepted = TryCollect(building, config, storageCapFor(resourceKey), utcNow, boost, locationMultiplier);
+
+                if (accepted is null)
+                {
+                    if (!fullStorages.Contains(resourceKey))
+                        fullStorages.Add(resourceKey);
+                }
+                else if (accepted > 0)
+                {
+                    collected[resourceKey] = collected.GetValueOrDefault(resourceKey) + accepted.Value;
+                }
+            }
+
+            return new CollectionSummary(collected, fullStorages);
+        }
+
+        /// <summary>
+        /// Спільне ядро збору. null — буфер не порожній, а склад повний.
+        /// Будівля під будівництвом віддає те, що встигла накопичити до нього.
+        /// </summary>
+        private int? TryCollect(Building building, BuildingConfig config, int storageCap,
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        {
+            var resourceKey = config.ProducesResource!;
+
+            // Порожній буфер — не подія і не зміна стану, навіть коли склад повний
+            if (building.StoredAt(config, utcNow, boost, locationMultiplier) == 0)
+                return 0;
+
+            var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey);
             var free = storageCap - (resource?.Amount ?? 0);
 
             if (free <= 0)
-                throw new RequirementNotMetException(
-                    $"Storage for '{config.ProducesResource}' is full: spend before collecting.");
+                return null;
 
-            var collected = building.Collect(config, utcNow, boost, locationMultiplier);
-            if (collected == 0)
-                return; // порожній буфер — не подія і не зміна стану
+            var collected = building.Collect(config, utcNow, boost, locationMultiplier, limit: free);
 
             if (resource is null)
             {
-                resource = new VillageResource(Id, config.ProducesResource);
+                resource = new VillageResource(Id, resourceKey);
                 _resources.Add(resource);
             }
 
             var accepted = resource.AddUpTo(collected, storageCap);
 
             RaiseDomainEvent(new Events.BuildingCollected(
-                Id, PlayerId, building.Id, config.ProducesResource, accepted, resource.Amount, utcNow));
+                Id, PlayerId, building.Id, resourceKey, accepted, resource.Amount, utcNow));
             Touch(utcNow);
+
+            return accepted;
         }
 
         /// <summary>
         /// Фіксує буфери всіх виробничих будівель на поточний момент.
         /// Викликається перед зміною множника: інакше вироблене за старим
         /// бустом порахувалося б за новим (або без нього).
+        /// Будівлі під туманом пропускаються — їхній відлік почнеться з відкриття.
         /// </summary>
         public void MaterializeProduction(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
             DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             foreach (var building in _buildings)
             {
-                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.ProducesResource is not null)
-                    building.Materialize(config, utcNow, boost, locationMultiplier);
+                if (IsProducing(building, buildingConfigs))
+                    building.Materialize(buildingConfigs[building.Type], utcNow, boost, locationMultiplier);
             }
             Touch(utcNow);
         }
@@ -371,7 +463,7 @@ namespace EmpireIdle.Domain.Entities
         public void RelocateTo(int x, int y, DateTime utcNow)
         {
             if (X == x && Y == y)
-                throw new RequirementNotMetException("The village is already on that cell.");
+                throw new RequirementNotMetException(RefusalReasons.VillageAlreadyThere, "The village is already on that cell.");
 
             X = x;
             Y = y;
@@ -384,6 +476,11 @@ namespace EmpireIdle.Domain.Entities
         #region Внутрішнє
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
+
+        /// <summary>Рівень ратуші; 0, якщо її немає. Те саме правило, що й у VillageStatus.</summary>
+        private int MainBuildingLevel(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+            => _buildings.FirstOrDefault(b =>
+                buildingConfigs.TryGetValue(b.Type, out var config) && config.IsMainBuilding)?.Level.Value ?? 0;
 
         /// <summary>
         /// Перевіряє три незалежні умови апгрейду.
@@ -407,16 +504,17 @@ namespace EmpireIdle.Domain.Entities
             // A
             var ceiling = serverLevel * levelsPerTier;
             if (targetLevel > ceiling)
-                throw new RequirementNotMetException(
-                    $"Server level {serverLevel} allows buildings up to level {ceiling}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingServerCeiling,
+                    $"Server level {serverLevel} allows buildings up to level {ceiling}.", serverLevel, ceiling);
 
             var townhall = _buildings.FirstOrDefault(b => b.Type == mainBuildingKey)
                 ?? throw new InvalidOperationException($"Village {Id} has no '{mainBuildingKey}'.");
 
             // C
             if (!isMainBuilding && targetLevel > townhall.Level.Value)
-                throw new RequirementNotMetException(
-                    $"'{building.Type}' cannot exceed main building level {townhall.Level.Value}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingTownHallCeiling,
+                    $"'{building.Type}' cannot exceed main building level {townhall.Level.Value}.",
+                    config.DisplayName, townhall.Level.Value);
 
             // B — лише на межі тіру
             if (!isMainBuilding || building.Level.Value % levelsPerTier != 0)
@@ -433,8 +531,9 @@ namespace EmpireIdle.Domain.Entities
                 .ToList();
 
             if (lagging.Count > 0)
-                throw new RequirementNotMetException(
-                    $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingVillageLagging,
+                    $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.",
+                    required, string.Join(", ", lagging.Select(type => buildingConfigs[type].DisplayName)));
         }
 
         #endregion
