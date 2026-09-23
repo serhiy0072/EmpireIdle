@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Dungeons.Commands;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -19,6 +20,7 @@ namespace EmpireIdle.Application.Dungeons.Services
         private readonly IDungeonRepository _dungeons;
         private readonly IVillageRepository _villages;
         private readonly ItemGranter _items;
+        private readonly BattleBuilder _builder;
         private readonly GameCatalog _catalog;
         private readonly IRandomSource _random;
 
@@ -26,12 +28,14 @@ namespace EmpireIdle.Application.Dungeons.Services
             IDungeonRepository dungeons,
             IVillageRepository villages,
             ItemGranter items,
+            BattleBuilder builder,
             GameCatalog catalog,
             IRandomSource random)
         {
             _dungeons = dungeons;
             _villages = villages;
             _items = items;
+            _builder = builder;
             _catalog = catalog;
             _random = random;
         }
@@ -41,8 +45,9 @@ namespace EmpireIdle.Application.Dungeons.Services
             var dungeon = _catalog.Dungeons.GetValueOrDefault(run.DungeonKey)
                 ?? throw new EntityNotFoundException("Dungeon", run.DungeonKey);
 
-            var settings = _catalog.Config.Dungeons;
-            var multiplier = settings.LevelRewardMultipliers.ElementAtOrDefault(run.Level - 1) is var m && m > 0 ? m : 1.0;
+            // Той самий множник, що показує вітрина: власна копія формули з іншим
+            // запасним значенням давала б гравцю не ту нагороду, яку йому пообіцяли
+            var multiplier = _builder.RewardMultiplier(run.Level);
 
             var resources = dungeon.Reward
                 .Select(r => new ResourceCost { Resource = r.Resource, Amount = (int)Math.Round(r.Amount * multiplier) })

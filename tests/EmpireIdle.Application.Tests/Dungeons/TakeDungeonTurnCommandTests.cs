@@ -94,8 +94,8 @@ public class TakeDungeonTurnCommandTests
             Substitute.For<IRandomSource>(),
             new ArtifactRoller(config.Equipment));
 
-        var rewarder = new DungeonRewarder(_dungeons, Substitute.For<IVillageRepository>(), granter, catalog,
-            Substitute.For<IRandomSource>());
+        var rewarder = new DungeonRewarder(_dungeons, Substitute.For<IVillageRepository>(), granter,
+            new BattleBuilder(config.Dungeons), catalog, Substitute.For<IRandomSource>());
 
         return new TakeDungeonTurnCommandHandler(
             _dungeons,
