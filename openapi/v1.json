@@ -2087,17 +2087,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/DungeonTurnResponse"
+                  "$ref": "#/components/schemas/DungeonRunView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DungeonTurnResponse"
+                  "$ref": "#/components/schemas/DungeonRunView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DungeonTurnResponse"
+                  "$ref": "#/components/schemas/DungeonRunView"
                 }
               }
             }
@@ -5583,14 +5583,6 @@
         },
         "additionalProperties": false
       },
-      "BattleLine": {
-        "enum": [
-          0,
-          1
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
       "BattleOdds": {
         "enum": [
           0,
@@ -5741,89 +5733,6 @@
             "items": {
               "$ref": "#/components/schemas/BattleReportLineResponse"
             }
-          }
-        },
-        "additionalProperties": false
-      },
-      "BattleSide": {
-        "enum": [
-          0,
-          1
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
-      "BattleState": {
-        "required": [
-          "combatants",
-          "enemiesAlive",
-          "heroesAlive",
-          "queue",
-          "round",
-          "seed",
-          "turnNumber",
-          "wave"
-        ],
-        "type": "object",
-        "properties": {
-          "combatants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Combatant"
-            }
-          },
-          "wave": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "round": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "queue": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "seed": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "turnNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "heroesAlive": {
-            "type": "boolean",
-            "readOnly": true
-          },
-          "enemiesAlive": {
-            "type": "boolean",
-            "readOnly": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "BattleStatus": {
-        "required": [
-          "kind",
-          "magnitude",
-          "turnsLeft"
-        ],
-        "type": "object",
-        "properties": {
-          "kind": {
-            "$ref": "#/components/schemas/BattleStatusKind"
-          },
-          "magnitude": {
-            "type": "number",
-            "format": "double"
-          },
-          "turnsLeft": {
-            "type": "integer",
-            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -6669,106 +6578,6 @@
         },
         "additionalProperties": false
       },
-      "Combatant": {
-        "required": [
-          "attack",
-          "defense",
-          "energy",
-          "health",
-          "index",
-          "isAlive",
-          "key",
-          "line",
-          "maxHealth",
-          "shieldPoints",
-          "side",
-          "speed",
-          "statuses",
-          "uniqueStats"
-        ],
-        "type": "object",
-        "properties": {
-          "index": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "side": {
-            "$ref": "#/components/schemas/BattleSide"
-          },
-          "line": {
-            "$ref": "#/components/schemas/BattleLine"
-          },
-          "key": {
-            "type": "string"
-          },
-          "heroId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "attack": {
-            "type": "number",
-            "format": "double"
-          },
-          "defense": {
-            "type": "number",
-            "format": "double"
-          },
-          "maxHealth": {
-            "type": "number",
-            "format": "double"
-          },
-          "health": {
-            "type": "number",
-            "format": "double"
-          },
-          "speed": {
-            "type": "number",
-            "format": "double"
-          },
-          "energy": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "shieldPoints": {
-            "type": "number",
-            "format": "double"
-          },
-          "statuses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BattleStatus"
-            }
-          },
-          "uniqueStats": {
-            "type": "object",
-            "properties": {
-              "CritChance": {
-                "type": "number",
-                "format": "double"
-              },
-              "Lifesteal": {
-                "type": "number",
-                "format": "double"
-              },
-              "DamageReduction": {
-                "type": "number",
-                "format": "double"
-              },
-              "EnergyOnAttack": {
-                "type": "number",
-                "format": "double"
-              }
-            },
-            "additionalProperties": false
-          },
-          "isAlive": {
-            "type": "boolean",
-            "readOnly": true
-          }
-        },
-        "additionalProperties": false
-      },
       "CombatantView": {
         "required": [
           "abilities",
@@ -6902,45 +6711,6 @@
         },
         "additionalProperties": false
       },
-      "DungeonRewardLine": {
-        "required": [
-          "amount",
-          "resource"
-        ],
-        "type": "object",
-        "properties": {
-          "resource": {
-            "type": "string"
-          },
-          "amount": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "DungeonRewardResponse": {
-        "required": [
-          "artifacts",
-          "resources"
-        ],
-        "type": "object",
-        "properties": {
-          "resources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DungeonRewardLine"
-            }
-          },
-          "artifacts": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
       "DungeonRewardView": {
         "required": [
           "artifacts",
@@ -6962,16 +6732,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "DungeonRunState": {
-        "enum": [
-          0,
-          1,
-          2,
-          3
-        ],
-        "type": "integer",
-        "format": "int32"
       },
       "DungeonRunView": {
         "required": [
@@ -6998,7 +6758,7 @@
             "format": "int32"
           },
           "state": {
-            "$ref": "#/components/schemas/DungeonRunState"
+            "type": "string"
           },
           "wave": {
             "type": "integer",
@@ -7048,37 +6808,6 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "DungeonTurnResponse": {
-        "required": [
-          "battle",
-          "state",
-          "turns"
-        ],
-        "type": "object",
-        "properties": {
-          "state": {
-            "type": "string"
-          },
-          "turns": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TurnLog"
-            }
-          },
-          "battle": {
-            "$ref": "#/components/schemas/BattleState"
-          },
-          "nextActorIndex": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "reward": {
-            "$ref": "#/components/schemas/DungeonRewardResponse"
           }
         },
         "additionalProperties": false

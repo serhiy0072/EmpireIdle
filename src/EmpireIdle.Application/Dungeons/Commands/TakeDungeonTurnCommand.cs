@@ -1,4 +1,6 @@
 using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Dungeons.Contracts;
+using EmpireIdle.Application.Dungeons.Queries;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;
@@ -22,20 +24,12 @@ namespace EmpireIdle.Application.Dungeons.Commands
     /// </summary>
     /// <param name="Auto">Хід обирає політика автобою; AbilityKey і TargetIndex ігноруються.</param>
     public record TakeDungeonTurnCommand(Guid PlayerId, Guid RunId, bool Auto, string? AbilityKey, int? TargetIndex)
-        : IRequest<DungeonTurnResult>, IPlayerScopedRequest;
+        : IRequest<DungeonRunView>, IPlayerScopedRequest;
 
-    /// <param name="Turns">Ходи, зроблені за цей запит: власний плюс автоматичні до наступного рішення гравця.</param>
-    public record DungeonTurnResult(
-        DungeonRunState State,
-        IReadOnlyList<TurnLog> Turns,
-        BattleState Battle,
-        int? NextActorIndex,
-        DungeonReward? Reward);
-
-    /// <param name="Artifacts">Ключі виданих артефактів — клієнт покаже їх із каталогу.</param>
+    /// <param name="Artifacts">Ключі виданих артефактів — назви додає проєкція з каталогу.</param>
     public record DungeonReward(IReadOnlyList<ResourceCost> Resources, IReadOnlyList<string> Artifacts);
 
-    internal sealed class TakeDungeonTurnCommandHandler : IRequestHandler<TakeDungeonTurnCommand, DungeonTurnResult>
+    internal sealed class TakeDungeonTurnCommandHandler : IRequestHandler<TakeDungeonTurnCommand, DungeonRunView>
     {
         /// <summary>Стеля ходів на запит: захист від нескінченного циклу, а не ігрове правило.</summary>
         private const int MaxTurnsPerRequest = 200;
@@ -69,7 +63,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
             _logger = logger;
         }
 
-        public async Task<DungeonTurnResult> Handle(TakeDungeonTurnCommand request, CancellationToken cancellationToken)
+        public async Task<DungeonRunView> Handle(TakeDungeonTurnCommand request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
@@ -147,10 +141,10 @@ namespace EmpireIdle.Application.Dungeons.Commands
             run.Advance(BattleSerializer.Write(state), now);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new DungeonTurnResult(run.State, turns, state, BattleEngine.CurrentActor(state), null);
+            return Project(run, state, turns, reward: null);
         }
 
-        private async Task<DungeonTurnResult> FinishAsync(DungeonRun run, BattleState state,
+        private async Task<DungeonRunView> FinishAsync(DungeonRun run, BattleState state,
             List<TurnLog> turns, bool won, DateTime now, CancellationToken cancellationToken)
         {
             var battle = BattleSerializer.Write(state);
@@ -171,7 +165,29 @@ namespace EmpireIdle.Application.Dungeons.Commands
             _logger.LogInformation("Dungeon run {RunId} finished as {State} on wave {Wave}",
                 run.Id, run.State, state.Wave);
 
-            return new DungeonTurnResult(run.State, turns, state, null, reward);
+            return Project(run, state, turns, reward);
+        }
+
+        /// <summary>
+        /// Одна форма відповіді на всі виклики данжів: і перегляд, і хід віддають
+        /// той самий DungeonRunView. Дві різні форми змушували б клієнт зшивати
+        /// сирий стан бою з назвами — саме там і народжуються розбіжності.
+        /// </summary>
+        private DungeonRunView Project(DungeonRun run, BattleState state, IReadOnlyList<TurnLog> turns, DungeonReward? reward)
+        {
+            var view = reward is null
+                ? null
+                : new DungeonRewardView(
+                    reward.Resources.Select(r => new RewardLine(r.Resource, r.Amount)).ToList(),
+                    reward.Artifacts
+                        .Select(key => _catalog.FindItem(key))
+                        .Where(item => item is not null)
+                        .Select(item => new ArtifactDropView(
+                            item!.Key, item.DisplayName, item.Rarity.ToString().ToLowerInvariant(), item.SetKey ?? string.Empty))
+                        .ToList());
+
+            return GetDungeonRunQueryHandler.Project(run.Id, run.DungeonKey, run.Level, run.State, state,
+                _builder.WaveCount(run.Level), turns, view, _catalog);
         }
 
         /// <summary>Порожня черга означає кінець раунду — шикуємо новий.</summary>

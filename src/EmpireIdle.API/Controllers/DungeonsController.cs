@@ -62,18 +62,14 @@ namespace EmpireIdle.API.Controllers
         /// ходи ворогів; інакше потрібні ability й target.
         /// </summary>
         [HttpPost("{playerId:guid}/run/{runId:guid}/turn")]
-        [ProducesResponseType(typeof(DungeonTurnResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(DungeonRunView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<DungeonTurnResponse>> TakeTurn(
+        public async Task<ActionResult<DungeonRunView>> TakeTurn(
             Guid playerId, Guid runId, [FromBody] DungeonTurnRequest request, CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(
+            => Ok(await _mediator.Send(
                 new TakeDungeonTurnCommand(playerId, runId, request.Auto, request.AbilityKey, request.TargetIndex),
-                cancellationToken);
-
-            return Ok(DungeonTurnResponse.From(result));
-        }
+                cancellationToken));
 
         /// <summary>Вийти із забігу. Енергія не повертається. Ідемпотентна.</summary>
         [HttpPost("{playerId:guid}/run/{runId:guid}/abandon")]

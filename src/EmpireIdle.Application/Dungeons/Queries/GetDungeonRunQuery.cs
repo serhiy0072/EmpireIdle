@@ -39,7 +39,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
 
             var state = BattleSerializer.Read(run.Battle);
 
-            return Project(run.Id, run.DungeonKey, run.Level, DungeonRunState.InProgress, state,
+            return Project(run.Id, run.DungeonKey, run.Level, run.State, state,
                 _builder.WaveCount(run.Level), turns: [], reward: null, _catalog);
         }
 
@@ -87,7 +87,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
                 runId,
                 dungeonKey,
                 level,
-                state,
+                state.ToString(),
                 battle.Wave,
                 waveCount,
                 state == DungeonRunState.InProgress ? BattleEngine.CurrentActor(battle) : null,
