@@ -20,9 +20,14 @@ export function useDungeons(playerId: string): UseQueryResult<DungeonsOverview> 
 export function useDungeonRun(playerId: string, enabled: boolean): UseQueryResult<DungeonRunView | null> {
   return useQuery({
     queryKey: queryKeys.dungeonRun(playerId),
-    queryFn: async () => (await api<DungeonRunView | undefined>(`/api/dungeons/${playerId}/run`)) ?? null,
+    queryFn: () => fetchDungeonRun(playerId),
     enabled,
   });
+}
+
+/** Незавершений забіг або null (204). Окремо від хука — бій перечитує себе після StaleTurn. */
+export async function fetchDungeonRun(playerId: string): Promise<DungeonRunView | null> {
+  return (await api<DungeonRunView | undefined>(`/api/dungeons/${playerId}/run`)) ?? null;
 }
 
 export function useStartDungeonRun(playerId: string) {
@@ -42,15 +47,29 @@ export function useStartDungeonRun(playerId: string) {
 /**
  * Один хід. Сервер повертає той самий DungeonRunView, що й перегляд, разом
  * із журналом зроблених ходів — клієнт малює його й нічого не зшиває сам.
+ *
+ * Без Idempotency-Key: хід захищає expectedTurn. Не збігся з сервером —
+ * 409 StaleTurn, і хід не застосовано.
  */
 export function useDungeonTurn(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { runId: string; auto: boolean; abilityKey?: string | null; targetIndex?: number | null }) =>
+    mutationFn: (input: {
+      runId: string;
+      expectedTurn: number;
+      auto: boolean;
+      abilityKey?: string | null;
+      targetIndex?: number | null;
+    }) =>
       api<DungeonRunView>(`/api/dungeons/${playerId}/run/${input.runId}/turn`, {
         method: "POST",
-        body: { auto: input.auto, abilityKey: input.abilityKey ?? null, targetIndex: input.targetIndex ?? null },
+        body: {
+          expectedTurn: input.expectedTurn,
+          auto: input.auto,
+          abilityKey: input.abilityKey ?? null,
+          targetIndex: input.targetIndex ?? null,
+        },
       }),
     onSuccess: (result) => {
       if (result.state !== "InProgress") {

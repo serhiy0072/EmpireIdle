@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Dungeons.Commands;
 using EmpireIdle.Application.Dungeons.Services;
@@ -74,13 +75,17 @@ public class TakeDungeonTurnCommandTests
         TurnNumber = 0,
     });
 
-    private TakeDungeonTurnCommandHandler Handler(BattleState state)
+    /// <param name="finish">Довести забіг до кінця ще до ходу — для повторів по завершеному забігу.</param>
+    private TakeDungeonTurnCommandHandler Handler(BattleState state, Action<DungeonRun, string>? finish = null)
     {
         var config = new GameConfigBuilder().WithDungeons().Build();
         var catalog = new GameCatalog(config);
 
-        _dungeons.GetRunByIdAsync(RunId, Arg.Any<CancellationToken>())
-            .Returns(new DungeonRun(RunId, PlayerId, 1, TestKeys.Dungeon, 1, BattleSerializer.Write(state), Now));
+        var battle = BattleSerializer.Write(state);
+        var run = new DungeonRun(RunId, PlayerId, 1, TestKeys.Dungeon, 1, battle, Now);
+        finish?.Invoke(run, battle);
+
+        _dungeons.GetRunByIdAsync(RunId, Arg.Any<CancellationToken>()).Returns(run);
 
         var granter = new ItemGranter(
             Substitute.For<IInventoryRepository>(),
@@ -108,7 +113,7 @@ public class TakeDungeonTurnCommandTests
         var handler = Handler(Battle());
 
         var result = await handler.Handle(
-            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: false, AbilityKey: null, TargetIndex: null),
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: false, AbilityKey: null, TargetIndex: null),
             CancellationToken.None);
 
         Assert.Single(result.Turns);
@@ -124,7 +129,7 @@ public class TakeDungeonTurnCommandTests
         var handler = Handler(state);
 
         var result = await handler.Handle(
-            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: false, AbilityKey: null, TargetIndex: 1),
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: false, AbilityKey: null, TargetIndex: 1),
             CancellationToken.None);
 
         Assert.Single(result.Turns);
@@ -138,7 +143,7 @@ public class TakeDungeonTurnCommandTests
         var handler = Handler(Battle());
 
         var result = await handler.Handle(
-            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: true, AbilityKey: null, TargetIndex: null),
             CancellationToken.None);
 
         // Хід зіграв лише ворог — герой лишився на черзі й дочекається
@@ -154,11 +159,57 @@ public class TakeDungeonTurnCommandTests
         var handler = Handler(Battle() with { Queue = [0] });
 
         var result = await handler.Handle(
-            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: false, AbilityKey: null, TargetIndex: null),
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: false, AbilityKey: null, TargetIndex: null),
             CancellationToken.None);
 
         Assert.Empty(result.Turns);
         Assert.Equal(0, result.ActorIndex);
+    }
+
+    // ---------- Захист номером ходу ----------
+
+    /// <summary>
+    /// Клієнт діє зі стану, якого вже немає (втрачена відповідь, друга вкладка):
+    /// хід не грається, стан не пишеться — інакше дія влучила б не туди.
+    /// </summary>
+    [Fact]
+    public async Task Handle_WithAStaleExpectedTurn_ShouldRejectWithoutPlaying()
+    {
+        var handler = Handler(Battle() with { TurnNumber = 7 });
+
+        await Assert.ThrowsAsync<StaleTurnException>(() => handler.Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 6, Auto: true, AbilityKey: null, TargetIndex: null),
+            CancellationToken.None));
+
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnTheNextTurnNumber_ForTheClientToEchoBack()
+    {
+        var handler = Handler(Battle() with { TurnNumber = 7 });
+
+        var result = await handler.Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 7, Auto: true, AbilityKey: null, TargetIndex: null),
+            CancellationToken.None);
+
+        Assert.Equal(8, result.TurnNumber);
+    }
+
+    /// <summary>Повтор ходу, що вже завершив забіг, віддає підсумок, а не помилку — і нічого не пише.</summary>
+    [Fact]
+    public async Task Handle_OnAFinishedRun_ShouldReturnTheOutcomeWithoutPlaying()
+    {
+        var handler = Handler(Battle(), (run, battle) => run.Win(battle, Now));
+
+        var result = await handler.Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: true, AbilityKey: null, TargetIndex: null),
+            CancellationToken.None);
+
+        Assert.Equal(nameof(DungeonRunState.Won), result.State);
+        Assert.Empty(result.Turns);
+        Assert.Null(result.Reward);
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     // ---------- Стеля раундів (MaxRoundsPerWave = 30 у фікстурі) ----------
@@ -170,7 +221,7 @@ public class TakeDungeonTurnCommandTests
         var handler = Handler(Battle() with { Round = 30, Queue = [0] });
 
         var result = await handler.Handle(
-            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: true, AbilityKey: null, TargetIndex: null),
             CancellationToken.None);
 
         Assert.Equal(nameof(DungeonRunState.TimedOut), result.State);
@@ -193,7 +244,7 @@ public class TakeDungeonTurnCommandTests
         };
 
         var result = await Handler(state).Handle(
-            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: true, AbilityKey: null, TargetIndex: null),
             CancellationToken.None);
 
         Assert.Equal(nameof(DungeonRunState.InProgress), result.State);
@@ -213,7 +264,7 @@ public class TakeDungeonTurnCommandTests
         };
 
         var result = await Handler(state).Handle(
-            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: true, AbilityKey: null, TargetIndex: null),
             CancellationToken.None);
 
         Assert.Equal(nameof(DungeonRunState.Lost), result.State);
@@ -226,7 +277,7 @@ public class TakeDungeonTurnCommandTests
         var handler = Handler(Battle() with { Round = 57, Queue = [0] });
 
         var result = await handler.Handle(
-            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
+            new TakeDungeonTurnCommand(PlayerId, RunId, ExpectedTurn: 0, Auto: true, AbilityKey: null, TargetIndex: null),
             CancellationToken.None);
 
         Assert.Equal(nameof(DungeonRunState.TimedOut), result.State);

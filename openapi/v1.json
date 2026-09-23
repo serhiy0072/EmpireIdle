@@ -2141,6 +2141,26 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -6744,6 +6764,7 @@
           "level",
           "runId",
           "state",
+          "turnNumber",
           "turns",
           "wave",
           "waveCount"
@@ -6772,6 +6793,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "turnNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
           "actorIndex": {
             "type": "integer",
             "format": "int32",
@@ -6797,10 +6822,15 @@
       },
       "DungeonTurnRequest": {
         "required": [
-          "auto"
+          "auto",
+          "expectedTurn"
         ],
         "type": "object",
         "properties": {
+          "expectedTurn": {
+            "type": "integer",
+            "format": "int32"
+          },
           "auto": {
             "type": "boolean"
           },

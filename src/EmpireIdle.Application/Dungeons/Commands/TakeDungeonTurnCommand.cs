@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Dungeons.Contracts;
 using EmpireIdle.Application.Dungeons.Queries;
@@ -21,13 +22,18 @@ namespace EmpireIdle.Application.Dungeons.Commands
     /// дограє бій наперед, а гравець бачить кожен хід окремо. Ціна — запит
     /// на хід; вона свідома, бо альтернатива (порахувати бій одним викликом)
     /// вбиває і анімацію, і саме перемикання.
+    ///
+    /// Свідомий виняток із правила IIdempotentRequest: повтор ловить
+    /// ExpectedTurn. Ключ ідемпотентності писав би рядок на кожен хід, а номер
+    /// ходу ще й відсікає дію зі стану іншої вкладки, якого ключ не бачить.
     /// </summary>
+    /// <param name="ExpectedTurn">TurnNumber, який бачив клієнт; інший на сервері — StaleTurnException.</param>
     /// <param name="Auto">
     /// true — хід за поточного бійця обирає політика автобою. false — хід
     /// ворога сервер грає сам, а перед ходом героя зупиняється й чекає на
     /// AbilityKey з TargetIndex.
     /// </param>
-    public record TakeDungeonTurnCommand(Guid PlayerId, Guid RunId, bool Auto, string? AbilityKey, int? TargetIndex)
+    public record TakeDungeonTurnCommand(Guid PlayerId, Guid RunId, int ExpectedTurn, bool Auto, string? AbilityKey, int? TargetIndex)
         : IRequest<DungeonRunView>, IPlayerScopedRequest;
 
     /// <param name="Artifacts">Ключі виданих артефактів — назви додає проєкція з каталогу.</param>
@@ -74,13 +80,22 @@ namespace EmpireIdle.Application.Dungeons.Commands
             if (run.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Dungeon run", request.RunId.ToString());
 
+            // Повтор ходу, що вже завершив забіг, — не помилка: віддаємо підсумок.
+            // Нагорода не зберігається окремо, тож її вже видано, але не показано
             if (run.State != DungeonRunState.InProgress)
-                throw new InvalidStateException($"Dungeon run {run.Id} is already {run.State}.");
+                return Project(run, BattleSerializer.Read(run.Battle), turns: [], reward: null);
 
             var dungeon = _catalog.Dungeons.GetValueOrDefault(run.DungeonKey)
                 ?? throw new EntityNotFoundException("Dungeon", run.DungeonKey);
 
-            var state = EnsureRound(BattleSerializer.Read(run.Battle));
+            var stored = BattleSerializer.Read(run.Battle);
+
+            // Дія зі стану, якого вже немає: застосувати її означало б ударити
+            // не тим героєм або зіграти зайвий хід після втраченої відповіді
+            if (stored.TurnNumber != request.ExpectedTurn)
+                throw new StaleTurnException(run.Id, request.ExpectedTurn, stored.TurnNumber);
+
+            var state = EnsureRound(stored);
             var turns = new List<TurnLog>();
 
             // Забіг, що застряг до появи стелі (або після її зменшення), закривається без зайвого ходу

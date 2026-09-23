@@ -84,6 +84,7 @@ Claude тут — Software Architect і Mentor-Reviewer. Мета написат
   узгодженість між секціями — у `GameConfigValidator`.
 - Помилки клієнту — `ProblemDetails` з `errorCode`; клієнт розгалужується за `errorCode`, не за текстом.
 - Команди, що змінюють стан гри, ідемпотентні (`IIdempotentRequest`); клієнт шле `Idempotency-Key`.
+  Виняток: хід данжу (`TakeDungeonTurnCommand`) захищено номером ходу — `expectedTurn` → 409 `StaleTurn`, не `IIdempotentRequest`.
 - Агрегати, які змінюються паралельно, мають токен `xmin`; гонки за унікальністю розв'язує індекс.
 
 ## Структура

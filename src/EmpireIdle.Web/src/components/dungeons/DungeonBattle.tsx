@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AbilityView, CombatantView, DungeonRunView, TurnLog } from "../../lib/apiTypes";
-import { useAbandonDungeonRun, useDungeonTurn } from "../../lib/queries/dungeons";
+import { isApiError } from "../../lib/api";
+import { fetchDungeonRun, useAbandonDungeonRun, useDungeonTurn } from "../../lib/queries/dungeons";
 import ErrorBanner from "../ErrorBanner";
 import CombatantCard from "./CombatantCard";
 
@@ -32,6 +33,8 @@ const LOST: Outcome = {
 const OUTCOMES: Record<string, Outcome> = {
   Won: { title: "Данж зачищено", hint: "Нагороду вже зараховано: ресурси в селі, артефакт в інвентарі." },
   Lost: LOST,
+  // Бій покинули в іншій вкладці — ця дізналась про це лише на своєму ході
+  Abandoned: { title: "Забіг покинуто", hint: "Енергію витрачено, нагороди немає." },
   TimedOut: {
     title: "Бій затягнувся",
     hint: "Хвилю не дограно за відведені раунди. Енергію витрачено. Візьміть склад із більшою шкодою.",
@@ -102,7 +105,30 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
       busy.current = true;
 
       try {
-        const result = await turn.mutateAsync({ runId: state.runId, auto: isAuto, abilityKey, targetIndex });
+        let result: DungeonRunView;
+
+        try {
+          result = await turn.mutateAsync({
+            runId: state.runId,
+            expectedTurn: state.turnNumber,
+            auto: isAuto,
+            abilityKey,
+            targetIndex,
+          });
+        } catch (error: unknown) {
+          if (!isApiError(error) || !error.is("StaleTurn")) throw error;
+
+          // Сервер уже пішов далі (втрачена відповідь, друга вкладка): дію не
+          // застосовано, тож беремо свіжий стан і граємо з нього — це не збій
+          turn.reset();
+          const fresh = await fetchDungeonRun(playerId);
+
+          if (fresh === null) onFinished();
+          else setState(fresh);
+
+          setTargetIndex(null);
+          return;
+        }
 
         setState(result);
         setTargetIndex(null);
@@ -130,7 +156,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         busy.current = false;
       }
     },
-    [describe, state, turn],
+    [describe, onFinished, playerId, state, turn],
   );
 
   // Автобій: наступний хід сам, поки гравець не перемкнув режим
