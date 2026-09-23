@@ -149,8 +149,9 @@ public class TrainUnitsCommandTests
     {
         GivenVillage(barracksLevel: 3);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new TrainUnitsCommand(PlayerId, "siege", 1, 1), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingLevelRequired.Key, refusal.Reason);
     }
 
     /// <summary>Той самий юніт доступний, коли казарма доросла.</summary>
@@ -173,8 +174,9 @@ public class TrainUnitsCommandTests
     {
         GivenVillage(barracksLevel: 1, barracksUnderConstruction: true);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 1), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -186,8 +188,9 @@ public class TrainUnitsCommandTests
     {
         GivenVillage(barracksLevel: 1);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 21), CancellationToken.None));
+        Assert.Equal(RefusalReasons.GarrisonArmyCapacity.Key, refusal.Reason);
     }
 
     /// <summary>Вища казарма піднімає стелю армії.</summary>

@@ -46,6 +46,15 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
 
   // ---------- Спільні ----------
   "common.buildingRequired": ({ building }) => `Потрібна будівля «${building}»`,
+  "common.buildingLevelRequired": ({ building, level }) => `Потрібна «${building}» ${level} рівня`,
+
+  // ---------- Гарнізон ----------
+  "garrison.batchSize": ({ max }) => `За раз — від 1 до ${max} воїнів`,
+  "garrison.trainingBusy": () => "Казарма вже тренує партію — дочекайтеся завершення або прискорте її",
+  "garrison.levelUpBusy": () => "Казарма вже прокачує партію — дочекайтеся завершення або прискорте її",
+  "garrison.armyCapacity": ({ occupied, capacity, requested }) =>
+    `Армія заповнена: ${occupied} з ${capacity}, а ви додаєте ${requested}. Підніміть рівень казарми`,
+  "garrison.notEnoughUnits": ({ need, have }) => `Воїнів цього загону менше, ніж треба: потрібно ${need}, є ${have}`,
 
   // ---------- Село й будівлі ----------
   "village.storageFull": ({ resource }) =>

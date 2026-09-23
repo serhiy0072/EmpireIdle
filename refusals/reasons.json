@@ -16,6 +16,10 @@
     "level",
     "buildings"
   ],
+  "common.buildingLevelRequired": [
+    "building",
+    "level"
+  ],
   "common.buildingRequired": [
     "building"
   ],
@@ -42,6 +46,20 @@
   "equipment.maxEnhancement": [
     "max"
   ],
+  "garrison.armyCapacity": [
+    "occupied",
+    "capacity",
+    "requested"
+  ],
+  "garrison.batchSize": [
+    "max"
+  ],
+  "garrison.levelUpBusy": [],
+  "garrison.notEnoughUnits": [
+    "need",
+    "have"
+  ],
+  "garrison.trainingBusy": [],
   "hero.evolutionItemRequired": [
     "item"
   ],
