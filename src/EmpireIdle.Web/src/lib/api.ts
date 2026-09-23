@@ -8,7 +8,10 @@ export const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "
 export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
-  /** Команди з IIdempotentRequest: повтор після обриву мережі має вернути той самий результат. */
+  /**
+   * Команди з IIdempotentRequest: один ключ на виклик, і повтор після обриву
+   * мережі йде з ним же — сервер віддає той самий результат, а не виконує вдруге.
+   */
   idempotent?: boolean;
   signal?: AbortSignal;
 }
@@ -52,13 +55,27 @@ export async function freshAccessToken(): Promise<string | null> {
   return (await refreshOnce()) ? (getSession()?.accessToken ?? null) : null;
 }
 
+/**
+ * Паузи перед повторами команди з ключем ідемпотентності. Дві спроби понад
+ * першу: довше гравець чекав би помилку, яку однаково побачить.
+ */
+const RETRY_DELAYS_MS = [500, 1_500];
+
+/** Проксі не дочекався сервера — команда могла виконатись, а відповідь загубитись. */
+const RETRYABLE_STATUSES = new Set([502, 503, 504]);
+
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await send(path, options);
+  // Ключ на дію гравця, а не на HTTP-запит: повтор після обриву має прийти
+  // з тим самим ключем, щоб сервер віддав збережений результат, а не списав
+  // вдруге. Новий ключ на кожен запит робив би ідемпотентність декорацією
+  const idempotencyKey = options.idempotent === true ? crypto.randomUUID() : null;
+
+  const response = await sendWithRetry(path, options, idempotencyKey);
 
   // Сам рефреш не рефрешимо: інакше протухла пара зациклиться
   if (response.status === 401 && !path.startsWith("/api/auth/")) {
     if (await refreshOnce()) {
-      return unwrap<T>(await send(path, options));
+      return unwrap<T>(await sendWithRetry(path, options, idempotencyKey));
     }
 
     setSession(null);
@@ -75,7 +92,44 @@ export function apiPost<T>(path: string, body: unknown, options: RequestOptions 
   return api<T>(path, { ...options, method: "POST", body });
 }
 
-async function send(path: string, options: RequestOptions): Promise<Response> {
+/**
+ * Надсилає запит, а команду з ключем повторює, поки сервер міг її виконати,
+ * але відповідь не дійшла. Без ключа не повторюємо нічого: повтор означав би
+ * друге виконання.
+ */
+async function sendWithRetry(path: string, options: RequestOptions, idempotencyKey: string | null): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    const delay = idempotencyKey === null ? undefined : RETRY_DELAYS_MS[attempt];
+
+    try {
+      const response = await send(path, options, idempotencyKey);
+
+      if (delay === undefined || !(await isRetryable(response))) return response;
+    } catch (error: unknown) {
+      // Скасований запит не повторюємо: його відкликав сам клієнт
+      if (delay === undefined || options.signal?.aborted === true) throw error;
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, delay));
+  }
+}
+
+/**
+ * 500 не повторюємо: сервер уже зняв резерв ключа, а збій здебільшого
+ * детермінований. 409 OperationInProgress — той самий ключ ще виконується,
+ * тож чекаємо на його результат.
+ */
+async function isRetryable(response: Response): Promise<boolean> {
+  if (RETRYABLE_STATUSES.has(response.status)) return true;
+
+  if (response.status !== 409) return false;
+
+  const problem = parseJson(await response.clone().text()) as ProblemDetails | null;
+
+  return problem?.errorCode === "OperationInProgress";
+}
+
+async function send(path: string, options: RequestOptions, idempotencyKey: string | null): Promise<Response> {
   const token = await freshAccessToken();
   const headers = new Headers({ Accept: "application/json" });
 
@@ -87,8 +141,8 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
     headers.set("Content-Type", "application/json");
   }
 
-  if (options.idempotent === true) {
-    headers.set("Idempotency-Key", crypto.randomUUID());
+  if (idempotencyKey !== null) {
+    headers.set("Idempotency-Key", idempotencyKey);
   }
 
   return fetch(`${API_URL}${path}`, {
