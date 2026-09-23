@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { register } from "../lib/auth";
 import { describeError } from "../lib/errorMessages";
 import { passwordIsValid, passwordRules } from "../lib/passwordRules";
+import { userNameIsValid, userNameRules } from "../lib/userNameRules";
 
 export default function RegisterPage() {
   const [userName, setUserName] = useState("");
@@ -17,7 +18,7 @@ export default function RegisterPage() {
   });
 
   const mismatch = confirm.length > 0 && confirm !== password;
-  const ready = userName.length > 0 && email.length > 0 && passwordIsValid(password) && !mismatch;
+  const ready = userNameIsValid(userName) && email.length > 0 && passwordIsValid(password) && !mismatch;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -49,6 +50,23 @@ export default function RegisterPage() {
             placeholder="Як вас називати"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
+
+          {/* Правило видно одразу, як і для пароля: інакше гравець дізнався б про нього з відмови */}
+          <ul className="mt-2 space-y-1">
+            {userNameRules.map((rule) => {
+              const passed = rule.passed(userName);
+
+              return (
+                <li
+                  key={rule.label}
+                  className={`flex items-center gap-2 text-xs ${passed ? "text-emerald-700" : "text-slate-500"}`}
+                >
+                  <span aria-hidden>{passed ? "✓" : "•"}</span>
+                  {rule.label}
+                </li>
+              );
+            })}
+          </ul>
         </div>
 
         <div>
@@ -115,7 +133,7 @@ export default function RegisterPage() {
         </div>
 
         {touched && !ready && !mismatch && (
-          <p className="text-sm text-slate-500">Заповніть усі поля й виконайте вимоги до пароля.</p>
+          <p className="text-sm text-slate-500">Заповніть усі поля й виконайте вимоги до імені та пароля.</p>
         )}
 
         {mutation.isError && <p className="text-sm text-red-600">{describeError(mutation.error)}</p>}
