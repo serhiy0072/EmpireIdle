@@ -9,6 +9,7 @@ using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
+using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -31,6 +32,7 @@ public class SpeedUpCommandTests
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
     private readonly ICurrentPlayer _currentPlayer = Substitute.For<ICurrentPlayer>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IMediator _mediator = Substitute.For<IMediator>();
 
     private static GameConfig Config() => new()
     {
@@ -178,7 +180,7 @@ public class SpeedUpCommandTests
 
         var handler = new SpeedUpMarchCommandHandler(
             _villages, _garrisons, _marches, _wallets, _currentPlayer, _unitOfWork,
-            new FakeTimeProvider(Now), Calculator(),
+            new FakeTimeProvider(Now), Calculator(), _mediator,
             NullLogger<SpeedUpMarchCommandHandler>.Instance);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
@@ -186,11 +188,12 @@ public class SpeedUpCommandTests
     }
 
     /// <summary>
-    /// Прискорення маршу зсуває прибуття на «зараз» — бій проведе сканер,
-    /// а не сам хендлер: інакше бій відбувався б у двох різних місцях коду.
+    /// Прискорення зсуває прибуття на «зараз» і одразу завершує похід тим самим
+    /// CompleteMarchCommand, що й сканер: бій і повернення живуть в одному місці,
+    /// а гравець не чекає хвилину після оплати.
     /// </summary>
     [Fact]
-    public async Task SpeedUpMarch_ShouldMoveArrivalToNow()
+    public async Task SpeedUpMarch_ShouldMoveArrivalToNow_AndCompleteTheMarchAtOnce()
     {
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
@@ -198,7 +201,7 @@ public class SpeedUpCommandTests
         var march = new March(
             Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 0, 0, 10, 10,
             MarchTargetType.Monster, Guid.NewGuid(),
-            new Dictionary<string, int> { ["infantry"] = 5 },
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 },
             Now.AddHours(2), Now);
 
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
@@ -209,11 +212,13 @@ public class SpeedUpCommandTests
 
         var handler = new SpeedUpMarchCommandHandler(
             _villages, _garrisons, _marches, _wallets, _currentPlayer, _unitOfWork,
-            new FakeTimeProvider(Now), Calculator(),
+            new FakeTimeProvider(Now), Calculator(), _mediator,
             NullLogger<SpeedUpMarchCommandHandler>.Instance);
 
         await handler.Handle(new SpeedUpMarchCommand(PlayerId, march.Id), CancellationToken.None);
 
         Assert.Equal(Now, march.ArrivesAt);
+        await _mediator.Received(1).Send(
+            Arg.Is<CompleteMarchCommand>(c => c.MarchId == march.Id), Arg.Any<CancellationToken>());
     }
 }

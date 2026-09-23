@@ -20,6 +20,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Id сіл, де є завершені будівництва. Без сутностей: обробка йде в іншому scope.</summary>
         Task<IReadOnlyList<Guid>> GetIdsWithDueTrainingAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default);
 
+        /// <summary>Id гарнізонів, де є завершені прокачки. Без сутностей: обробка йде в іншому scope.</summary>
+        Task<IReadOnlyList<Guid>> GetIdsWithDueLevelUpsAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default);
+
         /// <summary>Видаляє прострочені стеки відновлюваних. Повертає кількість видалених рядків.</summary>
         Task<int> PurgeExpiredRecoverableAsync(DateTime utcNow, CancellationToken cancellationToken);
 

@@ -7,23 +7,27 @@ namespace EmpireIdle.Application.Garrisons.ReadModels
         List<UnitView> Units,
         List<UnitView> Wounded,
         List<RecoverableUnitView> Recoverable,
-        List<TrainingOrderView> TrainingOrders);
+        List<TrainingOrderView> TrainingOrders,
+        List<LevelUpOrderView> LevelUpOrders);
 
-    /// <summary>Юніти одного типу.</summary>
-    public record UnitView(string UnitType, int Count);
+    /// <summary>Юніти одного типу й рівня.</summary>
+    public record UnitView(string UnitType, int Level, int Count);
 
     /// <summary>
     /// Юніти, яких ще можна відновити за gems. Ціна залежить від каталогу,
     /// а список відфільтрований за часом — тому збирається тут, не в контролері.
     /// </summary>
-    public record RecoverableUnitView(string UnitType, int Count, DateTime ExpiresAt, int CostGems);
+    public record RecoverableUnitView(string UnitType, int Level, int Count, DateTime ExpiresAt, int CostGems);
 
     /// <summary>Замовлення тренування в черзі.</summary>
-    public record TrainingOrderView(Guid Id, string UnitType, int Count, DateTime CompletesAt);
+    public record TrainingOrderView(Guid Id, string UnitType, int Level, int Count, DateTime CompletesAt, int SpeedUpCostGems);
+
+    /// <summary>Замовлення прокачки в черзі.</summary>
+    public record LevelUpOrderView(Guid Id, string UnitType, int FromLevel, int ToLevel, int Count, DateTime CompletesAt, int SpeedUpCostGems);
 
     /// <summary>
     /// Чужі юніти в гарнізоні. Ім'я власника обов'язкове: без нього
     /// гравець бачить купу військ і не знає, кому дякувати.
     /// </summary>
-    public record ReinforcementView(Guid OwnerPlayerId, string OwnerName, string UnitType, int Count, DateTime ArrivedAt);
+    public record ReinforcementView(Guid OwnerPlayerId, string OwnerName, string UnitType, int Level, int Count, DateTime ArrivedAt);
 }

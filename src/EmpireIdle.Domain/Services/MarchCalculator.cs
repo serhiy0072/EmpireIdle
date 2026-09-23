@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.ValueObjects;
+
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>
@@ -26,15 +28,16 @@ namespace EmpireIdle.Domain.Services
         /// не сповільнював би легку кінноту.
         /// </param>
         public TimeSpan CalculateDuration(int serverId, int fromX, int fromY, int toX, int toY,
-            IReadOnlyDictionary<string, int> units, double? heroSpeed = null)
+            IReadOnlyDictionary<UnitStackKey, int> units, double? heroSpeed = null)
         {
             var distance = Math.Sqrt(Math.Pow(toX - fromX, 2) + Math.Pow(toY - fromY, 2));
             if (distance <= 0)
                 return TimeSpan.Zero;
 
-            // Швидкість колони = швидкість найповільнішого учасника
+            // Швидкість колони = швидкість найповільнішого учасника. Рівень юніта
+            // на швидкість не впливає — прокачка стосується бою, не логістики.
             var speeds = units.Keys
-                .Select(type => _catalog.Units.GetValueOrDefault(type))
+                .Select(stack => _catalog.Units.GetValueOrDefault(stack.UnitType))
                 .Where(c => c is not null)
                 .Select(c => c!.Stats.GetValueOrDefault("Speed", 1.0))
                 .ToList();

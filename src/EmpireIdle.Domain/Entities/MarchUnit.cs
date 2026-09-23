@@ -5,12 +5,14 @@ namespace EmpireIdle.Domain.Entities
     {
         public Guid MarchId { get; private set; }
         public string UnitType { get; private set; } = null!;
+        public int Level { get; private set; }
         public int Count { get; private set; }
 
-        public MarchUnit(Guid id, Guid marchId, string unitType, int count) : base(id)
+        public MarchUnit(Guid id, Guid marchId, string unitType, int level, int count) : base(id)
         {
             MarchId = marchId;
             UnitType = unitType;
+            Level = level;
             Count = count;
         }
 

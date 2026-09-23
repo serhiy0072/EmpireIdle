@@ -2,17 +2,19 @@ using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
 {
-    /// <summary>Кількість юнітів певного типу в гарнізоні села.</summary>
+    /// <summary>Кількість юнітів певного типу й рівня в гарнізоні села.</summary>
     public class VillageUnit : Entity
     {
         public Guid GarrisonId { get; private set; }
         public string UnitType { get; private set; } = null!;
+        public int Level { get; private set; }
         public int Count { get; private set; }
 
-        public VillageUnit(Guid id, Guid garrisonId, string unitType) : base(id)
+        public VillageUnit(Guid id, Guid garrisonId, string unitType, int level) : base(id)
         {
             GarrisonId = garrisonId;
             UnitType = unitType;
+            Level = level;
             Count = 0;
         }
 

@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Combat
 {
@@ -26,7 +27,7 @@ namespace EmpireIdle.Domain.Combat
         /// </param>
         /// <param name="attackerBuff">Пасивки героя, що веде марш.</param>
         /// <param name="defenceBuffs">Пасивки лідерів у гарнізоні.</param>
-        public BattleResult Resolve(IReadOnlyDictionary<string, int> attacker, IReadOnlyList<DefenceStack> defence,
+        public BattleResult Resolve(IReadOnlyDictionary<UnitStackKey, int> attacker, IReadOnlyList<DefenceStack> defence,
             string terrainType, int seed, double attackerBonus = 1.0, double defenderBonus = 1.0,
             StackBuff? attackerBuff = null, DefenceBuffs? defenceBuffs = null)
         {
@@ -59,7 +60,7 @@ namespace EmpireIdle.Domain.Combat
             // Скільки втратив кожен тип, вирішує бій; хто саме з власників
             // за це заплатив — DefenceLossAllocator уже після
             var defenderArmy = defence
-                .GroupBy(s => s.UnitType)
+                .GroupBy(s => new UnitStackKey(s.UnitType, s.Level))
                 .ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
 
             return new BattleResult(
@@ -75,14 +76,14 @@ namespace EmpireIdle.Domain.Combat
         /// Публічний — прев'ю бою й реальний бій мусять рахувати однією формулою.
         /// </summary>
         /// <param name="buff">Пасивки героя цієї сторони; null — героя немає.</param>
-        public double CalculatePower(IReadOnlyDictionary<string, int> army, string terrainType, bool isAttacker,
+        public double CalculatePower(IReadOnlyDictionary<UnitStackKey, int> army, string terrainType, bool isAttacker,
             StackBuff? buff = null)
         {
             var power = 0.0;
 
-            foreach (var (unitType, count) in army)
+            foreach (var (stack, count) in army)
             {
-                if (!_catalog.Units.TryGetValue(unitType, out var config) || count <= 0)
+                if (!_catalog.Units.TryGetValue(stack.UnitType, out var config) || count <= 0)
                     continue;
 
                 // Атакувальник спирається на атаку, захисник — на захист
@@ -92,9 +93,10 @@ namespace EmpireIdle.Domain.Combat
 
                 var hero = buff is null
                     ? 1.0
-                    : isAttacker ? buff.Attack(unitType) : buff.Defense(unitType);
+                    : isAttacker ? buff.Attack(stack.UnitType) : buff.Defense(stack.UnitType);
 
-                power += count * stat * GetTerrainModifier(terrainType, unitType) * hero;
+                power += count * stat * ProgressionCurves.UnitStatMultiplier(stack.Level)
+                    * GetTerrainModifier(terrainType, stack.UnitType) * hero;
             }
 
             return power;
@@ -118,7 +120,7 @@ namespace EmpireIdle.Domain.Combat
 
                 var stat = config.Stats.GetValueOrDefault("Defense", 1.0);
 
-                power += stack.Count * stat
+                power += stack.Count * stat * ProgressionCurves.UnitStatMultiplier(stack.Level)
                     * GetTerrainModifier(terrainType, stack.UnitType)
                     * resolved.For(stack.OwnerPlayerId).Defense(stack.UnitType);
             }
@@ -185,19 +187,19 @@ namespace EmpireIdle.Domain.Combat
         }
 
         /// <summary>
-        /// Розподіляє втрати по типах юнітів.
+        /// Розподіляє втрати по стеках (тип+рівень).
         ///
         /// Загальна кількість утрачених визначається співвідношенням сил
         /// і однакова для обох правил нижче. Різниця в тому, як вона
-        /// лягає на типи.
+        /// лягає на стеки.
         ///
         /// Переможець втрачає обернено до фактичного захисту: облога тане,
         /// піхота тримається, а найстійкіші загони при розгромній перевазі
         /// виходять узагалі без утрат. Переможений втрачає рівномірно —
         /// розгром не розбирає, хто якісніший.
         /// </summary>
-        private Dictionary<string, int> ApplyLosses(
-            IReadOnlyDictionary<string, int> army, double ratio, string terrainType, bool sideWon)
+        private Dictionary<UnitStackKey, int> ApplyLosses(
+            IReadOnlyDictionary<UnitStackKey, int> army, double ratio, string terrainType, bool sideWon)
         {
             var result = army.ToDictionary(pair => pair.Key, _ => 0);
 
@@ -233,26 +235,28 @@ namespace EmpireIdle.Domain.Combat
         }
 
         /// <summary>
-        /// Фактичний захист юніта на цьому терейні. Мінімум обмежений знизу,
-        /// щоб нульовий чи від'ємний стат у конфігу не давав ділення на нуль.
+        /// Фактичний захист юніта на цьому терейні (з урахуванням рівня).
+        /// Мінімум обмежений знизу, щоб нульовий чи від'ємний стат
+        /// у конфігу не давав ділення на нуль.
         /// </summary>
-        private double EffectiveDefence(string unitType, string terrainType)
+        private double EffectiveDefence(UnitStackKey stack, string terrainType)
         {
-            var stat = _catalog.Units.TryGetValue(unitType, out var config)
+            var stat = _catalog.Units.TryGetValue(stack.UnitType, out var config)
                 ? config.Stats.GetValueOrDefault("Defense", 1.0)
                 : 1.0;
 
-            return Math.Max(0.1, stat * GetTerrainModifier(terrainType, unitType));
+            return Math.Max(0.1, stat * ProgressionCurves.UnitStatMultiplier(stack.Level)
+                * GetTerrainModifier(terrainType, stack.UnitType));
         }
 
         /// <summary>
-        /// Обнуляє ваги типів, чия частка втрат нижча за поріг. Один прохід:
+        /// Обнуляє ваги стеків, чия частка втрат нижча за поріг. Один прохід:
         /// після обнулення решта ділить усе між собою, і це вже може підняти
         /// когось вище порога — але другий прохід зробив би результат
         /// залежним від порядку, а не від чисел.
         /// </summary>
-        private List<(string Key, int Count, double Weight)> DropNegligible(
-            List<(string Key, int Count, double Weight)> weighted, int totalLost)
+        private List<(UnitStackKey Key, int Count, double Weight)> DropNegligible(
+            List<(UnitStackKey Key, int Count, double Weight)> weighted, int totalLost)
         {
             var totalWeight = weighted.Sum(x => x.Weight);
 
@@ -269,11 +273,11 @@ namespace EmpireIdle.Domain.Combat
 
         /// <summary>
         /// Розкидає ціле число втрат за вагами: цілі частини плюс залишок
-        /// за найбільшими дробовими частинами. Тип не може втратити більше,
+        /// за найбільшими дробовими частинами. Стек не може втратити більше,
         /// ніж мав, тож надлишок перерозподіляється між рештою.
         /// </summary>
-        private static IEnumerable<(string Key, int Lost)> Spread(
-            List<(string Key, int Count, double Weight)> weighted, int totalLost)
+        private static IEnumerable<(UnitStackKey Key, int Lost)> Spread(
+            List<(UnitStackKey Key, int Count, double Weight)> weighted, int totalLost)
         {
             var assigned = weighted.ToDictionary(x => x.Key, _ => 0);
             var open = weighted.ToList();
@@ -302,7 +306,8 @@ namespace EmpireIdle.Domain.Combat
                 var queue = shares
                     .OrderByDescending(s => s.Fraction)
                     .ThenByDescending(s => s.Count)
-                    .ThenBy(s => s.Key, StringComparer.Ordinal)
+                    .ThenBy(s => s.Key.UnitType, StringComparer.Ordinal)
+                    .ThenBy(s => s.Key.Level)
                     .ToList();
 
                 for (var i = 0; i < leftover; i++)

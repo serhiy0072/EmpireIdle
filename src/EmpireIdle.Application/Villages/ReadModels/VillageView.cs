@@ -1,9 +1,11 @@
 namespace EmpireIdle.Application.Villages.ReadModels
 {
-    /// <summary>Село в поданні для клієнта.</summary>
+    /// <summary>Село в поданні для клієнта. X/Y — клітина на мапі світу: карта центрується на ній.</summary>
     public record VillageView(
         Guid Id,
         string Name,
+        int X,
+        int Y,
         List<BuildingView> Buildings,
         List<ResourceView> Resources);
 
@@ -20,8 +22,9 @@ namespace EmpireIdle.Application.Villages.ReadModels
         int StorageCap,
         DateTime? ConstructionCompletesAt,
         bool IsUnderConstruction,
-        bool IsUnlocked);
+        bool IsUnlocked,
+        int? SpeedUpCostGems);
 
     /// <summary>Ресурс села.</summary>
-    public record ResourceView(string ResourceType, int Amount);
+    public record ResourceView(string ResourceType, int Amount, bool IsUnlocked);
 }

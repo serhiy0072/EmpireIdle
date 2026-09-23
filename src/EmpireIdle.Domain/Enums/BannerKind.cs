@@ -7,5 +7,11 @@ namespace EmpireIdle.Domain.Enums;
 public enum BannerKind
 {
     Hero = 1,
-    Weapon = 2
+    Weapon = 2,
+
+    /// <summary>
+    /// Постійний банер без промо: герої й зброя всіх рідкостей в одному пулі,
+    /// гарантії платять будь-ким із них.
+    /// </summary>
+    Standard = 3
 }

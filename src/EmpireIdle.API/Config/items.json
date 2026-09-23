@@ -103,42 +103,63 @@
       {
         "Key": "sword_iron",
         "Type": "equipment",
+        "Rarity": "common",
         "DisplayName": "Залізний меч",
         "Slot": "Weapon",
-        "WeaponClasses": [ "warrior" ],
-        "BaseStats": { "Attack": 12 },
+        "WeaponClasses": [
+          "warrior"
+        ],
+        "BaseStats": {
+          "Attack": 12
+        },
         "PriceGold": 500
       },
       {
         "Key": "lance_iron",
         "Type": "equipment",
+        "Rarity": "common",
         "DisplayName": "Залізний спис",
         "Slot": "Weapon",
-        "WeaponClasses": [ "knight" ],
-        "BaseStats": { "Attack": 14 },
+        "WeaponClasses": [
+          "knight"
+        ],
+        "BaseStats": {
+          "Attack": 14
+        },
         "PriceGold": 600
       },
       {
         "Key": "bow_yew",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Тисовий лук",
         "Slot": "Weapon",
-        "WeaponClasses": [ "archer" ],
-        "BaseStats": { "Attack": 11 },
+        "WeaponClasses": [
+          "archer"
+        ],
+        "BaseStats": {
+          "Attack": 11
+        },
         "PriceGold": 500
       },
       {
         "Key": "staff_ember",
         "Type": "equipment",
+        "Rarity": "unique",
         "DisplayName": "Жарний посох",
         "Slot": "Weapon",
-        "WeaponClasses": [ "mage" ],
-        "BaseStats": { "Attack": 16 },
+        "WeaponClasses": [
+          "mage"
+        ],
+        "BaseStats": {
+          "Attack": 16
+        },
         "PriceGold": 750
       },
       {
         "Key": "dawn_amulet",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Амулет світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"
@@ -146,6 +167,7 @@
       {
         "Key": "dawn_ring",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Перстень світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"
@@ -153,6 +175,7 @@
       {
         "Key": "dawn_sigil",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Знак світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"
@@ -160,9 +183,70 @@
       {
         "Key": "dawn_chime",
         "Type": "equipment",
+        "Rarity": "rare",
         "DisplayName": "Дзвіночок світанку",
         "Slot": "Artifact",
         "SetKey": "dawn"
+      },
+      {
+        "Key": "sword_steel",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Сталевий меч",
+        "Slot": "Weapon",
+        "WeaponClasses": [
+          "warrior"
+        ],
+        "BaseStats": {
+          "Attack": 22,
+          "Defense": 6
+        },
+        "PriceGold": 1400
+      },
+      {
+        "Key": "lance_steel",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Сталевий спис",
+        "Slot": "Weapon",
+        "WeaponClasses": [
+          "knight"
+        ],
+        "BaseStats": {
+          "Attack": 24,
+          "Health": 40
+        },
+        "PriceGold": 1600
+      },
+      {
+        "Key": "bow_ash",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Ясеновий лук",
+        "Slot": "Weapon",
+        "WeaponClasses": [
+          "archer"
+        ],
+        "BaseStats": {
+          "Attack": 20,
+          "Defense": 8
+        },
+        "PriceGold": 1400
+      },
+      {
+        "Key": "staff_oak",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Дубовий посох",
+        "Slot": "Weapon",
+        "WeaponClasses": [
+          "mage"
+        ],
+        "BaseStats": {
+          "Attack": 26,
+          "Defense": 4
+        },
+        "PriceGold": 1800
       }
     ],
     "Equipment": {
@@ -176,10 +260,18 @@
       "SuccessDropPerLevel": 0.05,
       "MinSuccessChance": 0.25,
       "BreakChanceOnFailure": 0.2,
-      "RepairCostShare": 0.5,
+      "RepairGemsBase": 20,
+      "RepairGemsPerLevel": 8,
       "ArtifactBaseStats": 2,
-      "ArtifactStatLevels": [ 4, 8 ],
-      "ArtifactUpgradeLevels": [ 12, 16, 20 ],
+      "ArtifactStatLevels": [
+        4,
+        8
+      ],
+      "ArtifactUpgradeLevels": [
+        12,
+        16,
+        20
+      ],
       "DoubleUpgradeChance": 0.1,
       "SetBonuses": [
         {

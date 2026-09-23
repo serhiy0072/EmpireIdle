@@ -39,6 +39,16 @@ namespace EmpireIdle.Domain.Services
         public BannerConfig? FindBanner(string key)
             => _config.Banners.FirstOrDefault(b => b.Key == key);
 
+        /// <summary>
+        /// Чи лот належить до категорії банера — тобто рухає гарантії й може бути
+        /// промо. На стандартному банері категорія — і герої, і зброя; філер там
+        /// лише те, що не є ні тим, ні іншим.
+        /// </summary>
+        public static bool Counts(BannerConfig banner, BannerDropConfig drop)
+            => banner.Kind == BannerKind.Standard
+                ? drop.Kind is BannerKind.Hero or BannerKind.Weapon
+                : drop.Kind == banner.Kind;
+
         public BannerRollResult Roll(BannerConfig banner, PityState state, int seed)
         {
             var random = new DeterministicRandom(seed);
@@ -49,14 +59,14 @@ namespace EmpireIdle.Domain.Services
 
             // Гарантія платить у категорії банера. Звичайний лут у пул гарантій не входить
             var pool = uniquePity || rarePity
-                ? banner.Drops.Where(d => d.Kind == banner.Kind
+                ? banner.Drops.Where(d => Counts(banner, d)
                     && d.Rarity >= (uniquePity ? Rarity.Unique : Rarity.Rare))
                 : banner.Drops;
 
             var drop = Pick(banner, pool, random);
             var lost = false;
 
-            if (drop.Kind == banner.Kind && drop.Rarity == Rarity.Unique && banner.FeaturedKey is { } featuredKey)
+            if (Counts(banner, drop) && drop.Rarity == Rarity.Unique && banner.FeaturedKey is { } featuredKey)
             {
                 var featured = banner.Drops.FirstOrDefault(d => d.Key == featuredKey)
                     ?? throw new InvalidOperationException(
@@ -65,7 +75,7 @@ namespace EmpireIdle.Domain.Services
                 // Програш 50/50 можливий лише тоді, коли банерний лот не єдиний
                 // унікальний своєї категорії: інакше «випадковий стандартний» брати нізвідки
                 var alternatives = banner.Drops
-                    .Where(d => d.Kind == banner.Kind && d.Rarity == Rarity.Unique && d.Key != featuredKey)
+                    .Where(d => Counts(banner, d) && d.Rarity == Rarity.Unique && d.Key != featuredKey)
                     .OrderBy(d => d.Key, StringComparer.Ordinal)
                     .ToList();
 
@@ -82,7 +92,7 @@ namespace EmpireIdle.Domain.Services
 
             // Лічильники рухає лише лот своєї категорії: унікальна зброя філером
             // на банері героїв не має закривати героїчну гарантію
-            var ofKind = drop.Kind == banner.Kind;
+            var ofKind = Counts(banner, drop);
 
             var next = new PityState(
                 RareSince: ofKind && drop.Rarity >= Rarity.Rare ? 0 : state.RareSince + 1,

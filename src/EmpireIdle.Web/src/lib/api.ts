@@ -16,6 +16,42 @@ export interface RequestOptions {
 /** Одна ротація на всіх: шість паралельних 401 не мають зробити шість рефрешів. */
 let refreshing: Promise<boolean> | null = null;
 
+/** Запас до закінчення: токен, що доживає останні секунди, оновлюємо заздалегідь. */
+const EXPIRY_MARGIN_MS = 30_000;
+
+/** Термін дії з claim exp. Підпис не перевіряємо — це робить сервер, нам потрібен лише час. */
+function expiresAt(token: string): number | null {
+  const payload = token.split(".")[1];
+
+  if (payload === undefined) return null;
+
+  try {
+    const claims = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as { exp?: unknown };
+    return typeof claims.exp === "number" ? claims.exp * 1_000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Access-токен, що проживе ще щонайменше пів хвилини. Протухлий ротується
+ * до запиту: і HTTP, і хаб отримують робочий токен з першої спроби.
+ * null — сесії немає або рефреш не вдався.
+ */
+export async function freshAccessToken(): Promise<string | null> {
+  const session = getSession();
+
+  if (session === null) return null;
+
+  const expiry = expiresAt(session.accessToken);
+
+  if (expiry !== null && expiry - Date.now() > EXPIRY_MARGIN_MS) {
+    return session.accessToken;
+  }
+
+  return (await refreshOnce()) ? (getSession()?.accessToken ?? null) : null;
+}
+
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const response = await send(path, options);
 
@@ -39,12 +75,12 @@ export function apiPost<T>(path: string, body: unknown, options: RequestOptions 
   return api<T>(path, { ...options, method: "POST", body });
 }
 
-function send(path: string, options: RequestOptions): Promise<Response> {
-  const session = getSession();
+async function send(path: string, options: RequestOptions): Promise<Response> {
+  const token = await freshAccessToken();
   const headers = new Headers({ Accept: "application/json" });
 
-  if (session !== null) {
-    headers.set("Authorization", `Bearer ${session.accessToken}`);
+  if (token !== null) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   if (options.body !== undefined) {
@@ -94,7 +130,7 @@ async function unwrap<T>(response: Response): Promise<T> {
   }
 
   const text = await response.text();
-  const payload = text === "" ? null : (JSON.parse(text) as unknown);
+  const payload = parseJson(text);
 
   if (!response.ok) {
     // Бек завжди віддає ProblemDetails, але падати на відповіді проксі не варто
@@ -102,4 +138,15 @@ async function unwrap<T>(response: Response): Promise<T> {
   }
 
   return payload as T;
+}
+
+/** HTML-сторінка від проксі чи порожнє тіло — це не JSON: віддаємо null, а не SyntaxError. */
+function parseJson(text: string): unknown {
+  if (text === "") return null;
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
 }

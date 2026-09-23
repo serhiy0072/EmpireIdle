@@ -20,6 +20,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Повідомити гравця про нагороду за серверний квест і його ранг.</summary>
         Task NotifyServerQuestRewardedAsync(Guid playerId, string questKey, int rank, long contribution, CancellationToken cancellationToken = default);
 
+        /// <summary>Повідомити гравця, що армія повернулася додому: гарнізон і склад уже оновлені.</summary>
+        Task NotifyMarchReturnedAsync(Guid playerId, Guid marchId, CancellationToken cancellationToken = default);
+
         /// <summary>Повідомити гравця про запрошення в клан.</summary>
         Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag, DateTime expiresAt, CancellationToken cancellationToken = default);
 

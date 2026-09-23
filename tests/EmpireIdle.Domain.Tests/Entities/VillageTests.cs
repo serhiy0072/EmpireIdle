@@ -121,7 +121,8 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs));
             Assert.Equal(1, farm.Level.Value);
 
-            Assert.Equal(1, village.CompleteDueConstructions(startedAt.AddMinutes(10), configs));
+            // Рівень 1 несе "ранній податок" (×3): 5 базових хвилин стають 15
+            Assert.Equal(1, village.CompleteDueConstructions(startedAt.AddMinutes(16), configs));
             Assert.Equal(2, farm.Level.Value);
             Assert.False(farm.IsUnderConstruction);
         }

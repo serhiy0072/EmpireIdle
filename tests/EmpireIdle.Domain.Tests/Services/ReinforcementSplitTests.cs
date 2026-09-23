@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
@@ -8,7 +9,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Take_ShouldAcceptEverything_WhenTheEmbassyHasRoom()
         {
-            var units = new Dictionary<string, int> { ["infantry"] = 10, ["archer"] = 5 };
+            var units = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10, [new UnitStackKey("archer", 1)] = 5 };
 
             var (accepted, rejected) = ReinforcementSplit.Take(units, 20);
 
@@ -19,24 +20,24 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Take_ShouldRejectEverything_WhenTheEmbassyIsFull()
         {
-            var units = new Dictionary<string, int> { ["infantry"] = 10 };
+            var units = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
 
             var (accepted, rejected) = ReinforcementSplit.Take(units, 0);
 
             Assert.Empty(accepted);
-            Assert.Equal(10, rejected["infantry"]);
+            Assert.Equal(10, rejected[new UnitStackKey("infantry", 1)]);
         }
 
         /// <summary>Половина слотів — половина кожного типу, нічого не загублено.</summary>
         [Fact]
         public void Take_ShouldSplitProportionally()
         {
-            var units = new Dictionary<string, int> { ["infantry"] = 60, ["archer"] = 40 };
+            var units = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 60, [new UnitStackKey("archer", 1)] = 40 };
 
             var (accepted, rejected) = ReinforcementSplit.Take(units, 50);
 
-            Assert.Equal(30, accepted["infantry"]);
-            Assert.Equal(20, accepted["archer"]);
+            Assert.Equal(30, accepted[new UnitStackKey("infantry", 1)]);
+            Assert.Equal(20, accepted[new UnitStackKey("archer", 1)]);
             Assert.Equal(50, rejected.Values.Sum());
         }
 
@@ -48,12 +49,12 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Take_ShouldBeDeterministic_WhenRemaindersTie()
         {
             var first = ReinforcementSplit.Take(
-                new Dictionary<string, int> { ["archer"] = 3, ["infantry"] = 3 }, 3);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("archer", 1)] = 3, [new UnitStackKey("infantry", 1)] = 3 }, 3);
 
             var second = ReinforcementSplit.Take(
-                new Dictionary<string, int> { ["infantry"] = 3, ["archer"] = 3 }, 3);
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 3, [new UnitStackKey("archer", 1)] = 3 }, 3);
 
-            Assert.Equal(first.Accepted["archer"], second.Accepted["archer"]);
+            Assert.Equal(first.Accepted[new UnitStackKey("archer", 1)], second.Accepted[new UnitStackKey("archer", 1)]);
             Assert.Equal(3, first.Accepted.Values.Sum());
         }
     }

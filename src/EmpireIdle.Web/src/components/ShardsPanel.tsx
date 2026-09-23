@@ -1,0 +1,99 @@
+import { useState } from "react";
+import { rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
+import type { HeroShardSummary } from "../lib/queries/heroes";
+import HeroPortrait from "./heroes/HeroPortrait";
+
+interface Props {
+  shards: HeroShardSummary[];
+  busy: boolean;
+  onBuy: (heroKey: string, count: number) => void;
+  onSummon: (heroKey: string) => void;
+}
+
+export default function ShardsPanel({ shards, busy, onBuy, onSummon }: Props) {
+  const catalog = useCatalog();
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  if (shards.length === 0) {
+    return <p className="text-sm text-slate-500">Уламків поки немає.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {shards.map((shard) => {
+        const config = catalog.hero(shard.heroKey);
+        const ready = shard.count >= shard.required;
+        // Порожнє поле дає 0 — сервер відхилить валідацією, а гравець побачить незрозумілу відмову
+        const count = Math.min(100, Math.max(1, counts[shard.heroKey] ?? 10));
+
+        return (
+          <div key={shard.heroKey} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div className="flex gap-3">
+              {/* Уламки — ще не герой: портрет тіру 1, приглушений до призову */}
+              <HeroPortrait
+                heroKey={shard.heroKey}
+                heroClass={config?.class}
+                rank={config?.rank}
+                tier={1}
+                size={44}
+                className={ready ? "" : "opacity-60 grayscale"}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="truncate font-medium text-slate-800">{catalog.heroName(shard.heroKey)}</span>
+                  <span className="text-sm text-slate-600">
+                    {shard.count} / {shard.required}
+                  </span>
+                </div>
+
+                {config !== null && (
+                  <div className="mt-1 flex items-center gap-1 text-xs">
+                    <span className={`rounded px-2 py-0.5 ${rankStyle(config.rank)}`}>{rankLabel(config.rank)}</span>
+                    <span className="text-slate-500">{config.shardPriceGold} золота за уламок</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+              <div
+                className={`h-full ${ready ? "bg-amber-500" : "bg-emerald-500"}`}
+                style={{ width: `${Math.min(100, (shard.count / shard.required) * 100)}%` }}
+              />
+            </div>
+
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={count}
+                onChange={(event) =>
+                  setCounts((previous) => ({ ...previous, [shard.heroKey]: Number(event.target.value) }))
+                }
+                className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => onBuy(shard.heroKey, count)}
+                disabled={busy}
+                className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Купити за золото
+              </button>
+              {/* Призов ручний: гравець сам вирішує, коли витратити накопичене */}
+              <button
+                type="button"
+                onClick={() => onSummon(shard.heroKey)}
+                disabled={busy || !ready}
+                className="ml-auto rounded-lg bg-amber-500 px-3 py-1 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
+              >
+                Призвати
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

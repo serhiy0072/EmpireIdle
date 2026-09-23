@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.ValueObjects;
+
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>
@@ -14,13 +16,13 @@ namespace EmpireIdle.Domain.Services
         /// <param name="units">Уся колона.</param>
         /// <param name="slots">Скільки юнітів посольство ще прийме.</param>
         /// <returns>Що лишається в союзника і що йде додому.</returns>
-        public static (Dictionary<string, int> Accepted, Dictionary<string, int> Rejected) Take(
-            IReadOnlyDictionary<string, int> units, int slots)
+        public static (Dictionary<UnitStackKey, int> Accepted, Dictionary<UnitStackKey, int> Rejected) Take(
+            IReadOnlyDictionary<UnitStackKey, int> units, int slots)
         {
             var total = units.Values.Where(c => c > 0).Sum();
 
-            var accepted = new Dictionary<string, int>();
-            var rejected = new Dictionary<string, int>();
+            var accepted = new Dictionary<UnitStackKey, int>();
+            var rejected = new Dictionary<UnitStackKey, int>();
 
             if (total == 0 || slots <= 0)
             {
@@ -55,7 +57,8 @@ namespace EmpireIdle.Domain.Services
 
             foreach (var share in shares
                 .OrderByDescending(s => s.Exact - Math.Floor(s.Exact))
-                .ThenBy(s => s.Type, StringComparer.Ordinal)
+                .ThenBy(s => s.Type.UnitType, StringComparer.Ordinal)
+                .ThenBy(s => s.Type.Level)
                 .Take(left))
                 accepted[share.Type]++;
 

@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.TestKit;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
@@ -223,7 +224,7 @@ namespace EmpireIdle.Domain.Tests.Services
                 MaxMarches = 8,
                 TierStatMultipliers = [1.0, 1.35, 1.8],
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-                OverflowGems = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
+                OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 BuildingKey = "heroeshall",
                 HealBuildingKey = "hospital",
                 HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
@@ -361,8 +362,8 @@ namespace EmpireIdle.Domain.Tests.Services
         /// зникає без сліду — саме те, чого ми уникали.
         /// </summary>
         [Fact]
-        public void Validate_ShouldRejectMissingOverflowGemsForRank()
-            => RejectsHero(c => c.HeroSettings.OverflowGems.Remove("Unique"));
+        public void Validate_ShouldRejectMissingOverflowSealsForRank()
+            => RejectsHero(c => c.HeroSettings.OverflowSeals.Remove("Unique"));
 
         /// <summary>Герой без смуг вартості не качався б узагалі.</summary>
         [Fact]
@@ -448,6 +449,68 @@ namespace EmpireIdle.Domain.Tests.Services
             });
 
             Assert.Contains("DefenderLossLosses", error.Message);
+        }
+
+        /// <summary>Вітрина обіцяє унікальний посох, а в Items він звичайний — гравець отримав би не те, що бачив.</summary>
+        [Fact]
+        public void Validate_ShouldRejectABannerDrop_WhoseRarityDiffersFromTheItem()
+        {
+            // Секція спорядження має власні вимоги — беремо валідну з TestKit і ламаємо лише рідкість лота
+            var config = new GameConfigBuilder().WithResources().WithBuildings().WithHeroes().WithEquipment().Build();
+            config.Shop.Banners =
+            [
+                new BannerConfig
+                {
+                    Key = "forge", DisplayName = "Forge", Kind = BannerKind.Weapon, PityGroup = "weapon", PriceGems = 100,
+                    RarePity = 10, UniquePity = 50,
+                    Drops =
+                    [
+                        new BannerDropConfig
+                        {
+                            Key = TestKeys.Weapon, DisplayName = "Weapon", Rarity = Rarity.Unique, Kind = BannerKind.Weapon, Weight = 1,
+                            Rewards = [new RewardConfig { Type = "Equipment", Key = TestKeys.Weapon, Amount = 1 }]
+                        }
+                    ]
+                }
+            ];
+
+            var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+
+            Assert.Contains(TestKeys.Weapon, error.Message);
+            Assert.Contains("Unique", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldRejectAShopItem_ThatIsNotAnItem()
+        {
+            var error = Rejects(c => c.Shop.Items = [new ShopItemConfig { ItemKey = "no_such_item", PriceGems = 100 }]);
+
+            Assert.Contains("no_such_item", error.Message);
+        }
+
+        /// <summary>Зброя продається кузнею за золото — крамниця за gems її не дублює.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAShopItem_ThatIsEquipment()
+        {
+            var error = Rejects(c =>
+            {
+                c.Items = [new ItemConfig { Key = "sword_iron", DisplayName = "Sword", Description = "", Type = "equipment", Slot = EquipmentSlot.Weapon }];
+                c.Shop.Items = [new ShopItemConfig { ItemKey = "sword_iron", PriceGems = 100 }];
+            });
+
+            Assert.Contains("equipment", error.Message);
+        }
+
+        [Fact]
+        public void Validate_ShouldAcceptAShopItem_ThatSellsAnExistingConsumable()
+        {
+            var config = ValidConfig();
+            config.Items = [new ItemConfig { Key = "hero_essence_t2", DisplayName = "Essence", Description = "", Type = "evolution" }];
+            config.Shop.Items = [new ShopItemConfig { ItemKey = "hero_essence_t2", PriceGems = 300 }];
+
+            var exception = Record.Exception(() => GameConfigValidator.Validate(config));
+
+            Assert.Null(exception);
         }
 
         /// <summary>Дотик межі — не інверсія: 0.35 і 0.35 сходяться, не перетинаються.</summary>

@@ -5,6 +5,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -17,7 +18,7 @@ namespace EmpireIdle.Application.Marches.Commands
         Guid PlayerId,
         MarchTargetType TargetType,
         Guid TargetId,
-        Dictionary<string, int> Units,
+        Dictionary<UnitStackKey, int> Units,
         Guid HeroId,
         MarchIntent Intent = MarchIntent.Attack) : IRequest<Guid>, IPlayerScopedRequest, IIdempotentRequest;
 

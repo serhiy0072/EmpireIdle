@@ -1,0 +1,64 @@
+import { useNow } from "../../hooks/useNow";
+import type { MarchResponse } from "../../lib/apiTypes";
+import { useCatalog } from "../../lib/queries/catalog";
+import { MARCH_STATE, useSpeedUpMarch } from "../../lib/queries/marches";
+import { formatRemaining } from "../../lib/time";
+import ErrorBanner from "../ErrorBanner";
+
+interface Props {
+  playerId: string;
+  marches: MarchResponse[];
+}
+
+/** Активні походи: куди, скільки, коли прибуде, і прискорення за gems. */
+export default function MarchList({ playerId, marches }: Props) {
+  const now = useNow();
+  const catalog = useCatalog();
+  const speedUp = useSpeedUpMarch(playerId);
+
+  if (marches.length === 0) {
+    return <p className="text-sm text-slate-500">Армія вдома — походів немає.</p>;
+  }
+
+  return (
+    <div className="space-y-2">
+      <ErrorBanner error={speedUp.error} />
+
+      {marches.map((march) => {
+        const returning = march.state === MARCH_STATE.returning;
+        const total = march.units.reduce((sum, unit) => sum + unit.count, 0);
+        const target = march.targetName ?? `(${march.targetX}, ${march.targetY})`;
+
+        return (
+          <div key={march.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+            <div>
+              <p className="text-slate-800">
+                {returning ? "Повертається з" : "Іде на"} {target}
+              </p>
+              <p className="text-xs text-slate-500">
+                {march.units
+                  .map((unit) => `${catalog.unitName(unit.unitType)} ×${unit.count}`)
+                  .join(", ")}{" "}
+                · разом {total.toLocaleString("uk-UA")}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-slate-700">{formatRemaining(march.arrivesAt, now)}</span>
+              <button
+                type="button"
+                onClick={() => speedUp.mutate(march.id)}
+                disabled={speedUp.isPending}
+                className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-white disabled:opacity-50"
+              >
+                {march.speedUpCostGems === 0
+                  ? "Прискорити (безкоштовно)"
+                  : `Прискорити (${march.speedUpCostGems.toLocaleString("uk-UA")} 💎)`}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

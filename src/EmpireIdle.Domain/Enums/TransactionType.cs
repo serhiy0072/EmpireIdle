@@ -5,7 +5,7 @@ namespace EmpireIdle.Domain.Enums
     {
         GemPurchase,
         GemSpend,
-        CoinEarned,
-        CoinSpend
+        SealEarned,
+        SealSpend
     }
 }

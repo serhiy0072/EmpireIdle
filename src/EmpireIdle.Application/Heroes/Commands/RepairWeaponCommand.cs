@@ -3,6 +3,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -15,14 +16,16 @@ namespace EmpireIdle.Application.Heroes.Commands
     /// <summary>
     /// Обробник RepairWeaponCommand.
     ///
-    /// Ремонт дешевший за заточку того ж рівня й нічого не втрачає:
-    /// поломка забирає спробу, а не прогрес. Дорожчий ремонт зробив би
-    /// заточку понад безпечний рівень грою в мінус.
+    /// Ремонт — за gems, не за золото: поломка забирає спробу, а не прогрес,
+    /// і саме тут гравець вирішує, чи варта зброя платежу. Ціна росте з рівнем
+    /// заточки, бо росте й те, що рятується.
     /// </summary>
     public sealed class RepairWeaponCommandHandler : IRequestHandler<RepairWeaponCommand>
     {
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly IPlayerRepository _playerRepository;
+        private readonly IPlayerWalletRepository _walletRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly EnhancementRules _rules;
@@ -32,6 +35,8 @@ namespace EmpireIdle.Application.Heroes.Commands
         public RepairWeaponCommandHandler(
             IInventoryRepository inventoryRepository,
             IVillageRepository villageRepository,
+            IPlayerRepository playerRepository,
+            IPlayerWalletRepository walletRepository,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             EnhancementRules rules,
@@ -40,6 +45,8 @@ namespace EmpireIdle.Application.Heroes.Commands
         {
             _inventoryRepository = inventoryRepository;
             _villageRepository = villageRepository;
+            _playerRepository = playerRepository;
+            _walletRepository = walletRepository;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
             _rules = rules;
@@ -69,9 +76,20 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (!village.HasBuilding(forge))
                 throw new RequirementNotMetException($"Repairing requires the {forge}.");
 
-            village.ChargeCost(
-                [new ResourceCost { Resource = "gold", Amount = _rules.RepairCost(item.EnhancementLevel) }], now);
+            var cost = _rules.RepairGems(item.EnhancementLevel);
 
+            // Гаманець належить акаунту, тож ідемо через Player за UserId
+            var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
+                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+
+            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
+                ?? throw new EntityNotFoundException("Wallet", player.UserId);
+
+            // Перевірка до списання: гравцю потрібна відмова з цифрами
+            if (wallet.GemBalance.Value < cost)
+                throw new NotEnoughResourcesException("gems", cost, wallet.GemBalance.Value);
+
+            wallet.SpendGems(new GemAmount(cost), $"repair:{item.ItemKey}", request.PlayerId, now);
             item.Repair(now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -25,6 +25,7 @@ namespace EmpireIdle.Application.Villages.Queries
         private readonly TimeProvider _timeProvider;
         private readonly WorldGeometry _geometry;
         private readonly VillageStatus _status;
+        private readonly SpeedUpCalculator _calculator;
 
         public GetVillageQueryHandler(
             IVillageRepository villageRepository,
@@ -33,7 +34,8 @@ namespace EmpireIdle.Application.Villages.Queries
             GameCatalog catalog,
             TimeProvider timeProvider,
             WorldGeometry geometry,
-            VillageStatus status)
+            VillageStatus status,
+            SpeedUpCalculator calculator)
         {
             _villageRepository = villageRepository;
             _serverRepository = serverRepository;
@@ -42,6 +44,7 @@ namespace EmpireIdle.Application.Villages.Queries
             _timeProvider = timeProvider;
             _geometry = geometry;
             _status = status;
+            _calculator = calculator;
         }
 
         public async Task<VillageView> Handle(GetVillageQuery request, CancellationToken cancellationToken)
@@ -61,6 +64,10 @@ namespace EmpireIdle.Application.Villages.Queries
 
                 // Тип без конфіга означає битий конфіг, але падати на GET села зайве:
                 // гравець побачить будівлю з нульовим буфером, решта відповіді ціла
+                int? speedUpCost = b.IsUnderConstruction
+                    ? _calculator.GetInstantFinishCost(b.ConstructionCompletesAt!.Value, now)
+                    : null;
+
                 if (!_catalog.Buildings.TryGetValue(b.Type, out var config))
                 {
                     return new BuildingView(
@@ -72,7 +79,8 @@ namespace EmpireIdle.Application.Villages.Queries
                         StorageCap: 0,
                         b.ConstructionCompletesAt,
                         b.IsUnderConstruction,
-                        isUnlocekd);
+                        isUnlocekd,
+                        speedUpCost);
                 }
 
                 var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
@@ -86,14 +94,15 @@ namespace EmpireIdle.Application.Villages.Queries
                     b.GetStorageCap(config.BaseStorage),
                     b.ConstructionCompletesAt,
                     b.IsUnderConstruction,
-                    isUnlocekd);
+                    isUnlocekd,
+                    speedUpCost);
             }).ToList();
 
             var resources = village.Resources
-                .Select(r => new ResourceView(r.ResourceType, r.Amount))
+                .Select(r => new ResourceView(r.ResourceType, r.Amount, _status.IsResourceUnlocked(village, r.ResourceType)))
                 .ToList();
 
-            return new VillageView(village.Id, village.Name, buildings, resources);
+            return new VillageView(village.Id, village.Name, village.X, village.Y, buildings, resources);
         }
     }
 }

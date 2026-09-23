@@ -20,12 +20,14 @@ namespace EmpireIdle.API.Controllers
         private readonly IMediator _mediator;
         private readonly IServerContext _serverContext;
         private readonly TerrainGenerator _terrain;
+        private readonly GameCatalog _catalog;
 
-        public MapController(IMediator mediator, IServerContext serverContext, TerrainGenerator terrain)
+        public MapController(IMediator mediator, IServerContext serverContext, TerrainGenerator terrain, GameCatalog catalog)
         {
             _mediator = mediator;
             _serverContext = serverContext;
             _terrain = terrain;
+            _catalog = catalog;
         }
 
         /// <summary>
@@ -54,7 +56,12 @@ namespace EmpireIdle.API.Controllers
                     terrain.Add(new MapTerrainCell(x, y, cell.Type, cell.Passable, cell.Habitable));
                 }
 
-            var occupants = occupiedCells.Select(c => new MapOccupantCell(c.X, c.Y, c.OccupantType.ToString(), c.OccupantId, null)).ToList();
+            var occupants = occupiedCells
+                .Select(c => new MapOccupantCell(
+                    c.X, c.Y, c.OccupantType.ToString(), c.OccupantId,
+                    c.MonsterType is null ? null : _catalog.Monsters.GetValueOrDefault(c.MonsterType)?.DisplayName,
+                    c.MonsterType, c.MonsterLevel))
+                .ToList();
 
             return Ok(new MapAreaResponse(minX, minY, maxX, maxY, terrain, occupants));
 

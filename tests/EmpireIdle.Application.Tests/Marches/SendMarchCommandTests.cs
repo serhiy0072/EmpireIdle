@@ -7,6 +7,7 @@ using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -97,7 +98,7 @@ public class SendMarchCommandTests
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         if (infantry > 0)
-            garrison.ReceiveUnits(new Dictionary<string, int> { ["infantry"] = infantry }, Now);
+            garrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, Now);
 
         var monster = new Monster(Guid.NewGuid(), 1, "wolves", 1, 55, 55, Now);
 
@@ -108,7 +109,7 @@ public class SendMarchCommandTests
             .Select(_ => new March(
                 Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 60, 60,
                 MarchTargetType.Monster, Guid.NewGuid(),
-                new Dictionary<string, int> { ["infantry"] = 1 },
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 1 },
                 Now.AddHours(1), Now))
             .ToList();
 
@@ -124,7 +125,7 @@ public class SendMarchCommandTests
 
     private static SendMarchCommand Send(Guid targetId, Guid heroId, int infantry = 10) =>
         new(PlayerId, MarchTargetType.Monster, targetId,
-            new Dictionary<string, int> { ["infantry"] = infantry }, heroId);
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, heroId);
 
     /// <summary>Юніти зникають із гарнізону — армія не може бути у двох місцях.</summary>
     [Fact]
@@ -187,7 +188,7 @@ public class SendMarchCommandTests
         await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(
                 new SendMarchCommand(PlayerId, MarchTargetType.Monster, monster.Id,
-                    new Dictionary<string, int>(), hero.Id),
+                    new Dictionary<UnitStackKey, int>(), hero.Id),
                 CancellationToken.None));
     }
 

@@ -76,9 +76,9 @@ namespace EmpireIdle.Application.Common.Services
             if (existing.TryAddConstellation(settings.MaxConstellation, utcNow))
                 return;
 
-            var gems = settings.OverflowGems.GetValueOrDefault(config.Rank.ToString(), 0);
+            var seals = settings.OverflowSeals.GetValueOrDefault(config.Rank.ToString(), 0);
 
-            if (gems < 1)
+            if (seals < 1)
                 return;
 
             // Гаманець належить акаунту, а не гравцю — потрібен перехід через Player
@@ -88,7 +88,7 @@ namespace EmpireIdle.Application.Common.Services
             var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
                 ?? throw new InvalidOperationException($"Wallet not found for player {playerId}.");
 
-            wallet.AddGems(new GemAmount(gems), $"hero-overflow:{heroKey}", playerId, utcNow);
+            wallet.AddSeals(seals, $"hero-overflow:{heroKey}", utcNow);
         }
     }
 }

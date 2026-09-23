@@ -6,6 +6,7 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 
 namespace EmpireIdle.Application.Marches.Queries
@@ -20,7 +21,7 @@ namespace EmpireIdle.Application.Marches.Queries
         MarchTargetType TargetType,
         Guid TargetId,
         Guid HeroId,
-        Dictionary<string, int> Units) : IRequest<BattlePreviewResult>, IPlayerScopedRequest;
+        Dictionary<UnitStackKey, int> Units) : IRequest<BattlePreviewResult>, IPlayerScopedRequest;
 
     public sealed class GetBattlePreviewQueryHandler : IRequestHandler<GetBattlePreviewQuery, BattlePreviewResult>
     {
@@ -80,7 +81,7 @@ namespace EmpireIdle.Application.Marches.Queries
 
             // Прев'ю не обіцяє того, чого гравець відправити не може:
             // рахуємо по фактично доступних юнітах, а не по запиту
-            var available = garrison.Units.ToDictionary(u => u.UnitType, u => u.Count);
+            var available = garrison.Units.ToDictionary(u => new UnitStackKey(u.UnitType, u.Level), u => u.Count);
 
             var attackerArmy = request.Units
                 .Where(u => u.Value > 0)

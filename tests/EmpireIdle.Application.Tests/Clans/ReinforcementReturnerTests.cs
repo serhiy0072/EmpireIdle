@@ -5,6 +5,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
@@ -69,7 +70,7 @@ public class ReinforcementReturnerTests
         var owner = new Garrison(Guid.NewGuid(), ownerVillage.Id, 1);
 
         host.AddReinforcements(OwnerId, owner.Id,
-            new Dictionary<string, int> { ["infantry"] = infantry }, 100, Now.AddHours(-3));
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, 100, Now.AddHours(-3));
 
         _garrisons.GetHoldingReinforcementsAsync(OwnerId, Arg.Any<CancellationToken>()).Returns([host]);
         _garrisons.GetByVillageIdAsync(hostVillage.Id, Arg.Any<CancellationToken>()).Returns(host);
@@ -97,7 +98,7 @@ public class ReinforcementReturnerTests
             Arg.Is<March>(m => m.GarrisonId == owner.Id
                             && m.State == MarchState.Returning
                             && m.Intent == MarchIntent.Reinforce
-                            && m.GetUnits()["infantry"] == 10
+                            && m.GetUnits()[new UnitStackKey("infantry", 1)] == 10
                             && m.ArrivesAt > Now),
             Arg.Any<CancellationToken>());
     }
@@ -129,7 +130,7 @@ public class ReinforcementReturnerTests
             var ownerGarrison = new Garrison(Guid.NewGuid(), ownerVillage.Id, 1);
 
             host.AddReinforcements(ownerId, ownerGarrison.Id,
-                new Dictionary<string, int> { ["infantry"] = count }, 100, Now.AddHours(-2));
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = count }, 100, Now.AddHours(-2));
 
             _garrisons.GetByIdAsync(ownerGarrison.Id, Arg.Any<CancellationToken>()).Returns(ownerGarrison);
             _villages.GetByIdAsync(ownerVillage.Id, Arg.Any<CancellationToken>()).Returns(ownerVillage);

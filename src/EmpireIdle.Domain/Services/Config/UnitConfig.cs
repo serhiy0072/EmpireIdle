@@ -35,5 +35,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public Dictionary<string, double> Stats { get; set; } = new();
 
+        /// <summary>
+        /// Коефіцієнт росту вартості й часу прокачки на 1 рівень юніта:
+        /// крок(level) = base × LevelUpCostGrowth^(level-1). Стрибок через
+        /// кілька рівнів — сума кроків (§5.2 GDD).
+        /// </summary>
+        public double LevelUpCostGrowth { get; set; } = 1.35;
     }
 }

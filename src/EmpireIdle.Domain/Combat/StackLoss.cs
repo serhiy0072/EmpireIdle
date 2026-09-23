@@ -1,5 +1,5 @@
 namespace EmpireIdle.Domain.Combat
 {
     /// <summary>Скільки юнітів утратив конкретний стек оборони.</summary>
-    public record StackLoss(Guid? OwnerPlayerId, string UnitType, int Lost);
+    public record StackLoss(Guid? OwnerPlayerId, string UnitType, int Level, int Lost);
 }

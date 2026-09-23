@@ -47,6 +47,10 @@ namespace EmpireIdle.API.Hubs
             => Player(playerId).ServerQuestRewarded(new ServerQuestRewardedEvent(questKey, rank, contribution));
 
         /// <inheritdoc/>
+        public Task NotifyMarchReturnedAsync(Guid playerId, Guid marchId, CancellationToken cancellationToken = default)
+            => Player(playerId).MarchReturned(new MarchReturnedEvent(marchId));
+
+        /// <inheritdoc/>
         public Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag,
             DateTime expiresAt, CancellationToken cancellationToken = default)
             => Player(playerId).ClanInvite(new ClanInviteEvent(requestId, clanId, clanName, clanTag, expiresAt));

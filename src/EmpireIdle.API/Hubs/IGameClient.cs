@@ -20,6 +20,8 @@ namespace EmpireIdle.API.Hubs
 
         Task BattleFinished(BattleFinishedEvent payload);
 
+        Task MarchReturned(MarchReturnedEvent payload);
+
         Task ServerQuestRewarded(ServerQuestRewardedEvent payload);
 
         Task ClanInvite(ClanInviteEvent payload);
