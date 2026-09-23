@@ -129,8 +129,9 @@ public class UseItemCommandTests
     {
         GivenStack();
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Use(count), CancellationToken.None));
+        Assert.Null(refusal.Reason);
     }
 
     /// <summary>Координати доходять до ефекту — без них телепорт не спрацює.</summary>

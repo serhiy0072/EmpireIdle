@@ -95,7 +95,8 @@ public class BuyShopItemCommandTests
     [Fact]
     public async Task Handle_ShouldReject_MoreThanTheOfferAllowsPerPurchase()
     {
-        await Assert.ThrowsAsync<RequirementNotMetException>(() => Buy(count: 4));
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Buy(count: 4));
+        Assert.Equal(RefusalReasons.ShopMaxPerPurchase.Key, refusal.Reason);
 
         Assert.Equal(1_000, _wallet.GemBalance.Value);
     }

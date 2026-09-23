@@ -98,8 +98,9 @@ public class ClaimQuestRewardCommandTests
     {
         GivenProgress(alreadyClaimed: true);
 
-        await Assert.ThrowsAsync<InvalidStateException>(() =>
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
             Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "daily_collect"), CancellationToken.None));
+        Assert.Equal(RefusalReasons.QuestNotClaimable.Key, refusal.Reason);
 
         await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
     }
@@ -110,8 +111,9 @@ public class ClaimQuestRewardCommandTests
     {
         GivenProgress(completed: false);
 
-        await Assert.ThrowsAsync<InvalidStateException>(() =>
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
             Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "daily_collect"), CancellationToken.None));
+        Assert.Equal(RefusalReasons.QuestNotClaimable.Key, refusal.Reason);
 
         await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
     }
@@ -123,8 +125,9 @@ public class ClaimQuestRewardCommandTests
     [Fact]
     public async Task Handle_ShouldReject_ForServerScopedQuests()
     {
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "server_cleanup"), CancellationToken.None));
+        Assert.Null(refusal.Reason);
     }
 
     /// <summary>Квест, якого гравець не починав — 404.</summary>

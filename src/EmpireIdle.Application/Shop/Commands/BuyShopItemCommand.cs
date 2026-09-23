@@ -49,7 +49,8 @@ namespace EmpireIdle.Application.Shop.Commands
                 ?? throw new EntityNotFoundException("Shop item", request.ItemKey);
 
             if (request.Count > offer.MaxPerPurchase)
-                throw new RequirementNotMetException($"At most {offer.MaxPerPurchase} × '{offer.ItemKey}' per purchase.");
+                throw new RequirementNotMetException(RefusalReasons.ShopMaxPerPurchase,
+                    $"At most {offer.MaxPerPurchase} × '{offer.ItemKey}' per purchase.", offer.MaxPerPurchase);
 
             var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Player", request.PlayerId);

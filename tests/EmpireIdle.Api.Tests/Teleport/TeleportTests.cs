@@ -1,6 +1,7 @@
 using EmpireIdle.Api.Tests.Infrastructure;
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure.Persistence;
 using AwesomeAssertions;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Testcontainers.PostgreSql;
 
 namespace EmpireIdle.Api.Tests.Teleport;
@@ -154,6 +156,14 @@ public class TeleportTests : IClassFixture<TeleportFixture>
 
     public TeleportTests(TeleportFixture fixture) => _fixture = fixture;
 
+    /// <summary>Ключ причини з ProblemDetails; null — відмова без пояснення.</summary>
+    private static async Task<string?> ReasonAsync(HttpResponseMessage response)
+    {
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+
+        return body.RootElement.TryGetProperty("reason", out var reason) ? reason.GetString() : null;
+    }
+
     /// <summary>Телепорт переносить село й звільняє стару клітину.</summary>
     [Fact]
     public async Task Teleport_ShouldMoveTheVillageAndFreeTheOldCell()
@@ -185,6 +195,9 @@ public class TeleportTests : IClassFixture<TeleportFixture>
             new UseItemRequest("teleport", 1, TargetX: current.X, TargetY: current.Y));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        // Зайнятість перевіряється раніше за «село вже тут»: клітина зайнята самим гравцем
+        (await ReasonAsync(response)).Should().Be(RefusalReasons.TeleportCellOccupied.Key);
     }
 
     /// <summary>Клітина за межею туману недоступна, навіть якщо вона в межах карти.</summary>
@@ -203,6 +216,7 @@ public class TeleportTests : IClassFixture<TeleportFixture>
             new UseItemRequest("teleport", 1, TargetX: cx + beyond, TargetY: cy));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await ReasonAsync(response)).Should().Be(RefusalReasons.TeleportOutsideRegion.Key);
     }
 
     /// <summary>Одна координата без другої — помилка клієнта, а не падіння ефекту.</summary>
