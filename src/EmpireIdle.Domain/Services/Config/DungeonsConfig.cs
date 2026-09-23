@@ -56,5 +56,8 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Множник шкоди на криті.</summary>
         public double CritMultiplier { get; set; } = 1.6;
+
+        /// <summary>Самі данжі.</summary>
+        public List<DungeonConfig> Dungeons { get; set; } = new();
     }
 }
