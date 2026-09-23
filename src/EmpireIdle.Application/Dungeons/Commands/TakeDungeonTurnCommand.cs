@@ -22,7 +22,10 @@ namespace EmpireIdle.Application.Dungeons.Commands
     /// іще дивиться. Ходи ворогів та героїв в автобою рахуються тут само,
     /// поки черга не дійде до героя під ручним керуванням.
     /// </summary>
-    /// <param name="Auto">Хід обирає політика автобою; AbilityKey і TargetIndex ігноруються.</param>
+    /// <param name="Auto">
+    /// true — сервер грає бій сам до кінця. false — прокручує лише ходи ворогів
+    /// і зупиняється перед ходом героя; якщо передано дію, виконує саме її.
+    /// </param>
     public record TakeDungeonTurnCommand(Guid PlayerId, Guid RunId, bool Auto, string? AbilityKey, int? TargetIndex)
         : IRequest<DungeonRunView>, IPlayerScopedRequest;
 
@@ -81,7 +84,10 @@ namespace EmpireIdle.Application.Dungeons.Commands
 
             var state = BattleSerializer.Read(run.Battle);
             var turns = new List<TurnLog>();
-            var playerActed = false;
+
+            // Дія гравця задана, якщо він назвав ціль або вміння; інакше запит
+            // у ручному режимі означає «прокрути ходи ворогів і зупинись»
+            var hasPlayerAction = !request.Auto && (request.TargetIndex is not null || request.AbilityKey is not null);
 
             for (var guard = 0; guard < MaxTurnsPerRequest; guard++)
             {
@@ -93,12 +99,13 @@ namespace EmpireIdle.Application.Dungeons.Commands
                 var actor = state.Combatants[actorIndex];
                 var heroTurn = actor.Side == BattleSide.Heroes;
 
-                // Ручний хід уже зроблено — зупиняємось перед наступним рішенням гравця
-                if (heroTurn && !request.Auto && playerActed)
+                // Хід героя в ручному режимі належить гравцю: або виконуємо його
+                // дію, або зупиняємось і повертаємо керування
+                if (heroTurn && !request.Auto && !hasPlayerAction)
                     break;
 
                 var abilities = heroTurn ? AbilitiesOf(actor.Key) : [];
-                var manual = heroTurn && !request.Auto && !playerActed;
+                var manual = heroTurn && !request.Auto;
 
                 var action = manual
                     ? new BattleAction(request.AbilityKey, request.TargetIndex)
@@ -109,7 +116,6 @@ namespace EmpireIdle.Application.Dungeons.Commands
                 if (manual)
                 {
                     ValidateManual(state, actor, ability, action);
-                    playerActed = true;
                 }
 
                 var result = _engine.Execute(state, actorIndex, action, ability);

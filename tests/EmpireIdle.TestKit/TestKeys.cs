@@ -43,5 +43,14 @@ public static class TestKeys
     public const string LooseArtifact = "lone_charm";
     public const string SetKey = "dawn";
 
+    public const string Dungeon = "test_pit";
+    public const string DungeonEnemy = "test_brute";
+    public const string DungeonBoss = "test_warden";
+
+    /// <summary>Базовий ключ набору данжу; справжні набори — «pit_common» і далі за рідкістю.</summary>
+    public const string DungeonSetKey = "pit";
+
+    public const string DungeonAbility = "test_slash";
+
     public const string Terrain = "plain";
 }
