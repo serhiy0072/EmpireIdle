@@ -98,6 +98,14 @@ namespace EmpireIdle.API.Middleware
                 problemDetails.Extensions["have"] = shortfall.Have;
             }
 
+            // Причина відмови з параметрами: клієнт показує гравцю свій текст за
+            // ключем, а англійський Detail лишається для консолі й логів
+            if (exception is DomainException { Reason: { } reason } refusal)
+            {
+                problemDetails.Extensions["reason"] = reason;
+                problemDetails.Extensions["args"] = refusal.Args;
+            }
+
             httpContext.Response.StatusCode = statusCode;
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 

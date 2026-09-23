@@ -1,4 +1,5 @@
 import { isApiError } from "./problem";
+import { refusalText } from "./refusals";
 
 const RESOURCE_NAMES: Record<string, string> = {
   gold: "золота",
@@ -41,8 +42,17 @@ export function explainError(error: unknown): ErrorMessage {
     };
   }
 
+  // Причина з сервера — власний текст для гравця з підставленими параметрами
+  const refusal = refusalText(error.problem.reason, error.problem.args);
+
+  if (refusal !== null) {
+    return { text: refusal, actionable: true };
+  }
+
+  // Відмова без відомої причини: англійський Detail гравцю не показуємо — лише в консоль
   if (error.is("RequirementNotMet")) {
-    return { text: error.problem.detail ?? "Умову не виконано", actionable: true };
+    console.warn("Відмова без тексту для гравця", error.problem);
+    return { text: "Зараз це недоступно", actionable: true };
   }
 
   if (error.is("OperationInProgress")) {

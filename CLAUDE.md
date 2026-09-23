@@ -80,6 +80,8 @@ Claude тут — Software Architect і Mentor-Reviewer. Мета написат
 
 - Застосовані міграції й снапшот руками не правляться — лише нова міграція вперед.
 - Змінив DTO — перегенеруй `openapi/v1.json`. Змінив `IGameClient` — перегенеруй `realtime/events.json`.
+  Змінив `RefusalReasons` — перегенеруй `refusals/reasons.json` і додай текст у `src/lib/refusals.ts`.
+- Відмова, до якої гравець доходить чесною грою, кидається з `RefusalReason`; сирий `Detail` гравцю не показується.
 - Валідація конфіга: межі окремого поля — у `Program.cs` (`.Validate(...)`),
   узгодженість між секціями — у `GameConfigValidator`.
 - Помилки клієнту — `ProblemDetails` з `errorCode`; клієнт розгалужується за `errorCode`, не за текстом.
@@ -95,7 +97,7 @@ Claude тут — Software Architect і Mentor-Reviewer. Мета написат
 - `src/EmpireIdle.API` — контролери, `Program.cs`, SignalR-хаб, конфіги гри в `Config/*.json`
 - `src/EmpireIdle.Web` — React + TypeScript + Vite + Tailwind + React Query
 - `tests/*` — xUnit + NSubstitute; `EmpireIdle.TestKit` — спільні фікстури (`GameConfigBuilder`)
-- `openapi/v1.json`, `realtime/events.json` — закомічені контракти API й подій
+- `openapi/v1.json`, `realtime/events.json`, `refusals/reasons.json` — закомічені контракти API, подій і причин відмов
 
 ## Команди
 
@@ -109,6 +111,7 @@ Add-Migration <Name> -Project EmpireIdle.Infrastructure -StartupProject EmpireId
 # Перегенерувати контракти
 $env:UPDATE_OPENAPI = "1"; dotnet test tests/EmpireIdle.Api.Tests --filter OpenApiContractTests; Remove-Item Env:\UPDATE_OPENAPI
 $env:UPDATE_REALTIME = "1"; dotnet test tests/EmpireIdle.Api.Tests --filter RealtimeContractTests; Remove-Item Env:\UPDATE_REALTIME
+$env:UPDATE_REFUSALS = "1"; dotnet test tests/EmpireIdle.Api.Tests --filter RefusalContractTests; Remove-Item Env:\UPDATE_REFUSALS
 
 # Фронт — з src/EmpireIdle.Web
 npm run api:types; npm run typecheck; npm run lint; npm run build
