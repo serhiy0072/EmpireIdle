@@ -33,6 +33,7 @@ namespace EmpireIdle.Domain.Services
             ValidateHeroes(config);
             ValidateLossBands(config);
             ValidateDungeons(config);
+            ValidateUnlockThresholds(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
             ValidateBanners(config);
@@ -86,6 +87,31 @@ namespace EmpireIdle.Domain.Services
                         throw new InvalidOperationException(
                             $"Dungeon '{dungeon.Key}' enemy '{enemy.Key}' has non-positive attack or health.");
             }
+        }
+
+        /// <summary>
+        /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна
+        /// збудувати (MaxServerLevel × BuildingLevelsPerTier). Інакше вміст
+        /// недосяжний назавжди, а гравець бачить замок, який не відімкнеться.
+        /// </summary>
+        private static void ValidateUnlockThresholds(GameConfig config)
+        {
+            var ceiling = config.Map.MaxServerLevel * config.BuildingLevelsPerTier;
+
+            var unreachable = config.Buildings
+                .Where(b => b.RequiresMainBuildingLevel > ceiling)
+                .Select(b => $"building {b.Key} ({b.RequiresMainBuildingLevel})")
+                .Concat(config.Resources
+                    .Where(r => r.RequiresMainBuildingLevel > ceiling)
+                    .Select(r => $"resource {r.Key} ({r.RequiresMainBuildingLevel})"))
+                .Concat(config.Dungeons.Dungeons
+                    .Where(d => d.RequiresMainBuildingLevel > ceiling)
+                    .Select(d => $"dungeon {d.Key} ({d.RequiresMainBuildingLevel})"))
+                .ToList();
+
+            if (unreachable.Count > 0)
+                throw new InvalidOperationException(
+                    $"Unlock thresholds above the town hall ceiling {ceiling}: {string.Join(", ", unreachable)}.");
         }
 
         /// <summary>Кожен товар крамниці — існуючий предмет; спорядження продає кузня за золото, не крамниця.</summary>

@@ -165,7 +165,7 @@
           "DisplayName": "Жарна кузня",
           "Description": "Горно, що не гасне від часів першого коваля.",
           "ArtifactSetKey": "ember",
-          "RequiresMainBuildingLevel": 8,
+          "RequiresMainBuildingLevel": 5,
           "Waves": [
             {
               "Key": "ember_forge_guard",
@@ -296,7 +296,7 @@
           "DisplayName": "Крижана твердиня",
           "Description": "Зима оселилась усередині й вирішила лишитись.",
           "ArtifactSetKey": "frost",
-          "RequiresMainBuildingLevel": 11,
+          "RequiresMainBuildingLevel": 10,
           "Waves": [
             {
               "Key": "frozen_hold_guard",
@@ -427,7 +427,7 @@
           "DisplayName": "Припливні печери",
           "Description": "Двічі на добу море повертає собі ці ходи.",
           "ArtifactSetKey": "tide",
-          "RequiresMainBuildingLevel": 14,
+          "RequiresMainBuildingLevel": 10,
           "Waves": [
             {
               "Key": "tidal_caves_guard",
@@ -558,7 +558,7 @@
           "DisplayName": "Шпиль бурі",
           "Description": "Блискавка б'є в нього так часто, що камінь дзвенить.",
           "ArtifactSetKey": "storm",
-          "RequiresMainBuildingLevel": 17,
+          "RequiresMainBuildingLevel": 15,
           "Waves": [
             {
               "Key": "storm_spire_guard",
@@ -689,7 +689,7 @@
           "DisplayName": "Терновий гай",
           "Description": "Гай, що сам вирішує, кого випустити.",
           "ArtifactSetKey": "thorn",
-          "RequiresMainBuildingLevel": 20,
+          "RequiresMainBuildingLevel": 15,
           "Waves": [
             {
               "Key": "thorn_grove_guard",
@@ -820,7 +820,7 @@
           "DisplayName": "Попелясті кургани",
           "Description": "Попіл тут падає згори, а піднімається знизу.",
           "ArtifactSetKey": "ash",
-          "RequiresMainBuildingLevel": 23,
+          "RequiresMainBuildingLevel": 20,
           "Waves": [
             {
               "Key": "ash_barrows_guard",
@@ -951,7 +951,7 @@
           "DisplayName": "Порожнеча",
           "Description": "Місце, де звуки закінчуються раніше за коридор.",
           "ArtifactSetKey": "hollow",
-          "RequiresMainBuildingLevel": 26,
+          "RequiresMainBuildingLevel": 20,
           "Waves": [
             {
               "Key": "hollow_deep_guard",
@@ -1082,7 +1082,7 @@
           "DisplayName": "Вітряний перевал",
           "Description": "Вітер зносить зі стежки все, крім вартових.",
           "ArtifactSetKey": "gale",
-          "RequiresMainBuildingLevel": 29,
+          "RequiresMainBuildingLevel": 25,
           "Waves": [
             {
               "Key": "gale_pass_guard",
@@ -1213,7 +1213,7 @@
           "DisplayName": "Обсидіанове сховище",
           "Description": "Скло, що пам'ятає вогонь, з якого постало.",
           "ArtifactSetKey": "obsidian",
-          "RequiresMainBuildingLevel": 32,
+          "RequiresMainBuildingLevel": 25,
           "Waves": [
             {
               "Key": "obsidian_vault_guard",
