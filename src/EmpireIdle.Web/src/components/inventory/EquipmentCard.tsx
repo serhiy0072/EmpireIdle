@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { EquipmentResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import type { HeroSummary } from "../../lib/queries/heroes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
+import { statLabel } from "../../lib/statNames";
 import ItemIcon from "./ItemIcon";
 
 interface Props {
@@ -13,12 +15,6 @@ interface Props {
   onEquip: (heroId: string, slotIndex: number) => void;
   onUnequip: () => void;
 }
-
-const STAT_LABELS: Record<string, string> = {
-  Attack: "Атака",
-  Defense: "Захист",
-  Health: "Здоров'я",
-};
 
 /**
  * Екземпляр спорядження в інвентарі: одягнути на героя вдома (для артефакта —
@@ -31,6 +27,7 @@ export default function EquipmentCard({ equipment, heroes, artifactSlots, busy, 
   const [slotIndex, setSlotIndex] = useState(0);
 
   const isWeapon = equipment.slot === "Weapon";
+  const set = catalog.setOfItem(equipment.itemKey);
   const wearer = equipment.equippedByHeroId === null ? null : heroes.find((hero) => hero.id === equipment.equippedByHeroId);
   // Переодягаються лише вдома: герой у поході не кандидат
   const candidates = heroes.filter((hero) => hero.stationedGarrisonId != null);
@@ -55,6 +52,14 @@ export default function EquipmentCard({ equipment, heroes, artifactSlots, busy, 
           <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
             {equipment.isBroken && <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Зламано</span>}
+            {set !== null && (
+              <Link
+                to={`/inventory/sets?set=${set.key}`}
+                className="rounded bg-slate-100 px-2 py-0.5 text-slate-700 hover:bg-slate-200"
+              >
+                {set.displayName} · рів. {set.tier}
+              </Link>
+            )}
             {wearer !== null && wearer !== undefined && (
               <span className="rounded bg-emerald-100 px-2 py-0.5 text-emerald-800">
                 {catalog.heroName(wearer.heroKey)}
@@ -68,7 +73,7 @@ export default function EquipmentCard({ equipment, heroes, artifactSlots, busy, 
       <dl className="mt-2 grid grid-cols-3 gap-1 text-sm">
         {Object.entries(equipment.stats).map(([stat, value]) => (
           <div key={stat} className="rounded bg-slate-50 px-2 py-1">
-            <dt className="text-xs text-slate-500">{STAT_LABELS[stat] ?? stat}</dt>
+            <dt className="text-xs text-slate-500">{statLabel(stat)}</dt>
             <dd className="font-medium text-slate-800">{Math.round(value)}</dd>
           </div>
         ))}

@@ -11,6 +11,8 @@ export type CatalogResource = components["schemas"]["CatalogResource"];
 export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
 export type CatalogPassive = components["schemas"]["CatalogPassive"];
 export type CatalogUnit = components["schemas"]["CatalogUnit"];
+export type CatalogArtifactSet = components["schemas"]["CatalogArtifactSet"];
+export type CatalogSetRarity = components["schemas"]["CatalogSetRarity"];
 
 export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
@@ -49,6 +51,10 @@ export interface Catalog {
   mapSize: number;
   /** Ключ головної будівлі — її рівень показуємо як рівень гравця. */
   mainBuildingKey: string;
+  /** Родини наборів артефактів у порядку рівнів. */
+  artifactSets: CatalogArtifactSet[];
+  /** Родина, до якої належить предмет; null — предмет поза наборами. */
+  setOfItem: (itemKey: string) => CatalogArtifactSet | null;
 }
 
 /**
@@ -71,6 +77,10 @@ export function useCatalog(): Catalog {
     const resources = new Map((data?.resources ?? []).map((resource) => [resource.key, resource]));
     const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
     const units = new Map((data?.units ?? []).map((unit) => [unit.key, unit]));
+    // SetKey предмета («dawn_rare») → родина («dawn»): так картка артефакту знає свій набір
+    const familyBySetKey = new Map(
+      (data?.artifactSets ?? []).flatMap((set) => set.rarities.map((rarity) => [rarity.setKey, set] as const)),
+    );
 
     return {
       loaded: data !== undefined,
@@ -103,6 +113,11 @@ export function useCatalog(): Catalog {
       repairGemsPerLevel: data?.repairGemsPerLevel ?? 8,
       mapSize: data?.mapSize ?? 500,
       mainBuildingKey: data?.mainBuildingKey ?? "townhall",
+      artifactSets: data?.artifactSets ?? [],
+      setOfItem: (itemKey) => {
+        const setKey = items.get(itemKey)?.setKey;
+        return setKey == null ? null : (familyBySetKey.get(setKey) ?? null);
+      },
     };
   }, [query.data]);
 }

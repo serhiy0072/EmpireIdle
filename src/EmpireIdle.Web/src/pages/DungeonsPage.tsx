@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import DungeonBattle from "../components/dungeons/DungeonBattle";
 import ErrorBanner from "../components/ErrorBanner";
 import HeroPortrait from "../components/heroes/HeroPortrait";
@@ -77,6 +78,7 @@ export default function DungeonsPage() {
 
   const selected: DungeonView | null = overview.dungeons.find((d) => d.key === selectedKey) ?? null;
   const levelView = selected?.levels.find((l) => l.level === level) ?? null;
+  const dropSet = catalog.artifactSets.find((set) => set.key === selected?.artifactSetKey) ?? null;
 
   const canStart =
     selected !== null &&
@@ -170,6 +172,17 @@ export default function DungeonsPage() {
                 <p className="text-xs text-slate-500">
                   Нагорода: {levelView.reward.map((line) => `${catalog.resourceName(line.resource)} ${line.amount.toLocaleString("uk-UA")}`).join(" · ")}
                 </p>
+              )}
+              {dropSet !== null && (
+                <Link
+                  to={`/inventory/sets?set=${dropSet.key}`}
+                  className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+                >
+                  <span>
+                    {dropSet.displayName} · рівень набору {dropSet.tier}
+                  </span>
+                  <span aria-hidden>→</span>
+                </Link>
               )}
             </section>
 
