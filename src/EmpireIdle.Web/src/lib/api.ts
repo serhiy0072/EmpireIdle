@@ -1,5 +1,5 @@
 import { ApiError, type ProblemDetails } from "./problem";
-import { fromAuthResponse, getSession, setSession, type AuthResponse } from "./session";
+import { fromAuthResponse, getSession, setSession, syncSessionFromStorage, type AuthResponse } from "./session";
 
 export { ApiError, isApiError } from "./problem";
 
@@ -161,10 +161,30 @@ function refreshOnce(): Promise<boolean> {
   return refreshing;
 }
 
-async function rotate(): Promise<boolean> {
-  const session = getSession();
+/**
+ * Вкладки одного браузера ділять refresh-токен, а refreshOnce рятує лише в
+ * межах однієї вкладки. Замок робить ротацію послідовною для всіх вкладок:
+ * дві вкладки з тим самим токеном — це «повторне використання», і сервер
+ * відкликав би всі сесії гравця. Без Web Locks (старий браузер) — як раніше.
+ */
+function rotate(): Promise<boolean> {
+  // Токен запам'ятовуємо до черги за замком: поки чекаємо, подія storage уже
+  // підмінить сесію на свіжу, і порівняння всередині замка нічого б не побачило
+  const stale = getSession()?.refreshToken ?? null;
 
-  if (session === null) return false;
+  return typeof navigator.locks === "undefined"
+    ? rotateUnlocked(stale)
+    : navigator.locks.request("empireidle.refresh", () => rotateUnlocked(stale));
+}
+
+async function rotateUnlocked(stale: string | null): Promise<boolean> {
+  // Сусідня вкладка могла вже ротувати: беремо її пару замість того,
+  // щоб пред'явити вже використаний токен
+  const session = syncSessionFromStorage();
+
+  if (session === null || stale === null) return false;
+
+  if (session.refreshToken !== stale) return true;
 
   const response = await fetch(`${API_URL}/api/auth/refresh`, {
     method: "POST",
