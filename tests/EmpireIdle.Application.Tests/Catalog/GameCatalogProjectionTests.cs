@@ -149,4 +149,50 @@ public class GameCatalogProjectionTests
 
         Assert.Equal(4, building.RequiresMainBuildingLevel);
     }
+
+    // ---------- Набори артефактів ----------
+
+    /// <summary>
+    /// Родина несе все, що потрібне екрану наборів: назву, рівень у числах,
+    /// характер і данж-джерело з порогом ратуші.
+    /// </summary>
+    [Fact]
+    public void Response_ShouldDescribeEachArtifactSetFamily()
+    {
+        var catalog = new GameConfigBuilder()
+            // Спорядження першим: WithDungeons лише доповнює його своїм набором
+            .WithEquipment(equipment => equipment.ArtifactTierMultipliers = [1.0, 1.35])
+            .WithDungeons()
+            .BuildCatalog();
+
+        var set = new GameCatalogProjection(catalog).Response.ArtifactSets.Single();
+
+        Assert.Equal(TestKeys.DungeonSetKey, set.Key);
+        Assert.Equal("Набір Ями", set.DisplayName);
+        Assert.Equal(1, set.Tier);
+        Assert.Equal(1.0, set.StatMultiplier);
+        Assert.Equal(["Attack", "Health"], set.FocusStats);
+        Assert.Equal(TestKeys.Dungeon, set.Dungeon?.Key);
+        Assert.Equal(1, set.Dungeon?.RequiresMainBuildingLevel);
+    }
+
+    /// <summary>Кожна рідкість — зі своїм бонусом і чотирма частинами; ключ збігається з SetKey предметів.</summary>
+    [Fact]
+    public void Response_ShouldListEveryRarityWithItsBonusAndPieces()
+    {
+        var catalog = new GameConfigBuilder().WithDungeons().BuildCatalog();
+
+        var set = new GameCatalogProjection(catalog).Response.ArtifactSets.Single();
+
+        Assert.Equal(["Common", "Rare", "Unique"], set.Rarities.Select(r => r.Rarity));
+
+        Assert.All(set.Rarities, rarity =>
+        {
+            Assert.Equal($"{TestKeys.DungeonSetKey}_{rarity.Rarity.ToLowerInvariant()}", rarity.SetKey);
+            Assert.Equal(4, rarity.RequiredPieces);
+            Assert.Equal(10, rarity.Bonus["Attack"]);
+            Assert.Equal(4, rarity.PieceKeys.Count);
+            Assert.All(rarity.PieceKeys, key => Assert.Equal(rarity.SetKey, catalog.FindItem(key)?.SetKey));
+        });
+    }
 }

@@ -13,6 +13,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Ключ родини; збігається з ArtifactSetKey данжу.</summary>
         public string Key { get; set; } = null!;
 
+        /// <summary>Назва для гравця: «Набір Світанку».</summary>
+        public string DisplayName { get; set; } = null!;
+
         /// <summary>Рівень набору від 1; індекс у ArtifactTierMultipliers — Tier − 1.</summary>
         public int Tier { get; set; } = 1;
 

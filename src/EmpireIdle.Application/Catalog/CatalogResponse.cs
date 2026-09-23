@@ -19,6 +19,7 @@
         IReadOnlyList<CatalogResource> Resources,
         IReadOnlyList<CatalogBuilding> Buildings,
         IReadOnlyList<CatalogUnit> Units,
+        IReadOnlyList<CatalogArtifactSet> ArtifactSets,
         IReadOnlyList<string> HeroClasses,
         int MaxConstellation,
         int MaxTier,
@@ -67,6 +68,37 @@
         IReadOnlyDictionary<string, double> BaseStats,
         string? SetKey,
         int PriceGold);
+
+    /// <summary>
+    /// Родина наборів артефактів — одна на данж, у трьох рідкостях.
+    /// Екран наборів малює її цілком: звідки падає, що дає й наскільки сильна.
+    /// </summary>
+    /// <param name="Tier">Рівень набору: вищий — сильніші стати.</param>
+    /// <param name="StatMultiplier">Множник статів за рівнем — те, що рівень означає в числах.</param>
+    /// <param name="FocusStats">Характерні стати: частіше випадають, і бонус набору в них.</param>
+    /// <param name="Dungeon">Данж, з якого падає набір; null — набір поза данжами.</param>
+    public record CatalogArtifactSet(
+        string Key,
+        string DisplayName,
+        int Tier,
+        double StatMultiplier,
+        IReadOnlyList<string> FocusStats,
+        CatalogSetSource? Dungeon,
+        IReadOnlyList<CatalogSetRarity> Rarities);
+
+    /// <param name="RequiresMainBuildingLevel">Рівень ратуші, з якого данж відкритий.</param>
+    public record CatalogSetSource(string Key, string DisplayName, int RequiresMainBuildingLevel);
+
+    /// <summary>Набір однієї рідкості: скільки частин треба вдягнути, що дає і з яких предметів складається.</summary>
+    /// <param name="Rarity">"Common", "Rare", "Unique" — як у CatalogItem.</param>
+    /// <param name="SetKey">Збігається з SetKey предметів цієї рідкості.</param>
+    /// <param name="PieceKeys">Ключі частин; назви — у Items.</param>
+    public record CatalogSetRarity(
+        string Rarity,
+        string SetKey,
+        int RequiredPieces,
+        IReadOnlyDictionary<string, double> Bonus,
+        IReadOnlyList<string> PieceKeys);
 
     public record CatalogResource(string Key, string DisplayName, string Icon);
 
