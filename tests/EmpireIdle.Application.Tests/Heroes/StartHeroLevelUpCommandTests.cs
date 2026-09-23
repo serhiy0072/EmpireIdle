@@ -137,6 +137,26 @@ public class StartHeroLevelUpCommandTests
         Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
     }
 
+    /// <summary>
+    /// Ратуша на апгрейді тримає свій поточний рівень: будівництво не
+    /// знімає стелю героя до нуля й не робить ратушу «відсутньою».
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldKeepTheCurrentCeiling_WhileTheTownHallIsUpgrading()
+    {
+        var village = GivenVillage(townHallLevel: 3);
+        village.Buildings.Single(b => b.Type == "townhall")
+            .BeginUpgrade(HeroTestConfig.Catalog().Buildings["townhall"], TimeSpan.FromHours(1), Now,
+                ProductionBoost.None, locationMultiplier: 1.0);
+        var hero = GivenHero(level: 1);
+
+        await Handler().Handle(new StartHeroLevelUpCommand(PlayerId, hero.Id), CancellationToken.None);
+
+        await _heroes.Received(1).AddOrderAsync(
+            Arg.Is<HeroLevelOrder>(o => o.HeroId == hero.Id && o.TargetLevel == 2),
+            Arg.Any<CancellationToken>());
+    }
+
     /// <summary>Тір стелить окремо: T1 не переступає десятий рівень.</summary>
     [Fact]
     public async Task Handle_ShouldReject_AtTheTierCeiling()
