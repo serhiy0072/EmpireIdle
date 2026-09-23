@@ -36,6 +36,7 @@ namespace EmpireIdle.Application.Dungeons.Contracts
     public record RewardLine(string Resource, int Amount);
 
     /// <summary>Поточний бій для клієнта: стан плюс журнал ходів, які ще не програні.</summary>
+    /// <param name="State">Ім'я DungeonRunState: InProgress, Won, Lost, TimedOut або Abandoned — клієнт розгалужується за ним.</param>
     public record DungeonRunView(
         Guid RunId,
         string DungeonKey,

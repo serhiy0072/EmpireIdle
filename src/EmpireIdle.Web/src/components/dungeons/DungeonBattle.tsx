@@ -19,6 +19,26 @@ const SPLASH_MS = 700;
 type Splash = { damage: number; healed: number; critical: boolean };
 
 /**
+ * Підсумок забігу за станом із сервера. Нічия окрема від поразки: команда
+ * жива, тож гравцеві треба пояснити, чому бій зупинено.
+ */
+type Outcome = { title: string; hint: string };
+
+const LOST: Outcome = {
+  title: "Команда полягла",
+  hint: "Енергію витрачено. Підніміть рівні героїв або візьміть інший склад.",
+};
+
+const OUTCOMES: Record<string, Outcome> = {
+  Won: { title: "Данж зачищено", hint: "Нагороду вже зараховано: ресурси в селі, артефакт в інвентарі." },
+  Lost: LOST,
+  TimedOut: {
+    title: "Бій затягнувся",
+    hint: "Хвилю не дограно за відведені раунди. Енергію витрачено. Візьміть склад із більшою шкодою.",
+  },
+};
+
+/**
  * Покроковий бій.
  *
  * Стан бою живе на сервері: клієнт лише показує його й надсилає ходи.
@@ -182,18 +202,13 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
 
   if (finished !== null) {
     const won = finished.state === "Won";
+    const outcome = OUTCOMES[finished.state] ?? LOST;
     const reward = finished.reward;
 
     return (
       <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className={`text-lg font-medium ${won ? "text-emerald-700" : "text-rose-700"}`}>
-          {won ? "Данж зачищено" : "Команда полягла"}
-        </h2>
-        <p className="text-sm text-slate-600">
-          {won
-            ? "Нагороду вже зараховано: ресурси в селі, артефакт в інвентарі."
-            : "Енергію витрачено. Підніміть рівні героїв або візьміть інший склад."}
-        </p>
+        <h2 className={`text-lg font-medium ${won ? "text-emerald-700" : "text-rose-700"}`}>{outcome.title}</h2>
+        <p className="text-sm text-slate-600">{outcome.hint}</p>
 
         {reward != null && (
           <div className="space-y-1 rounded-lg bg-slate-50 p-3 text-sm">

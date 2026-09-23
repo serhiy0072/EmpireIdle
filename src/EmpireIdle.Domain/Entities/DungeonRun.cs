@@ -65,6 +65,9 @@ namespace EmpireIdle.Domain.Entities
 
         public void Lose(string battle, DateTime utcNow) => Finish(DungeonRunState.Lost, battle, utcNow);
 
+        /// <summary>Нічия за стелею раундів: нагороди немає, слот забігу звільняється.</summary>
+        public void TimeOut(string battle, DateTime utcNow) => Finish(DungeonRunState.TimedOut, battle, utcNow);
+
         /// <summary>Гравець вийшов сам: енергія вже витрачена, нагороди немає.</summary>
         public void Abandon(DateTime utcNow) => Finish(DungeonRunState.Abandoned, Battle, utcNow);
 

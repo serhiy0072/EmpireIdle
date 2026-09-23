@@ -379,4 +379,20 @@ public class BattleEngineTests
 
         Assert.Equal(2, action.TargetIndex);
     }
+
+    // ---------- Стеля раундів ----------
+
+    /// <summary>Стеля перевіряється на старті нового раунду: MaxRoundsPerWave повних раундів дозволено, наступний — ні.</summary>
+    [Theory]
+    [InlineData(29, false)]
+    [InlineData(30, false)]
+    [InlineData(31, true)]
+    public void IsOutOfRounds_ShouldTripOnlyPastTheCeiling(int round, bool expected)
+    {
+        var config = Config();
+        config.MaxRoundsPerWave = 30;
+        var state = State(Hero(0), Enemy(1)) with { Round = round };
+
+        Assert.Equal(expected, Engine(config).IsOutOfRounds(state));
+    }
 }
