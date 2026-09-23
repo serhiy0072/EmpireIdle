@@ -15,16 +15,17 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Dungeons.Commands
 {
     /// <summary>
-    /// Один хід забігу.
+    /// Один хід забігу — рівно один, хоч в автобою, хоч уручну.
     ///
-    /// Один запит — один хід: саме тому перемкнутися між автобоєм і ручним
-    /// керуванням можна будь-якої миті, і сервер не має гадати, чи гравець
-    /// іще дивиться. Ходи ворогів та героїв в автобою рахуються тут само,
-    /// поки черга не дійде до героя під ручним керуванням.
+    /// Саме тому перемкнутися між режимами можна будь-якої миті: сервер не
+    /// дограє бій наперед, а гравець бачить кожен хід окремо. Ціна — запит
+    /// на хід; вона свідома, бо альтернатива (порахувати бій одним викликом)
+    /// вбиває і анімацію, і саме перемикання.
     /// </summary>
     /// <param name="Auto">
-    /// true — сервер грає бій сам до кінця. false — прокручує лише ходи ворогів
-    /// і зупиняється перед ходом героя; якщо передано дію, виконує саме її.
+    /// true — хід за поточного бійця обирає політика автобою. false — хід
+    /// ворога сервер грає сам, а перед ходом героя зупиняється й чекає на
+    /// AbilityKey з TargetIndex.
     /// </param>
     public record TakeDungeonTurnCommand(Guid PlayerId, Guid RunId, bool Auto, string? AbilityKey, int? TargetIndex)
         : IRequest<DungeonRunView>, IPlayerScopedRequest;
@@ -34,9 +35,6 @@ namespace EmpireIdle.Application.Dungeons.Commands
 
     internal sealed class TakeDungeonTurnCommandHandler : IRequestHandler<TakeDungeonTurnCommand, DungeonRunView>
     {
-        /// <summary>Стеля ходів на запит: захист від нескінченного циклу, а не ігрове правило.</summary>
-        private const int MaxTurnsPerRequest = 200;
-
         private readonly IDungeonRepository _dungeons;
         private readonly BattleEngine _engine;
         private readonly BattleBuilder _builder;
@@ -82,53 +80,37 @@ namespace EmpireIdle.Application.Dungeons.Commands
             var dungeon = _catalog.Dungeons.GetValueOrDefault(run.DungeonKey)
                 ?? throw new EntityNotFoundException("Dungeon", run.DungeonKey);
 
-            var state = BattleSerializer.Read(run.Battle);
+            var state = EnsureRound(BattleSerializer.Read(run.Battle));
             var turns = new List<TurnLog>();
 
-            // Дія гравця задана, якщо він назвав ціль або вміння; інакше запит
-            // у ручному режимі означає «прокрути ходи ворогів і зупинись»
-            var hasPlayerAction = !request.Auto && (request.TargetIndex is not null || request.AbilityKey is not null);
-
-            for (var guard = 0; guard < MaxTurnsPerRequest; guard++)
+            if (BattleEngine.CurrentActor(state) is { } actorIndex)
             {
-                state = EnsureRound(state);
-
-                if (BattleEngine.CurrentActor(state) is not { } actorIndex)
-                    break;
-
                 var actor = state.Combatants[actorIndex];
-                var heroTurn = actor.Side == BattleSide.Heroes;
+                var manual = actor.Side == BattleSide.Heroes && !request.Auto;
 
-                // Хід героя в ручному режимі належить гравцю: або виконуємо його
-                // дію, або зупиняємось і повертаємо керування
-                if (heroTurn && !request.Auto && !hasPlayerAction)
-                    break;
+                // Дія гравця задана, якщо він назвав ціль або вміння. Ручний
+                // запит без дії — це прохання зіграти хід ворога, тож коли
+                // черга вже на героєві, робити нема чого
+                var hasPlayerAction = request.TargetIndex is not null || request.AbilityKey is not null;
 
-                var abilities = heroTurn ? AbilitiesOf(actor.Key) : [];
-                var manual = heroTurn && !request.Auto;
-
-                var action = manual
-                    ? new BattleAction(request.AbilityKey, request.TargetIndex)
-                    : _engine.ChooseAuto(state, actorIndex, abilities);
-
-                var ability = Resolve(abilities, action.AbilityKey, actor, manual);
-
-                if (manual)
+                if (!manual || hasPlayerAction)
                 {
-                    ValidateManual(state, actor, ability, action);
+                    var abilities = actor.Side == BattleSide.Heroes ? AbilitiesOf(actor.Key) : [];
+
+                    var action = manual
+                        ? new BattleAction(request.AbilityKey, request.TargetIndex)
+                        : _engine.ChooseAuto(state, actorIndex, abilities);
+
+                    var ability = Resolve(abilities, action.AbilityKey, actor, manual);
+
+                    if (manual)
+                        ValidateManual(state, actor, ability, action);
+
+                    var result = _engine.Execute(state, actorIndex, action, ability);
+
+                    state = result.State;
+                    turns.Add(result.Log);
                 }
-
-                var result = _engine.Execute(state, actorIndex, action, ability);
-
-                state = result.State;
-                turns.Add(result.Log);
-
-                if (!state.EnemiesAlive || !state.HeroesAlive)
-                    break;
-
-                // Ручний режим після ходу героя віддає керування назад гравцю
-                if (manual)
-                    break;
             }
 
             // Хвиля скінчилась — або наступна, або кінець забігу

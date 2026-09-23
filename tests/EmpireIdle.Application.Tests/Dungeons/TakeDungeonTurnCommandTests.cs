@@ -17,9 +17,9 @@ namespace EmpireIdle.Application.Tests.Dungeons;
 /// <summary>
 /// Межа між автобоєм і ручним керуванням.
 ///
-/// Причина існування: запит із auto=true прокручує бій до кінця, тож у
-/// ручному режимі ходи ворогів довелося просити окремо — і зробити це
-/// так, щоб сервер зупинився перед ходом героя, а не догравав за гравця.
+/// Причина існування: щоб бій можна було дивитися й перемикати режим
+/// посеред нього, один запит має грати рівно один хід — і в автобою теж.
+/// Інакше перший же автоматичний запит дограє забіг до кінця.
 /// </summary>
 public class TakeDungeonTurnCommandTests
 {
@@ -103,7 +103,7 @@ public class TakeDungeonTurnCommandTests
     }
 
     [Fact]
-    public async Task Handle_ManualWithoutAction_ShouldPlayEnemiesAndStopBeforeHero()
+    public async Task Handle_ManualWithoutAction_ShouldPlayTheEnemyAndStopBeforeHero()
     {
         var handler = Handler(Battle());
 
@@ -133,7 +133,7 @@ public class TakeDungeonTurnCommandTests
     }
 
     [Fact]
-    public async Task Handle_Auto_ShouldPlayBothSides()
+    public async Task Handle_Auto_ShouldPlayExactlyOneTurn()
     {
         var handler = Handler(Battle());
 
@@ -141,7 +141,23 @@ public class TakeDungeonTurnCommandTests
             new TakeDungeonTurnCommand(PlayerId, RunId, Auto: true, AbilityKey: null, TargetIndex: null),
             CancellationToken.None);
 
-        Assert.Contains(result.Turns, t => t.ActorIndex == 0);
-        Assert.Contains(result.Turns, t => t.ActorIndex == 1);
+        // Хід зіграв лише ворог — герой лишився на черзі й дочекається
+        // наступного запиту, хай навіть уже в ручному режимі
+        Assert.Single(result.Turns);
+        Assert.Equal(1, result.Turns[0].ActorIndex);
+        Assert.Equal(0, result.ActorIndex);
+    }
+
+    [Fact]
+    public async Task Handle_ManualWithoutAction_OnAHeroTurn_ShouldChangeNothing()
+    {
+        var handler = Handler(Battle() with { Queue = [0] });
+
+        var result = await handler.Handle(
+            new TakeDungeonTurnCommand(PlayerId, RunId, Auto: false, AbilityKey: null, TargetIndex: null),
+            CancellationToken.None);
+
+        Assert.Empty(result.Turns);
+        Assert.Equal(0, result.ActorIndex);
     }
 }
