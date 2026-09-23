@@ -1,16 +1,6 @@
 import { isApiError } from "./problem";
 import { refusalText } from "./refusals";
-
-const RESOURCE_NAMES: Record<string, string> = {
-  gold: "золота",
-  wood: "деревини",
-  stone: "каменю",
-  iron: "заліза",
-  food: "їжі",
-  gems: "самоцвітів",
-  seals: "печаток призову",
-  "dungeon-energy": "енергії данжів",
-};
+import { resourceGenitive } from "./resourceNames";
 
 export interface ErrorMessage {
   text: string;
@@ -36,10 +26,8 @@ export function explainError(error: unknown): ErrorMessage {
   const shortfall = error.shortfall;
 
   if (shortfall !== null) {
-    const name = RESOURCE_NAMES[shortfall.resource] ?? shortfall.resource;
-
     return {
-      text: `Не вистачає ${name}: потрібно ${shortfall.need.toLocaleString("uk-UA")}, є ${shortfall.have.toLocaleString("uk-UA")}`,
+      text: `Не вистачає ${resourceGenitive(shortfall.resource)}: потрібно ${shortfall.need.toLocaleString("uk-UA")}, є ${shortfall.have.toLocaleString("uk-UA")}`,
       actionable: true,
     };
   }

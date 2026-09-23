@@ -5,6 +5,8 @@
  * контрактний тест на беку з RefusalReasons. Тип нижче виводиться з того
  * файлу, тож новий ключ без тексту тут не пройде typecheck.
  */
+import { resourceGenitive } from "./resourceNames";
+
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
 type RefusalArgs = Record<string, string | number>;
@@ -12,6 +14,19 @@ type RefusalArgs = Record<string, string | number>;
 const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   // ---------- Спільні ----------
   "common.buildingRequired": ({ building }) => `Потрібна будівля «${building}»`,
+
+  // ---------- Село й будівлі ----------
+  "village.storageFull": ({ resource }) =>
+    `Склад ${resourceGenitive(String(resource))} заповнений — витратьте частину, перш ніж збирати`,
+  "village.alreadyThere": () => "Поселення вже стоїть на цій клітинці",
+  "building.serverCeiling": ({ serverLevel, ceiling }) =>
+    `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
+  "building.townHallCeiling": ({ building, level }) =>
+    `«${building}» не може бути вищою за ратушу (${level} рівень) — спершу підніміть ратушу`,
+  "building.villageLagging": ({ level, buildings }) =>
+    `Перш ніж ратуша перейде на новий тір, підтягніть до ${level} рівня: ${buildings}`,
+  "building.underConstruction": () => "Ця будівля вже будується",
+  "building.alreadyCompleted": () => "Будівництво вже завершено",
 
   // ---------- Герої ----------
   "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",

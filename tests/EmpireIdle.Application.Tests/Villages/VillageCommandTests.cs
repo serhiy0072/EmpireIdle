@@ -228,8 +228,9 @@ public class VillageCommandTests
         var village = GivenVillage(food: 10_000, accruedMinutes: 0, townhallLevel: 1);
         var farm = village.Buildings.Single(b => b.Type == "farm");
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             UpgradeHandler().Handle(new UpgradeBuildingCommand(PlayerId, farm.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingTownHallCeiling.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -242,8 +243,9 @@ public class VillageCommandTests
         var village = GivenVillage(serverLevel: 1, food: 1_000_000, accruedMinutes: 0, townhallLevel: 10);
         var townhall = village.Buildings.Single(b => b.Type == "townhall");
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             UpgradeHandler().Handle(new UpgradeBuildingCommand(PlayerId, townhall.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingServerCeiling.Key, refusal.Reason);
     }
 
     /// <summary>Нестача ресурсів не лишає будівлю в напівстані.</summary>

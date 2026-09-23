@@ -203,8 +203,8 @@ namespace EmpireIdle.Domain.Entities
             var free = storageCap - (resource?.Amount ?? 0);
 
             if (free <= 0)
-                throw new RequirementNotMetException(
-                    $"Storage for '{config.ProducesResource}' is full: spend before collecting.");
+                throw new RequirementNotMetException(RefusalReasons.VillageStorageFull,
+                    $"Storage for '{config.ProducesResource}' is full: spend before collecting.", config.ProducesResource);
 
             var collected = building.Collect(config, utcNow, boost, locationMultiplier);
             if (collected == 0)
@@ -371,7 +371,7 @@ namespace EmpireIdle.Domain.Entities
         public void RelocateTo(int x, int y, DateTime utcNow)
         {
             if (X == x && Y == y)
-                throw new RequirementNotMetException("The village is already on that cell.");
+                throw new RequirementNotMetException(RefusalReasons.VillageAlreadyThere, "The village is already on that cell.");
 
             X = x;
             Y = y;
@@ -407,16 +407,17 @@ namespace EmpireIdle.Domain.Entities
             // A
             var ceiling = serverLevel * levelsPerTier;
             if (targetLevel > ceiling)
-                throw new RequirementNotMetException(
-                    $"Server level {serverLevel} allows buildings up to level {ceiling}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingServerCeiling,
+                    $"Server level {serverLevel} allows buildings up to level {ceiling}.", serverLevel, ceiling);
 
             var townhall = _buildings.FirstOrDefault(b => b.Type == mainBuildingKey)
                 ?? throw new InvalidOperationException($"Village {Id} has no '{mainBuildingKey}'.");
 
             // C
             if (!isMainBuilding && targetLevel > townhall.Level.Value)
-                throw new RequirementNotMetException(
-                    $"'{building.Type}' cannot exceed main building level {townhall.Level.Value}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingTownHallCeiling,
+                    $"'{building.Type}' cannot exceed main building level {townhall.Level.Value}.",
+                    config.DisplayName, townhall.Level.Value);
 
             // B — лише на межі тіру
             if (!isMainBuilding || building.Level.Value % levelsPerTier != 0)
@@ -433,8 +434,9 @@ namespace EmpireIdle.Domain.Entities
                 .ToList();
 
             if (lagging.Count > 0)
-                throw new RequirementNotMetException(
-                    $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.");
+                throw new RequirementNotMetException(RefusalReasons.BuildingVillageLagging,
+                    $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.",
+                    required, string.Join(", ", lagging.Select(type => buildingConfigs[type].DisplayName)));
         }
 
         #endregion

@@ -37,6 +37,27 @@
         /// <summary>Дія вимагає добудованої будівлі; building — її назва для гравця.</summary>
         public static readonly RefusalReason BuildingRequired = new("common.buildingRequired", "building");
 
+        // ---------- Село й будівлі ----------
+
+        /// <summary>resource — ключ ресурсу: назву в потрібному відмінку підставляє клієнт.</summary>
+        public static readonly RefusalReason VillageStorageFull = new("village.storageFull", "resource");
+
+        public static readonly RefusalReason VillageAlreadyThere = new("village.alreadyThere");
+
+        /// <summary>Правило A: стеля будівель від рівня світу.</summary>
+        public static readonly RefusalReason BuildingServerCeiling = new("building.serverCeiling", "serverLevel", "ceiling");
+
+        /// <summary>Правило C: будівля не переростає ратушу.</summary>
+        public static readonly RefusalReason BuildingTownHallCeiling = new("building.townHallCeiling", "building", "level");
+
+        /// <summary>Правило B: ратуша не переходить тір, поки відкриті будівлі відстають; buildings — їхні назви через кому.</summary>
+        public static readonly RefusalReason BuildingVillageLagging = new("building.villageLagging", "level", "buildings");
+
+        public static readonly RefusalReason BuildingUnderConstruction = new("building.underConstruction");
+
+        /// <summary>Прискорення прийшло, коли таймер уже добіг кінця.</summary>
+        public static readonly RefusalReason BuildingAlreadyCompleted = new("building.alreadyCompleted");
+
         // ---------- Герої ----------
 
         public static readonly RefusalReason HeroOnTheMove = new("hero.onTheMove");

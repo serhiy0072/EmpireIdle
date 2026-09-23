@@ -213,8 +213,9 @@ public class BuildingTests
 
         building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None, locationMultiplier: 1.0);
 
-        Assert.Throws<InvalidStateException>(() =>
+        var refusal = Assert.Throws<InvalidStateException>(() =>
             building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), now, ProductionBoost.None, locationMultiplier: 1.0));
+        Assert.Equal(RefusalReasons.BuildingUnderConstruction.Key, refusal.Reason);
     }
 
     /// <summary>

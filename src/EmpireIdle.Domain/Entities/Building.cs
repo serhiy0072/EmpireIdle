@@ -134,7 +134,7 @@ namespace EmpireIdle.Domain.Entities
             double locationMultiplier)
         {
             if (IsUnderConstruction)
-                throw new InvalidStateException($"Building {Id} is already under construction.");
+                throw new InvalidStateException(RefusalReasons.BuildingUnderConstruction, $"Building {Id} is already under construction.");
 
             // Банкуємо вироблене ДО зупинки: під час будівництва виробництва немає,
             // і без цього накопичене за попередній період загубилось би
