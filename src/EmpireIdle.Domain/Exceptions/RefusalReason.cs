@@ -80,6 +80,27 @@
         /// <summary>Прискорення прийшло, коли таймер уже добіг кінця.</summary>
         public static readonly RefusalReason BuildingAlreadyCompleted = new("building.alreadyCompleted");
 
+        // ---------- Інвентар, банери, квести, крамниця ----------
+
+        /// <summary>until — UTC у форматі ISO 8601.</summary>
+        public static readonly RefusalReason ItemStrongerBoostActive = new("item.strongerBoostActive", "multiplier", "until");
+
+        public static readonly RefusalReason TeleportOutsideRegion = new("teleport.outsideRegion");
+
+        public static readonly RefusalReason TeleportCellUnsuitable = new("teleport.cellUnsuitable");
+
+        public static readonly RefusalReason TeleportCellOccupied = new("teleport.cellOccupied");
+
+        /// <summary>startsAt — UTC у форматі ISO 8601.</summary>
+        public static readonly RefusalReason BannerNotOpen = new("banner.notOpen", "startsAt");
+
+        public static readonly RefusalReason BannerClosed = new("banner.closed");
+
+        /// <summary>Квест не завершений або нагороду вже забрали — подвійний клік чи застарілий екран.</summary>
+        public static readonly RefusalReason QuestNotClaimable = new("quest.notClaimable");
+
+        public static readonly RefusalReason ShopMaxPerPurchase = new("shop.maxPerPurchase", "max");
+
         // ---------- Клани ----------
 
         /// <summary>Гравець не в клані — найчастіше його щойно вигнали, поки екран був відкритий.</summary>

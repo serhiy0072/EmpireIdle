@@ -70,7 +70,9 @@ namespace EmpireIdle.Application.Inventory.Effects
             }
 
             if (config.Multiplier <= existing.Multiplier)
-                throw new InvalidStateException($"A stronger {target} boost (×{existing.Multiplier}) is already active until {existing.ExpiresAt:u}.");
+                throw new InvalidStateException(RefusalReasons.ItemStrongerBoostActive,
+                    $"A stronger {target} boost (×{existing.Multiplier}) is already active until {existing.ExpiresAt:u}.",
+                    existing.Multiplier, DateTime.SpecifyKind(existing.ExpiresAt, DateTimeKind.Utc).ToString("O"));
 
             if (target == EffectTarget.Production)
                 await MaterializeProductionAsync(context, existing, cancellationToken);

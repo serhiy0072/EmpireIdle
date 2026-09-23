@@ -70,13 +70,13 @@ namespace EmpireIdle.Application.Inventory.Effects
             var serverLevel = await _serverRepository.GetLevelAsync(serverId, cancellationToken);
 
             if (!_geometry.IsWithinFog(x, y, serverLevel))
-                throw new RequirementNotMetException("That cell is beyond the settled region.");
+                throw new RequirementNotMetException(RefusalReasons.TeleportOutsideRegion, "That cell is beyond the settled region.");
 
             if (!_terrain.IsHabitable(serverId, x, y))
-                throw new RequirementNotMetException("That cell cannot hold a settlement.");
+                throw new RequirementNotMetException(RefusalReasons.TeleportCellUnsuitable, "That cell cannot hold a settlement.");
 
             if (await _mapRepository.IsOccupiedAsync(serverId, x, y, cancellationToken))
-                throw new AlreadyExistsException("Map cell", $"({x},{y})");
+                throw new AlreadyExistsException(RefusalReasons.TeleportCellOccupied, "Map cell", $"({x},{y})");
 
             // Фіксуємо буфери ДО зміни координат: множник кільця залежить від
             // позиції, і накопичене на околиці порахувалось би за новим

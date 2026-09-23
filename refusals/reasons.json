@@ -2,6 +2,10 @@
   "auth.registrationRejected": [
     "codes"
   ],
+  "banner.closed": [],
+  "banner.notOpen": [
+    "startsAt"
+  ],
   "building.alreadyCompleted": [],
   "building.serverCeiling": [
     "serverLevel",
@@ -116,6 +120,10 @@
     "required",
     "current"
   ],
+  "item.strongerBoostActive": [
+    "multiplier",
+    "until"
+  ],
   "march.capacity": [
     "capacity"
   ],
@@ -128,6 +136,7 @@
     "level"
   ],
   "march.targetShielded": [],
+  "quest.notClaimable": [],
   "reinforce.clanmatesOnly": [],
   "reinforce.embassyFull": [
     "free",
@@ -137,6 +146,12 @@
     "level"
   ],
   "reinforce.targetShielded": [],
+  "shop.maxPerPurchase": [
+    "max"
+  ],
+  "teleport.cellOccupied": [],
+  "teleport.cellUnsuitable": [],
+  "teleport.outsideRegion": [],
   "village.alreadyThere": [],
   "village.storageFull": [
     "resource"

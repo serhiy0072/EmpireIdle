@@ -204,7 +204,8 @@ public class RollBannerCommandTests
     {
         _wallet.AddSeals(100, "test", Now);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(), currency: BannerCurrency.Seals));
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(), currency: BannerCurrency.Seals));
+        Assert.Null(refusal.Reason);
 
         Assert.Equal(100, _wallet.SealBalance);
     }
@@ -233,13 +234,19 @@ public class RollBannerCommandTests
     [Fact]
     public async Task Handle_ShouldReject_AClosedBanner()
     {
-        await Assert.ThrowsAsync<RequirementNotMetException>(
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(
             () => Roll(Banner(endsAt: Now.AddDays(-1))));
+        Assert.Equal(RefusalReasons.BannerClosed.Key, refusal.Reason);
 
         Assert.Equal(1_000, _wallet.GemBalance.Value);
     }
 
     [Fact]
     public async Task Handle_ShouldReject_ABannerThatHasNotOpened()
-        => await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(startsAt: Now.AddDays(1))));
+    {
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(startsAt: Now.AddDays(1))));
+
+        Assert.Equal(RefusalReasons.BannerNotOpen.Key, refusal.Reason);
+        Assert.False(string.IsNullOrEmpty(refusal.Args["startsAt"] as string));
+    }
 }

@@ -27,6 +27,11 @@ const REGISTRATION_CODES: Record<string, string> = {
   PasswordRequiresNonAlphanumeric: "у паролі має бути символ, що не є літерою чи цифрою",
 };
 
+/** Момент UTC з сервера (ISO 8601) — у місцевому часі гравця. */
+function localTime(value: string | number | undefined): string {
+  return new Date(String(value)).toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" });
+}
+
 function registrationText(codes: string): string {
   const known = codes.split(",").flatMap((code) => {
     const text = REGISTRATION_CODES[code];
@@ -69,6 +74,17 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "building.underConstruction": () => "Ця будівля вже будується",
   "building.alreadyCompleted": () => "Будівництво вже завершено",
 
+  // ---------- Інвентар, банери, квести, крамниця ----------
+  "item.strongerBoostActive": ({ multiplier, until }) =>
+    `Уже діє сильніший прискорювач ×${multiplier} до ${localTime(until)} — цей не спрацює`,
+  "teleport.outsideRegion": () => "Ця клітинка поза освоєною зоною світу",
+  "teleport.cellUnsuitable": () => "На цій клітинці не можна заснувати поселення",
+  "teleport.cellOccupied": () => "Ця клітинка вже зайнята",
+  "banner.notOpen": ({ startsAt }) => `Банер відкриється ${localTime(startsAt)}`,
+  "banner.closed": () => "Цей банер уже закрито",
+  "quest.notClaimable": () => "Нагороду за цей квест зараз не можна забрати — можливо, вже забрано",
+  "shop.maxPerPurchase": ({ max }) => `За одну покупку — не більше ${max} шт.`,
+
   // ---------- Клани ----------
   "clan.notMember": () => "Ви вже не в клані — оновіть сторінку",
   "clan.alreadyInClan": () => "Ви вже в клані — спершу вийдіть із нього",
@@ -76,8 +92,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "clan.full": ({ capacity }) => `У клані вже ${capacity} учасників — місць немає`,
   "clan.inviteOnly": () => "Цей клан приймає лише за запрошенням",
   "clan.alreadyApplied": () => "Ваша заявка до цього клану ще розглядається",
-  "clan.applyCooldown": ({ retryAt }) =>
-    `Повторну заявку можна подати після ${new Date(String(retryAt)).toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" })}`,
+  "clan.applyCooldown": ({ retryAt }) => `Повторну заявку можна подати після ${localTime(retryAt)}`,
   "clan.targetInClan": () => "Цей гравець уже в клані",
   "clan.alreadyInvited": () => "Цього гравця вже запрошено — дочекайтеся відповіді",
   "clan.applicantJoinedElsewhere": () => "Гравець уже вступив до іншого клану",
