@@ -26,6 +26,12 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Повідомити гравця про запрошення в клан.</summary>
         Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag, DateTime expiresAt, CancellationToken cancellationToken = default);
 
+        /// <summary>У скриньці гравця новий лист — клієнт лише підсвічує, зміст читає запитом.</summary>
+        Task NotifyMailAsync(Guid playerId, string kind, CancellationToken cancellationToken = default);
+
+        /// <summary>Нове оголошення світу — усім гравцям світу, що зараз онлайн.</summary>
+        Task NotifyAnnouncementAsync(int serverId, CancellationToken cancellationToken = default);
+
         /// <summary>Нове повідомлення серверного чату — усім гравцям світу, що зараз онлайн.</summary>
         Task NotifyChatToServerAsync(int serverId, Chat.Contracts.ChatMessageNotice notice, CancellationToken cancellationToken = default);
 

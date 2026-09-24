@@ -19,6 +19,12 @@ namespace EmpireIdle.API.Hubs.Events
     public record ClanInviteEvent(Guid RequestId, Guid ClanId, string ClanName, string ClanTag, DateTime ExpiresAt);
 
     /// <summary>
+    /// У скриньці нове: лист гравцеві (Kind — тип листа) або оголошення світу
+    /// (Kind = "Announcement"). Клієнт перечитує скриньку й лічильник.
+    /// </summary>
+    public record MailReceivedEvent(string Kind);
+
+    /// <summary>
     /// Нове повідомлення чату. Translations — переклади на мови світу:
     /// хаб не знає мови кожного отримувача, клієнт бере свою.
     /// </summary>

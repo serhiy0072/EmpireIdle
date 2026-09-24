@@ -57,6 +57,14 @@ namespace EmpireIdle.API.Hubs
             => Player(playerId).ClanInvite(new ClanInviteEvent(requestId, clanId, clanName, clanTag, expiresAt));
 
         /// <inheritdoc/>
+        public Task NotifyMailAsync(Guid playerId, string kind, CancellationToken cancellationToken = default)
+            => Player(playerId).MailReceived(new MailReceivedEvent(kind));
+
+        /// <inheritdoc/>
+        public Task NotifyAnnouncementAsync(int serverId, CancellationToken cancellationToken = default)
+            => _hubContext.Clients.Group(GameHub.ServerGroup(serverId)).MailReceived(new MailReceivedEvent("Announcement"));
+
+        /// <inheritdoc/>
         public Task NotifyChatToServerAsync(int serverId, ChatMessageNotice notice, CancellationToken cancellationToken = default)
             => _hubContext.Clients.Group(GameHub.ServerGroup(serverId)).ChatMessage(ToEvent(notice));
 
