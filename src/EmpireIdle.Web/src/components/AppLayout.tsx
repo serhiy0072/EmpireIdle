@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { to: "/forge", label: "Кузня" },
   { to: "/banners", label: "Банери" },
   { to: "/shop", label: "Крамниця" },
+  { to: "/market", label: "Ринок" },
   { to: "/clan", label: "Клан" },
   { to: "/map", label: "Мапа" },
   { to: "/quests", label: "Квести" },

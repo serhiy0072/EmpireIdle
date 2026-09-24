@@ -12,6 +12,7 @@ import HeroesPage from "../pages/HeroesPage";
 import InventoryPage from "../pages/InventoryPage";
 import LoginPage from "../pages/LoginPage";
 import MapPage from "../pages/MapPage";
+import MarketPage from "../pages/MarketPage";
 import QuestsPage from "../pages/QuestsPage";
 import RatingPage from "../pages/RatingPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -47,6 +48,7 @@ export default function AppRoutes() {
             <Route path="/banners" element={<BannersPage />} />
             <Route path="/clan" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/market" element={<MarketPage />} />
             <Route path="/rating" element={<RatingPage />} />
             <Route path="/quests" element={<QuestsPage />} />
             <Route path="/map" element={<MapPage />} />
