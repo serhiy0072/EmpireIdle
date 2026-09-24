@@ -42,7 +42,8 @@ builder.Configuration
     .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: true);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -72,6 +73,13 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
     .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")
     .Validate(c => c.Equipment.ArtifactTierMultipliers.All(m => m > 0), "GameConfig.Equipment.ArtifactTierMultipliers must be positive — otherwise higher-tier artifacts roll zero stats.")
+    .Validate(c => c.Market.ListingTaxShare is >= 0 and < 1, "GameConfig.Market.ListingTaxShare must be within [0; 1) — a tax of the whole price leaves the seller nothing.")
+    .Validate(c => c.Market.ListingHours > 0 && c.Market.MedianWindowHours > 0 && c.Market.ResaleCooldownHours >= 0, "GameConfig.Market hours must be positive (the resale cooldown may be zero).")
+    .Validate(c => c.Market.BaseListings >= 1 && c.Market.ListingsPerBuildingLevel >= 0, "GameConfig.Market must allow at least one listing.")
+    .Validate(c => c.Market.CorridorShare is > 0 and < 1, "GameConfig.Market.CorridorShare must be within (0; 1) — otherwise the corridor is empty or allows free giveaways.")
+    .Validate(c => c.Market.MinSalesForMedian >= 1 && c.Market.OutlierTrimShare is >= 0 and < 0.5, "GameConfig.Market needs at least one sale for a median and must trim less than half of the sales on each side.")
+    .Validate(c => c.Market.MedianMinAnchorShare is > 0 and <= 1 && c.Market.MedianMaxAnchorShare >= 1, "GameConfig.Market anchor band must contain the anchor itself: MedianMinAnchorShare ≤ 1 ≤ MedianMaxAnchorShare.")
+    .Validate(c => c.Market.GoldPerGem > 0 && c.Market.GoldPerPower.Values.All(v => v > 0), "GameConfig.Market anchors must be positive.")
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
     .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
     .ValidateOnStart();

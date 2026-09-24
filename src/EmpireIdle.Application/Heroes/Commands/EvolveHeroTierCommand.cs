@@ -64,6 +64,9 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (hero.State == HeroState.Deployed)
                 throw new InvalidStateException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on a march and cannot evolve.");
 
+            if (hero.State == HeroState.OnMarket)
+                throw new InvalidStateException(RefusalReasons.HeroOnMarket, $"Hero {hero.Id} is on the market and cannot evolve.");
+
             // Стеля тіру — окремо й раніше за гейт світу: CanEvolve відмовляє на обох,
             // і гравець на найвищому тірі чув би «чекайте рівня світу», якого не буде
             if (hero.Tier >= settings.MaxTier)

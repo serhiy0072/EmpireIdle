@@ -111,6 +111,7 @@
     "need",
     "have"
   ],
+  "hero.onMarket": [],
   "hero.onTheMove": [],
   "hero.trainingBusy": [],
   "hero.worldLevelRequired": [
@@ -133,6 +134,35 @@
     "level"
   ],
   "march.targetShielded": [],
+  "market.heroAlreadyOwned": [
+    "hero"
+  ],
+  "market.heroBusy": [],
+  "market.heroTraining": [],
+  "market.itemListed": [],
+  "market.listingClosed": [],
+  "market.listingLimit": [
+    "limit"
+  ],
+  "market.locked": [
+    "level"
+  ],
+  "market.notEnoughItems": [
+    "item",
+    "need",
+    "have"
+  ],
+  "market.notTradeable": [
+    "item"
+  ],
+  "market.ownListing": [],
+  "market.priceOutOfCorridor": [
+    "min",
+    "max"
+  ],
+  "market.resaleCooldown": [
+    "until"
+  ],
   "quest.notClaimable": [],
   "reinforce.clanmatesOnly": [],
   "reinforce.embassyFull": [

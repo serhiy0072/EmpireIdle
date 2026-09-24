@@ -27,9 +27,9 @@ namespace EmpireIdle.Domain.Combat
         /// <summary>Бонуси, які цей герой дає своєму стеку.</summary>
         public StackBuff For(Hero? hero)
         {
-            // Бонус гасить лише поранення. Deployed — звичайний стан героя, що веде марш,
+            // Бонус гасить поранення й ринок. Deployed — звичайний стан героя, що веде марш,
             // і саме в ньому він б'ється; IsAvailable тут хибний критерій
-            if (hero is null || hero.State == HeroState.Wounded)
+            if (hero is null || hero.State is HeroState.Wounded or HeroState.OnMarket)
                 return StackBuff.None;
 
             if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Passives.Count == 0)
