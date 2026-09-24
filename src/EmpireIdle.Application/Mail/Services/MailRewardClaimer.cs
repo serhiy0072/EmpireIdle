@@ -20,9 +20,11 @@ namespace EmpireIdle.Application.Mail.Services
         {
             var rewards = letter.Claim(utcNow);
 
+            // Лист показує точну нагороду й позначається отриманим —
+            // повний склад не має тихо її з'їсти
             await _dispatcher.GrantAllAsync(letter.PlayerId,
                 rewards.Select(r => new RewardConfig { Type = r.Type, Key = r.Key, Amount = r.Amount }),
-                $"mail:{letter.Id}", utcNow, cancellationToken);
+                $"mail:{letter.Id}", utcNow, cancellationToken, ignoreStorageCap: true);
 
             return rewards.Select(r => new MailRewardView(r.Type, r.Key, r.Amount)).ToList();
         }
