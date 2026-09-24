@@ -16,15 +16,16 @@ namespace EmpireIdle.Application.Rewards
         }
 
         /// <summary>Видає весь набір нагород. Будь-яка невідома — виняток до збереження.</summary>
+        /// <param name="ignoreStorageCap">Ресурси лягають понад місткість складів (див. <see cref="RewardContext"/>).</param>
         public async Task GrantAllAsync(Guid playerId, IEnumerable<RewardConfig> rewards, string reference,
-            DateTime utcNow, CancellationToken cancellationToken)
+            DateTime utcNow, CancellationToken cancellationToken, bool ignoreStorageCap = false)
         {
             foreach (var reward in rewards)
             {
                 if (!_granters.TryGetValue(reward.Type, out var granter))
                     throw new InvalidOperationException($"Reward type '{reward.Type}' is not supported.");
 
-                await granter.GrantAsync(new RewardContext(playerId, reward, reference, utcNow), cancellationToken);
+                await granter.GrantAsync(new RewardContext(playerId, reward, reference, utcNow, ignoreStorageCap), cancellationToken);
             }
         }
     }
