@@ -98,6 +98,8 @@ Committed contracts: `openapi/v1.json` (HTTP API), `realtime/events.json` (Signa
 
 **Social and progression.** Clans with roles and permissions, applications and invites, help with timers, reinforcements; daily, chain and server quests; a guided onboarding.
 
+**Chat and languages.** Server, clan and private chat over SignalR with anti-spam; clan recipients are read from the database at delivery, not from hub groups. Messages remember the sender's language and are translated once per language through a pluggable translator (none by default). Config names ship in Ukrainian with per-language overrides, and the catalog is served in the player's language.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -181,6 +183,7 @@ Errors are `ProblemDetails` with a stable `errorCode`; refusals a player can hit
 | `clan-leadership` | daily | Hand clan leadership over from inactive leaders |
 | `market-expiry` | every minute | Close expired market listings and return the goods |
 | `market-prices` | hourly | Recalculate the market median snapshots |
+| `chat-retention` | daily | Delete chat history older than the retention window |
 
 ## 🗺️ Roadmap
 
@@ -196,7 +199,8 @@ Errors are `ProblemDetails` with a stable `errorCode`; refusals a player can hit
 - [x] Game UI (React) for every main screen, onboarding
 - [x] Turn-based dungeons
 - [x] Player market with a price corridor
+- [x] Chat, player language and localized catalog
 - [ ] Balance pass (numbers in the configs are placeholders)
-- [ ] Chat, mailbox, auction
+- [ ] Mailbox, auction, machine translation provider, UI string dictionaries
 - [ ] Clan territory, city fall and shields
 - [ ] Docker + deployment
