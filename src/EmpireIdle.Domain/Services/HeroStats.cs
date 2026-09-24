@@ -53,6 +53,21 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
+        /// Сила героя без спорядження: сума власних статів від рівня й тіру.
+        /// Окремо від Compute, бо і рейтинг, і ринок оцінюють героя без того,
+        /// що на ньому вдягнено, — екіп живе своїм життям і продається окремо.
+        /// </summary>
+        public double Power(Hero hero, HeroConfig config)
+            => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.Level, hero.Tier));
+
+        /// <summary>
+        /// Сила предмета: сума його статів із заточкою. Зламаний дає нуль —
+        /// так само, як на герої, де він не додає нічого.
+        /// </summary>
+        public double Power(EquipmentItem item)
+            => item.Stats.Sum(stat => item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.EnhancementBonusPerLevel));
+
+        /// <summary>
         /// Бонуси за повні набори. Зламане не рахується: воно не дає й
         /// власних статів, тож і комплект ним не закривається.
         /// </summary>
