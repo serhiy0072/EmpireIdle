@@ -62,6 +62,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Мови інтерфейсу й мова за замовчуванням.</summary>
         public LocalizationConfig Localization { get; set; } = new();
 
+        /// <summary>Переклади назв з конфігів за мовою; мова за замовчуванням їх не потребує.</summary>
+        public Dictionary<string, LocaleConfig> Locales { get; set; } = new();
+
         /// <summary>Усі типи предметів інвентаря.</summary>
         public List<ItemConfig> Items { get; set; } = new();
 

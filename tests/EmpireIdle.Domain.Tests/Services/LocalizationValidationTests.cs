@@ -29,6 +29,25 @@ public class LocalizationValidationTests
         => Assert.Contains("Russian", Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(Config(l =>
             l.Languages = ["uk", russian]))).Message);
 
+    /// <summary>Переклад неіснуючого ключа тихо нічого б не перекладав — приховав би друкарську помилку.</summary>
+    [Fact]
+    public void Validate_ShouldRejectALocaleNameForAnUnknownKey()
+    {
+        var config = Config(l => l.Languages = ["uk", "en"]);
+        config.Locales["en"] = new LocaleConfig { Names = new Dictionary<string, string> { ["building.nowhere"] = "Nowhere" } };
+
+        Assert.Contains("building.nowhere", Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config)).Message);
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectALocaleForAnUnsupportedLanguage()
+    {
+        var config = Config(l => l.Languages = ["uk"]);
+        config.Locales["de"] = new LocaleConfig();
+
+        Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+    }
+
     [Fact]
     public void Validate_ShouldRejectADefaultOutsideTheList()
         => Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(Config(l =>

@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using EmpireIdle.Domain.Enums;
@@ -15,23 +16,46 @@ namespace EmpireIdle.Application.Catalog
     /// </summary>
     public class GameCatalogProjection
     {
-        private readonly Lazy<CatalogResponse> _response;
+        private readonly GameCatalog _catalog;
+
+        /// <summary>Готова відповідь на кожну мову: будується раз, при першому запиті цією мовою.</summary>
+        private readonly ConcurrentDictionary<string, CatalogResponse> _byLanguage = new();
 
         public GameCatalogProjection(GameCatalog catalog)
         {
-            _response = new Lazy<CatalogResponse>(() => Build(catalog));
+            _catalog = catalog;
         }
 
-        public CatalogResponse Response => _response.Value;
+        /// <summary>Каталог мовою за замовчуванням — мовою самих конфігів.</summary>
+        public CatalogResponse Response => ResponseFor(null);
 
-        private static CatalogResponse Build(GameCatalog catalog)
+        /// <summary>
+        /// Каталог заданою мовою. Непідтримувана чи порожня мова — мова за
+        /// замовчуванням: гравець бачить назви, а не помилку.
+        /// </summary>
+        public CatalogResponse ResponseFor(string? language)
+        {
+            var localization = _catalog.Config.Localization;
+
+            var resolved = language is not null && localization.SupportedLanguages.Contains(language)
+                ? language
+                : localization.DefaultLanguage;
+
+            return _byLanguage.GetOrAdd(resolved, lang => Build(_catalog, lang));
+        }
+
+        private static CatalogResponse Build(GameCatalog catalog, string language)
         {
             var config = catalog.Config;
+            var names = config.Locales.GetValueOrDefault(language)?.Names ?? new Dictionary<string, string>();
+
+            // Переклад поверх назви з конфіга; чого в локалі немає — показується як є
+            string Name(string section, string key, string fallback) => names.GetValueOrDefault($"{section}.{key}", fallback);
 
             var heroes = config.Heroes
                 .Select(hero => new CatalogHero(
                     hero.Key,
-                    hero.DisplayName,
+                    Name("hero", hero.Key, hero.DisplayName),
                     hero.Class,
                     hero.Rank.ToString(),
                     hero.Description,
@@ -55,7 +79,7 @@ namespace EmpireIdle.Application.Catalog
             var items = config.Items
                 .Select(item => new CatalogItem(
                     item.Key,
-                    item.DisplayName,
+                    Name("item", item.Key, item.DisplayName),
                     item.Description,
                     item.Rarity.ToString(),
                     item.Type,
@@ -69,13 +93,13 @@ namespace EmpireIdle.Application.Catalog
                 .ToList();
 
             var resources = config.Resources
-                .Select(resource => new CatalogResource(resource.Key, resource.DisplayName, resource.Icon))
+                .Select(resource => new CatalogResource(resource.Key, Name("resource", resource.Key, resource.DisplayName), resource.Icon))
                 .ToList();
 
             var buildings = config.Buildings
                 .Select(building => new CatalogBuilding(
                     building.Key,
-                    building.DisplayName,
+                    Name("building", building.Key, building.DisplayName),
                     building.ProducesResource,
                     building.Position is null ? null : new CatalogPosition(building.Position.X, building.Position.Y),
                     building.RequiresMainBuildingLevel))
@@ -84,7 +108,7 @@ namespace EmpireIdle.Application.Catalog
             var units = config.Units
                 .Select(unit => new CatalogUnit(
                     unit.Key,
-                    unit.DisplayName,
+                    Name("unit", unit.Key, unit.DisplayName),
                     unit.RequiresBuilding,
                     unit.RequiresBuildingLevel,
                     unit.BaseTrainMinutes,
@@ -98,18 +122,21 @@ namespace EmpireIdle.Application.Catalog
                 resources,
                 buildings,
                 units,
-                ArtifactSets(config),
+                ArtifactSets(config, Name),
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxConstellation,
                 config.HeroSettings.MaxTier,
                 config.MaxUnitLevel,
                 config.Monetization.HealGemsPerUnit,
-                config.Equipment.ArtifactSlots.Select(slot => new CatalogArtifactSlot(slot.Key, slot.DisplayName)).ToList(),
+                config.Equipment.ArtifactSlots
+                    .Select(slot => new CatalogArtifactSlot(slot.Key, Name("artifactSlot", slot.Key, slot.DisplayName)))
+                    .ToList(),
                 config.Equipment.MaxEnhancement,
                 config.Equipment.RepairGemsBase,
                 config.Equipment.RepairGemsPerLevel,
                 config.Map.Width,
                 catalog.MainBuildingKey,
+                language,
                 Version: string.Empty);
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag
@@ -120,7 +147,7 @@ namespace EmpireIdle.Application.Catalog
         /// Родини наборів у порядку рівнів. SetKey рідкості — <c>{Key}_{рідкість}</c>,
         /// та сама домовленість, за якою данж видає частину.
         /// </summary>
-        private static List<CatalogArtifactSet> ArtifactSets(GameConfig config)
+        private static List<CatalogArtifactSet> ArtifactSets(GameConfig config, Func<string, string, string, string> name)
         {
             var equipment = config.Equipment;
             var multipliers = equipment.ArtifactTierMultipliers;
@@ -153,7 +180,7 @@ namespace EmpireIdle.Application.Catalog
 
                     return new CatalogArtifactSet(
                         set.Key,
-                        set.DisplayName,
+                        name("artifactSet", set.Key, set.DisplayName),
                         set.Tier,
                         multipliers.Count == 0 ? 1.0 : multipliers[Math.Clamp(set.Tier - 1, 0, multipliers.Count - 1)],
                         set.FocusStats,

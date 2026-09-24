@@ -3,7 +3,7 @@
     "Monsters": [
       {
         "Key": "wolf",
-        "DisplayName": "Wolf",
+        "DisplayName": "Вовк",
         "MinLevel": 1,
         "MaxLevel": 5,
         "RequiresServerLevel": 0,
@@ -28,7 +28,7 @@
       },
       {
         "Key": "orc",
-        "DisplayName": "Orc Raider",
+        "DisplayName": "Орк-грабіжник",
         "MinLevel": 5,
         "MaxLevel": 12,
         "RequiresServerLevel": 2,

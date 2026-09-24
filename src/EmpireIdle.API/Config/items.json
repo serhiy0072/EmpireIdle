@@ -4,7 +4,7 @@
       {
         "Key": "hero_essence_t2",
         "Tradeable": true,
-        "DisplayName": "Essence of the Second Circle",
+        "DisplayName": "Есенція Другого Кола",
         "Description": "Піднімає героя з першого тіру в другий. Потрібен рівень світу 2",
         "Rarity": "rare",
         "Type": "evolution"
@@ -12,14 +12,14 @@
       {
         "Key": "hero_essence_t3",
         "Tradeable": true,
-        "DisplayName": "Essence of the Third Circle",
+        "DisplayName": "Есенція Третього Кола",
         "Description": "Піднімає героя з другого тіру в третій. Потрібен рівень світу 3",
         "Rarity": "unique",
         "Type": "evolution"
       },
       {
         "Key": "crate_wood_5000",
-        "DisplayName": "Timber Crate",
+        "DisplayName": "Ящик деревини",
         "Description": "Миттєво додає 5000 деревини",
         "Rarity": "common",
         "Type": "resources",
@@ -32,7 +32,7 @@
       },
       {
         "Key": "crate_mixed_large",
-        "DisplayName": "Supply Crate",
+        "DisplayName": "Ящик припасів",
         "Description": "Набір ресурсів для розбудови",
         "Rarity": "rare",
         "Type": "resources",
@@ -58,7 +58,7 @@
       {
         "Key": "boost_production_2x_4h",
         "Tradeable": true,
-        "DisplayName": "Production Boost",
+        "DisplayName": "Прискорення виробництва",
         "Description": "Подвоює виробництво на 4 години",
         "Rarity": "rare",
         "Type": "boost",
@@ -69,7 +69,7 @@
       {
         "Key": "boost_attack_25_1h",
         "Tradeable": true,
-        "DisplayName": "War Banner",
+        "DisplayName": "Бойовий стяг",
         "Description": "+25% до атаки на годину",
         "Rarity": "rare",
         "Type": "boost",
@@ -80,7 +80,7 @@
       {
         "Key": "boost_defense_25_8h",
         "Tradeable": true,
-        "DisplayName": "Fortification Order",
+        "DisplayName": "Наказ про укріплення",
         "Description": "+25% до захисту на 8 годин",
         "Rarity": "rare",
         "Type": "boost",
@@ -90,7 +90,7 @@
       },
       {
         "Key": "boost_production_1h",
-        "DisplayName": "Harvest Rush",
+        "DisplayName": "Жнивний поспіх",
         "Description": "Подвоює виробництво на годину",
         "Rarity": "common",
         "Type": "boost",
@@ -100,7 +100,7 @@
       },
       {
         "Key": "teleport",
-        "DisplayName": "Teleport",
+        "DisplayName": "Телепорт",
         "Description": "Переносить поселення на обрану вільну клітину",
         "Rarity": "rare",
         "Type": "teleport"

@@ -2,8 +2,11 @@ using MediatR;
 
 namespace EmpireIdle.Application.Catalog.Queries
 {
-    /// <summary>Каталог для інтерфейсу. Без прив'язки до гравця: дані однакові для всіх.</summary>
-    public record GetCatalogQuery : IRequest<CatalogResponse>;
+    /// <summary>
+    /// Каталог для інтерфейсу. Без прив'язки до гравця: дані однакові для всіх,
+    /// різняться лише мовою назв. Language — null чи непідтримувана → мова за замовчуванням.
+    /// </summary>
+    public record GetCatalogQuery(string? Language = null) : IRequest<CatalogResponse>;
 
     internal sealed class GetCatalogQueryHandler : IRequestHandler<GetCatalogQuery, CatalogResponse>
     {
@@ -15,6 +18,6 @@ namespace EmpireIdle.Application.Catalog.Queries
         }
 
         public Task<CatalogResponse> Handle(GetCatalogQuery request, CancellationToken cancellationToken)
-            => Task.FromResult(_projection.Response);
+            => Task.FromResult(_projection.ResponseFor(request.Language));
     }
 }

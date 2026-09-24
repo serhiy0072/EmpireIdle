@@ -44,7 +44,8 @@ builder.Configuration
     .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/market.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: true);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
