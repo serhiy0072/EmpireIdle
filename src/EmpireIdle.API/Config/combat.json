@@ -11,6 +11,17 @@
       "PreviewOddsThresholds": [ 2.5, 1.3, 0.8, 0.4 ],
       "NoLossShareThreshold": 0.03,
       "NewbieShieldTownHallLevel": 3,
+      "CityFall": {
+        "Enabled": true,
+        "DefeatsToEvict": 3,
+        "FirstDefeatRandomBuildings": 2,
+        "NextDefeatRandomBuildings": 2,
+        "RepairHours": 7,
+        "DamagedProductionMultiplier": 0.5,
+        "DefenceLossPerDamage": 0.25,
+        "RepairCostShare": 0.1,
+        "ShieldHours": 168
+      },
       "AttackerWinLosses": {
         "Min": 0.02,
         "Max": 0.35

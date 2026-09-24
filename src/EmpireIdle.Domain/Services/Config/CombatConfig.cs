@@ -30,6 +30,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Рівень ратуші, з якого спадає щит новачка й відкриваються підкріплення.</summary>
         public int NewbieShieldTownHallLevel { get; set; } = 3;
 
+        /// <summary>Падіння міста: пороги виселення й щит після нього.</summary>
+        public CityFallConfig CityFall { get; set; } = new();
+
         /// <summary>
         /// Пороги співвідношення сил для прев'ю, від найвищого до найнижчого.
         /// Гравець бачить смугу, не число: точний відсоток розкрив би формулу,

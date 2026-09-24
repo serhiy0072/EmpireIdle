@@ -39,8 +39,9 @@ public class CompleteMarchCommandTests
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
 
-    private static GameConfig Config() => new()
+    private static GameConfig Config(bool cityFall = false) => new()
     {
         Buildings =
         [
@@ -84,7 +85,10 @@ public class CompleteMarchCommandTests
             // Явно, а не на дефолтах: від першого залежить, чи буде бій
             // за село взагалі, від другого — розподіл втрат переможця
             NewbieShieldTownHallLevel = 3,
-            NoLossShareThreshold = 0.03
+            NoLossShareThreshold = 0.03,
+
+            // Вимкнено, крім тестів падіння: решта сцен PvP — не про виселення
+            CityFall = new CityFallConfig { Enabled = cityFall, DefeatsToEvict = 3, RepairHours = 7, ShieldHours = 168 }
         },
         Map = new MapConfig
         {
@@ -106,9 +110,9 @@ public class CompleteMarchCommandTests
         }
     };
 
-    private CompleteMarchCommandHandler Handler(DateTime? at = null)
+    private CompleteMarchCommandHandler Handler(DateTime? at = null, bool cityFall = false)
     {
-        var config = Config();
+        var config = Config(cityFall);
         var catalog = new GameCatalog(config);
         var combat = new CombatCalculator(config.Combat, catalog);
         var terrain = new TerrainGenerator(config.Map);
@@ -144,10 +148,19 @@ public class CompleteMarchCommandTests
             armyBuilder, resolver, effects, logistics, aftermath, heroModifiers,
             NullLogger<MonsterBattleService>.Instance);
 
+        var relocator = new VillageRelocator(_map, _marches, _garrisons, _serverRepository, catalog, geometry, effects);
+
+        // Справжній випадок, а не заглушка _random: на ній пошук клітини крутився б на одній точці
+        var cityFallService = new CityFallService(
+            _falls, _map, _serverRepository, new SystemRandomSource(), catalog,
+            new SettlementPlacer(terrain, geometry, new SystemRandomSource()),
+            geometry, effects, relocator, new CityFallRules(catalog),
+            NullLogger<CityFallService>.Instance);
+
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
             catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, heroModifiers,
+            status, plunder, heroModifiers, cityFallService,
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
@@ -244,6 +257,92 @@ public class CompleteMarchCommandTests
         _villages.GetByIdAsync(defender.Id, Arg.Any<CancellationToken>()).Returns(defender);
 
         return (march, attacker, attackerGarrison, defender, defenderGarrison);
+    }
+
+    // ---------- Падіння міста ----------
+
+    /// <summary>Попередні поразки серії: будівлі ще пошкоджені, серія триває.</summary>
+    private static void GivenEarlierDefeats(Village defender, int count, DateTime at)
+    {
+        var catalog = new GameCatalog(Config(cityFall: true));
+
+        for (var i = 0; i < count; i++)
+            defender.SufferDefeat([defender.Buildings.First().Id], catalog.Buildings, at, TimeSpan.FromHours(7), 0.5,
+                ProductionBoost.None, 1.0);
+    }
+
+    /// <summary>Перша поразка лише пошкоджує: село лишається на місці.</summary>
+    [Fact]
+    public async Task Handle_ShouldDamageButNotEvict_OnTheFirstDefeat()
+    {
+        var (march, _, _, defender, _) = GivenVillageBattle();
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal((55, 55), (defender.X, defender.Y));
+        Assert.Equal(1, defender.DefeatStreakAt(Now));
+        Assert.True(defender.HasDamageAt(Now));
+    }
+
+    /// <summary>Третя поразка поспіль без ремонту виселяє: нова клітина, щит, запис історії.</summary>
+    [Fact]
+    public async Task Handle_ShouldEvictTheDefender_OnTheThirdDefeatInARow()
+    {
+        var (march, _, _, defender, _) = GivenVillageBattle();
+        _marches.GetActiveByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<March>());
+        GivenEarlierDefeats(defender, 2, Now.AddHours(-1));
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.NotEqual((55, 55), (defender.X, defender.Y));
+        Assert.True(defender.IsShieldedAt(Now.AddDays(6)));
+        Assert.Equal(0, defender.DefeatStreak);
+        await _falls.Received(1).AddAsync(
+            Arg.Is<VillageFall>(f => f.PlayerId == defender.PlayerId && f.FromX == 55 && f.ToX == defender.X),
+            Arg.Any<CancellationToken>());
+        await _map.Received(1).AddAsync(
+            Arg.Is<MapCell>(c => c.X == defender.X && c.Y == defender.Y && c.OccupantId == defender.Id),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Будівлі встигли відновитись — серія почалась заново, виселення немає.</summary>
+    [Fact]
+    public async Task Handle_ShouldNotEvict_WhenTheVillageRepairedItselfBetweenDefeats()
+    {
+        var (march, _, _, defender, _) = GivenVillageBattle();
+        GivenEarlierDefeats(defender, 2, Now.AddHours(-8));
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal((55, 55), (defender.X, defender.Y));
+        Assert.Equal(1, defender.DefeatStreakAt(Now));
+    }
+
+    /// <summary>Механіку вимкнено — поразка нічого не пошкоджує.</summary>
+    [Fact]
+    public async Task Handle_ShouldNotDamage_WhenCityFallIsOff()
+    {
+        var (march, _, _, defender, _) = GivenVillageBattle();
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.False(defender.HasDamageAt(Now));
+    }
+
+    /// <summary>Поки марш ішов, ціль упала від іншого — бою немає, армія повертається.</summary>
+    [Fact]
+    public async Task Handle_ShouldTurnBack_WhenTheTargetFellWhileTheMarchWasOnTheWay()
+    {
+        var (march, _, _, defender, _) = GivenVillageBattle();
+        var fall = new VillageFall(Guid.NewGuid(), 1, defender.PlayerId, Guid.NewGuid(), "Інший", 55, 55, 70, 70,
+            Now.AddDays(7), Now.AddMinutes(-10));
+        defender.RelocateTo(70, 70, Now.AddMinutes(-10));
+        defender.MarkFallen(fall, Now.AddMinutes(-10));
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
+        Assert.Equal(MarchState.Returning, march.State);
     }
 
     // ---------- Загальні правила ----------

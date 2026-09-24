@@ -32,6 +32,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly VillageStatus _status;
         private readonly PlunderCalculator _plunder;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly CityFallService _cityFall;
         private readonly ILogger<VillageBattleService> _logger;
 
         public VillageBattleService(
@@ -50,6 +51,7 @@ namespace EmpireIdle.Application.Marches.Services
             VillageStatus status,
             PlunderCalculator plunder,
             HeroCombatModifiers heroModifiers,
+            CityFallService cityFall,
             ILogger<VillageBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -66,6 +68,7 @@ namespace EmpireIdle.Application.Marches.Services
             _status = status;
             _plunder = plunder;
             _heroModifiers = heroModifiers;
+            _cityFall = cityFall;
             _logger = logger;
         }
 
@@ -88,11 +91,13 @@ namespace EmpireIdle.Application.Marches.Services
                 ? null
                 : await _garrisonRepository.GetByVillageIdAsync(targetVillage.Id, cancellationToken);
 
-            // Щит міг з'явитись хіба що в нападника, але село могло й зникнути.
-            // Це прогін сканера, тож будь-яка невідповідність — розворот, не виняток
+            // Щит новачка міг з'явитись хіба що в нападника, щит падіння — в цілі,
+            // поки марш ішов; село могло й зникнути. Це прогін сканера, тож
+            // будь-яка невідповідність — розворот, не виняток
             if (targetVillage is null || targetGarrison is null
                 || _status.IsShielded(targetVillage)
-                || _status.IsShielded(attackerVillage))
+                || _status.IsShielded(attackerVillage)
+                || targetVillage.IsShieldedAt(utcNow))
             {
                 _logistics.TurnMarchBack(march, attackerArmy, utcNow);
                 return;
@@ -120,7 +125,7 @@ namespace EmpireIdle.Application.Marches.Services
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                 attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
 
-            var defenderBonus = _status.DefenceMultiplier(targetVillage);
+            var defenderBonus = _status.DefenceMultiplier(targetVillage, utcNow);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіти обох сторін
             var seed = _random.Next(int.MaxValue);
@@ -152,6 +157,10 @@ namespace EmpireIdle.Application.Marches.Services
 
             await _aftermath.RecordDefenderAsync(march, targetVillage, targetGarrison, attackerVillage,
                 defence, defenderLosses, result, terrain, seed, utcNow, cancellationToken);
+
+            // Після звітів: вони пишуть координати бою, а не нові координати села
+            if (result.AttackerWon)
+                await _cityFall.SufferDefeatAsync(attackerVillage, targetVillage, utcNow, cancellationToken);
 
             _logistics.TurnMarchBack(march, march.GetUnits(), utcNow);
 

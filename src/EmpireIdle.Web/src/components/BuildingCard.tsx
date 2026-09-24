@@ -35,6 +35,13 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         <span className="text-sm text-slate-500">рів. {building.level}</span>
       </div>
 
+      {building.damageLevel > 0 && building.damagedUntil != null && (
+        <p className="rounded-lg bg-rose-50 px-3 py-1.5 text-sm text-rose-800">
+          Пошкоджено (рівень {building.damageLevel}) — темп удвічі нижчий. Відновиться за{" "}
+          {formatRemaining(building.damagedUntil, now)}.
+        </p>
+      )}
+
       {/* Будівля веде на свій екран: казарма — до війська, зала героїв — до героїв */}
       {screens.map((screen) => (
         <Link

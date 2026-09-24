@@ -2,6 +2,7 @@ import type { components } from "./schema";
 
 /** Псевдоніми згенерованих типів: екрани не лізуть у components руками. */
 export type VillageResponse = components["schemas"]["VillageResponse"];
+export type VillageDamageResponse = components["schemas"]["VillageDamageResponse"];
 export type BuildingResponse = components["schemas"]["BuildingResponse"];
 export type CollectAllResponse = components["schemas"]["CollectAllResponse"];
 export type WalletResponse = components["schemas"]["WalletResponse"];
@@ -34,6 +35,7 @@ export type InventoryItemResponse = components["schemas"]["InventoryItemResponse
 export type EquipmentResponse = components["schemas"]["EquipmentResponse"];
 export type ActiveEffectResponse = components["schemas"]["ActiveEffectResponse"];
 export type UseItemRequest = components["schemas"]["UseItemRequest"];
+export type GiftItemRequest = components["schemas"]["GiftItemRequest"];
 export type EnhancementResponse = components["schemas"]["EnhancementResponse"];
 export type BannerView = components["schemas"]["BannerView"];
 export type BannerDropView = components["schemas"]["BannerDropView"];

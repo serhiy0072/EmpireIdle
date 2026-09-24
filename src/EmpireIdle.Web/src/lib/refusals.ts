@@ -65,6 +65,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "village.storageFull": ({ resource }) =>
     `Склад ${resourceGenitive(String(resource))} заповнений — витратьте частину, перш ніж збирати`,
   "village.alreadyThere": () => "Поселення вже стоїть на цій клітинці",
+  "village.nothingToRepair": () => "Ремонтувати нічого — усі будівлі цілі",
   "building.serverCeiling": ({ serverLevel, ceiling }) =>
     `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
   "building.townHallCeiling": ({ building, level }) =>
@@ -77,6 +78,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   // ---------- Інвентар, банери, квести, крамниця ----------
   "item.strongerBoostActive": ({ multiplier, until }) =>
     `Уже діє сильніший прискорювач ×${multiplier} до ${localTime(until)} — цей не спрацює`,
+  "item.notGiftable": () => "Цей предмет не можна подарувати",
+  "item.giftNotClanmate": () => "Дарувати можна лише членам свого клану",
+  "item.giftToSelf": () => "Собі подарунок не зробиш",
+  "item.notEnough": ({ item, need, have }) => `Замало: «${item}» потрібно ${need}, є ${have}`,
   "teleport.outsideRegion": () => "Ця клітинка поза освоєною зоною світу",
   "teleport.cellUnsuitable": () => "На цій клітинці не можна заснувати поселення",
   "teleport.cellOccupied": () => "Ця клітинка вже зайнята",
@@ -118,6 +123,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "march.ownShield": ({ level }) =>
     `Атакувати інших гравців можна з ратуші ${level} рівня — доти діє щит новачка`,
   "march.targetShielded": () => "Це поселення під щитом новачка — атакувати його поки не можна",
+  "march.targetFallShield": () => "Це поселення нещодавно впало й під щитом — атакувати його поки не можна",
   "reinforce.ownShield": ({ level }) => `Підкріплення відкриваються з ратуші ${level} рівня`,
   "reinforce.targetShielded": () => "Це поселення ще під щитом новачка й не приймає підкріплень",
   "reinforce.clanmatesOnly": () => "Підкріплення можна слати лише гравцям свого клану",

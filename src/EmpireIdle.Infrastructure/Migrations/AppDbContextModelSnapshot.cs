@@ -311,6 +311,15 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime?>("ConstructionCompletesAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DamageLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("DamagedProductionMultiplier")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("DamagedUntil")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("LastAccruedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2017,6 +2026,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("DefeatStreak")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -2027,6 +2039,9 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ShieldUntil")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -2051,6 +2066,50 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.HasIndex("ServerId");
 
                     b.ToTable("Villages");
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.VillageFall", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttackerPlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AttackerVillageName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("FromX")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FromY")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ShieldUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ToX")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ToY")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "OccurredAt");
+
+                    b.ToTable("VillageFalls", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.VillageResource", b =>

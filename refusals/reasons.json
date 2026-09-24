@@ -126,6 +126,14 @@
     "required",
     "current"
   ],
+  "item.giftNotClanmate": [],
+  "item.giftToSelf": [],
+  "item.notEnough": [
+    "item",
+    "need",
+    "have"
+  ],
+  "item.notGiftable": [],
   "item.strongerBoostActive": [
     "multiplier",
     "until"
@@ -141,6 +149,7 @@
   "march.ownShield": [
     "level"
   ],
+  "march.targetFallShield": [],
   "march.targetShielded": [],
   "market.heroAlreadyOwned": [
     "hero"
@@ -188,6 +197,7 @@
   "teleport.cellUnsuitable": [],
   "teleport.outsideRegion": [],
   "village.alreadyThere": [],
+  "village.nothingToRepair": [],
   "village.storageFull": [
     "resource"
   ]

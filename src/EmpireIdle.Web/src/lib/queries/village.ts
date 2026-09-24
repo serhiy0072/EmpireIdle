@@ -11,8 +11,9 @@ export function useVillage(playerId: string): UseQueryResult<VillageResponse> {
     queryKey: queryKeys.village(playerId),
     queryFn: () => api<VillageResponse>(`/api/village/${playerId}`),
     // Подія UpgradeCompleted може не дійти (обрив хабу) — дедлайн будівництва перепитуємо й самі
+    // Так само момент самовідновлення: після нього темп і серія інші
     refetchInterval: refetchAtDue<VillageResponse>((village) =>
-      village.buildings.map((building) => building.constructionCompletesAt),
+      village.buildings.flatMap((building) => [building.constructionCompletesAt, building.damagedUntil]),
     ),
   });
 }
@@ -43,6 +44,19 @@ export function useUpgradeBuilding(playerId: string) {
 /** Прискорення платить gems з гаманця акаунта. */
 export function useSpeedUpBuilding(playerId: string) {
   return useBuildingAction(playerId, "speedup", ["village", "wallet"]);
+}
+
+/**
+ * Миттєвий ремонт усіх пошкоджених будівель за ресурси. Лише всі разом:
+ * серію поразок обнуляє тільки повне відновлення (GDD §2.6).
+ */
+export function useRepairVillage(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api<void>(`/api/village/${playerId}/repair`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["village"]),
+  });
 }
 
 /**

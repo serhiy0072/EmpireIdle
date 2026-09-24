@@ -74,7 +74,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// виглядала б валідною.
         /// </summary>
         public async Task<MarchTarget> ResolveAsync(MarchTargetType targetType, Guid targetId, Village origin,
-            CancellationToken cancellationToken)
+            DateTime utcNow, CancellationToken cancellationToken)
         {
             switch (targetType)
             {
@@ -122,7 +122,7 @@ namespace EmpireIdle.Application.Marches.Services
                         village,
                         defence,
                         buffs,
-                        _status.DefenceMultiplier(village));
+                        _status.DefenceMultiplier(village, utcNow));
 
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{targetType}'.");
@@ -148,9 +148,10 @@ namespace EmpireIdle.Application.Marches.Services
         /// <summary>
         /// Щит новачка діє в обидва боки: гравець під ним не атакує,
         /// і його самого атакувати не можна. Монстрів це не стосується —
-        /// PvE відкритий із першого рівня.
+        /// PvE відкритий із першого рівня. Щит після падіння захищає лише
+        /// ціль: власний напад його знімає, а не забороняється ним.
         /// </summary>
-        public void EnsureAttackAllowed(Village origin, MarchTarget target)
+        public void EnsureAttackAllowed(Village origin, MarchTarget target, DateTime utcNow)
         {
             if (target.Village is null)
                 return;
@@ -163,6 +164,9 @@ namespace EmpireIdle.Application.Marches.Services
 
             if (_status.IsShielded(target.Village))
                 throw new RequirementNotMetException(RefusalReasons.MarchTargetShielded, "This village is under a newbie shield.");
+
+            if (target.Village.IsShieldedAt(utcNow))
+                throw new RequirementNotMetException(RefusalReasons.MarchTargetFallShield, "This village has recently fallen and is shielded.");
         }
     }
 }

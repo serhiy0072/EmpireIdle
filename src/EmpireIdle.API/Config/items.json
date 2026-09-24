@@ -103,7 +103,8 @@
         "DisplayName": "Телепорт",
         "Description": "Переносить поселення на обрану вільну клітину",
         "Rarity": "rare",
-        "Type": "teleport"
+        "Type": "teleport",
+        "Giftable": true
       },
       {
         "Key": "sword_iron",

@@ -66,7 +66,7 @@ public class GetVillageQueryTests
         new WorldGeometry(new MapConfig { Width = 1, Height = 1, MaxServerLevel = 1,
             Geometry = new MapGeometryConfig { RingBoundaries = [], RingMultipliers = [1.0],
                 RingsAtFirstLevel = 1.0, FogMinShare = 0, FogMaxShare = 1.0 } }),
-        new VillageStatus(Catalog()), Calculator());
+        new VillageStatus(Catalog()), Calculator(), new CityFallRules(Catalog()));
 
     private Village GivenVillage()
     {
