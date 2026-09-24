@@ -30,5 +30,8 @@ public record ActiveEffectResponse(string Target, double Multiplier, DateTime Ex
 /// </summary>
 public record UseItemRequest(string ItemKey, int Count, Guid? TargetId = null, int? TargetX = null, int? TargetY = null);
 
+/// <summary>Подарунок члену свого клану.</summary>
+public record GiftItemRequest(Guid RecipientId, string ItemKey, int Count);
+
 /// <summary>Результат спроби заточки: success, failure або broken.</summary>
 public record EnhancementResponse(string Outcome);

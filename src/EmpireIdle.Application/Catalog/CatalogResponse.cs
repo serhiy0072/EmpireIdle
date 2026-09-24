@@ -73,7 +73,8 @@
         string? SetKey,
         string? ArtifactSlot,
         int PriceGold,
-        bool Tradeable);
+        bool Tradeable,
+        bool Giftable);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);

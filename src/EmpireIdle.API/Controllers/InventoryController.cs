@@ -88,6 +88,22 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Подарувати предмет члену свого клану. Ідемпотентна операція — потрібен заголовок Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/gift")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GiftItem(Guid playerId, [FromBody] GiftItemRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new GiftItemCommand(playerId, request.RecipientId, request.ItemKey, request.Count),
+                cancellationToken);
+
+            return NoContent();
+        }
+
         /// <summary>Заточити зброю. Ідемпотентна операція — потрібен заголовок Idempotency-Key.</summary>
         [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/enhance")]
         [ProducesResponseType(typeof(EnhancementResponse), StatusCodes.Status200OK)]

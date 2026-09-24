@@ -80,5 +80,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// ресурсів, лутбокси й телепорти лишаються без неї (GDD §8.8).
         /// </summary>
         public bool Tradeable { get; set; }
+
+        /// <summary>
+        /// Стаковий предмет можна подарувати члену свого клану (GDD §8.8).
+        /// Поки що лише телепорт.
+        /// </summary>
+        public bool Giftable { get; set; }
     }
 }
