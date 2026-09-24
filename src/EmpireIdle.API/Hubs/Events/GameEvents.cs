@@ -17,4 +17,12 @@ namespace EmpireIdle.API.Hubs.Events
     public record ServerQuestRewardedEvent(string QuestKey, int Rank, long Contribution);
 
     public record ClanInviteEvent(Guid RequestId, Guid ClanId, string ClanName, string ClanTag, DateTime ExpiresAt);
+
+    /// <summary>
+    /// Нове повідомлення чату. Translations — переклади на мови світу:
+    /// хаб не знає мови кожного отримувача, клієнт бере свою.
+    /// </summary>
+    /// <param name="Channel">"Server", "Clan" або "Private".</param>
+    public record ChatMessageEvent(Guid Id, string Channel, Guid SenderId, string SenderName, Guid? ClanId,
+        Guid? RecipientId, string Text, string Language, IReadOnlyDictionary<string, string> Translations, DateTime SentAt);
 }

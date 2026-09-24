@@ -43,7 +43,8 @@ builder.Configuration
     .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: true);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -73,6 +74,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
     .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")
     .Validate(c => c.Equipment.ArtifactTierMultipliers.All(m => m > 0), "GameConfig.Equipment.ArtifactTierMultipliers must be positive — otherwise higher-tier artifacts roll zero stats.")
+    .Validate(c => c.Chat.MaxLength > 0 && c.Chat.RateLimitCount > 0 && c.Chat.RateLimitWindowSeconds > 0 && c.Chat.RetentionDays > 0, "GameConfig.Chat limits must be positive.")
     .Validate(c => c.Market.ListingTaxShare is >= 0 and < 1, "GameConfig.Market.ListingTaxShare must be within [0; 1) — a tax of the whole price leaves the seller nothing.")
     .Validate(c => c.Market.ListingHours > 0 && c.Market.MedianWindowHours > 0 && c.Market.ResaleCooldownHours >= 0, "GameConfig.Market hours must be positive (the resale cooldown may be zero).")
     .Validate(c => c.Market.BaseListings >= 1 && c.Market.ListingsPerBuildingLevel >= 0, "GameConfig.Market must allow at least one listing.")

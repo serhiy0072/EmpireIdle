@@ -10,6 +10,18 @@
     "newVillageAmount",
     "resourceType"
   ],
+  "ChatMessage": [
+    "channel",
+    "clanId",
+    "id",
+    "language",
+    "recipientId",
+    "senderId",
+    "senderName",
+    "sentAt",
+    "text",
+    "translations"
+  ],
   "ClanInvite": [
     "clanId",
     "clanName",

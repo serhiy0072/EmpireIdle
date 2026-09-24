@@ -64,6 +64,8 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<DungeonClear> DungeonClears => Set<DungeonClear>();
         public DbSet<MarketListing> MarketListings => Set<MarketListing>();
         public DbSet<MarketPriceSnapshot> MarketPriceSnapshots => Set<MarketPriceSnapshot>();
+        public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+        public DbSet<ChatTranslation> ChatTranslations => Set<ChatTranslation>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -94,6 +96,7 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<EquipmentItem>().HasQueryFilter(e => e.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<MarketListing>().HasQueryFilter(l => l.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<MarketPriceSnapshot>().HasQueryFilter(s => s.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ChatMessage>().HasQueryFilter(m => m.ServerId == _serverContext.ServerId);
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
