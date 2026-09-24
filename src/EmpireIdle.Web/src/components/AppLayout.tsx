@@ -5,6 +5,7 @@ import { useSession } from "../hooks/useSession";
 import { logout } from "../lib/auth";
 import { seedAccount } from "../lib/dev";
 import { appendChatEvent } from "../lib/queries/chat";
+import { useMailUnread } from "../lib/queries/mail";
 import { DEFAULT_LANGUAGE, useChangeLanguage, usePlayerSettings } from "../lib/queries/player";
 import { useVillage } from "../lib/queries/village";
 import { onGameEvent } from "../lib/realtime/connection";
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { to: "/quests", label: "Квести" },
   { to: "/rating", label: "Рейтинг" },
   { to: "/chat", label: "Чат" },
+  { to: "/mail", label: "Скринька" },
 ] as const;
 
 /** Назви мов їхніми ж мовами — так гравець упізнає свою, навіть не розуміючи поточної. */
@@ -45,6 +47,7 @@ export default function AppLayout() {
   const wallet = useWallet(playerId);
   const tutorial = useTutorial(playerId);
   const settings = usePlayerSettings(playerId);
+  const mailUnread = useMailUnread(playerId);
   const changeLanguage = useChangeLanguage(playerId);
   const language = settings.data?.language ?? DEFAULT_LANGUAGE;
 
@@ -128,6 +131,11 @@ export default function AppLayout() {
                 }
               >
                 {item.label}
+                {item.to === "/mail" && (mailUnread.data ?? 0) > 0 && (
+                  <span className="ml-1 rounded-full bg-emerald-600 px-1.5 text-xs font-medium text-white">
+                    {mailUnread.data}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>

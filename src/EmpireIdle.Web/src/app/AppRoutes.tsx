@@ -12,6 +12,7 @@ import HeroCodexPage from "../pages/HeroCodexPage";
 import HeroesPage from "../pages/HeroesPage";
 import InventoryPage from "../pages/InventoryPage";
 import LoginPage from "../pages/LoginPage";
+import MailPage from "../pages/MailPage";
 import MapPage from "../pages/MapPage";
 import MarketPage from "../pages/MarketPage";
 import QuestsPage from "../pages/QuestsPage";
@@ -51,6 +52,7 @@ export default function AppRoutes() {
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/market" element={<MarketPage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/mail" element={<MailPage />} />
             <Route path="/rating" element={<RatingPage />} />
             <Route path="/quests" element={<QuestsPage />} />
             <Route path="/map" element={<MapPage />} />

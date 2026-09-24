@@ -23,6 +23,9 @@ export const queryKeys = {
     ["chat", playerId, channel, partnerId] as const,
   chatConversations: (playerId: string) => ["chat", playerId, "conversations"] as const,
   settings: (playerId: string) => ["settings", playerId] as const,
+  /** Скринька й бейдж — спільний префікс: нове в скриньці інвалідує обидва. */
+  mailbox: (playerId: string) => ["mail", playerId, "box"] as const,
+  mailUnread: (playerId: string) => ["mail", playerId, "unread"] as const,
   /** Ринок гравця — префікс: мутації ринку інвалідують разом і «мої лоти», і вітрину, і котирування. */
   market: (playerId: string) => ["market", playerId] as const,
   marketBrowse: (playerId: string, kind: number | null, page: number) => ["market", playerId, "browse", kind, page] as const,
