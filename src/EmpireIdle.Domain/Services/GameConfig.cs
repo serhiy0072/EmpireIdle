@@ -59,6 +59,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Чат: довжина, антиспам, строк історії.</summary>
         public ChatConfig Chat { get; set; } = new();
 
+        /// <summary>Скринька: строки зберігання листів і оголошень.</summary>
+        public MailConfig Mail { get; set; } = new();
+
         /// <summary>Мови інтерфейсу й мова за замовчуванням.</summary>
         public LocalizationConfig Localization { get; set; } = new();
 

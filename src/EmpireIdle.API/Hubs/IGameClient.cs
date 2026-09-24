@@ -27,5 +27,7 @@ namespace EmpireIdle.API.Hubs
         Task ClanInvite(ClanInviteEvent payload);
 
         Task ChatMessage(ChatMessageEvent payload);
+
+        Task MailReceived(MailReceivedEvent payload);
     }
 }

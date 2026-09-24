@@ -80,6 +80,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IDungeonRepository, DungeonRepository>();
             services.AddScoped<IMarketRepository, MarketRepository>();
             services.AddScoped<IChatRepository, ChatRepository>();
+            services.AddScoped<IMailRepository, MailRepository>();
             services.AddSingleton<ITranslator, NoTranslator>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем

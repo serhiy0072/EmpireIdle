@@ -75,6 +75,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
     .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")
     .Validate(c => c.Equipment.ArtifactTierMultipliers.All(m => m > 0), "GameConfig.Equipment.ArtifactTierMultipliers must be positive — otherwise higher-tier artifacts roll zero stats.")
+    .Validate(c => c.Mail.LetterRetentionDays > 0 && c.Mail.AnnouncementRetentionDays > 0, "GameConfig.Mail retention must be positive.")
     .Validate(c => c.Chat.MaxLength > 0 && c.Chat.RateLimitCount > 0 && c.Chat.RateLimitWindowSeconds > 0 && c.Chat.RetentionDays > 0, "GameConfig.Chat limits must be positive.")
     .Validate(c => c.Market.ListingTaxShare is >= 0 and < 1, "GameConfig.Market.ListingTaxShare must be within [0; 1) — a tax of the whole price leaves the seller nothing.")
     .Validate(c => c.Market.ListingHours > 0 && c.Market.MedianWindowHours > 0 && c.Market.ResaleCooldownHours >= 0, "GameConfig.Market hours must be positive (the resale cooldown may be zero).")
@@ -347,6 +348,12 @@ if (app.Environment.IsDevelopment())
         await mediator.Send(new SeedDevAccountCommand(playerId), cancellationToken);
         return Results.NoContent();
     }).RequireAuthorization();
+
+    // Оголошення світу. Адмінського інструменту ще немає — публікація лише в розробці
+    app.MapPost("/api/dev/announcements", async (EmpireIdle.API.DTOs.PublishAnnouncementRequest request, IMediator mediator,
+        CancellationToken cancellationToken)
+        => Results.Ok(await mediator.Send(new EmpireIdle.Application.Mail.Commands.PublishAnnouncementCommand(
+            request.Kind, request.Title, request.Body, request.ExpiresAt), cancellationToken))).RequireAuthorization();
 
     // Перегенерація мапи після зміни насіння чи ваг місцевості: монстри заново, села — на придатні клітини
     app.MapPost("/api/dev/reset-map", async (IMediator mediator, IServerContext serverContext, CancellationToken cancellationToken)
