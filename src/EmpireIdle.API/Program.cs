@@ -17,6 +17,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -275,7 +276,22 @@ builder.Services.AddScoped<ClanLeadershipJob>();
 
 //  8. ВЕБ-ШАР
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
+{
+    // Кривий JSON чи невідомий enum відсікає ще прив'язка моделі, до FluentValidation.
+    // Відповідь та сама, але з errorCode: клієнт розгалужується за ним, не за текстом
+    var standard = options.InvalidModelStateResponseFactory;
+
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var result = standard(context);
+
+        if (result is ObjectResult { Value: ProblemDetails problem })
+            problem.Extensions["errorCode"] = "Validation";
+
+        return result;
+    };
+});
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 
