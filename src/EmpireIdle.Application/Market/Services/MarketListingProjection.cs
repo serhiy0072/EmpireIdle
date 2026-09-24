@@ -2,22 +2,27 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Market.Contracts;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Services;
 
 namespace EmpireIdle.Application.Market.Services
 {
     /// <summary>
     /// Лоти у view для клієнта. Деталі екземплярів (стати предмета, рівень
     /// героя) тягнуться двома запитами на сторінку, а не одним на лот.
+    /// Стати — із заточкою, як в інвентарі: покупець має бачити ті самі
+    /// числа, з якими предмет піде в бій.
     /// </summary>
     public class MarketListingProjection
     {
         private readonly IInventoryRepository _inventory;
         private readonly IHeroRepository _heroes;
+        private readonly GameCatalog _catalog;
 
-        public MarketListingProjection(IInventoryRepository inventory, IHeroRepository heroes)
+        public MarketListingProjection(IInventoryRepository inventory, IHeroRepository heroes, GameCatalog catalog)
         {
             _inventory = inventory;
             _heroes = heroes;
+            _catalog = catalog;
         }
 
         public async Task<List<MarketListingView>> ProjectAsync(IReadOnlyCollection<MarketListing> listings, Guid viewerId,
@@ -50,7 +55,8 @@ namespace EmpireIdle.Application.Market.Services
                     listing.Kind == MarketListingKind.Equipment
                         && equipment.TryGetValue(listing.EquipmentId!.Value, out var item)
                         ? new MarketEquipmentView(item.Slot.ToString(), item.Rarity.ToString(), item.EnhancementLevel,
-                            item.Stats.ToDictionary(s => s.StatKey, s => s.Value))
+                            item.Stats.ToDictionary(s => s.StatKey,
+                                s => item.GetStatValue(s.StatKey, _catalog.Config.Equipment.EnhancementBonusPerLevel)))
                         : null,
                     listing.Kind == MarketListingKind.Hero
                         && heroes.TryGetValue(listing.HeroId!.Value, out var hero)

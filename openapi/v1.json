@@ -6528,6 +6528,7 @@
           "key",
           "priceGold",
           "rarity",
+          "tradeable",
           "type",
           "weaponClasses"
         ],
@@ -6576,6 +6577,9 @@
           "priceGold": {
             "type": "integer",
             "format": "int32"
+          },
+          "tradeable": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -7647,6 +7651,7 @@
           "enhancementLevel",
           "id",
           "isBroken",
+          "isOnMarket",
           "itemKey",
           "rarity",
           "slot",
@@ -7690,6 +7695,14 @@
               "type": "number",
               "format": "double"
             }
+          },
+          "isOnMarket": {
+            "type": "boolean"
+          },
+          "resaleLockedUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false

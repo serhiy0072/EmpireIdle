@@ -82,7 +82,7 @@ internal sealed class MarketTestBed
         new ItemGranter(Inventory, ServerContext, Substitute.For<IRandomSource>(), new ArtifactRoller(Catalog.Config.Equipment)),
         HeroStats, Catalog);
 
-    public MarketListingProjection Projection => new(Inventory, Heroes);
+    public MarketListingProjection Projection => new(Inventory, Heroes, Catalog);
 
     public int Gold(Village village) => village.Resources.Single(r => r.ResourceType == TestKeys.Gold).Amount;
 
