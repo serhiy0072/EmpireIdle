@@ -13,6 +13,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         {
             builder.ToTable("ClanHelpContributions");
             builder.HasKey(h => h.Id);
+            builder.Property(h => h.Id).ValueGeneratedNever(); // ключ ставить домен, не БД/EF
 
             // Одна допомога від гравця на запит. Структурно, а не перевіркою:
             // два паралельні кліки інакше пройшли б обидва
