@@ -92,7 +92,9 @@ Committed contracts: `openapi/v1.json` (HTTP API), `realtime/events.json` (Signa
 
 **Banners.** Typed pools, two pity counters carried across banners of one group, the 50/50 rule, a roll journal with seed and pity state.
 
-**Dungeons.** Turn-based battles for a team of up to four heroes in front and back lines, two active abilities per hero, statuses, energy that refills over time, three difficulty levels and thirty artifact sets as rewards.
+**Dungeons.** Turn-based battles for a team of up to four heroes in front and back lines, two active abilities per hero, statuses, energy that refills over time, three difficulty levels, and five tiers of paired dungeons whose artifact sets grow stronger with the tier and differ by focus. Heroes wear four typed artifacts — necklace, crown, ring and belt.
+
+**Player market.** Equipment, heroes and tradeable items for gold at a fixed price inside a corridor around a 48-hour trimmed median of gold per unit of Power, anchored to shop prices so wash trading can't drag it; a burned listing tax, escrow while listed, a resale cooldown, and a listing limit from the market building.
 
 **Social and progression.** Clans with roles and permissions, applications and invites, help with timers, reinforcements; daily, chain and server quests; a guided onboarding.
 
@@ -177,6 +179,8 @@ Errors are `ProblemDetails` with a stable `errorCode`; refusals a player can hit
 | `daily-quest-reset` | daily | Reset daily quests |
 | `server-evolution` | daily | Evolve servers and expand the fog |
 | `clan-leadership` | daily | Hand clan leadership over from inactive leaders |
+| `market-expiry` | every minute | Close expired market listings and return the goods |
+| `market-prices` | hourly | Recalculate the market median snapshots |
 
 ## 🗺️ Roadmap
 
@@ -191,7 +195,8 @@ Errors are `ProblemDetails` with a stable `errorCode`; refusals a player can hit
 - [x] Heroes, equipment, banners
 - [x] Game UI (React) for every main screen, onboarding
 - [x] Turn-based dungeons
+- [x] Player market with a price corridor
 - [ ] Balance pass (numbers in the configs are placeholders)
-- [ ] Chat, mailbox, market and auction
+- [ ] Chat, mailbox, auction
 - [ ] Clan territory, city fall and shields
 - [ ] Docker + deployment
