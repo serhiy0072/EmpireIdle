@@ -36,7 +36,6 @@ namespace EmpireIdle.Application.Power.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly CombatCalculator _combat;
         private readonly TimeProvider _timeProvider;
-        private readonly HeroProgression _progression;
         private readonly HeroStats _heroStats;
         private readonly GameCatalog _catalog;
         private readonly ILogger<RecalculatePowerCommandHandler> _logger;
@@ -51,7 +50,6 @@ namespace EmpireIdle.Application.Power.Commands
             IUnitOfWork unitOfWork,
             CombatCalculator combat,
             TimeProvider timeProvider,
-            HeroProgression progression,
             HeroStats heroStats,
             GameCatalog catalog,
             ILogger<RecalculatePowerCommandHandler> logger)
@@ -65,7 +63,6 @@ namespace EmpireIdle.Application.Power.Commands
             _unitOfWork = unitOfWork;
             _combat = combat;
             _timeProvider = timeProvider;
-            _progression = progression;
             _heroStats = heroStats;
             _catalog = catalog;
             _logger = logger;
@@ -129,8 +126,7 @@ namespace EmpireIdle.Application.Power.Commands
 
                 var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
 
-                var bare = _catalog.FindHero(hero.HeroKey)!.BaseStats.Keys
-                    .Sum(stat => _progression.StatValue(heroConfig, stat, hero.Level, hero.Tier));
+                var bare = _heroStats.Power(hero, heroConfig);
 
                 var full = _heroStats.Compute(hero, heroConfig, equipped).Values.Sum();
 

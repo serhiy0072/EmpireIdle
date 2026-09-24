@@ -32,6 +32,40 @@ namespace EmpireIdle.Domain.Tests.Services
         private static EquipmentItem SetPiece(string key)
             => TestKit.Entities.Equipment(key, EquipmentSlot.Artifact, stats: [("Attack", 5.0)]);
 
+        // ---------- Сила ----------
+
+        /// <summary>Сила героя — сума власних статів: 100 атаки + 40 захисту на першому рівні.</summary>
+        [Fact]
+        public void Power_ShouldSumTheHerosOwnStats()
+            => Assert.Equal(140, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig()), 3);
+
+        /// <summary>Сила росте з рівнем так само, як стати: (100 + 10 × 4) + (40 + 4 × 4).</summary>
+        [Fact]
+        public void Power_ShouldGrowWithTheHerosLevel()
+            => Assert.Equal(196, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 5), HeroConfig()), 3);
+
+        /// <summary>Сила предмета — сума статів із заточкою: (5 + 3) × (1 + 2 × 0.1).</summary>
+        [Fact]
+        public void Power_ShouldSumAnItemsStatsWithEnhancement()
+        {
+            var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact,
+                stats: [("Attack", 5.0), ("Defense", 3.0)]);
+            item.Enhance(TestKit.Entities.Now);
+            item.Enhance(TestKit.Entities.Now);
+
+            Assert.Equal(9.6, Stats().Power(item), 3);
+        }
+
+        /// <summary>Зламаний предмет нічого не дає — і сили в нього немає.</summary>
+        [Fact]
+        public void Power_ShouldBeZero_ForABrokenItem()
+        {
+            var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 5.0)]);
+            item.Break(TestKit.Entities.Now);
+
+            Assert.Equal(0, Stats().Power(item), 3);
+        }
+
         // ---------- Власні стати ----------
 
         [Fact]
