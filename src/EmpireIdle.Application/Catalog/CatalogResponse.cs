@@ -58,6 +58,7 @@
 
     /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
     /// <param name="ArtifactSlot">Тип слота артефакта (ключ з ArtifactSlots); null — не артефакт.</param>
+    /// <param name="Tradeable">Стаковий предмет можна виставити на ринок; спорядження торгується завжди.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -69,7 +70,8 @@
         IReadOnlyDictionary<string, double> BaseStats,
         string? SetKey,
         string? ArtifactSlot,
-        int PriceGold);
+        int PriceGold,
+        bool Tradeable);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);
