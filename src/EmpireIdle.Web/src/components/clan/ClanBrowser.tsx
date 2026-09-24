@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { ClanInviteResponse } from "../../lib/apiTypes";
+import { clanNameIsValid, clanNameRules, clanTagIsValid, clanTagRules, type ClanRule } from "../../lib/clanRules";
 import { joinPolicyLabel, useClanBrowse } from "../../lib/queries/clans";
 import { formatRemaining } from "../../lib/time";
 
@@ -15,6 +16,23 @@ interface Props {
 }
 
 const input = "rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-800";
+
+/** Невиконані правила — лише коли гравець уже щось увів: порожня форма не має кричати. */
+function UnmetRules({ rules, value }: { rules: ClanRule[]; value: string }) {
+  const unmet = value === "" ? [] : rules.filter((rule) => !rule.passed(value));
+
+  if (unmet.length === 0) return null;
+
+  return (
+    <ul className="mt-1 space-y-0.5">
+      {unmet.map((rule) => (
+        <li key={rule.label} className="text-xs text-amber-700">
+          • {rule.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
 const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
 
 /** Гравець поза кланом: запрошення, пошук по каталогу й створення свого. */
@@ -132,6 +150,7 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
         <label className="block text-sm text-slate-600">
           Назва
           <input value={name} onChange={(event) => setName(event.target.value)} maxLength={32} className={`mt-1 w-full ${input}`} />
+          <UnmetRules rules={clanNameRules} value={name.trim()} />
         </label>
         <label className="block text-sm text-slate-600">
           Тег
@@ -141,11 +160,12 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
             maxLength={5}
             className={`mt-1 w-full font-mono uppercase ${input}`}
           />
+          <UnmetRules rules={clanTagRules} value={tag.trim()} />
         </label>
         <button
           type="button"
           onClick={() => onCreate(name.trim(), tag.trim())}
-          disabled={busy || name.trim() === "" || tag.trim() === ""}
+          disabled={busy || !clanNameIsValid(name.trim()) || !clanTagIsValid(tag.trim())}
           className="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
         >
           Заснувати

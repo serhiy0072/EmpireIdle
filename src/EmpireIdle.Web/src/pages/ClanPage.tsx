@@ -71,7 +71,10 @@ export default function ClanPage() {
 
   const mutations = [create, join, leave, kick, assignRole, settings, requestHelp, giveHelp, recall, invite, resolve];
   const busy = mutations.some((mutation) => mutation.isPending);
-  const failure = mutations.map((mutation) => mutation.error).find((error) => error !== null) ?? null;
+  // Помилка лише останньої дії: інакше стара відмова однієї кнопки
+  // (скажімо, створення клану) перекривала б свіжу відмову іншої
+  const latest = mutations.reduce((last, mutation) => (mutation.submittedAt > last.submittedAt ? mutation : last));
+  const failure = latest.error;
 
   const copyId = () => {
     void navigator.clipboard.writeText(playerId).then(() => {
