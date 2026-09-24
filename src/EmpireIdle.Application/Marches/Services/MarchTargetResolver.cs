@@ -87,7 +87,7 @@ namespace EmpireIdle.Application.Marches.Services
 
                     return new MarchTarget(
                         monster.X, monster.Y,
-                        $"{monster.Type} (lvl {monster.Level})",
+                        _catalog.MonsterName(monster.Type),
                         monster.Level,
                         Village: null,
                         // Монстри — не гравці, свого рівня юнітів не мають: завжди 1

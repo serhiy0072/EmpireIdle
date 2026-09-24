@@ -65,7 +65,10 @@ public class GetMarchesQueryTests
         new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 },
         arrivesAt, Now.AddMinutes(-10));
 
-    /// <summary>Назва монстра йде з довідника, як у прев'ю бою — гравець бачить те саме, що обирав.</summary>
+    /// <summary>
+    /// Назва монстра йде з довідника, як у прев'ю бою — гравець бачить те саме, що обирав.
+    /// Рівень окремим полем: англійське «lvl» у назві бачив би гравець.
+    /// </summary>
     [Fact]
     public async Task Handle_ShouldNameAMonsterTarget_FromTheCatalog()
     {
@@ -79,7 +82,8 @@ public class GetMarchesQueryTests
         var views = await Handler().Handle(new GetMarchesQuery(PlayerId), CancellationToken.None);
 
         var view = Assert.Single(views);
-        Assert.Equal("Вовки (lvl 3)", view.TargetName);
+        Assert.Equal("Вовки", view.TargetName);
+        Assert.Equal(3, view.TargetLevel);
         Assert.Equal(MarchState.Outbound, view.State);
         Assert.Equal(10, view.Units.Single().Count);
     }
@@ -116,6 +120,7 @@ public class GetMarchesQueryTests
 
         Assert.Equal([soon.Id, late.Id], views.Select(v => v.Id));
         Assert.Equal("Neighbour", views[0].TargetName);
+        Assert.Null(views[0].TargetLevel);
         Assert.Equal(0, views[0].SpeedUpCostGems);
         Assert.Equal(Calculator().GetInstantFinishCost(late.ArrivesAt, Now), views[1].SpeedUpCostGems);
         Assert.True(views[1].SpeedUpCostGems > 0, "120 хвилин мають коштувати gems, інакше тест нічого не перевіряє.");
