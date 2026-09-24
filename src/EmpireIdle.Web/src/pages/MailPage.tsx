@@ -1,8 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import ErrorBanner from "../components/ErrorBanner";
 import { useSession } from "../hooks/useSession";
+import RewardLetter from "../components/mail/RewardLetter";
+import { useCatalog } from "../lib/queries/catalog";
 import { useResolveRequest } from "../lib/queries/clans";
 import {
+  useClaimAll,
+  useClaimLetter,
   useMailbox,
   useMarkAnnouncementRead,
   useMarkLetterRead,
@@ -155,6 +159,9 @@ export default function MailPage() {
   const mailbox = useMailbox(playerId);
   const readLetter = useMarkLetterRead(playerId);
   const readAnnouncement = useMarkAnnouncementRead(playerId);
+  const claimLetter = useClaimLetter(playerId);
+  const claimAll = useClaimAll(playerId);
+  const catalog = useCatalog();
 
   if (mailbox.isPending) {
     return <p className="text-slate-500">Завантаження скриньки…</p>;
@@ -165,10 +172,26 @@ export default function MailPage() {
   }
 
   const { letters, announcements } = mailbox.data;
+  const claimable = letters.filter((letter) => letter.canClaim).length;
+  const claiming = claimLetter.isPending || claimAll.isPending;
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-medium text-slate-800">Скринька</h1>
+      <div className="flex items-baseline justify-between gap-2">
+        <h1 className="text-xl font-medium text-slate-800">Скринька</h1>
+        {claimable > 0 && (
+          <button
+            type="button"
+            disabled={claiming}
+            onClick={() => claimAll.mutate()}
+            className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            Забрати все ({claimable})
+          </button>
+        )}
+      </div>
+
+      <ErrorBanner error={claimAll.error ?? claimLetter.error} />
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Оголошення</h2>
@@ -194,7 +217,16 @@ export default function MailPage() {
         ) : (
           <ul className="space-y-2">
             {letters.map((letter) =>
-              letter.kind === "CityFall" ? (
+              letter.rewards.length > 0 ? (
+                <RewardLetter
+                  key={letter.id}
+                  letter={letter}
+                  catalog={catalog}
+                  busy={claiming}
+                  onClaim={() => claimLetter.mutate(letter.id)}
+                  onOpen={() => readLetter.mutate(letter.id)}
+                />
+              ) : letter.kind === "CityFall" ? (
                 <CityFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
               ) : (
                 <InviteLetter
