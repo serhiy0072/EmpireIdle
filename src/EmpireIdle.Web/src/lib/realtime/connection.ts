@@ -51,6 +51,8 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
     ],
     ServerQuestRewarded: [queryKeys.wallet(playerId), queryKeys.serverQuests(playerId)],
     ClanInvite: [queryKeys.clanRequests(playerId)],
+    // Історію каналу чат дописує сам із події; список розмов — перечитуємо
+    ChatMessage: [queryKeys.chatConversations(playerId)],
   };
 
   keys[name].forEach((key) => void queryClient.invalidateQueries({ queryKey: key }));

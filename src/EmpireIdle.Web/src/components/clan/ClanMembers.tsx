@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { ClanMemberResponse, ClanRoleResponse } from "../../lib/apiTypes";
 
 interface Props {
@@ -67,7 +68,16 @@ export default function ClanMembers({
               <tr key={member.playerId} className={`border-t border-slate-100 ${me ? "bg-emerald-50/50" : ""}`}>
                 <td className="px-3 py-2 font-medium text-slate-800">
                   {member.playerName}
-                  {me && <span className="ml-1 text-xs text-emerald-700">(ви)</span>}
+                  {me ? (
+                    <span className="ml-1 text-xs text-emerald-700">(ви)</span>
+                  ) : (
+                    <Link
+                      to={`/chat?${new URLSearchParams({ tab: "Private", to: member.playerId, name: member.playerName }).toString()}`}
+                      className="ml-2 text-xs font-normal text-emerald-700 hover:underline"
+                    >
+                      написати
+                    </Link>
+                  )}
                 </td>
                 <td className="px-3 py-2 text-slate-600">
                   {canAssignRoles && below && assignable.length > 0 ? (
