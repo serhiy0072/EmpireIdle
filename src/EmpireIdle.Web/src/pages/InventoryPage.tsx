@@ -154,7 +154,13 @@ export default function InventoryPage() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {items.map((item) => (
-              <ItemCard key={item.itemKey} item={item} busy={busy} onUse={(request) => consume.mutate(request)} />
+              <ItemCard
+                key={item.itemKey}
+                playerId={playerId}
+                item={item}
+                busy={busy}
+                onUse={(request) => consume.mutate(request)}
+              />
             ))}
           </div>
         ))}
