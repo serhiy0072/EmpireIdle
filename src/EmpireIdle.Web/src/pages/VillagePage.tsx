@@ -2,6 +2,7 @@ import { useState } from "react";
 import BuildingCard from "../components/BuildingCard";
 import ErrorBanner from "../components/ErrorBanner";
 import LockedBuildingCard from "../components/LockedBuildingCard";
+import DamageBanner from "../components/village/DamageBanner";
 import VillageMap from "../components/village/VillageMap";
 import { useSession } from "../hooks/useSession";
 import { useCatalog } from "../lib/queries/catalog";
@@ -9,12 +10,13 @@ import { resourceGenitive } from "../lib/resourceNames";
 import {
   useCollectAll,
   useCollectBuilding,
+  useRepairVillage,
   useSpeedUpBuilding,
   useUpgradeBuilding,
   useVillage,
 } from "../lib/queries/village";
 
-type VillageAction = "collect" | "upgrade" | "speedUp" | "collectAll";
+type VillageAction = "collect" | "upgrade" | "speedUp" | "collectAll" | "repair";
 
 export default function VillagePage() {
   const session = useSession();
@@ -26,6 +28,7 @@ export default function VillagePage() {
   const upgrade = useUpgradeBuilding(playerId);
   const speedUp = useSpeedUpBuilding(playerId);
   const collectAll = useCollectAll(playerId);
+  const repair = useRepairVillage(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Банер належить останній дії: помилка давнього кліку після успішного нового лише плутає
@@ -39,8 +42,9 @@ export default function VillagePage() {
     return <ErrorBanner error={village.error} />;
   }
 
-  const busy = collect.isPending || upgrade.isPending || speedUp.isPending || collectAll.isPending;
-  const actions = { collect, upgrade, speedUp, collectAll };
+  const busy =
+    collect.isPending || upgrade.isPending || speedUp.isPending || collectAll.isPending || repair.isPending;
+  const actions = { collect, upgrade, speedUp, collectAll, repair };
   const failure = lastAction === null ? null : actions[lastAction].error;
   const fullStorages = lastAction === "collectAll" ? (collectAll.data?.fullStorages ?? []) : [];
 
@@ -69,6 +73,18 @@ export default function VillagePage() {
       </div>
 
       <ErrorBanner error={failure} />
+
+      {village.data.damage != null && (
+        <DamageBanner
+          damage={village.data.damage}
+          damagedNames={village.data.buildings
+            .filter((building) => building.damageLevel > 0)
+            .map((building) => catalog.buildingName(building.type))}
+          resourceName={catalog.resourceName}
+          busy={busy}
+          onRepair={() => run("repair", () => repair.mutate())}
+        />
+      )}
 
       {fullStorages.length > 0 && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
