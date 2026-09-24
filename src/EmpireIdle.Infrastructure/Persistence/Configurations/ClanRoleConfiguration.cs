@@ -10,6 +10,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         {
             builder.ToTable("ClanRoles");
             builder.HasKey(r => r.Id);
+            builder.Property(r => r.Id).ValueGeneratedNever(); // ключ ставить домен, не БД/EF
 
             builder.Property(r => r.Name).IsRequired().HasMaxLength(32);
             builder.Property(r => r.Permissions).HasConversion<int>();
