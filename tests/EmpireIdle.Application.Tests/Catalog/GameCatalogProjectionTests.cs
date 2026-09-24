@@ -51,6 +51,23 @@ public class GameCatalogProjectionTests
         Assert.All(response.Buildings, building => Assert.False(string.IsNullOrWhiteSpace(building.DisplayName)));
     }
 
+    /// <summary>
+    /// Клієнт рахує ціну прискорення сам, щосекунди. Параметри мусять збігатися
+    /// з тими, за якими спише сервер, — інакше кнопка знову збреше.
+    /// </summary>
+    [Fact]
+    public void Response_ShouldCarryTheSpeedUpPricing()
+    {
+        var config = new GameConfigBuilder().WithHeroes().Build();
+        config.Monetization.InstantFinishThresholdMinutes = 7;
+        config.Monetization.SpeedUpFactor = 2.5;
+        config.Monetization.SpeedUpExponent = 0.6;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+
+        Assert.Equal(new CatalogSpeedUp(7, 2.5, 0.6), response.SpeedUp);
+    }
+
     /// <summary>Та сама проєкція — та сама версія: інакше ETag мінявся б щозапиту.</summary>
     [Fact]
     public void Version_ShouldBeStableAcrossReads()
