@@ -18,7 +18,10 @@ const SCREENS: Record<string, readonly BuildingScreen[]> = {
   lootshop: [{ to: "/banners", label: "Банери" }],
   forge: [{ to: "/forge", label: "Кузня" }],
   warehouse: [{ to: "/inventory", label: "Інвентар" }],
-  market: [{ to: "/shop", label: "Крамниця" }],
+  market: [
+    { to: "/market", label: "Ринок гравців" },
+    { to: "/shop", label: "Крамниця" },
+  ],
   embassy: [{ to: "/clan", label: "Клан" }],
   scouttower: [
     { to: "/map", label: "Мапа світу" },

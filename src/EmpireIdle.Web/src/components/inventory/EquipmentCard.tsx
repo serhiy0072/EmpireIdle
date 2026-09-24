@@ -52,6 +52,7 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
           <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
             {equipment.isBroken && <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Зламано</span>}
+            {equipment.isOnMarket && <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">На ринку</span>}
             {set !== null && (
               <Link
                 to={`/inventory/sets?set=${set.key}`}
@@ -79,7 +80,11 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
       </dl>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {equipment.equippedByHeroId !== null ? (
+        {equipment.isOnMarket ? (
+          <Link to="/market?tab=mine" className="text-xs text-amber-700 hover:underline">
+            На ринку — до своїх лотів
+          </Link>
+        ) : equipment.equippedByHeroId !== null ? (
           <button type="button" onClick={onUnequip} disabled={busy} className={button}>
             Зняти
           </button>

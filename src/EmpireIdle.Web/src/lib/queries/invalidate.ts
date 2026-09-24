@@ -18,7 +18,8 @@ export type PlayerScope =
   | "clanHelp"
   | "clanRequests"
   | "power"
-  | "dungeons";
+  | "dungeons"
+  | "market";
 
 /**
  * Інвалідація після мутації. Список — у самій мутації, а не в екрані:
