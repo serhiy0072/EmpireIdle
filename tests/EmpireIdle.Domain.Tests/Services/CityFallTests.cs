@@ -1,29 +1,14 @@
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Tests.Services
 {
     /// <summary>
-    /// Падіння міста (GDD §2.6): запобіжники виселення й місце приземлення —
+    /// Падіння міста (GDD §2.6): місце приземлення виселеного села —
     /// «тебе зсунули», не «почни спочатку».
     /// </summary>
     public class CityFallTests
     {
-        private static CityFallRules Rules(bool enabled = true) => new(new GameCatalog(new GameConfig
-        {
-            Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 }],
-            Combat = new CombatConfig
-            {
-                CityFall = new CityFallConfig
-                {
-                    Enabled = enabled,
-                    MaxPowerRatio = 2.0,
-                    EvictionsPerAttacker = 3
-                }
-            }
-        }));
-
         private static MapConfig Map() => new()
         {
             Width = 300,
@@ -44,32 +29,6 @@ namespace EmpireIdle.Domain.Tests.Services
                 FogMaxShare = 1.0
             }
         };
-
-        // ---------- Запобіжники ----------
-
-        [Theory]
-        [InlineData(100, 100, 0, CityFallVerdict.Evict)]
-        [InlineData(200, 100, 0, CityFallVerdict.Evict)]
-        [InlineData(201, 100, 0, CityFallVerdict.AttackerTooStrong)]
-        [InlineData(100, 100, 3, CityFallVerdict.LimitReached)]
-        public void Judge_ShouldApplyThePowerRatioAndTheAttackerLimit(double attacker, double defender, int recent,
-            CityFallVerdict expected)
-        {
-            Assert.Equal(expected, Rules().Judge(attacker, defender, recent));
-        }
-
-        /// <summary>Село без сили не виселяється: порівнювати немає з чим, це був би чистий griefing.</summary>
-        [Fact]
-        public void Judge_ShouldNotEvict_ADefenderWithoutPower()
-        {
-            Assert.Equal(CityFallVerdict.AttackerTooStrong, Rules().Judge(0, 0, 0));
-        }
-
-        [Fact]
-        public void Judge_ShouldNotEvict_WhenTheMechanicIsOff()
-        {
-            Assert.Equal(CityFallVerdict.Disabled, Rules(enabled: false).Judge(100, 100, 0));
-        }
 
         // ---------- Межі кілець ----------
 

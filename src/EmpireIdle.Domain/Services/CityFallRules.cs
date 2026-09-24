@@ -1,45 +1,70 @@
-using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>
-    /// Запобіжники падіння міста (GDD §2.6), крім щита: той перевіряється
-    /// раніше, бо щит не пускає до бою взагалі. Чиста функція від сил і
-    /// лічильника — без неї механіку не запускати.
+    /// Правила падіння міста (GDD §2.6): які будівлі пошкоджує поразка
+    /// і коли серія поразок виселяє. Випадковість — через IRandomSource,
+    /// тож вибір відтворюваний у тестах.
     /// </summary>
     public sealed class CityFallRules
     {
+        private readonly GameCatalog _catalog;
         private readonly CityFallConfig _config;
 
-        public CityFallRules(GameCatalog catalog) => _config = catalog.Config.Combat.CityFall;
+        public CityFallRules(GameCatalog catalog)
+        {
+            _catalog = catalog;
+            _config = catalog.Config.Combat.CityFall;
+        }
 
-        /// <summary>Чи діє механіка у світі — щоб не питати сили, коли вона вимкнена.</summary>
+        /// <summary>Чи діє механіка у світі.</summary>
         public bool IsEnabled => _config.Enabled;
 
-        /// <summary>Скільки часу діє щит після падіння.</summary>
         public TimeSpan ShieldDuration => TimeSpan.FromHours(_config.ShieldHours);
 
-        /// <summary>Початок вікна, в якому рахуються виселення нападника.</summary>
-        public DateTime WindowStart(DateTime utcNow) => utcNow - TimeSpan.FromHours(_config.EvictionWindowHours);
+        public TimeSpan RepairDuration => TimeSpan.FromHours(_config.RepairHours);
+
+        public double DamagedProductionMultiplier => _config.DamagedProductionMultiplier;
+
+        public double RepairCostShare => _config.RepairCostShare;
+
+        /// <summary>Яка поразка поспіль виселяє — клієнт показує, скільки лишилось.</summary>
+        public int DefeatsToEvict => _config.DefeatsToEvict;
+
+        /// <summary>Чи виселяє серія такої довжини.</summary>
+        public bool Evicts(int defeatStreak) => _config.Enabled && defeatStreak >= _config.DefeatsToEvict;
 
         /// <summary>
-        /// Чи виселяє переможний бій. Нульова сила захисника виселення не дає:
-        /// порівнювати немає з чим, а село без війська — саме той випадок,
-        /// коли виселення було б чистим griefing.
+        /// Будівлі, які пошкоджує поразка. Перша в серії б'є по стінах і кількох
+        /// випадкових, наступні — лише по випадкових, і стіни можуть потрапити
+        /// під удар знову. Будівлі на будівництві не пошкоджуються: вони й так
+        /// не працюють.
         /// </summary>
-        public CityFallVerdict Judge(double attackerPower, double defenderPower, int recentEvictions)
+        public IReadOnlyList<Guid> PickDamaged(Village village, bool firstInStreak, IRandomSource random)
         {
-            if (!_config.Enabled)
-                return CityFallVerdict.Disabled;
+            var standing = village.Buildings.Where(b => !b.IsUnderConstruction).ToList();
+            var picked = new List<Guid>();
 
-            if (defenderPower <= 0 || attackerPower > _config.MaxPowerRatio * defenderPower)
-                return CityFallVerdict.AttackerTooStrong;
+            if (firstInStreak)
+                picked.AddRange(standing.Where(IsFortification).Select(b => b.Id));
 
-            if (recentEvictions >= _config.EvictionsPerAttacker)
-                return CityFallVerdict.LimitReached;
+            var pool = standing.Where(b => !picked.Contains(b.Id)).ToList();
+            var count = firstInStreak ? _config.FirstDefeatRandomBuildings : _config.NextDefeatRandomBuildings;
 
-            return CityFallVerdict.Evict;
+            for (var i = 0; i < count && pool.Count > 0; i++)
+            {
+                var index = random.Next(pool.Count);
+
+                picked.Add(pool[index].Id);
+                pool.RemoveAt(index);
+            }
+
+            return picked;
         }
+
+        private bool IsFortification(Building building)
+            => _catalog.Buildings.TryGetValue(building.Type, out var config) && config.DefenceBonusPerLevel > 0;
     }
 }

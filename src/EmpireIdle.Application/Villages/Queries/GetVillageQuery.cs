@@ -26,6 +26,7 @@ namespace EmpireIdle.Application.Villages.Queries
         private readonly WorldGeometry _geometry;
         private readonly VillageStatus _status;
         private readonly SpeedUpCalculator _calculator;
+        private readonly CityFallRules _cityFall;
 
         public GetVillageQueryHandler(
             IVillageRepository villageRepository,
@@ -35,7 +36,8 @@ namespace EmpireIdle.Application.Villages.Queries
             TimeProvider timeProvider,
             WorldGeometry geometry,
             VillageStatus status,
-            SpeedUpCalculator calculator)
+            SpeedUpCalculator calculator,
+            CityFallRules cityFall)
         {
             _villageRepository = villageRepository;
             _serverRepository = serverRepository;
@@ -45,6 +47,7 @@ namespace EmpireIdle.Application.Villages.Queries
             _geometry = geometry;
             _status = status;
             _calculator = calculator;
+            _cityFall = cityFall;
         }
 
         public async Task<VillageView> Handle(GetVillageQuery request, CancellationToken cancellationToken)
@@ -100,15 +103,27 @@ namespace EmpireIdle.Application.Villages.Queries
                     b.ConstructionCompletesAt,
                     b.IsUnderConstruction,
                     isUnlocekd,
-                    speedUpCost);
+                    speedUpCost,
+                    b.DamageAt(now),
+                    b.IsDamagedAt(now) ? b.DamagedUntil : null);
             }).ToList();
 
             var resources = village.Resources
                 .Select(r => new ResourceView(r.ResourceType, r.Amount, _status.IsResourceUnlocked(village, r.ResourceType)))
                 .ToList();
 
+            // Лише поки щось пошкоджене: після самовідновлення серії вже немає
+            var damage = village.HasDamageAt(now)
+                ? new VillageDamageView(
+                    village.DefeatStreakAt(now),
+                    _cityFall.DefeatsToEvict,
+                    village.RepairCost(_catalog.Buildings, now, _cityFall.RepairCostShare)
+                        .Select(c => new RepairCostView(c.Resource, c.Amount))
+                        .ToList())
+                : null;
+
             return new VillageView(village.Id, village.Name, village.X, village.Y, buildings, resources,
-                village.IsShieldedAt(now) ? village.ShieldUntil : null);
+                village.IsShieldedAt(now) ? village.ShieldUntil : null, damage);
         }
     }
 }

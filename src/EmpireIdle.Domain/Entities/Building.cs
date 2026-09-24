@@ -38,6 +38,29 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Чи триває апгрейд будівлі (виробництво на цей час зупинене).</summary>
         public bool IsUnderConstruction => ConstructionCompletesAt is not null;
 
+        /// <summary>
+        /// Глибина пошкодження після програних оборон (GDD §2.6). Діє лише до
+        /// DamagedUntil — далі будівля відновилась сама, і значення застаріле.
+        /// Читати через DamageAt.
+        /// </summary>
+        public int DamageLevel { get; private set; }
+
+        /// <summary>Коли будівля відновиться сама; null — не пошкоджена.</summary>
+        public DateTime? DamagedUntil { get; private set; }
+
+        /// <summary>
+        /// Темп виробництва, поки будівля пошкоджена. Запам'ятовується в момент
+        /// удару: буфер рахується ліниво, і вже нараховане не має змінюватись
+        /// від ребалансу конфіга.
+        /// </summary>
+        public double DamagedProductionMultiplier { get; private set; } = 1.0;
+
+        /// <summary>Чи пошкоджена будівля на цей момент.</summary>
+        public bool IsDamagedAt(DateTime utcNow) => DamagedUntil > utcNow;
+
+        /// <summary>Глибина пошкодження на цей момент; 0 — ціла або вже відновилась.</summary>
+        public int DamageAt(DateTime utcNow) => IsDamagedAt(utcNow) ? DamageLevel : 0;
+
         public Building(Guid id, Guid villageId, string type, DateTime utcNow) : base(id)
         {
             VillageId = villageId;
@@ -79,8 +102,24 @@ namespace EmpireIdle.Domain.Entities
             var totalMinutes = (utcNow - LastAccruedAt).TotalMinutes;
             var boostedMinutes = boost.OverlapMinutes(LastAccruedAt, utcNow);
 
+            // Пошкодження діє від LastAccruedAt (удар матеріалізує буфер) до
+            // DamagedUntil — будівля могла відновитись посеред інтервалу.
+            // Буст і пошкодження перекриваються, тож хвилини діляться на чотири частини
+            var damageEnd = DamagedUntil is { } until && until > LastAccruedAt
+                ? (until < utcNow ? until : utcNow)
+                : LastAccruedAt;
+            var damagedMinutes = (damageEnd - LastAccruedAt).TotalMinutes;
+            var bothMinutes = boost.OverlapMinutes(LastAccruedAt, damageEnd);
+
+            var damaged = DamagedProductionMultiplier;
+            var effectiveMinutes =
+                (totalMinutes - boostedMinutes - damagedMinutes + bothMinutes)
+                + (boostedMinutes - bothMinutes) * boost.Multiplier
+                + (damagedMinutes - bothMinutes) * damaged
+                + bothMinutes * boost.Multiplier * damaged;
+
             var ratePerMinute = Level.Value * config.BaseProductionPerMinute * locationMultiplier;
-            var produced = ratePerMinute * (boostedMinutes * boost.Multiplier + (totalMinutes - boostedMinutes));
+            var produced = ratePerMinute * effectiveMinutes;
 
             return Math.Min(AccruedAmount + (int)produced, cap);
         }
@@ -94,6 +133,31 @@ namespace EmpireIdle.Domain.Entities
         {
             AccruedAmount = StoredAt(config, utcNow, boost, locationMultiplier);
             LastAccruedAt = utcNow;
+        }
+
+        /// <summary>
+        /// Удар по будівлі після програної оборони. Буфер фіксується до удару —
+        /// вироблене до нього рахується за повним темпом. Пошкодження
+        /// накопичується, а відлік самовідновлення починається заново.
+        /// </summary>
+        public void TakeDamage(BuildingConfig config, DateTime utcNow, TimeSpan repairIn, double productionMultiplier,
+            ProductionBoost boost, double locationMultiplier)
+        {
+            Materialize(config, utcNow, boost, locationMultiplier);
+
+            DamageLevel = DamageAt(utcNow) + 1;
+            DamagedUntil = utcNow + repairIn;
+            DamagedProductionMultiplier = productionMultiplier;
+        }
+
+        /// <summary>Миттєвий ремонт: вироблене до нього — за пошкодженим темпом, далі — за повним.</summary>
+        public void Repair(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        {
+            Materialize(config, utcNow, boost, locationMultiplier);
+
+            DamageLevel = 0;
+            DamagedUntil = null;
+            DamagedProductionMultiplier = 1.0;
         }
 
         /// <summary>

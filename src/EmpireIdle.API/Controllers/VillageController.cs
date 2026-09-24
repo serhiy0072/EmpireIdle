@@ -34,9 +34,14 @@ namespace EmpireIdle.API.Controllers
                 village.Y,
                 village.Buildings.Select(b => new BuildingResponse(
                     b.Id, b.Type, b.Level, b.LastCollectedAt, b.StoredAmount, b.StorageCap,
-                    b.ConstructionCompletesAt, b.IsUnderConstruction, b.SpeedUpCostGems, b.IsUnlocked)).ToList(),
+                    b.ConstructionCompletesAt, b.IsUnderConstruction, b.SpeedUpCostGems, b.IsUnlocked,
+                    b.DamageLevel, b.DamagedUntil)).ToList(),
                 village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount, r.IsUnlocked)).ToList(),
-                village.ShieldUntil);
+                village.ShieldUntil,
+                village.Damage is null
+                    ? null
+                    : new VillageDamageResponse(village.Damage.DefeatStreak, village.Damage.DefeatsToEvict,
+                        village.Damage.RepairCost.Select(c => new RepairCostResponse(c.Resource, c.Amount)).ToList()));
 
             return Ok(response);
         }
@@ -90,6 +95,19 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> SpeedUpConstruction(Guid playerId, Guid buildingId, CancellationToken cancellationToken)
         {
             await _mediator.Send(new SpeedUpConstructionCommand(playerId, buildingId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Миттєво відремонтувати всі пошкоджені будівлі за ресурси. Лише всі
+        /// разом: серію поразок обнуляє тільки повне відновлення (GDD §2.6).
+        /// </summary>
+        [HttpPost("{playerId:guid}/repair")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Repair(Guid playerId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RepairVillageCommand(playerId), cancellationToken);
             return NoContent();
         }
 

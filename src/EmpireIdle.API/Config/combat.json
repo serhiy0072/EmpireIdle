@@ -13,10 +13,14 @@
       "NewbieShieldTownHallLevel": 3,
       "CityFall": {
         "Enabled": true,
-        "MaxPowerRatio": 2.0,
-        "ShieldHours": 24,
-        "EvictionsPerAttacker": 3,
-        "EvictionWindowHours": 168
+        "DefeatsToEvict": 3,
+        "FirstDefeatRandomBuildings": 2,
+        "NextDefeatRandomBuildings": 2,
+        "RepairHours": 7,
+        "DamagedProductionMultiplier": 0.5,
+        "DefenceLossPerDamage": 0.25,
+        "RepairCostShare": 0.1,
+        "ShieldHours": 168
       },
       "AttackerWinLosses": {
         "Min": 0.02,

@@ -45,6 +45,13 @@ namespace EmpireIdle.Domain.Entities
         public DateTime? ShieldUntil { get; private set; }
 
         /// <summary>
+        /// Поразки в обороні поспіль (GDD §2.6). Діє, лише поки лишається
+        /// хоч одна пошкоджена будівля: повне відновлення обнуляє серію.
+        /// Читати через DefeatStreakAt.
+        /// </summary>
+        public int DefeatStreak { get; private set; }
+
+        /// <summary>
         /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
         /// правились лише дочірні рядки — інакше токен паралелізму на корені
         /// не спрацював би, бо EF не оновив би рядок кореня.
@@ -481,6 +488,78 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Чи діє щит після падіння.</summary>
         public bool IsShieldedAt(DateTime utcNow) => ShieldUntil > utcNow;
 
+        /// <summary>Чи лишилась хоч одна пошкоджена будівля.</summary>
+        public bool HasDamageAt(DateTime utcNow) => _buildings.Any(b => b.IsDamagedAt(utcNow));
+
+        /// <summary>
+        /// Серія поразок на цей момент. Ліниво, без джоба: якщо всі будівлі
+        /// вже відновились самі, серії більше немає.
+        /// </summary>
+        public int DefeatStreakAt(DateTime utcNow) => HasDamageAt(utcNow) ? DefeatStreak : 0;
+
+        /// <summary>
+        /// Програна оборона: пошкоджує обрані будівлі й подовжує серію.
+        /// Які саме будівлі — вирішують правила, агрегат лише застосовує.
+        /// </summary>
+        /// <returns>Довжина серії разом із цією поразкою.</returns>
+        public int SufferDefeat(IReadOnlyCollection<Guid> damagedBuildingIds,
+            IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, TimeSpan repairIn,
+            double damagedProductionMultiplier, ProductionBoost boost, double locationMultiplier)
+        {
+            var streak = DefeatStreakAt(utcNow) + 1;
+
+            foreach (var building in _buildings.Where(b => damagedBuildingIds.Contains(b.Id)))
+                building.TakeDamage(buildingConfigs[building.Type], utcNow, repairIn, damagedProductionMultiplier,
+                    boost, locationMultiplier);
+
+            DefeatStreak = streak;
+
+            Touch(utcNow);
+            return streak;
+        }
+
+        /// <summary>
+        /// Ціна миттєвого ремонту всіх пошкоджених будівель: частка вартості
+        /// наступного апгрейду кожної за кожен рівень пошкодження.
+        /// </summary>
+        public List<ResourceCost> RepairCost(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, double costShare)
+            => _buildings
+                .Where(b => b.IsDamagedAt(utcNow))
+                .SelectMany(b =>
+                {
+                    var config = buildingConfigs[b.Type];
+
+                    return config.Cost.Select(line => (line.Resource, Amount: (int)Math.Ceiling(
+                        ProgressionCurves.UpgradeCost(line.Amount, b.Level.Value, config.UpgradeCostGrowth)
+                        * costShare * b.DamageAt(utcNow))));
+                })
+                .GroupBy(line => line.Resource)
+                .Select(g => new ResourceCost { Resource = g.Key, Amount = g.Sum(line => line.Amount) })
+                .Where(line => line.Amount > 0)
+                .ToList();
+
+        /// <summary>
+        /// Миттєвий ремонт за ресурси: усі будівлі цілі, серія обнуляється.
+        /// Частковий ремонт серію не обнуляє (GDD §2.6), тому його й немає.
+        /// </summary>
+        public void RepairAll(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow,
+            double costShare, ProductionBoost boost, double locationMultiplier)
+        {
+            if (!HasDamageAt(utcNow))
+                throw new RequirementNotMetException(RefusalReasons.VillageNothingToRepair, "No building is damaged.");
+
+            // Все або нічого — ChargeCost перевіряє всі позиції до першого списання
+            ChargeCost(RepairCost(buildingConfigs, utcNow, costShare), utcNow);
+
+            foreach (var building in _buildings.Where(b => b.IsDamagedAt(utcNow)))
+                building.Repair(buildingConfigs[building.Type], utcNow, boost, locationMultiplier);
+
+            DefeatStreak = 0;
+
+            Touch(utcNow);
+        }
+
         /// <summary>
         /// Фіксує падіння: село вже переселене, тепер — щит і подія.
         /// Переселення окремим кроком, бо воно торкається мапи й маршів,
@@ -492,6 +571,9 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidOperationException("The village must be relocated before it is marked fallen.");
 
             ShieldUntil = fall.ShieldUntil;
+
+            // Виселення завершує серію: на новому місці рахунок починається заново
+            DefeatStreak = 0;
 
             RaiseDomainEvent(new Events.VillageFell(fall.Id, Id, PlayerId, fall.AttackerPlayerId, utcNow));
 

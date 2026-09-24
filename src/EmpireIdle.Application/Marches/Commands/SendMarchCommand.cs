@@ -116,7 +116,7 @@ namespace EmpireIdle.Application.Marches.Commands
                     $"Cannot send more than {capacity} marches at once.", capacity);
 
             // Ціль читається один раз: далі її перевіряють і щит, і підкріплення
-            var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, cancellationToken);
+            var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, now, cancellationToken);
 
             // Перевіряємо до зняття юнітів: інакше відмова лишила б гарнізон порожнім.
             // Підкріплення може складатись із самого героя, атака не може:
