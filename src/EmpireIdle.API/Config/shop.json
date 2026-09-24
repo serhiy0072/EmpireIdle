@@ -4,28 +4,28 @@
       "GemPacks": [
         {
           "Key": "pack_small",
-          "DisplayName": "Handful of Gems",
+          "DisplayName": "Жменя самоцвітів",
           "Gems": 100,
           "PriceCents": 99,
           "BonusPercent": 0
         },
         {
           "Key": "pack_medium",
-          "DisplayName": "Pouch of Gems",
+          "DisplayName": "Мішечок самоцвітів",
           "Gems": 550,
           "PriceCents": 499,
           "BonusPercent": 10
         },
         {
           "Key": "pack_large",
-          "DisplayName": "Chest of Gems",
+          "DisplayName": "Скриня самоцвітів",
           "Gems": 1200,
           "PriceCents": 999,
           "BonusPercent": 20
         },
         {
           "Key": "pack_huge",
-          "DisplayName": "Vault of Gems",
+          "DisplayName": "Сховище самоцвітів",
           "Gems": 6500,
           "PriceCents": 4999,
           "BonusPercent": 30
@@ -83,7 +83,7 @@
           "Drops": [
             {
               "Key": "hero_mage_iselle",
-              "DisplayName": "Iselle of the Ninth Flame",
+              "DisplayName": "Ізелла Дев'ятого Полум'я",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 2,
@@ -97,7 +97,7 @@
             },
             {
               "Key": "hero_knight_ordwin",
-              "DisplayName": "Ordwin the Steadfast",
+              "DisplayName": "Ордвін Непохитний",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 4,
@@ -317,7 +317,7 @@
           "Drops": [
             {
               "Key": "hero_mage_iselle",
-              "DisplayName": "Iselle of the Ninth Flame",
+              "DisplayName": "Ізелла Дев'ятого Полум'я",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 1,
@@ -415,7 +415,7 @@
             },
             {
               "Key": "hero_knight_ordwin",
-              "DisplayName": "Ordwin the Steadfast",
+              "DisplayName": "Ордвін Непохитний",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,

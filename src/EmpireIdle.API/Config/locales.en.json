@@ -1,0 +1,53 @@
+{
+  "GameConfig": {
+    "Locales": {
+      "en": {
+        "Names": {
+          "building.townhall": "Town Hall",
+          "building.warehouse": "Warehouse",
+          "building.farm": "Farm",
+          "building.sawmill": "Sawmill",
+          "building.goldmine": "Gold Mine",
+          "building.house": "House",
+          "building.barracks": "Barracks",
+          "building.bank": "Bank",
+          "building.heroeshall": "Hall of Heroes",
+          "building.ironmine": "Iron Mine",
+          "building.lootshop": "Trading Post",
+          "building.hospital": "Hospital",
+          "building.market": "Market",
+          "building.wall": "Wall",
+          "building.stable": "Stable",
+          "building.embassy": "Embassy",
+          "building.scouttower": "Scout Tower",
+          "building.forge": "Forge",
+          "building.fishinghut": "Fishing Hut",
+          "building.beastpen": "Beast Pen",
+          "hero.warrior_bran": "Bran the Shieldbearer",
+          "hero.archer_lyra": "Lyra of the Long Sight",
+          "hero.knight_ordwin": "Ordwin the Steadfast",
+          "hero.mage_iselle": "Iselle of the Ninth Flame",
+          "item.hero_essence_t2": "Essence of the Second Circle",
+          "item.hero_essence_t3": "Essence of the Third Circle",
+          "item.crate_wood_5000": "Timber Crate",
+          "item.crate_mixed_large": "Supply Crate",
+          "item.boost_production_2x_4h": "Production Boost",
+          "item.boost_attack_25_1h": "War Banner",
+          "item.boost_defense_25_8h": "Fortification Order",
+          "item.boost_production_1h": "Harvest Rush",
+          "item.teleport": "Teleport",
+          "monster.wolf": "Wolf",
+          "monster.orc": "Orc Raider",
+          "resource.gold": "Gold",
+          "resource.wood": "Wood",
+          "resource.iron": "Iron",
+          "resource.food": "Food",
+          "unit.infantry": "Infantry",
+          "unit.archer": "Archer",
+          "unit.cavalry": "Cavalry",
+          "unit.siege": "Siege Engine"
+        }
+      }
+    }
+  }
+}

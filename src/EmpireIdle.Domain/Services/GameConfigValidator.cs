@@ -198,7 +198,37 @@ namespace EmpireIdle.Domain.Services
 
             if (localization.SupportedLanguages.Any(language => string.Equals(language, "ru", StringComparison.OrdinalIgnoreCase)))
                 throw new InvalidOperationException("Localization.Languages must not include Russian (GDD §7.3).");
+
+            var unsupported = config.Locales.Keys.Where(language => !localization.SupportedLanguages.Contains(language)).ToList();
+
+            if (unsupported.Count > 0)
+                throw new InvalidOperationException(
+                    $"Locales for languages outside Localization.Languages: {string.Join(", ", unsupported)}.");
+
+            // Переклад назви, якої немає, тихо нічого б не перекладав — і приховав би друкарську помилку в ключі
+            var known = LocalizableKeys(config);
+
+            var unknown = config.Locales
+                .SelectMany(locale => locale.Value.Names.Keys
+                    .Where(key => !known.Contains(key))
+                    .Select(key => $"{locale.Key}: {key}"))
+                .ToList();
+
+            if (unknown.Count > 0)
+                throw new InvalidOperationException($"Locales name unknown keys: {string.Join(", ", unknown)}.");
         }
+
+        /// <summary>Ключі «розділ.ключ» усього, що має назву для гравця й може перекладатись.</summary>
+        public static HashSet<string> LocalizableKeys(GameConfig config)
+            => config.Buildings.Select(b => $"building.{b.Key}")
+                .Concat(config.Heroes.Select(h => $"hero.{h.Key}"))
+                .Concat(config.Items.Select(i => $"item.{i.Key}"))
+                .Concat(config.Resources.Select(r => $"resource.{r.Key}"))
+                .Concat(config.Units.Select(u => $"unit.{u.Key}"))
+                .Concat(config.Monsters.Select(m => $"monster.{m.Key}"))
+                .Concat(config.Equipment.ArtifactSets.Select(s => $"artifactSet.{s.Key}"))
+                .Concat(config.Equipment.ArtifactSlots.Select(s => $"artifactSlot.{s.Key}"))
+                .ToHashSet();
 
         /// <summary>
         /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна

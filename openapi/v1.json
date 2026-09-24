@@ -554,6 +554,15 @@
           "Catalog"
         ],
         "operationId": "Catalog_GetCatalog",
+        "parameters": [
+          {
+            "name": "lang",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -7023,6 +7032,7 @@
           "heroClasses",
           "heroes",
           "items",
+          "language",
           "mainBuildingKey",
           "mapSize",
           "maxConstellation",
@@ -7118,6 +7128,9 @@
             "format": "int32"
           },
           "mainBuildingKey": {
+            "type": "string"
+          },
+          "language": {
             "type": "string"
           },
           "version": {

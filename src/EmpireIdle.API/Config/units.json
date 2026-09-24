@@ -3,7 +3,7 @@
     "Units": [
       {
         "Key": "infantry",
-        "DisplayName": "Infantry",
+        "DisplayName": "Піхота",
         "RecoverCostGems": 1,
         "Cost": [
           {
@@ -23,7 +23,7 @@
       },
       {
         "Key": "archer",
-        "DisplayName": "Archer",
+        "DisplayName": "Лучники",
         "RecoverCostGems": 1,
         "Cost": [
           {
@@ -47,7 +47,7 @@
       },
       {
         "Key": "cavalry",
-        "DisplayName": "Cavalry",
+        "DisplayName": "Кіннота",
         "RecoverCostGems": 1,
         "Cost": [
           {
@@ -75,7 +75,7 @@
       },
       {
         "Key": "siege",
-        "DisplayName": "Siege Engine",
+        "DisplayName": "Облогові машини",
         "RecoverCostGems": 1,
         "Cost": [
           {
