@@ -63,6 +63,11 @@ export interface ChatMessageEvent {
   sentAt: string;
 }
 
+/** Нове в скриньці: лист (kind — тип листа) або оголошення світу (kind = "Announcement"). */
+export interface MailReceivedEvent {
+  kind: string;
+}
+
 export interface GameEvents {
   BuildingCollected: BuildingCollectedEvent;
   UpgradeStarted: UpgradeStartedEvent;
@@ -72,6 +77,7 @@ export interface GameEvents {
   ServerQuestRewarded: ServerQuestRewardedEvent;
   ClanInvite: ClanInviteEvent;
   ChatMessage: ChatMessageEvent;
+  MailReceived: MailReceivedEvent;
 }
 
 export type GameEventName = keyof GameEvents;
@@ -85,4 +91,5 @@ export const gameEventNames: GameEventName[] = [
   "ServerQuestRewarded",
   "ClanInvite",
   "ChatMessage",
+  "MailReceived",
 ];
