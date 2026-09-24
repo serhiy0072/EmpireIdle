@@ -28,7 +28,7 @@ export default function ListingCard({ listing, action }: Props) {
   const hero = listing.kind === "Hero" ? catalog.hero(listing.itemKey) : null;
   const name = hero !== null ? catalog.heroName(listing.itemKey) : catalog.itemName(listing.itemKey);
   const rarity = listing.equipment?.rarity ?? hero?.rank ?? catalog.item(listing.itemKey)?.rarity;
-  const unit = listing.kind === "Item" ? "шт." : "сили";
+  const unit = listing.kind === "Item" ? "шт." : "одиницю сили";
 
   return (
     <div className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3">
@@ -67,7 +67,7 @@ export default function ListingCard({ listing, action }: Props) {
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
           <span>
-            {listing.pricePerUnit.toLocaleString("uk-UA", { maximumFractionDigits: 1 })} 🪙 за одиницю {unit}
+            {listing.pricePerUnit.toLocaleString("uk-UA", { maximumFractionDigits: 1 })} 🪙 за {unit}
             {listing.state === "Active"
               ? ` · ще ${formatRemaining(listing.expiresAt, now)}`
               : ` · ${STATE_LABELS[listing.state] ?? listing.state}`}

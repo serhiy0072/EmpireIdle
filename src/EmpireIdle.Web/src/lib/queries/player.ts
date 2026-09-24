@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { api } from "../api";
 import type { components } from "../schema";
 import { queryKeys } from "../queryKeys";
@@ -51,18 +51,20 @@ export function useDailyCheckIn(playerId: string): void {
     },
   });
 
+  // Доба останнього входу — у рефі, а не в ефекті: StrictMode запускає ефект
+  // двічі, і локальна змінна обнулялась би, відправляючи вхід двічі
+  const checked = useRef({ playerId: "", day: "" });
+
   useEffect(() => {
     if (playerId === "") return;
 
-    let checkedDay = "";
-
     const tick = () => {
       const day = new Date().toISOString().slice(0, 10);
-      if (day === checkedDay) return;
+      if (checked.current.playerId === playerId && checked.current.day === day) return;
 
-      checkedDay = day;
+      checked.current = { playerId, day };
       // Невдалий вхід (скажімо, гонка двох вкладок) повторимо на наступному тіку
-      mutate(undefined, { onError: () => (checkedDay = "") });
+      mutate(undefined, { onError: () => (checked.current = { playerId: "", day: "" }) });
     };
 
     tick();

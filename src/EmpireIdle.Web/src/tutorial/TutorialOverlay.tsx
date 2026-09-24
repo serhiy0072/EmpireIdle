@@ -13,8 +13,16 @@ const PAD = 6;
 const CARD_WIDTH = 320;
 const GAP = 12;
 
-/** Картка під ціллю, якщо є місце, інакше над нею; без цілі — внизу по центру. */
-function cardStyle(rect: TargetRect | null): CSSProperties {
+/**
+ * Картка під ціллю, якщо є місце, інакше над нею. Без цілі: підказка — у правому
+ * нижньому куті, поза колонкою контенту (по центру вона накривала кнопки панелі
+ * будівлі); модальний крок — внизу по центру, під ним однаково все затемнено.
+ */
+function cardStyle(rect: TargetRect | null, corner: boolean): CSSProperties {
+  if (rect === null && corner) {
+    return { right: 16, bottom: 16, width: Math.min(CARD_WIDTH, window.innerWidth - 32) };
+  }
+
   if (rect === null) {
     return { left: "50%", bottom: 24, transform: "translateX(-50%)", width: CARD_WIDTH };
   }
@@ -81,7 +89,7 @@ export default function TutorialOverlay({ step, onDismiss, onSkip }: Props) {
         role="dialog"
         aria-label={step.title}
         className="pointer-events-auto absolute space-y-2 rounded-xl border border-amber-300 bg-white p-4 shadow-xl"
-        style={cardStyle(spotlight ? rect : null)}
+        style={cardStyle(spotlight ? rect : null, !modal)}
       >
         <h3 className="font-medium text-slate-800">{step.title}</h3>
         <p className="text-sm text-slate-600">{step.text}</p>
