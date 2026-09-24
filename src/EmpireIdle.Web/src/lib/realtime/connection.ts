@@ -51,8 +51,9 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
     ],
     ServerQuestRewarded: [queryKeys.wallet(playerId), queryKeys.serverQuests(playerId)],
     ClanInvite: [queryKeys.clanRequests(playerId), ["mail", playerId]],
-    // Подія лише підсвічує: зміст скриньки перечитується запитом
-    MailReceived: [["mail", playerId]],
+    // Подія лише підсвічує: зміст скриньки перечитується запитом. Лист про
+    // падіння означає, що село вже на іншій клітині, — тож і село, і мапу
+    MailReceived: [["mail", playerId], queryKeys.village(playerId), ["map"]],
     // Історію каналу чат дописує сам із події; список розмов — перечитуємо
     ChatMessage: [queryKeys.chatConversations(playerId)],
   };

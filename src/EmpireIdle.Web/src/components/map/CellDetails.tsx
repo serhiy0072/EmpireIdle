@@ -1,6 +1,7 @@
 import type { MapCellDetailsResponse, MarchTargetType } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { MARCH_TARGET } from "../../lib/queries/marches";
+import { isShieldActive, shieldUntilLabel } from "../../lib/shield";
 import { terrainLabel } from "../../lib/terrain";
 
 interface Props {
@@ -47,6 +48,12 @@ export default function CellDetails({ cell, isHome, onAttack }: Props) {
             </ul>
           )}
         </div>
+      )}
+
+      {occupant === "Village" && isShieldActive(cell.shieldUntil) && (
+        <p className="text-sm text-emerald-700">
+          🛡 Нещодавно впало — під щитом до {shieldUntilLabel(cell.shieldUntil)}
+        </p>
       )}
 
       {targetType !== null && !isHome && cell.occupantId !== null && cell.occupantId !== undefined && (

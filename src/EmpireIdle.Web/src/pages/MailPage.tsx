@@ -35,6 +35,35 @@ interface LetterProps {
   onOpen: () => void;
 }
 
+/** Лист про падіння міста: хто виселив, звідки й куди, до коли щит (GDD §2.6). */
+function CityFallLetter({ letter, onOpen }: Omit<LetterProps, "playerId">) {
+  const fall = letter.cityFall;
+
+  return (
+    <li
+      className="space-y-1 rounded-xl border border-rose-200 bg-white p-3"
+      onMouseEnter={() => !letter.isRead && onOpen()}
+      onClick={() => !letter.isRead && onOpen()}
+    >
+      <div className="flex items-baseline justify-between gap-2 text-sm">
+        <span className="font-medium text-slate-800">
+          {!letter.isRead && unreadDot}
+          Ваше поселення впало
+        </span>
+        <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
+      </div>
+      {fall == null ? (
+        <p className="text-sm text-slate-500">Подробиці вже недоступні.</p>
+      ) : (
+        <p className="text-sm text-slate-700">
+          {fall.attackerName} переміг вашу оборону й виселив вас із ({fall.fromX}, {fall.fromY}) на ({fall.toX},{" "}
+          {fall.toY}). Щит захищає вас від нападів до {date(fall.shieldUntil)}; ваш напад на гравця його зніме.
+        </p>
+      )}
+    </li>
+  );
+}
+
 /**
  * Лист-запрошення за теперішнім станом запрошення: кнопки лише в того,
  * що ще чекає. Після дії лист лишається — як історія (GDD §7.4).
@@ -164,14 +193,18 @@ export default function MailPage() {
           <p className="text-sm text-slate-500">Листів немає.</p>
         ) : (
           <ul className="space-y-2">
-            {letters.map((letter) => (
-              <InviteLetter
-                key={letter.id}
-                playerId={playerId}
-                letter={letter}
-                onOpen={() => readLetter.mutate(letter.id)}
-              />
-            ))}
+            {letters.map((letter) =>
+              letter.kind === "CityFall" ? (
+                <CityFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
+              ) : (
+                <InviteLetter
+                  key={letter.id}
+                  playerId={playerId}
+                  letter={letter}
+                  onOpen={() => readLetter.mutate(letter.id)}
+                />
+              ),
+            )}
           </ul>
         )}
       </section>

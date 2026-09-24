@@ -9,6 +9,7 @@ import { useMailUnread } from "../lib/queries/mail";
 import { DEFAULT_LANGUAGE, useChangeLanguage, usePlayerSettings } from "../lib/queries/player";
 import { useVillage } from "../lib/queries/village";
 import { onGameEvent } from "../lib/realtime/connection";
+import { isShieldActive, shieldUntilLabel } from "../lib/shield";
 import { useWallet } from "../lib/queries/wallet";
 import TutorialOverlay from "../tutorial/TutorialOverlay";
 import { useTutorial } from "../tutorial/useTutorial";
@@ -72,6 +73,14 @@ export default function AppLayout() {
             <ResourceBar village={village.data} />
 
             <div className="flex items-center gap-2">
+              {isShieldActive(village.data?.shieldUntil) && (
+                <span
+                  className="rounded-full bg-emerald-100 px-3 py-1 text-sm text-emerald-800"
+                  title="Щит після падіння міста: вас не можуть атакувати. Ваш напад на гравця його знімає."
+                >
+                  🛡 до {shieldUntilLabel(village.data?.shieldUntil)}
+                </span>
+              )}
               <PowerBadge playerId={playerId} village={village.data} />
               <span className="rounded-full bg-violet-100 px-3 py-1 text-sm text-violet-800">
                 💎 <span className="font-medium">{(wallet.data?.gemBalance ?? 0).toLocaleString("uk-UA")}</span>
