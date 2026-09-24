@@ -17,6 +17,11 @@ export const queryKeys = {
   marches: (playerId: string) => ["marches", playerId] as const,
   tutorial: (playerId: string) => ["tutorial", playerId] as const,
   inventory: (playerId: string) => ["inventory", playerId] as const,
+  /** Історія каналу; для приватного — з конкретним співрозмовником. */
+  chatHistory: (playerId: string, channel: string, partnerId: string | null) =>
+    ["chat", playerId, channel, partnerId] as const,
+  chatConversations: (playerId: string) => ["chat", playerId, "conversations"] as const,
+  settings: (playerId: string) => ["settings", playerId] as const,
   /** Ринок гравця — префікс: мутації ринку інвалідують разом і «мої лоти», і вітрину, і котирування. */
   market: (playerId: string) => ["market", playerId] as const,
   marketBrowse: (playerId: string, kind: number | null, page: number) => ["market", playerId, "browse", kind, page] as const,

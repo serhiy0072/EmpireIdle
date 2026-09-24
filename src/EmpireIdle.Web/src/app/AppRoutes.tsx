@@ -4,6 +4,7 @@ import { useSession } from "../hooks/useSession";
 import ArmyPage from "../pages/ArmyPage";
 import ArtifactSetsPage from "../pages/ArtifactSetsPage";
 import BannersPage from "../pages/BannersPage";
+import ChatPage from "../pages/ChatPage";
 import ClanPage from "../pages/ClanPage";
 import DungeonsPage from "../pages/DungeonsPage";
 import ForgePage from "../pages/ForgePage";
@@ -49,6 +50,7 @@ export default function AppRoutes() {
             <Route path="/clan" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/market" element={<MarketPage />} />
+            <Route path="/chat" element={<ChatPage />} />
             <Route path="/rating" element={<RatingPage />} />
             <Route path="/quests" element={<QuestsPage />} />
             <Route path="/map" element={<MapPage />} />
