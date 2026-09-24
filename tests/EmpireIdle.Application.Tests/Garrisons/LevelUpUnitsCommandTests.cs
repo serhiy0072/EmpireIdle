@@ -43,9 +43,13 @@ public class LevelUpUnitsCommandTests
         ]
     };
 
-    private LevelUpUnitsCommandHandler Handler() => new(
-        _villages, _garrisons, _unitOfWork, new FakeTimeProvider(Now),
-        NullLogger<LevelUpUnitsCommandHandler>.Instance, new GameCatalog(Config()));
+    private LevelUpUnitsCommandHandler Handler()
+    {
+        var catalog = new GameCatalog(Config());
+
+        return new(_villages, _garrisons, _unitOfWork, new FakeTimeProvider(Now),
+            NullLogger<LevelUpUnitsCommandHandler>.Instance, catalog, new VillageStatus(catalog));
+    }
 
     /// <summary>Село з казармами, гарнізон із партією юнітів першого рівня, ресурси.</summary>
     private (Village Village, Garrison Garrison) GivenVillage(int infantryAtLevelOne = 10, int food = 10_000)

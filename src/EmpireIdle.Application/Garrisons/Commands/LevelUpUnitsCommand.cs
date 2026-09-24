@@ -24,6 +24,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<LevelUpUnitsCommandHandler> _logger;
         private readonly GameCatalog _catalog;
+        private readonly VillageStatus _status;
 
         public LevelUpUnitsCommandHandler(
             IVillageRepository villageRepository,
@@ -31,7 +32,8 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ILogger<LevelUpUnitsCommandHandler> logger,
-            GameCatalog catalog)
+            GameCatalog catalog,
+            VillageStatus status)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
@@ -39,6 +41,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _timeProvider = timeProvider;
             _logger = logger;
             _catalog = catalog;
+            _status = status;
         }
 
         public async Task Handle(LevelUpUnitsCommand request, CancellationToken cancellationToken)
@@ -60,8 +63,10 @@ namespace EmpireIdle.Application.Garrisons.Commands
             if (config.RequiresBuilding is null)
                 throw new InvalidOperationException($"Unit '{request.UnitType}' has no training building configured.");
 
+            // Будівля під туманом стоїть у селі з першого дня, але ще не відкрита гравцю
             var trainingBuilding = village.Buildings
-                .FirstOrDefault(b => b.Type == config.RequiresBuilding && !b.IsUnderConstruction)
+                .FirstOrDefault(b => b.Type == config.RequiresBuilding && !b.IsUnderConstruction
+                                     && _status.IsUnlocked(village, b.Type))
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Levelling up '{request.UnitType}' requires a '{config.RequiresBuilding}'.",
                     _catalog.Building(config.RequiresBuilding).DisplayName);
