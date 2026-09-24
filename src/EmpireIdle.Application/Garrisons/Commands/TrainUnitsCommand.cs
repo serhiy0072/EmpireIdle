@@ -31,6 +31,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<TrainUnitsCommandHandler> _logger;
         private readonly GameCatalog _catalog;
+        private readonly VillageStatus _status;
 
         public TrainUnitsCommandHandler(
             IVillageRepository villageRepository,
@@ -38,7 +39,8 @@ namespace EmpireIdle.Application.Garrisons.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ILogger<TrainUnitsCommandHandler> logger,
-            GameCatalog catalog)
+            GameCatalog catalog,
+            VillageStatus status)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
@@ -46,6 +48,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _timeProvider = timeProvider;
             _logger = logger;
             _catalog = catalog;
+            _status = status;
         }
 
         public async Task Handle(TrainUnitsCommand request, CancellationToken cancellationToken)
@@ -66,8 +69,10 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             // Рівень будівлі визначає ліміт армії, тому потрібна сама будівля, а не факт її наявності.
             // Та, що в процесі будівництва, не рахується — інакше замовлення можна зробити наперед.
+            // Будівля під туманом стоїть у селі з першого дня, але ще не відкрита гравцю
             var trainingBuilding = village.Buildings
-                .FirstOrDefault(b => b.Type == config.RequiresBuilding && !b.IsUnderConstruction)
+                .FirstOrDefault(b => b.Type == config.RequiresBuilding && !b.IsUnderConstruction
+                                     && _status.IsUnlocked(village, b.Type))
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.",
                     _catalog.Building(config.RequiresBuilding).DisplayName);

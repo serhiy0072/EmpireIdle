@@ -38,7 +38,8 @@ public class TrainUnitsCommandTests
                 BuildTimeGrowth = 1.5,
                 Cost = [new ResourceCost { Resource = "food", Amount = 10 }]
             },
-            new BuildingConfig { Key = "warehouse", StoresResources = ["food"], UpgradeCostGrowth = 1.45 }
+            new BuildingConfig { Key = "warehouse", StoresResources = ["food"], UpgradeCostGrowth = 1.45 },
+            new BuildingConfig { Key = "stable", RequiresMainBuildingLevel = 5, UpgradeCostGrowth = 1.45 }
         ],
         Units =
         [
@@ -57,13 +58,25 @@ public class TrainUnitsCommandTests
                 RequiresBuildingLevel = 6,
                 BaseTrainMinutes = 15,
                 Cost = [new ResourceCost { Resource = "food", Amount = 50 }]
+            },
+            new UnitConfig
+            {
+                Key = "cavalry",
+                RequiresBuilding = "stable",
+                RequiresBuildingLevel = 1,
+                BaseTrainMinutes = 5,
+                Cost = [new ResourceCost { Resource = "food", Amount = 20 }]
             }
         ]
     };
 
-    private TrainUnitsCommandHandler Handler() => new(
-        _villages, _garrisons, _unitOfWork, new FakeTimeProvider(Now),
-        NullLogger<TrainUnitsCommandHandler>.Instance, new GameCatalog(Config()));
+    private TrainUnitsCommandHandler Handler()
+    {
+        var catalog = new GameCatalog(Config());
+
+        return new(_villages, _garrisons, _unitOfWork, new FakeTimeProvider(Now),
+            NullLogger<TrainUnitsCommandHandler>.Instance, catalog, new VillageStatus(catalog));
+    }
 
     /// <summary>Село з казармами заданого рівня, гарнізон, ресурси.</summary>
     private (Village Village, Garrison Garrison) GivenVillage(
@@ -177,6 +190,23 @@ public class TrainUnitsCommandTests
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 1), CancellationToken.None));
         Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
+    }
+
+    /// <summary>
+    /// Конюшня стоїть у селі з першого дня, але під туманом до ратуші 5.
+    /// Рівень 1 у неї є — без перевірки туману кінноту тренували б новачки.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenTheBuildingIsStillUnderFog()
+    {
+        var (village, garrison) = GivenVillage();
+        village.AddBuilding("stable", new GameCatalog(Config()).Buildings, Now);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "cavalry", 1, 1), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
+        Assert.Empty(garrison.TrainingOrders);
     }
 
     /// <summary>
