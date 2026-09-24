@@ -74,7 +74,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// виглядала б валідною.
         /// </summary>
         public async Task<MarchTarget> ResolveAsync(MarchTargetType targetType, Guid targetId, Village origin,
-            CancellationToken cancellationToken)
+            DateTime utcNow, CancellationToken cancellationToken)
         {
             switch (targetType)
             {
@@ -122,7 +122,7 @@ namespace EmpireIdle.Application.Marches.Services
                         village,
                         defence,
                         buffs,
-                        _status.DefenceMultiplier(village));
+                        _status.DefenceMultiplier(village, utcNow));
 
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{targetType}'.");

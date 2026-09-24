@@ -125,7 +125,7 @@ namespace EmpireIdle.Application.Marches.Services
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                 attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
 
-            var defenderBonus = _status.DefenceMultiplier(targetVillage);
+            var defenderBonus = _status.DefenceMultiplier(targetVillage, utcNow);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіти обох сторін
             var seed = _random.Next(int.MaxValue);
@@ -160,7 +160,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Після звітів: вони пишуть координати бою, а не нові координати села
             if (result.AttackerWon)
-                await _cityFall.TryEvictAsync(attackerVillage, targetVillage, utcNow, cancellationToken);
+                await _cityFall.SufferDefeatAsync(attackerVillage, targetVillage, utcNow, cancellationToken);
 
             _logistics.TurnMarchBack(march, march.GetUnits(), utcNow);
 

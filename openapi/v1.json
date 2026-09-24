@@ -6346,6 +6346,58 @@
         }
       }
     },
+    "/api/Village/{playerId}/repair": {
+      "post": {
+        "tags": [
+          "Village"
+        ],
+        "operationId": "Village_Repair",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Wallet/{playerId}": {
       "get": {
         "tags": [
@@ -6900,6 +6952,7 @@
       },
       "BuildingResponse": {
         "required": [
+          "damageLevel",
           "id",
           "isUnderConstruction",
           "isUnlocked",
@@ -6949,6 +7002,15 @@
           },
           "isUnlocked": {
             "type": "boolean"
+          },
+          "damageLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "damagedUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -9976,6 +10038,23 @@
         },
         "additionalProperties": false
       },
+      "RepairCostResponse": {
+        "required": [
+          "amount",
+          "resource"
+        ],
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "RequestClanHelpRequest": {
         "required": [
           "targetId",
@@ -10523,6 +10602,31 @@
         },
         "additionalProperties": false
       },
+      "VillageDamageResponse": {
+        "required": [
+          "defeatsToEvict",
+          "defeatStreak",
+          "repairCost"
+        ],
+        "type": "object",
+        "properties": {
+          "defeatStreak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "defeatsToEvict": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "repairCost": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RepairCostResponse"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "VillageResponse": {
         "required": [
           "buildings",
@@ -10565,6 +10669,9 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "damage": {
+            "$ref": "#/components/schemas/VillageDamageResponse"
           }
         },
         "additionalProperties": false

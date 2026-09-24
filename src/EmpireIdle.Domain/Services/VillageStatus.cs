@@ -46,12 +46,18 @@ namespace EmpireIdle.Domain.Services
         /// <summary>
         /// Множник до сили оборони від укріплень. 1.0 — стін немає.
         /// Належить селищу, тож підкріплення клану ними теж прикриті.
+        /// Пошкоджене укріплення дає лише частку бонусу (GDD §2.6).
         /// </summary>
-        public double DefenceMultiplier(Village village)
-            => 1.0 + village.Buildings
+        public double DefenceMultiplier(Village village, DateTime utcNow)
+        {
+            var lossPerDamage = _catalog.Config.Combat.CityFall.DefenceLossPerDamage;
+
+            return 1.0 + village.Buildings
                 .Where(b => !b.IsUnderConstruction
                             && _catalog.Buildings.TryGetValue(b.Type, out var c)
                             && c.DefenceBonusPerLevel > 0)
-                .Sum(b => _catalog.Buildings[b.Type].DefenceBonusPerLevel * b.Level.Value);
+                .Sum(b => _catalog.Buildings[b.Type].DefenceBonusPerLevel * b.Level.Value
+                          * Math.Max(0, 1 - b.DamageAt(utcNow) * lossPerDamage));
+        }
     }
 }

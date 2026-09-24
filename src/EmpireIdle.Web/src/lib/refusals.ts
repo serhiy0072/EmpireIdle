@@ -65,6 +65,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "village.storageFull": ({ resource }) =>
     `Склад ${resourceGenitive(String(resource))} заповнений — витратьте частину, перш ніж збирати`,
   "village.alreadyThere": () => "Поселення вже стоїть на цій клітинці",
+  "village.nothingToRepair": () => "Ремонтувати нічого — усі будівлі цілі",
   "building.serverCeiling": ({ serverLevel, ceiling }) =>
     `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
   "building.townHallCeiling": ({ building, level }) =>

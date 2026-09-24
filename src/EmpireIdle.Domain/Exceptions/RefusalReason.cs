@@ -170,6 +170,9 @@
 
         public static readonly RefusalReason MarchTargetShielded = new("march.targetShielded");
 
+        /// <summary>Ремонтувати нічого — жодна будівля не пошкоджена.</summary>
+        public static readonly RefusalReason VillageNothingToRepair = new("village.nothingToRepair");
+
         /// <summary>Ціль нещодавно впала й під щитом після падіння (GDD §2.6).</summary>
         public static readonly RefusalReason MarchTargetFallShield = new("march.targetFallShield");
 

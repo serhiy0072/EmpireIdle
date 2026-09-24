@@ -8,8 +8,5 @@ namespace EmpireIdle.Application.Interfaces
         Task AddAsync(VillageFall fall, CancellationToken cancellationToken = default);
 
         Task<VillageFall?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-
-        /// <summary>Скільки сіл нападник виселив від моменту since — для ліміту за вікно.</summary>
-        Task<int> CountByAttackerSinceAsync(Guid attackerPlayerId, DateTime since, CancellationToken cancellationToken = default);
     }
 }

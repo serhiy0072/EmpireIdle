@@ -18,9 +18,5 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
         public Task<VillageFall?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.VillageFalls.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
-
-        public Task<int> CountByAttackerSinceAsync(Guid attackerPlayerId, DateTime since, CancellationToken cancellationToken = default)
-            => _context.VillageFalls.CountAsync(f => f.AttackerPlayerId == attackerPlayerId && f.OccurredAt >= since,
-                cancellationToken);
     }
 }

@@ -87,7 +87,7 @@ namespace EmpireIdle.Application.Marches.Queries
                 .Where(u => u.Value > 0)
                 .ToDictionary(u => u.Key, u => Math.Min(u.Value, available.GetValueOrDefault(u.Key)));
 
-            var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, cancellationToken);
+            var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, now, cancellationToken);
 
             // Те саме, що відмовить у відправленні: прев'ю не має
             // показувати шанси там, куди йти не можна

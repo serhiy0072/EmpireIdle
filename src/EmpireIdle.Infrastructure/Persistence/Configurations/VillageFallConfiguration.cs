@@ -13,9 +13,6 @@ public class VillageFallConfiguration : IEntityTypeConfiguration<VillageFall>
         builder.Property(f => f.Id).ValueGeneratedNever();
         builder.Property(f => f.AttackerVillageName).IsRequired().HasMaxLength(100);
 
-        // Ліміт виселень нападника за вікно
-        builder.HasIndex(f => new { f.AttackerPlayerId, f.OccurredAt });
-
         // Історія виселеного — для скарг і майбутнього екрана
         builder.HasIndex(f => new { f.PlayerId, f.OccurredAt });
 
