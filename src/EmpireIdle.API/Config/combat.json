@@ -11,6 +11,13 @@
       "PreviewOddsThresholds": [ 2.5, 1.3, 0.8, 0.4 ],
       "NoLossShareThreshold": 0.03,
       "NewbieShieldTownHallLevel": 3,
+      "CityFall": {
+        "Enabled": true,
+        "MaxPowerRatio": 2.0,
+        "ShieldHours": 24,
+        "EvictionsPerAttacker": 3,
+        "EvictionWindowHours": 168
+      },
       "AttackerWinLosses": {
         "Min": 0.02,
         "Max": 0.35

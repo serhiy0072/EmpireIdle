@@ -15,13 +15,16 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly IMonsterRepository _monsterRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly MonsterArmyBuilder _armyBuilder;
+        private readonly TimeProvider _timeProvider;
 
-        public GetMapCellQueryHandler(IMapRepository mapRepository,IMonsterRepository monsterRepository,IVillageRepository villageRepository,MonsterArmyBuilder armyBuilder)
+        public GetMapCellQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
+            IVillageRepository villageRepository, MonsterArmyBuilder armyBuilder, TimeProvider timeProvider)
         {
             _mapRepository = mapRepository;
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
             _armyBuilder = armyBuilder;
+            _timeProvider = timeProvider;
         }
 
         public async Task<MapCellOccupant?> Handle(GetMapCellQuery request, CancellationToken cancellationToken)
@@ -42,7 +45,10 @@ namespace EmpireIdle.Application.Map.Queries
             }
 
             var village = await _villageRepository.GetByIdAsync(cell.OccupantId, cancellationToken);
-            return new MapCellOccupant("Village", cell.OccupantId, village?.Name, null, null);
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
+            return new MapCellOccupant("Village", cell.OccupantId, village?.Name, null, null,
+                village is not null && village.IsShieldedAt(now) ? village.ShieldUntil : null);
         }
     }
 }

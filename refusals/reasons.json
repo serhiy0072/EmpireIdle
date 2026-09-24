@@ -141,6 +141,7 @@
   "march.ownShield": [
     "level"
   ],
+  "march.targetFallShield": [],
   "march.targetShielded": [],
   "market.heroAlreadyOwned": [
     "hero"

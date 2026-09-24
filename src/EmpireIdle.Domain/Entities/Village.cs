@@ -38,6 +38,13 @@ namespace EmpireIdle.Domain.Entities
         public int Y { get; private set; }
 
         /// <summary>
+        /// Щит після падіння міста (GDD §2.6): до цього моменту село не можна
+        /// атакувати, а отже й виселити повторно. Власний напад на гравця
+        /// щит знімає. Щит новачка — окремий і з рівня ратуші, не звідси.
+        /// </summary>
+        public DateTime? ShieldUntil { get; private set; }
+
+        /// <summary>
         /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
         /// правились лише дочірні рядки — інакше токен паралелізму на корені
         /// не спрацював би, бо EF не оновив би рядок кореня.
@@ -467,6 +474,40 @@ namespace EmpireIdle.Domain.Entities
 
             X = x;
             Y = y;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>Чи діє щит після падіння.</summary>
+        public bool IsShieldedAt(DateTime utcNow) => ShieldUntil > utcNow;
+
+        /// <summary>
+        /// Фіксує падіння: село вже переселене, тепер — щит і подія.
+        /// Переселення окремим кроком, бо воно торкається мапи й маршів,
+        /// яких агрегат не бачить.
+        /// </summary>
+        public void MarkFallen(VillageFall fall, DateTime utcNow)
+        {
+            if (fall.ToX != X || fall.ToY != Y)
+                throw new InvalidOperationException("The village must be relocated before it is marked fallen.");
+
+            ShieldUntil = fall.ShieldUntil;
+
+            RaiseDomainEvent(new Events.VillageFell(fall.Id, Id, PlayerId, fall.AttackerPlayerId, utcNow));
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Знімає щит: гравець сам пішов атакувати іншого гравця. Інакше щит
+        /// став би укриттям, з-під якого безкарно нападають.
+        /// </summary>
+        public void DropShield(DateTime utcNow)
+        {
+            if (!IsShieldedAt(utcNow))
+                return;
+
+            ShieldUntil = null;
 
             Touch(utcNow);
         }

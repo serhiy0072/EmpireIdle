@@ -127,7 +127,14 @@ namespace EmpireIdle.Application.Marches.Commands
             else if (request.Units.Values.Sum() < 1)
                 throw new RequirementNotMetException(RefusalReasons.MarchEmptyAttack, "An attack needs at least one unit.");
             else
-                _targets.EnsureAttackAllowed(village, target);
+            {
+                _targets.EnsureAttackAllowed(village, target, now);
+
+                // Напад на гравця знімає власний щит після падіння — інакше
+                // з-під нього можна було б безкарно атакувати
+                if (target.Village is not null)
+                    village.DropShield(now);
+            }
 
             // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
             if (request.Units.Count > 0)

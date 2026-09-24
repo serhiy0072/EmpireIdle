@@ -7,6 +7,9 @@ namespace EmpireIdle.Domain.Enums
     public enum MailKind
     {
         /// <summary>Запрошення в клан; ReferenceId — ClanRequest.</summary>
-        ClanInvite = 1
+        ClanInvite = 1,
+
+        /// <summary>Падіння міста; ReferenceId — VillageFall.</summary>
+        CityFall = 2
     }
 }

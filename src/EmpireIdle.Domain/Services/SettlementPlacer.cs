@@ -54,5 +54,58 @@ namespace EmpireIdle.Domain.Services
             throw new InvalidOperationException(
                 $"No free habitable cell found on server {serverId} within radius {boundary} after {maxAttempts} attempts.");
         }
+
+        /// <summary>
+        /// Місце для виселеного села (GDD §2.6): спершу те саме кільце —
+        /// виселення це «тебе зсунули», не «почни спочатку», — далі найближчі
+        /// до нього, зовнішнє раніше за внутрішнє. Null — вільного місця немає,
+        /// і виселення не відбувається.
+        /// </summary>
+        public async Task<(int X, int Y)?> FindSpotNearRingAsync(
+            int serverId,
+            int serverLevel,
+            int ring,
+            Func<int, int, Task<bool>> isOccupied,
+            int attemptsPerRing = 100)
+        {
+            var (cx, cy) = _geometry.Centre;
+
+            var rings = Enumerable.Range(0, _geometry.RingCount)
+                .OrderBy(r => Math.Abs(r - ring))
+                .ThenByDescending(r => r);
+
+            foreach (var candidate in rings)
+            {
+                if (_geometry.RingDistanceBounds(candidate, serverLevel) is not { } bounds)
+                    continue;
+
+                for (var attempt = 0; attempt < attemptsPerRing; attempt++)
+                {
+                    // Відстань Чебишева d — це периметр квадрата: обираємо d у межах
+                    // кільця, потім сторону квадрата й точку на ній
+                    var d = _random.Next(bounds.Min, bounds.Max + 1);
+                    var t = _random.Next(-d, d + 1);
+
+                    var (x, y) = _random.Next(4) switch
+                    {
+                        0 => (cx + t, cy - d),
+                        1 => (cx + t, cy + d),
+                        2 => (cx - d, cy + t),
+                        _ => (cx + d, cy + t)
+                    };
+
+                    // На відстані рівно в радіус периметр виходить за край карти
+                    if (!_terrain.IsInBounds(x, y) || !_terrain.IsHabitable(serverId, x, y))
+                        continue;
+
+                    if (await isOccupied(x, y))
+                        continue;
+
+                    return (x, y);
+                }
+            }
+
+            return null;
+        }
     }
 }

@@ -15,14 +15,16 @@ namespace EmpireIdle.Application.Mail.Queries
         private readonly IMailRepository _mail;
         private readonly IClanRequestRepository _requests;
         private readonly IClanRepository _clans;
+        private readonly IVillageFallRepository _falls;
         private readonly TimeProvider _timeProvider;
 
         public GetMailboxQueryHandler(IMailRepository mail, IClanRequestRepository requests, IClanRepository clans,
-            TimeProvider timeProvider)
+            IVillageFallRepository falls, TimeProvider timeProvider)
         {
             _mail = mail;
             _requests = requests;
             _clans = clans;
+            _falls = falls;
             _timeProvider = timeProvider;
         }
 
@@ -35,7 +37,8 @@ namespace EmpireIdle.Application.Mail.Queries
 
             foreach (var letter in letters)
                 letterViews.Add(new MailLetterView(letter.Id, letter.Kind.ToString(), letter.CreatedAt, letter.IsRead,
-                    letter.Kind == MailKind.ClanInvite ? await InviteAsync(letter, now, cancellationToken) : null));
+                    letter.Kind == MailKind.ClanInvite ? await InviteAsync(letter, now, cancellationToken) : null,
+                    letter.Kind == MailKind.CityFall ? await FallAsync(letter, cancellationToken) : null));
 
             var announcements = await _mail.GetAnnouncementsAsync(now, cancellationToken);
             var read = await _mail.GetReadAnnouncementIdsAsync(request.PlayerId,
@@ -49,6 +52,11 @@ namespace EmpireIdle.Application.Mail.Queries
 
             return new MailboxView(letterViews, announcementViews, unread);
         }
+
+        private async Task<CityFallLetterView?> FallAsync(MailLetter letter, CancellationToken cancellationToken)
+            => await _falls.GetByIdAsync(letter.ReferenceId, cancellationToken) is { } fall
+                ? new CityFallLetterView(fall.AttackerVillageName, fall.FromX, fall.FromY, fall.ToX, fall.ToY, fall.ShieldUntil)
+                : null;
 
         /// <summary>
         /// Стан запрошення тепер, а не на момент листа: воно могло протермінуватись,

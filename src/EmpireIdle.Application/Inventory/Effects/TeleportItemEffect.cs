@@ -1,8 +1,6 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Contracts;
-using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 
@@ -21,37 +19,28 @@ namespace EmpireIdle.Application.Inventory.Effects
 
         private readonly IVillageRepository _villageRepository;
         private readonly IMapRepository _mapRepository;
-        private readonly IMarchRepository _marchRepository;
-        private readonly IGarrisonRepository _garrisonRepository;
         private readonly IServerRepository _serverRepository;
         private readonly IServerContext _serverContext;
-        private readonly GameCatalog _catalog;
         private readonly WorldGeometry _geometry;
         private readonly TerrainGenerator _terrain;
-        private readonly EffectResolver _effectResolver;
+        private readonly VillageRelocator _relocator;
 
         public TeleportItemEffect(
             IVillageRepository villageRepository,
             IMapRepository mapRepository,
-            IMarchRepository marchRepository,
-            IGarrisonRepository garrisonRepository,
             IServerRepository serverRepository,
             IServerContext serverContext,
-            GameCatalog catalog,
             WorldGeometry geometry,
             TerrainGenerator terrain,
-            EffectResolver effectResolver)
+            VillageRelocator relocator)
         {
             _villageRepository = villageRepository;
             _mapRepository = mapRepository;
-            _marchRepository = marchRepository;
-            _garrisonRepository = garrisonRepository;
             _serverRepository = serverRepository;
             _serverContext = serverContext;
-            _catalog = catalog;
             _geometry = geometry;
             _terrain = terrain;
-            _effectResolver = effectResolver;
+            _relocator = relocator;
         }
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
@@ -78,36 +67,7 @@ namespace EmpireIdle.Application.Inventory.Effects
             if (await _mapRepository.IsOccupiedAsync(serverId, x, y, cancellationToken))
                 throw new AlreadyExistsException(RefusalReasons.TeleportCellOccupied, "Map cell", $"({x},{y})");
 
-            // Фіксуємо буфери ДО зміни координат: множник кільця залежить від
-            // позиції, і накопичене на околиці порахувалось би за новим
-            var boost = await _effectResolver.GetProductionBoostAsync(context.PlayerId, context.UtcNow, cancellationToken);
-            var currentMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
-
-            village.MaterializeProduction(_catalog.Buildings, context.UtcNow, boost, currentMultiplier);
-
-            var oldCell = await _mapRepository.GetByOccupantAsync(MapOccupantType.Village, village.Id, cancellationToken);
-            if (oldCell is not null)
-                _mapRepository.Remove(oldCell);
-
-            village.RelocateTo(x, y, context.UtcNow);
-
-            // Гонку за останню клітину вирішує унікальний індекс (ServerId, X, Y),
-            // а не перевірка вище: між нею і вставкою може вклинитись інший гравець
-            await _mapRepository.AddAsync(
-                new MapCell(Guid.NewGuid(), serverId, x, y, MapOccupantType.Village, village.Id),
-                cancellationToken);
-
-            // Марші не блокують переїзд: армія в дорозі розвертається й повертається
-            // за той самий час, що вже пройшла — на нові координати
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken);
-
-            if (garrison is not null)
-            {
-                var marches = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
-
-                foreach (var march in marches)
-                    march.RecallAfterRelocation(x, y, context.UtcNow);
-            }
+            await _relocator.RelocateAsync(village, x, y, context.UtcNow, cancellationToken);
         }
     }
 }
