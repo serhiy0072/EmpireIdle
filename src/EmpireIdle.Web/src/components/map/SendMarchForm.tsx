@@ -3,7 +3,9 @@ import type { MarchTargetType, SendMarchRequest } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { useGarrison } from "../../lib/queries/garrison";
 import { useHeroes } from "../../lib/queries/heroes";
-import { BATTLE_ODDS, MARCH_INTENT, usePreviewMarch, useSendMarch } from "../../lib/queries/marches";
+import { BATTLE_ODDS, MARCH_INTENT, MARCH_TARGET, usePreviewMarch, useSendMarch } from "../../lib/queries/marches";
+import { useVillage } from "../../lib/queries/village";
+import { isShieldActive } from "../../lib/shield";
 import { formatDuration, parseTimeSpan } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 
@@ -25,6 +27,10 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
   const heroes = useHeroes(playerId);
   const preview = usePreviewMarch(playerId);
   const send = useSendMarch(playerId);
+  const village = useVillage(playerId);
+
+  // Щит після падіння знімає будь-який напад на гравця — попереджаємо до кліку
+  const losesShield = target.type === MARCH_TARGET.village && isShieldActive(village.data?.shieldUntil);
 
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [heroId, setHeroId] = useState<string>("");
@@ -64,6 +70,12 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
       </div>
 
       <ErrorBanner error={preview.error ?? send.error} />
+
+      {losesShield && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Напад на гравця зніме ваш щит після падіння міста.
+        </p>
+      )}
 
       {stacks.length === 0 ? (
         <p className="text-sm text-slate-500">У гарнізоні нікого: спершу навчіть юнітів у казармах.</p>
