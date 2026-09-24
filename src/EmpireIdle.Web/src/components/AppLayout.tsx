@@ -6,7 +6,7 @@ import { logout } from "../lib/auth";
 import { seedAccount } from "../lib/dev";
 import { appendChatEvent } from "../lib/queries/chat";
 import { useMailUnread } from "../lib/queries/mail";
-import { DEFAULT_LANGUAGE, useChangeLanguage, usePlayerSettings } from "../lib/queries/player";
+import { DEFAULT_LANGUAGE, useChangeLanguage, useDailyCheckIn, usePlayerSettings } from "../lib/queries/player";
 import { useVillage } from "../lib/queries/village";
 import { onGameEvent } from "../lib/realtime/connection";
 import { isShieldActive, shieldUntilLabel } from "../lib/shield";
@@ -51,6 +51,8 @@ export default function AppLayout() {
   const mailUnread = useMailUnread(playerId);
   const changeLanguage = useChangeLanguage(playerId);
   const language = settings.data?.language ?? DEFAULT_LANGUAGE;
+
+  useDailyCheckIn(playerId);
 
   // Чат дописується тут, а не на сторінці чату: інакше історія закритого чату
   // застаріла б, а перечитувати її за таймером нема потреби
