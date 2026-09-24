@@ -42,7 +42,7 @@
     "Heroes": [
       {
         "Key": "warrior_bran",
-        "DisplayName": "Bran the Shieldbearer",
+        "DisplayName": "Бран Щитоносець",
         "Class": "warrior",
         "Rank": "common",
         "Description": "Тримає стрій. Зменшує безповоротні втрати піхоти в обороні.",
@@ -162,7 +162,7 @@
       },
       {
         "Key": "archer_lyra",
-        "DisplayName": "Lyra of the Long Sight",
+        "DisplayName": "Ліра Далекозора",
         "Class": "archer",
         "Rank": "common",
         "Description": "Б'є першою. Підвищує шанс криту стрільців у наступальному марші.",
@@ -279,7 +279,7 @@
       },
       {
         "Key": "knight_ordwin",
-        "DisplayName": "Ordwin the Steadfast",
+        "DisplayName": "Ордвін Непохитний",
         "Class": "knight",
         "Rank": "rare",
         "Description": "Пробиває броню. Підсилює важку кінноту й зменшує захист оборонця.",
@@ -402,7 +402,7 @@
       },
       {
         "Key": "mage_iselle",
-        "DisplayName": "Iselle of the Ninth Flame",
+        "DisplayName": "Ізелла Дев'ятого Полум'я",
         "Class": "mage",
         "Rank": "unique",
         "Description": "Множить шкоду по масі. Найсильніша проти щільного строю.",

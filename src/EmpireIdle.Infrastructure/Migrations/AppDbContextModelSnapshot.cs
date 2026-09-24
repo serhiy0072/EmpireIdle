@@ -62,6 +62,56 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("ActiveEffects", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.Announcement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId", "ExpiresAt");
+
+                    b.ToTable("Announcements", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.AnnouncementRead", b =>
+                {
+                    b.Property<Guid>("AnnouncementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("AnnouncementId", "PlayerId");
+
+                    b.ToTable("AnnouncementReads", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.BannerPityProgress", b =>
                 {
                     b.Property<Guid>("Id")
@@ -293,6 +343,76 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasFilter("\"ConstructionCompletesAt\" IS NOT NULL");
 
                     b.ToTable("Buildings");
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<Guid?>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SentAt");
+
+                    b.HasIndex("ClanId", "SentAt")
+                        .HasFilter("\"ClanId\" IS NOT NULL");
+
+                    b.HasIndex("RecipientId", "SentAt")
+                        .HasFilter("\"RecipientId\" IS NOT NULL");
+
+                    b.HasIndex("SenderId", "SentAt");
+
+                    b.HasIndex("ServerId", "Channel", "SentAt")
+                        .HasFilter("\"Channel\" = 1");
+
+                    b.ToTable("ChatMessages", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ChatTranslation", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.HasKey("MessageId", "Language");
+
+                    b.ToTable("ChatTranslations", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Clan", b =>
@@ -640,6 +760,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<bool>("IsBroken")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsOnMarket")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ItemKey")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -650,6 +773,9 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<int>("Rarity")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ResaleLockedUntil")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
@@ -783,6 +909,9 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ResaleLockedUntil")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
@@ -919,6 +1048,41 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("IdempotencyRecords", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.MailLetter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ReferenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("PlayerId", "ExpiresAt");
+
+                    b.ToTable("MailLetters", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.MapCell", b =>
@@ -1065,6 +1229,119 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("MarchUnits", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.MarketListing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BuyerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EquipmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("HeroId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ItemKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ListedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PriceGold")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PricingKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TaxGold")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Units")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipmentId")
+                        .IsUnique()
+                        .HasFilter("\"EquipmentId\" IS NOT NULL AND \"State\" = 1");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasFilter("\"State\" = 1");
+
+                    b.HasIndex("HeroId")
+                        .IsUnique()
+                        .HasFilter("\"HeroId\" IS NOT NULL AND \"State\" = 1");
+
+                    b.HasIndex("ServerId", "Kind", "ItemKey")
+                        .HasFilter("\"State\" = 1");
+
+                    b.HasIndex("ServerId", "PricingKey", "ClosedAt")
+                        .HasFilter("\"State\" = 2");
+
+                    b.HasIndex("ServerId", "SellerId", "State");
+
+                    b.ToTable("MarketListings", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.MarketPriceSnapshot", b =>
+                {
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PricingKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("ComputedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("MedianPerUnit")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("Sales")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ServerId", "PricingKey");
+
+                    b.ToTable("MarketPriceSnapshots", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Monster", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1176,6 +1453,13 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasDefaultValue("uk");
 
                     b.Property<DateTime>("LastSeenAt")
                         .HasColumnType("timestamp with time zone");
@@ -2146,6 +2430,15 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.AnnouncementRead", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.Announcement", null)
+                        .WithMany()
+                        .HasForeignKey("AnnouncementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.BattleReportLine", b =>
                 {
                     b.HasOne("EmpireIdle.Domain.Entities.BattleReport", null)
@@ -2160,6 +2453,15 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.HasOne("EmpireIdle.Domain.Entities.Village", null)
                         .WithMany("Buildings")
                         .HasForeignKey("VillageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ChatTranslation", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.ChatMessage", null)
+                        .WithMany()
+                        .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

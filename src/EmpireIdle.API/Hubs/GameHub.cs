@@ -5,7 +5,8 @@ namespace EmpireIdle.API.Hubs
 {
     /// <summary>
     /// SignalR hub для real-time оновлень гри.
-    /// Кожен гравець у своїй групі (group name = playerId) для адресних сповіщень.
+    /// Кожен гравець у своїй групі (group name = playerId) для адресних сповіщень
+    /// і в групі свого світу — для серверного чату.
     /// </summary>
     [Authorize]
     public class GameHub : Hub<IGameClient>
@@ -30,6 +31,11 @@ namespace EmpireIdle.API.Hubs
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, playerId);
+
+            // Світ — із токена, як і playerId: гравець бачить лише свій серверний чат
+            if (GetServerId() is { } serverId)
+                await Groups.AddToGroupAsync(Context.ConnectionId, ServerGroup(serverId));
+
             await base.OnConnectedAsync();
         }
 
@@ -41,10 +47,19 @@ namespace EmpireIdle.API.Hubs
             if (playerId is not null)
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, playerId);
 
+            if (GetServerId() is { } serverId)
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, ServerGroup(serverId));
+
             await base.OnDisconnectedAsync(exception);
         }
 
+        /// <summary>Група світу. Префікс не дає їй збігтися з групою гравця.</summary>
+        public static string ServerGroup(int serverId) => $"server:{serverId}";
+
         /// <summary>PlayerId із claims поточного з'єднання.</summary>
         private string? GetPlayerId() => Context.User?.FindFirst("playerId")?.Value;
+
+        private int? GetServerId()
+            => int.TryParse(Context.User?.FindFirst("serverId")?.Value, out var serverId) ? serverId : null;
     }
 }

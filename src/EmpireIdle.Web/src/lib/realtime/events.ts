@@ -48,6 +48,26 @@ export interface ClanInviteEvent {
   expiresAt: string;
 }
 
+/** Нове повідомлення чату. Переклади — на всі мови світу; клієнт бере свою. */
+export interface ChatMessageEvent {
+  id: string;
+  /** "Server", "Clan" або "Private". */
+  channel: string;
+  senderId: string;
+  senderName: string;
+  clanId: string | null;
+  recipientId: string | null;
+  text: string;
+  language: string;
+  translations: Record<string, string>;
+  sentAt: string;
+}
+
+/** Нове в скриньці: лист (kind — тип листа) або оголошення світу (kind = "Announcement"). */
+export interface MailReceivedEvent {
+  kind: string;
+}
+
 export interface GameEvents {
   BuildingCollected: BuildingCollectedEvent;
   UpgradeStarted: UpgradeStartedEvent;
@@ -56,6 +76,8 @@ export interface GameEvents {
   MarchReturned: MarchReturnedEvent;
   ServerQuestRewarded: ServerQuestRewardedEvent;
   ClanInvite: ClanInviteEvent;
+  ChatMessage: ChatMessageEvent;
+  MailReceived: MailReceivedEvent;
 }
 
 export type GameEventName = keyof GameEvents;
@@ -68,4 +90,6 @@ export const gameEventNames: GameEventName[] = [
   "MarchReturned",
   "ServerQuestRewarded",
   "ClanInvite",
+  "ChatMessage",
+  "MailReceived",
 ];

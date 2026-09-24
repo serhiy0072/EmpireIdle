@@ -126,6 +126,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
 
   // ---------- Герої ----------
   "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
+  "hero.onMarket": () => "Герой виставлений на ринок — спершу зніміть лот",
   "hero.levelCeiling": ({ hero, ceiling }) =>
     `${hero} досяг стелі ${ceiling} рівня: підніміть ратушу або еволюціонуйте тір`,
   "hero.trainingBusy": () => "Зала героїв уже тренує іншого героя",
@@ -139,6 +140,27 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "equipment.maxEnhancement": ({ max }) => `Уже максимальне посилення +${max}`,
   "equipment.broken": () => "Спершу відремонтуйте предмет у кузні",
   "equipment.classMismatch": ({ weapon }) => `«${weapon}» не підходить класу цього героя`,
+
+  // ---------- Ринок ----------
+  "market.locked": ({ level }) => `Ринок відкриється з ратушею ${level} рівня`,
+  "market.listingLimit": ({ limit }) => `Уже виставлено ${limit} лотів — стільки дозволяє ваш ринок. Підніміть його рівень`,
+  "market.priceOutOfCorridor": ({ min, max }) =>
+    `Ціна має бути від ${Number(min).toLocaleString("uk-UA")} до ${Number(max).toLocaleString("uk-UA")} золота`,
+  "market.notTradeable": ({ item }) => `«${item}» не продається на ринку`,
+  "market.notEnoughItems": ({ item, need, have }) => `Не вистачає «${item}»: потрібно ${need}, є ${have}`,
+  "market.resaleCooldown": ({ until }) => `Щойно куплене можна перепродати після ${localTime(until)}`,
+  "market.heroBusy": () => "Виставити можна лише героя, що вдома й вільний",
+  "market.heroTraining": () => "Герой саме тренується в залі героїв — дочекайтеся кінця",
+  "market.heroAlreadyOwned": ({ hero }) => `${hero} уже у вашому загоні — другого такого купити не можна`,
+  "market.itemListed": () => "Предмет виставлений на ринок — спершу зніміть лот",
+  "market.listingClosed": () => "Лот уже продано або знято",
+  "market.ownListing": () => "Це ваш власний лот",
+
+  // ---------- Чат ----------
+  "chat.tooFast": ({ seconds }) => `Забагато повідомлень поспіль — зачекайте ${seconds} с`,
+  "chat.tooLong": ({ max }) => `Повідомлення задовге: не більше ${max} символів`,
+  "chat.noClan": () => "Клановий чат — лише для членів клану",
+  "chat.toSelf": () => "Не можна написати самому собі",
 
   // ---------- Данжі ----------
   "dungeon.townHallRequired": ({ dungeon, level }) => `«${dungeon}» відкривається з ратушею ${level} рівня`,

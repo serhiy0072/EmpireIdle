@@ -3,25 +3,25 @@
     "Resources": [
       {
         "Key": "gold",
-        "DisplayName": "Gold",
+        "DisplayName": "Золото",
         "Icon": "gold.svg",
         "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "wood",
-        "DisplayName": "Wood",
+        "DisplayName": "Деревина",
         "Icon": "wood.svg",
         "RequiresMainBuildingLevel": 0
       },
       {
         "Key": "iron",
-        "DisplayName": "Iron",
+        "DisplayName": "Залізо",
         "Icon": "iron.svg",
         "RequiresMainBuildingLevel": 2
       },
       {
         "Key": "food",
-        "DisplayName": "Food",
+        "DisplayName": "Їжа",
         "Icon": "food.svg",
         "RequiresMainBuildingLevel": 3
       }

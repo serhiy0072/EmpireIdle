@@ -182,6 +182,9 @@
 
         public static readonly RefusalReason HeroOnTheMove = new("hero.onTheMove");
 
+        /// <summary>Герой виставлений на ринок: спершу зніміть лот.</summary>
+        public static readonly RefusalReason HeroOnMarket = new("hero.onMarket");
+
         public static readonly RefusalReason HeroLevelCeiling = new("hero.levelCeiling", "hero", "ceiling");
 
         /// <summary>Зала героїв тренує одного героя за раз.</summary>
@@ -201,9 +204,52 @@
 
         public static readonly RefusalReason EquipmentBroken = new("equipment.broken");
 
-        /// <summary>Такий самий предмет уже вдягнений на цього героя.</summary>
-
         public static readonly RefusalReason EquipmentClassMismatch = new("equipment.classMismatch", "weapon");
+
+        // ---------- Ринок ----------
+
+        /// <summary>Ринок ще під туманом; level — рівень ратуші, з якого він відкриється.</summary>
+        public static readonly RefusalReason MarketLocked = new("market.locked", "level");
+
+        public static readonly RefusalReason MarketListingLimit = new("market.listingLimit", "limit");
+
+        /// <summary>Ціна поза коридором; межі — для всього лота, не за одиницю.</summary>
+        public static readonly RefusalReason MarketPriceOutOfCorridor = new("market.priceOutOfCorridor", "min", "max");
+
+        public static readonly RefusalReason MarketNotTradeable = new("market.notTradeable", "item");
+
+        public static readonly RefusalReason MarketNotEnoughItems = new("market.notEnoughItems", "item", "need", "have");
+
+        public static readonly RefusalReason MarketResaleCooldown = new("market.resaleCooldown", "until");
+
+        /// <summary>Герой не вдома, у поході, пораненій чи на ринку.</summary>
+        public static readonly RefusalReason MarketHeroBusy = new("market.heroBusy");
+
+        /// <summary>Герой саме качається в залі героїв.</summary>
+        public static readonly RefusalReason MarketHeroTraining = new("market.heroTraining");
+
+        /// <summary>Такий герой у покупця вже є — купівля обійшла б сузір'я.</summary>
+        public static readonly RefusalReason MarketHeroAlreadyOwned = new("market.heroAlreadyOwned", "hero");
+
+        /// <summary>Предмет у заставі ринку.</summary>
+        public static readonly RefusalReason MarketItemListed = new("market.itemListed");
+
+        /// <summary>Лот уже продано, знято чи строк минув — найчастіше його купив хтось інший.</summary>
+        public static readonly RefusalReason MarketListingClosed = new("market.listingClosed");
+
+        public static readonly RefusalReason MarketOwnListing = new("market.ownListing");
+
+        // ---------- Чат ----------
+
+        /// <summary>Антиспам: забагато повідомлень за вікно; seconds — скільки чекати.</summary>
+        public static readonly RefusalReason ChatTooFast = new("chat.tooFast", "seconds");
+
+        public static readonly RefusalReason ChatTooLong = new("chat.tooLong", "max");
+
+        /// <summary>Клановий канал без клану.</summary>
+        public static readonly RefusalReason ChatNoClan = new("chat.noClan");
+
+        public static readonly RefusalReason ChatToSelf = new("chat.toSelf");
 
         // ---------- Данжі ----------
 

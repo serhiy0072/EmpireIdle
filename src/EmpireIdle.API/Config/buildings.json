@@ -3,7 +3,7 @@
     "Buildings": [
       {
         "Key": "townhall",
-        "DisplayName": "Town Hall",
+        "DisplayName": "Ратуша",
         "IsMainBuilding": true,
         "RequiresMainBuildingLevel": 0,
         "Position": {
@@ -29,7 +29,7 @@
       },
       {
         "Key": "warehouse",
-        "DisplayName": "Warehouse",
+        "DisplayName": "Склад",
         "RequiresMainBuildingLevel": 0,
         "ProtectedStorage": 250,
         "Position": {
@@ -52,7 +52,7 @@
       },
       {
         "Key": "farm",
-        "DisplayName": "Farm",
+        "DisplayName": "Ферма",
         "RequiresMainBuildingLevel": 3,
         "Position": {
           "X": 14.0,
@@ -77,7 +77,7 @@
       },
       {
         "Key": "sawmill",
-        "DisplayName": "Sawmill",
+        "DisplayName": "Лісопилка",
         "RequiresMainBuildingLevel": 0,
         "Position": {
           "X": 14.0,
@@ -102,7 +102,7 @@
       },
       {
         "Key": "goldmine",
-        "DisplayName": "Gold Mine",
+        "DisplayName": "Золота копальня",
         "RequiresMainBuildingLevel": 0,
         "Position": {
           "X": 86.0,
@@ -127,7 +127,7 @@
       },
       {
         "Key": "house",
-        "DisplayName": "House",
+        "DisplayName": "Житло",
         "RequiresMainBuildingLevel": 0,
         "Position": {
           "X": 30.0,
@@ -152,7 +152,7 @@
       },
       {
         "Key": "barracks",
-        "DisplayName": "Barracks",
+        "DisplayName": "Казарма",
         "RequiresMainBuildingLevel": 1,
         "Position": {
           "X": 30.0,
@@ -177,7 +177,7 @@
       },
       {
         "Key": "bank",
-        "DisplayName": "Bank",
+        "DisplayName": "Банк",
         "RequiresMainBuildingLevel": 1,
         "ProtectedStorage": 250,
         "Position": {
@@ -204,7 +204,7 @@
       },
       {
         "Key": "heroeshall",
-        "DisplayName": "Hall of Heroes",
+        "DisplayName": "Зала героїв",
         "RequiresMainBuildingLevel": 2,
         "Position": {
           "X": 50.0,
@@ -230,7 +230,7 @@
       },
       {
         "Key": "ironmine",
-        "DisplayName": "Iron Mine",
+        "DisplayName": "Залізна копальня",
         "RequiresMainBuildingLevel": 2,
         "Position": {
           "X": 86.0,
@@ -255,7 +255,7 @@
       },
       {
         "Key": "lootshop",
-        "DisplayName": "Trading Post",
+        "DisplayName": "Торгова лавка",
         "RequiresMainBuildingLevel": 3,
         "Position": {
           "X": 68.0,
@@ -280,7 +280,7 @@
       },
       {
         "Key": "hospital",
-        "DisplayName": "Hospital",
+        "DisplayName": "Госпіталь",
         "RequiresMainBuildingLevel": 3,
         "Position": {
           "X": 66.0,
@@ -306,7 +306,7 @@
       },
       {
         "Key": "market",
-        "DisplayName": "Market",
+        "DisplayName": "Ринок",
         "RequiresMainBuildingLevel": 4,
         "Position": {
           "X": 68.0,
@@ -332,7 +332,7 @@
       },
       {
         "Key": "wall",
-        "DisplayName": "Wall",
+        "DisplayName": "Мур",
         "RequiresMainBuildingLevel": 4,
         "DefenceBonusPerLevel": 0.03,
         "Cost": [
@@ -354,7 +354,7 @@
       },
       {
         "Key": "stable",
-        "DisplayName": "Stable",
+        "DisplayName": "Стайня",
         "RequiresMainBuildingLevel": 5,
         "Position": {
           "X": 84.0,
@@ -383,7 +383,7 @@
       },
       {
         "Key": "embassy",
-        "DisplayName": "Embassy",
+        "DisplayName": "Посольство",
         "RequiresMainBuildingLevel": 6,
         "Position": {
           "X": 28.0,
@@ -413,7 +413,7 @@
       },
       {
         "Key": "scouttower",
-        "DisplayName": "Scout Tower",
+        "DisplayName": "Вежа розвідки",
         "RequiresMainBuildingLevel": 6,
         "Position": {
           "X": 62.0,
@@ -439,7 +439,7 @@
       },
       {
         "Key": "forge",
-        "DisplayName": "Forge",
+        "DisplayName": "Кузня",
         "RequiresMainBuildingLevel": 7,
         "Position": {
           "X": 86.0,
@@ -465,7 +465,7 @@
       },
       {
         "Key": "fishinghut",
-        "DisplayName": "Fishing Hut",
+        "DisplayName": "Рибальська хижа",
         "RequiresMainBuildingLevel": 7,
         "Position": {
           "X": 12.0,
@@ -490,7 +490,7 @@
       },
       {
         "Key": "beastpen",
-        "DisplayName": "Beast Pen",
+        "DisplayName": "Звіринець",
         "RequiresMainBuildingLevel": 8,
         "Position": {
           "X": 30.0,

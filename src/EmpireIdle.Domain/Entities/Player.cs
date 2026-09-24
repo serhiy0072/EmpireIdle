@@ -38,7 +38,14 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime LastSeenAt { get; private set; }
 
-        public Player(Guid id, string username, string email, string userId, DateTime utcNow, int serverId = 1) : base(id)
+        /// <summary>
+        /// Мова інтерфейсу (ISO 639-1). З неї каталог віддає назви, а чат —
+        /// переклади; повідомлення гравця нею й підписуються.
+        /// </summary>
+        public string Language { get; private set; } = null!;
+
+        public Player(Guid id, string username, string email, string userId, DateTime utcNow, int serverId = 1,
+            string language = "uk") : base(id)
         {
             UserId = userId;
             Username = username;
@@ -46,6 +53,7 @@ namespace EmpireIdle.Domain.Entities
             CreatedAt = utcNow;
             ServerId = serverId;
             LastSeenAt = utcNow;
+            Language = language;
         }
 
         protected Player() { } // для EF Core
@@ -54,5 +62,8 @@ namespace EmpireIdle.Domain.Entities
         public void JoinClan(Guid clanId) => ClanId = clanId;
 
         public void LeaveClan() => ClanId = null;
+
+        /// <summary>Змінює мову. Чи вона підтримується, перевіряє викликач за конфігом.</summary>
+        public void ChangeLanguage(string language) => Language = language;
     }
 }

@@ -18,6 +18,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(p => p.Username).IsRequired().HasMaxLength(50);
             builder.Property(p => p.Email).IsRequired().HasMaxLength(200);
 
+            // Наявні гравці до появи вибору мови грали українською
+            builder.Property(p => p.Language).IsRequired().HasMaxLength(8).HasDefaultValue("uk");
+
             // Один акаунт — один гравець НА СЕРВЕР. Email більше не унікальний:
             // він дублюється між серверами того самого акаунта.
             builder.HasIndex(p => new { p.UserId, p.ServerId }).IsUnique();

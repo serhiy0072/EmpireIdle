@@ -1,4 +1,5 @@
 using EmpireIdle.API.Hubs.Events;
+using EmpireIdle.Application.Chat.Contracts;
 using EmpireIdle.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 
@@ -54,6 +55,27 @@ namespace EmpireIdle.API.Hubs
         public Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag,
             DateTime expiresAt, CancellationToken cancellationToken = default)
             => Player(playerId).ClanInvite(new ClanInviteEvent(requestId, clanId, clanName, clanTag, expiresAt));
+
+        /// <inheritdoc/>
+        public Task NotifyMailAsync(Guid playerId, string kind, CancellationToken cancellationToken = default)
+            => Player(playerId).MailReceived(new MailReceivedEvent(kind));
+
+        /// <inheritdoc/>
+        public Task NotifyAnnouncementAsync(int serverId, CancellationToken cancellationToken = default)
+            => _hubContext.Clients.Group(GameHub.ServerGroup(serverId)).MailReceived(new MailReceivedEvent("Announcement"));
+
+        /// <inheritdoc/>
+        public Task NotifyChatToServerAsync(int serverId, ChatMessageNotice notice, CancellationToken cancellationToken = default)
+            => _hubContext.Clients.Group(GameHub.ServerGroup(serverId)).ChatMessage(ToEvent(notice));
+
+        /// <inheritdoc/>
+        public Task NotifyChatToPlayersAsync(IReadOnlyCollection<Guid> playerIds, ChatMessageNotice notice,
+            CancellationToken cancellationToken = default)
+            => _hubContext.Clients.Groups(playerIds.Select(id => id.ToString()).ToList()).ChatMessage(ToEvent(notice));
+
+        private static ChatMessageEvent ToEvent(ChatMessageNotice notice)
+            => new(notice.Id, notice.Channel, notice.SenderId, notice.SenderName, notice.ClanId, notice.RecipientId,
+                notice.Text, notice.Language, notice.Translations, notice.SentAt);
 
         private IGameClient Player(Guid playerId) => _hubContext.Clients.Group(playerId.ToString());
     }

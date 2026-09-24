@@ -89,7 +89,6 @@ public class RecalculatePowerCommandTests
             _garrisons, _villages, _marches, _powers, _heroes, _inventory, _unitOfWork,
             new CombatCalculator(config.Combat, catalog),
             new FakeTimeProvider(Now),
-            progression,
             new HeroStats(progression, catalog),
             catalog,
             NullLogger<RecalculatePowerCommandHandler>.Instance);

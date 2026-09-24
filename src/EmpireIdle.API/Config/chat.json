@@ -1,0 +1,18 @@
+{
+  "GameConfig": {
+    "Chat": {
+      "MaxLength": 300,
+      "RateLimitCount": 5,
+      "RateLimitWindowSeconds": 10,
+      "RetentionDays": 30
+    },
+    "Mail": {
+      "LetterRetentionDays": 14,
+      "AnnouncementRetentionDays": 30
+    },
+    "Localization": {
+      "DefaultLanguage": "uk",
+      "Languages": [ "uk", "en" ]
+    }
+  }
+}

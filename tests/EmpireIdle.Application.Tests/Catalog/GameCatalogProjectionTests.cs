@@ -150,6 +150,59 @@ public class GameCatalogProjectionTests
         Assert.Equal(4, building.RequiresMainBuildingLevel);
     }
 
+    // ---------- Мови ----------
+
+    /// <summary>Конфіг українською, англійська локаль перекладає ратушу, решта — з конфіга.</summary>
+    private static GameCatalog WithEnglishLocale()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+
+        config.Localization.Languages = ["uk", "en"];
+        config.Locales["en"] = new LocaleConfig
+        {
+            Names = new Dictionary<string, string> { [$"building.{TestKeys.Townhall}"] = "Town Hall" }
+        };
+
+        return new GameCatalog(config);
+    }
+
+    [Fact]
+    public void ResponseFor_ShouldTranslateNamesFromTheLocale()
+    {
+        var catalog = WithEnglishLocale();
+        var projection = new GameCatalogProjection(catalog);
+
+        var english = projection.ResponseFor("en");
+
+        Assert.Equal("en", english.Language);
+        Assert.Equal("Town Hall", english.Buildings.Single(b => b.Key == TestKeys.Townhall).DisplayName);
+
+        // Чого в локалі немає — з конфіга
+        var hall = catalog.Config.Buildings.Single(b => b.Key == TestKeys.Hall);
+        Assert.Equal(hall.DisplayName, english.Buildings.Single(b => b.Key == TestKeys.Hall).DisplayName);
+    }
+
+    /// <summary>Непідтримувана мова — не помилка, а каталог мовою за замовчуванням.</summary>
+    [Fact]
+    public void ResponseFor_ShouldFallBackToTheDefaultLanguage()
+    {
+        var projection = new GameCatalogProjection(WithEnglishLocale());
+
+        var german = projection.ResponseFor("de");
+
+        Assert.Equal("uk", german.Language);
+        Assert.Equal(projection.Response.Version, german.Version);
+    }
+
+    /// <summary>Різні мови — різні версії: інакше ETag віддав би 304 на чужу мову.</summary>
+    [Fact]
+    public void ResponseFor_ShouldVersionEachLanguageSeparately()
+    {
+        var projection = new GameCatalogProjection(WithEnglishLocale());
+
+        Assert.NotEqual(projection.ResponseFor("uk").Version, projection.ResponseFor("en").Version);
+    }
+
     // ---------- Набори артефактів ----------
 
     /// <summary>

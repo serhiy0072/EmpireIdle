@@ -14,10 +14,12 @@ public record InventoryItemResponse(
 /// <summary>Екземпляр спорядження.</summary>
 /// <param name="SlotIndex">Номер слота на герої: зброя завжди 0, артефакт — позиція його типу в каталозі (ArtifactSlots).</param>
 /// <param name="IsBroken">Зламане заточкою: не одягається, поки не відремонтоване.</param>
+/// <param name="IsOnMarket">Виставлене на ринок: у заставі, не одягається й не заточується.</param>
+/// <param name="ResaleLockedUntil">Куплене на ринку не перепродається до цього моменту; null — обмеження немає.</param>
 public record EquipmentResponse(
     Guid Id, string ItemKey, string Slot, string Rarity,
     int EnhancementLevel, Guid? EquippedByHeroId, int SlotIndex, bool IsBroken,
-    Dictionary<string, double> Stats);
+    Dictionary<string, double> Stats, bool IsOnMarket, DateTime? ResaleLockedUntil);
 
 /// <summary>Діючий буст.</summary>
 public record ActiveEffectResponse(string Target, double Multiplier, DateTime ExpiresAt, string SourceItemKey);

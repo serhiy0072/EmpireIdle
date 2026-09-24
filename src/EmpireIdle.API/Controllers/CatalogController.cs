@@ -20,13 +20,16 @@ namespace EmpireIdle.API.Controllers
             _mediator = mediator;
         }
 
-        /// <summary>Каталог гри. Незмінний у межах запуску, віддається з ETag.</summary>
+        /// <summary>
+        /// Каталог гри мовою lang (без неї — мовою за замовчуванням). Незмінний
+        /// у межах запуску, віддається з ETag; ETag різний для кожної мови.
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(CatalogResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status304NotModified)]
-        public async Task<ActionResult<CatalogResponse>> GetCatalog(CancellationToken cancellationToken)
+        public async Task<ActionResult<CatalogResponse>> GetCatalog([FromQuery] string? lang, CancellationToken cancellationToken)
         {
-            var catalog = await _mediator.Send(new GetCatalogQuery(), cancellationToken);
+            var catalog = await _mediator.Send(new GetCatalogQuery(lang), cancellationToken);
             var etag = $"\"{catalog.Version}\"";
 
             // no-cache не забороняє кеш, а вимагає перевірки: з ETag це 304 без тіла.

@@ -71,6 +71,15 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
 
+        /// <summary>
+        /// Предмет у заставі ринку: його не можна вдягнути, заточити,
+        /// полагодити чи виставити вдруге, доки лот не закриється.
+        /// </summary>
+        public bool IsOnMarket { get; private set; }
+
+        /// <summary>Куплений на ринку предмет не виставляється знову до цього моменту.</summary>
+        public DateTime? ResaleLockedUntil { get; private set; }
+
         public EquipmentItem(Guid id, Guid playerId, int serverId, string itemKey, EquipmentSlot slot,
             Rarity rarity, IEnumerable<(string Stat, double Value)> stats, DateTime utcNow) : base(id)
         {
@@ -101,6 +110,8 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void EquipTo(Guid heroId, int slotIndex, DateTime utcNow)
         {
+            EnsureNotOnMarket();
+
             if (EquippedByHeroId is not null)
                 throw new InvalidStateException($"Equipment {Id} is already equipped.");
 
@@ -128,6 +139,8 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void Enhance(DateTime utcNow)
         {
+            EnsureNotOnMarket();
+
             if (IsBroken)
                 throw new InvalidStateException($"Equipment {Id} is broken.");
 
@@ -163,6 +176,8 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Лагодить зброю. Ціну списує викликач.</summary>
         public void Repair(DateTime utcNow)
         {
+            EnsureNotOnMarket();
+
             if (!IsBroken)
                 throw new InvalidStateException($"Equipment {Id} is not broken.");
 
@@ -218,6 +233,64 @@ namespace EmpireIdle.Domain.Entities
 
             return stat.Value * (1 + EnhancementLevel * enhancementBonus);
         }
+        /// <summary>
+        /// Виставляє предмет на ринок. Вдягнений знімається тут же: продаж
+        /// не має тримати героя з порожнім слотом у невизначеному стані.
+        /// Зламаний не виставляється — його Power нуль, і ціна за силу
+        /// втратила б сенс; спершу ремонт.
+        /// </summary>
+        public void PutOnMarket(DateTime utcNow)
+        {
+            if (IsOnMarket)
+                throw new InvalidStateException(RefusalReasons.MarketItemListed, $"Equipment {Id} is already on the market.");
+
+            if (IsBroken)
+                throw new InvalidStateException(RefusalReasons.EquipmentBroken, $"Equipment {Id} is broken and must be repaired first.");
+
+            if (ResaleLockedUntil is { } until && until > utcNow)
+                throw new RequirementNotMetException(RefusalReasons.MarketResaleCooldown,
+                    $"Equipment {Id} was bought recently and cannot be resold until {until:O}.", until);
+
+            if (EquippedByHeroId is not null)
+                Unequip(utcNow);
+
+            IsOnMarket = true;
+            Touch(utcNow);
+        }
+
+        /// <summary>Лот знято або строк минув — предмет повертається в інвентар продавця.</summary>
+        public void TakeOffMarket(DateTime utcNow)
+        {
+            if (!IsOnMarket)
+                throw new InvalidStateException($"Equipment {Id} is not on the market.");
+
+            IsOnMarket = false;
+            Touch(utcNow);
+        }
+
+        /// <summary>Продаж: предмет переходить до покупця з кулдауном перепродажу.</summary>
+        public void SellTo(Guid buyerId, DateTime resaleLockedUntil, DateTime utcNow)
+        {
+            if (!IsOnMarket)
+                throw new InvalidStateException($"Equipment {Id} is not on the market.");
+
+            var sellerId = PlayerId;
+
+            PlayerId = buyerId;
+            IsOnMarket = false;
+            ResaleLockedUntil = resaleLockedUntil;
+            Touch(utcNow);
+
+            RaiseDomainEvent(new EquipmentChanged(sellerId, Id, utcNow));
+            RaiseDomainEvent(new EquipmentChanged(buyerId, Id, utcNow));
+        }
+
+        private void EnsureNotOnMarket()
+        {
+            if (IsOnMarket)
+                throw new InvalidStateException(RefusalReasons.MarketItemListed, $"Equipment {Id} is on the market.");
+        }
+
         /// <summary>Записує ролл у журнал, щоб його можна було переграти.</summary>
         public void RecordRoll(int level, int seed, DateTime utcNow)
             => _rolls.Add(new EquipmentRoll(Guid.NewGuid(), Id, level, seed, utcNow));

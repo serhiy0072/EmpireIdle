@@ -17,6 +17,10 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Конкретний екземпляр спорядження.</summary>
         Task<EquipmentItem?> GetEquipmentByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+        /// <summary>Кілька екземплярів зі статами одним запитом — для вітрини ринку, лише читання.</summary>
+        Task<List<EquipmentItem>> GetEquipmentByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids,
+            CancellationToken cancellationToken = default);
+
 
         /// <summary>
         /// Спорядження, вдягнене на героя. Потрібне і вдяганню, щоб звільнити

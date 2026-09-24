@@ -4,6 +4,7 @@ import { useSession } from "../hooks/useSession";
 import ArmyPage from "../pages/ArmyPage";
 import ArtifactSetsPage from "../pages/ArtifactSetsPage";
 import BannersPage from "../pages/BannersPage";
+import ChatPage from "../pages/ChatPage";
 import ClanPage from "../pages/ClanPage";
 import DungeonsPage from "../pages/DungeonsPage";
 import ForgePage from "../pages/ForgePage";
@@ -11,7 +12,9 @@ import HeroCodexPage from "../pages/HeroCodexPage";
 import HeroesPage from "../pages/HeroesPage";
 import InventoryPage from "../pages/InventoryPage";
 import LoginPage from "../pages/LoginPage";
+import MailPage from "../pages/MailPage";
 import MapPage from "../pages/MapPage";
+import MarketPage from "../pages/MarketPage";
 import QuestsPage from "../pages/QuestsPage";
 import RatingPage from "../pages/RatingPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -47,6 +50,9 @@ export default function AppRoutes() {
             <Route path="/banners" element={<BannersPage />} />
             <Route path="/clan" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/market" element={<MarketPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/mail" element={<MailPage />} />
             <Route path="/rating" element={<RatingPage />} />
             <Route path="/quests" element={<QuestsPage />} />
             <Route path="/map" element={<MapPage />} />

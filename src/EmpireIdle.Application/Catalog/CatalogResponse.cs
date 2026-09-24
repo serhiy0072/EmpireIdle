@@ -12,6 +12,7 @@
     /// <param name="RepairGemsBase">Ремонт зброї в gems: база плюс RepairGemsPerLevel за кожен рівень заточки.</param>
     /// <param name="MapSize">Сторона світової мапи в клітинах — клієнт малює землю до її краю.</param>
     /// <param name="MainBuildingKey">Ключ головної будівлі: її рівень — «рівень гравця» в шапці.</param>
+    /// <param name="Language">Мова назв у цьому каталозі (ISO 639-1).</param>
     /// <param name="Version">Хеш вмісту. Той самий рядок іде в ETag.</param>
     public record CatalogResponse(
         IReadOnlyList<CatalogHero> Heroes,
@@ -31,6 +32,7 @@
         int RepairGemsPerLevel,
         int MapSize,
         string MainBuildingKey,
+        string Language,
         string Version);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
@@ -58,6 +60,7 @@
 
     /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
     /// <param name="ArtifactSlot">Тип слота артефакта (ключ з ArtifactSlots); null — не артефакт.</param>
+    /// <param name="Tradeable">Стаковий предмет можна виставити на ринок; спорядження торгується завжди.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -69,7 +72,8 @@
         IReadOnlyDictionary<string, double> BaseStats,
         string? SetKey,
         string? ArtifactSlot,
-        int PriceGold);
+        int PriceGold,
+        bool Tradeable);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);

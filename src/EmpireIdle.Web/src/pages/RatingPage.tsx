@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import { useSession } from "../hooks/useSession";
 import { compactPower, useLeaderboard, useMyRank, usePower } from "../lib/queries/rating";
@@ -96,7 +97,16 @@ export default function RatingPage() {
                   <td className="px-3 py-2 text-slate-500">{entry.rank}</td>
                   <td className="px-3 py-2 font-medium text-slate-800">
                     {entry.playerName}
-                    {mine && <span className="ml-1 text-xs text-amber-700">(ви)</span>}
+                    {mine ? (
+                      <span className="ml-1 text-xs text-amber-700">(ви)</span>
+                    ) : (
+                      <Link
+                        to={`/chat?${new URLSearchParams({ tab: "Private", to: entry.playerId, name: entry.playerName }).toString()}`}
+                        className="ml-2 text-xs font-normal text-emerald-700 hover:underline"
+                      >
+                        написати
+                      </Link>
+                    )}
                   </td>
                   <td className="px-3 py-2 text-right text-slate-700">{entry.rating.toLocaleString("uk-UA")}</td>
                   <td className="px-3 py-2 text-right text-slate-700">{compactPower(entry.power)}</td>

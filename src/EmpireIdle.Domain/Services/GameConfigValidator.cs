@@ -34,6 +34,8 @@ namespace EmpireIdle.Domain.Services
             ValidateLossBands(config);
             ValidateDungeons(config);
             ValidateUnlockThresholds(config);
+            ValidateMarket(config);
+            ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
             ValidateBanners(config);
@@ -135,6 +137,98 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Equipment.ArtifactSets focus on stats outside ArtifactStats: {string.Join(", ", unknownFocus)}.");
         }
+
+        /// <summary>
+        /// Ринок: будівля існує, кожен товар має якір ціни. Без якоря коридор
+        /// рахувався б із першого ж продажу, і його задавав би вош.
+        /// </summary>
+        private static void ValidateMarket(GameConfig config)
+        {
+            var market = config.Market;
+
+            // Ринок вимкнений — і правил для нього немає
+            if (market.BuildingKey is null)
+                return;
+
+            if (!config.Buildings.Any(b => b.Key == market.BuildingKey))
+                throw new InvalidOperationException($"Market.BuildingKey '{market.BuildingKey}' is not a known building.");
+
+            var equipmentInvalid = config.Items
+                .Where(i => i.Tradeable && i.Type == "equipment")
+                .Select(i => i.Key)
+                .ToList();
+
+            if (equipmentInvalid.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment is always tradeable; Tradeable is for stack items only: {string.Join(", ", equipmentInvalid)}.");
+
+            var pricing = new MarketPricing(config);
+
+            var categories = config.Items
+                .Where(i => i.Tradeable)
+                .Select(i => MarketPricing.CategoryOfItem(i.Key))
+                .Concat(config.Items
+                    .Where(i => i.Slot is not null)
+                    .Select(i => MarketPricing.CategoryOf(i.Slot!.Value)))
+                .Concat(config.Heroes.Select(h => MarketPricing.CategoryOf(h.Rank)))
+                .Distinct()
+                .ToList();
+
+            var unanchored = categories.Where(c => pricing.AnchorPerUnit(c) is null).ToList();
+
+            if (unanchored.Count > 0)
+                throw new InvalidOperationException(
+                    $"Market has no price anchor for: {string.Join(", ", unanchored)} "
+                    + "(stack items need a shop price in gems, equipment and heroes a Market.GoldPerPower entry).");
+        }
+
+        /// <summary>
+        /// Мови: без дублікатів, мова за замовчуванням серед них, російської немає
+        /// (GDD §7.3) — і не з'явиться випадково з чужого шаблону конфіга.
+        /// </summary>
+        private static void ValidateLocalization(GameConfig config)
+        {
+            var localization = config.Localization;
+
+            RequireUniqueKeys(localization.Languages, "Localization.Languages");
+
+            if (!localization.SupportedLanguages.Contains(localization.DefaultLanguage))
+                throw new InvalidOperationException(
+                    $"Localization.DefaultLanguage '{localization.DefaultLanguage}' is not among Localization.Languages.");
+
+            if (localization.SupportedLanguages.Any(language => string.Equals(language, "ru", StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException("Localization.Languages must not include Russian (GDD §7.3).");
+
+            var unsupported = config.Locales.Keys.Where(language => !localization.SupportedLanguages.Contains(language)).ToList();
+
+            if (unsupported.Count > 0)
+                throw new InvalidOperationException(
+                    $"Locales for languages outside Localization.Languages: {string.Join(", ", unsupported)}.");
+
+            // Переклад назви, якої немає, тихо нічого б не перекладав — і приховав би друкарську помилку в ключі
+            var known = LocalizableKeys(config);
+
+            var unknown = config.Locales
+                .SelectMany(locale => locale.Value.Names.Keys
+                    .Where(key => !known.Contains(key))
+                    .Select(key => $"{locale.Key}: {key}"))
+                .ToList();
+
+            if (unknown.Count > 0)
+                throw new InvalidOperationException($"Locales name unknown keys: {string.Join(", ", unknown)}.");
+        }
+
+        /// <summary>Ключі «розділ.ключ» усього, що має назву для гравця й може перекладатись.</summary>
+        public static HashSet<string> LocalizableKeys(GameConfig config)
+            => config.Buildings.Select(b => $"building.{b.Key}")
+                .Concat(config.Heroes.Select(h => $"hero.{h.Key}"))
+                .Concat(config.Items.Select(i => $"item.{i.Key}"))
+                .Concat(config.Resources.Select(r => $"resource.{r.Key}"))
+                .Concat(config.Units.Select(u => $"unit.{u.Key}"))
+                .Concat(config.Monsters.Select(m => $"monster.{m.Key}"))
+                .Concat(config.Equipment.ArtifactSets.Select(s => $"artifactSet.{s.Key}"))
+                .Concat(config.Equipment.ArtifactSlots.Select(s => $"artifactSlot.{s.Key}"))
+                .ToHashSet();
 
         /// <summary>
         /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна

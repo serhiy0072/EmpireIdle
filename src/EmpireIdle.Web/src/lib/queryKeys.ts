@@ -1,6 +1,7 @@
 /** Ключі кешу в одному місці: події реального часу інвалідують те саме, що читають екрани. */
 export const queryKeys = {
-  catalog: ["catalog"] as const,
+  /** Каталог — мовою гравця: інша мова, інші назви, інший ETag. */
+  catalog: (language: string) => ["catalog", language] as const,
   shop: ["shop"] as const,
   dungeons: (playerId: string) => ["dungeons", playerId] as const,
   dungeonRun: (playerId: string) => ["dungeonRun", playerId] as const,
@@ -17,6 +18,18 @@ export const queryKeys = {
   marches: (playerId: string) => ["marches", playerId] as const,
   tutorial: (playerId: string) => ["tutorial", playerId] as const,
   inventory: (playerId: string) => ["inventory", playerId] as const,
+  /** Історія каналу; для приватного — з конкретним співрозмовником. */
+  chatHistory: (playerId: string, channel: string, partnerId: string | null) =>
+    ["chat", playerId, channel, partnerId] as const,
+  chatConversations: (playerId: string) => ["chat", playerId, "conversations"] as const,
+  settings: (playerId: string) => ["settings", playerId] as const,
+  /** Скринька й бейдж — спільний префікс: нове в скриньці інвалідує обидва. */
+  mailbox: (playerId: string) => ["mail", playerId, "box"] as const,
+  mailUnread: (playerId: string) => ["mail", playerId, "unread"] as const,
+  /** Ринок гравця — префікс: мутації ринку інвалідують разом і «мої лоти», і вітрину, і котирування. */
+  market: (playerId: string) => ["market", playerId] as const,
+  marketBrowse: (playerId: string, kind: number | null, page: number) => ["market", playerId, "browse", kind, page] as const,
+  marketQuote: (playerId: string, goods: unknown) => ["market", playerId, "quote", goods] as const,
   banners: (playerId: string) => ["banners", playerId] as const,
   clan: (playerId: string) => ["clan", playerId] as const,
   clanHelp: (playerId: string) => ["clanHelp", playerId] as const,
