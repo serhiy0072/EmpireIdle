@@ -86,14 +86,19 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
         return request;
     }
 
-    private async Task<Guid> FirstBuildingIdAsync()
+    /// <summary>
+    /// Ратуша: відкрита з першого дня й нічого не видобуває, тож collect для неї —
+    /// завжди успіх без побічних умов. Перша-ліпша будівля не годиться: порядок із
+    /// бази не гарантований, а видобувна під туманом чи з повним складом дає 400.
+    /// </summary>
+    private async Task<Guid> TownhallIdAsync()
     {
         var village = await _client.GetFromJsonAsync<VillageResponse>($"/api/village/{_playerId}");
 
         village.Should().NotBeNull();
-        village!.Buildings.Should().NotBeEmpty("нове село отримує StartingBuildings із конфіга");
+        village!.Buildings.Should().Contain(b => b.Type == "townhall", "нове село отримує ратушу серед StartingBuildings");
 
-        return village.Buildings[0].Id;
+        return village.Buildings.Single(b => b.Type == "townhall").Id;
     }
 
     // ---------- Happy path ----------
@@ -101,7 +106,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     [Fact]
     public async Task First_call_succeeds()
     {
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
 
         var response = await _client.SendAsync(Collect(buildingId, NewKey()));
 
@@ -111,7 +116,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     [Fact]
     public async Task Second_call_replays_the_first_response()
     {
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
         var key = NewKey();
 
         var first = await _client.SendAsync(Collect(buildingId, key));
@@ -135,7 +140,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     [Fact]
     public async Task Completed_record_stores_its_response()
     {
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
         var key = NewKey();
 
         await _client.SendAsync(Collect(buildingId, key));
@@ -165,7 +170,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     [Fact]
     public async Task Missing_header_is_rejected_with_400()
     {
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
 
         var response = await _client.PostAsync(
             $"/api/village/{_playerId}/buildings/{buildingId}/collect", content: null);
@@ -181,7 +186,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     [InlineData("ключ-достатньої-довжини-кирилицею")]  // не ASCII
     public async Task Malformed_key_is_rejected_with_400(string key)
     {
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
 
         var response = await _client.SendAsync(Collect(buildingId, key));
 
@@ -191,7 +196,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     [Fact]
     public async Task Key_at_minimum_length_is_accepted()
     {
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
 
         var response = await _client.SendAsync(Collect(buildingId, new string('a', 16)));
 
@@ -201,7 +206,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     [Fact]
     public async Task Same_key_on_a_different_operation_is_rejected()
     {
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
         var key = NewKey();
 
         await _client.SendAsync(Collect(buildingId, key));
@@ -237,7 +242,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     {
         // IDOR: токен наш, PlayerId у шляху чужий.
         // PlayerScopeBehavior кидає UnauthorizedAccessException → 403.
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
 
         var response = await _client.SendAsync(
             Collect(buildingId, NewKey(), asPlayer: Guid.NewGuid()));
@@ -253,7 +258,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
         // Гонку вирішує унікальний індекс (PlayerId, Key), а не перевірка в коді.
         // Обмеження: WebApplicationFactory крутить обидва запити в одному процесі —
         // це доводить, що індекс тримає, і не доводить поведінку під навантаженням.
-        var buildingId = await FirstBuildingIdAsync();
+        var buildingId = await TownhallIdAsync();
         var key = NewKey();
 
         var responses = await Task.WhenAll(
