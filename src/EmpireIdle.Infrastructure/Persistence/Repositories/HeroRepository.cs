@@ -31,6 +31,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.Heroes
             .FirstOrDefaultAsync(h => h.Id == id, cancellationToken);
 
+        public Task<List<Hero>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .AsNoTracking()
+            .Where(h => ids.Contains(h.Id))
+            .ToListAsync(cancellationToken);
+
         /// <inheritdoc/>
         public Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.Heroes

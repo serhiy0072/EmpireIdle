@@ -16,6 +16,9 @@ namespace EmpireIdle.Application.Interfaces
 
         Task<Hero?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+        /// <summary>Кілька героїв одним запитом — для вітрини ринку, лише читання.</summary>
+        Task<List<Hero>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Скільки героїв у ростері. Окремим запитом, бо кап маршів
         /// рахується на кожній відправці, а сам ростер там не потрібен.

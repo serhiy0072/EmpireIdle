@@ -40,6 +40,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .AsSplitQuery()
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
+        public Task<List<EquipmentItem>> GetEquipmentByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids,
+            CancellationToken cancellationToken = default)
+            => _context.EquipmentItems
+            .AsNoTracking()
+            .Include(e => e.Stats)
+            .AsSplitQuery()
+            .Where(e => ids.Contains(e.Id))
+            .ToListAsync(cancellationToken);
+
         /// <inheritdoc/>
         public Task<List<EquipmentItem>> GetEquippedAsync(Guid heroId, CancellationToken cancellationToken = default)
             => _context.EquipmentItems
