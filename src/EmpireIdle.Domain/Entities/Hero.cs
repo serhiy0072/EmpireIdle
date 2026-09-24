@@ -74,6 +74,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
 
+        /// <summary>Куплений на ринку герой не виставляється знову до цього моменту.</summary>
+        public DateTime? ResaleLockedUntil { get; private set; }
+
         public Hero(Guid id, Guid playerId, int serverId, string heroKey, Guid garrisonId, bool asLeader,
             DateTime utcNow) : base(id)
         {
@@ -279,6 +282,63 @@ namespace EmpireIdle.Domain.Entities
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
 
             return true;
+        }
+
+        /// <summary>
+        /// Виставляє героя на ринок. Як і в поході, він покидає гарнізон
+        /// і лідерство: тоді вдягання, лікування й призначення відсікаються
+        /// тими самими правилами, що й для героя в дорозі.
+        /// </summary>
+        public void PutOnMarket(DateTime utcNow)
+        {
+            if (State != HeroState.Idle || StationedGarrisonId is null)
+                throw new RequirementNotMetException(RefusalReasons.MarketHeroBusy, $"Hero {Id} is {State} and cannot be listed.");
+
+            if (ResaleLockedUntil is { } until && until > utcNow)
+                throw new RequirementNotMetException(RefusalReasons.MarketResaleCooldown,
+                    $"Hero {Id} was bought recently and cannot be resold until {until:O}.", until);
+
+            State = HeroState.OnMarket;
+            StationedGarrisonId = null;
+            IsLeader = false;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Лот знято або строк минув — герой повертається в гарнізон продавця.</summary>
+        /// <param name="leaderSlotFree">Чи вільний лідерський слот: за час лота могли призначити іншого.</param>
+        public void TakeOffMarket(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
+        {
+            if (State != HeroState.OnMarket)
+                throw new InvalidStateException($"Hero {Id} is not on the market.");
+
+            State = HeroState.Idle;
+            StationedGarrisonId = garrisonId;
+            IsLeader = leaderSlotFree;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>
+        /// Продаж: герой переходить до покупця й стає в його гарнізон.
+        /// Подія йде обом власникам — Power змінюється в обох.
+        /// </summary>
+        public void SellTo(Guid buyerId, Guid garrisonId, bool leaderSlotFree, DateTime resaleLockedUntil, DateTime utcNow)
+        {
+            if (State != HeroState.OnMarket)
+                throw new InvalidStateException($"Hero {Id} is not on the market.");
+
+            var sellerId = PlayerId;
+
+            PlayerId = buyerId;
+            State = HeroState.Idle;
+            StationedGarrisonId = garrisonId;
+            IsLeader = leaderSlotFree;
+            ResaleLockedUntil = resaleLockedUntil;
+            Touch(utcNow);
+
+            RaiseDomainEvent(new HeroChanged(sellerId, Id, utcNow));
+            RaiseDomainEvent(new HeroChanged(buyerId, Id, utcNow));
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;

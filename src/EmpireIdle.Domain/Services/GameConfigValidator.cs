@@ -34,6 +34,7 @@ namespace EmpireIdle.Domain.Services
             ValidateLossBands(config);
             ValidateDungeons(config);
             ValidateUnlockThresholds(config);
+            ValidateMarket(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
             ValidateBanners(config);
@@ -134,6 +135,50 @@ namespace EmpireIdle.Domain.Services
             if (unknownFocus.Count > 0)
                 throw new InvalidOperationException(
                     $"Equipment.ArtifactSets focus on stats outside ArtifactStats: {string.Join(", ", unknownFocus)}.");
+        }
+
+        /// <summary>
+        /// Ринок: будівля існує, кожен товар має якір ціни. Без якоря коридор
+        /// рахувався б із першого ж продажу, і його задавав би вош.
+        /// </summary>
+        private static void ValidateMarket(GameConfig config)
+        {
+            var market = config.Market;
+
+            // Ринок вимкнений — і правил для нього немає
+            if (market.BuildingKey is null)
+                return;
+
+            if (!config.Buildings.Any(b => b.Key == market.BuildingKey))
+                throw new InvalidOperationException($"Market.BuildingKey '{market.BuildingKey}' is not a known building.");
+
+            var equipmentInvalid = config.Items
+                .Where(i => i.Tradeable && i.Type == "equipment")
+                .Select(i => i.Key)
+                .ToList();
+
+            if (equipmentInvalid.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment is always tradeable; Tradeable is for stack items only: {string.Join(", ", equipmentInvalid)}.");
+
+            var pricing = new MarketPricing(config);
+
+            var categories = config.Items
+                .Where(i => i.Tradeable)
+                .Select(i => MarketPricing.CategoryOfItem(i.Key))
+                .Concat(config.Items
+                    .Where(i => i.Slot is not null)
+                    .Select(i => MarketPricing.CategoryOf(i.Slot!.Value)))
+                .Concat(config.Heroes.Select(h => MarketPricing.CategoryOf(h.Rank)))
+                .Distinct()
+                .ToList();
+
+            var unanchored = categories.Where(c => pricing.AnchorPerUnit(c) is null).ToList();
+
+            if (unanchored.Count > 0)
+                throw new InvalidOperationException(
+                    $"Market has no price anchor for: {string.Join(", ", unanchored)} "
+                    + "(stack items need a shop price in gems, equipment and heroes a Market.GoldPerPower entry).");
         }
 
         /// <summary>

@@ -1,0 +1,26 @@
+{
+  "GameConfig": {
+    "Market": {
+      "BuildingKey": "market",
+      "ListingTaxShare": 0.05,
+      "ListingHours": 48,
+      "ResaleCooldownHours": 72,
+      "BaseListings": 1,
+      "ListingsPerBuildingLevel": 1,
+      "CorridorShare": 0.3,
+      "MedianWindowHours": 48,
+      "MinSalesForMedian": 5,
+      "OutlierTrimShare": 0.1,
+      "MedianMinAnchorShare": 0.5,
+      "MedianMaxAnchorShare": 2.0,
+      "GoldPerGem": 100,
+      "GoldPerPower": {
+        "weapon": 10,
+        "artifact": 10,
+        "hero.Common": 10,
+        "hero.Rare": 20,
+        "hero.Unique": 40
+      }
+    }
+  }
+}

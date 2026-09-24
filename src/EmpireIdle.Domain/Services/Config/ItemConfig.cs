@@ -73,5 +73,12 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>equipment: ціна зброї в золоті; артефакти не продаються.</summary>
         public int PriceGold { get; set; }
+
+        /// <summary>
+        /// Стаковий предмет можна виставити на ринок гравців. Спорядження
+        /// торгується завжди — позначка для нього не читається. Ящики
+        /// ресурсів, лутбокси й телепорти лишаються без неї (GDD §8.8).
+        /// </summary>
+        public bool Tradeable { get; set; }
     }
 }

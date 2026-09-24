@@ -62,6 +62,8 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<DungeonRun> DungeonRuns => Set<DungeonRun>();
         public DbSet<DungeonEnergy> DungeonEnergy => Set<DungeonEnergy>();
         public DbSet<DungeonClear> DungeonClears => Set<DungeonClear>();
+        public DbSet<MarketListing> MarketListings => Set<MarketListing>();
+        public DbSet<MarketPriceSnapshot> MarketPriceSnapshots => Set<MarketPriceSnapshot>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -90,6 +92,8 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<HeroLevelOrder>().HasQueryFilter(o => o.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<HeroShardProgress>().HasQueryFilter(s => s.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<EquipmentItem>().HasQueryFilter(e => e.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<MarketListing>().HasQueryFilter(l => l.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<MarketPriceSnapshot>().HasQueryFilter(s => s.ServerId == _serverContext.ServerId);
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
