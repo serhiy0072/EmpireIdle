@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { InventoryItemResponse, UseItemRequest } from "../../lib/apiTypes";
+import { useCatalog } from "../../lib/queries/catalog";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
+import GiftPanel from "./GiftPanel";
 import ItemIcon from "./ItemIcon";
 
 interface Props {
+  playerId: string;
   item: InventoryItemResponse;
   busy: boolean;
   onUse: (request: UseItemRequest) => void;
@@ -21,8 +24,11 @@ const TYPE_LABELS: Record<string, string> = {
  * Стаковий предмет. Ящики й бусти вживаються відразу, телепорт веде на мапу —
  * місце обирають там, есенції еволюції витрачає сам герой — їм кнопки не треба.
  */
-export default function ItemCard({ item, busy, onUse }: Props) {
+export default function ItemCard({ playerId, item, busy, onUse }: Props) {
+  const catalog = useCatalog();
   const [count, setCount] = useState(1);
+
+  const giftable = catalog.item(item.itemKey)?.giftable === true;
 
   const usable = item.type === "resources" || item.type === "boost";
   const safeCount = Math.min(item.count, Math.max(1, count));
@@ -74,7 +80,8 @@ export default function ItemCard({ item, busy, onUse }: Props) {
       )}
 
       {item.type === "teleport" && (
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex flex-wrap justify-end gap-2">
+          {giftable && <GiftPanel playerId={playerId} item={item} />}
           <Link
             to={`/map?teleport=${encodeURIComponent(item.itemKey)}`}
             className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700"

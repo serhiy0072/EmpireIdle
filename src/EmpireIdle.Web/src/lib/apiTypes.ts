@@ -35,6 +35,7 @@ export type InventoryItemResponse = components["schemas"]["InventoryItemResponse
 export type EquipmentResponse = components["schemas"]["EquipmentResponse"];
 export type ActiveEffectResponse = components["schemas"]["ActiveEffectResponse"];
 export type UseItemRequest = components["schemas"]["UseItemRequest"];
+export type GiftItemRequest = components["schemas"]["GiftItemRequest"];
 export type EnhancementResponse = components["schemas"]["EnhancementResponse"];
 export type BannerView = components["schemas"]["BannerView"];
 export type BannerDropView = components["schemas"]["BannerDropView"];

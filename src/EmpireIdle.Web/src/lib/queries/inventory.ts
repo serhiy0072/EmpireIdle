@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
-import type { EnhancementResponse, InventoryResponse, UseItemRequest } from "../apiTypes";
+import type { EnhancementResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -27,6 +27,17 @@ export function useUseItem(playerId: string) {
       invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes"]);
       void queryClient.invalidateQueries({ queryKey: ["map"] });
     },
+  });
+}
+
+/** Подарунок члену свого клану: предмет іде з інвентаря одразу, отримувач побачить його в своєму. */
+export function useGiftItem(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: GiftItemRequest) =>
+      api<void>(`/api/inventory/${playerId}/gift`, { method: "POST", body: input, idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory"]),
   });
 }
 
