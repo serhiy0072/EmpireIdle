@@ -102,6 +102,10 @@ Committed contracts: `openapi/v1.json` (HTTP API), `realtime/events.json` (Signa
 
 **Mailbox.** Personal letters are created from domain events (a clan invite for now) and hold a reference, not a snapshot: the letter shows the current state of the invite and offers buttons only while it is pending. World announcements are stored once per world with per-player read marks; both are delivered live and counted in an unread badge.
 
+**City fall.** A lost defence damages the walls and random buildings: damaged buildings produce at half rate and walls defend less until they repair themselves or are repaired for resources. The third defeat in a row without a full repair evicts the village to a free cell of the same ring under a week-long shield, and the owner gets a letter.
+
+**Login rewards.** A daily series, a weekly and a monthly reward arrive as mailbox letters with attachments that burn when the next period starts; one button claims every letter at once. Teleports can be gifted to clanmates.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -204,7 +208,9 @@ Errors are `ProblemDetails` with a stable `errorCode`; refusals a player can hit
 - [x] Player market with a price corridor
 - [x] Chat, player language and localized catalog
 - [x] Mailbox with clan invite letters and world announcements
+- [x] City fall: building damage, repair, eviction and shield
+- [x] Login rewards and reward letters; teleport gifting in the clan
 - [ ] Balance pass (numbers in the configs are placeholders)
 - [ ] Auction, machine translation provider, UI string dictionaries
-- [ ] Clan territory, city fall and shields
+- [ ] Clan territory
 - [ ] Docker + deployment

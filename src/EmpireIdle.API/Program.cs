@@ -17,6 +17,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -45,6 +46,7 @@ builder.Configuration
     .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/market.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: true)
     .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: true);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
@@ -75,7 +77,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
     .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")
     .Validate(c => c.Equipment.ArtifactTierMultipliers.All(m => m > 0), "GameConfig.Equipment.ArtifactTierMultipliers must be positive — otherwise higher-tier artifacts roll zero stats.")
-    .Validate(c => c.Mail.LetterRetentionDays > 0 && c.Mail.AnnouncementRetentionDays > 0, "GameConfig.Mail retention must be positive.")
+    .Validate(c => c.Mail.LetterRetentionDays > 0 && c.Mail.AnnouncementRetentionDays > 0 && c.Mail.RewardRetentionDays > 0,
+        "GameConfig.Mail retention must be positive.")
     .Validate(c => c.Chat.MaxLength > 0 && c.Chat.RateLimitCount > 0 && c.Chat.RateLimitWindowSeconds > 0 && c.Chat.RetentionDays > 0, "GameConfig.Chat limits must be positive.")
     .Validate(c => c.Market.ListingTaxShare is >= 0 and < 1, "GameConfig.Market.ListingTaxShare must be within [0; 1) — a tax of the whole price leaves the seller nothing.")
     .Validate(c => c.Market.ListingHours > 0 && c.Market.MedianWindowHours > 0 && c.Market.ResaleCooldownHours >= 0, "GameConfig.Market hours must be positive (the resale cooldown may be zero).")
@@ -273,7 +276,22 @@ builder.Services.AddScoped<ClanLeadershipJob>();
 
 //  8. ВЕБ-ШАР
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
+{
+    // Кривий JSON чи невідомий enum відсікає ще прив'язка моделі, до FluentValidation.
+    // Відповідь та сама, але з errorCode: клієнт розгалужується за ним, не за текстом
+    var standard = options.InvalidModelStateResponseFactory;
+
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var result = standard(context);
+
+        if (result is ObjectResult { Value: ProblemDetails problem })
+            problem.Extensions["errorCode"] = "Validation";
+
+        return result;
+    };
+});
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 

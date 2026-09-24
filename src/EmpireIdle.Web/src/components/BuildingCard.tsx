@@ -3,6 +3,7 @@ import { useNow } from "../hooks/useNow";
 import type { BuildingResponse } from "../lib/apiTypes";
 import { screensFor } from "../lib/buildingScreens";
 import { useCatalog } from "../lib/queries/catalog";
+import { speedUpLabel } from "../lib/speedUp";
 import { formatRemaining } from "../lib/time";
 import HospitalPanel from "./HospitalPanel";
 import LevelUpUnitsPanel from "./LevelUpUnitsPanel";
@@ -78,11 +79,11 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
             disabled={busy}
             className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            {building.speedUpCostGems === null || building.speedUpCostGems === undefined
-              ? "Прискорити"
-              : building.speedUpCostGems === 0
-                ? "Прискорити (безкоштовно)"
-                : `Прискорити (${building.speedUpCostGems.toLocaleString("uk-UA")} 💎)`}
+            {speedUpLabel(
+              building.speedUpCostGems == null
+                ? null
+                : catalog.speedUpCost(building.constructionCompletesAt, now, building.speedUpCostGems),
+            )}
           </button>
         </div>
       ) : (

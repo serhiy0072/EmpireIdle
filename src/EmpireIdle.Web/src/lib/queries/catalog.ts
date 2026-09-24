@@ -60,6 +60,11 @@ export interface Catalog {
   artifactSets: CatalogArtifactSet[];
   /** Родина, до якої належить предмет; null — предмет поза наборами. */
   setOfItem: (itemKey: string) => CatalogArtifactSet | null;
+  /**
+   * Ціна прискорення таймера на момент `now` — та сама формула, що в SpeedUpCalculator.
+   * Знімок із запиту застарівав разом із відліком; поки каталог не приїхав — він і є ціною.
+   */
+  speedUpCost: (completesAt: string, now: number, serverCost: number) => number;
 }
 
 /**
@@ -130,6 +135,14 @@ export function useCatalog(): Catalog {
       setOfItem: (itemKey) => {
         const setKey = items.get(itemKey)?.setKey;
         return setKey == null ? null : (familyBySetKey.get(setKey) ?? null);
+      },
+      speedUpCost: (completesAt, now, serverCost) => {
+        if (data === undefined) return serverCost;
+
+        const minutes = (new Date(completesAt).getTime() - now) / 60_000;
+        const { freeUnderMinutes, factor, exponent } = data.speedUp;
+
+        return minutes <= freeUnderMinutes ? 0 : Math.ceil(factor * Math.pow(minutes, exponent));
       },
     };
   }, [query.data]);

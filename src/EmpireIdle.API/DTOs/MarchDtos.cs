@@ -15,13 +15,15 @@ public record SendMarchRequest(
 
 /// <summary>
 /// Активний похід. TargetName null — ціль уже зникла з мапи (монстра вбили,
-/// село покинули), а армія ще повертається.
+/// село покинули), а армія ще повертається. TargetLevel — рівень монстра;
+/// у села null.
 /// </summary>
 public record MarchResponse(
     Guid Id,
     MarchTargetType TargetType,
     Guid TargetId,
     string? TargetName,
+    int? TargetLevel,
     int TargetX,
     int TargetY,
     MarchIntent Intent,

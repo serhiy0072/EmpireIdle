@@ -59,11 +59,14 @@ namespace EmpireIdle.Application.Marches.Queries
             // Найближче прибуття — першим: за ним гравець і стежить
             foreach (var march in marches.OrderBy(m => m.ArrivesAt))
             {
+                var (targetName, targetLevel) = await ResolveTargetAsync(march, cancellationToken);
+
                 views.Add(new MarchView(
                     march.Id,
                     march.TargetType,
                     march.TargetId,
-                    await ResolveTargetNameAsync(march, cancellationToken),
+                    targetName,
+                    targetLevel,
                     march.TargetX,
                     march.TargetY,
                     march.Intent,
@@ -78,28 +81,26 @@ namespace EmpireIdle.Application.Marches.Queries
             return views;
         }
 
-        /// <summary>Назва цілі як у прев'ю бою; null — ціль уже зникла з мапи.</summary>
-        private async Task<string?> ResolveTargetNameAsync(March march, CancellationToken cancellationToken)
+        /// <summary>
+        /// Назва цілі як у прев'ю бою й рівень монстра окремо; null — ціль уже
+        /// зникла з мапи. У села рівня немає.
+        /// </summary>
+        private async Task<(string? Name, int? Level)> ResolveTargetAsync(March march, CancellationToken cancellationToken)
         {
             switch (march.TargetType)
             {
                 case MarchTargetType.Monster:
                     var monster = await _monsterRepository.GetByIdAsync(march.TargetId, cancellationToken);
 
-                    if (monster is null)
-                        return null;
-
-                    var displayName = _catalog.Monsters.GetValueOrDefault(monster.Type)?.DisplayName ?? monster.Type;
-
-                    return $"{displayName} (lvl {monster.Level})";
+                    return monster is null ? (null, null) : (_catalog.MonsterName(monster.Type), monster.Level);
 
                 case MarchTargetType.Village:
                     var village = await _villageRepository.GetByIdAsync(march.TargetId, cancellationToken);
 
-                    return village?.Name;
+                    return (village?.Name, null);
 
                 default:
-                    return null;
+                    return (null, null);
             }
         }
     }

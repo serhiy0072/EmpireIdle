@@ -43,6 +43,19 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>Позначити оголошення прочитаним. Ідемпотентна.</summary>
+        [HttpPost("{playerId:guid}/letters/{letterId:guid}/claim")]
+        [ProducesResponseType(typeof(ClaimView), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ClaimView>> Claim(Guid playerId, Guid letterId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new ClaimLetterRewardsCommand(playerId, letterId), cancellationToken));
+
+        /// <summary>Забрати вкладення з усіх листів разом. Ідемпотентна.</summary>
+        [HttpPost("{playerId:guid}/claim-all")]
+        [ProducesResponseType(typeof(ClaimView), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ClaimView>> ClaimAll(Guid playerId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new ClaimAllRewardsCommand(playerId), cancellationToken));
+
         [HttpPost("{playerId:guid}/announcements/{announcementId:guid}/read")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

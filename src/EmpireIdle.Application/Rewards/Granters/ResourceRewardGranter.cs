@@ -9,6 +9,7 @@ namespace EmpireIdle.Application.Rewards.Granters
     /// <summary>
     /// Нараховує ресурси в село. Обрізається по капу складу —
     /// інакше нагорода вивела б гравця за межі, які тримає домен.
+    /// Виняток — <see cref="RewardContext.IgnoreStorageCap"/> (листи).
     /// </summary>
     public class ResourceRewardGranter : IRewardGranter
     {
@@ -44,7 +45,8 @@ namespace EmpireIdle.Application.Rewards.Granters
             var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {context.PlayerId}.");
 
-            var granted = village.GrantResource(key, context.Reward.Amount, _capacities.StorageCapFor(village, key), now);
+            var cap = context.IgnoreStorageCap ? int.MaxValue : _capacities.StorageCapFor(village, key);
+            var granted = village.GrantResource(key, context.Reward.Amount, cap, now);
 
             if (granted < context.Reward.Amount)
                 _logger.LogInformation(

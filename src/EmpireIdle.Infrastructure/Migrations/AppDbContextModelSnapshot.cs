@@ -1059,10 +1059,50 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("IdempotencyRecords", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.LoginRewardProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("LastCheckIn")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("RewardedMonth")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("RewardedWeek")
+                        .HasColumnType("date");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Streak")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.ToTable("LoginRewardProgress", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.MailLetter", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1079,11 +1119,24 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("ReferenceId")
+                    b.Property<Guid?>("ReferenceId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Rewards")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int?>("Sequence")
+                        .HasColumnType("integer");
 
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 

@@ -12,6 +12,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Непротерміновані листи гравця, найновіші першими.</summary>
         Task<List<MailLetter>> GetLettersAsync(Guid playerId, DateTime utcNow, CancellationToken cancellationToken = default);
 
+        /// <summary>Листи з незабраним і ще чинним вкладенням — з трекінгом, для «Забрати все».</summary>
+        Task<List<MailLetter>> GetClaimableLettersAsync(Guid playerId, DateTime utcNow, CancellationToken cancellationToken = default);
+
         Task<int> CountUnreadLettersAsync(Guid playerId, DateTime utcNow, CancellationToken cancellationToken = default);
 
         Task AddAnnouncementAsync(Announcement announcement, CancellationToken cancellationToken = default);

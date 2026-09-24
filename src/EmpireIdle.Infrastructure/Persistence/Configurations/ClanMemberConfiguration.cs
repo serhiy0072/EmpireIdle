@@ -11,6 +11,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.ToTable("ClanMembers");
             builder.HasKey(m => m.Id);
 
+            // Ключ ставить домен. Інакше EF вважає нового учасника в уже
+            // завантаженому клані наявним і пише UPDATE замість INSERT
+            builder.Property(m => m.Id).ValueGeneratedNever();
+
             // Гравець в одному клані максимум. Унікальність робить це
             // структурним: перевірку в хендлері можна забути, індекс — ні
             builder.HasIndex(m => m.PlayerId).IsUnique();

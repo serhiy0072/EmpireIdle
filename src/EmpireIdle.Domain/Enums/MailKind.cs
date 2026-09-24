@@ -1,8 +1,9 @@
 namespace EmpireIdle.Domain.Enums
 {
     /// <summary>
-    /// Тип особистого листа (GDD §7.4). Лист тримає лише тип і ReferenceId:
-    /// актуальний стан того, на що він посилається, читається при відкритті.
+    /// Тип особистого листа (GDD §7.4). Лист-посилання тримає лише тип і
+    /// ReferenceId — актуальний стан читається при відкритті. Лист із
+    /// нагородою несе вкладення сам і посилання не має.
     /// </summary>
     public enum MailKind
     {
@@ -10,6 +11,15 @@ namespace EmpireIdle.Domain.Enums
         ClanInvite = 1,
 
         /// <summary>Падіння міста; ReferenceId — VillageFall.</summary>
-        CityFall = 2
+        CityFall = 2,
+
+        /// <summary>Щоденна нагорода за вхід; Sequence — день серії.</summary>
+        DailyReward = 3,
+
+        /// <summary>Щотижнева нагорода за вхід.</summary>
+        WeeklyReward = 4,
+
+        /// <summary>Щомісячна нагорода за вхід.</summary>
+        MonthlyReward = 5
     }
 }

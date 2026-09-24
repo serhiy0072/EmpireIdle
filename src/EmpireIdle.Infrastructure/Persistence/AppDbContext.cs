@@ -68,6 +68,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<ChatTranslation> ChatTranslations => Set<ChatTranslation>();
         public DbSet<MailLetter> MailLetters => Set<MailLetter>();
         public DbSet<VillageFall> VillageFalls => Set<VillageFall>();
+        public DbSet<LoginRewardProgress> LoginRewardProgress => Set<LoginRewardProgress>();
         public DbSet<Announcement> Announcements => Set<Announcement>();
         public DbSet<AnnouncementRead> AnnouncementReads => Set<AnnouncementRead>();
 
@@ -104,6 +105,7 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<MailLetter>().HasQueryFilter(l => l.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Announcement>().HasQueryFilter(a => a.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<VillageFall>().HasQueryFilter(f => f.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<LoginRewardProgress>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

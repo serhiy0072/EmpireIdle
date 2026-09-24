@@ -98,10 +98,11 @@ namespace EmpireIdle.Application.Marches.Queries
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                 request.PlayerId, EffectTarget.Attack, now, cancellationToken);
 
-            // Володіння героєм тут не перевіряється навмисно: прев'ю нічого
-            // не міняє, а чужий або неіснуючий HeroId просто дасть null
-            // і порахується без пасивок. Відмовить SendMarchCommand
-            var attackerHero = await _heroRepository.GetByIdAsync(request.HeroId, cancellationToken);
+            // Чужий або неіснуючий герой рахується як відсутній: прев'ю нічого
+            // не міняє, відмовить SendMarchCommand. Але й підставити чужого героя
+            // не можна — інакше прев'ю розкривало б його пасивки й швидкість
+            var hero = await _heroRepository.GetByIdAsync(request.HeroId, cancellationToken);
+            var attackerHero = hero?.PlayerId == request.PlayerId ? hero : null;
 
             // Та сама формула, що й у бою — інакше прев'ю розійдеться з результатом.
             // Герой теж той самий, якого гравець збирається відправити: без його
