@@ -20,6 +20,14 @@
     "level",
     "buildings"
   ],
+  "chat.noClan": [],
+  "chat.toSelf": [],
+  "chat.tooFast": [
+    "seconds"
+  ],
+  "chat.tooLong": [
+    "max"
+  ],
   "clan.alreadyApplied": [],
   "clan.alreadyInClan": [],
   "clan.alreadyInvited": [],

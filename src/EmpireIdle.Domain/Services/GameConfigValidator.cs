@@ -35,6 +35,7 @@ namespace EmpireIdle.Domain.Services
             ValidateDungeons(config);
             ValidateUnlockThresholds(config);
             ValidateMarket(config);
+            ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
             ValidateBanners(config);
@@ -179,6 +180,24 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Market has no price anchor for: {string.Join(", ", unanchored)} "
                     + "(stack items need a shop price in gems, equipment and heroes a Market.GoldPerPower entry).");
+        }
+
+        /// <summary>
+        /// Мови: без дублікатів, мова за замовчуванням серед них, російської немає
+        /// (GDD §7.3) — і не з'явиться випадково з чужого шаблону конфіга.
+        /// </summary>
+        private static void ValidateLocalization(GameConfig config)
+        {
+            var localization = config.Localization;
+
+            RequireUniqueKeys(localization.Languages, "Localization.Languages");
+
+            if (!localization.SupportedLanguages.Contains(localization.DefaultLanguage))
+                throw new InvalidOperationException(
+                    $"Localization.DefaultLanguage '{localization.DefaultLanguage}' is not among Localization.Languages.");
+
+            if (localization.SupportedLanguages.Any(language => string.Equals(language, "ru", StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException("Localization.Languages must not include Russian (GDD §7.3).");
         }
 
         /// <summary>

@@ -56,6 +56,12 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Ринок гравців: податок, строки, коридор ціни.</summary>
         public MarketConfig Market { get; set; } = new();
 
+        /// <summary>Чат: довжина, антиспам, строк історії.</summary>
+        public ChatConfig Chat { get; set; } = new();
+
+        /// <summary>Мови інтерфейсу й мова за замовчуванням.</summary>
+        public LocalizationConfig Localization { get; set; } = new();
+
         /// <summary>Усі типи предметів інвентаря.</summary>
         public List<ItemConfig> Items { get; set; } = new();
 

@@ -239,6 +239,18 @@
 
         public static readonly RefusalReason MarketOwnListing = new("market.ownListing");
 
+        // ---------- Чат ----------
+
+        /// <summary>Антиспам: забагато повідомлень за вікно; seconds — скільки чекати.</summary>
+        public static readonly RefusalReason ChatTooFast = new("chat.tooFast", "seconds");
+
+        public static readonly RefusalReason ChatTooLong = new("chat.tooLong", "max");
+
+        /// <summary>Клановий канал без клану.</summary>
+        public static readonly RefusalReason ChatNoClan = new("chat.noClan");
+
+        public static readonly RefusalReason ChatToSelf = new("chat.toSelf");
+
         // ---------- Данжі ----------
 
         public static readonly RefusalReason DungeonTownHallRequired = new("dungeon.townHallRequired", "dungeon", "level");

@@ -156,6 +156,12 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "market.listingClosed": () => "Лот уже продано або знято",
   "market.ownListing": () => "Це ваш власний лот",
 
+  // ---------- Чат ----------
+  "chat.tooFast": ({ seconds }) => `Забагато повідомлень поспіль — зачекайте ${seconds} с`,
+  "chat.tooLong": ({ max }) => `Повідомлення задовге: не більше ${max} символів`,
+  "chat.noClan": () => "Клановий чат — лише для членів клану",
+  "chat.toSelf": () => "Не можна написати самому собі",
+
   // ---------- Данжі ----------
   "dungeon.townHallRequired": ({ dungeon, level }) => `«${dungeon}» відкривається з ратушею ${level} рівня`,
   "dungeon.levelLocked": ({ level, previous }) => `Рівень ${level} відкриється після проходження рівня ${previous}`,

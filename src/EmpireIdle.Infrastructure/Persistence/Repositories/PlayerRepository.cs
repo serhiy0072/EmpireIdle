@@ -40,6 +40,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsByClanAsync(Guid clanId, CancellationToken cancellationToken = default)
+            => await _context.Players
+                .AsNoTracking()
+                .Where(p => p.ClanId == clanId)
+                .Select(p => p.Id)
+                .ToListAsync(cancellationToken);
+
         public async Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> playerIds, CancellationToken cancellationToken = default)
             => await _context.Players
                 .AsNoTracking()

@@ -30,6 +30,7 @@ namespace EmpireIdle.API.Jobs
             _manager.AddOrUpdate<ClanLeadershipJob>("clan-leadership", job => job.RunAsync(), Cron.Daily);
             _manager.AddOrUpdate<MarketExpiryJob>("market-expiry", job => job.RunAsync(), Cron.Minutely);
             _manager.AddOrUpdate<MarketPricesJob>("market-prices", job => job.RunAsync(), Cron.Hourly);
+            _manager.AddOrUpdate<ChatRetentionJob>("chat-retention", job => job.RunAsync(), Cron.Daily);
 
             return Task.CompletedTask;
         }
