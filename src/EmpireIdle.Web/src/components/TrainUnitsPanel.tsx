@@ -4,6 +4,7 @@ import { cumulativeUnitLevelCost } from "../lib/progression";
 import { formatRemaining } from "../lib/time";
 import type { CatalogUnit } from "../lib/queries/catalog";
 import { useCatalog } from "../lib/queries/catalog";
+import { speedUpLabel } from "../lib/speedUp";
 import { useGarrison, useSpeedUpTraining, useTrainUnits } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
 
@@ -121,9 +122,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
                 disabled={speedUp.isPending}
                 className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                {order.speedUpCostGems === 0
-                  ? "Прискорити (безкоштовно)"
-                  : `Прискорити (${order.speedUpCostGems.toLocaleString("uk-UA")} 💎)`}
+                {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
               </button>
             </div>
           ))}

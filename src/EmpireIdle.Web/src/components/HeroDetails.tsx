@@ -1,5 +1,6 @@
 import { heroState, passivePercent, rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
 import { useNow } from "../hooks/useNow";
+import { speedUpLabel } from "../lib/speedUp";
 import type { components } from "../lib/schema";
 import type { HeroSummary } from "../lib/queries/heroes";
 import { formatRemaining } from "../lib/time";
@@ -107,9 +108,7 @@ export default function HeroDetails({
               disabled={busy}
               className="rounded-lg border border-sky-300 bg-white px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100 disabled:opacity-50"
             >
-              {order.speedUpCostGems === 0
-                ? "Прискорити (безкоштовно)"
-                : `Прискорити (${order.speedUpCostGems.toLocaleString("uk-UA")} 💎)`}
+              {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
             </button>
           </div>
         )}
