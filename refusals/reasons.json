@@ -126,6 +126,14 @@
     "required",
     "current"
   ],
+  "item.giftNotClanmate": [],
+  "item.giftToSelf": [],
+  "item.notEnough": [
+    "item",
+    "need",
+    "have"
+  ],
+  "item.notGiftable": [],
   "item.strongerBoostActive": [
     "multiplier",
     "until"

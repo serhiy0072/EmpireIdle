@@ -78,6 +78,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   // ---------- Інвентар, банери, квести, крамниця ----------
   "item.strongerBoostActive": ({ multiplier, until }) =>
     `Уже діє сильніший прискорювач ×${multiplier} до ${localTime(until)} — цей не спрацює`,
+  "item.notGiftable": () => "Цей предмет не можна подарувати",
+  "item.giftNotClanmate": () => "Дарувати можна лише членам свого клану",
+  "item.giftToSelf": () => "Собі подарунок не зробиш",
+  "item.notEnough": ({ item, need, have }) => `Замало: «${item}» потрібно ${need}, є ${have}`,
   "teleport.outsideRegion": () => "Ця клітинка поза освоєною зоною світу",
   "teleport.cellUnsuitable": () => "На цій клітинці не можна заснувати поселення",
   "teleport.cellOccupied": () => "Ця клітинка вже зайнята",

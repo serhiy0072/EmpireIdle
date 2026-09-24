@@ -89,7 +89,8 @@ namespace EmpireIdle.Application.Catalog
                     item.SetKey,
                     item.ArtifactSlot,
                     item.PriceGold,
-                    item.Tradeable))
+                    item.Tradeable,
+                    item.Giftable))
                 .ToList();
 
             var resources = config.Resources

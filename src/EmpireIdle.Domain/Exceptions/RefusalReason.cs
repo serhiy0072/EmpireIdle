@@ -85,6 +85,18 @@
         /// <summary>until — UTC у форматі ISO 8601.</summary>
         public static readonly RefusalReason ItemStrongerBoostActive = new("item.strongerBoostActive", "multiplier", "until");
 
+        /// <summary>Цей предмет не дарують.</summary>
+        public static readonly RefusalReason ItemNotGiftable = new("item.notGiftable");
+
+        /// <summary>Подарувати можна лише члену свого клану — і лише коли сам у клані.</summary>
+        public static readonly RefusalReason ItemGiftNotClanmate = new("item.giftNotClanmate");
+
+        /// <summary>Подарувати собі не можна.</summary>
+        public static readonly RefusalReason ItemGiftToSelf = new("item.giftToSelf");
+
+        /// <summary>Предметів менше, ніж треба; need — скільки, have — скільки є.</summary>
+        public static readonly RefusalReason ItemNotEnough = new("item.notEnough", "item", "need", "have");
+
         public static readonly RefusalReason TeleportOutsideRegion = new("teleport.outsideRegion");
 
         public static readonly RefusalReason TeleportCellUnsuitable = new("teleport.cellUnsuitable");
