@@ -4,7 +4,8 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useSession } from "../hooks/useSession";
 import { logout } from "../lib/auth";
 import { seedAccount } from "../lib/dev";
-import { appendChatEvent, useChangeLanguage, usePlayerSettings } from "../lib/queries/chat";
+import { appendChatEvent } from "../lib/queries/chat";
+import { DEFAULT_LANGUAGE, useChangeLanguage, usePlayerSettings } from "../lib/queries/player";
 import { useVillage } from "../lib/queries/village";
 import { onGameEvent } from "../lib/realtime/connection";
 import { useWallet } from "../lib/queries/wallet";
@@ -45,7 +46,7 @@ export default function AppLayout() {
   const tutorial = useTutorial(playerId);
   const settings = usePlayerSettings(playerId);
   const changeLanguage = useChangeLanguage(playerId);
-  const language = settings.data?.language ?? "uk";
+  const language = settings.data?.language ?? DEFAULT_LANGUAGE;
 
   // Чат дописується тут, а не на сторінці чату: інакше історія закритого чату
   // застаріла б, а перечитувати її за таймером нема потреби

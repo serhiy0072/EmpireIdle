@@ -1,6 +1,7 @@
 /** Ключі кешу в одному місці: події реального часу інвалідують те саме, що читають екрани. */
 export const queryKeys = {
-  catalog: ["catalog"] as const,
+  /** Каталог — мовою гравця: інша мова, інші назви, інший ETag. */
+  catalog: (language: string) => ["catalog", language] as const,
   shop: ["shop"] as const,
   dungeons: (playerId: string) => ["dungeons", playerId] as const,
   dungeonRun: (playerId: string) => ["dungeonRun", playerId] as const,

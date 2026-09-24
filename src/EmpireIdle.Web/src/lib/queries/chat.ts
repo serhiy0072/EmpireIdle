@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
+import { useMutation, useQuery, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
 import type { ChatMessageEvent } from "../realtime/events";
 import type { components } from "../schema";
@@ -6,7 +6,6 @@ import { queryKeys } from "../queryKeys";
 
 export type ChatMessageView = components["schemas"]["ChatMessageView"];
 export type ChatConversationView = components["schemas"]["ChatConversationView"];
-export type PlayerSettingsView = components["schemas"]["PlayerSettingsView"];
 
 /** Канал у запитах — числом, як enum сервера; у view і подіях — рядком. */
 export const CHAT_CHANNEL = { Server: 1, Clan: 2, Private: 3 } as const;
@@ -47,31 +46,6 @@ export function useSendChat(playerId: string) {
         idempotent: true,
         body: { channel: CHAT_CHANNEL[input.channel], recipientId: input.recipientId, text: input.text },
       }),
-  });
-}
-
-export function usePlayerSettings(playerId: string): UseQueryResult<PlayerSettingsView> {
-  return useQuery({
-    queryKey: queryKeys.settings(playerId),
-    queryFn: () => api<PlayerSettingsView>(`/api/player/${playerId}/settings`),
-    staleTime: Infinity,
-  });
-}
-
-/**
- * Зміна мови перечитує все, що від неї залежить: каталог (назви) і чат (переклади).
- */
-export function useChangeLanguage(playerId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (language: string) =>
-      api<void>(`/api/player/${playerId}/language`, { method: "POST", idempotent: true, body: { language } }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.settings(playerId) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.catalog });
-      void queryClient.invalidateQueries({ queryKey: ["chat", playerId] });
-    },
   });
 }
 
