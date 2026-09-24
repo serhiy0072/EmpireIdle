@@ -10,6 +10,10 @@
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
     /// <param name="MaxEnhancement">Стеля заточки — після неї кнопка «Заточити» зникає.</param>
     /// <param name="RepairGemsBase">Ремонт зброї в gems: база плюс RepairGemsPerLevel за кожен рівень заточки.</param>
+    /// <param name="SpeedUp">
+    /// Ціна прискорення таймерів. Клієнт перераховує її щосекунди разом із відліком —
+    /// знімок із запиту застарівав і показував більше, ніж спише сервер.
+    /// </param>
     /// <param name="MapSize">Сторона світової мапи в клітинах — клієнт малює землю до її краю.</param>
     /// <param name="MainBuildingKey">Ключ головної будівлі: її рівень — «рівень гравця» в шапці.</param>
     /// <param name="Language">Мова назв у цьому каталозі (ISO 639-1).</param>
@@ -30,10 +34,14 @@
         int MaxEnhancement,
         int RepairGemsBase,
         int RepairGemsPerLevel,
+        CatalogSpeedUp SpeedUp,
         int MapSize,
         string MainBuildingKey,
         string Language,
         string Version);
+
+    /// <summary>Формула SpeedUpCalculator: ceil(Factor × хвилини^Exponent), безкоштовно до FreeUnderMinutes.</summary>
+    public record CatalogSpeedUp(int FreeUnderMinutes, double Factor, double Exponent);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
     public record CatalogHero(

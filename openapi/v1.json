@@ -7636,6 +7636,7 @@
           "repairGemsBase",
           "repairGemsPerLevel",
           "resources",
+          "speedUp",
           "units",
           "version"
         ],
@@ -7717,6 +7718,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "speedUp": {
+            "$ref": "#/components/schemas/CatalogSpeedUp"
+          },
           "mapSize": {
             "type": "integer",
             "format": "int32"
@@ -7786,6 +7790,29 @@
           "requiresMainBuildingLevel": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogSpeedUp": {
+        "required": [
+          "exponent",
+          "factor",
+          "freeUnderMinutes"
+        ],
+        "type": "object",
+        "properties": {
+          "freeUnderMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "factor": {
+            "type": "number",
+            "format": "double"
+          },
+          "exponent": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false

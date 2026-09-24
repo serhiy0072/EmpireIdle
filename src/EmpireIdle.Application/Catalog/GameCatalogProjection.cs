@@ -135,6 +135,10 @@ namespace EmpireIdle.Application.Catalog
                 config.Equipment.MaxEnhancement,
                 config.Equipment.RepairGemsBase,
                 config.Equipment.RepairGemsPerLevel,
+                new CatalogSpeedUp(
+                    config.Monetization.InstantFinishThresholdMinutes,
+                    config.Monetization.SpeedUpFactor,
+                    config.Monetization.SpeedUpExponent),
                 config.Map.Width,
                 catalog.MainBuildingKey,
                 language,
