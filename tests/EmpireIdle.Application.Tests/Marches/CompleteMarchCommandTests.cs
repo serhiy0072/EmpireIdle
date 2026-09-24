@@ -39,8 +39,10 @@ public class CompleteMarchCommandTests
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IPlayerPowerRepository _powers = Substitute.For<IPlayerPowerRepository>();
+    private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
 
-    private static GameConfig Config() => new()
+    private static GameConfig Config(bool cityFall = false) => new()
     {
         Buildings =
         [
@@ -84,7 +86,10 @@ public class CompleteMarchCommandTests
             // Явно, а не на дефолтах: від першого залежить, чи буде бій
             // за село взагалі, від другого — розподіл втрат переможця
             NewbieShieldTownHallLevel = 3,
-            NoLossShareThreshold = 0.03
+            NoLossShareThreshold = 0.03,
+
+            // Вимкнено, крім тестів падіння: решта сцен PvP — не про виселення
+            CityFall = new CityFallConfig { Enabled = cityFall, MaxPowerRatio = 2.0, ShieldHours = 24, EvictionsPerAttacker = 3 }
         },
         Map = new MapConfig
         {
@@ -106,9 +111,9 @@ public class CompleteMarchCommandTests
         }
     };
 
-    private CompleteMarchCommandHandler Handler(DateTime? at = null)
+    private CompleteMarchCommandHandler Handler(DateTime? at = null, bool cityFall = false)
     {
-        var config = Config();
+        var config = Config(cityFall);
         var catalog = new GameCatalog(config);
         var combat = new CombatCalculator(config.Combat, catalog);
         var terrain = new TerrainGenerator(config.Map);
@@ -144,10 +149,19 @@ public class CompleteMarchCommandTests
             armyBuilder, resolver, effects, logistics, aftermath, heroModifiers,
             NullLogger<MonsterBattleService>.Instance);
 
+        var relocator = new VillageRelocator(_map, _marches, _garrisons, _serverRepository, catalog, geometry, effects);
+
+        // Справжній випадок, а не заглушка _random: на ній пошук клітини крутився б на одній точці
+        var cityFallService = new CityFallService(
+            _powers, _falls, _map, _serverRepository,
+            new SettlementPlacer(terrain, geometry, new SystemRandomSource()),
+            geometry, relocator, new CityFallRules(catalog),
+            NullLogger<CityFallService>.Instance);
+
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
             catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, heroModifiers,
+            status, plunder, heroModifiers, cityFallService,
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
@@ -244,6 +258,76 @@ public class CompleteMarchCommandTests
         _villages.GetByIdAsync(defender.Id, Arg.Any<CancellationToken>()).Returns(defender);
 
         return (march, attacker, attackerGarrison, defender, defenderGarrison);
+    }
+
+    // ---------- Падіння міста ----------
+
+    private void GivenPowers(Guid attackerId, double attacker, Guid defenderId, double defender)
+    {
+        _marches.GetActiveByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<March>());
+        _powers.GetTotalPowerAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, double> { [attackerId] = attacker, [defenderId] = defender });
+    }
+
+    /// <summary>Перемога рівного суперника виселяє село: нова клітина, щит, запис історії.</summary>
+    [Fact]
+    public async Task Handle_ShouldEvictTheDefender_WhenTheSafeguardsPass()
+    {
+        var (march, attacker, _, defender, _) = GivenVillageBattle();
+        GivenPowers(attacker.PlayerId, 100, defender.PlayerId, 100);
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.NotEqual((55, 55), (defender.X, defender.Y));
+        Assert.True(defender.IsShieldedAt(Now.AddHours(1)));
+        await _falls.Received(1).AddAsync(
+            Arg.Is<VillageFall>(f => f.PlayerId == defender.PlayerId && f.FromX == 55 && f.ToX == defender.X),
+            Arg.Any<CancellationToken>());
+        await _map.Received(1).AddAsync(
+            Arg.Is<MapCell>(c => c.X == defender.X && c.Y == defender.Y && c.OccupantId == defender.Id),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Набагато сильніший нападник перемагає, але не виселяє — це прибирає griefing.</summary>
+    [Fact]
+    public async Task Handle_ShouldNotEvict_WhenTheAttackerIsFarStronger()
+    {
+        var (march, attacker, _, defender, _) = GivenVillageBattle();
+        GivenPowers(attacker.PlayerId, 1000, defender.PlayerId, 100);
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal((55, 55), (defender.X, defender.Y));
+        Assert.False(defender.IsShieldedAt(Now));
+    }
+
+    /// <summary>Вичерпаний ліміт нападника — перемога без виселення.</summary>
+    [Fact]
+    public async Task Handle_ShouldNotEvict_WhenTheAttackerUsedUpTheLimit()
+    {
+        var (march, attacker, _, defender, _) = GivenVillageBattle();
+        GivenPowers(attacker.PlayerId, 100, defender.PlayerId, 100);
+        _falls.CountByAttackerSinceAsync(attacker.PlayerId, Arg.Any<DateTime>(), Arg.Any<CancellationToken>()).Returns(3);
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal((55, 55), (defender.X, defender.Y));
+    }
+
+    /// <summary>Поки марш ішов, ціль упала від іншого — бою немає, армія повертається.</summary>
+    [Fact]
+    public async Task Handle_ShouldTurnBack_WhenTheTargetFellWhileTheMarchWasOnTheWay()
+    {
+        var (march, _, _, defender, _) = GivenVillageBattle();
+        var fall = new VillageFall(Guid.NewGuid(), 1, defender.PlayerId, Guid.NewGuid(), "Інший", 55, 55, 70, 70,
+            Now.AddHours(24), Now.AddMinutes(-10));
+        defender.RelocateTo(70, 70, Now.AddMinutes(-10));
+        defender.MarkFallen(fall, Now.AddMinutes(-10));
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
+        Assert.Equal(MarchState.Returning, march.State);
     }
 
     // ---------- Загальні правила ----------

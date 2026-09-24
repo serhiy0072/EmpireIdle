@@ -81,6 +81,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IMarketRepository, MarketRepository>();
             services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IMailRepository, MailRepository>();
+            services.AddScoped<IVillageFallRepository, VillageFallRepository>();
             services.AddSingleton<ITranslator, NoTranslator>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
@@ -96,6 +97,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<MarchLogistics>();
             services.AddScoped<ReinforcementDelivery>();
             services.AddScoped<VillageBattleService>();
+            services.AddScoped<VillageRelocator>();
+            services.AddScoped<CityFallService>();
             services.AddScoped<MonsterBattleService>();
             services.AddScoped<MarchTargetResolver>();
             services.AddScoped<BattleAftermath>();
@@ -103,6 +106,7 @@ namespace EmpireIdle.Infrastructure
 
             services.AddSingleton<VillageCapacities>();
             services.AddSingleton<VillageStatus>();
+            services.AddSingleton<CityFallRules>();
             services.AddSingleton<PlunderCalculator>();
 
             // Нагороди — той самий патерн: усі реалізації + диспетчер за типом

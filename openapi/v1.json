@@ -7603,6 +7603,43 @@
         },
         "additionalProperties": false
       },
+      "CityFallLetterView": {
+        "required": [
+          "attackerName",
+          "fromX",
+          "fromY",
+          "shieldUntil",
+          "toX",
+          "toY"
+        ],
+        "type": "object",
+        "properties": {
+          "attackerName": {
+            "type": "string"
+          },
+          "fromX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fromY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shieldUntil": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClanApplicationResponse": {
         "required": [
           "createdAt",
@@ -8947,6 +8984,9 @@
           },
           "clanInvite": {
             "$ref": "#/components/schemas/ClanInviteLetterView"
+          },
+          "cityFall": {
+            "$ref": "#/components/schemas/CityFallLetterView"
           }
         },
         "additionalProperties": false
@@ -9076,6 +9116,11 @@
               "type": "integer",
               "format": "int32"
             },
+            "nullable": true
+          },
+          "shieldUntil": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },
@@ -10515,6 +10560,11 @@
             "items": {
               "$ref": "#/components/schemas/ResourceResponse"
             }
+          },
+          "shieldUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false

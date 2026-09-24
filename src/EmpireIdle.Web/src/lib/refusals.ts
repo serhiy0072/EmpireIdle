@@ -118,6 +118,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "march.ownShield": ({ level }) =>
     `Атакувати інших гравців можна з ратуші ${level} рівня — доти діє щит новачка`,
   "march.targetShielded": () => "Це поселення під щитом новачка — атакувати його поки не можна",
+  "march.targetFallShield": () => "Це поселення нещодавно впало й під щитом — атакувати його поки не можна",
   "reinforce.ownShield": ({ level }) => `Підкріплення відкриваються з ратуші ${level} рівня`,
   "reinforce.targetShielded": () => "Це поселення ще під щитом новачка й не приймає підкріплень",
   "reinforce.clanmatesOnly": () => "Підкріплення можна слати лише гравцям свого клану",

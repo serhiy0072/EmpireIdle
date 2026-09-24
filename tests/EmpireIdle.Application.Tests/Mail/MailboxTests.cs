@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Mail.Commands;
+using EmpireIdle.Application.Mail.Contracts;
 using EmpireIdle.Application.Mail.EventHandlers;
 using EmpireIdle.Application.Mail.Queries;
 using EmpireIdle.Domain.Entities;
@@ -26,6 +27,7 @@ public class MailboxTests
     private readonly IMailRepository _mail = Substitute.For<IMailRepository>();
     private readonly IClanRequestRepository _requests = Substitute.For<IClanRequestRepository>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
+    private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
@@ -33,7 +35,7 @@ public class MailboxTests
 
     public MailboxTests() => _serverContext.ServerId.Returns(1);
 
-    private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, new FakeTimeProvider(Now));
+    private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, _falls, new FakeTimeProvider(Now));
 
     // ---------- Лист із події ----------
 
@@ -121,6 +123,44 @@ public class MailboxTests
 
         Assert.Equal("Gone", invite.State);
         Assert.False(invite.CanRespond);
+    }
+
+    // ---------- Падіння міста ----------
+
+    [Fact]
+    public async Task CityFall_ShouldPutALetterReferencingTheFall()
+    {
+        MailLetter? added = null;
+        await _mail.AddLetterAsync(Arg.Do<MailLetter>(l => added = l), Arg.Any<CancellationToken>());
+        var fallId = Guid.NewGuid();
+
+        await new CityFallMailHandler(_mail, _serverContext, _unitOfWork, _notifier, _catalog).Handle(
+            new DomainEventNotification<VillageFell>(new VillageFell(fallId, Guid.NewGuid(), PlayerId, Guid.NewGuid(), Now)),
+            CancellationToken.None);
+
+        Assert.NotNull(added);
+        Assert.Equal(MailKind.CityFall, added.Kind);
+        Assert.Equal(fallId, added.ReferenceId);
+        await _notifier.Received(1).NotifyMailAsync(PlayerId, "CityFall", Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Лист падіння показує, хто виселив, звідки й куди, і до коли щит.</summary>
+    [Fact]
+    public async Task Mailbox_ShouldDescribeTheFall()
+    {
+        var fall = new VillageFall(Guid.NewGuid(), 1, PlayerId, Guid.NewGuid(), "Вовчий кут", 10, 12, 40, 44,
+            Now.AddHours(24), Now);
+        var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.CityFall, fall.Id, Now, TimeSpan.FromDays(14));
+
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
+        _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+        _falls.GetByIdAsync(fall.Id, Arg.Any<CancellationToken>()).Returns(fall);
+
+        var view = Assert.Single((await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None)).Letters);
+
+        Assert.Null(view.ClanInvite);
+        Assert.Equal(new CityFallLetterView("Вовчий кут", 10, 12, 40, 44, Now.AddHours(24)), view.CityFall);
     }
 
     // ---------- Прочитання ----------

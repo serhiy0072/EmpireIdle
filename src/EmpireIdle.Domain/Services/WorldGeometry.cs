@@ -91,6 +91,23 @@ namespace EmpireIdle.Domain.Services
             return (int)(Radius * share);
         }
 
+        /// <summary>
+        /// Межі кільця за відстанню до центру, обрізані туманом: у закриту
+        /// частину селитись не можна. Null — кільце ще цілком під туманом.
+        /// </summary>
+        public (int Min, int Max)? RingDistanceBounds(int ring, int serverLevel)
+        {
+            var growth = LevelProgress(serverLevel);
+            var boundaries = _map.Geometry.RingBoundaries;
+
+            var min = ring == 0 ? 0 : Scale(boundaries[ring - 1], growth) + 1;
+            var max = ring < boundaries.Count ? Scale(boundaries[ring], growth) : Radius;
+
+            max = Math.Min(max, SettlementBoundary(serverLevel));
+
+            return min <= max ? (min, max) : null;
+        }
+
         /// <summary>Чи відкрита клітина для заселення на цьому рівні сервера.</summary>
         public bool IsWithinFog(int x, int y, int serverLevel)
             => DistanceToCentre(x, y) <= SettlementBoundary(serverLevel);

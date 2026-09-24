@@ -170,6 +170,9 @@
 
         public static readonly RefusalReason MarchTargetShielded = new("march.targetShielded");
 
+        /// <summary>Ціль нещодавно впала й під щитом після падіння (GDD §2.6).</summary>
+        public static readonly RefusalReason MarchTargetFallShield = new("march.targetFallShield");
+
         public static readonly RefusalReason ReinforceOwnShield = new("reinforce.ownShield", "level");
 
         public static readonly RefusalReason ReinforceTargetShielded = new("reinforce.targetShielded");

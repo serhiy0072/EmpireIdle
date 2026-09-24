@@ -65,7 +65,7 @@ public class MarchTargetResolverTests
     public void EnsureAttackAllowed_FromAShieldedVillage_ShouldNameTheLevelThatLiftsTheShield()
     {
         var refusal = Assert.Throws<RequirementNotMetException>(() =>
-            Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 1), TargetOf(NewVillage(townHallLevel: 5))));
+            Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 1), TargetOf(NewVillage(townHallLevel: 5)), Now));
 
         Assert.Equal(RefusalReasons.MarchOwnShield.Key, refusal.Reason);
         Assert.Equal(ShieldLevel, refusal.Args["level"]);
@@ -75,7 +75,7 @@ public class MarchTargetResolverTests
     public void EnsureAttackAllowed_AgainstAShieldedVillage_ShouldSayTheTargetIsProtected()
     {
         var refusal = Assert.Throws<RequirementNotMetException>(() =>
-            Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 5), TargetOf(NewVillage(townHallLevel: 1))));
+            Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 5), TargetOf(NewVillage(townHallLevel: 1)), Now));
 
         Assert.Equal(RefusalReasons.MarchTargetShielded.Key, refusal.Reason);
     }
@@ -84,8 +84,29 @@ public class MarchTargetResolverTests
     public void EnsureAttackAllowed_BetweenUnshieldedVillages_ShouldPass()
     {
         var exception = Record.Exception(() =>
-            Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 5), TargetOf(NewVillage(townHallLevel: 5))));
+            Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 5), TargetOf(NewVillage(townHallLevel: 5)), Now));
 
         Assert.Null(exception);
+    }
+
+    /// <summary>Щойно впале село під щитом: відмова своя, не щит новачка.</summary>
+    [Fact]
+    public void EnsureAttackAllowed_AgainstAFallenVillage_ShouldRefuseWhileTheShieldHolds()
+    {
+        var target = NewVillage(townHallLevel: 5);
+        var fall = new VillageFall(Guid.NewGuid(), 1, target.PlayerId, Guid.NewGuid(), "Нападник",
+            target.X, target.Y, 60, 60, Now.AddHours(24), Now);
+        target.RelocateTo(60, 60, Now);
+        target.MarkFallen(fall, Now);
+
+        var refusal = Assert.Throws<RequirementNotMetException>(() =>
+            Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 5), TargetOf(target), Now.AddHours(1)));
+
+        Assert.Equal(RefusalReasons.MarchTargetFallShield.Key, refusal.Reason);
+
+        var afterShield = Record.Exception(() =>
+            Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 5), TargetOf(target), Now.AddHours(24)));
+
+        Assert.Null(afterShield);
     }
 }

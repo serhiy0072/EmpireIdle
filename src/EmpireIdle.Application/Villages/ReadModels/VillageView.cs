@@ -1,13 +1,17 @@
 namespace EmpireIdle.Application.Villages.ReadModels
 {
-    /// <summary>Село в поданні для клієнта. X/Y — клітина на мапі світу: карта центрується на ній.</summary>
+    /// <summary>
+    /// Село в поданні для клієнта. X/Y — клітина на мапі світу: карта центрується на ній.
+    /// ShieldUntil — щит після падіння міста, лише поки він діє.
+    /// </summary>
     public record VillageView(
         Guid Id,
         string Name,
         int X,
         int Y,
         List<BuildingView> Buildings,
-        List<ResourceView> Resources);
+        List<ResourceView> Resources,
+        DateTime? ShieldUntil);
 
     /// <summary>
     /// Будівля з порахованим буфером. StoredAmount — величина на момент запиту,

@@ -107,7 +107,8 @@ namespace EmpireIdle.Application.Villages.Queries
                 .Select(r => new ResourceView(r.ResourceType, r.Amount, _status.IsResourceUnlocked(village, r.ResourceType)))
                 .ToList();
 
-            return new VillageView(village.Id, village.Name, village.X, village.Y, buildings, resources);
+            return new VillageView(village.Id, village.Name, village.X, village.Y, buildings, resources,
+                village.IsShieldedAt(now) ? village.ShieldUntil : null);
         }
     }
 }
