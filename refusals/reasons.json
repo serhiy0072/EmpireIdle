@@ -138,6 +138,8 @@
     "multiplier",
     "until"
   ],
+  "mail.letterExpired": [],
+  "mail.nothingToClaim": [],
   "march.capacity": [
     "capacity"
   ],

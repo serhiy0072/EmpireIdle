@@ -13,6 +13,7 @@ using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Granters;
 using EmpireIdle.Application.Chat.Services;
 using EmpireIdle.Application.Market.Services;
+using EmpireIdle.Application.Mail.Services;
 using EmpireIdle.Infrastructure.Translation;
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
@@ -82,6 +83,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IMailRepository, MailRepository>();
             services.AddScoped<IVillageFallRepository, VillageFallRepository>();
+            services.AddScoped<ILoginRewardRepository, LoginRewardRepository>();
             services.AddSingleton<ITranslator, NoTranslator>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
@@ -122,6 +124,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<MarketDesk>();
             services.AddScoped<MarketListingProjection>();
             services.AddScoped<ChatProjection>();
+            services.AddScoped<MailRewardClaimer>();
 
             // Квести
             services.AddScoped<QuestSignalResolver>();

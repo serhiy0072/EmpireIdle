@@ -26,6 +26,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .OrderByDescending(l => l.CreatedAt)
                 .ToListAsync(cancellationToken);
 
+        public Task<List<MailLetter>> GetClaimableLettersAsync(Guid playerId, DateTime utcNow, CancellationToken cancellationToken = default)
+            => _context.MailLetters
+                .Where(l => l.PlayerId == playerId && l.ExpiresAt > utcNow && l.ClaimedAt == null
+                            && l.ReferenceId == null)
+                .OrderBy(l => l.CreatedAt)
+                .ToListAsync(cancellationToken);
+
         public Task<int> CountUnreadLettersAsync(Guid playerId, DateTime utcNow, CancellationToken cancellationToken = default)
             => _context.MailLetters.CountAsync(l => l.PlayerId == playerId && l.ExpiresAt > utcNow && l.ReadAt == null,
                 cancellationToken);

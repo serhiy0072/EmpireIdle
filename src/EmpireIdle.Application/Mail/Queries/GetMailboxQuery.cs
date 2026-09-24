@@ -36,9 +36,12 @@ namespace EmpireIdle.Application.Mail.Queries
             var letterViews = new List<MailLetterView>(letters.Count);
 
             foreach (var letter in letters)
-                letterViews.Add(new MailLetterView(letter.Id, letter.Kind.ToString(), letter.CreatedAt, letter.IsRead,
+                letterViews.Add(new MailLetterView(letter.Id, letter.Kind.ToString(), letter.CreatedAt, letter.ExpiresAt,
+                    letter.IsRead,
                     letter.Kind == MailKind.ClanInvite ? await InviteAsync(letter, now, cancellationToken) : null,
-                    letter.Kind == MailKind.CityFall ? await FallAsync(letter, cancellationToken) : null));
+                    letter.Kind == MailKind.CityFall ? await FallAsync(letter, cancellationToken) : null,
+                    letter.Rewards.Select(r => new MailRewardView(r.Type, r.Key, r.Amount)).ToList(),
+                    letter.Sequence, letter.ClaimedAt, letter.CanClaimAt(now)));
 
             var announcements = await _mail.GetAnnouncementsAsync(now, cancellationToken);
             var read = await _mail.GetReadAnnouncementIdsAsync(request.PlayerId,
@@ -54,7 +57,7 @@ namespace EmpireIdle.Application.Mail.Queries
         }
 
         private async Task<CityFallLetterView?> FallAsync(MailLetter letter, CancellationToken cancellationToken)
-            => await _falls.GetByIdAsync(letter.ReferenceId, cancellationToken) is { } fall
+            => letter.ReferenceId is { } fallId && await _falls.GetByIdAsync(fallId, cancellationToken) is { } fall
                 ? new CityFallLetterView(fall.AttackerVillageName, fall.FromX, fall.FromY, fall.ToX, fall.ToY, fall.ShieldUntil)
                 : null;
 
@@ -64,7 +67,10 @@ namespace EmpireIdle.Application.Mail.Queries
         /// </summary>
         private async Task<ClanInviteLetterView?> InviteAsync(MailLetter letter, DateTime now, CancellationToken cancellationToken)
         {
-            var invite = await _requests.GetByIdAsync(letter.ReferenceId, cancellationToken);
+            if (letter.ReferenceId is not { } requestId)
+                return null;
+
+            var invite = await _requests.GetByIdAsync(requestId, cancellationToken);
 
             if (invite is null)
                 return null;

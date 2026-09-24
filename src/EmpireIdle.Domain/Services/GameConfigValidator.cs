@@ -40,6 +40,35 @@ namespace EmpireIdle.Domain.Services
             ValidateEquipment(config);
             ValidateBanners(config);
             ValidateBuildingLayout(config);
+            ValidateLoginRewards(config);
+        }
+
+        /// <summary>Нагороди за вхід видає той самий диспетчер, що й квестові — ключі мусять існувати.</summary>
+        private static void ValidateLoginRewards(GameConfig config)
+        {
+            var login = config.LoginRewards;
+
+            var rewards = login.Daily
+                .SelectMany((day, index) => day.Rewards.Select(r => (Where: $"day {index + 1}", Reward: r)))
+                .Concat(login.Weekly.Select(r => (Where: "weekly", Reward: r)))
+                .Concat(login.Monthly.Select(r => (Where: "monthly", Reward: r)));
+
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+            var items = config.Items.ToDictionary(i => i.Key);
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+
+            var broken = rewards
+                .Where(x => x.Reward.Amount <= 0 || IsRewardBroken(x.Reward, resourceKeys, items, heroKeys))
+                .Select(x => $"{x.Where} → {x.Reward.Type} '{x.Reward.Key ?? "(no key)"}' ×{x.Reward.Amount}")
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException(
+                    $"Login rewards reference unknown keys, keys of the wrong kind or non-positive amounts: {string.Join("; ", broken)}.");
+
+            // Порожній день розірвав би серію: гравець зайшов, а листа немає
+            if (login.Daily.Any(day => day.Rewards.Count == 0))
+                throw new InvalidOperationException("Every day of the login series needs at least one reward.");
         }
 
         /// <summary>
