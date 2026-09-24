@@ -71,6 +71,12 @@ namespace EmpireIdle.Domain.Services
         /// <inheritdoc cref="FindUnit"/>
         public HeroConfig? FindHero(string key) => Heroes.GetValueOrDefault(key);
 
+        /// <summary>
+        /// Назва монстра для гравця. Рівень сюди не вклеюється: він іде окремим
+        /// полем, і клієнт сам вирішує, як його підписати.
+        /// </summary>
+        public string MonsterName(string type) => Monsters.GetValueOrDefault(type)?.DisplayName ?? type;
+
         /// <summary>Будівля за ключем або виняток із зрозумілим текстом.</summary>
         public BuildingConfig Building(string key) => Buildings.TryGetValue(key, out var c)
             ? c : throw new InvalidOperationException($"Building '{key}' is not defined in the catalog.");

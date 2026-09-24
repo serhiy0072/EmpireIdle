@@ -9703,6 +9703,11 @@
             "type": "string",
             "nullable": true
           },
+          "targetLevel": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
           "targetX": {
             "type": "integer",
             "format": "int32"

@@ -67,7 +67,7 @@ public class CompleteMarchCommandTests
         [
             new MonsterConfig
             {
-                Key = "wolves", MinLevel = 1, MaxLevel = 10, UnitGrowth = 1.5, RewardGrowth = 1.3,
+                Key = "wolves", DisplayName = "Вовки", MinLevel = 1, MaxLevel = 10, UnitGrowth = 1.5, RewardGrowth = 1.3,
                 Units = [new UnitStack { UnitType = "infantry", Count = 1 }],
                 Rewards = [new ResourceCost { Resource = "food", Amount = 500 }]
             }
@@ -145,7 +145,7 @@ public class CompleteMarchCommandTests
 
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _heroes, _random,
-            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers,
+            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, catalog,
             NullLogger<MonsterBattleService>.Instance);
 
         var relocator = new VillageRelocator(_map, _marches, _garrisons, _serverRepository, catalog, geometry, effects);
@@ -430,6 +430,21 @@ public class CompleteMarchCommandTests
         await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
 
         await _reports.Received(1).AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// У звіті — назва з довідника й окремо рівень. Раніше тут був ключ конфіга
+    /// з англійським «lvl», і гравець бачив «wolf (lvl 1) (рів. 1)».
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldNameTheMonsterInTheReport_FromTheCatalog()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 1, monsterLevel: 4);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        await _reports.Received(1).AddAsync(
+            Arg.Is<BattleReport>(r => r.TargetName == "Вовки" && r.TargetLevel == 4), Arg.Any<CancellationToken>());
     }
 
     /// <summary>

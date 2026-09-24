@@ -30,6 +30,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<MonsterBattleService> _logger;
 
         public MonsterBattleService(
@@ -45,6 +46,7 @@ namespace EmpireIdle.Application.Marches.Services
             MarchLogistics logistics,
             BattleAftermath aftermath,
             HeroCombatModifiers heroModifiers,
+            GameCatalog catalog,
             ILogger<MonsterBattleService> logger)
         {
             _monsterRepository = monsterRepository;
@@ -59,6 +61,7 @@ namespace EmpireIdle.Application.Marches.Services
             _logistics = logistics;
             _aftermath = aftermath;
             _heroModifiers = heroModifiers;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -114,7 +117,7 @@ namespace EmpireIdle.Application.Marches.Services
                 await TakeSpoilsAsync(march, monster, utcNow, cancellationToken);
 
             await _aftermath.RecordAttackerAsync(march, village, garrison,
-                $"{monster.Type} (lvl {monster.Level})", monster.Level,
+                _catalog.MonsterName(monster.Type), monster.Level,
                 attackerArmy, outcome, terrain, seed, utcNow, cancellationToken);
 
             _logger.LogInformation(
