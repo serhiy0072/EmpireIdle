@@ -11,6 +11,7 @@ using EmpireIdle.Application.Quests.Tracking;
 using EmpireIdle.Application.Quests.Tracking.Mappers;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Granters;
+using EmpireIdle.Application.Market.Services;
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure.Auth;
@@ -75,6 +76,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IHeroRepository, HeroRepository>();
             services.AddScoped<IBannerRepository, BannerRepository>();
             services.AddScoped<IDungeonRepository, DungeonRepository>();
+            services.AddScoped<IMarketRepository, MarketRepository>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
@@ -107,6 +109,9 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<RewardDispatcher>();
             services.AddScoped<DungeonTeamFactory>();
             services.AddScoped<DungeonRewarder>();
+            services.AddScoped<MarketGoods>();
+            services.AddScoped<MarketDesk>();
+            services.AddScoped<MarketListingProjection>();
 
             // Квести
             services.AddScoped<QuestSignalResolver>();

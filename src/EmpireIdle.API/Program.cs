@@ -125,6 +125,7 @@ builder.Services.AddSingleton(sp => new BannerRoller(gameConfig.Shop));
 builder.Services.AddSingleton(sp => new BattleEngine(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new BattleBuilder(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new HeroStats(sp.GetRequiredService<HeroProgression>(), sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new MarketPricing(gameConfig));
 builder.Services.AddSingleton<GameCatalogProjection>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<DefenceLossAllocator>();
