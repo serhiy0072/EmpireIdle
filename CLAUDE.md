@@ -65,6 +65,8 @@ Claude тут — Software Architect і Mentor-Reviewer. Мета написат
 
 - Conventional Commits: `feat`, `fix`, `refactor`, `chore`, `test`, `perf`, `docs`; `!` — ламальна зміна.
 - Лише заголовок, без тіла. Лише після зеленого білда й тестів.
+- Автор коміту й PR — лише Сергій: жодних `Co-Authored-By: Claude`, «Generated with Claude Code» чи інших
+  рядків атрибуції (вимкнено й у `.claude/settings.json` → `attribution`).
 - Коміт змістовний: цілісна зміна одним комітом, але один логічний зміст на коміт.
 - Разом із кодом коміту — повний набір команд: `git add`, `git status --short`, `git commit`, `git push`.
 - Не комітиш і не пушиш без прохання. Ніколи не force-push у `main` і гілки фаз. Ніяких секретів у комітах.
