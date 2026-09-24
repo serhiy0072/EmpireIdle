@@ -51,8 +51,11 @@ export default function BattleReportList({ playerId }: Props) {
               {report.targetLevel > 0 && ` (рів. ${report.targetLevel})`}
             </span>
             <span className="flex items-center gap-2 text-xs text-slate-500">
-              <span className={`rounded px-2 py-0.5 ${report.won ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
-                {report.won ? "W" : "L"}
+              <span
+                aria-hidden
+                className={`rounded px-2 py-0.5 ${report.won ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
+              >
+                {report.won ? "✓" : "✕"}
               </span>
               {when(report.foughtAt)}
             </span>
