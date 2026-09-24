@@ -100,6 +100,8 @@ Committed contracts: `openapi/v1.json` (HTTP API), `realtime/events.json` (Signa
 
 **Chat and languages.** Server, clan and private chat over SignalR with anti-spam; clan recipients are read from the database at delivery, not from hub groups. Messages remember the sender's language and are translated once per language through a pluggable translator (none by default). Config names ship in Ukrainian with per-language overrides, and the catalog is served in the player's language.
 
+**Mailbox.** Personal letters are created from domain events (a clan invite for now) and hold a reference, not a snapshot: the letter shows the current state of the invite and offers buttons only while it is pending. World announcements are stored once per world with per-player read marks; both are delivered live and counted in an unread badge.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -184,6 +186,7 @@ Errors are `ProblemDetails` with a stable `errorCode`; refusals a player can hit
 | `market-expiry` | every minute | Close expired market listings and return the goods |
 | `market-prices` | hourly | Recalculate the market median snapshots |
 | `chat-retention` | daily | Delete chat history older than the retention window |
+| `mail-retention` | daily | Delete expired letters and announcements |
 
 ## 🗺️ Roadmap
 
@@ -200,7 +203,8 @@ Errors are `ProblemDetails` with a stable `errorCode`; refusals a player can hit
 - [x] Turn-based dungeons
 - [x] Player market with a price corridor
 - [x] Chat, player language and localized catalog
+- [x] Mailbox with clan invite letters and world announcements
 - [ ] Balance pass (numbers in the configs are placeholders)
-- [ ] Mailbox, auction, machine translation provider, UI string dictionaries
+- [ ] Auction, machine translation provider, UI string dictionaries
 - [ ] Clan territory, city fall and shields
 - [ ] Docker + deployment
