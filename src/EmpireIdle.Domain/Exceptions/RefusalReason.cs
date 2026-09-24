@@ -182,6 +182,12 @@
 
         public static readonly RefusalReason MarchTargetShielded = new("march.targetShielded");
 
+        /// <summary>У листі нічого забирати: вкладення немає або його вже забрано.</summary>
+        public static readonly RefusalReason MailNothingToClaim = new("mail.nothingToClaim");
+
+        /// <summary>Строк листа минув — вкладення згоріло.</summary>
+        public static readonly RefusalReason MailLetterExpired = new("mail.letterExpired");
+
         /// <summary>Ремонтувати нічого — жодна будівля не пошкоджена.</summary>
         public static readonly RefusalReason VillageNothingToRepair = new("village.nothingToRepair");
 

@@ -1,0 +1,20 @@
+{
+  "GameConfig": {
+    "Mail": {
+      "RewardRetentionDays": 90
+    },
+    "LoginRewards": {
+      "Daily": [
+        { "Rewards": [ { "Type": "Resource", "Key": "food", "Amount": 500 } ] },
+        { "Rewards": [ { "Type": "Resource", "Key": "wood", "Amount": 500 } ] },
+        { "Rewards": [ { "Type": "Gems", "Amount": 10 } ] },
+        { "Rewards": [ { "Type": "Resource", "Key": "iron", "Amount": 500 } ] },
+        { "Rewards": [ { "Type": "Resource", "Key": "gold", "Amount": 300 } ] },
+        { "Rewards": [ { "Type": "Gems", "Amount": 20 } ] },
+        { "Rewards": [ { "Type": "Gems", "Amount": 50 } ] }
+      ],
+      "Weekly": [ { "Type": "Gems", "Amount": 100 } ],
+      "Monthly": [ { "Type": "Item", "Key": "teleport", "Amount": 3 } ]
+    }
+  }
+}

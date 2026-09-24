@@ -7,9 +7,16 @@ namespace EmpireIdle.Application.Mail.Contracts
     /// Особистий лист. Деталі — лише свого виду, і вони актуальні на момент
     /// читання: лист посилається, а не копіює (GDD §7.4).
     /// </summary>
-    /// <param name="Kind">"ClanInvite" або "CityFall".</param>
-    public record MailLetterView(Guid Id, string Kind, DateTime CreatedAt, bool IsRead, ClanInviteLetterView? ClanInvite,
-        CityFallLetterView? CityFall);
+    /// <param name="Kind">"ClanInvite", "CityFall", "DailyReward", "WeeklyReward" або "MonthlyReward".</param>
+    /// <param name="Rewards">Вкладення; порожнє — лист без нагороди.</param>
+    /// <param name="Sequence">Порядковий номер у серії — день для щоденної нагороди.</param>
+    /// <param name="CanClaim">Вкладення ще не забране й не згоріло.</param>
+    public record MailLetterView(Guid Id, string Kind, DateTime CreatedAt, DateTime ExpiresAt, bool IsRead,
+        ClanInviteLetterView? ClanInvite, CityFallLetterView? CityFall,
+        IReadOnlyList<MailRewardView> Rewards, int? Sequence, DateTime? ClaimedAt, bool CanClaim);
+
+    /// <param name="Type">Gems, Resource, Item… — як у конфігу нагород.</param>
+    public record MailRewardView(string Type, string? Key, int Amount);
 
     /// <summary>
     /// Запрошення в клан за його теперішнім станом. CanRespond — лише поки

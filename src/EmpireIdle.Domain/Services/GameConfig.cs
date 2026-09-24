@@ -62,6 +62,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скринька: строки зберігання листів і оголошень.</summary>
         public MailConfig Mail { get; set; } = new();
 
+        /// <summary>Нагороди за вхід: серія днів, тиждень, місяць.</summary>
+        public LoginRewardsConfig LoginRewards { get; set; } = new();
+
         /// <summary>Мови інтерфейсу й мова за замовчуванням.</summary>
         public LocalizationConfig Localization { get; set; } = new();
 
