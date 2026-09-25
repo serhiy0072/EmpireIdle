@@ -74,6 +74,8 @@ export interface MailReceivedEvent {
  */
 export interface AttackIncomingEvent {
   marchId: string;
+  /** "Attack" або "Scout" — розвідники йдуть подивитись, а не битись. */
+  intent: string;
   /** "Village" або "ClanStructure". */
   targetType: string;
   targetId: string;
@@ -87,6 +89,14 @@ export interface AttackIncomingEvent {
   attackerClanTag: string | null;
   departedAt: string;
   arrivesAt: string;
+}
+
+/** Розвідники дійшли — звіт готовий. */
+export interface ScoutReportReadyEvent {
+  reportId: string;
+  targetName: string;
+  /** "Success", "Blocked", "TargetMoved" або "TargetGone". */
+  outcome: string;
 }
 
 /** Ворожий марш розвернувся, не дійшовши: тривогу знято. */
@@ -113,6 +123,7 @@ export interface GameEvents {
   MailReceived: MailReceivedEvent;
   AttackIncoming: AttackIncomingEvent;
   AttackCalledOff: AttackCalledOffEvent;
+  ScoutReportReady: ScoutReportReadyEvent;
   StructureDestroyed: StructureDestroyedEvent;
 }
 
@@ -130,5 +141,6 @@ export const gameEventNames: GameEventName[] = [
   "MailReceived",
   "AttackIncoming",
   "AttackCalledOff",
+  "ScoutReportReady",
   "StructureDestroyed",
 ];

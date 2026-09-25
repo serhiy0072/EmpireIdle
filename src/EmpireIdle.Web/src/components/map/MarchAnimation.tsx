@@ -14,6 +14,8 @@ export interface MapMarch {
   arrivesAt: string;
   /** Ворожий марш на своїх — червоний; власний — темний. */
   hostile: boolean;
+  /** Розвідники — бурштинові: бою не буде. */
+  scout: boolean;
 }
 
 interface Props {
@@ -66,7 +68,7 @@ export default function MarchAnimation({ marches }: Props) {
         // Без відомого старту відлік висить посередині лінії
         const share = progress ?? 0.5;
         const army = { x: from.x + (to.x - from.x) * share, y: from.y + (to.y - from.y) * share };
-        const color = march.hostile ? "#dc2626" : "#0f172a";
+        const color = march.scout ? "#d97706" : march.hostile ? "#dc2626" : "#0f172a";
         const label = formatRemaining(march.arrivesAt, now);
         const width = label.length * 5.5 + 12;
 

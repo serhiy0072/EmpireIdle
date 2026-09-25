@@ -8,6 +8,7 @@ import type {
 } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { MARCH_INTENT, MARCH_TARGET } from "../../lib/queries/marches";
+import { useSendScout } from "../../lib/queries/scouting";
 import { usePlaceStructure } from "../../lib/queries/territory";
 import { isShieldActive, shieldUntilLabel } from "../../lib/shield";
 import { terrainLabel } from "../../lib/terrain";
@@ -33,6 +34,7 @@ interface Props {
 export default function CellDetails({ playerId, cell, isHome, territory, threats, onMarch }: Props) {
   const catalog = useCatalog();
   const place = usePlaceStructure(playerId);
+  const scout = useSendScout(playerId);
   const now = useNow();
 
   const occupant = cell.occupantType ?? null;
@@ -99,8 +101,10 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
           {threats.map((threat) => (
             <li key={threat.marchId} className="flex justify-between gap-2">
               <span>
-                ⚔ {threat.attackerClanTag == null ? "" : `[${threat.attackerClanTag}] `}
-                {threat.attackerName} іде сюди з ({threat.fromX}, {threat.fromY})
+                {threat.intent === MARCH_INTENT.scout ? "👁" : "⚔"}{" "}
+                {threat.attackerClanTag == null ? "" : `[${threat.attackerClanTag}] `}
+                {threat.attackerName} {threat.intent === MARCH_INTENT.scout ? "розвідує" : "іде сюди"} з ({threat.fromX},{" "}
+                {threat.fromY})
               </span>
               <span className="font-mono">{formatRemaining(threat.arrivesAt, now)}</span>
             </li>
@@ -146,6 +150,20 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
         >
           Атакувати
         </button>
+      )}
+
+      {targetType !== null && targetType !== MARCH_TARGET.monster && !isHome && cell.occupantId != null && (
+        <div className="space-y-1">
+          <ErrorBanner error={scout.error} />
+          <button
+            type="button"
+            onClick={() => scout.mutate({ targetType, targetId: cell.occupantId as string })}
+            disabled={scout.isPending}
+            className="w-full rounded-lg border border-amber-400 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+          >
+            {scout.isPending ? "Відправляємо…" : scout.isSuccess ? "Розвідники в дорозі" : "Розвідати"}
+          </button>
+        </div>
       )}
     </div>
   );

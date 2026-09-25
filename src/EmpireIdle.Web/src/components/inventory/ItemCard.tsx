@@ -30,7 +30,7 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
 
   const giftable = catalog.item(item.itemKey)?.giftable === true;
 
-  const usable = item.type === "resources" || item.type === "boost";
+  const usable = item.type === "resources" || item.type === "boost" || item.type === "scoutveil";
   const safeCount = Math.min(item.count, Math.max(1, count));
 
   const use = () => onUse({ itemKey: item.itemKey, count: safeCount, targetX: null, targetY: null });

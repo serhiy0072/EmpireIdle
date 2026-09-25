@@ -17,6 +17,7 @@ export const queryKeys = {
   serverQuests: (playerId: string) => ["serverQuests", playerId] as const,
   marches: (playerId: string) => ["marches", playerId] as const,
   incoming: (playerId: string) => ["incoming", playerId] as const,
+  scoutReports: (playerId: string) => ["scoutReports", playerId] as const,
   tutorial: (playerId: string) => ["tutorial", playerId] as const,
   inventory: (playerId: string) => ["inventory", playerId] as const,
   /** Історія каналу; для приватного — з конкретним співрозмовником. */

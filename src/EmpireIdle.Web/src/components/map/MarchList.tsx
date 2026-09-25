@@ -1,7 +1,7 @@
 import { useNow } from "../../hooks/useNow";
 import type { MarchResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
-import { MARCH_STATE, MARCH_TARGET, useSpeedUpMarch } from "../../lib/queries/marches";
+import { MARCH_INTENT, MARCH_STATE, MARCH_TARGET, useSpeedUpMarch } from "../../lib/queries/marches";
 import { speedUpLabel } from "../../lib/speedUp";
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
@@ -36,7 +36,8 @@ export default function MarchList({ playerId, marches }: Props) {
           <div key={march.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 text-sm">
             <div>
               <p className="text-slate-800">
-                {returning ? "Повертається з" : "Іде на"} {target}
+                {returning ? "Повертається з" : march.intent === MARCH_INTENT.scout ? "Розвідники йдуть на" : "Іде на"}{" "}
+                {target}
               </p>
               <p className="text-xs text-slate-500">
                 {march.units

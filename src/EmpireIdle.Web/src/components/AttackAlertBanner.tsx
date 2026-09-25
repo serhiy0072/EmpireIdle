@@ -9,6 +9,8 @@ interface Alert {
   x: number;
   y: number;
   destroyed: boolean;
+  /** Розвідка: бою не буде, підкріплення кликати не треба. */
+  scout: boolean;
 }
 
 function timeLabel(iso: string): string {
@@ -31,12 +33,15 @@ export default function AttackAlertBanner() {
           ? `споруду клану${event.targetName == null ? "" : ` [${event.targetName}]`}`
           : (event.targetName ?? "село");
 
+      const verb = event.intent === "Scout" ? "розвідує" : "іде на";
+
       setAlert({
         key: event.marchId,
-        text: `${attacker} іде на ${target} (${event.targetX}, ${event.targetY}) — прибуде о ${timeLabel(event.arrivesAt)}.`,
+        text: `${attacker} ${verb} ${target} (${event.targetX}, ${event.targetY}) — прибуде о ${timeLabel(event.arrivesAt)}.`,
         x: event.targetX,
         y: event.targetY,
         destroyed: false,
+        scout: event.intent === "Scout",
       });
     });
 
@@ -47,6 +52,7 @@ export default function AttackAlertBanner() {
         x: event.x,
         y: event.y,
         destroyed: true,
+        scout: false,
       }),
     );
 
@@ -73,7 +79,7 @@ export default function AttackAlertBanner() {
     >
       <span>
         {alert.text}
-        {!alert.destroyed && " Відправте підкріплення!"}
+        {!alert.destroyed && !alert.scout && " Відправте підкріплення!"}
       </span>
       <div className="flex gap-2">
         <Link

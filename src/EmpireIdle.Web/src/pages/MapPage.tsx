@@ -5,6 +5,7 @@ import BattleReportList from "../components/map/BattleReportList";
 import CellDetails from "../components/map/CellDetails";
 import type { MapMarch } from "../components/map/MarchAnimation";
 import MarchList from "../components/map/MarchList";
+import ScoutReportList from "../components/map/ScoutReportList";
 import SendMarchForm from "../components/map/SendMarchForm";
 import WorldMap from "../components/map/WorldMap";
 import { useSession } from "../hooks/useSession";
@@ -13,7 +14,7 @@ import { useCatalog } from "../lib/queries/catalog";
 import { useMyClan } from "../lib/queries/clans";
 import { useUseItem } from "../lib/queries/inventory";
 import { useMapArea, useMapCell, type MapView } from "../lib/queries/map";
-import { MARCH_STATE, useIncomingAttacks, useMarches } from "../lib/queries/marches";
+import { MARCH_INTENT, MARCH_STATE, useIncomingAttacks, useMarches } from "../lib/queries/marches";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 
@@ -80,13 +81,16 @@ export default function MapPage() {
     const own = (marches.data ?? []).map((march) =>
       march.state === MARCH_STATE.returning
         ? { id: march.id, fromX: march.targetX, fromY: march.targetY, toX: home.x, toY: home.y,
-            departedAt: march.legStartedAt, arrivesAt: march.arrivesAt, hostile: false }
+            departedAt: march.legStartedAt, arrivesAt: march.arrivesAt, hostile: false,
+            scout: march.intent === MARCH_INTENT.scout }
         : { id: march.id, fromX: home.x, fromY: home.y, toX: march.targetX, toY: march.targetY,
-            departedAt: march.legStartedAt, arrivesAt: march.arrivesAt, hostile: false },
+            departedAt: march.legStartedAt, arrivesAt: march.arrivesAt, hostile: false,
+            scout: march.intent === MARCH_INTENT.scout },
     );
     const hostile = (incoming.data ?? []).map((attack) => ({
       id: attack.marchId, fromX: attack.fromX, fromY: attack.fromY, toX: attack.targetX, toY: attack.targetY,
       departedAt: attack.departedAt, arrivesAt: attack.arrivesAt, hostile: true,
+      scout: attack.intent === MARCH_INTENT.scout,
     }));
 
     return [...own, ...hostile];
@@ -224,6 +228,8 @@ export default function MapPage() {
             </div>
           ) : (
             <CellDetails
+              // Своя кнопка розвідки на кожну клітину: стан «в дорозі» не має переїжджати на сусідню
+              key={`${cell.data.x}:${cell.data.y}`}
               playerId={playerId}
               cell={cell.data}
               isHome={isHome}
@@ -239,6 +245,11 @@ export default function MapPage() {
           </section>
         </div>
       </div>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Звіти розвідки</h2>
+        <ScoutReportList playerId={playerId} />
+      </section>
 
       <section className="space-y-2" data-tutorial="reports">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Звіти боїв</h2>
