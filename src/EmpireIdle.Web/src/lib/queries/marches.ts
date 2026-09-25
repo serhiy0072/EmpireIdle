@@ -3,6 +3,7 @@ import { api } from "../api";
 import type {
   BattleOdds,
   BattlePreviewResult,
+  IncomingAttackResponse,
   MarchIntent,
   MarchResponse,
   MarchState,
@@ -28,6 +29,7 @@ export const MARCH_INTENT = {
 export const MARCH_TARGET = {
   monster: 1,
   village: 2,
+  clanStructure: 3,
 } as const satisfies Record<string, MarchTargetType>;
 
 /** Смуга шансів: сервер навмисно не віддає числа, лише оцінку. */
@@ -45,6 +47,19 @@ export function useMarches(playerId: string): UseQueryResult<MarchResponse[]> {
     queryFn: () => api<MarchResponse[]>(`/api/marches/${playerId}`),
     // Прибуття й повернення обробляє сканер: перепитуємо на найближчий дедлайн
     refetchInterval: refetchAtDue<MarchResponse[]>((marches) => marches.map((march) => march.arrivesAt)),
+  });
+}
+
+/**
+ * Ворожі марші в дорозі на своє село, села соклановців і споруди клану.
+ * Тривога приходить подією, а це — стан після перезавантаження; бій за прибуттям
+ * проводить сканер, тож перепитуємо на найближчий дедлайн.
+ */
+export function useIncomingAttacks(playerId: string): UseQueryResult<IncomingAttackResponse[]> {
+  return useQuery({
+    queryKey: queryKeys.incoming(playerId),
+    queryFn: () => api<IncomingAttackResponse[]>(`/api/marches/${playerId}/incoming`),
+    refetchInterval: refetchAtDue<IncomingAttackResponse[]>((attacks) => attacks.map((attack) => attack.arrivesAt)),
   });
 }
 

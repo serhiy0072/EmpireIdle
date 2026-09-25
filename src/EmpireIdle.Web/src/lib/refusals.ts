@@ -119,6 +119,14 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "clan.helpAlreadyHelped": () => "Ви вже допомогли з цим запитом",
   "clan.helpFull": ({ max }) => `Запит уже отримав усі ${max} допомог`,
 
+  // ---------- Кланова територія ----------
+  "territory.notEnoughPoints": ({ need, have }) => `Клану бракує очок вкладу: потрібно ${need}, є ${have}`,
+  "territory.noFreeSlot": ({ slots }) => `Усі ${slots} слотів під споруди зайняті — знесіть споруду або відкрийте новий слот`,
+  "territory.cellTaken": () => "Цю клітину вже зайняли — оберіть іншу",
+  "territory.cellUnfit": () => "Тут не можна ставити споруду: вода, гори або край заселеного світу",
+  "territory.foreignStructure": () => "Будувати й стояти гарнізоном можна лише у спорудах свого клану",
+  "territory.ownStructure": () => "Свою споруду не атакують — її можна знести",
+
   // ---------- Марші й підкріплення ----------
   "march.heroUnavailable": ({ state }) =>
     state === "Wounded" ? "Герой у госпіталі — спершу вилікуйте його" : "Герой уже в поході",

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePanZoom } from "../../hooks/usePanZoom";
-import type { MapAreaResponse, MarchResponse } from "../../lib/apiTypes";
+import type { MapAreaResponse } from "../../lib/apiTypes";
 import { at, project, toPath, UNIT_X, UNIT_Y } from "../../lib/iso";
+import MarchAnimation, { type MapMarch } from "./MarchAnimation";
 import { MAP_RADIUS_MAX, MAP_RADIUS_MIN, type MapView } from "../../lib/queries/map";
-import { cellOrigin, groundFill, occupantArt, TILE, tileDetail, tilePath } from "./worldTiles";
+import { areaPath, cellOrigin, groundFill, isStructureBuilding, occupantArt, TILE, tileDetail, tilePath } from "./worldTiles";
 
 interface Props {
   area: MapAreaResponse;
@@ -11,12 +12,19 @@ interface Props {
   home: { x: number; y: number };
   /** Завантажена ділянка: центр і радіус — щоб знати, коли підтягнути іншу. */
   view: MapView;
-  marches: MarchResponse[];
+  /** Марші на мапі — власні й ворожі на своїх: лінія, загін і відлік. */
+  marches: MapMarch[];
   selected: { x: number; y: number } | null;
   /** Скільки разів натиснуто «Додому»: зміна значення повертає камеру на село. */
   homeRequest: number;
+  /** Клітина, на яку перевести камеру (з тривоги); n міняється на кожен запит, навіть на ту саму клітину. */
+  focusRequest: { x: number; y: number; n: number } | null;
   /** Сторона світу в клітинах — з каталогу; земля малюється до цього краю й далі камера не їде. */
   mapSize: number;
+  /** Клан гравця: його споруди — зелені, з підсвіченою зоною дії; null — поза кланом. */
+  ownClanId: string | null;
+  /** Радіус зони дії споруди; 0 — території у світі немає, зону не малюємо. */
+  coverageRadius: number;
   onSelect: (x: number, y: number) => void;
   /** Камера показує інші клітини — час завантажити ділянку під них. */
   onViewChange: (view: MapView) => void;
@@ -97,7 +105,20 @@ function radiusFor(width: number, height: number, k: number): number {
  * наблизив — менше клітин, віддалив — більше. Коли камера показує інші клітини,
  * сторінка перезапитує ділянку, а старі тайли лишаються до приходу нових.
  */
-export default function WorldMap({ area, home, view, marches, selected, homeRequest, mapSize, onSelect, onViewChange }: Props) {
+export default function WorldMap({
+  area,
+  home,
+  view,
+  marches,
+  selected,
+  homeRequest,
+  focusRequest,
+  mapSize,
+  ownClanId,
+  coverageRadius,
+  onSelect,
+  onViewChange,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const initial = useMemo(() => boundsOf(home, HOME_RADIUS), [home]);
   const limits = useMemo(() => ({ min: ZOOM_MIN, max: ZOOM_MAX, minAbsolute: minScaleFor, pan: worldBounds(mapSize) }), [mapSize]);
@@ -112,6 +133,12 @@ export default function WorldMap({ area, home, view, marches, selected, homeRequ
     }
     focus(boundsOf(home, HOME_RADIUS));
   }, [homeRequest, home, focus]);
+
+  // Тривога веде до цілі нападу: камера туди, решту робить сторінка (виділення клітини)
+  useEffect(() => {
+    if (focusRequest === null) return;
+    focus(boundsOf(focusRequest, HOME_RADIUS));
+  }, [focusRequest, focus]);
 
   // Стрімінг: після паузи в русі чи зумі дивимось, що під кадром, і просимо відповідну ділянку
   useEffect(() => {
@@ -137,6 +164,33 @@ export default function WorldMap({ area, home, view, marches, selected, homeRequ
   // Від дальніх до ближніх: пагорб чи дерево не має проступати крізь ближчий тайл
   const terrain = useMemo(() => [...area.terrain].sort((a, b) => a.x + a.y - (b.x + b.y) || a.x - b.x), [area.terrain]);
   const occupants = useMemo(() => new Map(area.occupants.map((o) => [`${o.x}:${o.y}`, o])), [area.occupants]);
+  // Годинник без тіку щосекунди — мапа важка: перемальовуємось лише тоді,
+  // коли найближча споруда на ділянці добудовується і стає активною
+  const [now, setNow] = useState(() => Date.now());
+  const nextReady = useMemo(
+    () =>
+      Math.min(
+        ...area.occupants
+          .map((o) => (o.readyAt == null ? Infinity : Date.parse(o.readyAt)))
+          .filter((at) => at > now),
+      ),
+    [area.occupants, now],
+  );
+
+  useEffect(() => {
+    if (!Number.isFinite(nextReady)) return;
+
+    const timer = window.setTimeout(() => setNow(Date.now()), Math.max(nextReady - Date.now(), 0) + 500);
+
+    return () => window.clearTimeout(timer);
+  }, [nextReady]);
+
+  const coverage =
+    ownClanId === null || coverageRadius <= 0
+      ? []
+      : area.occupants.filter(
+          (o) => o.occupantType === "ClanStructure" && o.clanId === ownClanId && !isStructureBuilding(o, now),
+        );
   const loadedRadius = Math.round((area.maxX - area.minX) / 2);
   const detailed = loadedRadius <= DETAIL_RADIUS;
 
@@ -177,26 +231,17 @@ export default function WorldMap({ area, home, view, marches, selected, homeRequ
               />
             ))}
 
-            {marches.map((march) => {
-              if (!inside(march.targetX, march.targetY)) return null;
-              const from = at(cellOrigin(home.x, home.y).x, cellOrigin(home.x, home.y).y, 4);
-              const to = at(cellOrigin(march.targetX, march.targetY).x, cellOrigin(march.targetX, march.targetY).y, 4);
-
-              return (
-                <line
-                  key={march.id}
-                  x1={from.x}
-                  y1={from.y}
-                  x2={to.x}
-                  y2={to.y}
-                  stroke="#0f172a"
-                  strokeWidth={1.5}
-                  strokeDasharray="5 4"
-                  opacity={0.6}
-                  pointerEvents="none"
-                />
-              );
-            })}
+            {coverage.map((structure) => (
+              <path
+                key={`c${structure.x}:${structure.y}`}
+                d={areaPath(structure.x, structure.y, coverageRadius)}
+                fill="rgba(16, 185, 129, 0.1)"
+                stroke="rgba(5, 150, 105, 0.5)"
+                strokeWidth={1}
+                strokeDasharray="4 3"
+                pointerEvents="none"
+              />
+            ))}
 
             {terrain.map((cell) => {
               const occupant = occupants.get(`${cell.x}:${cell.y}`);
@@ -207,10 +252,12 @@ export default function WorldMap({ area, home, view, marches, selected, homeRequ
 
               return (
                 <g key={`d${cell.x}:${cell.y}`} className="cursor-pointer" onClick={tap(cell.x, cell.y)}>
-                  {occupant === undefined ? detail : occupantArt(occupant, isHome)}
+                  {occupant === undefined ? detail : occupantArt(occupant, isHome, ownClanId, now)}
                 </g>
               );
             })}
+
+            <MarchAnimation marches={marches} />
 
             {selected !== null && inside(selected.x, selected.y) && (
               <path d={tilePath(selected.x, selected.y)} fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth={1.5} pointerEvents="none" />
@@ -225,7 +272,9 @@ export default function WorldMap({ area, home, view, marches, selected, homeRequ
                   ? "Ваше село"
                   : occupant.occupantType === "Monster"
                     ? `${occupant.name ?? "Монстр"}${occupant.monsterLevel == null ? "" : ` · ${occupant.monsterLevel}`}`
-                    : (occupant.name ?? "Село");
+                    : occupant.occupantType === "ClanStructure"
+                      ? `[${occupant.name ?? "?"}]${isStructureBuilding(occupant, now) ? " · будується" : ""}`
+                      : (occupant.name ?? "Село");
                 const width = text.length * 5.5 + 12;
 
                 return (

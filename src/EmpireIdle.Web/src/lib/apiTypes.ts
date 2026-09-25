@@ -2,6 +2,11 @@ import type { components } from "./schema";
 
 /** Псевдоніми згенерованих типів: екрани не лізуть у components руками. */
 export type VillageResponse = components["schemas"]["VillageResponse"];
+export type ClanTerritoryResponse = components["schemas"]["ClanTerritoryResponse"];
+export type ClanStructureResponse = components["schemas"]["ClanStructureResponse"];
+export type ClanQuestResponse = components["schemas"]["ClanQuestResponse"];
+export type ClanSlotUnlockResponse = components["schemas"]["ClanSlotUnlockResponse"];
+export type ClanContributorResponse = components["schemas"]["ClanContributorResponse"];
 export type VillageDamageResponse = components["schemas"]["VillageDamageResponse"];
 export type BuildingResponse = components["schemas"]["BuildingResponse"];
 export type CollectAllResponse = components["schemas"]["CollectAllResponse"];
@@ -22,6 +27,7 @@ export type MapTerrainCell = components["schemas"]["MapTerrainCell"];
 export type MapOccupantCell = components["schemas"]["MapOccupantCell"];
 export type MapCellDetailsResponse = components["schemas"]["MapCellDetailsResponse"];
 export type MarchResponse = components["schemas"]["MarchResponse"];
+export type IncomingAttackResponse = components["schemas"]["IncomingAttackResponse"];
 export type MarchState = components["schemas"]["MarchState"];
 export type MarchIntent = components["schemas"]["MarchIntent"];
 export type MarchTargetType = components["schemas"]["MarchTargetType"];

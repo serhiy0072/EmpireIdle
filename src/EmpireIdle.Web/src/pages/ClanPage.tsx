@@ -4,6 +4,7 @@ import ClanHelpPanel from "../components/clan/ClanHelpPanel";
 import ClanMembers from "../components/clan/ClanMembers";
 import ClanRequestsPanel from "../components/clan/ClanRequestsPanel";
 import ClanSettings from "../components/clan/ClanSettings";
+import ClanTerritoryPanel from "../components/clan/ClanTerritoryPanel";
 import ErrorBanner from "../components/ErrorBanner";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
@@ -26,9 +27,10 @@ import {
   useUpdateClanSettings,
 } from "../lib/queries/clans";
 import { useGarrison } from "../lib/queries/garrison";
+import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 
-type Tab = "help" | "members" | "requests" | "settings";
+type Tab = "help" | "members" | "territory" | "requests" | "settings";
 
 export default function ClanPage() {
   const session = useSession();
@@ -45,6 +47,7 @@ export default function ClanPage() {
   const applications = useClanApplications(playerId, inClan && canRecruit);
   const village = useVillage(playerId);
   const garrison = useGarrison(playerId);
+  const territory = useClanTerritory(playerId, inClan);
 
   const create = useCreateClan(playerId);
   const join = useJoinClan(playerId);
@@ -118,6 +121,7 @@ export default function ClanPage() {
   const tabs: { key: Tab; label: string; visible: boolean }[] = [
     { key: "help", label: pendingHelp > 0 ? `Допомога · ${pendingHelp}` : "Допомога", visible: true },
     { key: "members", label: `Учасники · ${clan.data.memberCount}/${clan.data.capacity}`, visible: true },
+    { key: "territory", label: "Територія", visible: true },
     {
       key: "requests",
       label: (applications.data?.length ?? 0) > 0 ? `Набір · ${applications.data?.length}` : "Набір",
@@ -183,6 +187,15 @@ export default function ClanPage() {
           onAssignRole={(targetPlayerId, roleId) => assignRole.mutate({ targetPlayerId, roleId })}
         />
       )}
+
+      {tab === "territory" &&
+        (territory.isError ? (
+          <ErrorBanner error={territory.error} />
+        ) : territory.data == null ? (
+          <p className="text-sm text-slate-500">Завантаження…</p>
+        ) : (
+          <ClanTerritoryPanel territory={territory.data} myPlayerId={playerId} />
+        ))}
 
       {tab === "requests" && canRecruit && (
         <ClanRequestsPanel

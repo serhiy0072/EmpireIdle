@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { MarchTargetType, SendMarchRequest } from "../../lib/apiTypes";
+import type { MarchIntent, MarchTargetType, SendMarchRequest } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { useGarrison } from "../../lib/queries/garrison";
 import { useHeroes } from "../../lib/queries/heroes";
@@ -11,7 +11,7 @@ import ErrorBanner from "../ErrorBanner";
 
 interface Props {
   playerId: string;
-  target: { type: MarchTargetType; id: string; name: string };
+  target: { type: MarchTargetType; id: string; name: string; intent?: MarchIntent };
   onSent: () => void;
   onCancel: () => void;
 }
@@ -19,7 +19,8 @@ interface Props {
 /**
  * Відправка армії: склад із гарнізону, герой (обов'язковий — він і є слот
  * маршу), оцінка шансів до кліку. Прев'ю рахує сервер: клієнт не знає
- * ні пасивок, ні місцевості, ні щитів.
+ * ні пасивок, ні місцевості, ні щитів. Підкріплення (своя споруда клану)
+ * не б'ється: шансів не оцінюємо, лише відправляємо.
  */
 export default function SendMarchForm({ playerId, target, onSent, onCancel }: Props) {
   const catalog = useCatalog();
@@ -28,6 +29,9 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
   const preview = usePreviewMarch(playerId);
   const send = useSendMarch(playerId);
   const village = useVillage(playerId);
+
+  const intent = target.intent ?? MARCH_INTENT.attack;
+  const reinforce = intent === MARCH_INTENT.reinforce;
 
   // Щит після падіння знімає будь-який напад на гравця — попереджаємо до кліку
   const losesShield = target.type === MARCH_TARGET.village && isShieldActive(village.data?.shieldUntil);
@@ -55,7 +59,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
     targetId: target.id,
     units,
     heroId: chosenHero,
-    intent: MARCH_INTENT.attack,
+    intent,
   });
 
   const odds = preview.data === undefined ? null : BATTLE_ODDS[preview.data.odds];
@@ -63,13 +67,21 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
   return (
     <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-baseline justify-between gap-2">
-        <h3 className="font-medium text-slate-800">Похід на {target.name}</h3>
+        <h3 className="font-medium text-slate-800">
+          {reinforce ? "Підкріплення" : "Похід на"} {target.name}
+        </h3>
         <button type="button" onClick={onCancel} className="text-sm text-slate-500 hover:underline">
           Скасувати
         </button>
       </div>
 
       <ErrorBanner error={preview.error ?? send.error} />
+
+      {reinforce && (
+        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          Військо стане гарнізоном споруди, а поки вона будується — прискорить будівництво: сильніший загін дає більше.
+        </p>
+      )}
 
       {losesShield && (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -145,14 +157,16 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
       )}
 
       <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => preview.mutate(request())}
-          disabled={!ready || preview.isPending}
-          className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-        >
-          {preview.isPending ? "Оцінюємо…" : "Оцінити шанси"}
-        </button>
+        {!reinforce && (
+          <button
+            type="button"
+            onClick={() => preview.mutate(request())}
+            disabled={!ready || preview.isPending}
+            className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            {preview.isPending ? "Оцінюємо…" : "Оцінити шанси"}
+          </button>
+        )}
         <button
           type="button"
           data-tutorial="send-march"

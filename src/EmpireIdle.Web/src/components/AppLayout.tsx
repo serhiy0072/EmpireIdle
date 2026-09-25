@@ -13,6 +13,7 @@ import { isShieldActive, shieldUntilLabel } from "../lib/shield";
 import { useWallet } from "../lib/queries/wallet";
 import TutorialOverlay from "../tutorial/TutorialOverlay";
 import { useTutorial } from "../tutorial/useTutorial";
+import AttackAlertBanner from "./AttackAlertBanner";
 import ErrorBanner from "./ErrorBanner";
 import ErrorBoundary from "./ErrorBoundary";
 import PowerBadge from "./PowerBadge";
@@ -151,6 +152,7 @@ export default function AppLayout() {
             ))}
           </nav>
 
+          <AttackAlertBanner />
           <ErrorBanner error={seed.error} />
         </div>
       </header>

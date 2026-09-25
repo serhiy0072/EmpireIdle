@@ -3,18 +3,21 @@ import { useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import BattleReportList from "../components/map/BattleReportList";
 import CellDetails from "../components/map/CellDetails";
+import type { MapMarch } from "../components/map/MarchAnimation";
 import MarchList from "../components/map/MarchList";
 import SendMarchForm from "../components/map/SendMarchForm";
 import WorldMap from "../components/map/WorldMap";
 import { useSession } from "../hooks/useSession";
-import type { MarchTargetType } from "../lib/apiTypes";
+import type { MarchIntent, MarchTargetType } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
+import { useMyClan } from "../lib/queries/clans";
 import { useUseItem } from "../lib/queries/inventory";
 import { useMapArea, useMapCell, type MapView } from "../lib/queries/map";
-import { useMarches } from "../lib/queries/marches";
+import { MARCH_STATE, useIncomingAttacks, useMarches } from "../lib/queries/marches";
+import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 
-type Target = { type: MarchTargetType; id: string; name: string };
+type Target = { type: MarchTargetType; id: string; name: string; intent?: MarchIntent };
 
 export default function MapPage() {
   const session = useSession();
@@ -23,6 +26,9 @@ export default function MapPage() {
   const catalog = useCatalog();
   const village = useVillage(playerId);
   const marches = useMarches(playerId);
+  const incoming = useIncomingAttacks(playerId);
+  const territory = useClanTerritory(playerId);
+  const myClan = useMyClan(playerId);
 
   // Телепорт: інвентар приводить сюди з ?teleport=<ключ>, місце обирають кліком, дію можна скасувати
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,6 +41,25 @@ export default function MapPage() {
   const [selected, setSelected] = useState<{ x: number; y: number } | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
   const [homeRequest, setHomeRequest] = useState(0);
+  const [focusRequest, setFocusRequest] = useState<{ x: number; y: number; n: number } | null>(null);
+
+  // Тривога веде сюди з ?focus=x,y,<марш>: ціль у кадр і виділена. Ключ із маршем —
+  // щоб та сама клітина з новою тривогою знову наводила камеру. Робимо під час рендеру,
+  // а не в ефекті: це похідний від URL стан, і зайвого кадру без виділення не буде
+  const focusParam = searchParams.get("focus");
+  const [handledFocus, setHandledFocus] = useState<string | null>(null);
+
+  if (focusParam !== null && focusParam !== handledFocus) {
+    const [fx, fy] = focusParam.split(",").map(Number);
+    setHandledFocus(focusParam);
+
+    if (fx !== undefined && fy !== undefined && Number.isInteger(fx) && Number.isInteger(fy)) {
+      setSelected({ x: fx, y: fy });
+      setTarget(null);
+      setView({ x: fx, y: fy, radius: 12 });
+      setFocusRequest((previous) => ({ x: fx, y: fy, n: (previous?.n ?? 0) + 1 }));
+    }
+  }
 
   // Стабільний об'єкт: мапа перераховує кадр лише коли село справді переїхало
   const homeX = village.data?.x;
@@ -46,6 +71,26 @@ export default function MapPage() {
   // Камера показує інше — мапа просить ділянку під нею
   const changeView = useCallback((next: MapView) => setView(next), []);
   const cell = useMapCell(selected?.x ?? null, selected?.y ?? null);
+
+  // Свої марші йдуть від дому; повернення — назад, але старт зворотної ноги невідомий,
+  // тож загін не рухаємо. Ворожі — від поселення нападника, з відомим стартом
+  const mapMarches = useMemo<MapMarch[]>(() => {
+    if (home === null) return [];
+
+    const own = (marches.data ?? []).map((march) =>
+      march.state === MARCH_STATE.returning
+        ? { id: march.id, fromX: march.targetX, fromY: march.targetY, toX: home.x, toY: home.y,
+            departedAt: null, arrivesAt: march.arrivesAt, hostile: false }
+        : { id: march.id, fromX: home.x, fromY: home.y, toX: march.targetX, toY: march.targetY,
+            departedAt: march.departedAt, arrivesAt: march.arrivesAt, hostile: false },
+    );
+    const hostile = (incoming.data ?? []).map((attack) => ({
+      id: attack.marchId, fromX: attack.fromX, fromY: attack.fromY, toX: attack.targetX, toY: attack.targetY,
+      departedAt: attack.departedAt, arrivesAt: attack.arrivesAt, hostile: true,
+    }));
+
+    return [...own, ...hostile];
+  }, [home, marches.data, incoming.data]);
 
   if (village.isPending) {
     return <p className="text-slate-500">Завантаження мапи…</p>;
@@ -110,10 +155,13 @@ export default function MapPage() {
               area={area.data}
               home={home}
               view={effectiveView}
-              marches={marches.data ?? []}
+              marches={mapMarches}
               selected={selected}
               homeRequest={homeRequest}
+              focusRequest={focusRequest}
               mapSize={catalog.mapSize}
+              ownClanId={myClan.data?.id ?? null}
+              coverageRadius={territory.data?.enabled === true ? territory.data.radius : 0}
               onSelect={(x, y) => {
                 setSelected({ x, y });
                 setTarget(null);
@@ -128,7 +176,8 @@ export default function MapPage() {
             <SendMarchForm playerId={playerId} target={target} onSent={() => setTarget(null)} onCancel={() => setTarget(null)} />
           ) : selected === null ? (
             <p className="text-sm text-slate-500">
-              Оберіть клітину на мапі: рогата істота — монстр, синій дах — чуже село, червоний з прапором — ваше.
+              Оберіть клітину на мапі: рогата істота — монстр, синій дах — чуже село, червоний з прапором — ваше,
+              вежа — споруда клану (зелена — вашого, фіолетова — чужого).
             </p>
           ) : cell.isPending ? (
             <p className="text-sm text-slate-500">Дивимось…</p>
@@ -174,7 +223,14 @@ export default function MapPage() {
               </div>
             </div>
           ) : (
-            <CellDetails cell={cell.data} isHome={isHome} onAttack={setTarget} />
+            <CellDetails
+              playerId={playerId}
+              cell={cell.data}
+              isHome={isHome}
+              territory={territory.data}
+              threats={(incoming.data ?? []).filter((a) => a.targetX === cell.data.x && a.targetY === cell.data.y)}
+              onMarch={setTarget}
+            />
           )}
 
           <section className="space-y-2">

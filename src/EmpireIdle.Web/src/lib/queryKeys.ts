@@ -16,6 +16,7 @@ export const queryKeys = {
   quests: (playerId: string) => ["quests", playerId] as const,
   serverQuests: (playerId: string) => ["serverQuests", playerId] as const,
   marches: (playerId: string) => ["marches", playerId] as const,
+  incoming: (playerId: string) => ["incoming", playerId] as const,
   tutorial: (playerId: string) => ["tutorial", playerId] as const,
   inventory: (playerId: string) => ["inventory", playerId] as const,
   /** Історія каналу; для приватного — з конкретним співрозмовником. */
@@ -40,6 +41,8 @@ export const queryKeys = {
   /** Каталог кланів нікому не належить: ключ — від пошуку й сторінки. */
   clanBrowse: (search: string, page: number) => ["clans", "browse", search, page] as const,
   clanProfile: (clanId: string) => ["clans", "profile", clanId] as const,
+  /** Територія клану гравця: очки, слоти, споруди, квести клану. */
+  territory: (playerId: string) => ["territory", playerId] as const,
   /** Ділянка мапи не належить гравцю: ключ — від центру й радіуса. */
   mapArea: (x: number, y: number, radius: number) => ["map", "area", x, y, radius] as const,
   mapCell: (x: number, y: number) => ["map", "cell", x, y] as const,

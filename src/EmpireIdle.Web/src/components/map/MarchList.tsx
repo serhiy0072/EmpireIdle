@@ -1,7 +1,7 @@
 import { useNow } from "../../hooks/useNow";
 import type { MarchResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
-import { MARCH_STATE, useSpeedUpMarch } from "../../lib/queries/marches";
+import { MARCH_STATE, MARCH_TARGET, useSpeedUpMarch } from "../../lib/queries/marches";
 import { speedUpLabel } from "../../lib/speedUp";
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
@@ -29,7 +29,8 @@ export default function MarchList({ playerId, marches }: Props) {
         const returning = march.state === MARCH_STATE.returning;
         const total = march.units.reduce((sum, unit) => sum + unit.count, 0);
         const level = march.targetLevel != null ? ` (рів. ${march.targetLevel})` : "";
-        const target = march.targetName != null ? `${march.targetName}${level}` : `(${march.targetX}, ${march.targetY})`;
+        const place = march.targetName != null ? `${march.targetName}${level}` : `(${march.targetX}, ${march.targetY})`;
+        const target = march.targetType === MARCH_TARGET.clanStructure ? `споруду клану ${place}` : place;
 
         return (
           <div key={march.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 text-sm">

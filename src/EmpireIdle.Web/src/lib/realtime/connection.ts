@@ -40,6 +40,7 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
       queryKeys.quests(playerId),
       queryKeys.marches(playerId),
       queryKeys.power(playerId),
+      queryKeys.incoming(playerId),
       ["map"],
     ],
     MarchReturned: [
@@ -56,6 +57,9 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
     MailReceived: [["mail", playerId], queryKeys.village(playerId), ["map"]],
     // Історію каналу чат дописує сам із події; список розмов — перечитуємо
     ChatMessage: [queryKeys.chatConversations(playerId)],
+    // Новий ворожий марш — на мапу; зруйнована споруда зникає з мапи й звільняє слот
+    AttackIncoming: [queryKeys.incoming(playerId)],
+    StructureDestroyed: [queryKeys.territory(playerId), queryKeys.incoming(playerId), ["map"]],
   };
 
   keys[name].forEach((key) => void queryClient.invalidateQueries({ queryKey: key }));

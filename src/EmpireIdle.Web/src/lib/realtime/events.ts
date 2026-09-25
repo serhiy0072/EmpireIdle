@@ -68,6 +68,34 @@ export interface MailReceivedEvent {
   kind: string;
 }
 
+/**
+ * Ворожий марш іде на село чи споруду клану — отримують захисник і весь його клан.
+ * Від departedAt до arrivesAt загін іде прямою від (fromX, fromY) до цілі.
+ */
+export interface AttackIncomingEvent {
+  marchId: string;
+  /** "Village" або "ClanStructure". */
+  targetType: string;
+  targetId: string;
+  /** Назва села або тег клану-власника споруди. */
+  targetName: string | null;
+  targetX: number;
+  targetY: number;
+  fromX: number;
+  fromY: number;
+  attackerName: string;
+  attackerClanTag: string | null;
+  departedAt: string;
+  arrivesAt: string;
+}
+
+/** Кланову споруду зруйновано: слот вільний, бонус у її радіусі зник. */
+export interface StructureDestroyedEvent {
+  structureId: string;
+  x: number;
+  y: number;
+}
+
 export interface GameEvents {
   BuildingCollected: BuildingCollectedEvent;
   UpgradeStarted: UpgradeStartedEvent;
@@ -78,6 +106,8 @@ export interface GameEvents {
   ClanInvite: ClanInviteEvent;
   ChatMessage: ChatMessageEvent;
   MailReceived: MailReceivedEvent;
+  AttackIncoming: AttackIncomingEvent;
+  StructureDestroyed: StructureDestroyedEvent;
 }
 
 export type GameEventName = keyof GameEvents;
@@ -92,4 +122,6 @@ export const gameEventNames: GameEventName[] = [
   "ClanInvite",
   "ChatMessage",
   "MailReceived",
+  "AttackIncoming",
+  "StructureDestroyed",
 ];
