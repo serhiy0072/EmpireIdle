@@ -33,7 +33,7 @@ public class IncomingAttackAlertTests
         => new(_marches, Audience(), _notifier, NullLogger<HostileMarchLaunchedHandler>.Instance);
 
     private static IncomingAttack Attack(Guid targetId, MarchTargetType targetType = MarchTargetType.Village)
-        => new(Guid.NewGuid(), targetType, targetId, "Ціль", null, null, 10, 10, 0, 0,
+        => new(Guid.NewGuid(), MarchIntent.Attack, targetType, targetId, "Ціль", null, null, 10, 10, 0, 0,
             Guid.NewGuid(), "Нападник", "WAR", Now, Now.AddMinutes(15));
 
     private static DomainEventNotification<HostileMarchLaunched> Launched(IncomingAttack attack)

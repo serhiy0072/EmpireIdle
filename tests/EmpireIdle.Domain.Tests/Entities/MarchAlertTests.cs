@@ -98,4 +98,39 @@ public class MarchAlertTests
 
         Assert.Equal(Now.AddMinutes(20), march.LegStartedAt);
     }
+
+    /// <summary>Розвідка — теж ворожий марш: ціль бачить його й отримує тривогу з ім'ям.</summary>
+    [Fact]
+    public void Scouting_ShouldRaiseHostileMarchLaunched()
+    {
+        var march = Send(MarchTargetType.Village, MarchIntent.Scout, Guid.NewGuid());
+
+        Assert.IsType<HostileMarchLaunched>(Assert.Single(march.DomainEvents));
+    }
+
+    /// <summary>Розвідники звітують на місці й назад не йдуть.</summary>
+    [Fact]
+    public void FinishScouting_ShouldCompleteTheMarch_AndOnlyForScouts()
+    {
+        var scouts = Send(MarchTargetType.Village, MarchIntent.Scout, Guid.NewGuid());
+        var attack = Send(MarchTargetType.Village, MarchIntent.Attack, Guid.NewGuid());
+
+        scouts.FinishScouting(Now.AddMinutes(20));
+
+        Assert.Equal(MarchState.Completed, scouts.State);
+        Assert.ThrowsAny<Exception>(() => attack.FinishScouting(Now.AddMinutes(20)));
+    }
+
+    [Fact]
+    public void ScoutReport_ShouldKeepOnlyPositiveLoot_AndRejectAFailedSuccess()
+    {
+        var march = Send(MarchTargetType.Village, MarchIntent.Scout, Guid.NewGuid());
+
+        var report = ScoutReport.Success(Guid.NewGuid(), 1, Guid.NewGuid(), march, "Ціль", 120.5,
+            new Dictionary<string, int> { ["food"] = 300, ["wood"] = 0 }, Now);
+
+        Assert.Equal(("food", 300), Assert.Single(report.Resources.Select(r => (r.ResourceType, r.Amount))));
+        Assert.Throws<ArgumentException>(() => ScoutReport.Failed(Guid.NewGuid(), 1, Guid.NewGuid(), march, "Ціль",
+            ScoutOutcome.Success, Now));
+    }
 }

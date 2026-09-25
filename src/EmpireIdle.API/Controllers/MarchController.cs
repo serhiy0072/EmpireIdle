@@ -1,6 +1,8 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Queries;
+using EmpireIdle.Application.Scouting.Commands;
+using EmpireIdle.Application.Scouting.Queries;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
@@ -41,6 +43,35 @@ namespace EmpireIdle.API.Controllers
             return Ok(response);
         }
 
+        /// <summary>Відправити розвідників із вежі розвідки: без героя й юнітів, ціль бачить марш.</summary>
+        [HttpPost("{playerId:guid}/scout")]
+        [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Scout(Guid playerId, [FromBody] SendScoutRequest request,
+            CancellationToken cancellationToken)
+        {
+            var marchId = await _mediator.Send(new SendScoutCommand(playerId, request.TargetType, request.TargetId),
+                cancellationToken);
+
+            return Created((string?)null, marchId);
+        }
+
+        /// <summary>Останні звіти розвідки гравця, новіші першими.</summary>
+        [HttpGet("{playerId:guid}/scout-reports")]
+        [ProducesResponseType(typeof(List<ScoutReportResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<List<ScoutReportResponse>>> GetScoutReports(Guid playerId,
+            CancellationToken cancellationToken)
+        {
+            var reports = await _mediator.Send(new GetScoutReportsQuery(playerId), cancellationToken);
+
+            return Ok(reports
+                .Select(r => new ScoutReportResponse(r.Id, r.TargetType, r.TargetId, r.TargetName, r.X, r.Y,
+                    r.Outcome, r.DefencePower, r.Lootable, r.CreatedAt))
+                .ToList());
+        }
+
         /// <summary>
         /// Ворожі марші в дорозі на село гравця, села соклановців і споруди клану —
         /// найближче прибуття першим. Тривога приходить подією, це — стан після перезавантаження.
@@ -54,7 +85,7 @@ namespace EmpireIdle.API.Controllers
 
             return Ok(attacks
                 .Select(a => new IncomingAttackResponse(
-                    a.MarchId, a.TargetType, a.TargetId, a.TargetName, a.TargetOwnerId == playerId,
+                    a.MarchId, a.Intent, a.TargetType, a.TargetId, a.TargetName, a.TargetOwnerId == playerId,
                     a.TargetX, a.TargetY, a.FromX, a.FromY, a.AttackerName, a.AttackerClanTag,
                     a.DepartedAt, a.ArrivesAt))
                 .ToList());

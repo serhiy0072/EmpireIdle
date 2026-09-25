@@ -42,6 +42,31 @@ namespace EmpireIdle.Domain.Services
             ValidateBuildingLayout(config);
             ValidateLoginRewards(config);
             ValidateClanTerritory(config);
+            ValidateScouting(config);
+        }
+
+        /// <summary>
+        /// Розвідка: будівля, що відправляє розвідників, мусить існувати, розвідники — обганяти
+        /// будь-який юніт, а завіса від
+        /// розвідки — мати строк: предмет без тривалості списувався б, нічого не ховаючи.
+        /// </summary>
+        private static void ValidateScouting(GameConfig config)
+        {
+            var building = config.Combat.Scouting.RequiredBuilding;
+
+            if (building is not null && config.Buildings.All(b => b.Key != building))
+                throw new InvalidOperationException(
+                    $"Combat.Scouting.RequiredBuilding '{building}' is not in Buildings.");
+
+            // Розвідка має обганяти будь-яку армію, інакше вона запізнюється до власного нападу
+            var fastest = config.Units.Select(u => u.Stats.GetValueOrDefault("Speed", 1.0)).DefaultIfEmpty(0).Max();
+
+            if (building is not null && config.Combat.Scouting.Speed <= fastest)
+                throw new InvalidOperationException(
+                    $"Combat.Scouting.Speed ({config.Combat.Scouting.Speed}) must exceed the fastest unit ({fastest}).");
+
+            foreach (var veil in config.Items.Where(i => i.Type == "scoutveil" && i.DurationHours <= 0))
+                throw new InvalidOperationException($"Scout veil '{veil.Key}' has no DurationHours.");
         }
 
         /// <summary>

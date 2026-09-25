@@ -28,12 +28,17 @@ namespace EmpireIdle.API.Hubs.Events
     /// Ворожий марш іде на село чи споруду клану. Отримують захисник і весь його клан;
     /// клієнт показує банер, а на мапі веде загін від (FromX, FromY) до цілі за часом.
     /// </summary>
+    /// <param name="Intent">"Attack" або "Scout" — розвідники йдуть подивитись, а не битись.</param>
     /// <param name="TargetType">"Village" або "ClanStructure".</param>
     /// <param name="TargetName">Назва села або тег клану-власника споруди.</param>
     /// <param name="AttackerClanTag">null — нападник поза кланом.</param>
-    public record AttackIncomingEvent(Guid MarchId, string TargetType, Guid TargetId, string? TargetName,
+    public record AttackIncomingEvent(Guid MarchId, string Intent, string TargetType, Guid TargetId, string? TargetName,
         int TargetX, int TargetY, int FromX, int FromY, string AttackerName, string? AttackerClanTag,
         DateTime DepartedAt, DateTime ArrivesAt);
+
+    /// <summary>Розвідники дійшли — звіт готовий.</summary>
+    /// <param name="Outcome">"Success", "Blocked", "TargetMoved" або "TargetGone".</param>
+    public record ScoutReportReadyEvent(Guid ReportId, string TargetName, string Outcome);
 
     /// <summary>Ворожий марш розвернувся, не дійшовши: зняти тривогу й прибрати його з мапи.</summary>
     public record AttackCalledOffEvent(Guid MarchId);

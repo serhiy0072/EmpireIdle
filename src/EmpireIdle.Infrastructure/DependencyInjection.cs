@@ -7,6 +7,7 @@ using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Scouting.Services;
 using EmpireIdle.Application.Quests.Tracking;
 using EmpireIdle.Application.Quests.Tracking.Mappers;
 using EmpireIdle.Application.Rewards;
@@ -87,6 +88,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IMailRepository, MailRepository>();
             services.AddScoped<IVillageFallRepository, VillageFallRepository>();
             services.AddScoped<IStructureFallRepository, StructureFallRepository>();
+            services.AddScoped<IScoutReportRepository, ScoutReportRepository>();
             services.AddScoped<ILoginRewardRepository, LoginRewardRepository>();
             services.AddSingleton<ITranslator, NoTranslator>();
 
@@ -94,6 +96,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IItemEffect, ResourceItemEffect>();
             services.AddScoped<IItemEffect, BoostItemEffect>();
             services.AddScoped<IItemEffect, TeleportItemEffect>();
+            services.AddScoped<IItemEffect, ScoutVeilItemEffect>();
 
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
@@ -106,6 +109,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<StructureReinforcementDelivery>();
             services.AddScoped<StructureBattleService>();
             services.AddScoped<DefenderAudience>();
+            services.AddScoped<ScoutVisibility>();
+            services.AddScoped<ScoutService>();
             services.AddScoped<MarchLogistics>();
             services.AddScoped<ReinforcementDelivery>();
             services.AddScoped<VillageBattleService>();

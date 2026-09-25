@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Scouting.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -37,6 +38,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly ReinforcementDelivery _reinforcements;
         private readonly StructureReinforcementDelivery _structureDelivery;
         private readonly StructureBattleService _structureBattle;
+        private readonly ScoutService _scouts;
         private readonly ILogger<CompleteMarchCommandHandler> _logger;
 
         public CompleteMarchCommandHandler(
@@ -52,6 +54,7 @@ namespace EmpireIdle.Application.Marches.Commands
             ReinforcementDelivery reinforcements,
             StructureReinforcementDelivery structureDelivery,
             StructureBattleService structureBattle,
+            ScoutService scouts,
             ILogger<CompleteMarchCommandHandler> logger)
         {
             _marchRepository = marchRepository;
@@ -66,6 +69,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _reinforcements = reinforcements;
             _structureDelivery = structureDelivery;
             _structureBattle = structureBattle;
+            _scouts = scouts;
             _logger = logger;
         }
 
@@ -103,8 +107,16 @@ namespace EmpireIdle.Application.Marches.Commands
                 return;
             }
 
-            var attackerArmy = march.GetUnits();
             var terrain = _terrain.GetTerrainType(march.ServerId, march.TargetX, march.TargetY);
+
+            // Розвідники не б'ються: дивляться й одразу звітують
+            if (march.Intent == MarchIntent.Scout)
+            {
+                await _scouts.ResolveAsync(march, terrain, utcNow, cancellationToken);
+                return;
+            }
+
+            var attackerArmy = march.GetUnits();
 
             switch (march.TargetType)
             {

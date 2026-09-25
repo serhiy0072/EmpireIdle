@@ -42,6 +42,10 @@ namespace EmpireIdle.Application.Interfaces
         Task NotifyAttackIncomingAsync(IReadOnlyCollection<Guid> playerIds, Marches.ReadModels.IncomingAttack attack,
             CancellationToken cancellationToken = default);
 
+        /// <summary>Розвідники дійшли — звіт готовий. outcome — ScoutOutcome.</summary>
+        Task NotifyScoutReportReadyAsync(Guid playerId, Guid reportId, string targetName, string outcome,
+            CancellationToken cancellationToken = default);
+
         /// <summary>Ворожий марш розвернувся в дорозі — захисникам зняти тривогу.</summary>
         Task NotifyAttackCalledOffAsync(IReadOnlyCollection<Guid> playerIds, Guid marchId,
             CancellationToken cancellationToken = default);

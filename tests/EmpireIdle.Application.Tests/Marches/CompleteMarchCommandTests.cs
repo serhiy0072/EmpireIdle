@@ -3,6 +3,7 @@ using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Scouting.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
@@ -44,6 +45,7 @@ public class CompleteMarchCommandTests
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
     private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
+    private readonly IScoutReportRepository _scoutReports = Substitute.For<IScoutReportRepository>();
 
     private const int StructureGarrisonCapacity = 50;
 
@@ -206,10 +208,17 @@ public class CompleteMarchCommandTests
             logistics, aftermath, status, heroModifiers, territory, territoryBonus, remover, _structureFalls,
             NullLogger<StructureBattleService>.Instance);
 
+        var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, heroModifiers,
+            catalog, status, _structures, _clans, territory);
+
+        var scouts = new ScoutService(_garrisons, _villages, _structures, _serverRepository, _scoutReports, _notifier,
+            targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry,
+            NullLogger<ScoutService>.Instance);
+
         return new CompleteMarchCommandHandler(
             _marches, _garrisons, _heroes, _unitOfWork, terrain,
             new FakeTimeProvider(at ?? Now),
-            logistics, monsterBattle, villageBattle, reinforcements, structureDelivery, structureBattle,
+            logistics, monsterBattle, villageBattle, reinforcements, structureDelivery, structureBattle, scouts,
             NullLogger<CompleteMarchCommandHandler>.Instance);
     }
 
@@ -760,6 +769,122 @@ public class CompleteMarchCommandTests
         _structures.DidNotReceive().Remove(Arg.Any<ClanStructure>());
         await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
         Assert.Equal(MarchState.Returning, march.State);
+    }
+
+    // ---------- Розвідка ----------
+
+    private (March March, Village Target, Garrison TargetGarrison) GivenScouts(int atX = 55, int atY = 55)
+    {
+        var catalog = new GameCatalog(Config());
+        var capacities = new VillageCapacities(catalog);
+
+        var scouter = NewVillage(catalog, PlayerId, 50, 50);
+        var target = NewVillage(catalog, Guid.NewGuid(), 55, 55);
+        target.GrantResource("food", 500, capacities.StorageCapFor(target, "food"), Now);
+
+        var scouterGarrison = new Garrison(Guid.NewGuid(), scouter.Id, 1);
+        var targetGarrison = new Garrison(Guid.NewGuid(), target.Id, 1);
+        targetGarrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, Now);
+
+        var march = new March(Guid.NewGuid(), 1, scouterGarrison.Id, heroId: null, 50, 50, atX, atY,
+            MarchTargetType.Village, target.Id, new Dictionary<UnitStackKey, int>(), Now, Now.AddMinutes(-5),
+            MarchIntent.Scout);
+
+        _marches.GetByIdAsync(march.Id, Arg.Any<CancellationToken>()).Returns(march);
+        _garrisons.GetByIdAsync(scouterGarrison.Id, Arg.Any<CancellationToken>()).Returns(scouterGarrison);
+        _villages.GetByIdAsync(scouter.Id, Arg.Any<CancellationToken>()).Returns(scouter);
+        _villages.GetByIdAsync(target.Id, Arg.Any<CancellationToken>()).Returns(target);
+        _garrisons.GetByVillageIdAsync(target.Id, Arg.Any<CancellationToken>()).Returns(targetGarrison);
+
+        return (march, target, targetGarrison);
+    }
+
+    /// <summary>
+    /// Розвідники дивляться й звітують: сила оборони — та сама, що в бою, здобич — понад
+    /// захищений запас. Нічого в цілі не змінюється, і назад розвідники не йдуть.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReportTheDefenceAndLoot_WhenScoutsArrive()
+    {
+        var (march, target, targetGarrison) = GivenScouts();
+        ScoutReport? report = null;
+        await _scoutReports.AddAsync(Arg.Do<ScoutReport>(r => report = r), Arg.Any<CancellationToken>());
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.NotNull(report);
+        Assert.Equal(ScoutOutcome.Success, report.Outcome);
+        Assert.True(report.DefencePower > 0);
+        Assert.Contains(report.Resources, r => r.ResourceType == "food" && r.Amount > 0);
+
+        // Розвідка нічого не забирає й не б'ється
+        Assert.Equal(500, target.Resources.Single(r => r.ResourceType == "food").Amount);
+        Assert.Equal(10, targetGarrison.Units.Sum(u => u.Count));
+        await _reports.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
+
+        Assert.Equal(MarchState.Completed, march.State);
+        await _notifier.Received(1).NotifyScoutReportReadyAsync(PlayerId, report.Id, target.Name, "Success",
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Ціль переселилась, поки йшли розвідники, — розвідку зірвано, даних немає.</summary>
+    [Fact]
+    public async Task Handle_ShouldFailTheScouting_WhenTheTargetMoved()
+    {
+        var (march, _, _) = GivenScouts(atX: 70, atY: 70);
+        ScoutReport? report = null;
+        await _scoutReports.AddAsync(Arg.Do<ScoutReport>(r => report = r), Arg.Any<CancellationToken>());
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.NotNull(report);
+        Assert.Equal(ScoutOutcome.TargetMoved, report.Outcome);
+        Assert.Null(report.DefencePower);
+        Assert.Empty(report.Resources);
+    }
+
+    /// <summary>Завісу накинули, поки розвідники йшли, — звіт без даних.</summary>
+    [Fact]
+    public async Task Handle_ShouldReportBlocked_WhenTheTargetVeiledOnTheWay()
+    {
+        var (march, target, _) = GivenScouts();
+        ScoutReport? report = null;
+        await _scoutReports.AddAsync(Arg.Do<ScoutReport>(r => report = r), Arg.Any<CancellationToken>());
+
+        _effects.GetAsync(target.PlayerId, EffectTarget.ScoutBlock, Arg.Any<CancellationToken>())
+            .Returns(new ActiveEffect(Guid.NewGuid(), target.PlayerId, EffectTarget.ScoutBlock, 1.0, Now.AddMinutes(-1),
+                Now.AddHours(24), "scout_veil_24h"));
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.NotNull(report);
+        Assert.Equal(ScoutOutcome.Blocked, report.Outcome);
+        Assert.Null(report.DefencePower);
+    }
+
+    /// <summary>Споруду клану теж розвідують: сила гарнізону є, здобичі немає.</summary>
+    [Fact]
+    public async Task Handle_ShouldScoutAStructure_WithoutLoot()
+    {
+        var (march, _, structure, structureGarrison) = GivenStructureMarch(MarchIntent.Attack, Guid.NewGuid(), playerClanId: null);
+        structureGarrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, StructureGarrisonCapacity, Now);
+
+        var scouts = new March(Guid.NewGuid(), 1, march.GarrisonId, heroId: null, 50, 50, structure.X, structure.Y,
+            MarchTargetType.ClanStructure, structure.Id, new Dictionary<UnitStackKey, int>(), Now, Now.AddMinutes(-5),
+            MarchIntent.Scout);
+        _marches.GetByIdAsync(scouts.Id, Arg.Any<CancellationToken>()).Returns(scouts);
+
+        ScoutReport? report = null;
+        await _scoutReports.AddAsync(Arg.Do<ScoutReport>(r => report = r), Arg.Any<CancellationToken>());
+
+        await Handler().Handle(new CompleteMarchCommand(scouts.Id), CancellationToken.None);
+
+        Assert.NotNull(report);
+        Assert.Equal(ScoutOutcome.Success, report.Outcome);
+        Assert.True(report.DefencePower > 0);
+        Assert.Empty(report.Resources);
+        Assert.Equal(10, structureGarrison.ReinforcementCount);
     }
 
     /// <summary>Перемога над монстром дає клану кешбек 5% винесеного, а гравцю нагороду не зменшує.</summary>

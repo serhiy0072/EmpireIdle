@@ -78,9 +78,14 @@ namespace EmpireIdle.API.Hubs
         public Task NotifyAttackIncomingAsync(IReadOnlyCollection<Guid> playerIds, IncomingAttack attack,
             CancellationToken cancellationToken = default)
             => Players(playerIds).AttackIncoming(new AttackIncomingEvent(
-                attack.MarchId, attack.TargetType.ToString(), attack.TargetId, attack.TargetName,
+                attack.MarchId, attack.Intent.ToString(), attack.TargetType.ToString(), attack.TargetId, attack.TargetName,
                 attack.TargetX, attack.TargetY, attack.FromX, attack.FromY,
                 attack.AttackerName, attack.AttackerClanTag, attack.DepartedAt, attack.ArrivesAt));
+
+        /// <inheritdoc/>
+        public Task NotifyScoutReportReadyAsync(Guid playerId, Guid reportId, string targetName, string outcome,
+            CancellationToken cancellationToken = default)
+            => Player(playerId).ScoutReportReady(new ScoutReportReadyEvent(reportId, targetName, outcome));
 
         /// <inheritdoc/>
         public Task NotifyAttackCalledOffAsync(IReadOnlyCollection<Guid> playerIds, Guid marchId,

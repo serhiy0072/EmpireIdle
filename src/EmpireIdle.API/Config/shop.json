@@ -63,6 +63,11 @@
           "MaxPerPurchase": 10
         },
         {
+          "ItemKey": "scout_veil_24h",
+          "PriceGems": 100,
+          "MaxPerPurchase": 5
+        },
+        {
           "ItemKey": "teleport",
           "PriceGems": 500,
           "MaxPerPurchase": 1

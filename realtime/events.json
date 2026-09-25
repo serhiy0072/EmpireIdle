@@ -9,6 +9,7 @@
     "departedAt",
     "fromX",
     "fromY",
+    "intent",
     "marchId",
     "targetId",
     "targetName",
@@ -51,6 +52,11 @@
   ],
   "MarchReturned": [
     "marchId"
+  ],
+  "ScoutReportReady": [
+    "outcome",
+    "reportId",
+    "targetName"
   ],
   "ServerQuestRewarded": [
     "contribution",

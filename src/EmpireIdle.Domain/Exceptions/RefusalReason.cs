@@ -80,6 +80,14 @@
         /// <summary>Прискорення прийшло, коли таймер уже добіг кінця.</summary>
         public static readonly RefusalReason BuildingAlreadyCompleted = new("building.alreadyCompleted");
 
+        // ---------- Розвідка ----------
+
+        /// <summary>У цілі діє завіса від розвідки. Строк свідомо не розкривається.</summary>
+        public static readonly RefusalReason ScoutBlocked = new("scout.blocked");
+
+        /// <summary>Своє село й споруди свого клану розвідувати нема сенсу.</summary>
+        public static readonly RefusalReason ScoutOwnTarget = new("scout.ownTarget");
+
         // ---------- Прискорення ----------
 
         /// <summary>До кінця таймера лишилось не більше межі: прискорювати нічого, треба дочекатись; seconds — межа.</summary>

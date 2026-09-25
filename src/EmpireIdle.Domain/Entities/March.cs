@@ -88,12 +88,16 @@ namespace EmpireIdle.Domain.Entities
             foreach (var (stack, count) in units)
                 _units.Add(new MarchUnit(Guid.NewGuid(), id, stack.UnitType, stack.Level, count));
 
-            // Напад на того, хто захищається, — тривога захисникові й клану ще до прибуття
-            if (intent == MarchIntent.Attack && targetType != MarchTargetType.Monster)
+            // Напад чи розвідка того, хто захищається, — тривога захисникові й клану ще до прибуття
+            if (IsHostileToPlayers)
                 RaiseDomainEvent(new HostileMarchLaunched(id, targetType, targetId, arrivesAt, departedAt));
         }
 
         protected March() { } // Для EF Core
+
+        /// <summary>Напад або розвідка гравця чи споруди клану — те, про що тривожать захисників.</summary>
+        public bool IsHostileToPlayers
+            => Intent != MarchIntent.Reinforce && TargetType != MarchTargetType.Monster;
 
         /// <summary>
         /// Похід, що одразу вирушає додому: підкріплення, зняте з чужого
@@ -180,7 +184,7 @@ namespace EmpireIdle.Domain.Entities
             LegStartedAt = utcNow;
 
             // Напад зірвано ще в дорозі — захисники мають зняти тривогу, а не чекати прибуття
-            if (Intent == MarchIntent.Attack && TargetType != MarchTargetType.Monster)
+            if (IsHostileToPlayers)
                 RaiseDomainEvent(new HostileMarchCalledOff(Id, TargetType, TargetId, utcNow));
 
             Touch(utcNow);
@@ -194,6 +198,20 @@ namespace EmpireIdle.Domain.Entities
         {
             if (State != MarchState.Outbound)
                 throw new InvalidStateException($"March {Id} is not outbound.");
+
+            State = MarchState.Completed;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Розвідники дійшли й подивились: звіт складено на місці, назад вони не йдуть —
+        /// ні юнітів, ні героя в марші немає.
+        /// </summary>
+        public void FinishScouting(DateTime utcNow)
+        {
+            if (Intent != MarchIntent.Scout || State != MarchState.Outbound)
+                throw new InvalidStateException($"March {Id} is not an outbound scout march.");
 
             State = MarchState.Completed;
 

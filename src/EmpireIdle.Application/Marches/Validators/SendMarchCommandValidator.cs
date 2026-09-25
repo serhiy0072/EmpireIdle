@@ -14,6 +14,10 @@ namespace EmpireIdle.Application.Marches.Validators
             RuleFor(x => x.Units).NotEmpty();
             RuleFor(x => x.Intent).IsInEnum();
 
+            // Розвідники йдуть окремою командою: без героя й юнітів, зі своїми правилами
+            RuleFor(x => x.Intent).NotEqual(MarchIntent.Scout)
+                .WithMessage("Scouts are sent with SendScoutCommand.");
+
             // У монстра гарнізону немає — підкріпляти нікого. Споруду клану
             // «підкріплюють», щоб будувати й тримати гарнізон
             RuleFor(x => x.TargetType)

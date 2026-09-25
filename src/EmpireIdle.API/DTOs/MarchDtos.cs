@@ -39,7 +39,7 @@ public record MarchResponse(
 public record MarchUnitResponse(string UnitType, int Level, int Count);
 
 /// <summary>
-/// Ворожий марш у дорозі на село гравця, соклановця чи споруду клану.
+/// Ворожий марш у дорозі на село гравця, соклановця чи споруду клану: напад (Attack) чи розвідка (Scout).
 /// Від DepartedAt до ArrivesAt клієнт веде загін прямою від (FromX, FromY) до цілі.
 /// </summary>
 /// <param name="TargetName">Назва села або тег клану-власника споруди; null — ціль зникла.</param>
@@ -47,6 +47,7 @@ public record MarchUnitResponse(string UnitType, int Level, int Count);
 /// <param name="AttackerClanTag">null — нападник поза кланом.</param>
 public record IncomingAttackResponse(
     Guid MarchId,
+    MarchIntent Intent,
     MarchTargetType TargetType,
     Guid TargetId,
     string? TargetName,
@@ -59,3 +60,24 @@ public record IncomingAttackResponse(
     string? AttackerClanTag,
     DateTime DepartedAt,
     DateTime ArrivesAt);
+
+/// <summary>Куди відправити розвідників: чуже село чи споруда клану.</summary>
+public record SendScoutRequest(MarchTargetType TargetType, Guid TargetId);
+
+/// <summary>
+/// Звіт розвідки. Outcome — "Success", "Blocked", "TargetMoved" або "TargetGone";
+/// DefencePower і Lootable — лише в успішного звіту.
+/// </summary>
+/// <param name="DefencePower">Сила оборони з усіма бонусами: бусти, територія клану, лідери гарнізону.</param>
+/// <param name="Lootable">Що можна винести за ключем ресурсу; порожньо для споруди.</param>
+public record ScoutReportResponse(
+    Guid Id,
+    MarchTargetType TargetType,
+    Guid TargetId,
+    string TargetName,
+    int X,
+    int Y,
+    string Outcome,
+    double? DefencePower,
+    Dictionary<string, int> Lootable,
+    DateTime CreatedAt);

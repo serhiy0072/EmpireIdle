@@ -77,6 +77,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "building.underConstruction": () => "Ця будівля вже будується",
   "building.alreadyCompleted": () => "Будівництво вже завершено",
 
+  // ---------- Розвідка ----------
+  "scout.blocked": () => "Село ховається від розвідки — розвідники нічого не побачать",
+  "scout.ownTarget": () => "Своє село й споруди свого клану розвідувати не треба",
+
   // ---------- Прискорення ----------
   "speedup.atFloor": ({ seconds }) => `До кінця ${seconds} с або менше — прискорити вже не можна, зачекайте`,
 

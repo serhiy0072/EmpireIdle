@@ -64,12 +64,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<IncomingAttack?> GetIncomingAttackAsync(Guid marchId, CancellationToken cancellationToken = default)
             => Project(Hostile().Where(m => m.Id == marchId)).FirstOrDefaultAsync(cancellationToken);
 
-        /// <summary>Напади в дорозі: на монстрів тривог немає, повернення й підкріплення — не загроза.</summary>
+        /// <summary>
+        /// Напади й розвідка в дорозі: на монстрів тривог немає, повернення й підкріплення — не загроза.
+        /// Та сама умова, що й March.IsHostileToPlayers, — у SQL-формі.
+        /// </summary>
         private IQueryable<March> Hostile()
             => _context.Marches
             .AsNoTracking()
             .Where(m => m.State == MarchState.Outbound
-                && m.Intent == MarchIntent.Attack
+                && m.Intent != MarchIntent.Reinforce
                 && m.TargetType != MarchTargetType.Monster);
 
         /// <summary>
@@ -85,6 +88,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                let targetStructure = _context.ClanStructures.FirstOrDefault(s => s.Id == m.TargetId)
                select new IncomingAttack(
                    m.Id,
+                   m.Intent,
                    m.TargetType,
                    m.TargetId,
                    m.TargetType == MarchTargetType.Village

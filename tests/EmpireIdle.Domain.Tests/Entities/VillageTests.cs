@@ -508,6 +508,31 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(40, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
+        /// <summary>
+        /// Розвідка бачить рівно те, що забрав би грабунок без стелі вантажу: буфер будівлі
+        /// повністю й склад понад запас. І нічого при цьому не змінює.
+        /// </summary>
+        [Fact]
+        public void Lootable_ShouldMatchAnUncappedPlunder_WithoutTouchingTheVillage()
+        {
+            var configs = PlunderConfigs();
+            var village = VillageWithStoredFood(100, configs);
+            village.AddBuilding(TestKit.TestKeys.Farm, configs, TestKit.Entities.Now);
+
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+            var at = farm.LastAccruedAt.AddMinutes(5);
+            var plunder = Plunderer(configs);
+
+            var lootable = plunder.Lootable(village, ProductionBoost.None, 1.0, at);
+
+            Assert.Equal(0, farm.AccruedAmount);
+            Assert.Equal(100, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
+
+            var taken = plunder.Plunder(village, carryCapacity: int.MaxValue, ProductionBoost.None, 1.0, at);
+
+            Assert.Equal(taken, lootable);
+        }
+
         /// <summary>Вантажопідйомність — стеля: решта лишається в селі.</summary>
         [Fact]
         public void Plunder_ShouldStopAtCarryCapacity()

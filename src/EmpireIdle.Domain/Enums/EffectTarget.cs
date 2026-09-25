@@ -10,6 +10,9 @@ namespace EmpireIdle.Domain.Enums
         Attack = 2,
 
         /// <summary>Сила захисту в бою.</summary>
-        Defense = 3
+        Defense = 3,
+
+        /// <summary>Приховує село від розвідки, поки діє. Множника не має.</summary>
+        ScoutBlock = 4
     }
 }

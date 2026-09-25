@@ -34,6 +34,8 @@ namespace EmpireIdle.API.Hubs
 
         Task AttackCalledOff(AttackCalledOffEvent payload);
 
+        Task ScoutReportReady(ScoutReportReadyEvent payload);
+
         Task StructureDestroyed(StructureDestroyedEvent payload);
     }
 }
