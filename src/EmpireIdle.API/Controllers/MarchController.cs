@@ -33,7 +33,7 @@ namespace EmpireIdle.API.Controllers
             var response = marches
                 .Select(m => new MarchResponse(
                     m.Id, m.TargetType, m.TargetId, m.TargetName, m.TargetLevel, m.TargetX, m.TargetY, m.Intent, m.State,
-                    m.HeroId, m.DepartedAt, m.ArrivesAt,
+                    m.HeroId, m.DepartedAt, m.LegStartedAt, m.ArrivesAt,
                     m.Units.Select(u => new MarchUnitResponse(u.UnitType, u.Level, u.Count)).ToList(),
                     m.SpeedUpCostGems))
                 .ToList();

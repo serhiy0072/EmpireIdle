@@ -29,6 +29,8 @@ public class MailboxTests
     private readonly IClanRequestRepository _requests = Substitute.For<IClanRequestRepository>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
+    private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
+    private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
@@ -36,7 +38,7 @@ public class MailboxTests
 
     public MailboxTests() => _serverContext.ServerId.Returns(1);
 
-    private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, _falls, new FakeTimeProvider(Now));
+    private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, _falls, _structureFalls, new FakeTimeProvider(Now));
 
     // ---------- Лист із події ----------
 
@@ -162,6 +164,48 @@ public class MailboxTests
 
         Assert.Null(view.ClanInvite);
         Assert.Equal(new CityFallLetterView("Вовчий кут", 10, 12, 40, 44, Now.AddHours(24)), view.CityFall);
+    }
+
+    // ---------- Зруйнована споруда клану ----------
+
+    /// <summary>Лист отримує кожен учасник клану: слот і бонус зникли для всіх, а не лише для тих, хто був у грі.</summary>
+    [Fact]
+    public async Task StructureFall_ShouldPutALetterToEveryClanMember()
+    {
+        var clanId = Guid.NewGuid();
+        IReadOnlyList<Guid> members = [PlayerId, Guid.NewGuid(), Guid.NewGuid()];
+        var added = new List<MailLetter>();
+        var fallId = Guid.NewGuid();
+
+        _players.GetIdsByClanAsync(clanId, Arg.Any<CancellationToken>()).Returns(members);
+        await _mail.AddLetterAsync(Arg.Do<MailLetter>(added.Add), Arg.Any<CancellationToken>());
+
+        await new StructureFallMailHandler(_mail, _players, _serverContext, _unitOfWork, _notifier, _catalog).Handle(
+            new DomainEventNotification<ClanStructureFell>(new ClanStructureFell(fallId, clanId, Now)),
+            CancellationToken.None);
+
+        Assert.Equal(members, added.Select(l => l.PlayerId));
+        Assert.All(added, l => Assert.Equal((MailKind.StructureFall, (Guid?)fallId), (l.Kind, l.ReferenceId)));
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _notifier.Received(3).NotifyMailAsync(Arg.Any<Guid>(), "StructureFall", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Mailbox_ShouldDescribeTheStructureFall()
+    {
+        var structure = new ClanStructure(Guid.NewGuid(), 1, Guid.NewGuid(), 30, 31, Guid.NewGuid(), Guid.NewGuid(), TimeSpan.Zero, Now);
+        var fall = new StructureFall(Guid.NewGuid(), 1, structure, Guid.NewGuid(), "Вовчий кут", Now);
+        var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.StructureFall, fall.Id, Now, TimeSpan.FromDays(14));
+
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
+        _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+        _structureFalls.GetByIdAsync(fall.Id, Arg.Any<CancellationToken>()).Returns(fall);
+
+        var view = Assert.Single((await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None)).Letters);
+
+        Assert.Null(view.CityFall);
+        Assert.Equal(new StructureFallLetterView("Вовчий кут", 30, 31, Now), view.StructureFall);
     }
 
     // ---------- Прочитання ----------

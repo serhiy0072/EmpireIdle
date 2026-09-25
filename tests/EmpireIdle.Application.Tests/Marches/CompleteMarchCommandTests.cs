@@ -43,6 +43,7 @@ public class CompleteMarchCommandTests
     private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
+    private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
 
     private const int StructureGarrisonCapacity = 50;
 
@@ -202,7 +203,7 @@ public class CompleteMarchCommandTests
 
         var structureBattle = new StructureBattleService(
             _garrisons, _villages, _heroes, _clans, _structures, _random, resolver, new DefenceLossAllocator(), effects,
-            logistics, aftermath, status, heroModifiers, territory, territoryBonus, remover,
+            logistics, aftermath, status, heroModifiers, territory, territoryBonus, remover, _structureFalls,
             NullLogger<StructureBattleService>.Instance);
 
         return new CompleteMarchCommandHandler(
@@ -706,7 +707,45 @@ public class CompleteMarchCommandTests
         _structures.Received(1).Remove(structure);
         _garrisons.Received(1).Remove(structureGarrison);
         Assert.Contains(structure.DomainEvents, e => e is ClanStructureDestroyed);
+        await _structureFalls.Received(1).AddAsync(
+            Arg.Is<StructureFall>(f => f.StructureId == structure.Id && f.X == structure.X && f.AttackerPlayerId == PlayerId),
+            Arg.Any<CancellationToken>());
         Assert.Equal(MarchState.Returning, march.State);
+    }
+
+    /// <summary>
+    /// Бій за споруду: кожен, хто стояв у гарнізоні, отримує свій звіт і сповіщення —
+    /// господаря немає, і без звіту про оборону не знав би ніхто. Нападник — свій звіт.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReportTheStructureBattle_ToEveryContributor()
+    {
+        var catalog = new GameCatalog(Config());
+        var (march, _, _, structureGarrison) = GivenStructureMarch(MarchIntent.Attack, Guid.NewGuid(), playerClanId: null, infantry: 30);
+
+        var contributors = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        foreach (var (owner, i) in contributors.Select((o, i) => (o, i)))
+        {
+            var home = NewVillage(catalog, owner, 60 + i, 60);
+            var homeGarrison = new Garrison(Guid.NewGuid(), home.Id, 1);
+
+            structureGarrison.AddReinforcements(owner, homeGarrison.Id,
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, StructureGarrisonCapacity, Now);
+
+            _villages.GetByPlayerIdAsync(owner, Arg.Any<CancellationToken>()).Returns(home);
+            _garrisons.GetByVillageIdAsync(home.Id, Arg.Any<CancellationToken>()).Returns(homeGarrison);
+        }
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        foreach (var owner in contributors)
+        {
+            await _reports.Received(1).AddAsync(Arg.Is<BattleReport>(r => r.PlayerId == owner), Arg.Any<CancellationToken>());
+            await _notifier.Received(1).NotifyBattleFinishedAsync(owner, Arg.Any<Guid>(), Arg.Any<bool>(),
+                Arg.Any<string>(), Arg.Any<CancellationToken>());
+        }
+
+        await _reports.Received(1).AddAsync(Arg.Is<BattleReport>(r => r.PlayerId == PlayerId), Arg.Any<CancellationToken>());
     }
 
     /// <summary>Нападник устиг вступити до клану споруди — свою він не руйнує, а розвертається.</summary>

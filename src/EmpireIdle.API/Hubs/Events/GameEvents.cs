@@ -35,6 +35,9 @@ namespace EmpireIdle.API.Hubs.Events
         int TargetX, int TargetY, int FromX, int FromY, string AttackerName, string? AttackerClanTag,
         DateTime DepartedAt, DateTime ArrivesAt);
 
+    /// <summary>Ворожий марш розвернувся, не дійшовши: зняти тривогу й прибрати його з мапи.</summary>
+    public record AttackCalledOffEvent(Guid MarchId);
+
     /// <summary>Кланову споруду зруйновано: слот вільний, бонус у її радіусі зник.</summary>
     public record StructureDestroyedEvent(Guid StructureId, int X, int Y);
 

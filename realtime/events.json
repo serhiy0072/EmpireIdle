@@ -1,4 +1,7 @@
 {
+  "AttackCalledOff": [
+    "marchId"
+  ],
   "AttackIncoming": [
     "arrivesAt",
     "attackerClanTag",

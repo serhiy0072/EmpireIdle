@@ -47,6 +47,13 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime DepartedAt { get; private set; }
 
+        /// <summary>
+        /// Коли почалась поточна нога: вихід до цілі або розворот додому. Від неї
+        /// до ArrivesAt клієнт веде загін по прямій — DepartedAt для зворотної ноги
+        /// не годиться, він лишається моментом першого виходу.
+        /// </summary>
+        public DateTime LegStartedAt { get; private set; }
+
         /// <summary>Склад армії (тільки для читання).</summary>
         public IReadOnlyCollection<MarchUnit> Units => _units.AsReadOnly();
 
@@ -75,6 +82,7 @@ namespace EmpireIdle.Domain.Entities
             State = MarchState.Outbound;
             ArrivesAt = arrivesAt;
             DepartedAt = departedAt;
+            LegStartedAt = departedAt;
             Intent = intent;
 
             foreach (var (stack, count) in units)
@@ -146,6 +154,7 @@ namespace EmpireIdle.Domain.Entities
 
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
+            LegStartedAt = utcNow;
 
             Touch(utcNow);
         }
@@ -168,6 +177,11 @@ namespace EmpireIdle.Domain.Entities
             OriginY = originY;
             State = MarchState.Returning;
             ArrivesAt = utcNow + travelled;
+            LegStartedAt = utcNow;
+
+            // Напад зірвано ще в дорозі — захисники мають зняти тривогу, а не чекати прибуття
+            if (Intent == MarchIntent.Attack && TargetType != MarchTargetType.Monster)
+                RaiseDomainEvent(new HostileMarchCalledOff(Id, TargetType, TargetId, utcNow));
 
             Touch(utcNow);
         }

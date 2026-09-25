@@ -16,15 +16,17 @@ namespace EmpireIdle.Application.Mail.Queries
         private readonly IClanRequestRepository _requests;
         private readonly IClanRepository _clans;
         private readonly IVillageFallRepository _falls;
+        private readonly IStructureFallRepository _structureFalls;
         private readonly TimeProvider _timeProvider;
 
         public GetMailboxQueryHandler(IMailRepository mail, IClanRequestRepository requests, IClanRepository clans,
-            IVillageFallRepository falls, TimeProvider timeProvider)
+            IVillageFallRepository falls, IStructureFallRepository structureFalls, TimeProvider timeProvider)
         {
             _mail = mail;
             _requests = requests;
             _clans = clans;
             _falls = falls;
+            _structureFalls = structureFalls;
             _timeProvider = timeProvider;
         }
 
@@ -40,6 +42,7 @@ namespace EmpireIdle.Application.Mail.Queries
                     letter.IsRead,
                     letter.Kind == MailKind.ClanInvite ? await InviteAsync(letter, now, cancellationToken) : null,
                     letter.Kind == MailKind.CityFall ? await FallAsync(letter, cancellationToken) : null,
+                    letter.Kind == MailKind.StructureFall ? await StructureFallAsync(letter, cancellationToken) : null,
                     letter.Rewards.Select(r => new MailRewardView(r.Type, r.Key, r.Amount)).ToList(),
                     letter.Sequence, letter.ClaimedAt, letter.CanClaimAt(now)));
 
@@ -59,6 +62,11 @@ namespace EmpireIdle.Application.Mail.Queries
         private async Task<CityFallLetterView?> FallAsync(MailLetter letter, CancellationToken cancellationToken)
             => letter.ReferenceId is { } fallId && await _falls.GetByIdAsync(fallId, cancellationToken) is { } fall
                 ? new CityFallLetterView(fall.AttackerVillageName, fall.FromX, fall.FromY, fall.ToX, fall.ToY, fall.ShieldUntil)
+                : null;
+
+        private async Task<StructureFallLetterView?> StructureFallAsync(MailLetter letter, CancellationToken cancellationToken)
+            => letter.ReferenceId is { } fallId && await _structureFalls.GetByIdAsync(fallId, cancellationToken) is { } fall
+                ? new StructureFallLetterView(fall.AttackerVillageName, fall.X, fall.Y, fall.OccurredAt)
                 : null;
 
         /// <summary>

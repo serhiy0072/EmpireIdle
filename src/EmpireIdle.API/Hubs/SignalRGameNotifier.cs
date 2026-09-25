@@ -83,6 +83,11 @@ namespace EmpireIdle.API.Hubs
                 attack.AttackerName, attack.AttackerClanTag, attack.DepartedAt, attack.ArrivesAt));
 
         /// <inheritdoc/>
+        public Task NotifyAttackCalledOffAsync(IReadOnlyCollection<Guid> playerIds, Guid marchId,
+            CancellationToken cancellationToken = default)
+            => Players(playerIds).AttackCalledOff(new AttackCalledOffEvent(marchId));
+
+        /// <inheritdoc/>
         public Task NotifyStructureDestroyedAsync(IReadOnlyCollection<Guid> playerIds, Guid structureId, int x, int y,
             CancellationToken cancellationToken = default)
             => Players(playerIds).StructureDestroyed(new StructureDestroyedEvent(structureId, x, y));

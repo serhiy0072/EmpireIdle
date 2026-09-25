@@ -16,7 +16,7 @@ public record SendMarchRequest(
 /// <summary>
 /// Активний похід. TargetName null — ціль уже зникла з мапи (монстра вбили,
 /// село покинули), а армія ще повертається. TargetLevel — рівень монстра;
-/// у села null.
+/// у села null. LegStartedAt — початок поточної ноги (до цілі чи додому): від нього клієнт веде загін.
 /// </summary>
 public record MarchResponse(
     Guid Id,
@@ -30,6 +30,7 @@ public record MarchResponse(
     MarchState State,
     Guid? HeroId,
     DateTime DepartedAt,
+    DateTime LegStartedAt,
     DateTime ArrivesAt,
     List<MarchUnitResponse> Units,
     int SpeedUpCostGems);

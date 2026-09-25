@@ -10124,6 +10124,9 @@
           "cityFall": {
             "$ref": "#/components/schemas/CityFallLetterView"
           },
+          "structureFall": {
+            "$ref": "#/components/schemas/StructureFallLetterView"
+          },
           "rewards": {
             "type": "array",
             "items": {
@@ -10396,6 +10399,7 @@
           "departedAt",
           "id",
           "intent",
+          "legStartedAt",
           "speedUpCostGems",
           "state",
           "targetId",
@@ -10446,6 +10450,10 @@
             "nullable": true
           },
           "departedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "legStartedAt": {
             "type": "string",
             "format": "date-time"
           },
@@ -11499,6 +11507,33 @@
           "turnsLeft": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StructureFallLetterView": {
+        "required": [
+          "attackerName",
+          "occurredAt",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "attackerName": {
+            "type": "string"
+          },
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "additionalProperties": false

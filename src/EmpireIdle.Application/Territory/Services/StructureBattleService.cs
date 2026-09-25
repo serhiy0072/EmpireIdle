@@ -33,6 +33,7 @@ namespace EmpireIdle.Application.Territory.Services
         private readonly ClanTerritoryRules _rules;
         private readonly TerritoryBonus _territoryBonus;
         private readonly ClanStructureRemover _remover;
+        private readonly IStructureFallRepository _falls;
         private readonly ILogger<StructureBattleService> _logger;
 
         public StructureBattleService(
@@ -52,6 +53,7 @@ namespace EmpireIdle.Application.Territory.Services
             ClanTerritoryRules rules,
             TerritoryBonus territoryBonus,
             ClanStructureRemover remover,
+            IStructureFallRepository falls,
             ILogger<StructureBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -70,6 +72,7 @@ namespace EmpireIdle.Application.Territory.Services
             _rules = rules;
             _territoryBonus = territoryBonus;
             _remover = remover;
+            _falls = falls;
             _logger = logger;
         }
 
@@ -132,18 +135,23 @@ namespace EmpireIdle.Application.Territory.Services
             var defenderLosses = _lossAllocator.Allocate(defence, result.DefenderLosses, defenceBuffs);
             defenderGarrison.ApplyDefenceLosses(defenderLosses, utcNow);
 
-            // Власника-господаря немає: усі стеки — союзні, після поразки всі йдуть додому
-            await _aftermath.AdmitAlliedWoundedAsync(defenderLosses, defenderGarrison, Guid.Empty,
-                result.AttackerWon, seed, utcNow, cancellationToken);
-
             var clan = await _clanRepository.GetCardAsync(structure.ClanId, cancellationToken);
 
             await _aftermath.RecordAttackerAsync(march, attackerVillage, attackerGarrison,
                 clan?.Tag ?? string.Empty, 0, attackerArmy, outcome, terrain, seed, utcNow, cancellationToken);
 
+            // Власника-господаря немає: кожен, хто стояв у гарнізоні, отримує свій звіт,
+            // а після поразки всі йдуть додому
+            await _aftermath.RecordStructureDefenceAsync(march, structure, defenderGarrison, attackerVillage,
+                defence, defenderLosses, result, terrain, seed, utcNow, cancellationToken);
+
             if (result.AttackerWon)
             {
                 structure.MarkDestroyed(utcNow);
+
+                // Запис у історію — на нього посилатимуться листи учасникам клану
+                await _falls.AddAsync(new StructureFall(Guid.NewGuid(), structure.ServerId, structure,
+                    attackerVillage.PlayerId, attackerVillage.Name, utcNow), cancellationToken);
                 await _remover.RemoveAsync(structure, utcNow, cancellationToken);
             }
 

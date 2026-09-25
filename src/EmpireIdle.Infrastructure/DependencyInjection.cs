@@ -86,6 +86,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IMailRepository, MailRepository>();
             services.AddScoped<IVillageFallRepository, VillageFallRepository>();
+            services.AddScoped<IStructureFallRepository, StructureFallRepository>();
             services.AddScoped<ILoginRewardRepository, LoginRewardRepository>();
             services.AddSingleton<ITranslator, NoTranslator>();
 
@@ -104,6 +105,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<TerritoryBonus>();
             services.AddScoped<StructureReinforcementDelivery>();
             services.AddScoped<StructureBattleService>();
+            services.AddScoped<DefenderAudience>();
             services.AddScoped<MarchLogistics>();
             services.AddScoped<ReinforcementDelivery>();
             services.AddScoped<VillageBattleService>();

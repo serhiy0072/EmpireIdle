@@ -73,6 +73,7 @@ namespace EmpireIdle.Application.Marches.Queries
                     march.State,
                     march.HeroId,
                     march.DepartedAt,
+                    march.LegStartedAt,
                     march.ArrivesAt,
                     march.Units.Select(u => new MarchUnitView(u.UnitType, u.Level, u.Count)).ToList(),
                     _calculator.GetCost(march.ArrivesAt, now)));

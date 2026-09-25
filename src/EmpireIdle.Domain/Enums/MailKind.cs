@@ -20,6 +20,9 @@ namespace EmpireIdle.Domain.Enums
         WeeklyReward = 4,
 
         /// <summary>Щомісячна нагорода за вхід.</summary>
-        MonthlyReward = 5
+        MonthlyReward = 5,
+
+        /// <summary>Зруйновано споруду клану; ReferenceId — StructureFall.</summary>
+        StructureFall = 6
     }
 }

@@ -19,6 +19,7 @@ namespace EmpireIdle.Application.Marches.ReadModels
         MarchState State,
         Guid? HeroId,
         DateTime DepartedAt,
+        DateTime LegStartedAt,
         DateTime ArrivesAt,
         List<MarchUnitView> Units,
         int SpeedUpCostGems);

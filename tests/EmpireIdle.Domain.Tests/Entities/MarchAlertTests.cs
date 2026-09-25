@@ -61,4 +61,41 @@ public class MarchAlertTests
 
         Assert.Empty(march.DomainEvents);
     }
+
+    /// <summary>Поселення нападника переїхало — напад зірвано, захисники мають зняти тривогу.</summary>
+    [Fact]
+    public void RecallAfterRelocation_OfAnAttack_ShouldRaiseHostileMarchCalledOff()
+    {
+        var targetId = Guid.NewGuid();
+        var march = Send(MarchTargetType.Village, MarchIntent.Attack, targetId);
+        march.ClearDomainEvents();
+
+        march.RecallAfterRelocation(1, 1, Now.AddMinutes(5));
+
+        var calledOff = Assert.IsType<HostileMarchCalledOff>(Assert.Single(march.DomainEvents));
+        Assert.Equal(march.Id, calledOff.MarchId);
+        Assert.Equal(targetId, calledOff.TargetId);
+    }
+
+    [Fact]
+    public void RecallAfterRelocation_OfAMonsterHunt_ShouldRaiseNothing()
+    {
+        var march = Send(MarchTargetType.Monster, MarchIntent.Attack, Guid.NewGuid());
+
+        march.RecallAfterRelocation(1, 1, Now.AddMinutes(5));
+
+        Assert.Empty(march.DomainEvents);
+    }
+
+    /// <summary>Нога починається з виходу, а з розворотом — заново: від неї клієнт веде загін.</summary>
+    [Fact]
+    public void LegStartedAt_ShouldRestart_WhenTheMarchTurnsBack()
+    {
+        var march = Send(MarchTargetType.Monster, MarchIntent.Attack, Guid.NewGuid());
+        Assert.Equal(Now, march.LegStartedAt);
+
+        march.TurnBack(TimeSpan.FromMinutes(20), Now.AddMinutes(20));
+
+        Assert.Equal(Now.AddMinutes(20), march.LegStartedAt);
+    }
 }
