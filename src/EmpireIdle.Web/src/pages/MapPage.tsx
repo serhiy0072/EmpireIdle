@@ -72,17 +72,17 @@ export default function MapPage() {
   const changeView = useCallback((next: MapView) => setView(next), []);
   const cell = useMapCell(selected?.x ?? null, selected?.y ?? null);
 
-  // Свої марші йдуть від дому; повернення — назад, але старт зворотної ноги невідомий,
-  // тож загін не рухаємо. Ворожі — від поселення нападника, з відомим стартом
+  // Свої марші йдуть від дому, повернення — назад до нього; обидві ноги ведемо від legStartedAt.
+  // Ворожі — від поселення нападника
   const mapMarches = useMemo<MapMarch[]>(() => {
     if (home === null) return [];
 
     const own = (marches.data ?? []).map((march) =>
       march.state === MARCH_STATE.returning
         ? { id: march.id, fromX: march.targetX, fromY: march.targetY, toX: home.x, toY: home.y,
-            departedAt: null, arrivesAt: march.arrivesAt, hostile: false }
+            departedAt: march.legStartedAt, arrivesAt: march.arrivesAt, hostile: false }
         : { id: march.id, fromX: home.x, fromY: home.y, toX: march.targetX, toY: march.targetY,
-            departedAt: march.departedAt, arrivesAt: march.arrivesAt, hostile: false },
+            departedAt: march.legStartedAt, arrivesAt: march.arrivesAt, hostile: false },
     );
     const hostile = (incoming.data ?? []).map((attack) => ({
       id: attack.marchId, fromX: attack.fromX, fromY: attack.fromY, toX: attack.targetX, toY: attack.targetY,

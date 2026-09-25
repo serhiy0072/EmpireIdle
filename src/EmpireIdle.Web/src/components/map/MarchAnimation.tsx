@@ -3,7 +3,7 @@ import { at } from "../../lib/iso";
 import { formatRemaining } from "../../lib/time";
 import { cellOrigin } from "./worldTiles";
 
-/** Один марш на мапі: звідки, куди й коли. departedAt null — старт ноги невідомий, загін не рухаємо. */
+/** Один марш на мапі: звідки, куди й коли. departedAt — початок поточної ноги; null — невідомий, загін не рухаємо. */
 export interface MapMarch {
   id: string;
   fromX: number;

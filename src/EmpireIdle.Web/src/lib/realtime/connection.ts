@@ -59,6 +59,7 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
     ChatMessage: [queryKeys.chatConversations(playerId)],
     // Новий ворожий марш — на мапу; зруйнована споруда зникає з мапи й звільняє слот
     AttackIncoming: [queryKeys.incoming(playerId)],
+    AttackCalledOff: [queryKeys.incoming(playerId)],
     StructureDestroyed: [queryKeys.territory(playerId), queryKeys.incoming(playerId), ["map"]],
   };
 

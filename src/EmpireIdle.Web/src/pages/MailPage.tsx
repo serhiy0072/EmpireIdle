@@ -68,6 +68,35 @@ function CityFallLetter({ letter, onOpen }: Omit<LetterProps, "playerId">) {
   );
 }
 
+/** Лист про зруйновану споруду клану: де стояла й хто зруйнував (GDD §7.2). */
+function StructureFallLetter({ letter, onOpen }: Omit<LetterProps, "playerId">) {
+  const fall = letter.structureFall;
+
+  return (
+    <li
+      className="space-y-1 rounded-xl border border-rose-200 bg-white p-3"
+      onMouseEnter={() => !letter.isRead && onOpen()}
+      onClick={() => !letter.isRead && onOpen()}
+    >
+      <div className="flex items-baseline justify-between gap-2 text-sm">
+        <span className="font-medium text-slate-800">
+          {!letter.isRead && unreadDot}
+          Споруду клану зруйновано
+        </span>
+        <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
+      </div>
+      {fall == null ? (
+        <p className="text-sm text-slate-500">Подробиці вже недоступні.</p>
+      ) : (
+        <p className="text-sm text-slate-700">
+          {fall.attackerName} зруйнував споруду клану на ({fall.x}, {fall.y}). Слот звільнено, бонус території в її
+          радіусі зник — споруду можна закласти знову.
+        </p>
+      )}
+    </li>
+  );
+}
+
 /**
  * Лист-запрошення за теперішнім станом запрошення: кнопки лише в того,
  * що ще чекає. Після дії лист лишається — як історія (GDD §7.4).
@@ -228,6 +257,8 @@ export default function MailPage() {
                 />
               ) : letter.kind === "CityFall" ? (
                 <CityFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
+              ) : letter.kind === "StructureFall" ? (
+                <StructureFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
               ) : (
                 <InviteLetter
                   key={letter.id}

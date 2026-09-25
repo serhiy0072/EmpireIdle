@@ -89,6 +89,11 @@ export interface AttackIncomingEvent {
   arrivesAt: string;
 }
 
+/** Ворожий марш розвернувся, не дійшовши: тривогу знято. */
+export interface AttackCalledOffEvent {
+  marchId: string;
+}
+
 /** Кланову споруду зруйновано: слот вільний, бонус у її радіусі зник. */
 export interface StructureDestroyedEvent {
   structureId: string;
@@ -107,6 +112,7 @@ export interface GameEvents {
   ChatMessage: ChatMessageEvent;
   MailReceived: MailReceivedEvent;
   AttackIncoming: AttackIncomingEvent;
+  AttackCalledOff: AttackCalledOffEvent;
   StructureDestroyed: StructureDestroyedEvent;
 }
 
@@ -123,5 +129,6 @@ export const gameEventNames: GameEventName[] = [
   "ChatMessage",
   "MailReceived",
   "AttackIncoming",
+  "AttackCalledOff",
   "StructureDestroyed",
 ];

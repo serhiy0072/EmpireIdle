@@ -50,9 +50,15 @@ export default function AttackAlertBanner() {
       }),
     );
 
+    // Напад зірвано — його тривога вже неправда; інші тривоги лишаємо
+    const offCalledOff = onGameEvent("AttackCalledOff", (event) =>
+      setAlert((current) => (current?.key === event.marchId ? null : current)),
+    );
+
     return () => {
       offIncoming();
       offDestroyed();
+      offCalledOff();
     };
   }, []);
 
