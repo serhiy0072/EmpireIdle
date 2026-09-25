@@ -47,14 +47,16 @@ export default function MarchList({ playerId, marches }: Props) {
 
             <div className="flex items-center gap-2">
               <span className="font-mono text-slate-700">{formatRemaining(march.arrivesAt, now)}</span>
-              <button
-                type="button"
-                onClick={() => speedUp.mutate(march.id)}
-                disabled={speedUp.isPending}
-                className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-white disabled:opacity-50"
-              >
-                {speedUpLabel(catalog.speedUpCost(march.arrivesAt, now, march.speedUpCostGems))}
-              </button>
+              {catalog.speedUpCost(march.arrivesAt, now, march.speedUpCostGems) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => speedUp.mutate(march.id)}
+                  disabled={speedUp.isPending}
+                  className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-white disabled:opacity-50"
+                >
+                  {speedUpLabel(catalog.speedUpCost(march.arrivesAt, now, march.speedUpCostGems))}
+                </button>
+              )}
             </div>
           </div>
         );

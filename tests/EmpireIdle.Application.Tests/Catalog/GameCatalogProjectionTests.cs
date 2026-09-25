@@ -59,13 +59,13 @@ public class GameCatalogProjectionTests
     public void Response_ShouldCarryTheSpeedUpPricing()
     {
         var config = new GameConfigBuilder().WithHeroes().Build();
-        config.Monetization.InstantFinishThresholdMinutes = 7;
+        config.Monetization.SpeedUpFloorSeconds = 45;
         config.Monetization.SpeedUpFactor = 2.5;
         config.Monetization.SpeedUpExponent = 0.6;
 
         var response = new GameCatalogProjection(new GameCatalog(config)).Response;
 
-        Assert.Equal(new CatalogSpeedUp(7, 2.5, 0.6), response.SpeedUp);
+        Assert.Equal(new CatalogSpeedUp(45, 2.5, 0.6), response.SpeedUp);
     }
 
     /// <summary>Та сама проєкція — та сама версія: інакше ETag мінявся б щозапиту.</summary>

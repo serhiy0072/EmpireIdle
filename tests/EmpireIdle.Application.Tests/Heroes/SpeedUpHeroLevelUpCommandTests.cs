@@ -6,7 +6,6 @@ using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
-using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -14,8 +13,8 @@ using NSubstitute;
 namespace EmpireIdle.Application.Tests.Heroes;
 
 /// <summary>
-/// Прискорення прокачки героя: gems за кривою, строк на «зараз»,
-/// завершення тим самим обробником, що й у сканера.
+/// Прискорення прокачки героя: gems за кривою, строк до межі прискорення,
+/// завершення — сканером.
 /// </summary>
 public class SpeedUpHeroLevelUpCommandTests
 {
@@ -27,17 +26,16 @@ public class SpeedUpHeroLevelUpCommandTests
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
     private readonly ICurrentPlayer _currentPlayer = Substitute.For<ICurrentPlayer>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
-    private readonly IMediator _mediator = Substitute.For<IMediator>();
 
     private static SpeedUpCalculator Calculator() => new(new MonetizationConfig
     {
-        InstantFinishThresholdMinutes = 5,
+        SpeedUpFloorSeconds = 60,
         SpeedUpFactor = 2.0,
         SpeedUpExponent = 0.75
     });
 
     private SpeedUpHeroLevelUpCommandHandler Handler() => new(
-        _heroes, _wallets, _currentPlayer, _unitOfWork, new FakeTimeProvider(Now), Calculator(), _mediator,
+        _heroes, _wallets, _currentPlayer, _unitOfWork, new FakeTimeProvider(Now), Calculator(),
         NullLogger<SpeedUpHeroLevelUpCommandHandler>.Instance);
 
     private (HeroLevelOrder Order, PlayerWallet Wallet) GivenLevellingUp(int minutesLeft = 120, int gems = 5000)
@@ -53,17 +51,16 @@ public class SpeedUpHeroLevelUpCommandTests
         return (order, wallet);
     }
 
-    /// <summary>Строк підтягується на «зараз» і замовлення завершується тим самим обробником, що й у сканера.</summary>
+    /// <summary>Строк підтягується до межі: останню хвилину треба дочекатись.</summary>
     [Fact]
-    public async Task Handle_ShouldPullTheDeadlineToNow_AndComplete()
+    public async Task Handle_ShouldPullTheDeadlineToTheFloor()
     {
         var (order, _) = GivenLevellingUp(minutesLeft: 120);
 
         await Handler().Handle(new SpeedUpHeroLevelUpCommand(PlayerId, order.Id), CancellationToken.None);
 
-        Assert.Equal(Now, order.CompletesAt);
+        Assert.Equal(Now.AddSeconds(60), order.CompletesAt);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-        await _mediator.Received(1).Send(Arg.Is<CompleteHeroLevelUpCommand>(c => c.OrderId == order.Id), Arg.Any<CancellationToken>());
     }
 
     /// <summary>Довга черга списує gems за кривою прискорення.</summary>
@@ -71,7 +68,7 @@ public class SpeedUpHeroLevelUpCommandTests
     public async Task Handle_ShouldChargeGems_AboveTheThreshold()
     {
         var (order, wallet) = GivenLevellingUp(minutesLeft: 120, gems: 5000);
-        var expected = Calculator().GetInstantFinishCost(order.CompletesAt, Now);
+        var expected = Calculator().GetCost(order.CompletesAt, Now);
 
         await Handler().Handle(new SpeedUpHeroLevelUpCommand(PlayerId, order.Id), CancellationToken.None);
 
@@ -79,15 +76,28 @@ public class SpeedUpHeroLevelUpCommandTests
         Assert.Equal(5000 - expected, wallet.GemBalance.Value);
     }
 
-    /// <summary>Коротка черга безкоштовна: гаманець не чіпаємо взагалі.</summary>
+    /// <summary>Безкоштовного фінішу немає: дві хвилини теж коштують gems.</summary>
     [Fact]
-    public async Task Handle_ShouldNotTouchTheWallet_BelowTheThreshold()
+    public async Task Handle_ShouldCharge_EvenForAShortTimer()
     {
         var (order, wallet) = GivenLevellingUp(minutesLeft: 2, gems: 10);
 
         await Handler().Handle(new SpeedUpHeroLevelUpCommand(PlayerId, order.Id), CancellationToken.None);
 
-        Assert.Equal(10, wallet.GemBalance.Value);
+        Assert.True(wallet.GemBalance.Value < 10);
+    }
+
+    /// <summary>На межі — відмова з причиною, гаманець не чіпаємо.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_AtTheFloor()
+    {
+        var order = new HeroLevelOrder(Guid.NewGuid(), Guid.NewGuid(), PlayerId, 1, targetLevel: 2, Now.AddSeconds(60));
+        _heroes.GetActiveOrderAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(order);
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
+            Handler().Handle(new SpeedUpHeroLevelUpCommand(PlayerId, order.Id), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.SpeedUpAtFloor.Key, refusal.Reason);
         await _wallets.DidNotReceive().GetByUserIdAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -112,6 +122,5 @@ public class SpeedUpHeroLevelUpCommandTests
 
         Assert.Equal(Now.AddMinutes(1440), order.CompletesAt);
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
-        await _mediator.DidNotReceiveWithAnyArgs().Send(Arg.Any<CompleteHeroLevelUpCommand>(), default);
     }
 }

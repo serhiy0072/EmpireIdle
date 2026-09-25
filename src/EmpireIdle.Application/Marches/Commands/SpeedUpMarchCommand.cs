@@ -8,14 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Marches.Commands
 {
-    /// <summary>Миттєво завершити переміщення армії за gems.</summary>
+    /// <summary>Прискорити марш за gems: до прибуття лишається межа прискорення.</summary>
     public record SpeedUpMarchCommand(Guid PlayerId, Guid MarchId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
     /// Обробник SpeedUpMarchCommand: списує gems і підтягує час прибуття
-    /// на «зараз», якщо марш ще в дорозі. Сам бій відбудеться найближчим
-    /// проходом сканера.
+    /// до межі прискорення. Сам бій відбудеться найближчим проходом сканера.
     /// </summary>
     public sealed class SpeedUpMarchCommandHandler : IRequestHandler<SpeedUpMarchCommand>
     {
@@ -27,7 +26,6 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly SpeedUpCalculator _calculator;
-        private readonly IMediator _mediator;
         private readonly ILogger<SpeedUpMarchCommandHandler> _logger;
 
         public SpeedUpMarchCommandHandler(
@@ -39,7 +37,6 @@ namespace EmpireIdle.Application.Marches.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             SpeedUpCalculator calculator,
-            IMediator mediator,
             ILogger<SpeedUpMarchCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -50,7 +47,6 @@ namespace EmpireIdle.Application.Marches.Commands
             _timeProvider = timeProvider;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
-            _mediator = mediator;
             _logger = logger;
         }
 
@@ -70,31 +66,24 @@ namespace EmpireIdle.Application.Marches.Commands
             var march = marches.FirstOrDefault(m => m.Id == request.MarchId)
                 ?? throw new EntityNotFoundException($"Active", request.MarchId);
 
-            var cost = _calculator.GetInstantFinishCost(march.ArrivesAt, now);
+            // Останню хвилину прискорення не зрізає — бій чи повернення проведе сканер
+            var cut = _calculator.RequireCut(march.ArrivesAt, now);
+            var cost = _calculator.GetCost(march.ArrivesAt, now);
 
-            if (cost > 0)
-            {
-                var userId = _currentPlayer.UserId
-                    ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
+            var userId = _currentPlayer.UserId
+                ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-                var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                    ?? throw new InvalidOperationException($"Wallet not found.");
+            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                ?? throw new InvalidOperationException($"Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId, now);
-            }
+            wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId, now);
 
-            // Прострочений марш чекає сканера — від'ємне скорочення зсунуло б його вперед
-            if (march.ArrivesAt > now)
-                march.ReduceTravelTime(march.ArrivesAt - now, now);
+            march.ReduceTravelTime(cut, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Player {PlayerId} sped up march {MarchId} for {Cost} gems",
                 request.PlayerId, request.MarchId, cost);
-
-            // Гравець заплатив за «зараз», а сканер ходить раз на хвилину: завершуємо
-            // тим самим обробником, що й сканер, — бій і повернення в одному місці коду
-            await _mediator.Send(new CompleteMarchCommand(march.Id), cancellationToken);
         }
     }
 }

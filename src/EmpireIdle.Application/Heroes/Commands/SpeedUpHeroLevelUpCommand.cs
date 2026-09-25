@@ -25,7 +25,6 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly SpeedUpCalculator _calculator;
-        private readonly IMediator _mediator;
         private readonly ILogger<SpeedUpHeroLevelUpCommandHandler> _logger;
 
         public SpeedUpHeroLevelUpCommandHandler(
@@ -35,7 +34,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             SpeedUpCalculator calculator,
-            IMediator mediator,
             ILogger<SpeedUpHeroLevelUpCommandHandler> logger)
         {
             _heroRepository = heroRepository;
@@ -44,7 +42,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
             _calculator = calculator;
-            _mediator = mediator;
             _logger = logger;
         }
 
@@ -58,27 +55,21 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (order is null || order.Id != request.OrderId)
                 throw new EntityNotFoundException("Hero level-up order", request.OrderId);
 
-            var cost = _calculator.GetInstantFinishCost(order.CompletesAt, now);
+            // Останню хвилину прискорення не зрізає — прокачку завершить сканер
+            var cut = _calculator.RequireCut(order.CompletesAt, now);
+            var cost = _calculator.GetCost(order.CompletesAt, now);
 
-            if (cost > 0)
-            {
-                var userId = _currentPlayer.UserId
-                    ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
+            var userId = _currentPlayer.UserId
+                ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-                var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                    ?? throw new InvalidOperationException("Wallet not found.");
+            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                ?? throw new InvalidOperationException("Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), "Speed up hero level-up", request.PlayerId, now);
-            }
+            wallet.SpendGems(new GemAmount(cost), "Speed up hero level-up", request.PlayerId, now);
 
-            // Прострочене замовлення чекає сканера — від'ємне скорочення зсунуло б його вперед
-            if (order.CompletesAt > now)
-                order.Reduce(order.CompletesAt - now);
+            order.Reduce(cut);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            // Той самий обробник, що й у сканера: одна логіка завершення, а не її копія
-            await _mediator.Send(new CompleteHeroLevelUpCommand(order.Id), cancellationToken);
 
             _logger.LogInformation("Player {PlayerId} sped up hero level-up {OrderId} for {Cost} gems",
                 request.PlayerId, request.OrderId, cost);

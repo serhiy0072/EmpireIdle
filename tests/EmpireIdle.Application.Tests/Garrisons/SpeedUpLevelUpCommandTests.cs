@@ -26,7 +26,7 @@ public class SpeedUpLevelUpCommandTests
 
     private static MonetizationConfig Monetization() => new()
     {
-        InstantFinishThresholdMinutes = 5,
+        SpeedUpFloorSeconds = 60,
         SpeedUpFactor = 1.2,
         SpeedUpExponent = 0.75
     };
@@ -60,16 +60,27 @@ public class SpeedUpLevelUpCommandTests
         return (garrison, wallet, garrison.LevelUpOrders.Single().Id);
     }
 
-    /// <summary>Прискорення завершує прокачку одразу, юніти з'являються на новому рівні.</summary>
+    /// <summary>Прискорення лишає останню хвилину: прокачка ще йде, завершить її сканер.</summary>
     [Fact]
-    public async Task Handle_ShouldCompleteLevelUpImmediately()
+    public async Task Handle_ShouldLeaveTheFloor_AndKeepTheOrderQueued()
     {
         var (garrison, _, orderId) = GivenLevellingUp(minutesLeft: 120);
 
         await Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, orderId), CancellationToken.None);
 
-        Assert.Empty(garrison.LevelUpOrders);
-        Assert.Equal(5, garrison.Units.Single(u => u.Level == 2).Count);
+        Assert.Equal(Now.AddSeconds(60), garrison.LevelUpOrders.Single().CompletesAt);
+        Assert.DoesNotContain(garrison.Units, u => u.Level == 2);
+    }
+
+    /// <summary>Безкоштовного фінішу немає: дві хвилини теж коштують gems.</summary>
+    [Fact]
+    public async Task Handle_ShouldCharge_EvenForAShortTimer()
+    {
+        var (_, wallet, orderId) = GivenLevellingUp(minutesLeft: 2, gems: 5000);
+
+        await Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, orderId), CancellationToken.None);
+
+        Assert.True(wallet.GemBalance.Value < 5000);
     }
 
     /// <summary>Довга черга списує gems за кривою прискорення.</summary>
@@ -78,7 +89,7 @@ public class SpeedUpLevelUpCommandTests
     {
         var (_, wallet, orderId) = GivenLevellingUp(minutesLeft: 120, gems: 5000);
 
-        var expected = Calculator().GetInstantFinishCost(Now.AddMinutes(120), Now);
+        var expected = Calculator().GetCost(Now.AddMinutes(120), Now);
 
         await Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, orderId), CancellationToken.None);
 

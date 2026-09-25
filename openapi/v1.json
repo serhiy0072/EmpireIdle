@@ -7798,11 +7798,11 @@
         "required": [
           "exponent",
           "factor",
-          "freeUnderMinutes"
+          "floorSeconds"
         ],
         "type": "object",
         "properties": {
-          "freeUnderMinutes": {
+          "floorSeconds": {
             "type": "integer",
             "format": "int32"
           },

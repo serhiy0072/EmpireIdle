@@ -116,14 +116,16 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
               <span>
                 {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.level}) — {formatRemaining(order.completesAt, now)}
               </span>
-              <button
-                type="button"
-                onClick={() => speedUp.mutate(order.id)}
-                disabled={speedUp.isPending}
-                className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-              >
-                {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
-              </button>
+              {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => speedUp.mutate(order.id)}
+                  disabled={speedUp.isPending}
+                  className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
+                </button>
+              )}
             </div>
           ))}
         </div>

@@ -80,6 +80,11 @@
         /// <summary>Прискорення прийшло, коли таймер уже добіг кінця.</summary>
         public static readonly RefusalReason BuildingAlreadyCompleted = new("building.alreadyCompleted");
 
+        // ---------- Прискорення ----------
+
+        /// <summary>До кінця таймера лишилось не більше межі: прискорювати нічого, треба дочекатись; seconds — межа.</summary>
+        public static readonly RefusalReason SpeedUpAtFloor = new("speedup.atFloor", "seconds");
+
         // ---------- Інвентар, банери, квести, крамниця ----------
 
         /// <summary>until — UTC у форматі ISO 8601.</summary>

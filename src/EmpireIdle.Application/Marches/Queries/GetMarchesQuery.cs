@@ -75,7 +75,7 @@ namespace EmpireIdle.Application.Marches.Queries
                     march.DepartedAt,
                     march.ArrivesAt,
                     march.Units.Select(u => new MarchUnitView(u.UnitType, u.Level, u.Count)).ToList(),
-                    _calculator.GetInstantFinishCost(march.ArrivesAt, now)));
+                    _calculator.GetCost(march.ArrivesAt, now)));
             }
 
             return views;

@@ -38,7 +38,7 @@ public class GetMarchesQueryTests
         ],
         Monetization = new MonetizationConfig
         {
-            InstantFinishThresholdMinutes = 5,
+            SpeedUpFloorSeconds = 60,
             SpeedUpFactor = 2.0,
             SpeedUpExponent = 0.75
         }
@@ -111,7 +111,7 @@ public class GetMarchesQueryTests
         var garrison = GivenGarrison();
         var target = new Village(Guid.NewGuid(), Guid.NewGuid(), "Neighbour", [], 55, 55);
         var late = MarchTo(garrison, MarchTargetType.Village, target.Id, Now.AddMinutes(120));
-        var soon = MarchTo(garrison, MarchTargetType.Village, target.Id, Now.AddMinutes(2));
+        var soon = MarchTo(garrison, MarchTargetType.Village, target.Id, Now.AddSeconds(45));
 
         _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns([late, soon]);
         _villages.GetByIdAsync(target.Id, Arg.Any<CancellationToken>()).Returns(target);
@@ -122,7 +122,7 @@ public class GetMarchesQueryTests
         Assert.Equal("Neighbour", views[0].TargetName);
         Assert.Null(views[0].TargetLevel);
         Assert.Equal(0, views[0].SpeedUpCostGems);
-        Assert.Equal(Calculator().GetInstantFinishCost(late.ArrivesAt, Now), views[1].SpeedUpCostGems);
+        Assert.Equal(Calculator().GetCost(late.ArrivesAt, Now), views[1].SpeedUpCostGems);
         Assert.True(views[1].SpeedUpCostGems > 0, "120 хвилин мають коштувати gems, інакше тест нічого не перевіряє.");
     }
 }

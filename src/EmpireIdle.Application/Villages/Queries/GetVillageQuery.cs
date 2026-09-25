@@ -68,7 +68,7 @@ namespace EmpireIdle.Application.Villages.Queries
                 // Тип без конфіга означає битий конфіг, але падати на GET села зайве:
                 // гравець побачить будівлю з нульовим буфером, решта відповіді ціла
                 int? speedUpCost = b.IsUnderConstruction
-                    ? _calculator.GetInstantFinishCost(b.ConstructionCompletesAt!.Value, now)
+                    ? _calculator.GetCost(b.ConstructionCompletesAt!.Value, now)
                     : null;
 
                 if (!_catalog.Buildings.TryGetValue(b.Type, out var config))

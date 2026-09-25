@@ -9,7 +9,6 @@ using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
-using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -17,8 +16,8 @@ using NSubstitute;
 namespace EmpireIdle.Application.Tests.Speedups;
 
 /// <summary>
-/// Три хендлери прискорення ділять одну криву й один шлях списання gems,
-/// тому й перевіряються однаково: ціна, зсув таймера, безкоштовний поріг.
+/// Хендлери прискорення ділять одну криву й один шлях списання gems,
+/// тому й перевіряються однаково: ціна, зсув таймера до межі, відмова на межі.
 /// </summary>
 public class SpeedUpCommandTests
 {
@@ -32,7 +31,6 @@ public class SpeedUpCommandTests
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
     private readonly ICurrentPlayer _currentPlayer = Substitute.For<ICurrentPlayer>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
-    private readonly IMediator _mediator = Substitute.For<IMediator>();
 
     private static GameConfig Config() => new()
     {
@@ -55,7 +53,7 @@ public class SpeedUpCommandTests
         Units = [new UnitConfig { Key = "infantry", Cost = [new ResourceCost { Resource = "food", Amount = 40 }] }],
         Monetization = new MonetizationConfig
         {
-            InstantFinishThresholdMinutes = 5,
+            SpeedUpFloorSeconds = 60,
             SpeedUpFactor = 1.2,
             SpeedUpExponent = 0.75
         }
@@ -95,15 +93,15 @@ public class SpeedUpCommandTests
 
     private SpeedUpConstructionCommandHandler ConstructionHandler() => new(
         _villages, _wallets, _currentPlayer, _unitOfWork,
-        Calculator(), new GameCatalog(Config()), new FakeTimeProvider(Now),
+        Calculator(), new FakeTimeProvider(Now),
         NullLogger<SpeedUpConstructionCommandHandler>.Instance);
 
     /// <summary>
-    /// Коротка черга безкоштовна: гравець не має платити за хвилину,
-    /// і без порога ціна прискорення була б абсурдною для дрібниць.
+    /// Безкоштовного фінішу немає: навіть три хвилини коштують gems —
+    /// платна лише частина понад межу, але не менше 1 gem.
     /// </summary>
     [Fact]
-    public async Task SpeedUpConstruction_ShouldChargeNothing_BelowTheFreeThreshold()
+    public async Task SpeedUpConstruction_ShouldCharge_EvenForAShortTimer()
     {
         var village = GivenVillageWithConstruction(minutesLeft: 3);
         var wallet = GivenWallet();
@@ -112,12 +110,15 @@ public class SpeedUpCommandTests
         await ConstructionHandler().Handle(
             new SpeedUpConstructionCommand(PlayerId, building.Id), CancellationToken.None);
 
-        Assert.Equal(1000, wallet.GemBalance.Value);
+        Assert.True(wallet.GemBalance.Value < 1000);
     }
 
-    /// <summary>Прискорення завершує будівництво одразу, не чекаючи сканера.</summary>
+    /// <summary>
+    /// Прискорення лишає останню хвилину: будівництво ще йде,
+    /// а завершить його сканер у свій час.
+    /// </summary>
     [Fact]
-    public async Task SpeedUpConstruction_ShouldCompleteTheUpgradeImmediately()
+    public async Task SpeedUpConstruction_ShouldLeaveTheFloor_AndNotCompleteTheUpgrade()
     {
         var village = GivenVillageWithConstruction(minutesLeft: 60);
         GivenWallet();
@@ -126,8 +127,35 @@ public class SpeedUpCommandTests
         await ConstructionHandler().Handle(
             new SpeedUpConstructionCommand(PlayerId, building.Id), CancellationToken.None);
 
-        Assert.False(building.IsUnderConstruction);
-        Assert.Equal(2, building.Level.Value);
+        Assert.True(building.IsUnderConstruction);
+        Assert.Equal(Now.AddSeconds(60), building.ConstructionCompletesAt);
+        Assert.Equal(1, building.Level.Value);
+    }
+
+    /// <summary>На межі прискорювати нічого: відмова з причиною, gems і таймер на місці.</summary>
+    [Fact]
+    public async Task SpeedUpConstruction_ShouldRefuse_AtTheFloor()
+    {
+        var catalog = new GameCatalog(Config());
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+
+        village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 10_000 }, Now);
+        village.AddBuilding("townhall", catalog.Buildings, Now);
+        village.AddBuilding("farm", catalog.Buildings, Now);
+
+        var building = village.Buildings.Single(b => b.Type == "farm");
+        building.BeginUpgrade(catalog.Buildings["farm"], TimeSpan.FromSeconds(45), Now,
+            ProductionBoost.None, locationMultiplier: 1.0);
+
+        _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        var wallet = GivenWallet();
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() => ConstructionHandler().Handle(
+            new SpeedUpConstructionCommand(PlayerId, building.Id), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.SpeedUpAtFloor.Key, refusal.Reason);
+        Assert.Equal(1000, wallet.GemBalance.Value);
+        Assert.Equal(Now.AddSeconds(45), building.ConstructionCompletesAt);
     }
 
     /// <summary>Довга черга списує gems за кривою.</summary>
@@ -138,7 +166,7 @@ public class SpeedUpCommandTests
         var wallet = GivenWallet();
         var building = village.Buildings.Single(b => b.Type == "farm");
 
-        var expected = Calculator().GetInstantFinishCost(building.ConstructionCompletesAt!.Value, Now);
+        var expected = Calculator().GetCost(building.ConstructionCompletesAt!.Value, Now);
 
         await ConstructionHandler().Handle(
             new SpeedUpConstructionCommand(PlayerId, building.Id), CancellationToken.None);
@@ -180,7 +208,7 @@ public class SpeedUpCommandTests
 
         var handler = new SpeedUpMarchCommandHandler(
             _villages, _garrisons, _marches, _wallets, _currentPlayer, _unitOfWork,
-            new FakeTimeProvider(Now), Calculator(), _mediator,
+            new FakeTimeProvider(Now), Calculator(),
             NullLogger<SpeedUpMarchCommandHandler>.Instance);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
@@ -188,12 +216,11 @@ public class SpeedUpCommandTests
     }
 
     /// <summary>
-    /// Прискорення зсуває прибуття на «зараз» і одразу завершує похід тим самим
-    /// CompleteMarchCommand, що й сканер: бій і повернення живуть в одному місці,
-    /// а гравець не чекає хвилину після оплати.
+    /// Прискорення зсуває прибуття до межі: похід ще хвилину в дорозі,
+    /// бій чи повернення проведе сканер — тим самим обробником, що завжди.
     /// </summary>
     [Fact]
-    public async Task SpeedUpMarch_ShouldMoveArrivalToNow_AndCompleteTheMarchAtOnce()
+    public async Task SpeedUpMarch_ShouldMoveArrivalToTheFloor()
     {
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
@@ -212,13 +239,11 @@ public class SpeedUpCommandTests
 
         var handler = new SpeedUpMarchCommandHandler(
             _villages, _garrisons, _marches, _wallets, _currentPlayer, _unitOfWork,
-            new FakeTimeProvider(Now), Calculator(), _mediator,
+            new FakeTimeProvider(Now), Calculator(),
             NullLogger<SpeedUpMarchCommandHandler>.Instance);
 
         await handler.Handle(new SpeedUpMarchCommand(PlayerId, march.Id), CancellationToken.None);
 
-        Assert.Equal(Now, march.ArrivesAt);
-        await _mediator.Received(1).Send(
-            Arg.Is<CompleteMarchCommand>(c => c.MarchId == march.Id), Arg.Any<CancellationToken>());
+        Assert.Equal(Now.AddSeconds(60), march.ArrivesAt);
     }
 }

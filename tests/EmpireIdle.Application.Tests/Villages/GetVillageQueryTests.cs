@@ -52,7 +52,7 @@ public class GetVillageQueryTests
         ],
         Monetization = new MonetizationConfig
         {
-            InstantFinishThresholdMinutes = 5,
+            SpeedUpFloorSeconds = 60,
             SpeedUpFactor = 1.2,
             SpeedUpExponent = 0.75
         }
@@ -105,7 +105,7 @@ public class GetVillageQueryTests
 
         farm.BeginUpgrade(Catalog().Buildings["farm"], TimeSpan.FromMinutes(120), Now, ProductionBoost.None, locationMultiplier: 1.0);
 
-        var expected = Calculator().GetInstantFinishCost(farm.ConstructionCompletesAt!.Value, Now);
+        var expected = Calculator().GetCost(farm.ConstructionCompletesAt!.Value, Now);
 
         var response = await Handler().Handle(new GetVillageQuery(PlayerId), CancellationToken.None);
 
@@ -114,14 +114,14 @@ public class GetVillageQueryTests
         Assert.Equal(expected, farmView.SpeedUpCostGems);
     }
 
-    /// <summary>Черга коротша за безкоштовний поріг — ціна нульова, а не null.</summary>
+    /// <summary>На межі прискорення (остання хвилина) ціна нульова, а не null: прискорювати нічого.</summary>
     [Fact]
-    public async Task Handle_ShouldPriceZero_BelowTheFreeThreshold()
+    public async Task Handle_ShouldPriceZero_AtTheFloor()
     {
         var village = GivenVillage();
         var farm = village.Buildings.Single(b => b.Type == "farm");
 
-        farm.BeginUpgrade(Catalog().Buildings["farm"], TimeSpan.FromMinutes(3), Now, ProductionBoost.None, locationMultiplier: 1.0);
+        farm.BeginUpgrade(Catalog().Buildings["farm"], TimeSpan.FromSeconds(45), Now, ProductionBoost.None, locationMultiplier: 1.0);
 
         var response = await Handler().Handle(new GetVillageQuery(PlayerId), CancellationToken.None);
 

@@ -25,7 +25,7 @@ public class GetGarrisonQueryTests
         Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 }],
         Monetization = new MonetizationConfig
         {
-            InstantFinishThresholdMinutes = 5,
+            SpeedUpFloorSeconds = 60,
             SpeedUpFactor = 2.0,
             SpeedUpExponent = 0.75
         }
@@ -57,7 +57,7 @@ public class GetGarrisonQueryTests
             trainDuration: TimeSpan.FromMinutes(120), utcNow: Now);
 
         var order = garrison.TrainingOrders.Single();
-        var expected = Calculator().GetInstantFinishCost(order.CompletesAt, Now);
+        var expected = Calculator().GetCost(order.CompletesAt, Now);
 
         var response = await Handler().Handle(new GetGarrisonQuery(PlayerId), CancellationToken.None);
 
@@ -66,13 +66,13 @@ public class GetGarrisonQueryTests
         Assert.Equal(expected, orderView.SpeedUpCostGems);
     }
 
-    /// <summary>Черга коротша за безкоштовний поріг — ціна нульова.</summary>
+    /// <summary>На межі прискорення (остання хвилина) ціна нульова: прискорювати нічого.</summary>
     [Fact]
-    public async Task Handle_ShouldPriceZero_BelowTheFreeThreshold()
+    public async Task Handle_ShouldPriceZero_AtTheFloor()
     {
         var (_, garrison) = GivenVillageWithGarrison();
         garrison.TrainUnits("infantry", level: 1, count: 1, maxBatchSize: 100, armyCapacity: 1000,
-            trainDuration: TimeSpan.FromMinutes(2), utcNow: Now);
+            trainDuration: TimeSpan.FromSeconds(45), utcNow: Now);
 
         var response = await Handler().Handle(new GetGarrisonQuery(PlayerId), CancellationToken.None);
 

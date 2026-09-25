@@ -40,8 +40,11 @@
         string Language,
         string Version);
 
-    /// <summary>Формула SpeedUpCalculator: ceil(Factor × хвилини^Exponent), безкоштовно до FreeUnderMinutes.</summary>
-    public record CatalogSpeedUp(int FreeUnderMinutes, double Factor, double Exponent);
+    /// <summary>
+    /// Формула SpeedUpCalculator: ceil(Factor × хвилини^Exponent) за зрізану частину — усе понад
+    /// FloorSeconds; щонайменше 1 gem. Останні FloorSeconds не прискорюються.
+    /// </summary>
+    public record CatalogSpeedUp(int FloorSeconds, double Factor, double Exponent);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
     public record CatalogHero(

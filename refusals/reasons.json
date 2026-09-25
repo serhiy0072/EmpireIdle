@@ -195,6 +195,9 @@
   "shop.maxPerPurchase": [
     "max"
   ],
+  "speedup.atFloor": [
+    "seconds"
+  ],
   "teleport.cellOccupied": [],
   "teleport.cellUnsuitable": [],
   "teleport.outsideRegion": [],

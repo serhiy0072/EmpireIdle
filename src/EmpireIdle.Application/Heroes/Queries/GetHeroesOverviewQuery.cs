@@ -82,7 +82,7 @@ namespace EmpireIdle.Application.Heroes.Queries
                 order is null
                     ? null
                     : new HeroLevelOrderSummary(order.Id, order.HeroId, order.TargetLevel, order.CompletesAt,
-                        _calculator.GetInstantFinishCost(order.CompletesAt, _timeProvider.GetUtcNow().UtcDateTime)),
+                        _calculator.GetCost(order.CompletesAt, _timeProvider.GetUtcNow().UtcDateTime)),
                 _progression.MarchCapacity(heroes.Count(h => h.IsAvailable)));
         }
     }

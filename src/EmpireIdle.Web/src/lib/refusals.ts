@@ -77,6 +77,9 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "building.underConstruction": () => "Ця будівля вже будується",
   "building.alreadyCompleted": () => "Будівництво вже завершено",
 
+  // ---------- Прискорення ----------
+  "speedup.atFloor": ({ seconds }) => `До кінця ${seconds} с або менше — прискорити вже не можна, зачекайте`,
+
   // ---------- Інвентар, банери, квести, крамниця ----------
   "item.strongerBoostActive": ({ multiplier, until }) =>
     `Уже діє сильніший прискорювач ×${multiplier} до ${localTime(until)} — цей не спрацює`,

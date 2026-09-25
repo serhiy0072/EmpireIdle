@@ -32,7 +32,6 @@ public class SpeedUpConstructionCommandTests
             Substitute.For<ICurrentPlayer>(),
             Substitute.For<IUnitOfWork>(),
             new SpeedUpCalculator(new MonetizationConfig()),
-            new GameCatalog(new GameConfigBuilder().WithBuildings(TestKeys.Farm).Build()),
             new FakeTimeProvider(Entities.Now),
             NullLogger<SpeedUpConstructionCommandHandler>.Instance);
 

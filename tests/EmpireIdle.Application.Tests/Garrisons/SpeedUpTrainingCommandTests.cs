@@ -26,7 +26,7 @@ public class SpeedUpTrainingCommandTests
 
     private static MonetizationConfig Monetization() => new()
     {
-        InstantFinishThresholdMinutes = 5,
+        SpeedUpFloorSeconds = 60,
         SpeedUpFactor = 1.2,
         SpeedUpExponent = 0.75
     };
@@ -62,16 +62,35 @@ public class SpeedUpTrainingCommandTests
         return (garrison, wallet, garrison.TrainingOrders.Single().Id);
     }
 
-    /// <summary>Прискорення завершує тренування одразу, не чекаючи сканера.</summary>
+    /// <summary>Прискорення лишає останню хвилину: партія ще в черзі, завершить її сканер.</summary>
     [Fact]
-    public async Task Handle_ShouldCompleteTrainingImmediately()
+    public async Task Handle_ShouldLeaveTheFloor_AndKeepTheOrderQueued()
     {
         var (garrison, _, orderId) = GivenTraining(minutesLeft: 120);
 
         await Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None);
 
-        Assert.Empty(garrison.TrainingOrders);
-        Assert.Equal(5, garrison.Units.Sum(u => u.Count));
+        Assert.Equal(Now.AddSeconds(60), garrison.TrainingOrders.Single().CompletesAt);
+        Assert.Equal(0, garrison.Units.Sum(u => u.Count));
+    }
+
+    /// <summary>На межі прискорювати нічого: відмова з причиною, gems на місці.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_AtTheFloor()
+    {
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
+        garrison.TrainUnits("infantry", level: 1, count: 5, maxBatchSize: 100, armyCapacity: 1000,
+            TimeSpan.FromSeconds(30), Now);
+
+        _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() => Handler().Handle(
+            new SpeedUpTrainingCommand(PlayerId, garrison.TrainingOrders.Single().Id), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.SpeedUpAtFloor.Key, refusal.Reason);
+        await _wallets.DidNotReceive().GetByUserIdAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>Довга черга списує gems за кривою.</summary>
@@ -80,7 +99,7 @@ public class SpeedUpTrainingCommandTests
     {
         var (_, wallet, orderId) = GivenTraining(minutesLeft: 120, gems: 5000);
 
-        var expected = Calculator().GetInstantFinishCost(Now.AddMinutes(120), Now);
+        var expected = Calculator().GetCost(Now.AddMinutes(120), Now);
 
         await Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None);
 
@@ -88,18 +107,15 @@ public class SpeedUpTrainingCommandTests
         Assert.Equal(5000 - expected, wallet.GemBalance.Value);
     }
 
-    /// <summary>
-    /// Коротка черга безкоштовна: гравець не має платити за хвилину,
-    /// і без порога ціна прискорення була б абсурдною для дрібниць.
-    /// </summary>
+    /// <summary>Безкоштовного фінішу немає: три хвилини теж коштують gems.</summary>
     [Fact]
-    public async Task Handle_ShouldChargeNothing_BelowTheFreeThreshold()
+    public async Task Handle_ShouldCharge_EvenForAShortTimer()
     {
         var (_, wallet, orderId) = GivenTraining(minutesLeft: 3, gems: 5000);
 
         await Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None);
 
-        Assert.Equal(5000, wallet.GemBalance.Value);
+        Assert.True(wallet.GemBalance.Value < 5000);
     }
 
     /// <summary>Чуже або неіснуюче замовлення — 404.</summary>

@@ -57,9 +57,9 @@ namespace EmpireIdle.Application.Garrisons.Queries
                 garrison.Wounded.Select(w => new UnitView(w.UnitType, w.Level, w.Count)).ToList(),
                 recoverable,
                 garrison.TrainingOrders.Select(o => new TrainingOrderView(
-                    o.Id, o.UnitType, o.Level, o.Count, o.CompletesAt, _calculator.GetInstantFinishCost(o.CompletesAt, now))).ToList(),
+                    o.Id, o.UnitType, o.Level, o.Count, o.CompletesAt, _calculator.GetCost(o.CompletesAt, now))).ToList(),
                 garrison.LevelUpOrders.Select(o => new LevelUpOrderView(
-                    o.Id, o.UnitType, o.FromLevel, o.ToLevel, o.Count, o.CompletesAt, _calculator.GetInstantFinishCost(o.CompletesAt, now))).ToList());
+                    o.Id, o.UnitType, o.FromLevel, o.ToLevel, o.Count, o.CompletesAt, _calculator.GetCost(o.CompletesAt, now))).ToList());
         }
 
         private int RecoverCost(string unitType)
