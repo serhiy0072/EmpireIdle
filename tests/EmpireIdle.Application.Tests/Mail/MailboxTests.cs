@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Mail.Commands;

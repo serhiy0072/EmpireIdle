@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Map.Queries;
 using EmpireIdle.Domain.Entities;
