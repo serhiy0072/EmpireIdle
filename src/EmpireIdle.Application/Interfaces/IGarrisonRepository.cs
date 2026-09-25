@@ -14,6 +14,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Додати новий гарнізон.</summary>
         Task AddAsync(Garrison garrison, CancellationToken cancellationToken = default);
 
+        /// <summary>Прибирає гарнізон разом зі стеками — коли кланову споруду зносять або руйнують.</summary>
+        void Remove(Garrison garrison);
+
         /// <summary>Знайти гарнізон за ідентифікатором.</summary>
         Task<Garrison?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 

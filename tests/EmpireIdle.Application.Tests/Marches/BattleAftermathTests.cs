@@ -58,7 +58,7 @@ public class BattleAftermathTests
             _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
 
         var returner = new ReinforcementReturner(
-            _garrisons, _villages, _marches, _heroes, calculator, catalog,
+            _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes, calculator, catalog,
             new HeroProgression(config.HeroSettings),
             NullLogger<ReinforcementReturner>.Instance);
 

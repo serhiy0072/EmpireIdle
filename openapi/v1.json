@@ -4778,6 +4778,76 @@
         }
       }
     },
+    "/api/marches/{playerId}/incoming": {
+      "get": {
+        "tags": [
+          "March"
+        ],
+        "operationId": "March_GetIncoming",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncomingAttackResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncomingAttackResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncomingAttackResponse"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/marches/{playerId}/{marchId}/speedup": {
       "post": {
         "tags": [
@@ -6160,6 +6230,337 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/territory/{playerId}": {
+      "get": {
+        "tags": [
+          "Territory"
+        ],
+        "operationId": "Territory_Get",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/territory/{playerId}/structures": {
+      "post": {
+        "tags": [
+          "Territory"
+        ],
+        "operationId": "Territory_Place",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceClanStructureRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceClanStructureRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceClanStructureRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/territory/{playerId}/structures/{structureId}/demolish": {
+      "post": {
+        "tags": [
+          "Territory"
+        ],
+        "operationId": "Territory_Demolish",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "structureId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/territory/{playerId}/structures/{structureId}/recall": {
+      "post": {
+        "tags": [
+          "Territory"
+        ],
+        "operationId": "Territory_Recall",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "structureId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "boolean"
                 }
               }
             }
@@ -8103,6 +8504,28 @@
         },
         "additionalProperties": false
       },
+      "ClanContributorResponse": {
+        "required": [
+          "contribution",
+          "name",
+          "playerId"
+        ],
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "contribution": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClanHelpItemResponse": {
         "required": [
           "alreadyHelped",
@@ -8435,6 +8858,53 @@
         },
         "additionalProperties": false
       },
+      "ClanQuestResponse": {
+        "required": [
+          "amount",
+          "clanPoints",
+          "completed",
+          "displayName",
+          "key",
+          "objectiveType",
+          "opensSlot",
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "objectiveType": {
+            "type": "string"
+          },
+          "objectiveTarget": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "target": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "completed": {
+            "type": "boolean"
+          },
+          "clanPoints": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "opensSlot": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClanRoleResponse": {
         "required": [
           "id",
@@ -8468,6 +8938,149 @@
           },
           "isDefaultRole": {
             "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanSlotUnlockResponse": {
+        "required": [
+          "unlocked"
+        ],
+        "type": "object",
+        "properties": {
+          "minMembers": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "questKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "unlocked": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanStructureResponse": {
+        "required": [
+          "acceleratedShare",
+          "garrisonUnits",
+          "id",
+          "myUnits",
+          "readyAt",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "readyAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "acceleratedShare": {
+            "type": "number",
+            "format": "double"
+          },
+          "garrisonUnits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "myUnits": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanTerritoryResponse": {
+        "required": [
+          "buildMinutes",
+          "canBuild",
+          "contributors",
+          "enabled",
+          "garrisonCapacity",
+          "points",
+          "quests",
+          "radius",
+          "slotsMax",
+          "slotsOpen",
+          "slotUnlocks",
+          "structureCost",
+          "structures"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "points": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "structureCost": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "radius": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "buildMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "garrisonCapacity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slotsOpen": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slotsMax": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canBuild": {
+            "type": "boolean"
+          },
+          "slotUnlocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanSlotUnlockResponse"
+            }
+          },
+          "structures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanStructureResponse"
+            }
+          },
+          "quests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanQuestResponse"
+            }
+          },
+          "contributors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanContributorResponse"
+            }
           }
         },
         "additionalProperties": false
@@ -9192,6 +9805,74 @@
         },
         "additionalProperties": false
       },
+      "IncomingAttackResponse": {
+        "required": [
+          "arrivesAt",
+          "attackerName",
+          "departedAt",
+          "fromX",
+          "fromY",
+          "marchId",
+          "mine",
+          "targetId",
+          "targetType",
+          "targetX",
+          "targetY"
+        ],
+        "type": "object",
+        "properties": {
+          "marchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetType": {
+            "$ref": "#/components/schemas/MarchTargetType"
+          },
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetName": {
+            "type": "string",
+            "nullable": true
+          },
+          "mine": {
+            "type": "boolean"
+          },
+          "targetX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targetY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fromX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fromY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attackerName": {
+            "type": "string"
+          },
+          "attackerClanTag": {
+            "type": "string",
+            "nullable": true
+          },
+          "departedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "arrivesAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "InventoryItemResponse": {
         "required": [
           "count",
@@ -9657,6 +10338,16 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "clanId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "readyAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -9787,7 +10478,8 @@
       "MarchTargetType": {
         "enum": [
           1,
-          2
+          2,
+          3
         ],
         "type": "integer",
         "format": "int32"
@@ -10161,6 +10853,24 @@
         },
         "additionalProperties": false
       },
+      "PlaceClanStructureRequest": {
+        "required": [
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "PlayerRankResponse": {
         "required": [
           "activityScore",
@@ -10322,7 +11032,8 @@
       "QuestScope": {
         "enum": [
           1,
-          2
+          2,
+          3
         ],
         "type": "integer",
         "format": "int32"
@@ -11213,6 +11924,9 @@
     },
     {
       "name": "Shop"
+    },
+    {
+      "name": "Territory"
     },
     {
       "name": "Tutorial"

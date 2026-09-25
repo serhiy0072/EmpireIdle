@@ -38,5 +38,13 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Нове повідомлення кланового чи приватного чату — переліченим гравцям.</summary>
         Task NotifyChatToPlayersAsync(IReadOnlyCollection<Guid> playerIds, Chat.Contracts.ChatMessageNotice notice, CancellationToken cancellationToken = default);
 
+        /// <summary>Ворожий марш іде на село чи споруду — тривога захисникам із маршрутом і часом прибуття.</summary>
+        Task NotifyAttackIncomingAsync(IReadOnlyCollection<Guid> playerIds, Marches.ReadModels.IncomingAttack attack,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Кланову споруду зруйновано — всім учасникам клану.</summary>
+        Task NotifyStructureDestroyedAsync(IReadOnlyCollection<Guid> playerIds, Guid structureId, int x, int y,
+            CancellationToken cancellationToken = default);
+
     }
 }

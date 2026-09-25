@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -33,6 +34,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly PlunderCalculator _plunder;
         private readonly HeroCombatModifiers _heroModifiers;
         private readonly CityFallService _cityFall;
+        private readonly TerritoryBonus _territoryBonus;
         private readonly ILogger<VillageBattleService> _logger;
 
         public VillageBattleService(
@@ -52,6 +54,7 @@ namespace EmpireIdle.Application.Marches.Services
             PlunderCalculator plunder,
             HeroCombatModifiers heroModifiers,
             CityFallService cityFall,
+            TerritoryBonus territoryBonus,
             ILogger<VillageBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -69,6 +72,7 @@ namespace EmpireIdle.Application.Marches.Services
             _plunder = plunder;
             _heroModifiers = heroModifiers;
             _cityFall = cityFall;
+            _territoryBonus = territoryBonus;
             _logger = logger;
         }
 
@@ -122,10 +126,13 @@ namespace EmpireIdle.Application.Marches.Services
 
             var attackerBuff = _heroModifiers.For(attackerHero);
 
+            // Кланова територія підсилює обидві сторони, кожну — своя
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
-                attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
+                    attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
+                * await _territoryBonus.AttackMultiplierAsync(attackerVillage, utcNow, cancellationToken);
 
-            var defenderBonus = _status.DefenceMultiplier(targetVillage, utcNow);
+            var defenderBonus = _status.DefenceMultiplier(targetVillage, utcNow)
+                * await _territoryBonus.DefenceMultiplierAsync(targetVillage, utcNow, cancellationToken);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіти обох сторін
             var seed = _random.Next(int.MaxValue);

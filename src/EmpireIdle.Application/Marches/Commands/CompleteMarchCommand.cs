@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -34,6 +35,8 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly MonsterBattleService _monsterBattle;
         private readonly VillageBattleService _villageBattle;
         private readonly ReinforcementDelivery _reinforcements;
+        private readonly StructureReinforcementDelivery _structureDelivery;
+        private readonly StructureBattleService _structureBattle;
         private readonly ILogger<CompleteMarchCommandHandler> _logger;
 
         public CompleteMarchCommandHandler(
@@ -47,6 +50,8 @@ namespace EmpireIdle.Application.Marches.Commands
             MonsterBattleService monsterBattle,
             VillageBattleService villageBattle,
             ReinforcementDelivery reinforcements,
+            StructureReinforcementDelivery structureDelivery,
+            StructureBattleService structureBattle,
             ILogger<CompleteMarchCommandHandler> logger)
         {
             _marchRepository = marchRepository;
@@ -59,6 +64,8 @@ namespace EmpireIdle.Application.Marches.Commands
             _monsterBattle = monsterBattle;
             _villageBattle = villageBattle;
             _reinforcements = reinforcements;
+            _structureDelivery = structureDelivery;
+            _structureBattle = structureBattle;
             _logger = logger;
         }
 
@@ -88,17 +95,29 @@ namespace EmpireIdle.Application.Marches.Commands
         {
             if (march.Intent == MarchIntent.Reinforce)
             {
-                await _reinforcements.DeliverAsync(march, utcNow, cancellationToken);
+                if (march.TargetType == MarchTargetType.ClanStructure)
+                    await _structureDelivery.DeliverAsync(march, utcNow, cancellationToken);
+                else
+                    await _reinforcements.DeliverAsync(march, utcNow, cancellationToken);
+
                 return;
             }
 
             var attackerArmy = march.GetUnits();
             var terrain = _terrain.GetTerrainType(march.ServerId, march.TargetX, march.TargetY);
 
-            if (march.TargetType == MarchTargetType.Village)
-                await _villageBattle.ResolveAsync(march, attackerArmy, terrain, utcNow, cancellationToken);
-            else
-                await _monsterBattle.ResolveAsync(march, attackerArmy, terrain, utcNow, cancellationToken);
+            switch (march.TargetType)
+            {
+                case MarchTargetType.Village:
+                    await _villageBattle.ResolveAsync(march, attackerArmy, terrain, utcNow, cancellationToken);
+                    break;
+                case MarchTargetType.ClanStructure:
+                    await _structureBattle.ResolveAsync(march, attackerArmy, terrain, utcNow, cancellationToken);
+                    break;
+                default:
+                    await _monsterBattle.ResolveAsync(march, attackerArmy, terrain, utcNow, cancellationToken);
+                    break;
+            }
         }
 
         /// <summary>

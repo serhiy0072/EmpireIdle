@@ -170,6 +170,26 @@
 
         public static readonly RefusalReason ClanHelpFull = new("clan.helpFull", "max");
 
+        // ---------- Кланова територія ----------
+
+        /// <summary>Очок вкладу клану не вистачає на дію; need і have — скільки треба й скільки є.</summary>
+        public static readonly RefusalReason ClanNotEnoughPoints = new("territory.notEnoughPoints", "need", "have");
+
+        /// <summary>Усі відкриті слоти під споруди зайняті; slots — скільки їх зараз відкрито.</summary>
+        public static readonly RefusalReason TerritoryNoFreeSlot = new("territory.noFreeSlot", "slots");
+
+        /// <summary>Клітину зайняли, поки гравець обирав місце.</summary>
+        public static readonly RefusalReason TerritoryCellTaken = new("territory.cellTaken");
+
+        /// <summary>На клітині не можна ставити споруду: вода, гори або поза заселеною частиною світу.</summary>
+        public static readonly RefusalReason TerritoryCellUnfit = new("territory.cellUnfit");
+
+        /// <summary>Будувати чи стояти гарнізоном можна лише у спорудах свого клану.</summary>
+        public static readonly RefusalReason TerritoryForeignStructure = new("territory.foreignStructure");
+
+        /// <summary>Свою споруду не атакують — її зносять.</summary>
+        public static readonly RefusalReason TerritoryOwnStructure = new("territory.ownStructure");
+
         // ---------- Марші й підкріплення ----------
 
         /// <summary>state — ім'я HeroState (Deployed, Wounded): текст за ним дає клієнт.</summary>

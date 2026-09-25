@@ -29,5 +29,9 @@ namespace EmpireIdle.API.Hubs
         Task ChatMessage(ChatMessageEvent payload);
 
         Task MailReceived(MailReceivedEvent payload);
+
+        Task AttackIncoming(AttackIncomingEvent payload);
+
+        Task StructureDestroyed(StructureDestroyedEvent payload);
     }
 }

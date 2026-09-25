@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -16,6 +17,7 @@ namespace EmpireIdle.Application.Marches.Services
     /// <param name="DefenceBuffs">
     /// Пасивки лідерів, що стоять у цій обороні. Для монстра порожні.
     /// </param>
+    /// <param name="Structure">Кланова споруда, якщо ціль — вона. Name тоді — тег клану.</param>
     public record MarchTarget(
         int X,
         int Y,
@@ -24,7 +26,8 @@ namespace EmpireIdle.Application.Marches.Services
         Village? Village,
         IReadOnlyList<DefenceStack> Defence,
         DefenceBuffs DefenceBuffs,
-        double DefenceMultiplier);
+        double DefenceMultiplier,
+        ClanStructure? Structure = null);
 
     /// <summary>
     /// Знаходить ціль походу й описує її однаково для відправлення,
@@ -45,6 +48,10 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly HeroCombatModifiers _heroModifiers;
         private readonly GameCatalog _catalog;
         private readonly VillageStatus _status;
+        private readonly IClanStructureRepository _structureRepository;
+        private readonly IClanRepository _clanRepository;
+        private readonly ClanTerritoryRules _territory;
+        private readonly TerritoryBonus _territoryBonus;
 
         public MarchTargetResolver(
             IMonsterRepository monsterRepository,
@@ -54,7 +61,10 @@ namespace EmpireIdle.Application.Marches.Services
             MonsterArmyBuilder armyBuilder,
             HeroCombatModifiers heroModifiers,
             GameCatalog catalog,
-            VillageStatus status)
+            VillageStatus status,
+            IClanStructureRepository structureRepository,
+            IClanRepository clanRepository,
+            ClanTerritoryRules territory)
         {
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
@@ -64,7 +74,17 @@ namespace EmpireIdle.Application.Marches.Services
             _heroModifiers = heroModifiers;
             _status = status;
             _catalog = catalog;
+            _structureRepository = structureRepository;
+            _clanRepository = clanRepository;
+            _territory = territory;
+
+            // Той самий розрахунок, що в бою: прев'ю не має розходитись із результатом
+            _territoryBonus = new TerritoryBonus(clanRepository, structureRepository, territory);
         }
+
+        /// <summary>Множник атаки кланової території для маршу з цього села — для прев'ю.</summary>
+        public Task<double> AttackMultiplierAsync(Village origin, DateTime utcNow, CancellationToken cancellationToken)
+            => _territoryBonus.AttackMultiplierAsync(origin, utcNow, cancellationToken);
 
         /// <summary>
         /// Резолвить ціль і звіряє світ.
@@ -122,7 +142,38 @@ namespace EmpireIdle.Application.Marches.Services
                         village,
                         defence,
                         buffs,
-                        _status.DefenceMultiplier(village, utcNow));
+                        _status.DefenceMultiplier(village, utcNow)
+                        * await _territoryBonus.DefenceMultiplierAsync(village, utcNow, cancellationToken));
+
+                case MarchTargetType.ClanStructure:
+                    var structure = await _structureRepository.GetByIdAsync(targetId, cancellationToken)
+                        ?? throw new EntityNotFoundException("Clan structure", targetId);
+
+                    if (structure.ServerId != origin.ServerId)
+                        throw new EntityNotFoundException("Clan structure", targetId);
+
+                    var structureGarrison = await _garrisonRepository.GetByIdAsync(structure.GarrisonId, cancellationToken);
+
+                    // Своїх юнітів у споруди немає: уся оборона — підкріплення учасників,
+                    // і лідер кожного діє лише на свій стек
+                    var structureDefence = structureGarrison is null ? [] : structureGarrison.GetDefence();
+
+                    var structureBuffs = structureGarrison is null
+                        ? DefenceBuffs.None
+                        : await BuildDefenceBuffsAsync(structureGarrison.Id, Guid.Empty, cancellationToken);
+
+                    var clan = await _clanRepository.GetCardAsync(structure.ClanId, cancellationToken);
+
+                    return new MarchTarget(
+                        structure.X, structure.Y,
+                        clan?.Tag ?? string.Empty,
+                        Level: 0,
+                        Village: null,
+                        structureDefence,
+                        structureBuffs,
+                        // Споруда завжди в межах власного радіуса: добудована — під своїм бонусом
+                        _territory.DefenceMultiplier(_territory.Enabled && structure.IsActiveAt(utcNow)),
+                        structure);
 
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{targetType}'.");
@@ -153,7 +204,8 @@ namespace EmpireIdle.Application.Marches.Services
         /// </summary>
         public void EnsureAttackAllowed(Village origin, MarchTarget target, DateTime utcNow)
         {
-            if (target.Village is null)
+            // Споруда клану — теж PvP: новачок під щитом її не атакує, але щита в неї самої немає
+            if (target.Village is null && target.Structure is null)
                 return;
 
             var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
@@ -161,6 +213,9 @@ namespace EmpireIdle.Application.Marches.Services
             if (_status.IsShielded(origin))
                 throw new RequirementNotMetException(RefusalReasons.MarchOwnShield,
                     $"Attacking other players is available from town hall level {shieldLevel}.", shieldLevel);
+
+            if (target.Village is null)
+                return;
 
             if (_status.IsShielded(target.Village))
                 throw new RequirementNotMetException(RefusalReasons.MarchTargetShielded, "This village is under a newbie shield.");

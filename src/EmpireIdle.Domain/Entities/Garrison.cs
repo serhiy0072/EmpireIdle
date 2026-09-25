@@ -1,12 +1,14 @@
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
-    /// Гарнізон села: юніти та черга тренування. Окремий агрегат —
-    /// не знає про ресурси й вартість (це відповідальність Village/Application).
+    /// Гарнізон села або кланової споруди: юніти та черга тренування. Окремий
+    /// агрегат — не знає про ресурси й вартість (це відповідальність Village/Application).
+    /// Гарнізон споруди своїх юнітів не має: усе в ньому — підкріплення членів клану.
     /// </summary>
     public class Garrison : Entity
     {
@@ -19,8 +21,20 @@ namespace EmpireIdle.Domain.Entities
         private readonly List<RecoverableUnit> _recoverable = new();
         private readonly List<ReinforcementUnit> _reinforcements = new();
 
-        /// <summary>Село, якому належить гарнізон.</summary>
-        public Guid VillageId { get; private set; }
+        /// <summary>Село або споруда, якій належить гарнізон.</summary>
+        public Guid HostId { get; private set; }
+
+        /// <summary>Чий це гарнізон: села чи кланової споруди.</summary>
+        public GarrisonHost HostKind { get; private set; }
+
+        /// <summary>
+        /// Село, якому належить гарнізон. Для гарнізону споруди — виняток:
+        /// сільська логіка (тренування, госпіталь, грабунок) до нього не застосовна,
+        /// і тихо підсунути Id споруди замість села гірше, ніж упасти.
+        /// </summary>
+        public Guid VillageId => HostKind == GarrisonHost.Village
+            ? HostId
+            : throw new InvalidOperationException($"Garrison {Id} belongs to a clan structure, not a village.");
 
         public IReadOnlyCollection<VillageUnit> Units => _units.AsReadOnly();
         public IReadOnlyCollection<UnitTrainingOrder> TrainingOrders => _trainingOrders.AsReadOnly();
@@ -60,11 +74,21 @@ namespace EmpireIdle.Domain.Entities
 
         #region Створення
 
-        public Garrison(Guid id, Guid villageId, int serverId) : base(id)
+        /// <summary>Гарнізон села.</summary>
+        public Garrison(Guid id, Guid villageId, int serverId) : this(id, villageId, GarrisonHost.Village, serverId)
         {
-            VillageId = villageId;
+        }
+
+        private Garrison(Guid id, Guid hostId, GarrisonHost hostKind, int serverId) : base(id)
+        {
+            HostId = hostId;
+            HostKind = hostKind;
             ServerId = serverId;
         }
+
+        /// <summary>Гарнізон кланової споруди: спершу порожній, наповнюється маршами членів клану.</summary>
+        public static Garrison ForStructure(Guid id, Guid structureId, int serverId)
+            => new(id, structureId, GarrisonHost.ClanStructure, serverId);
 
         protected Garrison() { } // Для EF Core
 

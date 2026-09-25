@@ -201,6 +201,17 @@
   "teleport.cellOccupied": [],
   "teleport.cellUnsuitable": [],
   "teleport.outsideRegion": [],
+  "territory.cellTaken": [],
+  "territory.cellUnfit": [],
+  "territory.foreignStructure": [],
+  "territory.noFreeSlot": [
+    "slots"
+  ],
+  "territory.notEnoughPoints": [
+    "need",
+    "have"
+  ],
+  "territory.ownStructure": [],
   "village.alreadyThere": [],
   "village.nothingToRepair": [],
   "village.storageFull": [

@@ -27,6 +27,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки днів неактивності лідера запускає автопередачу.</summary>
         public int LeaderInactivityDays { get; set; } = 7;
 
+        /// <summary>Кланова територія й очки вкладу (GDD §7.2).</summary>
+        public ClanTerritoryConfig Territory { get; set; } = new();
+
         /// <summary>Скільки допомог приймає один запит: кап скорочення ділиться на внесок.</summary>
         public int MaxHelpers => (int)Math.Round(MaxHelpShare / HelpSharePerPlayer);
     }

@@ -37,6 +37,12 @@ namespace EmpireIdle.Domain.Entities
 
         public IReadOnlyCollection<ClanRole> Roles => _roles.AsReadOnly();
 
+        /// <summary>
+        /// Очки вкладу — кланова валюта (GDD §7.2), не ресурс села. Набігають
+        /// кешбеком із перемог над монстрами й квестами клану, тратяться на споруди.
+        /// </summary>
+        public long ContributionPoints { get; private set; }
+
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
 
@@ -315,6 +321,44 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
 
             return affected.Count;
+        }
+
+        #endregion
+
+        #region Очки вкладу
+
+        /// <summary>
+        /// Нараховує клану очки вкладу. Якщо їх приніс учасник — вони пишуться
+        /// і в його особистий внесок; квест клану вносить без автора.
+        /// </summary>
+        public void EarnPoints(long amount, Guid? memberId, DateTime utcNow)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), "Points to earn cannot be negative.");
+
+            if (amount == 0)
+                return;
+
+            ContributionPoints += amount;
+
+            if (memberId is Guid id)
+                _members.FirstOrDefault(m => m.PlayerId == id)?.AddContribution(amount);
+
+            Touch(utcNow);
+        }
+
+        /// <summary>Списує очки вкладу; не вистачає — відмова з тим, скільки треба й скільки є.</summary>
+        public void SpendPoints(long amount, DateTime utcNow)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), "Points to spend cannot be negative.");
+
+            if (ContributionPoints < amount)
+                throw new RequirementNotMetException(RefusalReasons.ClanNotEnoughPoints,
+                    $"Clan has {ContributionPoints} contribution points, {amount} needed.", amount, ContributionPoints);
+
+            ContributionPoints -= amount;
+            Touch(utcNow);
         }
 
         #endregion

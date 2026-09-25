@@ -65,7 +65,8 @@ public class GetBattlePreviewQueryTests
 
         var targets = new MarchTargetResolver(
             _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog,
-            new VillageStatus(catalog));
+            new VillageStatus(catalog), Substitute.For<IClanStructureRepository>(), Substitute.For<IClanRepository>(),
+            new ClanTerritoryRules(catalog));
 
         return new GetBattlePreviewQueryHandler(
             _villages, _garrisons, _heroes, _serverContext,

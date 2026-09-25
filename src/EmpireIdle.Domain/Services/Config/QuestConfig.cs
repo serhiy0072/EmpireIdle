@@ -25,5 +25,8 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Нагорода за рангом для Scope=Server.</summary>
         public List<RewardTierConfig> RewardTiers { get; set; } = new();
+
+        /// <summary>Очки вкладу, які клан отримує за завершення (Scope=Clan).</summary>
+        public long ClanPoints { get; set; }
     }
 }

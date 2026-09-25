@@ -59,8 +59,8 @@ namespace EmpireIdle.API.Controllers
             var occupants = occupiedCells
                 .Select(c => new MapOccupantCell(
                     c.X, c.Y, c.OccupantType.ToString(), c.OccupantId,
-                    c.MonsterType is null ? null : _catalog.Monsters.GetValueOrDefault(c.MonsterType)?.DisplayName,
-                    c.MonsterType, c.MonsterLevel))
+                    c.MonsterType is null ? c.ClanTag : _catalog.Monsters.GetValueOrDefault(c.MonsterType)?.DisplayName,
+                    c.MonsterType, c.MonsterLevel, c.ClanId, c.ReadyAt))
                 .ToList();
 
             return Ok(new MapAreaResponse(minX, minY, maxX, maxY, terrain, occupants));

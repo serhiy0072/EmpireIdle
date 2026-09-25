@@ -5,6 +5,7 @@ namespace EmpireIdle.Domain.Enums
     public enum MarchTargetType
     {
         Monster = 1,
-        Village = 2
+        Village = 2,
+        ClanStructure = 3
     }
 }

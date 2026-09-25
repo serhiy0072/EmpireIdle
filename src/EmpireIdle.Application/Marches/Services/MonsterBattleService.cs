@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -31,6 +32,9 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly BattleAftermath _aftermath;
         private readonly HeroCombatModifiers _heroModifiers;
         private readonly GameCatalog _catalog;
+        private readonly TerritoryBonus _territoryBonus;
+        private readonly ClanTerritoryRules _territory;
+        private readonly IClanRepository _clanRepository;
         private readonly ILogger<MonsterBattleService> _logger;
 
         public MonsterBattleService(
@@ -47,6 +51,9 @@ namespace EmpireIdle.Application.Marches.Services
             BattleAftermath aftermath,
             HeroCombatModifiers heroModifiers,
             GameCatalog catalog,
+            TerritoryBonus territoryBonus,
+            ClanTerritoryRules territory,
+            IClanRepository clanRepository,
             ILogger<MonsterBattleService> logger)
         {
             _monsterRepository = monsterRepository;
@@ -62,6 +69,9 @@ namespace EmpireIdle.Application.Marches.Services
             _aftermath = aftermath;
             _heroModifiers = heroModifiers;
             _catalog = catalog;
+            _territoryBonus = territoryBonus;
+            _territory = territory;
+            _clanRepository = clanRepository;
             _logger = logger;
         }
 
@@ -92,7 +102,8 @@ namespace EmpireIdle.Application.Marches.Services
                 ?? throw new InvalidOperationException($"Village {garrison.VillageId} not found for garrison {garrison.Id}.");
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
-                village.PlayerId, EffectTarget.Attack, utcNow, cancellationToken);
+                    village.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
+                * await _territoryBonus.AttackMultiplierAsync(village, utcNow, cancellationToken);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
             var seed = _random.Next(int.MaxValue);
@@ -114,7 +125,7 @@ namespace EmpireIdle.Application.Marches.Services
             garrison.AdmitWounded(split.Wounded, utcNow);
 
             if (result.AttackerWon)
-                await TakeSpoilsAsync(march, monster, utcNow, cancellationToken);
+                await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken);
 
             await _aftermath.RecordAttackerAsync(march, village, garrison,
                 _catalog.MonsterName(monster.Type), monster.Level,
@@ -136,7 +147,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// Здобич не з'являється в момент перемоги: вона їде з армією
         /// й лягає на склад лише по прибутті, у межах вантажопідйомності.
         /// </summary>
-        private async Task TakeSpoilsAsync(March march, Monster monster, DateTime utcNow,
+        private async Task TakeSpoilsAsync(March march, Monster monster, Guid playerId, DateTime utcNow,
             CancellationToken cancellationToken)
         {
             _monsterRepository.Remove(monster);
@@ -153,6 +164,14 @@ namespace EmpireIdle.Application.Marches.Services
                 march.GetUnits());
 
             march.LoadCargo(carried, utcNow);
+
+            // Кешбек клану з винесеного: гравцю нагорода не зменшується (GDD §7.2)
+            if (_territory.Enabled)
+            {
+                var clan = await _clanRepository.GetByMemberAsync(playerId, cancellationToken);
+
+                clan?.EarnPoints(_territory.CashbackFor(carried), playerId, utcNow);
+            }
         }
     }
 }

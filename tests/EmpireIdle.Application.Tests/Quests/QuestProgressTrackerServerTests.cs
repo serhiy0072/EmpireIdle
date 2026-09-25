@@ -23,6 +23,8 @@ public class QuestProgressTrackerServerTests
     private readonly IQuestRepository _quests = Substitute.For<IQuestRepository>();
     private readonly IServerQuestRepository _serverQuests = Substitute.For<IServerQuestRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
+    private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
+    private readonly IClanQuestRepository _clanQuests = Substitute.For<IClanQuestRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -54,7 +56,7 @@ public class QuestProgressTrackerServerTests
             .Returns([]);
 
         return new QuestProgressTracker(
-            _quests, _serverContext, _serverQuests,
+            _quests, _serverContext, _serverQuests, _clans, _clanQuests,
             new GameCatalog(Config()), NullLogger<QuestProgressTracker>.Instance);
     }
 
@@ -115,7 +117,7 @@ public class QuestProgressTrackerServerTests
             .Returns(contribution);
 
         var tracker = new QuestProgressTracker(
-            _quests, _serverContext, _serverQuests,
+            _quests, _serverContext, _serverQuests, _clans, _clanQuests,
             new GameCatalog(config), NullLogger<QuestProgressTracker>.Instance);
 
         await tracker.TrackAsync(Signal(increment: 7), Now, CancellationToken.None);

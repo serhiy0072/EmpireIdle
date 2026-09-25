@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Marches.ReadModels;
 using EmpireIdle.Domain.Entities;
 
 namespace EmpireIdle.Application.Interfaces
@@ -13,6 +14,16 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Похід за ідентифікатором (із загонами).</summary>
         Task<March?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Ворожі марші в дорозі на села <paramref name="defenderPlayerIds"/> і на споруди
+        /// клану <paramref name="clanId"/>, найближче прибуття — першим.
+        /// </summary>
+        Task<List<IncomingAttack>> GetIncomingAttacksAsync(IReadOnlyCollection<Guid> defenderPlayerIds, Guid? clanId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Один ворожий марш очима захисника; null — марш уже не в дорозі або це не напад.</summary>
+        Task<IncomingAttack?> GetIncomingAttackAsync(Guid marchId, CancellationToken cancellationToken = default);
 
         /// <summary>Додати похід.</summary>
         Task AddAsync(March march, CancellationToken cancellationToken = default);

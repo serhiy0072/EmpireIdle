@@ -1,6 +1,7 @@
 using EmpireIdle.API.Hubs.Events;
 using EmpireIdle.Application.Chat.Contracts;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Marches.ReadModels;
 using Microsoft.AspNetCore.SignalR;
 
 namespace EmpireIdle.API.Hubs
@@ -72,6 +73,22 @@ namespace EmpireIdle.API.Hubs
         public Task NotifyChatToPlayersAsync(IReadOnlyCollection<Guid> playerIds, ChatMessageNotice notice,
             CancellationToken cancellationToken = default)
             => _hubContext.Clients.Groups(playerIds.Select(id => id.ToString()).ToList()).ChatMessage(ToEvent(notice));
+
+        /// <inheritdoc/>
+        public Task NotifyAttackIncomingAsync(IReadOnlyCollection<Guid> playerIds, IncomingAttack attack,
+            CancellationToken cancellationToken = default)
+            => Players(playerIds).AttackIncoming(new AttackIncomingEvent(
+                attack.MarchId, attack.TargetType.ToString(), attack.TargetId, attack.TargetName,
+                attack.TargetX, attack.TargetY, attack.FromX, attack.FromY,
+                attack.AttackerName, attack.AttackerClanTag, attack.DepartedAt, attack.ArrivesAt));
+
+        /// <inheritdoc/>
+        public Task NotifyStructureDestroyedAsync(IReadOnlyCollection<Guid> playerIds, Guid structureId, int x, int y,
+            CancellationToken cancellationToken = default)
+            => Players(playerIds).StructureDestroyed(new StructureDestroyedEvent(structureId, x, y));
+
+        private IGameClient Players(IReadOnlyCollection<Guid> playerIds)
+            => _hubContext.Clients.Groups(playerIds.Select(id => id.ToString()).ToList());
 
         private static ChatMessageEvent ToEvent(ChatMessageNotice notice)
             => new(notice.Id, notice.Channel, notice.SenderId, notice.SenderName, notice.ClanId, notice.RecipientId,

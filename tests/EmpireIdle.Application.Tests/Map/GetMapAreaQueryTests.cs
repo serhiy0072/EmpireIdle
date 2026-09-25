@@ -12,8 +12,31 @@ public class GetMapAreaQueryTests
 
     private readonly IMapRepository _map = Substitute.For<IMapRepository>();
     private readonly IMonsterRepository _monsters = Substitute.For<IMonsterRepository>();
+    private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
+    private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
 
-    private GetMapAreaQueryHandler Handler() => new(_map, _monsters);
+    private GetMapAreaQueryHandler Handler() => new(_map, _monsters, _structures, _clans);
+
+    /// <summary>Споруда несе свій клан, тег і момент готовності — клієнт малює радіус і відрізняє свою територію.</summary>
+    [Fact]
+    public async Task Handle_ShouldAttachClanAndReadiness_ToStructureCells()
+    {
+        var clanId = Guid.NewGuid();
+        var structure = new ClanStructure(Guid.NewGuid(), 1, clanId, 1, 1, Guid.NewGuid(), Guid.NewGuid(),
+            TimeSpan.FromHours(2), Now);
+
+        _map.GetAreaAsync(1, -2, -2, 2, 2, Arg.Any<CancellationToken>()).Returns(
+            [new MapCell(Guid.NewGuid(), 1, 1, 1, MapOccupantType.ClanStructure, structure.Id)]);
+        _structures.GetInAreaAsync(-2, -2, 2, 2, Arg.Any<CancellationToken>()).Returns([structure]);
+        _clans.GetCardsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(
+            new Dictionary<Guid, ClanCard> { [clanId] = new(clanId, "Northern Watch", "NW", "", ClanJoinPolicy.Open, 3, Now) });
+
+        var occupant = Assert.Single(await Handler().Handle(new GetMapAreaQuery(1, 0, 0, 2), CancellationToken.None));
+
+        Assert.Equal(clanId, occupant.ClanId);
+        Assert.Equal("NW", occupant.ClanTag);
+        Assert.Equal(Now.AddHours(2), occupant.ReadyAt);
+    }
 
     /// <summary>Монстри ділянки збагачуються типом і рівнем одним запитом за всіма ідентифікаторами.</summary>
     [Fact]

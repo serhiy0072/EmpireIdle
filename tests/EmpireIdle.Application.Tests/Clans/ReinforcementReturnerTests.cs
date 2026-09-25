@@ -53,7 +53,7 @@ public class ReinforcementReturnerTests
             .Returns(new List<Guid>());
 
         return new ReinforcementReturner(
-            _garrisons, _villages, _marches, _heroes,
+            _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes,
             new MarchCalculator(new TerrainGenerator(config.Map), catalog),
             catalog,
             new HeroProgression(config.HeroSettings),

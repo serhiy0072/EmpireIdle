@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,7 @@ namespace EmpireIdle.Application.Clans.Services
     {
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly IClanStructureRepository _structureRepository;
         private readonly IMarchRepository _marchRepository;
         private readonly IHeroRepository _heroRepository;
         private readonly MarchCalculator _calculator;
@@ -28,6 +30,7 @@ namespace EmpireIdle.Application.Clans.Services
         public ReinforcementReturner(
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
+            IClanStructureRepository structureRepository,
             IMarchRepository marchRepository,
             IHeroRepository heroRepository,
             MarchCalculator calculator,
@@ -37,6 +40,7 @@ namespace EmpireIdle.Application.Clans.Services
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
+            _structureRepository = structureRepository;
             _marchRepository = marchRepository;
             _heroRepository = heroRepository;
             _calculator = calculator;
@@ -136,9 +140,9 @@ namespace EmpireIdle.Application.Clans.Services
                 ? null
                 : await _villageRepository.GetByIdAsync(ownerGarrison.VillageId, cancellationToken);
 
-            var hostVillage = await _villageRepository.GetByIdAsync(host.VillageId, cancellationToken);
+            var from = await HostLocationAsync(host, cancellationToken);
 
-            if (ownerVillage is null || hostVillage is null)
+            if (ownerVillage is null || from is null)
             {
                 // Дому більше немає — повертати нікуди; військо просто зникає.
                 // Герої лишаються стояти: знищити героя не можна, і дівати
@@ -163,15 +167,15 @@ namespace EmpireIdle.Application.Clans.Services
             // Колона йде за найповільнішим, і герой у цьому рахунку нарівні
             // з юнітами: важкий супровід гальмує відхід так само, як облога
             var duration = _calculator.CalculateDuration(
-                host.ServerId, hostVillage.X, hostVillage.Y, ownerVillage.X, ownerVillage.Y, units,
+                host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y, units,
                 heroes.Count > 0
                     ? _progression.MarchSpeed(_catalog.FindHero(heroes[0].HeroKey))
                     : null);
 
             var march = March.ReturningHome(
                 Guid.NewGuid(), host.ServerId, ownerGarrison!.Id, escort,
-                ownerVillage.X, ownerVillage.Y, hostVillage.X, hostVillage.Y, hostVillage.Id,
-                units, duration, utcNow);
+                ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
+                units, duration, utcNow, from.Value.Type);
 
             await _marchRepository.AddAsync(march, cancellationToken);
 
@@ -182,21 +186,61 @@ namespace EmpireIdle.Application.Clans.Services
                 extra.SendHome(utcNow);
 
                 var soloDuration = _calculator.CalculateDuration(
-                    host.ServerId, hostVillage.X, hostVillage.Y, ownerVillage.X, ownerVillage.Y,
+                    host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y,
                     new Dictionary<UnitStackKey, int>(),
                     _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey)));
 
                 await _marchRepository.AddAsync(March.ReturningHome(
                     Guid.NewGuid(), host.ServerId, ownerGarrison.Id, extra.Id,
-                    ownerVillage.X, ownerVillage.Y, hostVillage.X, hostVillage.Y, hostVillage.Id,
-                    new Dictionary<UnitStackKey, int>(), soloDuration, utcNow), cancellationToken);
+                    ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
+                    new Dictionary<UnitStackKey, int>(), soloDuration, utcNow, from.Value.Type), cancellationToken);
             }
 
             _logger.LogInformation(
-                "Reinforcements of {OwnerId} left village {VillageId}: {Count} units, {Heroes} heroes, {Minutes:F1} min home",
-                ownerPlayerId, hostVillage.Id, units.Values.Sum(), heroes.Count, duration.TotalMinutes);
+                "Reinforcements of {OwnerId} left {HostType} {HostId}: {Count} units, {Heroes} heroes, {Minutes:F1} min home",
+                ownerPlayerId, from.Value.Type, from.Value.Id, units.Values.Sum(), heroes.Count, duration.TotalMinutes);
 
             return true;
+        }
+
+        /// <summary>
+        /// Розпускає весь гарнізон кланової споруди — коли її зносять або руйнують.
+        /// Господаря в споруди немає, тож додому йдуть усі, хто там стоїть.
+        /// </summary>
+        /// <returns>Скільки маршів вирушило додому.</returns>
+        public async Task<int> ReturnAllFromStructureAsync(Garrison host, DateTime utcNow,
+            CancellationToken cancellationToken = default)
+        {
+            var stationed = await _heroRepository.GetByGarrisonAsync(host.Id, cancellationToken);
+
+            var owners = host.ReinforcementOwners()
+                .Concat(stationed.Select(h => h.PlayerId))
+                .Distinct()
+                .ToList();
+
+            var sent = 0;
+
+            foreach (var ownerId in owners)
+                if (await ReturnOwnerAsync(host, ownerId, utcNow, cancellationToken))
+                    sent++;
+
+            return sent;
+        }
+
+        /// <summary>Де стоїть гарнізон-господар: село чи кланова споруда. null — господаря вже немає.</summary>
+        private async Task<(Guid Id, int X, int Y, MarchTargetType Type)?> HostLocationAsync(Garrison host,
+            CancellationToken cancellationToken)
+        {
+            if (host.HostKind == GarrisonHost.ClanStructure)
+            {
+                var structure = await _structureRepository.GetByIdAsync(host.HostId, cancellationToken);
+
+                return structure is null ? null : (structure.Id, structure.X, structure.Y, MarchTargetType.ClanStructure);
+            }
+
+            var village = await _villageRepository.GetByIdAsync(host.VillageId, cancellationToken);
+
+            return village is null ? null : (village.Id, village.X, village.Y, MarchTargetType.Village);
         }
 
         /// <summary>

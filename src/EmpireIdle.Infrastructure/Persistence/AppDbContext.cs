@@ -47,6 +47,8 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
         public DbSet<ClanRole> ClanRoles => Set<ClanRole>();
         public DbSet<ClanHelpRequest> ClanHelpRequests => Set<ClanHelpRequest>();
+        public DbSet<ClanStructure> ClanStructures => Set<ClanStructure>();
+        public DbSet<ClanQuestProgress> ClanQuestProgress => Set<ClanQuestProgress>();
         public DbSet<ClanHelpContribution> ClanHelpContributions => Set<ClanHelpContribution>();
         public DbSet<ClanRequest> ClanRequests => Set<ClanRequest>();
         public DbSet<Hero> Heroes => Set<Hero>();
@@ -94,6 +96,8 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<PlayerRating>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Clan>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<ClanHelpRequest>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ClanStructure>().HasQueryFilter(s => s.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ClanQuestProgress>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<ClanRequest>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Hero>().HasQueryFilter(h => h.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<HeroLevelOrder>().HasQueryFilter(o => o.ServerId == _serverContext.ServerId);

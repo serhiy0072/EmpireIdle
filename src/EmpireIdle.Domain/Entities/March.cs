@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.ValueObjects;
 
@@ -78,6 +79,10 @@ namespace EmpireIdle.Domain.Entities
 
             foreach (var (stack, count) in units)
                 _units.Add(new MarchUnit(Guid.NewGuid(), id, stack.UnitType, stack.Level, count));
+
+            // Напад на того, хто захищається, — тривога захисникові й клану ще до прибуття
+            if (intent == MarchIntent.Attack && targetType != MarchTargetType.Monster)
+                RaiseDomainEvent(new HostileMarchLaunched(id, targetType, targetId, arrivesAt, departedAt));
         }
 
         protected March() { } // Для EF Core
@@ -87,13 +92,16 @@ namespace EmpireIdle.Domain.Entities
         /// гарнізону. Фази Outbound у нього немає — армія вже на місці.
         /// </summary>
         /// <param name="garrisonId">Гарнізон власника: саме туди повернуться юніти.</param>
+        /// <param name="fromId">Село чи кланова споруда, з якої знято військо.</param>
+        /// <param name="fromType">Що саме — село чи споруда.</param>
         public static March ReturningHome(Guid id, int serverId, Guid garrisonId, Guid? heroId,
-            int homeX, int homeY, int fromX, int fromY, Guid fromVillageId,
-            IReadOnlyDictionary<UnitStackKey, int> units, TimeSpan duration, DateTime utcNow)
+            int homeX, int homeY, int fromX, int fromY, Guid fromId,
+            IReadOnlyDictionary<UnitStackKey, int> units, TimeSpan duration, DateTime utcNow,
+            MarchTargetType fromType = MarchTargetType.Village)
         {
             // Origin — дім: гілка Returning у сканері веде армію саме туди
             var march = new March(id, serverId, garrisonId, heroId, homeX, homeY, fromX, fromY,
-                MarchTargetType.Village, fromVillageId, units, utcNow + duration, utcNow,
+                fromType, fromId, units, utcNow + duration, utcNow,
                 MarchIntent.Reinforce);
 
             march.State = MarchState.Returning;

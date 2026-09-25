@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -32,6 +33,7 @@ public class SendMarchCommandTests
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -72,7 +74,8 @@ public class SendMarchCommandTests
         var heroModifiers = new HeroCombatModifiers(catalog);
 
         var targets = new MarchTargetResolver(
-            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog, status);
+            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog, status,
+            _structures, _clans, new ClanTerritoryRules(catalog));
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
@@ -80,7 +83,7 @@ public class SendMarchCommandTests
             _villages, _garrisons, _marches, _heroes, _unitOfWork, _serverContext,
             new FakeTimeProvider(Now),
             new MarchCalculator(terrain, catalog),
-            targets, reinforcementRules,
+            targets, reinforcementRules, new StructureMarchRules(_clans),
             new HeroProgression(config.HeroSettings),
             catalog,
             NullLogger<SendMarchCommandHandler>.Instance);

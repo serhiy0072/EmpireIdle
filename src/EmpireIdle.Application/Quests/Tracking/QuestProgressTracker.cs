@@ -18,6 +18,8 @@ namespace EmpireIdle.Application.Quests.Tracking
         private readonly IQuestRepository _questRepository;
         private readonly IServerContext _serverContext;
         private readonly IServerQuestRepository _serverQuestRepository;
+        private readonly IClanRepository _clanRepository;
+        private readonly IClanQuestRepository _clanQuestRepository;
         private readonly GameCatalog _catalog;
         private readonly ILogger<QuestProgressTracker> _logger;
 
@@ -25,12 +27,16 @@ namespace EmpireIdle.Application.Quests.Tracking
             IQuestRepository questRepository,
             IServerContext serverContext,
             IServerQuestRepository serverQuestRepository,
+            IClanRepository clanRepository,
+            IClanQuestRepository clanQuestRepository,
             GameCatalog catalog,
             ILogger<QuestProgressTracker> logger)
         {
             _questRepository = questRepository;
             _serverContext = serverContext;
             _serverQuestRepository = serverQuestRepository;
+            _clanRepository = clanRepository;
+            _clanQuestRepository = clanQuestRepository;
             _catalog = catalog;
             _logger = logger;
         }
@@ -39,6 +45,7 @@ namespace EmpireIdle.Application.Quests.Tracking
         {
             await TrackPersonalAsync(signal, utcNow, cancellationToken);
             await TrackServerAsync(signal, utcNow, cancellationToken);
+            await TrackClanAsync(signal, utcNow, cancellationToken);
         }
 
         public async Task TrackPersonalAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
@@ -146,6 +153,53 @@ namespace EmpireIdle.Application.Quests.Tracking
                 }
 
                 contribution.Add(amount, utcNow);
+            }
+        }
+
+        /// <summary>
+        /// Записує внесок у квести клану гравця. Прогрес — спільний рядок клану:
+        /// завершення одразу нараховує клану очки вкладу, а слоти споруд
+        /// рахуються від завершених квестів при читанні.
+        /// </summary>
+        private async Task TrackClanAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            if (signal.Increment <= 0)
+                return;
+
+            var candidates = _catalog.Quests.Values
+                .Where(q => q.Scope == QuestScope.Clan && IsOpen(q, utcNow))
+                .Where(q => Matches(q.Objectives[0], signal))
+                .ToList();
+
+            if (candidates.Count == 0)
+                return;
+
+            // Гравець поза кланом квестам клану не вносить
+            if (await _clanRepository.GetClanIdByMemberAsync(signal.PlayerId, cancellationToken) is not Guid clanId)
+                return;
+
+            foreach (var config in candidates)
+            {
+                var progress = await _clanQuestRepository.GetAsync(clanId, config.Key, cancellationToken);
+
+                if (progress is null)
+                {
+                    progress = new ClanQuestProgress(Guid.NewGuid(), _serverContext.ServerId, clanId, config.Key,
+                        config.Objectives[0].Count);
+
+                    await _clanQuestRepository.AddAsync(progress, cancellationToken);
+                }
+
+                if (!progress.Add(signal.Increment, utcNow))
+                    continue;
+
+                if (config.ClanPoints > 0)
+                {
+                    var clan = await _clanRepository.GetByIdAsync(clanId, cancellationToken);
+                    clan?.EarnPoints(config.ClanPoints, memberId: null, utcNow);
+                }
+
+                _logger.LogInformation("Clan {ClanId} completed clan quest {QuestKey}", clanId, config.Key);
             }
         }
 

@@ -14,11 +14,12 @@ namespace EmpireIdle.Application.Marches.Validators
             RuleFor(x => x.Units).NotEmpty();
             RuleFor(x => x.Intent).IsInEnum();
 
-            // У монстра гарнізону немає — підкріпляти нікого
+            // У монстра гарнізону немає — підкріпляти нікого. Споруду клану
+            // «підкріплюють», щоб будувати й тримати гарнізон
             RuleFor(x => x.TargetType)
-                .Equal(MarchTargetType.Village)
+                .Must(t => t is MarchTargetType.Village or MarchTargetType.ClanStructure)
                 .When(x => x.Intent == MarchIntent.Reinforce)
-                .WithMessage("Reinforcements can only be sent to a village.");
+                .WithMessage("Reinforcements can only be sent to a village or a clan structure.");
 
             RuleForEach(x => x.Units).ChildRules(unit =>
             {

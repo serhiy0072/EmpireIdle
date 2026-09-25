@@ -36,3 +36,25 @@ public record MarchResponse(
 
 /// <summary>Загін у поході.</summary>
 public record MarchUnitResponse(string UnitType, int Level, int Count);
+
+/// <summary>
+/// Ворожий марш у дорозі на село гравця, соклановця чи споруду клану.
+/// Від DepartedAt до ArrivesAt клієнт веде загін прямою від (FromX, FromY) до цілі.
+/// </summary>
+/// <param name="TargetName">Назва села або тег клану-власника споруди; null — ціль зникла.</param>
+/// <param name="Mine">Ціль — село самого гравця.</param>
+/// <param name="AttackerClanTag">null — нападник поза кланом.</param>
+public record IncomingAttackResponse(
+    Guid MarchId,
+    MarchTargetType TargetType,
+    Guid TargetId,
+    string? TargetName,
+    bool Mine,
+    int TargetX,
+    int TargetY,
+    int FromX,
+    int FromY,
+    string AttackerName,
+    string? AttackerClanTag,
+    DateTime DepartedAt,
+    DateTime ArrivesAt);

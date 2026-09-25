@@ -41,6 +41,54 @@ namespace EmpireIdle.Domain.Services
             ValidateBanners(config);
             ValidateBuildingLayout(config);
             ValidateLoginRewards(config);
+            ValidateClanTerritory(config);
+        }
+
+        /// <summary>
+        /// Кланова територія й кланові квести (GDD §7.2). Квест клану — одна накопичувальна
+        /// ціль без порогу й без особистих нагород: нагорода йде клану очками вкладу.
+        /// Слот відкриває рівно одна умова, і квест у ній мусить бути клановим.
+        /// </summary>
+        private static void ValidateClanTerritory(GameConfig config)
+        {
+            var clanQuests = config.Quests.Where(q => q.Scope == QuestScope.Clan).ToList();
+
+            var brokenQuests = clanQuests
+                .Where(q => q.Objectives.Count != 1
+                            || q.Objectives[0].Mode == ObjectiveMode.Threshold
+                            || q.Objectives[0].Count <= 0
+                            || q.Window != QuestWindow.Chain
+                            || q.Rewards.Count > 0
+                            || q.RewardTiers.Count > 0
+                            || q.ClanPoints < 0)
+                .Select(q => q.Key)
+                .ToList();
+
+            if (brokenQuests.Count > 0)
+                throw new InvalidOperationException(
+                    "Clan quests need exactly one accumulating objective with a positive count, the Chain window, " +
+                    $"no personal or tiered rewards and non-negative ClanPoints: {string.Join(", ", brokenQuests)}.");
+
+            var territory = config.Clan.Territory;
+
+            if (territory.StartingSlots > territory.MaxStructures)
+                throw new InvalidOperationException(
+                    $"Clan territory opens {territory.StartingSlots} starting slots but allows only {territory.MaxStructures} structures.");
+
+            var clanQuestKeys = clanQuests.Select(q => q.Key).ToHashSet();
+
+            var brokenUnlocks = territory.SlotUnlocks
+                .Select((unlock, index) => (Unlock: unlock, Index: index + 1))
+                .Where(x => (x.Unlock.MinMembers is null) == (x.Unlock.QuestKey is null)
+                            || x.Unlock.MinMembers is <= 0
+                            || (x.Unlock.QuestKey is { } key && !clanQuestKeys.Contains(key)))
+                .Select(x => $"#{x.Index}")
+                .ToList();
+
+            if (brokenUnlocks.Count > 0)
+                throw new InvalidOperationException(
+                    "Every clan slot unlock needs exactly one condition — a positive MinMembers or the key of a clan quest: " +
+                    $"{string.Join(", ", brokenUnlocks)}.");
         }
 
         /// <summary>Нагороди за вхід видає той самий диспетчер, що й квестові — ключі мусять існувати.</summary>

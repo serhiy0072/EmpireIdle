@@ -96,7 +96,8 @@ namespace EmpireIdle.Application.Marches.Queries
             var terrain = _terrain.GetTerrainType(_serverContext.ServerId, target.X, target.Y);
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
-                request.PlayerId, EffectTarget.Attack, now, cancellationToken);
+                    request.PlayerId, EffectTarget.Attack, now, cancellationToken)
+                * await _targets.AttackMultiplierAsync(village, now, cancellationToken);
 
             // Чужий або неіснуючий герой рахується як відсутній: прев'ю нічого
             // не міняє, відмовить SendMarchCommand. Але й підставити чужого героя

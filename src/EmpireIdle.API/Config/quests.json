@@ -159,7 +159,6 @@
           }
         ]
       },
-
       {
         "Key": "milestone_townhall_10",
         "DisplayName": "Віха: Ратуша 10",
@@ -216,7 +215,6 @@
           }
         ]
       },
-
       {
         "Key": "daily_collect",
         "DisplayName": "Щоденний збір",
@@ -306,6 +304,48 @@
             "Amount": 6
           }
         ]
+      },
+      {
+        "Key": "clan_hunt",
+        "DisplayName": "Облава",
+        "Scope": "Clan",
+        "Window": "Chain",
+        "Objectives": [
+          {
+            "Type": "MonsterDefeated",
+            "Count": 200,
+            "Mode": "Accumulate"
+          }
+        ],
+        "ClanPoints": 1000
+      },
+      {
+        "Key": "clan_builders",
+        "DisplayName": "Будівничі",
+        "Scope": "Clan",
+        "Window": "Chain",
+        "Objectives": [
+          {
+            "Type": "BuildingUpgradeCompleted",
+            "Count": 50,
+            "Mode": "Accumulate"
+          }
+        ],
+        "ClanPoints": 800
+      },
+      {
+        "Key": "clan_muster",
+        "DisplayName": "Збір війська",
+        "Scope": "Clan",
+        "Window": "Chain",
+        "Objectives": [
+          {
+            "Type": "UnitsTrained",
+            "Count": 2000,
+            "Mode": "Accumulate"
+          }
+        ],
+        "ClanPoints": 1200
       }
     ]
   }

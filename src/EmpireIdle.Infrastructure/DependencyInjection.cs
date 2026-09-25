@@ -14,6 +14,7 @@ using EmpireIdle.Application.Rewards.Granters;
 using EmpireIdle.Application.Chat.Services;
 using EmpireIdle.Application.Market.Services;
 using EmpireIdle.Application.Mail.Services;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Infrastructure.Translation;
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
@@ -75,6 +76,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IServerQuestRepository, ServerQuestRepository>();
             services.AddScoped<IClanRepository, ClanRepository>();
             services.AddScoped<IClanHelpRepository, ClanHelpRepository>();
+            services.AddScoped<IClanStructureRepository, ClanStructureRepository>();
+            services.AddScoped<IClanQuestRepository, ClanQuestRepository>();
             services.AddScoped<IClanRequestRepository, ClanRequestRepository>();
             services.AddScoped<IHeroRepository, HeroRepository>();
             services.AddScoped<IBannerRepository, BannerRepository>();
@@ -96,6 +99,11 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ItemGranter>();
             services.AddScoped<HeroGranter>();
             services.AddScoped<ReinforcementReturner>();
+            services.AddScoped<ClanStructureRemover>();
+            services.AddScoped<StructureMarchRules>();
+            services.AddScoped<TerritoryBonus>();
+            services.AddScoped<StructureReinforcementDelivery>();
+            services.AddScoped<StructureBattleService>();
             services.AddScoped<MarchLogistics>();
             services.AddScoped<ReinforcementDelivery>();
             services.AddScoped<VillageBattleService>();
@@ -108,6 +116,7 @@ namespace EmpireIdle.Infrastructure
 
             services.AddSingleton<VillageCapacities>();
             services.AddSingleton<VillageStatus>();
+            services.AddSingleton<ClanTerritoryRules>();
             services.AddSingleton<CityFallRules>();
             services.AddSingleton<PlunderCalculator>();
 

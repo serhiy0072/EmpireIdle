@@ -1,4 +1,18 @@
 {
+  "AttackIncoming": [
+    "arrivesAt",
+    "attackerClanTag",
+    "attackerName",
+    "departedAt",
+    "fromX",
+    "fromY",
+    "marchId",
+    "targetId",
+    "targetName",
+    "targetType",
+    "targetX",
+    "targetY"
+  ],
   "BattleFinished": [
     "reportId",
     "targetName",
@@ -39,6 +53,11 @@
     "contribution",
     "questKey",
     "rank"
+  ],
+  "StructureDestroyed": [
+    "structureId",
+    "x",
+    "y"
   ],
   "UpgradeCompleted": [
     "buildingId",

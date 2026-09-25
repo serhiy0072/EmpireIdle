@@ -41,6 +41,25 @@ namespace EmpireIdle.API.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Ворожі марші в дорозі на село гравця, села соклановців і споруди клану —
+        /// найближче прибуття першим. Тривога приходить подією, це — стан після перезавантаження.
+        /// </summary>
+        [HttpGet("{playerId:guid}/incoming")]
+        [ProducesResponseType(typeof(List<IncomingAttackResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<List<IncomingAttackResponse>>> GetIncoming(Guid playerId, CancellationToken cancellationToken)
+        {
+            var attacks = await _mediator.Send(new GetIncomingAttacksQuery(playerId), cancellationToken);
+
+            return Ok(attacks
+                .Select(a => new IncomingAttackResponse(
+                    a.MarchId, a.TargetType, a.TargetId, a.TargetName, a.TargetOwnerId == playerId,
+                    a.TargetX, a.TargetY, a.FromX, a.FromY, a.AttackerName, a.AttackerClanTag,
+                    a.DepartedAt, a.ArrivesAt))
+                .ToList());
+        }
+
         /// <summary>Відправити армію до цілі: в атаку на монстра або підкріпленням до села союзника.</summary>
         [HttpPost("{playerId:guid}")]
         [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]

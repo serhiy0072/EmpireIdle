@@ -1,4 +1,4 @@
-using EmpireIdle.API.Hubs;
+﻿using EmpireIdle.API.Hubs;
 using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Middleware;
 using EmpireIdle.API.Services;
@@ -74,6 +74,19 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
+    .Validate(c => c.Clan.Territory.Radius > 0, "GameConfig.Clan.Territory.Radius must be positive — a structure would cover nothing.")
+    .Validate(c => c.Clan.Territory.MaxStructures > 0 && c.Clan.Territory.StartingSlots >= 0,
+        "GameConfig.Clan.Territory needs a positive MaxStructures and non-negative StartingSlots.")
+    .Validate(c => c.Clan.Territory.StructureCostPoints >= 0 && c.Clan.Territory.BuildMinutes >= 0,
+        "GameConfig.Clan.Territory structure cost and build time cannot be negative.")
+    .Validate(c => c.Clan.Territory.BuildSharePerPower >= 0
+                   && c.Clan.Territory.MaxBuildShare > 0 && c.Clan.Territory.MaxBuildShare <= 1,
+        "GameConfig.Clan.Territory.BuildSharePerPower must be non-negative and MaxBuildShare within (0; 1].")
+    .Validate(c => c.Clan.Territory.GarrisonCapacity > 0, "GameConfig.Clan.Territory.GarrisonCapacity must be positive — no march could garrison a structure.")
+    .Validate(c => c.Clan.Territory.AttackBonus >= 0 && c.Clan.Territory.DefenceBonus >= 0,
+        "GameConfig.Clan.Territory bonuses cannot be negative — territory would weaken its own clan.")
+    .Validate(c => c.Clan.Territory.MonsterLootCashbackShare is >= 0 and <= 1,
+        "GameConfig.Clan.Territory.MonsterLootCashbackShare must be a share within [0; 1].")
     .Validate(c => c.Heroes.Count > 0, "GameConfig.Heroes is empty — check Config/heroes.json.")
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
     .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")

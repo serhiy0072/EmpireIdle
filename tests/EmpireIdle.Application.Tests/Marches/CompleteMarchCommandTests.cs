@@ -3,8 +3,10 @@ using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -35,13 +37,33 @@ public class CompleteMarchCommandTests
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
+    private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
     private readonly IRandomSource _random = Substitute.For<IRandomSource>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
 
-    private static GameConfig Config(bool cityFall = false) => new()
+    private const int StructureGarrisonCapacity = 50;
+
+    private static GameConfig Config(bool cityFall = false)
+    {
+        var config = BaseConfig(cityFall);
+
+        // Увімкнено для всіх сцен: гравці тут поза кланом, тож бонус — 1, а кешбеку немає
+        config.Clan.Territory = new ClanTerritoryConfig
+        {
+            Enabled = true,
+            BuildSharePerPower = 0.0001,
+            MaxBuildShare = 1.0,
+            GarrisonCapacity = StructureGarrisonCapacity,
+            MonsterLootCashbackShare = 0.05
+        };
+
+        return config;
+    }
+
+    private static GameConfig BaseConfig(bool cityFall) => new()
     {
         Buildings =
         [
@@ -132,8 +154,11 @@ public class CompleteMarchCommandTests
         var logistics = new MarchLogistics(
             _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
 
+        var territory = new ClanTerritoryRules(catalog);
+        var territoryBonus = new TerritoryBonus(_clans, _structures, territory);
+
         var returner = new ReinforcementReturner(
-            _garrisons, _villages, _marches, _heroes, calculator, catalog,
+            _garrisons, _villages, _structures, _marches, _heroes, calculator, catalog,
             new HeroProgression(config.HeroSettings),
             NullLogger<ReinforcementReturner>.Instance);
 
@@ -145,7 +170,7 @@ public class CompleteMarchCommandTests
 
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _heroes, _random,
-            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, catalog,
+            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, catalog, territoryBonus, territory, _clans,
             NullLogger<MonsterBattleService>.Instance);
 
         var relocator = new VillageRelocator(_map, _marches, _garrisons, _serverRepository, catalog, geometry, effects);
@@ -160,7 +185,7 @@ public class CompleteMarchCommandTests
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
             catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, heroModifiers, cityFallService,
+            status, plunder, heroModifiers, cityFallService, territoryBonus,
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
@@ -169,10 +194,21 @@ public class CompleteMarchCommandTests
             _garrisons, _villages, _heroes, logistics, reinforcementRules, capacities,
             NullLogger<ReinforcementDelivery>.Instance);
 
+        var structureDelivery = new StructureReinforcementDelivery(
+            _garrisons, _villages, _heroes, _clans, _structures, combat, heroModifiers, terrain, logistics, territory,
+            NullLogger<StructureReinforcementDelivery>.Instance);
+
+        var remover = new ClanStructureRemover(_structures, _garrisons, _map, returner, NullLogger<ClanStructureRemover>.Instance);
+
+        var structureBattle = new StructureBattleService(
+            _garrisons, _villages, _heroes, _clans, _structures, _random, resolver, new DefenceLossAllocator(), effects,
+            logistics, aftermath, status, heroModifiers, territory, territoryBonus, remover,
+            NullLogger<StructureBattleService>.Instance);
+
         return new CompleteMarchCommandHandler(
             _marches, _garrisons, _heroes, _unitOfWork, terrain,
             new FakeTimeProvider(at ?? Now),
-            logistics, monsterBattle, villageBattle, reinforcements,
+            logistics, monsterBattle, villageBattle, reinforcements, structureDelivery, structureBattle,
             NullLogger<CompleteMarchCommandHandler>.Instance);
     }
 
@@ -596,5 +632,109 @@ public class CompleteMarchCommandTests
         Assert.Equal(MarchState.Returning, march.State);
         await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
         Assert.Equal(10, defenderGarrison.Units.Sum(u => u.Count));
+    }
+
+    // ---------- Кланова територія ----------
+
+    private (March March, Garrison Garrison, ClanStructure Structure, Garrison StructureGarrison) GivenStructureMarch(
+        MarchIntent intent, Guid structureClanId, Guid? playerClanId, int infantry = 100)
+    {
+        var catalog = new GameCatalog(Config());
+        var village = NewVillage(catalog, PlayerId, 50, 50);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
+
+        var structureId = Guid.NewGuid();
+        var structureGarrison = Garrison.ForStructure(Guid.NewGuid(), structureId, 1);
+        var structure = new ClanStructure(structureId, 1, structureClanId, 55, 55, structureGarrison.Id, Guid.NewGuid(),
+            TimeSpan.FromHours(10), Now.AddHours(-1));
+
+        var march = new March(
+            Guid.NewGuid(), 1, garrison.Id, heroId: null, 50, 50, 55, 55,
+            MarchTargetType.ClanStructure, structure.Id,
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry },
+            Now, Now.AddMinutes(-30), intent);
+
+        _marches.GetByIdAsync(march.Id, Arg.Any<CancellationToken>()).Returns(march);
+        _garrisons.GetByIdAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(garrison);
+        _garrisons.GetByIdAsync(structureGarrison.Id, Arg.Any<CancellationToken>()).Returns(structureGarrison);
+        _villages.GetByIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(village);
+        _structures.GetByIdAsync(structure.Id, Arg.Any<CancellationToken>()).Returns(structure);
+        _clans.GetClanIdByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(playerClanId);
+
+        return (march, garrison, structure, structureGarrison);
+    }
+
+    /// <summary>Марш на свою споруду прискорює будівництво своєю силою й лишається гарнізоном.</summary>
+    [Fact]
+    public async Task Handle_ShouldBuildAndGarrisonOwnStructure()
+    {
+        var clanId = Guid.NewGuid();
+        var (march, _, structure, structureGarrison) = GivenStructureMarch(MarchIntent.Reinforce, clanId, clanId, infantry: 40);
+        var before = structure.CompletesAt;
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.True(structure.AcceleratedShare > 0);
+        Assert.True(structure.CompletesAt < before);
+        Assert.Equal(40, structureGarrison.ReinforcementCount);
+        Assert.Equal(MarchState.Completed, march.State);
+    }
+
+    /// <summary>Повний гарнізон: що не влізло — додому, але будівництво марш прискорив.</summary>
+    [Fact]
+    public async Task Handle_ShouldSendBackWhatDoesNotFit_AndStillAccelerate()
+    {
+        var clanId = Guid.NewGuid();
+        var (march, _, structure, structureGarrison) = GivenStructureMarch(MarchIntent.Reinforce, clanId, clanId, infantry: 80);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(StructureGarrisonCapacity, structureGarrison.ReinforcementCount);
+        Assert.Equal(MarchState.Returning, march.State);
+        Assert.Equal(80 - StructureGarrisonCapacity, march.GetUnits().Values.Sum());
+        Assert.True(structure.AcceleratedShare > 0);
+    }
+
+    /// <summary>Споруда без гарнізону падає з першого нальоту — і бонус зникає одразу.</summary>
+    [Fact]
+    public async Task Handle_ShouldDestroyAnUndefendedEnemyStructure()
+    {
+        var (march, _, structure, structureGarrison) = GivenStructureMarch(MarchIntent.Attack, Guid.NewGuid(), playerClanId: null);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        _structures.Received(1).Remove(structure);
+        _garrisons.Received(1).Remove(structureGarrison);
+        Assert.Contains(structure.DomainEvents, e => e is ClanStructureDestroyed);
+        Assert.Equal(MarchState.Returning, march.State);
+    }
+
+    /// <summary>Нападник устиг вступити до клану споруди — свою він не руйнує, а розвертається.</summary>
+    [Fact]
+    public async Task Handle_ShouldTurnBack_WhenTheAttackerJoinedTheOwningClan()
+    {
+        var clanId = Guid.NewGuid();
+        var (march, _, structure, _) = GivenStructureMarch(MarchIntent.Attack, clanId, clanId);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        _structures.DidNotReceive().Remove(Arg.Any<ClanStructure>());
+        await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
+        Assert.Equal(MarchState.Returning, march.State);
+    }
+
+    /// <summary>Перемога над монстром дає клану кешбек 5% винесеного, а гравцю нагороду не зменшує.</summary>
+    [Fact]
+    public async Task Handle_ShouldCreditClanCashback_FromMonsterLoot()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 100, monsterLevel: 1);
+        var clan = new Clan(Guid.NewGuid(), 1, "Northern Watch", "NW", PlayerId, Now);
+        _clans.GetByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(clan);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(500, march.GetCargo()["food"]);
+        Assert.Equal(25, clan.ContributionPoints);
+        Assert.Equal(25, clan.Members.Single().Contribution);
     }
 }

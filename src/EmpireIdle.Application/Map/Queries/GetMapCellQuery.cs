@@ -16,10 +16,15 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly IVillageRepository _villageRepository;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly TimeProvider _timeProvider;
+        private readonly IClanStructureRepository _structureRepository;
+        private readonly IClanRepository _clanRepository;
 
         public GetMapCellQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
-            IVillageRepository villageRepository, MonsterArmyBuilder armyBuilder, TimeProvider timeProvider)
+            IVillageRepository villageRepository, MonsterArmyBuilder armyBuilder, TimeProvider timeProvider,
+            IClanStructureRepository structureRepository, IClanRepository clanRepository)
         {
+            _structureRepository = structureRepository;
+            _clanRepository = clanRepository;
             _mapRepository = mapRepository;
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
@@ -42,6 +47,18 @@ namespace EmpireIdle.Application.Map.Queries
                     return null;
 
                 return new MapCellOccupant("Monster", monster.Id, monster.Type,monster.Level,_armyBuilder.BuildArmy(monster.Type, monster.Level));
+            }
+
+            if (cell.OccupantType == MapOccupantType.ClanStructure)
+            {
+                var structure = await _structureRepository.GetByIdAsync(cell.OccupantId, cancellationToken);
+                if (structure is null)
+                    return null;
+
+                // Назва споруди для гравця — тег її клану
+                var clan = await _clanRepository.GetCardAsync(structure.ClanId, cancellationToken);
+
+                return new MapCellOccupant("ClanStructure", structure.Id, clan?.Tag, null, null);
             }
 
             var village = await _villageRepository.GetByIdAsync(cell.OccupantId, cancellationToken);
