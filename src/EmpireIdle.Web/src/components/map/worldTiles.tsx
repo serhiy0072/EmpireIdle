@@ -120,6 +120,8 @@ const TOWER_STONE = faces("#e5e7eb", "#9ca3af", "#6b7280");
 const SCAFFOLD = faces("#fde68a", "#d97706", "#92400e");
 const OWN_CAP = faces("#6ee7b7", "#10b981", "#047857");
 const FOREIGN_CAP = faces("#c4b5fd", "#8b5cf6", "#6d28d9");
+const OWN_TENT = faces("#fde68a", "#f59e0b", "#b45309");
+const FOREIGN_TENT = faces("#fda4af", "#e11d48", "#9f1239");
 const HIDE = faces("#7c3aed", "#5b21b6", "#3b0764");
 const HORN = faces("#fef3c7", "#e7c9a0", "#b88a5a");
 const CLAW = faces("#1e293b", "#0f172a", "#020617");
@@ -241,6 +243,23 @@ function structureArt(cx: number, cy: number, own: boolean, building: boolean): 
       <Cylinder cx={cx} cy={cy} r={0.9} h={11} faces={TOWER_STONE} />
       <Cone cx={cx} cy={cy} r={1.1} z={11} h={5} faces={own ? OWN_CAP : FOREIGN_CAP} />
       <Flag x={cx} y={cy} z={16} h={8} color={own ? "#10b981" : "#8b5cf6"} />
+    </g>
+  );
+}
+
+/**
+ * Табір (§2.5): намет із прапорцем — свій жовтий, чужий червоний. Стоїть у куті клітини:
+ * клітинки табір не займає, і на ній може стояти ще й село.
+ */
+export function campArt(x: number, y: number, own: boolean): ReactElement {
+  const { x: cx, y: cy } = cellOrigin(x, y);
+  const tx = cx + 0.9;
+  const ty = cy + 0.9;
+
+  return (
+    <g>
+      <Pyramid cx={tx} cy={ty} hx={0.8} hy={0.8} z={0} h={3.5} faces={own ? OWN_TENT : FOREIGN_TENT} />
+      <Flag x={tx} y={ty} z={3.5} h={5} color={own ? "#f59e0b" : "#e11d48"} />
     </g>
   );
 }

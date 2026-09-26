@@ -31,18 +31,29 @@ namespace EmpireIdle.Application.Territory.Services
         public async Task<double> DefenceMultiplierAsync(Village village, DateTime utcNow, CancellationToken cancellationToken)
             => _rules.DefenceMultiplier(await IsCoveredAsync(village, utcNow, cancellationToken));
 
-        private async Task<bool> IsCoveredAsync(Village village, DateTime utcNow, CancellationToken cancellationToken)
+        /// <summary>
+        /// Множник оборони табору гравця <paramref name="ownerPlayerId"/> на (x, y): територія
+        /// рахується за клітинкою табору, а не за селом власника (§2.5).
+        /// </summary>
+        public async Task<double> DefenceMultiplierAtAsync(Guid ownerPlayerId, int x, int y, DateTime utcNow,
+            CancellationToken cancellationToken)
+            => _rules.DefenceMultiplier(await IsCoveredAsync(ownerPlayerId, x, y, utcNow, cancellationToken));
+
+        private Task<bool> IsCoveredAsync(Village village, DateTime utcNow, CancellationToken cancellationToken)
+            => IsCoveredAsync(village.PlayerId, village.X, village.Y, utcNow, cancellationToken);
+
+        private async Task<bool> IsCoveredAsync(Guid playerId, int x, int y, DateTime utcNow, CancellationToken cancellationToken)
         {
             // Світ без території не ходить у базу на кожен бій
             if (!_rules.Enabled)
                 return false;
 
-            if (await _clanRepository.GetClanIdByMemberAsync(village.PlayerId, cancellationToken) is not Guid clanId)
+            if (await _clanRepository.GetClanIdByMemberAsync(playerId, cancellationToken) is not Guid clanId)
                 return false;
 
             var structures = await _structureRepository.GetByClanAsync(clanId, cancellationToken);
 
-            return _rules.IsCovered(structures, village.X, village.Y, utcNow);
+            return _rules.IsCovered(structures, x, y, utcNow);
         }
     }
 }

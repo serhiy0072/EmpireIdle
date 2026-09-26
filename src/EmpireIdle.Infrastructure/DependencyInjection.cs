@@ -113,6 +113,8 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ScoutService>();
             services.AddScoped<MarchLogistics>();
             services.AddScoped<MarchHomecoming>();
+            services.AddScoped<CampHomecoming>();
+            services.AddScoped<CampBattleService>();
             services.AddScoped<ReinforcementDelivery>();
             services.AddScoped<VillageBattleService>();
             services.AddScoped<VillageRelocator>();

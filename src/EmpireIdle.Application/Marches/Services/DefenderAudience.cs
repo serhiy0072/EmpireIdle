@@ -13,13 +13,19 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IClanStructureRepository _structureRepository;
         private readonly IClanRepository _clanRepository;
         private readonly IPlayerRepository _playerRepository;
+        private readonly IMarchRepository _marchRepository;
+        private readonly IGarrisonRepository _garrisonRepository;
 
         public DefenderAudience(
             IVillageRepository villageRepository,
             IClanStructureRepository structureRepository,
             IClanRepository clanRepository,
-            IPlayerRepository playerRepository)
+            IPlayerRepository playerRepository,
+            IMarchRepository marchRepository,
+            IGarrisonRepository garrisonRepository)
         {
+            _marchRepository = marchRepository;
+            _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
             _structureRepository = structureRepository;
             _clanRepository = clanRepository;
@@ -34,14 +40,20 @@ namespace EmpireIdle.Application.Marches.Services
             {
                 case MarchTargetType.Village:
                     var village = await _villageRepository.GetByIdAsync(targetId, cancellationToken);
-                    if (village is null)
-                        return [];
 
-                    var clanId = await _clanRepository.GetClanIdByMemberAsync(village.PlayerId, cancellationToken);
+                    return village is null ? [] : await OwnerAndClanAsync(village.PlayerId, cancellationToken);
 
-                    return clanId is { } id
-                        ? await _playerRepository.GetIdsByClanAsync(id, cancellationToken)
-                        : [village.PlayerId];
+                // Табір — армія гравця: тривога та сама, що й за його село (§2.5)
+                case MarchTargetType.Camp:
+                    var camp = await _marchRepository.GetByIdAsync(targetId, cancellationToken);
+                    var campGarrison = camp is null
+                        ? null
+                        : await _garrisonRepository.GetByIdAsync(camp.GarrisonId, cancellationToken);
+                    var campHome = campGarrison is null
+                        ? null
+                        : await _villageRepository.GetByIdAsync(campGarrison.VillageId, cancellationToken);
+
+                    return campHome is null ? [] : await OwnerAndClanAsync(campHome.PlayerId, cancellationToken);
 
                 case MarchTargetType.ClanStructure:
                     var structure = await _structureRepository.GetByIdAsync(targetId, cancellationToken);
@@ -53,6 +65,15 @@ namespace EmpireIdle.Application.Marches.Services
                 default:
                     return [];
             }
+        }
+
+        private async Task<IReadOnlyCollection<Guid>> OwnerAndClanAsync(Guid playerId, CancellationToken cancellationToken)
+        {
+            var clanId = await _clanRepository.GetClanIdByMemberAsync(playerId, cancellationToken);
+
+            return clanId is { } id
+                ? await _playerRepository.GetIdsByClanAsync(id, cancellationToken)
+                : [playerId];
         }
     }
 }

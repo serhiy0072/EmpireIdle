@@ -23,11 +23,12 @@ public class IncomingAttackAlertTests
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
+    private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
 
-    private DefenderAudience Audience() => new(_villages, _structures, _clans, _players);
+    private DefenderAudience Audience() => new(_villages, _structures, _clans, _players, _marches, _garrisons);
 
     private HostileMarchLaunchedHandler LaunchedHandler()
         => new(_marches, Audience(), _notifier, NullLogger<HostileMarchLaunchedHandler>.Instance);
@@ -65,6 +66,31 @@ public class IncomingAttackAlertTests
 
         await _notifier.Received(1).NotifyAttackIncomingAsync(
             Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(members)), attack, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Табір — армія гравця (§2.5): тривога та сама, що й за його село.</summary>
+    [Fact]
+    public async Task Alert_ShouldReachTheCampOwner()
+    {
+        var owner = Guid.NewGuid();
+        var village = GivenVillage(owner, clanId: null);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
+        var camp = new March(Guid.NewGuid(), 1, garrison.Id, heroId: null, 10, 10, 30, 30,
+            MarchTargetType.Village, Guid.NewGuid(),
+            new Dictionary<EmpireIdle.Domain.ValueObjects.UnitStackKey, int> { [new("infantry", 1)] = 5 },
+            Now.AddMinutes(-5), Now.AddMinutes(-20));
+        camp.Camp(Now.AddMinutes(-5));
+
+        _marches.GetByIdAsync(camp.Id, Arg.Any<CancellationToken>()).Returns(camp);
+        _garrisons.GetByIdAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(garrison);
+
+        var attack = Attack(camp.Id, MarchTargetType.Camp);
+        _marches.GetIncomingAttackAsync(attack.MarchId, Arg.Any<CancellationToken>()).Returns(attack);
+
+        await LaunchedHandler().Handle(Launched(attack), CancellationToken.None);
+
+        await _notifier.Received(1).NotifyAttackIncomingAsync(
+            Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(new[] { owner })), attack, Arg.Any<CancellationToken>());
     }
 
     [Fact]

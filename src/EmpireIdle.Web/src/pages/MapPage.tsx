@@ -167,6 +167,7 @@ export default function MapPage() {
               mapSize={catalog.mapSize}
               ownClanId={myClan.data?.id ?? null}
               coverageRadius={territory.data?.enabled === true ? territory.data.radius : 0}
+              playerId={playerId}
               onSelect={(x, y) => {
                 setSelected({ x, y });
                 setTarget(null);
@@ -182,7 +183,7 @@ export default function MapPage() {
           ) : selected === null ? (
             <p className="text-sm text-slate-500">
               Оберіть клітину на мапі: рогата істота — монстр, синій дах — чуже село, червоний з прапором — ваше,
-              вежа — споруда клану (зелена — вашого, фіолетова — чужого).
+              вежа — споруда клану (зелена — вашого, фіолетова — чужого), намет — табір армії (жовтий — ваш).
             </p>
           ) : cell.isPending ? (
             <p className="text-sm text-slate-500">Дивимось…</p>
@@ -202,7 +203,10 @@ export default function MapPage() {
               ) : cell.data.occupantType != null ? (
                 <p className="text-sm text-amber-800">Клітина зайнята — оберіть вільну.</p>
               ) : (
-                <p className="text-sm text-slate-600">Село переїде разом із гарнізоном; армії в дорозі розвернуться додому.</p>
+                <p className="text-sm text-slate-600">
+                  Село переїде разом із гарнізоном; усі ваші війська — з походів, таборів і підкріплень у союзників —
+                  одразу будуть удома.
+                </p>
               )}
               <div className="flex gap-2">
                 <button
@@ -236,6 +240,7 @@ export default function MapPage() {
               isHome={isHome}
               territory={territory.data}
               threats={(incoming.data ?? []).filter((a) => a.targetX === cell.data.x && a.targetY === cell.data.y)}
+              camps={(area.data?.camps ?? []).filter((c) => c.x === cell.data.x && c.y === cell.data.y)}
               onMarch={setTarget}
             />
           )}

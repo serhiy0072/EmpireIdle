@@ -141,9 +141,9 @@ namespace EmpireIdle.Application.Marches.Commands
             {
                 _targets.EnsureAttackAllowed(village, target, now);
 
-                // Напад на гравця знімає власний щит після падіння — інакше
-                // з-під нього можна було б безкарно атакувати
-                if (target.Village is not null)
+                // Напад на гравця — на село чи на його табір — знімає власний щит
+                // після падіння: інакше з-під нього можна було б безкарно атакувати
+                if (target.Village is not null || target.Camp is not null)
                     village.DropShield(now);
             }
 

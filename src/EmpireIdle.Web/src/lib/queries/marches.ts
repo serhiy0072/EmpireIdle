@@ -32,6 +32,7 @@ export const MARCH_TARGET = {
   monster: 1,
   village: 2,
   clanStructure: 3,
+  camp: 4,
 } as const satisfies Record<string, MarchTargetType>;
 
 /** Смуга шансів: сервер навмисно не віддає числа, лише оцінку. */

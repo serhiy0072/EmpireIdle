@@ -2,12 +2,13 @@ import { useNow } from "../../hooks/useNow";
 import type {
   ClanTerritoryResponse,
   IncomingAttackResponse,
+  MapCampResponse,
   MapCellDetailsResponse,
   MarchIntent,
   MarchTargetType,
 } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
-import { MARCH_INTENT, MARCH_TARGET } from "../../lib/queries/marches";
+import { MARCH_INTENT, MARCH_TARGET, useRecallCamp } from "../../lib/queries/marches";
 import { useSendScout } from "../../lib/queries/scouting";
 import { usePlaceStructure } from "../../lib/queries/territory";
 import { isShieldActive, shieldUntilLabel } from "../../lib/shield";
@@ -24,6 +25,8 @@ interface Props {
   territory: ClanTerritoryResponse | null | undefined;
   /** Ворожі марші, що йдуть саме на цю клітину. */
   threats: IncomingAttackResponse[];
+  /** Табори на цій клітині — свої й чужі (§2.5). */
+  camps: MapCampResponse[];
   onMarch: (target: { type: MarchTargetType; id: string; name: string; intent?: MarchIntent }) => void;
 }
 
@@ -31,10 +34,11 @@ interface Props {
  * Обрана клітина: місцевість і хто на ній стоїть. Кнопка нападу — лише на чуже;
  * своя споруда клану — підкріплення, вільна придатна клітина — закладання споруди.
  */
-export default function CellDetails({ playerId, cell, isHome, territory, threats, onMarch }: Props) {
+export default function CellDetails({ playerId, cell, isHome, territory, threats, camps, onMarch }: Props) {
   const catalog = useCatalog();
   const place = usePlaceStructure(playerId);
   const scout = useSendScout(playerId);
+  const recall = useRecallCamp(playerId);
   const now = useNow();
 
   const occupant = cell.occupantType ?? null;
@@ -109,6 +113,56 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
               <span className="font-mono">{formatRemaining(threat.arrivesAt, now)}</span>
             </li>
           ))}
+        </ul>
+      )}
+
+      <ErrorBanner error={recall.error} />
+
+      {camps.length > 0 && (
+        <ul className="space-y-2">
+          {camps.map((camp) => {
+            const own = camp.ownerPlayerId === playerId;
+            const campName = `Табір ${camp.ownerClanTag == null ? "" : `[${camp.ownerClanTag}] `}${camp.ownerName}`;
+
+            return (
+              <li key={camp.marchId} className="space-y-2 rounded-lg bg-rose-50 p-3 text-sm">
+                <p className="font-medium text-rose-900">⛺ {own ? "Ваш табір" : campName}</p>
+                <p className="text-xs text-rose-800">
+                  {own
+                    ? "Армія стоїть у полі без стін — її можна атакувати. Відкличте, щоб повернути додому."
+                    : "Чужа армія в полі: стін у неї немає, склад покаже розвідка."}
+                </p>
+                {own ? (
+                  <button
+                    type="button"
+                    onClick={() => recall.mutate(camp.marchId)}
+                    disabled={recall.isPending}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    Відкликати
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onMarch({ type: MARCH_TARGET.camp, id: camp.marchId, name: campName })}
+                      className="flex-1 rounded-lg bg-rose-600 px-3 py-1.5 font-medium text-white hover:bg-rose-700"
+                    >
+                      Атакувати
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => scout.mutate({ targetType: MARCH_TARGET.camp, targetId: camp.marchId })}
+                      disabled={scout.isPending}
+                      className="flex-1 rounded-lg border border-amber-400 bg-white px-3 py-1.5 font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                    >
+                      Розвідати
+                    </button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
 

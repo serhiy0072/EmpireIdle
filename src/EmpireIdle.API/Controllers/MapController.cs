@@ -31,7 +31,7 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Ділянка карти навколо точки: місцевість (обчислюється) + окупанти (з БД).
+        /// Ділянка карти навколо точки: місцевість (обчислюється) + окупанти й табори (з БД).
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(MapAreaResponse), StatusCodes.Status200OK)]
@@ -63,7 +63,11 @@ namespace EmpireIdle.API.Controllers
                     c.MonsterType, c.MonsterLevel, c.ClanId, c.ReadyAt))
                 .ToList();
 
-            return Ok(new MapAreaResponse(minX, minY, maxX, maxY, terrain, occupants));
+            var camps = (await _mediator.Send(new GetCampsInAreaQuery(centerX, centerY, radius), cancellationToken))
+                .Select(c => new MapCampResponse(c.MarchId, c.X, c.Y, c.OwnerPlayerId, c.OwnerName, c.OwnerClanId, c.OwnerClanTag))
+                .ToList();
+
+            return Ok(new MapAreaResponse(minX, minY, maxX, maxY, terrain, occupants, camps));
 
         }
         /// <summary>

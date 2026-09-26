@@ -18,6 +18,8 @@ namespace EmpireIdle.Application.Marches.Services
     /// Пасивки лідерів, що стоять у цій обороні. Для монстра порожні.
     /// </param>
     /// <param name="Structure">Кланова споруда, якщо ціль — вона. Name тоді — тег клану.</param>
+    /// <param name="Camp">Марш-табір, якщо ціль — він (§2.5). Name тоді — село власника.</param>
+    /// <param name="CampHome">Село власника табору: хто він, куди відступає армія й куди йдуть поранені.</param>
     public record MarchTarget(
         int X,
         int Y,
@@ -27,7 +29,9 @@ namespace EmpireIdle.Application.Marches.Services
         IReadOnlyList<DefenceStack> Defence,
         DefenceBuffs DefenceBuffs,
         double DefenceMultiplier,
-        ClanStructure? Structure = null);
+        ClanStructure? Structure = null,
+        March? Camp = null,
+        Village? CampHome = null);
 
     /// <summary>
     /// Знаходить ціль походу й описує її однаково для відправлення,
@@ -52,6 +56,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IClanRepository _clanRepository;
         private readonly ClanTerritoryRules _territory;
         private readonly TerritoryBonus _territoryBonus;
+        private readonly IMarchRepository _marchRepository;
 
         public MarchTargetResolver(
             IMonsterRepository monsterRepository,
@@ -64,7 +69,8 @@ namespace EmpireIdle.Application.Marches.Services
             VillageStatus status,
             IClanStructureRepository structureRepository,
             IClanRepository clanRepository,
-            ClanTerritoryRules territory)
+            ClanTerritoryRules territory,
+            IMarchRepository marchRepository)
         {
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
@@ -77,6 +83,7 @@ namespace EmpireIdle.Application.Marches.Services
             _structureRepository = structureRepository;
             _clanRepository = clanRepository;
             _territory = territory;
+            _marchRepository = marchRepository;
 
             // Той самий розрахунок, що в бою: прев'ю не має розходитись із результатом
             _territoryBonus = new TerritoryBonus(clanRepository, structureRepository, territory);
@@ -175,6 +182,39 @@ namespace EmpireIdle.Application.Marches.Services
                         _territory.DefenceMultiplier(_territory.Enabled && structure.IsActiveAt(utcNow)),
                         structure);
 
+                case MarchTargetType.Camp:
+                    // Табором вважається лише марш, що стоїть; відкликаний чи розбитий — уже не ціль
+                    var camp = await _marchRepository.GetByIdAsync(targetId, cancellationToken);
+
+                    if (camp is null || camp.State != MarchState.Camping || camp.ServerId != origin.ServerId)
+                        throw new EntityNotFoundException("Camp", targetId);
+
+                    var campGarrison = await _garrisonRepository.GetByIdAsync(camp.GarrisonId, cancellationToken);
+                    var campHome = campGarrison is null
+                        ? null
+                        : await _villageRepository.GetByIdAsync(campGarrison.VillageId, cancellationToken);
+
+                    if (campHome is null)
+                        throw new EntityNotFoundException("Camp", targetId);
+
+                    var campHero = camp.HeroId is Guid campHeroId
+                        ? await _heroRepository.GetByIdAsync(campHeroId, cancellationToken)
+                        : null;
+
+                    return new MarchTarget(
+                        camp.TargetX, camp.TargetY,
+                        campHome.Name,
+                        _status.MainBuildingLevel(campHome),
+                        Village: null,
+                        // Армія табору — одного власника; його герой веде її й у обороні
+                        DefenceStacks.FromArmy(camp.GetUnits()),
+                        new DefenceBuffs(_heroModifiers.For(campHero), new Dictionary<Guid, StackBuff>()),
+                        // Стін у полі немає (§2.5); територія — за клітинкою табору
+                        await _territoryBonus.DefenceMultiplierAtAsync(
+                            campHome.PlayerId, camp.TargetX, camp.TargetY, utcNow, cancellationToken),
+                        Camp: camp,
+                        CampHome: campHome);
+
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{targetType}'.");
             }
@@ -204,9 +244,12 @@ namespace EmpireIdle.Application.Marches.Services
         /// </summary>
         public void EnsureAttackAllowed(Village origin, MarchTarget target, DateTime utcNow)
         {
-            // Споруда клану — теж PvP: новачок під щитом її не атакує, але щита в неї самої немає
-            if (target.Village is null && target.Structure is null)
+            // Споруда клану й табір — теж PvP: новачок під щитом їх не атакує, але щита в них самих немає
+            if (target.Village is null && target.Structure is null && target.Camp is null)
                 return;
+
+            if (target.CampHome?.PlayerId == origin.PlayerId)
+                throw new RequirementNotMetException(RefusalReasons.MarchOwnCamp, "You cannot attack your own camp.");
 
             var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
 

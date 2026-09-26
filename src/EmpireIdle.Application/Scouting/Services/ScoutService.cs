@@ -4,6 +4,7 @@ using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Logging;
 
@@ -68,9 +69,12 @@ namespace EmpireIdle.Application.Scouting.Services
             var scouter = await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village {garrison.VillageId} not found.");
 
-            var report = march.TargetType == MarchTargetType.Village
-                ? await ScoutVillageAsync(march, scouter, terrain, utcNow, cancellationToken)
-                : await ScoutStructureAsync(march, scouter, terrain, utcNow, cancellationToken);
+            var report = march.TargetType switch
+            {
+                MarchTargetType.Village => await ScoutVillageAsync(march, scouter, terrain, utcNow, cancellationToken),
+                MarchTargetType.Camp => await ScoutCampAsync(march, scouter, terrain, utcNow, cancellationToken),
+                _ => await ScoutStructureAsync(march, scouter, terrain, utcNow, cancellationToken)
+            };
 
             march.FinishScouting(utcNow);
 
@@ -125,6 +129,27 @@ namespace EmpireIdle.Application.Scouting.Services
             var target = await _targets.ResolveAsync(MarchTargetType.ClanStructure, structure.Id, scouter, utcNow, cancellationToken);
 
             // Споруда не грабується — лише сила гарнізону
+            return ScoutReport.Success(Guid.NewGuid(), march.ServerId, scouter.PlayerId, march, target.Name,
+                DefencePower(target, terrain), new Dictionary<string, int>(), utcNow);
+        }
+
+        private async Task<ScoutReport> ScoutCampAsync(March march, Village scouter, string terrain,
+            DateTime utcNow, CancellationToken cancellationToken)
+        {
+            MarchTarget target;
+
+            // Табір відкликали, розбили чи забрали телепортом, поки йшли розвідники
+            try
+            {
+                target = await _targets.ResolveAsync(MarchTargetType.Camp, march.TargetId, scouter, utcNow, cancellationToken);
+            }
+            catch (EntityNotFoundException)
+            {
+                return ScoutReport.Failed(Guid.NewGuid(), march.ServerId, scouter.PlayerId, march, string.Empty,
+                    ScoutOutcome.TargetGone, utcNow);
+            }
+
+            // Табір здобичі не везе — лише сила армії
             return ScoutReport.Success(Guid.NewGuid(), march.ServerId, scouter.PlayerId, march, target.Name,
                 DefencePower(target, terrain), new Dictionary<string, int>(), utcNow);
         }

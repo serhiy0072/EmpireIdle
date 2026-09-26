@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -42,9 +43,11 @@ public class RecallCampCommandTests
         var config = Config();
         var catalog = new GameCatalog(config);
 
-        return new RecallCampCommandHandler(_villages, _garrisons, _marches, _heroes, _unitOfWork,
-            new FakeTimeProvider(Now), new MarchCalculator(new TerrainGenerator(config.Map), catalog),
-            new HeroProgression(config.HeroSettings), catalog, NullLogger<RecallCampCommandHandler>.Instance);
+        var homecoming = new CampHomecoming(_heroes, new MarchCalculator(new TerrainGenerator(config.Map), catalog),
+            new HeroProgression(config.HeroSettings), catalog);
+
+        return new RecallCampCommandHandler(_villages, _garrisons, _marches, _unitOfWork,
+            new FakeTimeProvider(Now), homecoming, NullLogger<RecallCampCommandHandler>.Instance);
     }
 
     /// <summary>Село гравця на (10, 10) і його похід на (40, 40).</summary>

@@ -216,7 +216,13 @@ public class CompleteMarchCommandTests
             NullLogger<StructureBattleService>.Instance);
 
         var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, heroModifiers,
-            catalog, status, _structures, _clans, territory);
+            catalog, status, _structures, _clans, territory, _marches);
+
+        var campBattle = new CampBattleService(
+            _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,
+            logistics, aftermath, status, heroModifiers, territoryBonus,
+            new CampHomecoming(_heroes, calculator, new HeroProgression(config.HeroSettings), catalog),
+            NullLogger<CampBattleService>.Instance);
 
         var scouts = new ScoutService(_garrisons, _villages, _structures, _serverRepository, _scoutReports, _notifier,
             targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry,
@@ -225,7 +231,8 @@ public class CompleteMarchCommandTests
         return new CompleteMarchCommandHandler(
             _marches, _garrisons, _unitOfWork, terrain,
             new FakeTimeProvider(at ?? Now),
-            homecoming, monsterBattle, villageBattle, reinforcements, structureDelivery, structureBattle, scouts);
+            homecoming, monsterBattle, villageBattle, reinforcements, structureDelivery, structureBattle, campBattle,
+            scouts);
     }
 
 
@@ -967,5 +974,115 @@ public class CompleteMarchCommandTests
         Assert.Equal(500, march.GetCargo()["food"]);
         Assert.Equal(25, clan.ContributionPoints);
         Assert.Equal(25, clan.Members.Single().Contribution);
+    }
+
+    // ---------- Бій за табір (§2.5) ----------
+
+    /// <summary>
+    /// Сцена: армія «захисника» стоїть табором на (80, 80), на неї йде атака.
+    /// Табір — марш гарнізону власника, що вже став.
+    /// </summary>
+    private (March Attack, March Camp, Village Owner, Garrison OwnerGarrison) GivenCampBattle(
+        int attackerInfantry, int campInfantry, MarchIntent intent = MarchIntent.Attack)
+    {
+        var (_, _, attackerGarrison, owner, ownerGarrison) = GivenVillageBattle(defenderInfantry: 0);
+
+        var camp = new March(Guid.NewGuid(), 1, ownerGarrison.Id, heroId: null, 55, 55, 80, 80,
+            MarchTargetType.Village, Guid.NewGuid(),
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = campInfantry },
+            Now.AddHours(-1), Now.AddHours(-2));
+        camp.Camp(Now.AddHours(-1));
+
+        var attack = new March(Guid.NewGuid(), 1, attackerGarrison.Id, Guid.NewGuid(), 50, 50, 80, 80,
+            MarchTargetType.Camp, camp.Id,
+            intent == MarchIntent.Scout
+                ? new Dictionary<UnitStackKey, int>()
+                : new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = attackerInfantry },
+            Now, Now.AddMinutes(-30), intent);
+
+        _marches.GetByIdAsync(attack.Id, Arg.Any<CancellationToken>()).Returns(attack);
+        _marches.GetByIdAsync(camp.Id, Arg.Any<CancellationToken>()).Returns(camp);
+        _garrisons.GetByIdAsync(ownerGarrison.Id, Arg.Any<CancellationToken>()).Returns(ownerGarrison);
+
+        return (attack, camp, owner, ownerGarrison);
+    }
+
+    /// <summary>
+    /// Розбитий табір знімається й відступає додому маршем; поранені — у госпіталь
+    /// власника, обидві сторони отримують звіт. Нападник вертається без здобичі.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldRoutTheCamp_WhenTheAttackerWins()
+    {
+        var (attack, camp, owner, ownerGarrison) = GivenCampBattle(attackerInfantry: 500, campInfantry: 20);
+
+        await Handler().Handle(new CompleteMarchCommand(attack.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Returning, attack.State);
+        Assert.Empty(attack.GetCargo());
+        Assert.NotEqual(MarchState.Camping, camp.State);
+        Assert.True(camp.GetUnits().Values.Sum() < 20);
+        Assert.True(ownerGarrison.WoundedCount > 0);
+        await _reports.Received(2).AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
+        await _reports.Received(1).AddAsync(
+            Arg.Is<BattleReport>(r => r.PlayerId == owner.PlayerId && r.X == 80 && r.Y == 80),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Табір вистояв — стоїть далі, нападник вертається ні з чим.</summary>
+    [Fact]
+    public async Task Handle_ShouldKeepTheCamp_WhenItHoldsTheLine()
+    {
+        var (attack, camp, _, _) = GivenCampBattle(attackerInfantry: 1, campInfantry: 500);
+
+        await Handler().Handle(new CompleteMarchCommand(attack.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Camping, camp.State);
+        Assert.NotEqual(MarchState.Outbound, attack.State);
+    }
+
+    /// <summary>Табір відкликали, поки марш ішов, — бою немає, розворот.</summary>
+    [Fact]
+    public async Task Handle_ShouldTurnBack_WhenTheCampIsGone()
+    {
+        var (attack, camp, owner, _) = GivenCampBattle(attackerInfantry: 500, campInfantry: 20);
+        camp.BreakCamp(owner.X, owner.Y, TimeSpan.FromMinutes(10), Now.AddMinutes(-5));
+
+        await Handler().Handle(new CompleteMarchCommand(attack.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Returning, attack.State);
+        await _reports.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
+    }
+
+    /// <summary>Розвідка табору — сила його армії, здобичі немає: табір її не везе.</summary>
+    [Fact]
+    public async Task Handle_ShouldScoutACamp()
+    {
+        var (scouts, _, owner, _) = GivenCampBattle(attackerInfantry: 0, campInfantry: 40, MarchIntent.Scout);
+        ScoutReport? report = null;
+        await _scoutReports.AddAsync(Arg.Do<ScoutReport>(r => report = r), Arg.Any<CancellationToken>());
+
+        await Handler().Handle(new CompleteMarchCommand(scouts.Id), CancellationToken.None);
+
+        Assert.NotNull(report);
+        Assert.Equal(ScoutOutcome.Success, report.Outcome);
+        Assert.Equal(owner.Name, report.TargetName);
+        Assert.True(report.DefencePower > 0);
+        Assert.Empty(report.Resources);
+    }
+
+    /// <summary>Табору вже немає, поки йшли розвідники, — ціль зникла.</summary>
+    [Fact]
+    public async Task Handle_ShouldReportTargetGone_WhenTheScoutedCampLeft()
+    {
+        var (scouts, camp, owner, _) = GivenCampBattle(attackerInfantry: 0, campInfantry: 40, MarchIntent.Scout);
+        camp.BreakCamp(owner.X, owner.Y, TimeSpan.FromMinutes(10), Now.AddMinutes(-5));
+        ScoutReport? report = null;
+        await _scoutReports.AddAsync(Arg.Do<ScoutReport>(r => report = r), Arg.Any<CancellationToken>());
+
+        await Handler().Handle(new CompleteMarchCommand(scouts.Id), CancellationToken.None);
+
+        Assert.NotNull(report);
+        Assert.Equal(ScoutOutcome.TargetGone, report.Outcome);
     }
 }

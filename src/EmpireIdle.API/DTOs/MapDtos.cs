@@ -4,7 +4,15 @@ namespace EmpireIdle.API.DTOs;
 public record MapAreaResponse(
     int MinX, int MinY, int MaxX, int MaxY,
     List<MapTerrainCell> Terrain,
-    List<MapOccupantCell> Occupants);
+    List<MapOccupantCell> Occupants,
+    List<MapCampResponse> Camps);
+
+/// <summary>
+/// Табір (§2.5): чужа армія стоїть на клітинці, клітинки не займаючи. Склад не видно —
+/// його дізнаються розвідкою. OwnerName — назва села власника.
+/// </summary>
+public record MapCampResponse(Guid MarchId, int X, int Y, Guid OwnerPlayerId, string OwnerName, Guid? OwnerClanId,
+    string? OwnerClanTag);
 
 /// <summary>Клітина місцевості (обчислюється, у БД не зберігається).</summary>
 public record MapTerrainCell(int X, int Y, string Type, bool Passable, bool Habitable);

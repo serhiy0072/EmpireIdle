@@ -6,6 +6,9 @@ namespace EmpireIdle.Domain.Enums
     {
         Monster = 1,
         Village = 2,
-        ClanStructure = 3
+        ClanStructure = 3,
+
+        /// <summary>Табір чужої армії (§2.5); TargetId — id маршу-табору.</summary>
+        Camp = 4
     }
 }

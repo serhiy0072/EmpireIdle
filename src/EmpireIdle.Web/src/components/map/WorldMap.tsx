@@ -4,7 +4,17 @@ import type { MapAreaResponse } from "../../lib/apiTypes";
 import { at, project, toPath, UNIT_X, UNIT_Y } from "../../lib/iso";
 import MarchAnimation, { type MapMarch } from "./MarchAnimation";
 import { MAP_RADIUS_MAX, MAP_RADIUS_MIN, type MapView } from "../../lib/queries/map";
-import { areaPath, cellOrigin, groundFill, isStructureBuilding, occupantArt, TILE, tileDetail, tilePath } from "./worldTiles";
+import {
+  areaPath,
+  campArt,
+  cellOrigin,
+  groundFill,
+  isStructureBuilding,
+  occupantArt,
+  TILE,
+  tileDetail,
+  tilePath,
+} from "./worldTiles";
 
 interface Props {
   area: MapAreaResponse;
@@ -25,6 +35,8 @@ interface Props {
   ownClanId: string | null;
   /** Радіус зони дії споруди; 0 — території у світі немає, зону не малюємо. */
   coverageRadius: number;
+  /** Гравець: його табори — жовті, чужі — червоні. */
+  playerId: string;
   onSelect: (x: number, y: number) => void;
   /** Камера показує інші клітини — час завантажити ділянку під них. */
   onViewChange: (view: MapView) => void;
@@ -116,6 +128,7 @@ export default function WorldMap({
   mapSize,
   ownClanId,
   coverageRadius,
+  playerId,
   onSelect,
   onViewChange,
 }: Props) {
@@ -164,6 +177,22 @@ export default function WorldMap({
   // Від дальніх до ближніх: пагорб чи дерево не має проступати крізь ближчий тайл
   const terrain = useMemo(() => [...area.terrain].sort((a, b) => a.x + a.y - (b.x + b.y) || a.x - b.x), [area.terrain]);
   const occupants = useMemo(() => new Map(area.occupants.map((o) => [`${o.x}:${o.y}`, o])), [area.occupants]);
+
+  // Кілька таборів на одній клітині — один намет; свій, якщо серед них є свій
+  const camps = useMemo(() => {
+    const byCell = new Map<string, { x: number; y: number; own: boolean; names: string[] }>();
+
+    for (const camp of area.camps) {
+      const key = `${camp.x}:${camp.y}`;
+      const entry = byCell.get(key) ?? { x: camp.x, y: camp.y, own: false, names: [] };
+
+      entry.own ||= camp.ownerPlayerId === playerId;
+      entry.names.push(camp.ownerName);
+      byCell.set(key, entry);
+    }
+
+    return [...byCell.values()];
+  }, [area.camps, playerId]);
   // Годинник без тіку щосекунди — мапа важка: перемальовуємось лише тоді,
   // коли найближча споруда на ділянці добудовується і стає активною
   const [now, setNow] = useState(() => Date.now());
@@ -257,6 +286,14 @@ export default function WorldMap({
               );
             })}
 
+            {camps
+              .filter((camp) => inside(camp.x, camp.y))
+              .map((camp) => (
+                <g key={`t${camp.x}:${camp.y}`} className="cursor-pointer" onClick={tap(camp.x, camp.y)}>
+                  {campArt(camp.x, camp.y, camp.own)}
+                </g>
+              ))}
+
             <MarchAnimation marches={marches} />
 
             {selected !== null && inside(selected.x, selected.y) && (
@@ -280,6 +317,23 @@ export default function WorldMap({
                 return (
                   <g key={`l${occupant.x}:${occupant.y}`} transform={`translate(${p.x} ${p.y + 14})`} pointerEvents="none">
                     <rect x={-width / 2} y={-8} width={width} height={14} rx={7} fill="rgba(15, 23, 42, 0.7)" />
+                    <text textAnchor="middle" y={3} fontSize={9} fontWeight={600} fill="white">
+                      {text}
+                    </text>
+                  </g>
+                );
+              })}
+
+            {showLabels &&
+              camps.map((camp) => {
+                const origin = cellOrigin(camp.x, camp.y);
+                const p = project(origin.x, origin.y);
+                const text = `⛺ ${camp.own ? "Ваш табір" : camp.names.join(", ")}`;
+                const width = text.length * 5.5 + 12;
+
+                return (
+                  <g key={`tl${camp.x}:${camp.y}`} transform={`translate(${p.x} ${p.y + 28})`} pointerEvents="none">
+                    <rect x={-width / 2} y={-8} width={width} height={14} rx={7} fill="rgba(136, 19, 55, 0.75)" />
                     <text textAnchor="middle" y={3} fontSize={9} fontWeight={600} fill="white">
                       {text}
                     </text>

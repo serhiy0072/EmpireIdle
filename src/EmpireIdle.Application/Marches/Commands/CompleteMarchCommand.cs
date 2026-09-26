@@ -36,6 +36,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly ReinforcementDelivery _reinforcements;
         private readonly StructureReinforcementDelivery _structureDelivery;
         private readonly StructureBattleService _structureBattle;
+        private readonly CampBattleService _campBattle;
         private readonly ScoutService _scouts;
 
         public CompleteMarchCommandHandler(
@@ -50,6 +51,7 @@ namespace EmpireIdle.Application.Marches.Commands
             ReinforcementDelivery reinforcements,
             StructureReinforcementDelivery structureDelivery,
             StructureBattleService structureBattle,
+            CampBattleService campBattle,
             ScoutService scouts)
         {
             _marchRepository = marchRepository;
@@ -63,6 +65,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _reinforcements = reinforcements;
             _structureDelivery = structureDelivery;
             _structureBattle = structureBattle;
+            _campBattle = campBattle;
             _scouts = scouts;
         }
 
@@ -118,6 +121,9 @@ namespace EmpireIdle.Application.Marches.Commands
                     break;
                 case MarchTargetType.ClanStructure:
                     await _structureBattle.ResolveAsync(march, attackerArmy, terrain, utcNow, cancellationToken);
+                    break;
+                case MarchTargetType.Camp:
+                    await _campBattle.ResolveAsync(march, attackerArmy, terrain, utcNow, cancellationToken);
                     break;
                 default:
                     await _monsterBattle.ResolveAsync(march, attackerArmy, terrain, utcNow, cancellationToken);

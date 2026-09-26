@@ -25,6 +25,7 @@ export type ServerQuestResponse = components["schemas"]["ServerQuestResponse"];
 export type MapAreaResponse = components["schemas"]["MapAreaResponse"];
 export type MapTerrainCell = components["schemas"]["MapTerrainCell"];
 export type MapOccupantCell = components["schemas"]["MapOccupantCell"];
+export type MapCampResponse = components["schemas"]["MapCampResponse"];
 export type MapCellDetailsResponse = components["schemas"]["MapCellDetailsResponse"];
 export type MarchResponse = components["schemas"]["MarchResponse"];
 export type IncomingAttackResponse = components["schemas"]["IncomingAttackResponse"];

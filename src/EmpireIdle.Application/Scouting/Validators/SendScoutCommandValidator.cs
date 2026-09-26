@@ -13,8 +13,8 @@ namespace EmpireIdle.Application.Scouting.Validators
 
             // Монстра розвідувати нема чого: його склад і так видно на клітині
             RuleFor(x => x.TargetType)
-                .Must(t => t is MarchTargetType.Village or MarchTargetType.ClanStructure)
-                .WithMessage("Only a village or a clan structure can be scouted.");
+                .Must(t => t is MarchTargetType.Village or MarchTargetType.ClanStructure or MarchTargetType.Camp)
+                .WithMessage("Only a village, a clan structure or a camp can be scouted.");
         }
     }
 }

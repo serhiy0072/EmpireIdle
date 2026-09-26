@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Map.ReadModels;
 using EmpireIdle.Application.Marches.ReadModels;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -52,6 +53,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             var marches = Hostile().Where(m =>
                 (m.TargetType == MarchTargetType.Village
                     && _context.Villages.Any(v => v.Id == m.TargetId && ids.Contains(v.PlayerId)))
+                || (m.TargetType == MarchTargetType.Camp
+                    && CampOwners().Any(c => c.CampId == m.TargetId && ids.Contains(c.PlayerId)))
                 || (clanId != null && m.TargetType == MarchTargetType.ClanStructure
                     && _context.ClanStructures.Any(s => s.Id == m.TargetId && s.ClanId == clanId)));
 
@@ -60,6 +63,20 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
             return attacks.OrderBy(a => a.ArrivesAt).ToList();
         }
+
+        /// <inheritdoc/>
+        public Task<List<CampOnMap>> GetCampsInAreaAsync(int minX, int minY, int maxX, int maxY,
+            CancellationToken cancellationToken = default)
+            => (from m in _context.Marches.AsNoTracking()
+                where m.State == MarchState.Camping
+                      && m.TargetX >= minX && m.TargetX <= maxX && m.TargetY >= minY && m.TargetY <= maxY
+                join g in _context.Garrisons on m.GarrisonId equals g.Id
+                join v in _context.Villages on g.HostId equals v.Id
+                join p in _context.Players on v.PlayerId equals p.Id
+                select new CampOnMap(
+                    m.Id, m.TargetX, m.TargetY, p.Id, v.Name, p.ClanId,
+                    _context.Clans.Where(c => c.Id == p.ClanId).Select(c => c.Tag).FirstOrDefault()))
+               .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
         public Task<IncomingAttack?> GetIncomingAttackAsync(Guid marchId, CancellationToken cancellationToken = default)
@@ -76,9 +93,25 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 && m.Intent != MarchIntent.Reinforce
                 && m.TargetType != MarchTargetType.Monster);
 
+        /// <summary>Табір і його власник: марш-табір → гарнізон-відправник → село.</summary>
+        private IQueryable<CampOwner> CampOwners()
+            => from c in _context.Marches
+               where c.State == MarchState.Camping
+               join g in _context.Garrisons on c.GarrisonId equals g.Id
+               join v in _context.Villages on g.HostId equals v.Id
+               select new CampOwner { CampId = c.Id, PlayerId = v.PlayerId, VillageName = v.Name };
+
+        /// <summary>Клас з ініціалізатором, а не record: EF перекладає доступ до його полів у подальших фільтрах.</summary>
+        private sealed class CampOwner
+        {
+            public Guid CampId { get; init; }
+            public Guid PlayerId { get; init; }
+            public string VillageName { get; init; } = string.Empty;
+        }
+
         /// <summary>
         /// Одна проєкція на все: нападник — через гарнізон-відправник до його села й гравця,
-        /// ціль — село (назва, власник, його клан) або споруда (тег і клан-власник).
+        /// ціль — село (назва, власник, його клан), табір (село власника) або споруда (тег і клан-власник).
         /// </summary>
         private IQueryable<IncomingAttack> Project(IQueryable<March> marches)
             => from m in marches
@@ -87,6 +120,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                join ap in _context.Players on av.PlayerId equals ap.Id
                let targetVillage = _context.Villages.FirstOrDefault(v => v.Id == m.TargetId)
                let targetStructure = _context.ClanStructures.FirstOrDefault(s => s.Id == m.TargetId)
+               let targetCamp = CampOwners().FirstOrDefault(c => c.CampId == m.TargetId)
                select new IncomingAttack(
                    m.Id,
                    m.Intent,
@@ -94,11 +128,17 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                    m.TargetId,
                    m.TargetType == MarchTargetType.Village
                        ? targetVillage!.Name
-                       : _context.Clans.Where(c => c.Id == targetStructure!.ClanId).Select(c => c.Tag).FirstOrDefault(),
-                   m.TargetType == MarchTargetType.Village ? (Guid?)targetVillage!.PlayerId : null,
+                       : m.TargetType == MarchTargetType.Camp
+                           ? targetCamp!.VillageName
+                           : _context.Clans.Where(c => c.Id == targetStructure!.ClanId).Select(c => c.Tag).FirstOrDefault(),
+                   m.TargetType == MarchTargetType.Village
+                       ? (Guid?)targetVillage!.PlayerId
+                       : m.TargetType == MarchTargetType.Camp ? (Guid?)targetCamp!.PlayerId : null,
                    m.TargetType == MarchTargetType.Village
                        ? _context.Players.Where(p => p.Id == targetVillage!.PlayerId).Select(p => p.ClanId).FirstOrDefault()
-                       : (Guid?)targetStructure!.ClanId,
+                       : m.TargetType == MarchTargetType.Camp
+                           ? _context.Players.Where(p => p.Id == targetCamp!.PlayerId).Select(p => p.ClanId).FirstOrDefault()
+                           : (Guid?)targetStructure!.ClanId,
                    m.TargetX,
                    m.TargetY,
                    m.OriginX,

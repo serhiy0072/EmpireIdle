@@ -10485,6 +10485,7 @@
       },
       "MapAreaResponse": {
         "required": [
+          "camps",
           "maxX",
           "maxY",
           "minX",
@@ -10521,6 +10522,53 @@
             "items": {
               "$ref": "#/components/schemas/MapOccupantCell"
             }
+          },
+          "camps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MapCampResponse"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "MapCampResponse": {
+        "required": [
+          "marchId",
+          "ownerName",
+          "ownerPlayerId",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "marchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ownerPlayerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerClanId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ownerClanTag": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -10775,7 +10823,8 @@
         "enum": [
           1,
           2,
-          3
+          3,
+          4
         ],
         "type": "integer",
         "format": "int32"

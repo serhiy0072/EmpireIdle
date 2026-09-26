@@ -6,9 +6,9 @@ namespace EmpireIdle.Application.Marches.ReadModels
     /// Ворожий марш у дорозі очима захисника: напад чи розвідка, на кого, звідки, хто веде й коли дійде.
     /// Від DepartedAt до ArrivesAt клієнт веде загін прямою від From до цілі.
     /// </summary>
-    /// <param name="TargetName">Назва села або тег клану-власника споруди; null — ціль зникла.</param>
-    /// <param name="TargetOwnerId">Власник села-цілі; для споруди null.</param>
-    /// <param name="DefenderClanId">Клан, що захищається: власника села або власника споруди; null — захисник поза кланом.</param>
+    /// <param name="TargetName">Назва села (для табору — села його власника) або тег клану-власника споруди; null — ціль зникла.</param>
+    /// <param name="TargetOwnerId">Власник села чи табору; для споруди null.</param>
+    /// <param name="DefenderClanId">Клан, що захищається: власника села чи табору або власника споруди; null — захисник поза кланом.</param>
     /// <param name="AttackerClanTag">Тег клану нападника; null — нападник поза кланом.</param>
     public record IncomingAttack(
         Guid MarchId,

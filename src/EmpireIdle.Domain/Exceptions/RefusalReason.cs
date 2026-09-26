@@ -236,6 +236,9 @@
         /// <summary>Табір стоїть на місці — прискорювати нічого, спершу його відкликають.</summary>
         public static readonly RefusalReason MarchCamping = new("march.camping");
 
+        /// <summary>Власний табір не атакують і не розвідують.</summary>
+        public static readonly RefusalReason MarchOwnCamp = new("march.ownCamp");
+
         public static readonly RefusalReason ReinforceOwnShield = new("reinforce.ownShield", "level");
 
         public static readonly RefusalReason ReinforceTargetShielded = new("reinforce.targetShielded");

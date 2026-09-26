@@ -34,7 +34,8 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
   const reinforce = intent === MARCH_INTENT.reinforce;
 
   // Щит після падіння знімає будь-який напад на гравця — попереджаємо до кліку
-  const losesShield = target.type === MARCH_TARGET.village && isShieldActive(village.data?.shieldUntil);
+  const losesShield =
+    (target.type === MARCH_TARGET.village || target.type === MARCH_TARGET.camp) && isShieldActive(village.data?.shieldUntil);
 
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [heroId, setHeroId] = useState<string>("");

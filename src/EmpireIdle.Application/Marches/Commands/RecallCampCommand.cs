@@ -1,7 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Exceptions;
-using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -11,44 +11,32 @@ namespace EmpireIdle.Application.Marches.Commands
     public record RecallCampCommand(Guid PlayerId, Guid MarchId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    /// <summary>
-    /// Обробник RecallCampCommand. Дорога — від клітинки табору до села
-    /// там, де воно стоїть зараз, зі швидкістю найповільнішого в колоні.
-    /// </summary>
+    /// <summary>Обробник RecallCampCommand: дорогу рахує CampHomecoming — той самий шлях, що й відступ після бою.</summary>
     public sealed class RecallCampCommandHandler : IRequestHandler<RecallCampCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IMarchRepository _marchRepository;
-        private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
-        private readonly MarchCalculator _calculator;
-        private readonly HeroProgression _progression;
-        private readonly GameCatalog _catalog;
+        private readonly CampHomecoming _homecoming;
         private readonly ILogger<RecallCampCommandHandler> _logger;
 
         public RecallCampCommandHandler(
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IMarchRepository marchRepository,
-            IHeroRepository heroRepository,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
-            MarchCalculator calculator,
-            HeroProgression progression,
-            GameCatalog catalog,
+            CampHomecoming homecoming,
             ILogger<RecallCampCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
-            _heroRepository = heroRepository;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
-            _calculator = calculator;
-            _progression = progression;
-            _catalog = catalog;
+            _homecoming = homecoming;
             _logger = logger;
         }
 
@@ -68,15 +56,7 @@ namespace EmpireIdle.Application.Marches.Commands
             var march = marches.FirstOrDefault(m => m.Id == request.MarchId)
                 ?? throw new EntityNotFoundException("Active", request.MarchId);
 
-            var hero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
-
-            var duration = _calculator.CalculateDuration(
-                march.ServerId, march.TargetX, march.TargetY, village.X, village.Y, march.GetUnits(),
-                hero is null ? null : _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey)));
-
-            march.BreakCamp(village.X, village.Y, duration, now);
+            var duration = await _homecoming.SendHomeAsync(march, village, now, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

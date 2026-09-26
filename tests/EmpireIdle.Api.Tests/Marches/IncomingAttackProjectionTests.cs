@@ -4,6 +4,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EmpireIdle.Api.Tests.Marches;
@@ -78,6 +79,45 @@ public class IncomingAttackProjectionTests : IAsyncLifetime
         Assert.Null(attack.TargetOwnerId);
         Assert.Equal(defenderClan, attack.DefenderClanId);
         Assert.Null(attack.AttackerClanTag);
+    }
+
+    /// <summary>
+    /// Табір (§2.5) — армія гравця: напад на нього власник бачить як напад на своє,
+    /// під назвою свого села, а мапа показує табір із власником і тегом клану.
+    /// </summary>
+    [Fact]
+    public async Task Attack_OnACamp_ShouldReachItsOwner_AndTheCampShouldBeOnTheMap()
+    {
+        var now = DateTime.UtcNow;
+        var (ownerClan, ownerTag) = await SeedClanAsync();
+        var owner = await SeedPlayerAsync(ownerClan);
+        var attacker = await SeedPlayerAsync(clanId: null);
+        var (campX, campY) = (Coordinate(), Coordinate());
+
+        var camp = await SendAsync(owner, MarchTargetType.Village, Guid.NewGuid(), campX, campY, now.AddHours(-1));
+        await using (var context = CreateContext())
+        {
+            var stored = await context.Marches.SingleAsync(m => m.Id == camp.Id);
+            stored.Camp(now.AddMinutes(-30));
+            await context.SaveChangesAsync();
+        }
+
+        var attack = await SendAsync(attacker, MarchTargetType.Camp, camp.Id, campX, campY, now);
+
+        await using var scope = CreateScope(out var marches);
+
+        var incoming = Assert.Single(await marches.GetIncomingAttacksAsync([owner.Player.Id], ownerClan));
+        Assert.Equal(attack.Id, incoming.MarchId);
+        Assert.Equal(MarchTargetType.Camp, incoming.TargetType);
+        Assert.Equal(owner.Village.Name, incoming.TargetName);
+        Assert.Equal(owner.Player.Id, incoming.TargetOwnerId);
+        Assert.Equal(ownerClan, incoming.DefenderClanId);
+
+        var onMap = Assert.Single(await marches.GetCampsInAreaAsync(campX, campY, campX, campY),
+            c => c.MarchId == camp.Id);
+        Assert.Equal(owner.Player.Id, onMap.OwnerPlayerId);
+        Assert.Equal(owner.Village.Name, onMap.OwnerName);
+        Assert.Equal(ownerTag, onMap.OwnerClanTag);
     }
 
     /// <summary>Підкріплення й марші на чужих не тривожать: у списку лише напади на своїх.</summary>

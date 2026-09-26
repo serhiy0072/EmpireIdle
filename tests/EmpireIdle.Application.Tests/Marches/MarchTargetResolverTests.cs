@@ -40,7 +40,8 @@ public class MarchTargetResolverTests
             new VillageStatus(catalog),
             Substitute.For<IClanStructureRepository>(),
             Substitute.For<IClanRepository>(),
-            new ClanTerritoryRules(catalog));
+            new ClanTerritoryRules(catalog),
+            Substitute.For<IMarchRepository>());
     }
 
     private static Village NewVillage(int townHallLevel)

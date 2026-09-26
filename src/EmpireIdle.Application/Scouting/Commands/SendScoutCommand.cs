@@ -89,6 +89,7 @@ namespace EmpireIdle.Application.Scouting.Commands
             var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, now, cancellationToken);
 
             if (target.Village?.PlayerId == request.PlayerId
+                || target.CampHome?.PlayerId == request.PlayerId
                 || (target.Structure is { } structure
                     && await _clanRepository.GetClanIdByMemberAsync(request.PlayerId, cancellationToken) == structure.ClanId))
                 throw new RequirementNotMetException(RefusalReasons.ScoutOwnTarget, "You cannot scout your own village or clan.");
