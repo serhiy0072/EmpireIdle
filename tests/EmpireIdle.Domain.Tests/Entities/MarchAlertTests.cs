@@ -64,13 +64,13 @@ public class MarchAlertTests
 
     /// <summary>Поселення нападника переїхало — напад зірвано, захисники мають зняти тривогу.</summary>
     [Fact]
-    public void RecallAfterRelocation_OfAnAttack_ShouldRaiseHostileMarchCalledOff()
+    public void CallHomeAtOnce_OfAnAttack_ShouldRaiseHostileMarchCalledOff()
     {
         var targetId = Guid.NewGuid();
         var march = Send(MarchTargetType.Village, MarchIntent.Attack, targetId);
         march.ClearDomainEvents();
 
-        march.RecallAfterRelocation(1, 1, Now.AddMinutes(5));
+        march.CallHomeAtOnce(1, 1, Now.AddMinutes(5));
 
         var calledOff = Assert.IsType<HostileMarchCalledOff>(Assert.Single(march.DomainEvents));
         Assert.Equal(march.Id, calledOff.MarchId);
@@ -78,11 +78,41 @@ public class MarchAlertTests
     }
 
     [Fact]
-    public void RecallAfterRelocation_OfAMonsterHunt_ShouldRaiseNothing()
+    public void CallHomeAtOnce_OfAMonsterHunt_ShouldRaiseNothing()
     {
         var march = Send(MarchTargetType.Monster, MarchIntent.Attack, Guid.NewGuid());
 
-        march.RecallAfterRelocation(1, 1, Now.AddMinutes(5));
+        march.CallHomeAtOnce(1, 1, Now.AddMinutes(5));
+
+        Assert.Empty(march.DomainEvents);
+    }
+
+    /// <summary>
+    /// Переїзд — телепорт і для армії (§2.5): марш не йде назад, а прибуває
+    /// на нові координати просто зараз, у тому числі той, що вже повертався.
+    /// </summary>
+    [Fact]
+    public void CallHomeAtOnce_ShouldArriveNow_AtTheNewHome()
+    {
+        var march = Send(MarchTargetType.Monster, MarchIntent.Attack, Guid.NewGuid());
+        march.TurnBack(TimeSpan.FromMinutes(20), Now.AddMinutes(20));
+
+        march.CallHomeAtOnce(7, 8, Now.AddMinutes(25));
+
+        Assert.Equal(MarchState.Returning, march.State);
+        Assert.Equal(Now.AddMinutes(25), march.ArrivesAt);
+        Assert.Equal((7, 8), (march.OriginX, march.OriginY));
+    }
+
+    /// <summary>Повернення, що вже йде, тривогу не знімає: знімати нічого.</summary>
+    [Fact]
+    public void CallHomeAtOnce_OfAReturningAttack_ShouldRaiseNothing()
+    {
+        var march = Send(MarchTargetType.Village, MarchIntent.Attack, Guid.NewGuid());
+        march.TurnBack(TimeSpan.FromMinutes(20), Now.AddMinutes(20));
+        march.ClearDomainEvents();
+
+        march.CallHomeAtOnce(1, 1, Now.AddMinutes(25));
 
         Assert.Empty(march.DomainEvents);
     }

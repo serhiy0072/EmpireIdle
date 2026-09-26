@@ -24,7 +24,8 @@ export function useUseItem(playerId: string) {
     mutationFn: (input: UseItemRequest) =>
       api<void>(`/api/inventory/${playerId}/use`, { method: "POST", body: input, idempotent: true }),
     onSuccess: () => {
-      invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes"]);
+      // Телепорт одразу повертає додому всі війська — з маршів і з чужих гарнізонів
+      invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes", "garrison", "marches", "power"]);
       void queryClient.invalidateQueries({ queryKey: ["map"] });
     },
   });

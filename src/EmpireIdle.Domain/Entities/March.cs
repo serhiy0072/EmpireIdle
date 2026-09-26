@@ -164,28 +164,26 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Рідне поселення переїхало — армія розвертається до нових координат.
-        /// Зворотний час дорівнює вже пройденому: скільки йшла, стільки й вертатиметься.
+        /// Рідне поселення переїхало — армія вже вдома, на нових координатах (§2.5):
+        /// марш стає поверненням, що прибуває просто зараз. Завершує його той, хто
+        /// кличе, звичайним шляхом повернення — зі здобиччю й героєм.
         ///
-        /// Тільки для Outbound: марш, що вже повертається, віддає юнітів у гарнізон,
-        /// а гарнізон прив'язаний до села, не до клітини — переїзд його не стосується.
+        /// Для завершеного маршу нічого не робить: переїзд його не стосується.
         /// </summary>
-        public void RecallAfterRelocation(int originX, int originY, DateTime utcNow)
+        public void CallHomeAtOnce(int originX, int originY, DateTime utcNow)
         {
-            if (State != MarchState.Outbound)
+            if (State == MarchState.Completed)
                 return;
 
-            var travelled = utcNow - DepartedAt;
+            // Напад зірвано ще в дорозі — захисники мають зняти тривогу, а не чекати прибуття
+            if (State == MarchState.Outbound && IsHostileToPlayers)
+                RaiseDomainEvent(new HostileMarchCalledOff(Id, TargetType, TargetId, utcNow));
 
             OriginX = originX;
             OriginY = originY;
             State = MarchState.Returning;
-            ArrivesAt = utcNow + travelled;
+            ArrivesAt = utcNow;
             LegStartedAt = utcNow;
-
-            // Напад зірвано ще в дорозі — захисники мають зняти тривогу, а не чекати прибуття
-            if (IsHostileToPlayers)
-                RaiseDomainEvent(new HostileMarchCalledOff(Id, TargetType, TargetId, utcNow));
 
             Touch(utcNow);
         }

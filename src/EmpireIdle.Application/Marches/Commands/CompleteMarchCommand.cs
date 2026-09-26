@@ -6,7 +6,6 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Marches.Commands
 {
@@ -17,7 +16,7 @@ namespace EmpireIdle.Application.Marches.Commands
 
     /// <summary>
     /// Обробник CompleteMarchCommand: вирішує, який зі сценаріїв прибуття
-    /// застосувати, і сам виконує лише повернення армії додому.
+    /// застосувати, і сам лише передає армію, що повернулась, у MarchHomecoming.
     ///
     /// Сама механіка живе в сервісах під Marches/Services: бій із монстром,
     /// бій за село й доставка підкріплення не перетинаються нічим, окрім
@@ -28,49 +27,43 @@ namespace EmpireIdle.Application.Marches.Commands
     {
         private readonly IMarchRepository _marchRepository;
         private readonly IGarrisonRepository _garrisonRepository;
-        private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TerrainGenerator _terrain;
         private readonly TimeProvider _timeProvider;
-        private readonly MarchLogistics _logistics;
+        private readonly MarchHomecoming _homecoming;
         private readonly MonsterBattleService _monsterBattle;
         private readonly VillageBattleService _villageBattle;
         private readonly ReinforcementDelivery _reinforcements;
         private readonly StructureReinforcementDelivery _structureDelivery;
         private readonly StructureBattleService _structureBattle;
         private readonly ScoutService _scouts;
-        private readonly ILogger<CompleteMarchCommandHandler> _logger;
 
         public CompleteMarchCommandHandler(
             IMarchRepository marchRepository,
             IGarrisonRepository garrisonRepository,
-            IHeroRepository heroRepository,
             IUnitOfWork unitOfWork,
             TerrainGenerator terrain,
             TimeProvider timeProvider,
-            MarchLogistics logistics,
+            MarchHomecoming homecoming,
             MonsterBattleService monsterBattle,
             VillageBattleService villageBattle,
             ReinforcementDelivery reinforcements,
             StructureReinforcementDelivery structureDelivery,
             StructureBattleService structureBattle,
-            ScoutService scouts,
-            ILogger<CompleteMarchCommandHandler> logger)
+            ScoutService scouts)
         {
             _marchRepository = marchRepository;
             _garrisonRepository = garrisonRepository;
-            _heroRepository = heroRepository;
             _unitOfWork = unitOfWork;
             _terrain = terrain;
             _timeProvider = timeProvider;
-            _logistics = logistics;
+            _homecoming = homecoming;
             _monsterBattle = monsterBattle;
             _villageBattle = villageBattle;
             _reinforcements = reinforcements;
             _structureDelivery = structureDelivery;
             _structureBattle = structureBattle;
             _scouts = scouts;
-            _logger = logger;
         }
 
         public async Task Handle(CompleteMarchCommand request, CancellationToken cancellationToken)
@@ -132,39 +125,14 @@ namespace EmpireIdle.Application.Marches.Commands
             }
         }
 
-        /// <summary>
-        /// Армія вдома: юніти повертаються в гарнізон, здобич — на склад.
-        /// Спільне для всіх сценаріїв, тому й лишилось у хендлері.
-        /// </summary>
+        /// <summary>Армія вдома: гарнізон відправника приймає її через спільний шлях повернення.</summary>
         private async Task ComeHomeAsync(March march, DateTime utcNow, CancellationToken cancellationToken)
         {
             var garrison = await _garrisonRepository.GetByIdAsync(march.GarrisonId, cancellationToken)
                 ?? throw new InvalidOperationException(
                     $"Garrison {march.GarrisonId} not found for march {march.Id}.");
 
-            if (march.HeroId is Guid heroId)
-            {
-                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
-
-                if (hero is not null)
-                {
-                    // Слот могли зайняти, поки герой ішов: тоді він стає рядовим
-                    var leader = await _heroRepository.GetLeaderAsync(garrison.Id, hero.PlayerId, cancellationToken);
-
-                    hero.Arrive(garrison.Id, leaderSlotFree: leader is null, utcNow);
-                }
-            }
-            var survivors = march.GetUnits();
-
-            if (survivors.Count > 0)
-                garrison.ReceiveUnits(survivors, utcNow);
-
-            await _logistics.UnloadCargoAsync(march, garrison, utcNow, cancellationToken);
-
-            march.Complete(utcNow);
-
-            _logger.LogInformation("March {MarchId} returned home with {Count} units.",
-                march.Id, survivors.Values.Sum());
+            await _homecoming.ArriveAsync(march, garrison, leaderSlotFree: null, utcNow, cancellationToken);
         }
     }
 }

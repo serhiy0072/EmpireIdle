@@ -57,18 +57,7 @@ namespace EmpireIdle.Application.Clans.Services
         public async Task<int> ReturnAllOfPlayerAsync(Guid ownerPlayerId, DateTime utcNow,
             CancellationToken cancellationToken = default)
         {
-            var hosts = await _garrisonRepository.GetHoldingReinforcementsAsync(ownerPlayerId, cancellationToken);
-
-            // Гарнізони, де стоїть лише герой без юнітів, стеками не знаходяться
-            var heroHosts = await _heroRepository.GetForeignGarrisonIdsAsync(ownerPlayerId, cancellationToken);
-
-            foreach (var id in heroHosts.Where(id => hosts.All(h => h.Id != id)))
-            {
-                var extraHost = await _garrisonRepository.GetByIdAsync(id, cancellationToken);
-
-                if (extraHost is not null)
-                    hosts.Add(extraHost);
-            }
+            var hosts = await HostsOfAsync(ownerPlayerId, cancellationToken);
 
             var sent = 0;
 
@@ -77,6 +66,42 @@ namespace EmpireIdle.Application.Clans.Services
                     sent++;
 
             return sent;
+        }
+
+        /// <summary>
+        /// Село гравця переїхало (§2.5): його війська й герої з усіх чужих гарнізонів
+        /// одразу в <paramref name="home"/>, без маршу. Виняток із правила «юніти
+        /// не телепортуються» — переїзд і є телепортом, і армія переїжджає разом із селом.
+        /// </summary>
+        /// <param name="leaderSlotFree">Чи вільний слот лідера вдома — див. MarchHomecoming.</param>
+        /// <returns>Чи лишився слот лідера вільним після повернення героїв.</returns>
+        public async Task<bool> BringAllOfPlayerHomeNowAsync(Guid ownerPlayerId, Garrison home, bool leaderSlotFree,
+            DateTime utcNow, CancellationToken cancellationToken = default)
+        {
+            var hosts = await HostsOfAsync(ownerPlayerId, cancellationToken);
+
+            foreach (var host in hosts)
+            {
+                var units = host.WithdrawReinforcements(ownerPlayerId, utcNow);
+
+                if (units.Count > 0)
+                    home.ReceiveUnits(units, utcNow);
+
+                var stationed = await _heroRepository.GetByGarrisonAsync(host.Id, cancellationToken);
+
+                foreach (var hero in stationed.Where(h => h.PlayerId == ownerPlayerId))
+                {
+                    hero.SendHome(utcNow);
+                    hero.Arrive(home.Id, leaderSlotFree, utcNow);
+                    leaderSlotFree = false;
+                }
+            }
+
+            if (hosts.Count > 0)
+                _logger.LogInformation("Reinforcements of {OwnerId} brought home from {Count} garrisons on relocation",
+                    ownerPlayerId, hosts.Count);
+
+            return leaderSlotFree;
         }
 
         /// <summary>
@@ -225,6 +250,25 @@ namespace EmpireIdle.Application.Clans.Services
                     sent++;
 
             return sent;
+        }
+
+        /// <summary>Чужі гарнізони, де стоять війська чи герої гравця.</summary>
+        private async Task<List<Garrison>> HostsOfAsync(Guid ownerPlayerId, CancellationToken cancellationToken)
+        {
+            var hosts = await _garrisonRepository.GetHoldingReinforcementsAsync(ownerPlayerId, cancellationToken);
+
+            // Гарнізони, де стоїть лише герой без юнітів, стеками не знаходяться
+            var heroHosts = await _heroRepository.GetForeignGarrisonIdsAsync(ownerPlayerId, cancellationToken);
+
+            foreach (var id in heroHosts.Where(id => hosts.All(h => h.Id != id)))
+            {
+                var extraHost = await _garrisonRepository.GetByIdAsync(id, cancellationToken);
+
+                if (extraHost is not null)
+                    hosts.Add(extraHost);
+            }
+
+            return hosts;
         }
 
         /// <summary>Де стоїть гарнізон-господар: село чи кланова споруда. null — господаря вже немає.</summary>

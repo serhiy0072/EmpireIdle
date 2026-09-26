@@ -176,7 +176,10 @@ public class CompleteMarchCommandTests
             armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, catalog, territoryBonus, territory, _clans,
             NullLogger<MonsterBattleService>.Instance);
 
-        var relocator = new VillageRelocator(_map, _marches, _garrisons, _serverRepository, catalog, geometry, effects);
+        var homecoming = new MarchHomecoming(_heroes, logistics, NullLogger<MarchHomecoming>.Instance);
+
+        var relocator = new VillageRelocator(_map, _marches, _garrisons, _heroes, _serverRepository, catalog, geometry, effects,
+            homecoming, returner);
 
         // Справжній випадок, а не заглушка _random: на ній пошук клітини крутився б на одній точці
         var cityFallService = new CityFallService(
@@ -192,6 +195,10 @@ public class CompleteMarchCommandTests
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
+
+        // Виселення переносить село, а переїзд забирає додому війська з чужих гарнізонів
+        _heroes.GetForeignGarrisonIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Guid>());
+        _garrisons.GetHoldingReinforcementsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Garrison>());
 
         var reinforcements = new ReinforcementDelivery(
             _garrisons, _villages, _heroes, logistics, reinforcementRules, capacities,
@@ -216,10 +223,9 @@ public class CompleteMarchCommandTests
             NullLogger<ScoutService>.Instance);
 
         return new CompleteMarchCommandHandler(
-            _marches, _garrisons, _heroes, _unitOfWork, terrain,
+            _marches, _garrisons, _unitOfWork, terrain,
             new FakeTimeProvider(at ?? Now),
-            logistics, monsterBattle, villageBattle, reinforcements, structureDelivery, structureBattle, scouts,
-            NullLogger<CompleteMarchCommandHandler>.Instance);
+            homecoming, monsterBattle, villageBattle, reinforcements, structureDelivery, structureBattle, scouts);
     }
 
 
