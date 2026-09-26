@@ -64,7 +64,9 @@ namespace EmpireIdle.Application.Marches.Services
                 ? null
                 : await _garrisonRepository.GetByVillageIdAsync(targetVillage.Id, cancellationToken);
 
-            if (targetVillage is null || targetGarrison is null)
+            // Село переїхало, поки колона йшла (§2.5): підкріплення його не доганяє, а вертається маршем
+            if (targetVillage is null || targetGarrison is null
+                || targetVillage.X != march.TargetX || targetVillage.Y != march.TargetY)
             {
                 _logistics.TurnMarchBack(march, units, utcNow);
                 return;

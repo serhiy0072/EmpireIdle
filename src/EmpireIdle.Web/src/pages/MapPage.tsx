@@ -78,7 +78,8 @@ export default function MapPage() {
   const mapMarches = useMemo<MapMarch[]>(() => {
     if (home === null) return [];
 
-    const own = (marches.data ?? []).map((march) =>
+    // Табір стоїть на місці — його не ведемо, а малюємо маркером
+    const own = (marches.data ?? []).filter((march) => march.state !== MARCH_STATE.camping).map((march) =>
       march.state === MARCH_STATE.returning
         ? { id: march.id, fromX: march.targetX, fromY: march.targetY, toX: home.x, toY: home.y,
             departedAt: march.legStartedAt, arrivesAt: march.arrivesAt, hostile: false,

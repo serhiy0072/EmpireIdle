@@ -164,6 +164,41 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
+        /// Атака дійшла, а села на клітинці вже немає — воно переїхало (§2.5).
+        /// Армія не доганяє його, а стає табором і стоїть, доки власник не відкличе.
+        /// Захисникам тривогу знято: на їхнє село вже ніхто не йде.
+        /// </summary>
+        public void Camp(DateTime utcNow)
+        {
+            if (State != MarchState.Outbound || Intent != MarchIntent.Attack)
+                throw new InvalidStateException($"March {Id} is not an outbound attack.");
+
+            State = MarchState.Camping;
+            ArrivesAt = utcNow;
+            LegStartedAt = utcNow;
+
+            RaiseDomainEvent(new HostileMarchCalledOff(Id, TargetType, TargetId, utcNow));
+            RaiseDomainEvent(new MarchCamped(Id, GarrisonId, TargetX, TargetY, utcNow));
+
+            Touch(utcNow);
+        }
+
+        /// <summary>Власник відкликав табір: армія йде додому звичайним маршем.</summary>
+        public void BreakCamp(int originX, int originY, TimeSpan returnDuration, DateTime utcNow)
+        {
+            if (State != MarchState.Camping)
+                throw new InvalidStateException(RefusalReasons.MarchNotCamping, $"March {Id} is not camping.");
+
+            OriginX = originX;
+            OriginY = originY;
+            State = MarchState.Returning;
+            ArrivesAt = utcNow + returnDuration;
+            LegStartedAt = utcNow;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
         /// Рідне поселення переїхало — армія вже вдома, на нових координатах (§2.5):
         /// марш стає поверненням, що прибуває просто зараз. Завершує його той, хто
         /// кличе, звичайним шляхом повернення — зі здобиччю й героєм.
@@ -266,6 +301,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Прискорює прибуття (speedup за gems).</summary>
         public void ReduceTravelTime(TimeSpan reduction, DateTime utcNow)
         {
+            if (State == MarchState.Camping)
+                throw new InvalidStateException(RefusalReasons.MarchCamping, $"March {Id} is camping.");
+
             ArrivesAt -= reduction;
             Touch(utcNow);
         }

@@ -14,6 +14,12 @@ namespace EmpireIdle.API.Hubs.Events
     /// <summary>Армія вдома: юніти в гарнізоні, здобич на складі. Клієнт перечитує гарнізон, село й марші.</summary>
     public record MarchReturnedEvent(Guid MarchId);
 
+    /// <summary>
+    /// Атака не застала села на місці — армія стала табором на (X, Y) і чекає
+    /// відкликання (§2.5). Клієнт перечитує марші.
+    /// </summary>
+    public record MarchCampedEvent(Guid MarchId, int X, int Y);
+
     public record ServerQuestRewardedEvent(string QuestKey, int Rank, long Contribution);
 
     public record ClanInviteEvent(Guid RequestId, Guid ClanId, string ClanName, string ClanTag, DateTime ExpiresAt);

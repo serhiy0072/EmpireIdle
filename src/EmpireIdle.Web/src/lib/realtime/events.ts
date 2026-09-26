@@ -34,6 +34,13 @@ export interface MarchReturnedEvent {
   marchId: string;
 }
 
+/** Атака не застала села на місці — армія стала табором на (x, y) і чекає відкликання. */
+export interface MarchCampedEvent {
+  marchId: string;
+  x: number;
+  y: number;
+}
+
 export interface ServerQuestRewardedEvent {
   questKey: string;
   rank: number;
@@ -117,6 +124,7 @@ export interface GameEvents {
   UpgradeCompleted: UpgradeCompletedEvent;
   BattleFinished: BattleFinishedEvent;
   MarchReturned: MarchReturnedEvent;
+  MarchCamped: MarchCampedEvent;
   ServerQuestRewarded: ServerQuestRewardedEvent;
   ClanInvite: ClanInviteEvent;
   ChatMessage: ChatMessageEvent;
@@ -135,6 +143,7 @@ export const gameEventNames: GameEventName[] = [
   "UpgradeCompleted",
   "BattleFinished",
   "MarchReturned",
+  "MarchCamped",
   "ServerQuestRewarded",
   "ClanInvite",
   "ChatMessage",

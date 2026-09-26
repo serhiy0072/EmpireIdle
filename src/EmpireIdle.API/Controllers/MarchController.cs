@@ -121,6 +121,20 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
+        /// Відкликати табір (§2.5): армія, що не застала села на місці, йде додому маршем.
+        /// </summary>
+        [HttpPost("{playerId:guid}/{marchId:guid}/recall")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> RecallCamp(Guid playerId, Guid marchId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RecallCampCommand(playerId, marchId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>
         /// Оцінка бою до відправки. Повертає смугу шансів, не числа:
         /// точне співвідношення сил гравцю не показується.
         /// </summary>

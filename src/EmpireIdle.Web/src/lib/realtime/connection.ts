@@ -50,6 +50,8 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
       queryKeys.heroes(playerId),
       queryKeys.power(playerId),
     ],
+    // Табір — той самий марш у новому стані; на мапі він стає маркером
+    MarchCamped: [queryKeys.marches(playerId), ["map"]],
     ServerQuestRewarded: [queryKeys.wallet(playerId), queryKeys.serverQuests(playerId)],
     ClanInvite: [queryKeys.clanRequests(playerId), ["mail", playerId]],
     // Подія лише підсвічує: зміст скриньки перечитується запитом. Лист про

@@ -381,9 +381,52 @@ public class CompleteMarchCommandTests
         Assert.False(defender.HasDamageAt(Now));
     }
 
-    /// <summary>Поки марш ішов, ціль упала від іншого — бою немає, армія повертається.</summary>
+    /// <summary>
+    /// Ціль нещодавно впала й стоїть під щитом падіння саме там, куди йде марш, —
+    /// бою немає, армія повертається.
+    /// </summary>
     [Fact]
-    public async Task Handle_ShouldTurnBack_WhenTheTargetFellWhileTheMarchWasOnTheWay()
+    public async Task Handle_ShouldTurnBack_WhenTheTargetIsUnderAFallShield()
+    {
+        var (march, _, _, defender, _) = GivenVillageBattle();
+        var fall = new VillageFall(Guid.NewGuid(), 1, defender.PlayerId, Guid.NewGuid(), "Інший", 40, 40, 70, 70,
+            Now.AddDays(7), Now.AddDays(-1));
+        defender.RelocateTo(70, 70, Now.AddDays(-1));
+        defender.MarkFallen(fall, Now.AddDays(-1));
+
+        // Потім господар сам переселився на клітинку, куди вже йшов марш; щит лишився
+        defender.RelocateTo(55, 55, Now.AddHours(-1));
+
+        await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
+        Assert.Equal(MarchState.Returning, march.State);
+    }
+
+    // ---------- Табір (§2.5) ----------
+
+    /// <summary>
+    /// Поки марш ішов, село переїхало — армія не доганяє його, а стає табором
+    /// на клітинці. Бою й звіту немає, армія ціла.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldCamp_WhenTheTargetVillageMovedAway()
+    {
+        var (march, _, _, defender, defenderGarrison) = GivenVillageBattle(attackerInfantry: 500, defenderInfantry: 10);
+        defender.RelocateTo(70, 70, Now.AddMinutes(-10));
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Camping, march.State);
+        Assert.Equal(500, march.GetUnits().Values.Sum());
+        Assert.Equal(10, defenderGarrison.Units.Sum(u => u.Count));
+        await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
+        Assert.Contains(march.DomainEvents, e => e is MarchCamped);
+    }
+
+    /// <summary>Табір щит цілі не рятує: щит береже село, а його на клітинці вже немає.</summary>
+    [Fact]
+    public async Task Handle_ShouldCamp_EvenWhenTheMovedTargetIsShielded()
     {
         var (march, _, _, defender, _) = GivenVillageBattle();
         var fall = new VillageFall(Guid.NewGuid(), 1, defender.PlayerId, Guid.NewGuid(), "Інший", 55, 55, 70, 70,
@@ -393,8 +436,26 @@ public class CompleteMarchCommandTests
 
         await Handler(cityFall: true).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
 
-        await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
-        Assert.Equal(MarchState.Returning, march.State);
+        Assert.Equal(MarchState.Camping, march.State);
+    }
+
+    /// <summary>Підкріплення до села, що переїхало, не доганяє його й не стає табором — вертається маршем.</summary>
+    [Fact]
+    public async Task Handle_ShouldTurnAReinforcementBack_WhenTheTargetVillageMovedAway()
+    {
+        var (_, _, attackerGarrison, defender, defenderGarrison) = GivenVillageBattle();
+        var reinforcement = new March(
+            Guid.NewGuid(), 1, attackerGarrison.Id, heroId: null, 50, 50, 55, 55,
+            MarchTargetType.Village, defender.Id,
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 20 },
+            Now, Now.AddMinutes(-30), MarchIntent.Reinforce);
+        _marches.GetByIdAsync(reinforcement.Id, Arg.Any<CancellationToken>()).Returns(reinforcement);
+        defender.RelocateTo(70, 70, Now.AddMinutes(-10));
+
+        await Handler().Handle(new CompleteMarchCommand(reinforcement.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Returning, reinforcement.State);
+        Assert.Equal(0, defenderGarrison.ReinforcementCount);
     }
 
     // ---------- Загальні правила ----------

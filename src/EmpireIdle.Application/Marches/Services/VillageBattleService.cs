@@ -95,6 +95,18 @@ namespace EmpireIdle.Application.Marches.Services
                 ? null
                 : await _garrisonRepository.GetByVillageIdAsync(targetVillage.Id, cancellationToken);
 
+            // Село переїхало, поки марш ішов (§2.5): армія не доганяє його, а стає
+            // табором на клітинці. Раніше за щити — щит береже село, а його тут немає
+            if (targetVillage is not null && (targetVillage.X != march.TargetX || targetVillage.Y != march.TargetY))
+            {
+                march.Camp(utcNow);
+
+                _logger.LogInformation("March {MarchId} camped at ({X},{Y}): village {VillageId} moved away",
+                    march.Id, march.TargetX, march.TargetY, targetVillage.Id);
+
+                return;
+            }
+
             // Щит новачка міг з'явитись хіба що в нападника, щит падіння — в цілі,
             // поки марш ішов; село могло й зникнути. Це прогін сканера, тож
             // будь-яка невідповідність — розворот, не виняток

@@ -29,7 +29,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<List<March>> GetDueAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
             => _context.Marches
             .AsNoTracking()
-            .Where(m => m.State != MarchState.Completed && m.ArrivesAt <= utcNow)
+            // Табір стоїть до відкликання: його час прибуття — момент, коли він став
+            .Where(m => m.State != MarchState.Completed && m.State != MarchState.Camping && m.ArrivesAt <= utcNow)
             .OrderBy(m => m.ArrivesAt)
             .Take(batchSize)
             .ToListAsync(cancellationToken);

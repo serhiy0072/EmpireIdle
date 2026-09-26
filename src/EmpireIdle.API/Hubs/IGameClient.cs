@@ -22,6 +22,8 @@ namespace EmpireIdle.API.Hubs
 
         Task MarchReturned(MarchReturnedEvent payload);
 
+        Task MarchCamped(MarchCampedEvent payload);
+
         Task ServerQuestRewarded(ServerQuestRewardedEvent payload);
 
         Task ClanInvite(ClanInviteEvent payload);

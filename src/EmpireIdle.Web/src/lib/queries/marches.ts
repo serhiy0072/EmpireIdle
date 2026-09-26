@@ -19,6 +19,7 @@ export const MARCH_STATE = {
   outbound: 1,
   returning: 2,
   completed: 3,
+  camping: 4,
 } as const satisfies Record<string, MarchState>;
 
 export const MARCH_INTENT = {
@@ -46,8 +47,11 @@ export function useMarches(playerId: string): UseQueryResult<MarchResponse[]> {
   return useQuery({
     queryKey: queryKeys.marches(playerId),
     queryFn: () => api<MarchResponse[]>(`/api/marches/${playerId}`),
-    // Прибуття й повернення обробляє сканер: перепитуємо на найближчий дедлайн
-    refetchInterval: refetchAtDue<MarchResponse[]>((marches) => marches.map((march) => march.arrivesAt)),
+    // Прибуття й повернення обробляє сканер: перепитуємо на найближчий дедлайн.
+    // Табір стоїть до відкликання, його час — у минулому: інакше опитували б безперервно
+    refetchInterval: refetchAtDue<MarchResponse[]>((marches) =>
+      marches.filter((march) => march.state !== MARCH_STATE.camping).map((march) => march.arrivesAt),
+    ),
   });
 }
 
@@ -80,6 +84,20 @@ export function useSendMarch(playerId: string) {
     mutationFn: (request: SendMarchRequest) =>
       api<string>(`/api/marches/${playerId}`, { method: "POST", body: request, idempotent: true }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["marches", "garrison", "heroes"]),
+  });
+}
+
+/** Відкликати табір (§2.5): армія йде додому звичайним маршем, у списку він стає поверненням. */
+export function useRecallCamp(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (marchId: string) =>
+      api<void>(`/api/marches/${playerId}/${marchId}/recall`, { method: "POST", idempotent: true }),
+    onSuccess: () => {
+      invalidatePlayer(queryClient, playerId, ["marches"]);
+      void queryClient.invalidateQueries({ queryKey: ["map"] });
+    },
   });
 }
 

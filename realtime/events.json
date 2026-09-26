@@ -50,6 +50,11 @@
   "MailReceived": [
     "kind"
   ],
+  "MarchCamped": [
+    "marchId",
+    "x",
+    "y"
+  ],
   "MarchReturned": [
     "marchId"
   ],

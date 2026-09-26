@@ -23,6 +23,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Повідомити гравця, що армія повернулася додому: гарнізон і склад уже оновлені.</summary>
         Task NotifyMarchReturnedAsync(Guid playerId, Guid marchId, CancellationToken cancellationToken = default);
 
+        /// <summary>Атака не застала села на місці — армія стала табором на (x, y).</summary>
+        Task NotifyMarchCampedAsync(Guid playerId, Guid marchId, int x, int y, CancellationToken cancellationToken = default);
+
         /// <summary>Повідомити гравця про запрошення в клан.</summary>
         Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag, DateTime expiresAt, CancellationToken cancellationToken = default);
 

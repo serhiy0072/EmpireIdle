@@ -143,6 +143,7 @@
   ],
   "mail.letterExpired": [],
   "mail.nothingToClaim": [],
+  "march.camping": [],
   "march.capacity": [
     "capacity"
   ],
@@ -151,6 +152,7 @@
   "march.heroUnavailable": [
     "state"
   ],
+  "march.notCamping": [],
   "march.ownShield": [
     "level"
   ],

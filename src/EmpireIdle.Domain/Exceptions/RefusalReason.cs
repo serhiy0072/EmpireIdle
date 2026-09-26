@@ -230,6 +230,12 @@
         /// <summary>Ціль нещодавно впала й під щитом після падіння (GDD §2.6).</summary>
         public static readonly RefusalReason MarchTargetFallShield = new("march.targetFallShield");
 
+        /// <summary>Відкликати можна лише табір.</summary>
+        public static readonly RefusalReason MarchNotCamping = new("march.notCamping");
+
+        /// <summary>Табір стоїть на місці — прискорювати нічого, спершу його відкликають.</summary>
+        public static readonly RefusalReason MarchCamping = new("march.camping");
+
         public static readonly RefusalReason ReinforceOwnShield = new("reinforce.ownShield", "level");
 
         public static readonly RefusalReason ReinforceTargetShielded = new("reinforce.targetShielded");
