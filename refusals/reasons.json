@@ -104,6 +104,9 @@
     "have"
   ],
   "garrison.trainingBusy": [],
+  "garrison.unitLevelCeiling": [
+    "ceiling"
+  ],
   "hero.evolutionItemRequired": [
     "item"
   ],

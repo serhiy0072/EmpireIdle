@@ -60,6 +60,12 @@ namespace EmpireIdle.Application.Garrisons.Commands
             if (request.ToLevel > _catalog.Config.MaxUnitLevel)
                 throw new RequirementNotMetException($"Unit level must be at most {_catalog.Config.MaxUnitLevel}.");
 
+            var levelCeiling = _status.UnitLevelCeiling(village);
+
+            if (request.ToLevel > levelCeiling)
+                throw new RequirementNotMetException(RefusalReasons.GarrisonUnitLevelCeiling,
+                    $"Unit level {request.ToLevel} is above the town hall ceiling {levelCeiling}.", levelCeiling);
+
             if (config.RequiresBuilding is null)
                 throw new InvalidOperationException($"Unit '{request.UnitType}' has no training building configured.");
 

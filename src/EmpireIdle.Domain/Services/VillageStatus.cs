@@ -27,6 +27,15 @@ namespace EmpireIdle.Domain.Services
             => MainBuildingLevel(village) < _catalog.Config.Combat.NewbieShieldTownHallLevel;
 
         /// <summary>
+        /// Найвищий рівень юніта, якого село може натренувати чи прокачати:
+        /// не вище ратуші й не вище капу. Інакше молоде село одним замовленням
+        /// отримує армію пізньої гри — так само, як герой, який тримає стелю ратуші.
+        /// Ратуша на апгрейді тримає свій поточний рівень.
+        /// </summary>
+        public int UnitLevelCeiling(Village village)
+            => Math.Min(MainBuildingLevel(village), _catalog.Config.MaxUnitLevel);
+
+        /// <summary>
         /// Чи відкрита будівля гравцю. Під туманом вона існує й може
         /// будуватись, але гравець її не бачить.
         /// </summary>

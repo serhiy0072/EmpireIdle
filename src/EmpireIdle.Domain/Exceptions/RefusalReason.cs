@@ -49,6 +49,9 @@
 
         public static readonly RefusalReason GarrisonLevelUpBusy = new("garrison.levelUpBusy");
 
+        /// <summary>Юніт не може бути вищого рівня, ніж ратуша; ceiling — поточна стеля.</summary>
+        public static readonly RefusalReason GarrisonUnitLevelCeiling = new("garrison.unitLevelCeiling", "ceiling");
+
         public static readonly RefusalReason GarrisonArmyCapacity = new("garrison.armyCapacity", "occupied", "capacity", "requested");
 
         /// <summary>У стеку цього рівня менше юнітів, ніж просять прокачати.</summary>

@@ -57,6 +57,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "garrison.batchSize": ({ max }) => `За раз — від 1 до ${max} воїнів`,
   "garrison.trainingBusy": () => "Казарма вже тренує партію — дочекайтеся завершення або прискорте її",
   "garrison.levelUpBusy": () => "Казарма вже прокачує партію — дочекайтеся завершення або прискорте її",
+  "garrison.unitLevelCeiling": ({ ceiling }) =>
+    `Воїни не можуть бути вищого рівня, ніж ратуша: зараз максимум ${ceiling}`,
   "garrison.armyCapacity": ({ occupied, capacity, requested }) =>
     `Армія заповнена: ${occupied} з ${capacity}, а ви додаєте ${requested}. Підніміть рівень казарми`,
   "garrison.notEnoughUnits": ({ need, have }) => `Воїнів цього загону менше, ніж треба: потрібно ${need}, є ${have}`,

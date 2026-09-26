@@ -78,9 +78,9 @@ public class TrainUnitsCommandTests
             NullLogger<TrainUnitsCommandHandler>.Instance, catalog, new VillageStatus(catalog));
     }
 
-    /// <summary>Село з казармами заданого рівня, гарнізон, ресурси.</summary>
+    /// <summary>Село з ратушею й казармами заданих рівнів, гарнізон, ресурси.</summary>
     private (Village Village, Garrison Garrison) GivenVillage(
-        int barracksLevel = 1, int food = 10_000, bool barracksUnderConstruction = false)
+        int barracksLevel = 1, int food = 10_000, bool barracksUnderConstruction = false, int townHallLevel = 1)
     {
         var catalog = new GameCatalog(Config());
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
@@ -89,14 +89,10 @@ public class TrainUnitsCommandTests
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("barracks", catalog.Buildings, Now);
 
-        var barracks = village.Buildings.Single(b => b.Type == "barracks");
+        RaiseTo(village, catalog, "townhall", townHallLevel);
+        RaiseTo(village, catalog, "barracks", barracksLevel);
 
-        for (var level = 1; level < barracksLevel; level++)
-        {
-            barracks.BeginUpgrade(catalog.Buildings["barracks"], TimeSpan.Zero, Now,
-                ProductionBoost.None, locationMultiplier: 1.0);
-            barracks.CompleteConstruction(Now);
-        }
+        var barracks = village.Buildings.Single(b => b.Type == "barracks");
 
         if (barracksUnderConstruction)
             barracks.BeginUpgrade(catalog.Buildings["barracks"], TimeSpan.FromHours(1), Now,
@@ -108,6 +104,19 @@ public class TrainUnitsCommandTests
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
         return (village, garrison);
+    }
+
+    /// <summary>Добудовує будівлю до заданого рівня миттєво.</summary>
+    private static void RaiseTo(Village village, GameCatalog catalog, string type, int level)
+    {
+        var building = village.Buildings.Single(b => b.Type == type);
+
+        while (building.Level.Value < level)
+        {
+            building.BeginUpgrade(catalog.Buildings[type], TimeSpan.Zero, Now,
+                ProductionBoost.None, locationMultiplier: 1.0);
+            building.CompleteConstruction(Now);
+        }
     }
 
     /// <summary>Вартість списується за кількість, а не за партію.</summary>
@@ -144,13 +153,50 @@ public class TrainUnitsCommandTests
     [Fact]
     public async Task Handle_ShouldSumTrainingTime_AcrossAllLevelsUpToTheTarget()
     {
-        var (_, garrison) = GivenVillage(food: 100_000);
+        var (_, garrison) = GivenVillage(food: 100_000, townHallLevel: 4);
 
         await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 4, 1), CancellationToken.None);
 
         // Крок(L) = 2 × 1.35^(L-1); сума L=1..4 = 2 + 2.7 + 3.645 + 4.92075 = 13.26575 → 13 (усічення)
         var order = Assert.Single(garrison.TrainingOrders);
         Assert.Equal(Now.AddMinutes(13), order.CompletesAt);
+    }
+
+    /// <summary>
+    /// Село 4 рівня не тренує воїнів 10 рівня: рівень юніта не вище ратуші,
+    /// інакше молоде село одним замовленням отримує армію пізньої гри.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenUnitLevelIsAboveTheTownHall()
+    {
+        var (village, garrison) = GivenVillage(food: 100_000, townHallLevel: 4);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 5, 1), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.GarrisonUnitLevelCeiling.Key, refusal.Reason);
+        Assert.Equal(4, refusal.Args["ceiling"]);
+        Assert.Empty(garrison.TrainingOrders);
+        Assert.Equal(100_000, village.Resources.Single(r => r.ResourceType == "food").Amount);
+    }
+
+    /// <summary>
+    /// Ратуша на апгрейді тримає поточний рівень: замовлення наперед
+    /// під ще не збудований рівень не проходить.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldKeepTheCurrentCeiling_WhileTheTownHallIsUpgrading()
+    {
+        var (village, garrison) = GivenVillage(food: 100_000, townHallLevel: 4);
+        village.Buildings.Single(b => b.Type == "townhall").BeginUpgrade(
+            new GameCatalog(Config()).Buildings["townhall"], TimeSpan.FromHours(1), Now,
+            ProductionBoost.None, locationMultiplier: 1.0);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 5, 1), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.GarrisonUnitLevelCeiling.Key, refusal.Reason);
+        Assert.Empty(garrison.TrainingOrders);
     }
 
     /// <summary>
