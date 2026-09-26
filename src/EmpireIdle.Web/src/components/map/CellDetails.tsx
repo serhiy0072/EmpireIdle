@@ -116,7 +116,8 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
         </ul>
       )}
 
-      <ErrorBanner error={recall.error} />
+      {/* Одне місце для відмов розвідки й відкликання: кнопки розвідки є і в блоці табору, і в блоці села */}
+      <ErrorBanner error={scout.error ?? recall.error} />
 
       {camps.length > 0 && (
         <ul className="space-y-2">
@@ -208,7 +209,6 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
 
       {targetType !== null && targetType !== MARCH_TARGET.monster && !isHome && cell.occupantId != null && (
         <div className="space-y-1">
-          <ErrorBanner error={scout.error} />
           <button
             type="button"
             onClick={() => scout.mutate({ targetType, targetId: cell.occupantId as string })}
