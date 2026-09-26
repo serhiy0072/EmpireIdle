@@ -10,7 +10,7 @@ namespace EmpireIdle.Domain.Services.Config
     public class MarketConfig
     {
         /// <summary>
-        /// Будівля ринку: відкриває його й задає ліміт лотів своїм рівнем.
+        /// Будівля ринку: відкриває його. Рівнів у неї немає (GDD §3.1).
         /// null — ринку в цій грі немає (решкін без торгівлі, тестові конфіги).
         /// </summary>
         public string? BuildingKey { get; set; }
@@ -24,11 +24,8 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки годин куплений екземпляр не можна виставити знову.</summary>
         public int ResaleCooldownHours { get; set; } = 72;
 
-        /// <summary>Активних лотів без урахування рівня ринку.</summary>
-        public int BaseListings { get; set; } = 1;
-
-        /// <summary>Додаткових лотів за кожен рівень будівлі ринку.</summary>
-        public int ListingsPerBuildingLevel { get; set; } = 1;
+        /// <summary>Скільки лотів гравець тримає одночасно. Фіксовано: ринок рівнів не має.</summary>
+        public int ListingLimit { get; set; } = 10;
 
         /// <summary>Коридор ціни навколо медіани: 0.3 — ±30%.</summary>
         public double CorridorShare { get; set; } = 0.3;

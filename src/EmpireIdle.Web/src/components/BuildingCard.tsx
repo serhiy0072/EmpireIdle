@@ -25,6 +25,8 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
 
   // Сховище й збір є лише в будівель, що щось виробляють: ратуші чи казармам бар "0 / 0" ні до чого
   const produces = catalog.building(building.type)?.producesResource != null;
+  // Функціональна будівля (ринок, кузня…) рівнів не має — ні підпису рівня, ні кнопки апгрейду (GDD §3.1)
+  const upgradable = catalog.building(building.type)?.upgradable !== false;
   const fill = building.storageCap > 0 ? Math.min(1, building.storedAmount / building.storageCap) : 0;
   const full = building.storageCap > 0 && building.storedAmount >= building.storageCap;
   const screens = screensFor(building.type);
@@ -39,7 +41,7 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
     <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
       <div className="flex items-baseline justify-between">
         <h3 className="font-medium text-slate-800">{catalog.buildingName(building.type)}</h3>
-        <span className="text-sm text-slate-500">рів. {building.level}</span>
+        {upgradable && <span className="text-sm text-slate-500">рів. {building.level}</span>}
       </div>
 
       {building.damageLevel > 0 && building.damagedUntil != null && (
@@ -103,15 +105,17 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
               Зібрати
             </button>
           )}
-          <button
-            type="button"
-            data-tutorial="upgrade"
-            onClick={onUpgrade}
-            disabled={busy}
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          >
-            Покращити
-          </button>
+          {upgradable && (
+            <button
+              type="button"
+              data-tutorial="upgrade"
+              onClick={onUpgrade}
+              disabled={busy}
+              className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              Покращити
+            </button>
+          )}
         </div>
       )}
 

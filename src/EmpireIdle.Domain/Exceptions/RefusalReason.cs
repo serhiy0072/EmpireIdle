@@ -72,6 +72,9 @@
         /// <summary>Правило A: стеля будівель від рівня світу.</summary>
         public static readonly RefusalReason BuildingServerCeiling = new("building.serverCeiling", "serverLevel", "ceiling");
 
+        /// <summary>Функціональна будівля без рівнів (GDD §3.1); building — її назва для гравця.</summary>
+        public static readonly RefusalReason BuildingNotUpgradable = new("building.notUpgradable", "building");
+
         /// <summary>Правило C: будівля не переростає ратушу.</summary>
         public static readonly RefusalReason BuildingTownHallCeiling = new("building.townHallCeiling", "building", "level");
 

@@ -77,7 +77,8 @@ public class MarketPricesAndQueriesTests
         var view = await handler.Handle(new GetMyMarketQuery(_bed.Seller), CancellationToken.None);
 
         Assert.True(view.IsOpen);
-        Assert.Equal(2, view.ListingLimit);
+        // Ринок рівнів не має (GDD §3.1): ліміт фіксований із конфіга
+        Assert.Equal(10, view.ListingLimit);
         Assert.Equal(1, view.ActiveListings);
         Assert.True(Assert.Single(view.Listings).IsOwn);
     }

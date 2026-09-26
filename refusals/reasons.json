@@ -7,6 +7,9 @@
     "startsAt"
   ],
   "building.alreadyCompleted": [],
+  "building.notUpgradable": [
+    "building"
+  ],
   "building.serverCeiling": [
     "serverLevel",
     "ceiling"

@@ -103,7 +103,8 @@ namespace EmpireIdle.Application.Catalog
                     Name("building", building.Key, building.DisplayName),
                     building.ProducesResource,
                     building.Position is null ? null : new CatalogPosition(building.Position.X, building.Position.Y),
-                    building.RequiresMainBuildingLevel))
+                    building.RequiresMainBuildingLevel,
+                    building.Upgradable))
                 .ToList();
 
             var units = config.Units

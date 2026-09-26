@@ -43,6 +43,49 @@ namespace EmpireIdle.Domain.Services
             ValidateLoginRewards(config);
             ValidateClanTerritory(config);
             ValidateScouting(config);
+            ValidateFlatBuildings(config);
+        }
+
+        /// <summary>
+        /// Будівля без рівнів (GDD §3.1) назавжди стоїть на рівні 1. Усе, що росте з рівнем,
+        /// у неї було б мертвим числом, ціна апгрейду — ціною того, чого не купиш, а гейт
+        /// юніта чи квест на вищий рівень — недосяжною ціллю.
+        /// </summary>
+        private static void ValidateFlatBuildings(GameConfig config)
+        {
+            var flat = config.Buildings.Where(b => !b.Upgradable).ToList();
+
+            var levelled = flat
+                .Where(b => b.IsMainBuilding
+                            || b.ProducesResource is not null
+                            || b.StoresResources is { Count: > 0 }
+                            || b.Cost.Count > 0
+                            || b.WoundedCapacityPerLevel > 0
+                            || b.DefenceBonusPerLevel > 0
+                            || b.ReinforcementSlotsPerLevel > 0
+                            || b.BeastCapacityPerLevel > 0
+                            || b.ProtectedStorage > 0)
+                .Select(b => b.Key)
+                .ToList();
+
+            if (levelled.Count > 0)
+                throw new InvalidOperationException(
+                    "Buildings without levels cannot be the main building, produce, store, cost an upgrade "
+                    + $"or grow anything with level: {string.Join(", ", levelled)}.");
+
+            var flatKeys = flat.Select(b => b.Key).ToHashSet();
+
+            var unreachable = config.Units
+                .Where(u => u.RequiresBuilding is { } key && flatKeys.Contains(key) && u.RequiresBuildingLevel > 1)
+                .Select(u => $"unit {u.Key}")
+                .Concat(config.Quests.SelectMany(q => q.Objectives
+                    .Where(o => o.Type == "BuildingUpgradeCompleted" && o.Target is { } key && flatKeys.Contains(key))
+                    .Select(_ => $"quest {q.Key}")))
+                .ToList();
+
+            if (unreachable.Count > 0)
+                throw new InvalidOperationException(
+                    $"These require a level of a building that has no levels: {string.Join(", ", unreachable)}.");
         }
 
         /// <summary>

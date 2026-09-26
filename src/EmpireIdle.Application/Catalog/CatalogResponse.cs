@@ -125,7 +125,9 @@
 
     /// <param name="Position">Місце на плані села. null — будівля не малюється на мапі.</param>
     /// <param name="RequiresMainBuildingLevel">Мінімальний рівень ратуші для розблокування (туман війни).</param>
-    public record CatalogBuilding(string Key, string DisplayName, string? ProducesResource, CatalogPosition? Position, int RequiresMainBuildingLevel);
+    /// <param name="Upgradable">false — функціональна будівля без рівнів (GDD §3.1): кнопки апгрейду немає.</param>
+    public record CatalogBuilding(string Key, string DisplayName, string? ProducesResource, CatalogPosition? Position,
+        int RequiresMainBuildingLevel, bool Upgradable);
 
     /// <summary>Координати на плані села у відсотках: 0–100 по кожній осі.</summary>
     public record CatalogPosition(double X, double Y);

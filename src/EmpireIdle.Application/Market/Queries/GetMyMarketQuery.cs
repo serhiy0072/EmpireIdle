@@ -38,7 +38,7 @@ namespace EmpireIdle.Application.Market.Queries
             var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            var level = _desk.OpenLevel(village);
+            var open = _desk.IsOpen(village);
 
             var listings = await _market.GetBySellerAsync(request.PlayerId, GetMyMarketQuery.ClosedToShow, cancellationToken);
             var views = await _projection.ProjectAsync(listings, request.PlayerId, cancellationToken);
@@ -46,9 +46,9 @@ namespace EmpireIdle.Application.Market.Queries
             var market = _catalog.Config.Market;
 
             return new MyMarketView(
-                level is not null,
+                open,
                 _desk.OpensAtTownHall,
-                level is { } open ? _desk.ListingLimit(open) : 0,
+                open ? _desk.ListingLimit : 0,
                 listings.Count(l => l.State == MarketListingState.Active),
                 market.ListingTaxShare,
                 market.ListingHours,

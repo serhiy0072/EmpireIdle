@@ -77,6 +77,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "building.villageLagging": ({ level, buildings }) =>
     `Перш ніж ратуша перейде на новий тір, підтягніть до ${level} рівня: ${buildings}`,
   "building.underConstruction": () => "Ця будівля вже будується",
+  "building.notUpgradable": ({ building }) => `${building} не має рівнів — її не покращують`,
   "building.alreadyCompleted": () => "Будівництво вже завершено",
 
   // ---------- Розвідка ----------

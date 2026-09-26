@@ -8065,7 +8065,8 @@
         "required": [
           "displayName",
           "key",
-          "requiresMainBuildingLevel"
+          "requiresMainBuildingLevel",
+          "upgradable"
         ],
         "type": "object",
         "properties": {
@@ -8085,6 +8086,9 @@
           "requiresMainBuildingLevel": {
             "type": "integer",
             "format": "int32"
+          },
+          "upgradable": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
