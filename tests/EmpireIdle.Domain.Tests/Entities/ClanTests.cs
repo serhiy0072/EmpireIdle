@@ -40,14 +40,41 @@ public class ClanTests
         Assert.Equal(1, refusal.Args["capacity"]);
     }
 
+    /// <summary>Лідер не лишає не порожній клан без голови — наступника обирає викликач.</summary>
     [Fact]
-    public void Leave_AsTheLeader_ShouldAskToTransferLeadershipFirst()
+    public void Leave_AsTheLeader_WithoutASuccessor_ShouldBeRefused_WhileOthersRemain()
+    {
+        var clan = NewClan();
+        clan.Join(Guid.NewGuid(), capacity: 50, Now);
+
+        var refusal = Assert.Throws<InvalidStateException>(() => clan.Leave(LeaderId, successorId: null, Now));
+
+        Assert.Equal(RefusalReasons.ClanLeaderMustTransfer.Key, refusal.Reason);
+    }
+
+    /// <summary>Лідер виходить — лідерство переходить наступнику, клан не лишається без голови.</summary>
+    [Fact]
+    public void Leave_AsTheLeader_ShouldPassLeadershipToTheSuccessor()
+    {
+        var clan = NewClan();
+        var successor = Guid.NewGuid();
+        clan.Join(successor, capacity: 50, Now);
+
+        clan.Leave(LeaderId, successor, Now);
+
+        Assert.DoesNotContain(clan.Members, m => m.PlayerId == LeaderId);
+        Assert.True(clan.IsLeader(successor));
+    }
+
+    /// <summary>Засновник-одинак виходить — клан порожній; розпуск робить команда.</summary>
+    [Fact]
+    public void Leave_AsTheLastMember_ShouldEmptyTheClan()
     {
         var clan = NewClan();
 
-        var refusal = Assert.Throws<InvalidStateException>(() => clan.Leave(LeaderId, Now));
+        clan.Leave(LeaderId, successorId: null, Now);
 
-        Assert.Equal(RefusalReasons.ClanLeaderMustTransfer.Key, refusal.Reason);
+        Assert.Empty(clan.Members);
     }
 
     /// <summary>Рядовий без права Kick — відмова називає його роль.</summary>

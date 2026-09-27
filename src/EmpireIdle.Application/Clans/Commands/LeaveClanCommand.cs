@@ -7,7 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Clans.Commands
 {
-    /// <summary>Гравець виходить із клану сам. Лідер спершу передає лідерство.</summary>
+    /// <summary>
+    /// Гравець виходить із клану сам. Лідер лишає клан наступнику — найвищому за рангом,
+    /// серед рівних найсвіжішому в грі; лідер, що лишився сам, розпускає клан.
+    /// </summary>
     public record LeaveClanCommand(Guid PlayerId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     public sealed class LeaveClanCommandHandler : IRequestHandler<LeaveClanCommand>
@@ -18,6 +21,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ReinforcementReturner _returner;
+        private readonly ClanSuccession _succession;
         private readonly ILogger<LeaveClanCommandHandler> _logger;
 
         public LeaveClanCommandHandler(
@@ -27,6 +31,7 @@ namespace EmpireIdle.Application.Clans.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ReinforcementReturner returner,
+            ClanSuccession succession,
             ILogger<LeaveClanCommandHandler> logger)
         {
             _clanRepository = clanRepository;
@@ -34,7 +39,8 @@ namespace EmpireIdle.Application.Clans.Commands
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
-            _returner = returner;   
+            _returner = returner;
+            _succession = succession;
             _logger = logger;
         }
 
@@ -48,7 +54,11 @@ namespace EmpireIdle.Application.Clans.Commands
             var clan = await _clanRepository.GetByMemberAsync(player.Id, cancellationToken)
                 ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");
 
-            clan.Leave(player.Id, now);
+            var successor = clan.IsLeader(player.Id)
+                ? await _succession.ChooseAsync(clan, player.Id, activeSince: null, cancellationToken)
+                : null;
+
+            clan.Leave(player.Id, successor, now);
             player.LeaveClan();
 
             // Обидва напрямки: свої війська з чужих сіл і чужі — зі свого.
@@ -69,6 +79,10 @@ namespace EmpireIdle.Application.Clans.Commands
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            if (successor is Guid newLeader)
+                _logger.LogInformation("Clan {ClanId}: leader {PlayerId} left, leadership passed to {NewLeaderId}",
+                    clan.Id, player.Id, newLeader);
 
             _logger.LogInformation("Player {PlayerId} left clan {ClanId}", player.Id, clan.Id);
         }

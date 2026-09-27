@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Services;
 using AwesomeAssertions;
 using EmpireIdle.Application.Clans.Commands;
 using EmpireIdle.Application.Interfaces;
@@ -39,6 +40,7 @@ public class TransferInactiveLeadershipCommandTests
         _clans, _players, _unitOfWork,
         new GameCatalog(Config()),
         new FakeTimeProvider(Now),
+        new ClanSuccession(_players),
         NullLogger<TransferInactiveLeadershipCommandHandler>.Instance);
 
     /// <summary>Клан із лідером-засновником. Учасники додаються окремо.</summary>

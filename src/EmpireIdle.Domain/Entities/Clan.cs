@@ -141,17 +141,34 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        /// <summary>Гравець виходить сам. Лідер спершу передає лідерство.</summary>
-        public void Leave(Guid playerId, DateTime utcNow)
+        /// <summary>
+        /// Гравець виходить сам. Лідер, що лишає не порожній клан, передає лідерство
+        /// <paramref name="successorId"/> (його обирає той, хто кличе, за спільним правилом).
+        /// Останній учасник виходить без наступника — розпуск порожнього клану робить викликач.
+        /// </summary>
+        public void Leave(Guid playerId, Guid? successorId, DateTime utcNow)
         {
             var member = _members.FirstOrDefault(m => m.PlayerId == playerId)
                 ?? throw new EntityNotFoundException("Clan member", playerId);
 
-            if (_roles.Single(r => r.Id == member.RoleId).IsLeaderRole)
-                throw new InvalidStateException(RefusalReasons.ClanLeaderMustTransfer, "Transfer leadership before leaving the clan.");
+            if (_roles.Single(r => r.Id == member.RoleId).IsLeaderRole && _members.Count > 1)
+            {
+                if (successorId is not Guid successor || successor == playerId)
+                    throw new InvalidStateException(RefusalReasons.ClanLeaderMustTransfer, "Transfer leadership before leaving the clan.");
+
+                PromoteToLeader(successor, utcNow);
+            }
 
             _members.Remove(member);
             Touch(utcNow);
+        }
+
+        /// <summary>Чи веде цей гравець клан.</summary>
+        public bool IsLeader(Guid playerId)
+        {
+            var leaderRole = _roles.Single(r => r.IsLeaderRole);
+
+            return _members.Any(m => m.PlayerId == playerId && m.RoleId == leaderRole.Id);
         }
 
         /// <summary>

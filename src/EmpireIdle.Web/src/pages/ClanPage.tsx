@@ -233,17 +233,20 @@ export default function ClanPage() {
               >
                 Відкликати підкріплення
               </button>
-              {/* Лідер не виходить, поки клан не передано: сервер відмовить, тож і кнопки нема */}
-              {!isLeader && (
-                <button
-                  type="button"
-                  onClick={() => leave.mutate()}
-                  disabled={busy}
-                  className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
-                >
-                  Покинути клан
-                </button>
-              )}
+              {/* Лідер теж може вийти: лідерство перейде найвищому за рангом, а сам-один — розпускає клан */}
+              <button
+                type="button"
+                onClick={() => leave.mutate()}
+                disabled={busy}
+                title={
+                  isLeader && clan.data.memberCount > 1
+                    ? "Лідерство перейде учаснику з найвищою роллю"
+                    : undefined
+                }
+                className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+              >
+                {isLeader && clan.data.memberCount <= 1 ? "Розпустити клан" : "Покинути клан"}
+              </button>
             </div>
             {typeof recall.data === "number" && (
               <p className="text-xs text-slate-500">Відкликано маршів: {recall.data}</p>

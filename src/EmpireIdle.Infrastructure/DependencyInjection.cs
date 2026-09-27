@@ -103,6 +103,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<ItemGranter>();
             services.AddScoped<HeroGranter>();
             services.AddScoped<ReinforcementReturner>();
+            services.AddScoped<ClanSuccession>();
             services.AddScoped<ClanStructureRemover>();
             services.AddScoped<StructureMarchRules>();
             services.AddScoped<TerritoryBonus>();
