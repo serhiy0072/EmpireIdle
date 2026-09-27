@@ -47,6 +47,21 @@ namespace EmpireIdle.Domain.Tests.Entities
         }
 
         /// <summary>
+        /// Нове замовлення міняє рядок гарнізону: інакше xmin кореня не зрушить і два
+        /// паралельні тренування обидва пройдуть перевірку «казарма вільна».
+        /// </summary>
+        [Fact]
+        public void TrainUnits_ShouldTouchTheGarrison()
+        {
+            var now = new DateTime(2026, 9, 27, 12, 0, 0, DateTimeKind.Utc);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            garrison.TrainUnits("infantry", 1, 1, 5, 100, TimeSpan.FromMinutes(1), now);
+
+            Assert.Equal(now, garrison.UpdatedAt);
+        }
+
+        /// <summary>
         /// Одночасно може тренуватись лише одна партія.
         /// </summary>
         [Fact]

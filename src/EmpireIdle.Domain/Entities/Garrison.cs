@@ -168,6 +168,10 @@ namespace EmpireIdle.Domain.Entities
 
             _trainingOrders.Add(new UnitTrainingOrder(
                 Guid.NewGuid(), Id, unitType, level, count, utcNow + trainDuration));
+
+            // Зміна лише дочірньої колекції не чіпає рядок гарнізону — без Touch xmin
+            // кореня не змінився б, і паралельне тренування пройшло б повз перевірку
+            Touch(utcNow);
         }
 
         /// <summary>Завершує дозрілі замовлення: юніти йдуть у гарнізон.</summary>
