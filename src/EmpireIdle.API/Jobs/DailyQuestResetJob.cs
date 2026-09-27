@@ -11,9 +11,9 @@ namespace EmpireIdle.API.Jobs
 
         public DailyQuestResetJob(ServerJobRunner runner) => _runner = runner;
 
-        [DisableConcurrentExecution(timeoutInSeconds: 600)]
-        public Task RunAsync() => _runner.ForEachItemAsync(nameof(ResetPlayerDailyQuestsCommand),
+        [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
+        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachItemAsync(nameof(ResetPlayerDailyQuestsCommand),
             mediator => mediator.Send(new GetPlayerIdsWithStaleDailyQuestsQuery()),
-            (mediator, playerId) => mediator.Send(new ResetPlayerDailyQuestsCommand(playerId)));
+            (mediator, playerId) => mediator.Send(new ResetPlayerDailyQuestsCommand(playerId)), cancellationToken);
     }
 }

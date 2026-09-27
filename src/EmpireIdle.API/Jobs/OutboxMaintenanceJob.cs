@@ -33,8 +33,8 @@ namespace EmpireIdle.API.Jobs
             _logger = logger;
         }
 
-        [DisableConcurrentExecution(timeoutInSeconds: 300)]
-        public async Task RunAsync()
+        [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
+        public async Task RunAsync(CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var cutoff = now.AddDays(-_settings.RetentionDays);
@@ -43,23 +43,23 @@ namespace EmpireIdle.API.Jobs
             var deleted = await _context.OutboxMessages
                 .IgnoreQueryFilters()
                 .Where(m => m.ProcessedAt != null && m.ProcessedAt < cutoff)
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
 
             var poisoned = await _context.OutboxMessages
                 .IgnoreQueryFilters()
                 .Where(m => m.ProcessedAt == null && m.Attempts >= _settings.MaxAttempts)
                 .GroupBy(m => m.Type)
                 .Select(g => new { Type = g.Key, Count = g.Count() })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
-            var releasedKeys = await _idempotency.PurgeStaleReservationsAsync(staleCutoff);
-            var expiredKeys = await _idempotency.PurgeCompletedAsync(now.AddDays(-_settings.IdempotencyRetentionDays));
+            var releasedKeys = await _idempotency.PurgeStaleReservationsAsync(staleCutoff, cancellationToken);
+            var expiredKeys = await _idempotency.PurgeCompletedAsync(now.AddDays(-_settings.IdempotencyRetentionDays), cancellationToken);
 
             // Прострочений refresh-токен уже нічого не відкриває; відкликані до строку лишаються —
             // саме по них ловиться повторне використання вкраденого токена
             var expiredTokens = await _context.RefreshTokens
                 .Where(t => t.ExpiresAt < now)
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
 
             if (deleted > 0)
                 _logger.LogInformation("Outbox cleanup removed {Deleted} processed messages.", deleted);

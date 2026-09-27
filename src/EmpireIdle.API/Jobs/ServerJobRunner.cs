@@ -30,15 +30,19 @@ namespace EmpireIdle.API.Jobs
         /// </summary>
         /// <param name="jobName">Ім'я джоба для логів: через раннер ходять кілька.</param>
         /// <param name="action">Дія у контексті світу; отримує <c>IMediator</c> зі свого scope.</param>
-        public async Task ForEachServerAsync(string jobName, Func<IMediator, int, Task> action)
+        public async Task ForEachServerAsync(string jobName, Func<IMediator, int, Task> action,
+            CancellationToken cancellationToken = default)
         {
             foreach (var serverId in _catalog.Config.ActiveServerIds)
             {
+                // Зупинка сервера (деплой) — виходимо між світами, не посеред обробки
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
                     await InScopeAsync(serverId, mediator => action(mediator, serverId));
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
                     // Один світ не зупиняє решту — наступний тік підбере пропущене
                     _logger.LogError(ex, "{Job} failed for server {ServerId}; continuing.", jobName, serverId);
@@ -58,17 +62,20 @@ namespace EmpireIdle.API.Jobs
         public async Task ForEachItemAsync<TItem>(
             string jobName,
             Func<IMediator, Task<IReadOnlyList<TItem>>> load,
-            Func<IMediator, TItem, Task> process)
+            Func<IMediator, TItem, Task> process,
+            CancellationToken cancellationToken = default)
         {
             foreach (var serverId in _catalog.Config.ActiveServerIds)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 IReadOnlyList<TItem> items;
 
                 try
                 {
                     items = await InScopeAsync(serverId, load);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
                     _logger.LogError(ex, "{Job}: load failed for server {ServerId}; continuing.", jobName, serverId);
                     continue;
@@ -76,11 +83,14 @@ namespace EmpireIdle.API.Jobs
 
                 foreach (var item in items)
                 {
+                    // Між елементами: кожен уже в своїй транзакції, тож перерваний прогін нічого не лишає навпіл
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     try
                     {
                         await InScopeAsync(serverId, mediator => process(mediator, item));
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                     {
                         _logger.LogError(ex, "{Job}: item {Item} failed on server {ServerId}; continuing.",
                             jobName, item, serverId);

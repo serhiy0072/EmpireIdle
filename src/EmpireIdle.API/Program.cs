@@ -275,8 +275,11 @@ builder.Services.AddCors(options =>
 // Прибрати IHostedService недостатньо: падає резолвер IJobFilterProvider.
 if (!builder.Environment.IsEnvironment("Testing"))
 {
-    builder.Services.AddHangfire(config =>
-        config.UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString)));
+    // Без ретраїв: усі джоби повторювані, наступний прогін прийде за розкладом. Стандартні 10 спроб
+    // лише множили б очікувачів на лок, що займають пул воркерів
+    builder.Services.AddHangfire(config => config
+        .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString))
+        .UseFilter(new AutomaticRetryAttribute { Attempts = 0 }));
 
     builder.Services.AddHangfireServer();
     builder.Services.AddHostedService<RecurringJobScheduler>();

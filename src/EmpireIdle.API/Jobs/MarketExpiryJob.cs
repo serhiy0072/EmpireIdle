@@ -15,10 +15,10 @@ namespace EmpireIdle.API.Jobs
 
         public MarketExpiryJob(ServerJobRunner runner) => _runner = runner;
 
-        [DisableConcurrentExecution(timeoutInSeconds: 300)]
-        public Task RunAsync() => _runner.ForEachItemAsync(
+        [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
+        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachItemAsync(
             nameof(ExpireMarketListingCommand),
             mediator => mediator.Send(new GetMarketListingIdsDueToExpireQuery()),
-            (mediator, listingId) => mediator.Send(new ExpireMarketListingCommand(listingId)));
+            (mediator, listingId) => mediator.Send(new ExpireMarketListingCommand(listingId)), cancellationToken);
     }
 }

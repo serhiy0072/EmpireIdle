@@ -10,9 +10,9 @@ namespace EmpireIdle.API.Jobs
 
         public MailRetentionJob(ServerJobRunner runner) => _runner = runner;
 
-        [DisableConcurrentExecution(timeoutInSeconds: 600)]
-        public Task RunAsync() => _runner.ForEachServerAsync(
+        [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
+        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachServerAsync(
             nameof(MailRetentionJob),
-            (mediator, _) => mediator.Send(new DeleteExpiredMailCommand()));
+            (mediator, _) => mediator.Send(new DeleteExpiredMailCommand()), cancellationToken);
     }
 }
