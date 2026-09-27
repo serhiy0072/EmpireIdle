@@ -11,13 +11,17 @@ namespace EmpireIdle.Infrastructure.Payments
     public class StripePaymentProvider : IPaymentProvider
     {
         private readonly StripeSettings _settings;
+        private readonly IStripeClient _client;
 
-        public StripePaymentProvider(IOptions<StripeSettings> settings)
+        /// <param name="client">
+        /// Один клієнт на процес: він тримає HTTP-з'єднання й ключ. Глобальний
+        /// StripeConfiguration.ApiKey з конструктора перезаписувався б на кожен scope.
+        /// </param>
+        public StripePaymentProvider(IOptions<StripeSettings> settings, IStripeClient client)
         {
             _settings = settings.Value;
-            StripeConfiguration.ApiKey = _settings.SecretKey;
+            _client = client;
         }
-
 
         /// <inheritdoc/>
         public async Task<PaymentSession> CreateSessionAsync(
@@ -53,7 +57,7 @@ namespace EmpireIdle.Infrastructure.Payments
                 }
             };
 
-            var session = await new SessionService().CreateAsync(options, cancellationToken: cancellationToken);
+            var session = await new SessionService(_client).CreateAsync(options, cancellationToken: cancellationToken);
 
             return new PaymentSession(session.Id, session.Url);
         }

@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Stripe;
 
 namespace EmpireIdle.Infrastructure
 {
@@ -74,6 +76,7 @@ namespace EmpireIdle.Infrastructure
 
             // Зовнішні сервіси
             services.AddSingleton<IRandomSource, SystemRandomSource>();
+            services.AddSingleton<IStripeClient>(sp => new StripeClient(sp.GetRequiredService<IOptions<StripeSettings>>().Value.SecretKey));
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();
 
             services.AddScoped<DomainEventDispatchInterceptor>();

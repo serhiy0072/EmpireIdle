@@ -22,7 +22,7 @@ public class StripeWebhookParsingTests
         WebhookSecret = WebhookSecret,
         SuccessUrl = "http://localhost/success",
         CancelUrl = "http://localhost/cancel"
-    }));
+    }), new StripeClient("sk_test_unused"));
 
     private static string Payload(string type, string paymentStatus) => $$"""
         {
