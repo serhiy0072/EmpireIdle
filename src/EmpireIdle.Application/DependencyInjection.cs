@@ -45,6 +45,7 @@ namespace EmpireIdle.Application
             services.AddValidatorsFromAssembly(assembly);
 
             services.AddSingleton<GameCatalogProjection>();
+            services.AddScoped<NotificationBuffer>();
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
