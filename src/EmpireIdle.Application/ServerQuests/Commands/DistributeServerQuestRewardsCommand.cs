@@ -20,6 +20,9 @@ namespace EmpireIdle.Application.ServerQuests.Commands
     public sealed class DistributeServerQuestRewardsCommandHandler
         : IRequestHandler<DistributeServerQuestRewardsCommand>
     {
+        /// <summary>Скільки внесків на одне збереження.</summary>
+        private const int BatchSize = 200;
+
         private readonly IServerQuestRepository _questRepository;
         private readonly RewardDispatcher _rewards;
         private readonly IUnitOfWork _unitOfWork;
@@ -63,28 +66,44 @@ namespace EmpireIdle.Application.ServerQuests.Commands
 
             var granted = 0;
 
-            for (var index = 0; index < ranked.Count; index++)
+            // Пачками, кожна своїм збереженням: нагорода пише в гаманці й склади, а гравці
+            // паралельно грають, тож конфлікт xmin неминучий. Невдала пачка зупиняє прохід —
+            // після скидання трекера решта сутностей відірвана, — а наступний прохід джоба
+            // підхопить ще не позначені внески: ранги ті самі, суми після завершення не змінюються
+            for (var start = 0; start < ranked.Count; start += BatchSize)
             {
-                var contribution = ranked[index];
-                var rank = index + 1;
+                var inBatch = 0;
 
-                // Позначаємо ДО видачі: повторний прогін джоба після збою
-                // всередині циклу не має видати нагороду вдруге
-                if (!contribution.MarkRewarded(rank, now))
-                    continue;
+                for (var index = start; index < Math.Min(start + BatchSize, ranked.Count); index++)
+                {
+                    var contribution = ranked[index];
+                    var rank = index + 1;
 
-                var tier = FindTier(config, rank);
+                    // Позначаємо ДО видачі: повторний прогін джоба після збою
+                    // всередині циклу не має видати нагороду вдруге
+                    if (!contribution.MarkRewarded(rank, now))
+                        continue;
 
-                if (tier is null)
-                    continue;
+                    var tier = FindTier(config, rank);
 
-                await _rewards.GrantAllAsync(
-                    contribution.PlayerId, tier.Rewards, request.QuestKey, now, cancellationToken);
+                    if (tier is null)
+                        continue;
 
-                granted++;
+                    await _rewards.GrantAllAsync(
+                        contribution.PlayerId, tier.Rewards, request.QuestKey, now, cancellationToken);
+
+                    inBatch++;
+                }
+
+                if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+                {
+                    _logger.LogWarning("Server quest {QuestKey}: batch from rank {Rank} hit a concurrency conflict; next run resumes",
+                        request.QuestKey, start + 1);
+                    break;
+                }
+
+                granted += inBatch;
             }
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Server quest {QuestKey} rewarded {Count} contributors",
                 request.QuestKey, granted);

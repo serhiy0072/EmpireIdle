@@ -205,13 +205,30 @@ public class DistributeServerQuestRewardsCommandTests
 
     /// <summary>Роздача зберігається одним разом на весь квест.</summary>
     [Fact]
-    public async Task Handle_ShouldSaveOnce()
+    public async Task Handle_ShouldSaveOncePerBatch()
     {
         GivenCompletedQuest();
         GivenContributions(500, 300, 100);
+        _unitOfWork.TrySaveChangesAsync(Arg.Any<CancellationToken>()).Returns(true);
 
         await Handler().Handle(new DistributeServerQuestRewardsCommand(QuestKey), CancellationToken.None);
 
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).TrySaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Конфлікт у пачці зупиняє прохід: після скидання трекера решта внесків відірвана,
+    /// а наступний прохід джоба підхопить ще не позначені. Далі цей прохід не йде.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldStop_WhenABatchConflicts()
+    {
+        GivenCompletedQuest();
+        GivenContributions(Enumerable.Range(1, 450).Select(i => (long)(1000 - i)).ToArray());
+        _unitOfWork.TrySaveChangesAsync(Arg.Any<CancellationToken>()).Returns(false);
+
+        await Handler().Handle(new DistributeServerQuestRewardsCommand(QuestKey), CancellationToken.None);
+
+        await _unitOfWork.Received(1).TrySaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }
