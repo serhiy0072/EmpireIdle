@@ -71,6 +71,9 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (item.IsBroken)
                 throw new RequirementNotMetException(RefusalReasons.EquipmentBroken, $"Equipment {item.Id} is broken and must be repaired first.");
 
+            // До списання золота: інакше невдала спроба комітила б оплату за лот на ринку
+            item.EnsureNotOnMarket();
+
             var equipment = _catalog.Config.Equipment;
 
             if (item.EnhancementLevel >= equipment.MaxEnhancement)
