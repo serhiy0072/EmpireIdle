@@ -33,7 +33,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
                 ?? throw new InvalidOperationException($"Wallet not found for player {context.PlayerId}.");
 
-            wallet.AddGems(new GemAmount(context.Reward.Amount), context.Reference, context.PlayerId, now);
+            wallet.GrantGems(new GemAmount(context.Reward.Amount), context.Reference, now);
         }
     }
 }

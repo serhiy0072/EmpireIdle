@@ -63,6 +63,19 @@ public class PlayerWallet : Entity
     }
 
     /// <summary>
+    /// Нараховує gems як ігрову нагороду: журнал відрізняє їх від куплених —
+    /// для підтримки, повернень і аналітики монетизації.
+    /// </summary>
+    /// <param name="reference">Джерело нагороди (квест, лист) для журналу.</param>
+    public void GrantGems(GemAmount amount, string reference, DateTime utcNow)
+    {
+        GemBalance = GemBalance.Add(amount);
+        _transactions.Add(new WalletTransaction(Guid.NewGuid(), Id, TransactionType.GemReward, amount.Value, reference, utcNow));
+
+        Touch(utcNow);
+    }
+
+    /// <summary>
     /// Витрачає gems на внутрішньоігрові покупки.
     /// </summary>
     /// <param name="amount">Кількість gems.</param>
