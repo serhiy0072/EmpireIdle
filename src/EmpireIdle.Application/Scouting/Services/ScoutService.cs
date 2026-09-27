@@ -22,7 +22,6 @@ namespace EmpireIdle.Application.Scouting.Services
         private readonly IClanStructureRepository _structureRepository;
         private readonly IServerRepository _serverRepository;
         private readonly IScoutReportRepository _reports;
-        private readonly IGameNotifier _notifier;
         private readonly MarchTargetResolver _targets;
         private readonly ScoutVisibility _visibility;
         private readonly CombatCalculator _combat;
@@ -37,7 +36,6 @@ namespace EmpireIdle.Application.Scouting.Services
             IClanStructureRepository structureRepository,
             IServerRepository serverRepository,
             IScoutReportRepository reports,
-            IGameNotifier notifier,
             MarchTargetResolver targets,
             ScoutVisibility visibility,
             CombatCalculator combat,
@@ -51,7 +49,6 @@ namespace EmpireIdle.Application.Scouting.Services
             _structureRepository = structureRepository;
             _serverRepository = serverRepository;
             _reports = reports;
-            _notifier = notifier;
             _targets = targets;
             _visibility = visibility;
             _combat = combat;
@@ -79,8 +76,6 @@ namespace EmpireIdle.Application.Scouting.Services
             march.FinishScouting(utcNow);
 
             await _reports.AddAsync(report, cancellationToken);
-            await _notifier.NotifyScoutReportReadyAsync(scouter.PlayerId, report.Id, report.TargetName,
-                report.Outcome.ToString(), cancellationToken);
 
             _logger.LogInformation("Scouts {MarchId} of {PlayerId} at ({X},{Y}): {Outcome}",
                 march.Id, scouter.PlayerId, march.TargetX, march.TargetY, report.Outcome);

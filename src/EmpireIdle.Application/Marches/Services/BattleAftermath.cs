@@ -22,7 +22,6 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IHeroRepository _heroRepository;
-        private readonly IGameNotifier _notifier;
         private readonly CasualtySplitter _casualties;
         private readonly CombatConfig _combatConfig;
         private readonly MarchLogistics _logistics;
@@ -35,7 +34,6 @@ namespace EmpireIdle.Application.Marches.Services
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
             IHeroRepository heroRepository,
-            IGameNotifier notifier,
             CasualtySplitter casualties,
             GameCatalog catalog,
             MarchLogistics logistics,
@@ -47,7 +45,6 @@ namespace EmpireIdle.Application.Marches.Services
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
             _heroRepository = heroRepository;
-            _notifier = notifier;
             _casualties = casualties;
             _combatConfig = catalog.Config.Combat;
             _logistics = logistics;
@@ -202,8 +199,7 @@ namespace EmpireIdle.Application.Marches.Services
                 defenderGarrison.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-            await _notifier.NotifyBattleFinishedAsync(defenderVillage.PlayerId, report.Id,
-                !result.AttackerWon, attackerVillage.Name, cancellationToken);
+            report.AnnounceDefence(utcNow);
         }
 
         /// <summary>
@@ -286,8 +282,7 @@ namespace EmpireIdle.Application.Marches.Services
                     home.Garrison.AddRecoverable(home.Split.Recoverable, report.Id,
                         utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-                await _notifier.NotifyBattleFinishedAsync(ownerId, report.Id,
-                    !result.AttackerWon, attackerVillage.Name, cancellationToken);
+                report.AnnounceDefence(utcNow);
             }
 
             // Господаря в споруди немає — після поразки додому йдуть усі
@@ -363,8 +358,7 @@ namespace EmpireIdle.Application.Marches.Services
                 hero?.Wound(utcNow);
             }
 
-            await _notifier.NotifyBattleFinishedAsync(campHome.PlayerId, report.Id,
-                !result.AttackerWon, attackerVillage.Name, cancellationToken);
+            report.AnnounceDefence(utcNow);
         }
 
         /// <summary>Поранені союзника — в його госпіталь; null — дому немає, поранених нікуди класти.</summary>

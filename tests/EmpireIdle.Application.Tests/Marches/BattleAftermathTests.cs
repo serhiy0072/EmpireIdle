@@ -30,7 +30,6 @@ public class BattleAftermathTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
-    private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
 
     private Village _allyVillage = null!;
 
@@ -64,7 +63,7 @@ public class BattleAftermathTests
             NullLogger<ReinforcementReturner>.Instance);
 
         return new BattleAftermath(
-            _reports, _garrisons, _villages, _heroes, _notifier,
+            _reports, _garrisons, _villages, _heroes,
             new CasualtySplitter(config.Combat), catalog, logistics, new VillageStatus(catalog),
             returner, NullLogger<BattleAftermath>.Instance);
     }

@@ -167,7 +167,7 @@ public class CompleteMarchCommandTests
             NullLogger<ReinforcementReturner>.Instance);
 
         var aftermath = new BattleAftermath(
-            _reports, _garrisons, _villages, _heroes, _notifier, casualties, catalog, logistics, status,
+            _reports, _garrisons, _villages, _heroes, casualties, catalog, logistics, status,
             returner, NullLogger<BattleAftermath>.Instance);
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
@@ -225,7 +225,7 @@ public class CompleteMarchCommandTests
             new CampHomecoming(_heroes, calculator, new HeroProgression(config.HeroSettings), catalog),
             new HostilityRules(_clans), NullLogger<CampBattleService>.Instance);
 
-        var scouts = new ScoutService(_garrisons, _villages, _structures, _serverRepository, _scoutReports, _notifier,
+        var scouts = new ScoutService(_garrisons, _villages, _structures, _serverRepository, _scoutReports,
             targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry,
             NullLogger<ScoutService>.Instance);
 
@@ -725,8 +725,11 @@ public class CompleteMarchCommandTests
 
         await _reports.Received(2).AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
 
-        await _notifier.Received(1).NotifyBattleFinishedAsync(
-            defender.PlayerId, Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        // Захисник дізнається з події звіту — сповіщення піде після коміту, з outbox
+        await _reports.Received(1).AddAsync(
+            Arg.Is<BattleReport>(r => r.PlayerId == defender.PlayerId && r.DomainEvents.OfType<DefenceReported>().Any()),
+            Arg.Any<CancellationToken>());
+        await _notifier.DidNotReceiveWithAnyArgs().NotifyBattleFinishedAsync(default, default, default, default!, default);
     }
 
     /// <summary>Переможений захисник втрачає юнітів із гарнізону.</summary>
@@ -908,9 +911,9 @@ public class CompleteMarchCommandTests
 
         foreach (var owner in contributors)
         {
-            await _reports.Received(1).AddAsync(Arg.Is<BattleReport>(r => r.PlayerId == owner), Arg.Any<CancellationToken>());
-            await _notifier.Received(1).NotifyBattleFinishedAsync(owner, Arg.Any<Guid>(), Arg.Any<bool>(),
-                Arg.Any<string>(), Arg.Any<CancellationToken>());
+            await _reports.Received(1).AddAsync(
+                Arg.Is<BattleReport>(r => r.PlayerId == owner && r.DomainEvents.OfType<DefenceReported>().Any()),
+                Arg.Any<CancellationToken>());
         }
 
         await _reports.Received(1).AddAsync(Arg.Is<BattleReport>(r => r.PlayerId == PlayerId), Arg.Any<CancellationToken>());
@@ -982,8 +985,9 @@ public class CompleteMarchCommandTests
         await _reports.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
 
         Assert.Equal(MarchState.Completed, march.State);
-        await _notifier.Received(1).NotifyScoutReportReadyAsync(PlayerId, report.Id, target.Name, "Success",
-            Arg.Any<CancellationToken>());
+        var filed = Assert.Single(report.DomainEvents.OfType<ScoutReportFiled>());
+        Assert.Equal((PlayerId, report.Id, target.Name, ScoutOutcome.Success), (filed.PlayerId, filed.ReportId, filed.TargetName, filed.Outcome));
+        await _notifier.DidNotReceiveWithAnyArgs().NotifyScoutReportReadyAsync(default, default, default!, default!, default);
     }
 
     /// <summary>Ціль переселилась, поки йшли розвідники, — розвідку зірвано, даних немає.</summary>

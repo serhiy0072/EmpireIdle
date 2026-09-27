@@ -52,6 +52,9 @@ namespace EmpireIdle.Domain.Entities
             Outcome = outcome;
             DefencePower = defencePower;
             CreatedAt = utcNow;
+
+            // Кожен звіт розвідки адресований розвіднику — сповіщення після коміту
+            RaiseDomainEvent(new Events.ScoutReportFiled(playerId, id, targetName, outcome, utcNow));
         }
 
         protected ScoutReport() { } // Для EF Core
