@@ -12,11 +12,11 @@ using NSubstitute;
 namespace EmpireIdle.Application.Tests.Players;
 
 /// <summary>
-/// Реєстрація гравця: одна операція створює п'ять сутностей у різних агрегатах
+/// Реєстрація гравця: одна операція створює акаунт, п'ять сутностей у різних агрегатах
 /// і займає клітину на карті. Помилка тут не має середини — або гравець
 /// повністю створений, або нічого.
 /// </summary>
-public class CreatePlayerCommandTests
+public class RegisterPlayerCommandTests
 {
     private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
     private const string UserId = "user-1";
@@ -28,6 +28,8 @@ public class CreatePlayerCommandTests
     private readonly IMapRepository _map = Substitute.For<IMapRepository>();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IUserAccounts _accounts = Substitute.For<IUserAccounts>();
+    private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
 
     private static GameConfig Config() => new()
     {
@@ -87,7 +89,7 @@ public class CreatePlayerCommandTests
         }
     };
 
-    private CreatePlayerCommandHandler Handler()
+    private RegisterPlayerCommandHandler Handler()
     {
         var config = Config();
         var geometry = new WorldGeometry(config.Map);
@@ -97,17 +99,21 @@ public class CreatePlayerCommandTests
         _map.IsOccupiedAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        return new CreatePlayerCommandHandler(
+        _accounts.CreateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(UserId);
+
+        return new RegisterPlayerCommandHandler(
+            _accounts, _serverContext,
             _players, _villages, _wallets, _garrisons, _unitOfWork, _servers,
-            NullLogger<CreatePlayerCommand>.Instance,
+            NullLogger<RegisterPlayerCommandHandler>.Instance,
             new FakeTimeProvider(Now),
             new GameCatalog(config),
             new SettlementPlacer(terrain, geometry, new SystemRandomSource()),
             _map);
     }
 
-    private static CreatePlayerCommand Create(string email = "Player@Example.COM") =>
-        new("Serhiy", email, UserId);
+    private static RegisterPlayerCommand Create(string email = "Player@Example.COM") =>
+        new("Serhiy", email, "Password123");
 
     /// <summary>Створює гравця, село, гаманець, гарнізон і займає клітину — одним SaveChanges.</summary>
     [Fact]
@@ -201,21 +207,55 @@ public class CreatePlayerCommandTests
         Assert.Equal(village.ServerId, garrison.ServerId);
     }
 
-    /// <summary>
-    /// Другий гравець на тому самому світі з того самого акаунта — 409.
-    /// Один акаунт може мати персонажів на різних серверах, але не двох на одному.
-    /// </summary>
+    /// <summary>Гравець прив'язаний до щойно створеного акаунта, а світ — з конфіга.</summary>
     [Fact]
-    public async Task Handle_ShouldReject_WhenThePlayerAlreadyExistsOnThatServer()
+    public async Task Handle_ShouldBindThePlayerToTheNewAccount_OnTheDefaultServer()
     {
-        _players.GetByUserIdAsync(UserId, 1, Arg.Any<CancellationToken>())
-            .Returns(new Player(Guid.NewGuid(), "Existing", "e@x.com", UserId, Now, 1));
+        Player? created = null;
+        await _players.AddAsync(Arg.Do<Player>(p => created = p), Arg.Any<CancellationToken>());
 
-        await Assert.ThrowsAsync<AlreadyExistsException>(() =>
-            Handler().Handle(Create(), CancellationToken.None));
+        await Handler().Handle(Create(), CancellationToken.None);
 
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _accounts.Received(1).CreateAsync("Serhiy", "Player@Example.COM", "Password123", Arg.Any<CancellationToken>());
+        Assert.Equal(UserId, created!.UserId);
+        _serverContext.Received(1).UseServer(1);
     }
+
+    /// <summary>Акаунт і світ гравця — одна транзакція: спершу акаунт, наприкінці коміт.</summary>
+    [Fact]
+    public async Task Handle_ShouldCreateTheAccountAndThePlayer_InOneTransaction()
+    {
+        await Handler().Handle(Create(), CancellationToken.None);
+
+        Received.InOrder(() =>
+        {
+            _unitOfWork.BeginTransactionAsync(Arg.Any<CancellationToken>());
+            _accounts.CreateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+            _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>());
+            _unitOfWork.CommitTransactionAsync(Arg.Any<CancellationToken>());
+        });
+    }
+
+    /// <summary>Відмова Identity (слабкий пароль, зайнятий email) — відкат, жодного гравця.</summary>
+    [Fact]
+    public async Task Handle_ShouldRollBack_WhenTheAccountIsRejected()
+    {
+        var handler = Handler();
+        _accounts.CreateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns<string>(_ => throw new RequirementNotMetException(RefusalReasons.AuthRegistrationRejected,
+                "Registration failed: DuplicateEmail", "DuplicateEmail"));
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() => handler.Handle(Create(), CancellationToken.None));
+
+        await _players.DidNotReceive().AddAsync(Arg.Any<Player>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).RollbackTransactionAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.DidNotReceive().CommitTransactionAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Пароль не просочується в лог через ToString команди.</summary>
+    [Fact]
+    public void Command_ShouldNotPrintThePassword()
+        => Assert.DoesNotContain("Password123", Create().ToString());
 
     /// <summary>Клітина займається під те саме село, що створене.</summary>
     [Fact]

@@ -10,16 +10,23 @@ using Microsoft.Extensions.Options;
 namespace EmpireIdle.Application.Players.Commands
 {
     /// <summary>
-    /// Команда створення нового гравця: Player + Village + PlayerWallet.
+    /// Реєстрація: акаунт входу + Player + Village + Garrison + PlayerWallet + клітина карти.
     /// </summary>
-    public record CreatePlayerCommand(string UserName, string Email, string UserId) : IRequest<Guid>;
-
+    public record RegisterPlayerCommand(string UserName, string Email, string Password) : IRequest<Guid>
+    {
+        // Пароль не має потрапити в лог через ToString запису
+        public override string ToString() => $"{nameof(RegisterPlayerCommand)} {{ UserName = {UserName} }}";
+    }
 
     /// <summary>
-    /// Обробник команди CreatePlayerCommand. Повертає Id створеного гравця.
+    /// Обробник реєстрації. Акаунт і світ гравця створюються в одній транзакції:
+    /// або гравець є повністю, або немає нічого — і акаунта без села теж.
     /// </summary>
-    public sealed class CreatePlayerCommandHandler : IRequestHandler<CreatePlayerCommand, Guid>
+    /// <returns>Id створеного гравця.</returns>
+    public sealed class RegisterPlayerCommandHandler : IRequestHandler<RegisterPlayerCommand, Guid>
     {
+        private readonly IUserAccounts _accounts;
+        private readonly IServerContext _serverContext;
         private readonly IPlayerRepository _playerRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IPlayerWalletRepository _walletRepository;
@@ -27,24 +34,28 @@ namespace EmpireIdle.Application.Players.Commands
         private readonly IMapRepository _mapRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerRepository _serverRepository;
-        private readonly ILogger<CreatePlayerCommand> _logger;
+        private readonly ILogger<RegisterPlayerCommandHandler> _logger;
         private readonly TimeProvider _timeProvider;
         private readonly SettlementPlacer _settlementPlacer;
         private readonly GameCatalog _catalog;
 
-        public CreatePlayerCommandHandler(
+        public RegisterPlayerCommandHandler(
+            IUserAccounts accounts,
+            IServerContext serverContext,
             IPlayerRepository playerRepository,
             IVillageRepository villageRepository,
             IPlayerWalletRepository walletRepository,
             IGarrisonRepository garrisonRepository,
             IUnitOfWork unitOfWork,
             IServerRepository serverRepository,
-            ILogger<CreatePlayerCommand> logger,
+            ILogger<RegisterPlayerCommandHandler> logger,
             TimeProvider timeProvider,
             GameCatalog catalog,
             SettlementPlacer settlementPlacer,
             IMapRepository mapRepository)
         {
+            _accounts = accounts;
+            _serverContext = serverContext;
             _playerRepository = playerRepository;
             _villageRepository = villageRepository;
             _walletRepository = walletRepository;
@@ -58,21 +69,39 @@ namespace EmpireIdle.Application.Players.Commands
             _mapRepository = mapRepository;
         }
 
-        public async Task<Guid> Handle(CreatePlayerCommand request, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(RegisterPlayerCommand request, CancellationToken cancellationToken)
+        {
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                var userId = await _accounts.CreateAsync(request.UserName, request.Email, request.Password, cancellationToken);
+                var playerId = await CreatePlayerAsync(request, userId, cancellationToken);
+
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+                return playerId;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
+            }
+        }
+
+        private async Task<Guid> CreatePlayerAsync(RegisterPlayerCommand request, string userId, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var email = request.Email.Trim().ToLowerInvariant();
 
+            // Реєстрація анонімна — світ береться з конфіга, а не з токена
             var serverId = _catalog.Config.DefaultServerId;
-
-            var existing = await _playerRepository.GetByUserIdAsync(request.UserId, serverId, cancellationToken);
-            if (existing is not null)
-                throw new AlreadyExistsException("Player on server", serverId.ToString());
+            _serverContext.UseServer(serverId);
 
             var playerId = Guid.NewGuid();
 
-            var player = new Player(playerId, request.UserName, email, request.UserId, now, serverId);
-            var wallet = new PlayerWallet(Guid.NewGuid(), request.UserId);
+            var player = new Player(playerId, request.UserName, email, userId, now, serverId);
+            var wallet = new PlayerWallet(Guid.NewGuid(), userId);
 
             var (x, y) = await _settlementPlacer.FindSpotAsync(
                 serverId: serverId,

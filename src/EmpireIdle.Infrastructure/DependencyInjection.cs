@@ -97,6 +97,7 @@ namespace EmpireIdle.Infrastructure
 
             // Auth
             services.AddScoped<AuthService>();
+            services.AddScoped<IUserAccounts>(sp => sp.GetRequiredService<AuthService>());
 
             return services;
         }

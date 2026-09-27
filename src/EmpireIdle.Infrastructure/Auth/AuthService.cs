@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Common.Exceptions;
+using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Infrastructure.Persistence;
@@ -15,7 +16,7 @@ namespace EmpireIdle.Infrastructure.Auth
     /// <summary>
     /// Сервіс аутентифікації: реєстрація, логін, генерація JWT + refresh token rotation..
     /// </summary>
-    public class AuthService
+    public class AuthService : IUserAccounts
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppDbContext _context;
@@ -34,7 +35,7 @@ namespace EmpireIdle.Infrastructure.Auth
         /// Зареєструвати нового Identity користувача.
         /// </summary>
         /// <returns>IdentityUser.Id</returns>
-        public async Task<string> RegisterAsync(string username, string email, string password,
+        public async Task<string> CreateAsync(string username, string email, string password,
             CancellationToken cancellationToken = default)
         {
             var user = new IdentityUser
