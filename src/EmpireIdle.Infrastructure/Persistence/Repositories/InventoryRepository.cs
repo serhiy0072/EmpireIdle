@@ -21,9 +21,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<PlayerItem?> GetItemAsync(Guid playerId, string itemKey, CancellationToken cancellationToken = default)
-            => _context.PlayerItems
-            .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.ItemKey == itemKey, cancellationToken);
+        /// <remarks>
+        /// Спершу дивимось у поточну одиницю роботи: предмет, щойно доданий у цій же
+        /// транзакції (10-ролл, «Забрати все»), база ще не бачить — і друга видача того
+        /// самого ключа дала б другий INSERT на унікальний (PlayerId, ItemKey).
+        /// </remarks>
+        public async Task<PlayerItem?> GetItemAsync(Guid playerId, string itemKey, CancellationToken cancellationToken = default)
+            => _context.PlayerItems.Local.FirstOrDefault(i => i.PlayerId == playerId && i.ItemKey == itemKey)
+               ?? await _context.PlayerItems
+                   .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.ItemKey == itemKey, cancellationToken);
 
         /// <inheritdoc/>
         public Task<List<EquipmentItem>> GetEquipmentAsync(Guid playerId, CancellationToken cancellationToken = default)

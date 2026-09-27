@@ -22,9 +22,14 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<Hero?> GetByKeyAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
-            => _context.Heroes
-            .FirstOrDefaultAsync(h => h.PlayerId == playerId && h.HeroKey == heroKey, cancellationToken);
+        /// <remarks>
+        /// Спершу поточна одиниця роботи: герой, щойно виданий у тій самій серії роллів,
+        /// у базі ще не видно, а дубль мав піти в сузір'я, а не в другий INSERT.
+        /// </remarks>
+        public async Task<Hero?> GetByKeyAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
+            => _context.Heroes.Local.FirstOrDefault(h => h.PlayerId == playerId && h.HeroKey == heroKey)
+               ?? await _context.Heroes
+                   .FirstOrDefaultAsync(h => h.PlayerId == playerId && h.HeroKey == heroKey, cancellationToken);
 
         /// <inheritdoc/>
         public Task<Hero?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -57,11 +62,27 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<Hero?> GetLeaderAsync(Guid garrisonId, Guid playerId, CancellationToken cancellationToken = default)
-            => _context.Heroes
-            .FirstOrDefaultAsync(h => h.StationedGarrisonId == garrisonId
-                && h.PlayerId == playerId
-                && h.IsLeader, cancellationToken);
+        /// <remarks>
+        /// Лідер, призначений у цій же транзакції, у базі ще не видно — тож спершу
+        /// одиниця роботи. Відповідь бази звіряємо ще раз уже на трекнутому
+        /// екземплярі: лідерство могли зняти в пам'яті, не зберігши.
+        /// </remarks>
+        public async Task<Hero?> GetLeaderAsync(Guid garrisonId, Guid playerId, CancellationToken cancellationToken = default)
+        {
+            bool IsLeaderHere(Hero h) => h.StationedGarrisonId == garrisonId && h.PlayerId == playerId && h.IsLeader;
+
+            var local = _context.Heroes.Local.FirstOrDefault(IsLeaderHere);
+
+            if (local is not null)
+                return local;
+
+            var stored = await _context.Heroes
+                .FirstOrDefaultAsync(h => h.StationedGarrisonId == garrisonId
+                    && h.PlayerId == playerId
+                    && h.IsLeader, cancellationToken);
+
+            return stored is not null && IsLeaderHere(stored) ? stored : null;
+        }
 
         /// <inheritdoc/>
         public async Task<IReadOnlyList<Guid>> GetForeignGarrisonIdsAsync(Guid playerId,
