@@ -53,6 +53,7 @@ namespace EmpireIdle.API.Jobs
                 .ToListAsync();
 
             var releasedKeys = await _idempotency.PurgeStaleReservationsAsync(staleCutoff);
+            var expiredKeys = await _idempotency.PurgeCompletedAsync(now.AddDays(-_settings.IdempotencyRetentionDays));
 
             if (deleted > 0)
                 _logger.LogInformation("Outbox cleanup removed {Deleted} processed messages.", deleted);
@@ -62,6 +63,9 @@ namespace EmpireIdle.API.Jobs
 
             if (releasedKeys > 0)
                 _logger.LogWarning("Released {Count} stale idempotency reservations.", releasedKeys);
+
+            if (expiredKeys > 0)
+                _logger.LogInformation("Removed {Count} completed idempotency records past retention.", expiredKeys);
         }
     }
 }
