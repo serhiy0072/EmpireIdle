@@ -9,6 +9,12 @@ namespace EmpireIdle.Application.Interfaces
 
         Task<ChatMessage?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Серіалізує надсилання одного гравця до кінця поточної транзакції: перевірка
+        /// антиспаму й вставка другого запиту чекають, поки перший закомітиться.
+        /// </summary>
+        Task LockSenderAsync(Guid senderId, CancellationToken cancellationToken = default);
+
         /// <summary>Скільки повідомлень гравець надіслав після моменту — для антиспаму.</summary>
         Task<int> CountSentSinceAsync(Guid senderId, DateTime since, CancellationToken cancellationToken = default);
 

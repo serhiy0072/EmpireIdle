@@ -17,6 +17,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public async Task AddAsync(ChatMessage message, CancellationToken cancellationToken = default)
             => await _context.ChatMessages.AddAsync(message, cancellationToken);
 
+        /// <inheritdoc/>
+        /// <remarks>Транзакційний advisory lock: знімається сам на коміті чи відкаті, рядків не тримає.</remarks>
+        public Task LockSenderAsync(Guid senderId, CancellationToken cancellationToken = default)
+            => _context.Database.ExecuteSqlAsync(
+                $"SELECT pg_advisory_xact_lock(hashtextextended({"chat:" + senderId}, 0))", cancellationToken);
+
         public Task<ChatMessage?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.ChatMessages.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
 

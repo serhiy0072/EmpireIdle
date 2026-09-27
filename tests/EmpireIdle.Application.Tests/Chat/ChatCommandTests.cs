@@ -106,6 +106,29 @@ public class ChatCommandTests
         Assert.Equal(RefusalReasons.ChatTooFast.Key, refusal.Reason);
         Assert.Equal(6, refusal.Args["seconds"]);
         Assert.Empty(_added);
+        await _unitOfWork.Received(1).RollbackTransactionAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.DidNotReceive().CommitTransactionAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Паралельні запити одного гравця не мають бачити той самий лічильник: спершу
+    /// блокування відправника в транзакції, лише потім підрахунок і вставка.
+    /// </summary>
+    [Fact]
+    public async Task Send_ShouldCountUnderTheSendersLock_InsideATransaction()
+    {
+        var sender = GivenPlayer();
+
+        await Send().Handle(new SendChatMessageCommand(sender.Id, ChatChannel.Server, null, "hi"), CancellationToken.None);
+
+        Received.InOrder(() =>
+        {
+            _unitOfWork.BeginTransactionAsync(Arg.Any<CancellationToken>());
+            _chat.LockSenderAsync(sender.Id, Arg.Any<CancellationToken>());
+            _chat.CountSentSinceAsync(sender.Id, Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
+            _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>());
+            _unitOfWork.CommitTransactionAsync(Arg.Any<CancellationToken>());
+        });
     }
 
     /// <summary>Клан — з бази: гравець без клану в клановий канал не пише.</summary>
