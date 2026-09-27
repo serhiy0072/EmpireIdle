@@ -4,7 +4,6 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Villages.ReadModels;
 using EmpireIdle.Domain.Services;
 using MediatR;
-using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Villages.Queries
 {

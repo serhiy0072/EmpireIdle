@@ -5,7 +5,6 @@ using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Resources;
 
 namespace EmpireIdle.Application.Villages.Commands
 {

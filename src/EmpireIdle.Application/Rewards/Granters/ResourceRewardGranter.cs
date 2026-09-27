@@ -2,7 +2,6 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Logging;
-using System.Resources;
 
 namespace EmpireIdle.Application.Rewards.Granters
 {

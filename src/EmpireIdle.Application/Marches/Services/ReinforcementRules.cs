@@ -2,7 +2,6 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
-using System.Net.NetworkInformation;
 
 namespace EmpireIdle.Application.Marches.Services
 {

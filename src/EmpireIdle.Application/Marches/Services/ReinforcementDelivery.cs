@@ -2,7 +2,6 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.Logging;
-using System.Data;
 
 namespace EmpireIdle.Application.Marches.Services
 {
