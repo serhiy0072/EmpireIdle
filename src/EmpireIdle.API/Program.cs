@@ -1,4 +1,5 @@
-﻿using EmpireIdle.API.Hubs;
+﻿using EmpireIdle.Application;
+using EmpireIdle.API.Hubs;
 using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Middleware;
 using EmpireIdle.API.Services;
@@ -153,14 +154,19 @@ builder.Services.AddSingleton(sp => new BattleEngine(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new BattleBuilder(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new HeroStats(sp.GetRequiredService<HeroProgression>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MarketPricing(gameConfig));
-builder.Services.AddSingleton<GameCatalogProjection>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<DefenceLossAllocator>();
 builder.Services.AddSingleton<BattleResolver>();
+builder.Services.AddSingleton<VillageCapacities>();
+builder.Services.AddSingleton<VillageStatus>();
+builder.Services.AddSingleton<ClanTerritoryRules>();
+builder.Services.AddSingleton<CityFallRules>();
+builder.Services.AddSingleton<PlunderCalculator>();
 
-//  3. ІНФРАСТРУКТУРА
-//  БД, репозиторії, Identity, MediatR, Outbox — усе в одному місці.
+//  3. ЗАСТОСУНОК І ІНФРАСТРУКТУРА
+//  Сценарії, MediatR і квести — AddApplication; БД, репозиторії, Identity, Outbox — AddInfrastructure.
 
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 //  4. КОНТЕКСТ ЗАПИТУ

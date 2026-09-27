@@ -140,4 +140,33 @@ public class LayerDependencyTests
 
         result.FailingTypeNames.Should().BeNullOrEmpty();
     }
+
+    /// <summary>Розклад джобів — справа хоста (API); інфраструктура Hangfire не знає.</summary>
+    [Fact]
+    public void Infrastructure_ShouldNotDependOnHangfire()
+    {
+        var result = Types.InAssembly(InfrastructureAssembly)
+            .ShouldNot()
+            .HaveDependencyOn("Hangfire")
+            .GetResult();
+
+        result.FailingTypeNames.Should().BeNullOrEmpty();
+    }
+
+    /// <summary>
+    /// Конвеєр MediatR і валідатори — частина застосунку й реєструються в AddApplication.
+    /// Реєстрація інфраструктури, що знову їх підтягує, — дубль і розмита межа шарів.
+    /// </summary>
+    [Fact]
+    public void InfrastructureRegistration_ShouldNotWireTheApplicationPipeline()
+    {
+        var result = Types.InAssembly(InfrastructureAssembly)
+            .That()
+            .HaveName("DependencyInjection")
+            .ShouldNot()
+            .HaveDependencyOnAny("FluentValidation", "EmpireIdle.Application.Common.Behaviors", "EmpireIdle.Application.Quests")
+            .GetResult();
+
+        result.FailingTypeNames.Should().BeNullOrEmpty();
+    }
 }
