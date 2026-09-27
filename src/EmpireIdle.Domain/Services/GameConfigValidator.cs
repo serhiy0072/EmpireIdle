@@ -658,6 +658,18 @@ namespace EmpireIdle.Domain.Services
             if (config.Heroes.Count == 0)
                 return;
 
+            // Щит без тривалості згасає в тому ж ході, в якому його наклали: стан тікає
+            // наприкінці ходу носія, тож на себе потрібно щонайменше 2
+            var shortShields = config.Heroes
+                .SelectMany(h => h.Abilities)
+                .Where(a => a.ShieldPercent > 0 && a.ShieldTurns < (a.Target == AbilityTarget.Self ? 2 : 1))
+                .Select(a => a.Key)
+                .ToList();
+
+            if (shortShields.Count > 0)
+                throw new InvalidOperationException(
+                    $"Shield abilities vanish before they can absorb anything — raise ShieldTurns: {string.Join(", ", shortShields)}.");
+
             var settings = config.HeroSettings;
 
             if (settings.MaxTier < 1)

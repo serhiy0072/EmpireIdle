@@ -329,10 +329,16 @@ namespace EmpireIdle.Domain.Dungeons
             if (ability.Status is { } kind)
                 statuses = Apply(statuses, kind, ability.StatusMagnitude, ability.StatusTurns);
 
+            // Щит живе рівно стільки, скільки його стан (TickStatuses) — без стану він згас би
+            // наприкінці ж ходу. Повторне накладання оновлює тривалість, а очки не сумуються:
+            // інакше спам щитом давав би нескінченний запас
+            if (shield > 0)
+                statuses = Apply(statuses, BattleStatusKind.Shield, 0, ability.ShieldTurns);
+
             combatants[targetIndex] = target with
             {
                 Health = Math.Min(target.MaxHealth, target.Health + healed),
-                ShieldPoints = target.ShieldPoints + shield,
+                ShieldPoints = Math.Max(target.ShieldPoints, shield),
                 Statuses = statuses,
             };
 

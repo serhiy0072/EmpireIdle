@@ -235,6 +235,59 @@ public class BattleEngineTests
         Assert.True(result.Log.Effects[0].ShieldAbsorbed > 0);
     }
 
+    /// <summary>Вміння «Захист»: щит на себе + провокація, як warrior_*_guard у конфігу.</summary>
+    private static HeroAbilityConfig Guard(int shieldTurns = 2) => new()
+    {
+        Key = "guard", DisplayName = "guard", EnergyCost = 50, Target = AbilityTarget.Self,
+        ShieldPercent = 0.25, ShieldTurns = shieldTurns,
+        Status = BattleStatusKind.Taunt, StatusTurns = 2,
+    };
+
+    /// <summary>
+    /// Щит на себе переживає власний хід: стан тікає наприкінці ходу носія, і без
+    /// статусу Shield щит обнулився б одразу — вміння не працювало б узагалі.
+    /// </summary>
+    [Fact]
+    public void Execute_ShieldOnSelf_ShouldSurviveTheOwnTurnAndAbsorbTheNextHit()
+    {
+        var state = State(Hero(0, energy: 100), Enemy(1));
+
+        var guarded = Engine().Execute(state, 0, new BattleAction("guard", 0), Guard());
+        var hero = guarded.State.Combatants[0];
+
+        Assert.Equal(125, hero.ShieldPoints);
+        Assert.Contains(hero.Statuses, st => st.Kind == BattleStatusKind.Shield);
+
+        var hit = Engine().Execute(guarded.State, 1, new BattleAction(null, 0), null);
+
+        Assert.True(hit.Log.Effects[0].ShieldAbsorbed > 0);
+    }
+
+    /// <summary>Щит згасає разом зі своїм станом — через ShieldTurns ходів носія.</summary>
+    [Fact]
+    public void Execute_Shield_ShouldFadeAfterItsTurns()
+    {
+        var state = State(Hero(0, energy: 100), Enemy(1));
+
+        var afterGuard = Engine().Execute(state, 0, new BattleAction("guard", 0), Guard(shieldTurns: 2)).State;
+        var afterNextTurn = Engine().Execute(afterGuard, 0, new BattleAction(null, 1), null).State;
+
+        Assert.Equal(0, afterNextTurn.Combatants[0].ShieldPoints);
+    }
+
+    /// <summary>Повторне накладання оновлює тривалість, а очки не сумуються — інакше запас ріс би без меж.</summary>
+    [Fact]
+    public void Execute_Shield_ShouldNotStackOnRecast()
+    {
+        var state = State(Hero(0, energy: 100), Enemy(1));
+
+        var once = Engine().Execute(state, 0, new BattleAction("guard", 0), Guard()).State;
+        var recharged = once with { Combatants = [once.Combatants[0] with { Energy = 100 }, once.Combatants[1]] };
+        var twice = Engine().Execute(recharged, 0, new BattleAction("guard", 0), Guard()).State;
+
+        Assert.Equal(125, twice.Combatants[0].ShieldPoints);
+    }
+
     // ---------- Стани ----------
 
     [Fact]

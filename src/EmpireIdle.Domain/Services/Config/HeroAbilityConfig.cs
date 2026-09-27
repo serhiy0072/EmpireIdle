@@ -30,6 +30,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Щит як частка від максимального здоров'я цілі; 0 — не дає щита.</summary>
         public double ShieldPercent { get; set; }
 
+        /// <summary>
+        /// Скільки ходів носія тримається щит. Стан згасає наприкінці ходу носія, тож щит
+        /// на себе з 1 зник би в тому ж ході — для Self потрібно щонайменше 2.
+        /// </summary>
+        public int ShieldTurns { get; set; }
+
         /// <summary>Стан, який накладає вміння. null — жодного.</summary>
         public BattleStatusKind? Status { get; set; }
 
