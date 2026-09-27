@@ -155,7 +155,8 @@ public class CompleteMarchCommandTests
         var heroModifiers = new HeroCombatModifiers(catalog);
 
         var logistics = new MarchLogistics(
-            _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
+            _villages, _heroes, catalog, calculator, capacities, new HeroProgression(config.HeroSettings),
+            NullLogger<MarchLogistics>.Instance);
 
         var territory = new ClanTerritoryRules(catalog);
         var territoryBonus = new TerritoryBonus(_clans, _structures, territory);
@@ -593,6 +594,71 @@ public class CompleteMarchCommandTests
         await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
 
         Assert.Equal(MarchState.Completed, march.State);
+    }
+
+    /// <summary>Герой, що вийшов із гарнізону в похід: у дорозі, без гарнізону.</summary>
+    private Hero GivenHeroOnTheMarch(Guid garrisonId)
+    {
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrisonId, asLeader: true, Now.AddHours(-1));
+        hero.Deploy(Now.AddMinutes(-30));
+
+        _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
+
+        return hero;
+    }
+
+    /// <summary>
+    /// Армія загинула вся, але герой живий — він вертається сам, пораненим. Завершити
+    /// похід одразу означало б лишити героя без гарнізону назавжди: поставити його
+    /// назад може лише прибуття додому.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldBringTheHeroHome_WhenTheWholeArmyDies()
+    {
+        var (_, _, garrison, monster) = GivenBattle(attackerInfantry: 1, monsterLevel: 10);
+        var hero = GivenHeroOnTheMarch(garrison.Id);
+
+        var march = new March(Guid.NewGuid(), 1, garrison.Id, hero.Id, 50, 50, 55, 55,
+            MarchTargetType.Monster, monster.Id,
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 1 },
+            Now, Now.AddMinutes(-30));
+        _marches.GetByIdAsync(march.Id, Arg.Any<CancellationToken>()).Returns(march);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Returning, march.State);
+        Assert.Empty(march.GetUnits());
+        Assert.True(march.ArrivesAt > Now);
+        Assert.Equal(HeroState.Wounded, hero.State);
+
+        // Доходить додому — і стає в гарнізон, як завжди
+        await Handler(at: march.ArrivesAt).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Completed, march.State);
+        Assert.Equal(garrison.Id, hero.StationedGarrisonId);
+    }
+
+    /// <summary>
+    /// Підкріплення з самого героя до села, що переїхало, розвертається — героя
+    /// не губимо, хоч юнітів у колоні й немає.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldTurnAHeroOnlyReinforcementBack_WithTheHero()
+    {
+        var (_, _, attackerGarrison, defender, _) = GivenVillageBattle();
+        var hero = GivenHeroOnTheMarch(attackerGarrison.Id);
+
+        var reinforcement = new March(Guid.NewGuid(), 1, attackerGarrison.Id, hero.Id, 50, 50, 55, 55,
+            MarchTargetType.Village, defender.Id, new Dictionary<UnitStackKey, int>(),
+            Now, Now.AddMinutes(-30), MarchIntent.Reinforce);
+        _marches.GetByIdAsync(reinforcement.Id, Arg.Any<CancellationToken>()).Returns(reinforcement);
+        defender.RelocateTo(70, 70, Now.AddMinutes(-10));
+
+        await Handler().Handle(new CompleteMarchCommand(reinforcement.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Returning, reinforcement.State);
+        Assert.Equal(hero.Id, reinforcement.HeroId);
+        Assert.True(reinforcement.ArrivesAt > Now);
     }
 
     /// <summary>Марш, що повертається, віддає вцілілих у гарнізон.</summary>

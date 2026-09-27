@@ -55,7 +55,8 @@ public class BattleAftermathTests
         var capacities = new VillageCapacities(catalog);
 
         var logistics = new MarchLogistics(
-            _villages, catalog, calculator, capacities, NullLogger<MarchLogistics>.Instance);
+            _villages, _heroes, catalog, calculator, capacities, new HeroProgression(config.HeroSettings),
+            NullLogger<MarchLogistics>.Instance);
 
         var returner = new ReinforcementReturner(
             _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes, calculator, catalog,

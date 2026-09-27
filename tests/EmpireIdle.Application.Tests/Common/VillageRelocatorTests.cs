@@ -64,8 +64,8 @@ public class VillageRelocatorTests
         _heroes.GetForeignGarrisonIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Guid>());
         _garrisons.GetHoldingReinforcementsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Garrison>());
 
-        var logistics = new MarchLogistics(_villages, catalog, calculator, new VillageCapacities(catalog),
-            NullLogger<MarchLogistics>.Instance);
+        var logistics = new MarchLogistics(_villages, _heroes, catalog, calculator, new VillageCapacities(catalog),
+            new HeroProgression(config.HeroSettings), NullLogger<MarchLogistics>.Instance);
 
         var returner = new ReinforcementReturner(
             _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes,

@@ -97,7 +97,7 @@ namespace EmpireIdle.Application.Territory.Services
                 || attackerClanId == structure.ClanId
                 || _status.IsShielded(attackerVillage))
             {
-                _logistics.TurnMarchBack(march, attackerArmy, utcNow);
+                await _logistics.TurnMarchBackAsync(march, attackerArmy, utcNow, cancellationToken);
                 return;
             }
 
@@ -155,7 +155,7 @@ namespace EmpireIdle.Application.Territory.Services
                 await _remover.RemoveAsync(structure, utcNow, cancellationToken);
             }
 
-            _logistics.TurnMarchBack(march, march.GetUnits(), utcNow);
+            await _logistics.TurnMarchBackAsync(march, march.GetUnits(), utcNow, cancellationToken);
 
             _logger.LogInformation("Structure {StructureId} of clan {ClanId} attacked by {Attacker}: attacker {Outcome}",
                 structure.Id, structure.ClanId, attackerVillage.PlayerId, result.AttackerWon ? "won" : "lost");

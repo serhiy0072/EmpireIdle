@@ -16,42 +16,62 @@ namespace EmpireIdle.Application.Marches.Services
     public sealed class MarchLogistics
     {
         private readonly IVillageRepository _villageRepository;
+        private readonly IHeroRepository _heroRepository;
         private readonly GameCatalog _catalog;
         private readonly MarchCalculator _calculator;
         private readonly VillageCapacities _capacities;
+        private readonly HeroProgression _progression;
         private readonly ILogger<MarchLogistics> _logger;
 
         public MarchLogistics(
             IVillageRepository villageRepository,
+            IHeroRepository heroRepository,
             GameCatalog catalog,
             MarchCalculator calculator,
             VillageCapacities capacities,
+            HeroProgression progression,
             ILogger<MarchLogistics> logger)
         {
             _villageRepository = villageRepository;
+            _heroRepository = heroRepository;
             _catalog = catalog;
             _calculator = calculator;
-            _capacities = capacities;   
+            _capacities = capacities;
+            _progression = progression;
             _logger = logger;
         }
 
         /// <summary>
         /// Розвертає похід додому — або завершує, якщо повертатись нікому.
-        /// Час зворотної дороги рахується по вцілілих: втратив кавалерію,
-        /// вертаєшся зі швидкістю піхоти.
+        /// Час зворотної дороги рахується по вцілілих разом із героєм: втратив
+        /// кавалерію, вертаєшся зі швидкістю піхоти.
+        ///
+        /// Герой у дорозі повертається завжди, навіть коли юнітів не лишилось:
+        /// завершити такий похід одразу означало б лишити героя без гарнізону
+        /// назавжди — прибуття додому єдине, що ставить його назад.
         /// </summary>
-        public void TurnMarchBack(March march, IReadOnlyDictionary<UnitStackKey, int> survivors, DateTime utcNow)
+        public async Task TurnMarchBackAsync(March march, IReadOnlyDictionary<UnitStackKey, int> survivors,
+            DateTime utcNow, CancellationToken cancellationToken)
         {
-            if (survivors.Count == 0 || survivors.Values.All(c => c <= 0))
+            var hero = march.HeroId is Guid heroId
+                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
+                : null;
+
+            // Герой, що вже став у чужий гарнізон, додому з маршем не йде — LeaveHeroBehind
+            // зазвичай знімає його з маршу, це страховка від розсинхрону
+            var heroOnTheMove = hero is not null && hero.StationedGarrisonId is null;
+
+            if (!heroOnTheMove && (survivors.Count == 0 || survivors.Values.All(c => c <= 0)))
             {
-                // Уся армія загинула — повертатись нікому
+                // Нікого не лишилось — повертатись нікому
                 march.TurnBack(TimeSpan.Zero, utcNow);
                 march.Complete(utcNow);
                 return;
             }
 
             var backDuration = _calculator.CalculateDuration(
-                march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors);
+                march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors,
+                heroOnTheMove ? _progression.MarchSpeed(_catalog.FindHero(hero!.HeroKey)) : null);
 
             march.TurnBack(backDuration, utcNow);
         }

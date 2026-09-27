@@ -115,7 +115,7 @@ namespace EmpireIdle.Application.Marches.Services
                 || _status.IsShielded(attackerVillage)
                 || targetVillage.IsShieldedAt(utcNow))
             {
-                _logistics.TurnMarchBack(march, attackerArmy, utcNow);
+                await _logistics.TurnMarchBackAsync(march, attackerArmy, utcNow, cancellationToken);
                 return;
             }
 
@@ -181,7 +181,7 @@ namespace EmpireIdle.Application.Marches.Services
             if (result.AttackerWon)
                 await _cityFall.SufferDefeatAsync(attackerVillage, targetVillage, utcNow, cancellationToken);
 
-            _logistics.TurnMarchBack(march, march.GetUnits(), utcNow);
+            await _logistics.TurnMarchBackAsync(march, march.GetUnits(), utcNow, cancellationToken);
 
             _logger.LogInformation(
                 "PvP at ({X},{Y}): {Attacker} vs {Defender}, attacker {Outcome}",

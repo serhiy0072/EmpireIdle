@@ -74,7 +74,7 @@ namespace EmpireIdle.Application.Territory.Services
 
             if (structure is null || structureGarrison is null || clanId != structure.ClanId)
             {
-                _logistics.TurnMarchBack(march, units, utcNow);
+                await _logistics.TurnMarchBackAsync(march, units, utcNow, cancellationToken);
                 return;
             }
 
@@ -108,7 +108,7 @@ namespace EmpireIdle.Application.Territory.Services
                 march.ApplyLosses(accepted, utcNow);
                 march.LeaveHeroBehind(utcNow);
 
-                _logistics.TurnMarchBack(march, rejected, utcNow);
+                await _logistics.TurnMarchBackAsync(march, rejected, utcNow, cancellationToken);
             }
             else
             {

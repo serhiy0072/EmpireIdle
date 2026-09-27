@@ -90,7 +90,7 @@ namespace EmpireIdle.Application.Marches.Services
             if (camp is null || camp.State != MarchState.Camping || campHome is null
                 || _status.IsShielded(attackerVillage))
             {
-                _logistics.TurnMarchBack(march, attackerArmy, utcNow);
+                await _logistics.TurnMarchBackAsync(march, attackerArmy, utcNow, cancellationToken);
                 return;
             }
 
@@ -141,7 +141,7 @@ namespace EmpireIdle.Application.Marches.Services
             if (result.AttackerWon)
                 await RoutAsync(camp, campHome, utcNow, cancellationToken);
 
-            _logistics.TurnMarchBack(march, march.GetUnits(), utcNow);
+            await _logistics.TurnMarchBackAsync(march, march.GetUnits(), utcNow, cancellationToken);
 
             _logger.LogInformation("Camp {CampId} of {Owner} attacked by {Attacker}: attacker {Outcome}",
                 camp.Id, campHome.PlayerId, attackerVillage.PlayerId, result.AttackerWon ? "won" : "lost");

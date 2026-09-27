@@ -87,7 +87,7 @@ namespace EmpireIdle.Application.Marches.Services
             if (monster is null)
             {
                 // Ціль уже вбита кимось іншим — повертаємось без бою
-                _logistics.TurnMarchBack(march, attackerArmy, utcNow);
+                await _logistics.TurnMarchBackAsync(march, attackerArmy, utcNow, cancellationToken);
                 return;
             }
 
@@ -139,7 +139,7 @@ namespace EmpireIdle.Application.Marches.Services
                result.AttackerPower, result.DefenderPower,
                split.Wounded.Values.Sum(), split.Recoverable.Values.Sum(), split.Dead.Values.Sum());
 
-            _logistics.TurnMarchBack(march, march.GetUnits(), utcNow);
+            await _logistics.TurnMarchBackAsync(march, march.GetUnits(), utcNow, cancellationToken);
         }
 
         /// <summary>

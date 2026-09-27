@@ -68,7 +68,7 @@ namespace EmpireIdle.Application.Marches.Services
             if (targetVillage is null || targetGarrison is null
                 || targetVillage.X != march.TargetX || targetVillage.Y != march.TargetY)
             {
-                _logistics.TurnMarchBack(march, units, utcNow);
+                await _logistics.TurnMarchBackAsync(march, units, utcNow, cancellationToken);
                 return;
             }
 
@@ -81,7 +81,7 @@ namespace EmpireIdle.Application.Marches.Services
                 // Клан розпався — назад їде вся колона разом із героєм
                 _logger.LogInformation("March {MarchId} turned back: {Reason}", march.Id, refusal);
 
-                _logistics.TurnMarchBack(march, units, utcNow);
+                await _logistics.TurnMarchBackAsync(march, units, utcNow, cancellationToken);
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace EmpireIdle.Application.Marches.Services
                 march.ApplyLosses(accepted, utcNow);
                 march.LeaveHeroBehind(utcNow);
 
-                _logistics.TurnMarchBack(march, rejected, utcNow);
+                await _logistics.TurnMarchBackAsync(march, rejected, utcNow, cancellationToken);
 
                 _logger.LogInformation(
                     "March {MarchId} partially delivered {Accepted} of {Incoming} units to village {VillageId}",
