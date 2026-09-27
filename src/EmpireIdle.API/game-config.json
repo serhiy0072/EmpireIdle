@@ -1,6 +1,5 @@
 {
   "GameConfig": {
-    "GameName": "EmpireIdle",
     "MaxTrainingBatchSize": 5,
     "MaxLevelUpBatchSize": 10,
     "MaxUnitLevel": 10,

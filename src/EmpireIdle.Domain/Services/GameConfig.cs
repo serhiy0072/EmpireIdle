@@ -23,10 +23,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Максимальний рівень юніта.</summary>
         public int MaxUnitLevel { get; set; } = 10;
 
-
-        /// <summary>Назва гри (наприклад "EmpireIdle", "SpaceIdle").</summary>
-        public string GameName { get; set; } = null!;
-
         /// <summary>Список ресурсів доступних в грі.</summary>
         public List<ResourceConfig> Resources { get; set; } = new();
 
