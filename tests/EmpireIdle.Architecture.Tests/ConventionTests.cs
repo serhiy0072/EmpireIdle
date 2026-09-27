@@ -46,6 +46,23 @@ public class ConventionTests
         result.FailingTypeNames.Should().BeNullOrEmpty();
     }
 
+    /// <summary>
+    /// CQRS: запит нічого не змінює. Обробник запиту з IUnitOfWork — ознака запису на GET,
+    /// а такий запис конфліктує з outbox і дає гравцю 409 на звичайному перегляді.
+    /// </summary>
+    [Fact]
+    public void QueryHandlers_ShouldNotSaveChanges()
+    {
+        var result = Types.InAssembly(ApplicationAssembly)
+            .That()
+            .HaveNameEndingWith("QueryHandler")
+            .ShouldNot()
+            .HaveDependencyOn(typeof(IUnitOfWork).FullName)
+            .GetResult();
+
+        result.FailingTypeNames.Should().BeNullOrEmpty();
+    }
+
     [Fact]
     public void Repositories_ShouldLiveInInfrastructureOnly()
     {

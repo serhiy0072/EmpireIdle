@@ -1,33 +1,33 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Quests.ReadModels;
+using EmpireIdle.Application.Quests.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
-using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 
 namespace EmpireIdle.Application.Quests.Queries
 {
-    /// <summary>Квести гравця з поточним прогресом.</summary>
+    /// <summary>
+    /// Квести гравця з поточним прогресом. Лише читання: порогові цілі (рівень будівлі)
+    /// рахуються в пам'яті, а записує їх команда, що забирає нагороду.
+    /// </summary>
     public record GetQuestsQuery(Guid PlayerId) : IRequest<List<QuestView>>, IPlayerScopedRequest;
 
     public sealed class GetQuestsQueryHandler : IRequestHandler<GetQuestsQuery, List<QuestView>>
     {
         private readonly IQuestRepository _questRepository;
-        private readonly IVillageRepository _villageRepository;
-        private readonly IServerContext _serverContext;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly QuestThresholds _thresholds;
         private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
 
-        public GetQuestsQueryHandler(IQuestRepository questRepository, IVillageRepository villageRepository, IServerContext serverContext,
-            IUnitOfWork unitOfWork, TimeProvider timeProvider, GameCatalog catalog)
+        public GetQuestsQueryHandler(IQuestRepository questRepository, QuestThresholds thresholds,
+            TimeProvider timeProvider, GameCatalog catalog)
         {
             _questRepository = questRepository;
-            _villageRepository = villageRepository;
-            _serverContext = serverContext;
-            _unitOfWork = unitOfWork;
+            _thresholds = thresholds;
             _timeProvider = timeProvider;
             _catalog = catalog;
         }
@@ -39,17 +39,21 @@ namespace EmpireIdle.Application.Quests.Queries
             var progressByKey = (await _questRepository.GetAllAsync(request.PlayerId, cancellationToken))
                 .ToDictionary(p => p.QuestKey);
 
-            await SyncThresholdsAsync(request.PlayerId, progressByKey, now, cancellationToken);
+            var levels = await _thresholds.LevelsAsync(request.PlayerId, cancellationToken);
+            var personal = _catalog.Quests.Values.Where(c => c.Scope == QuestScope.Personal).ToList();
+
+            // Стан кожного квесту з урахуванням порогів — один раз, бо від нього ж залежить і ланцюжок
+            var effective = personal.ToDictionary(c => c.Key, c => Evaluate(c, progressByKey.GetValueOrDefault(c.Key), levels));
 
             // Ланцюжок відкривається завершенням, а не клеймом
-            var unlocked = progressByKey.Values
-                .Where(p => p.State != QuestState.InProgress)
-                .Select(p => p.QuestKey)
+            var unlocked = effective
+                .Where(e => e.Value.State != QuestState.InProgress)
+                .Select(e => e.Key)
                 .ToHashSet();
 
             var views = new List<QuestView>();
 
-            foreach (var config in _catalog.Quests.Values.Where(c => c.Scope == QuestScope.Personal))
+            foreach (var config in personal)
             {
                 if (config.Prerequisite is not null && !unlocked.Contains(config.Prerequisite))
                     continue;
@@ -60,14 +64,10 @@ namespace EmpireIdle.Application.Quests.Queries
                 if (config.ActiveTo is { } to && now > to)
                     continue;
 
-                progressByKey.TryGetValue(config.Key, out var progress);
+                var (state, amounts) = effective[config.Key];
 
                 var objectives = config.Objectives
-                    .Select((o, i) => new QuestObjectiveView(
-                        o.Type,
-                        o.Target,
-                        progress?.Objectives.FirstOrDefault(p => p.Index == i)?.Amount ?? 0,
-                        o.Count))
+                    .Select((o, i) => new QuestObjectiveView(o.Type, o.Target, amounts[i], o.Count))
                     .ToList();
 
                 views.Add(new QuestView(
@@ -75,66 +75,40 @@ namespace EmpireIdle.Application.Quests.Queries
                     config.DisplayName,
                     config.Scope,
                     config.Window,
-                    progress?.State ?? QuestState.InProgress,
+                    state,
                     objectives,
                     config.Rewards));
             }
 
             return views;
         }
+
         /// <summary>
-        /// Підтягує порогові цілі до поточного стану села.
-        /// Порогова ціль реагує лише на подію, тож гравець, який уже переріс віху,
-        /// не побачив би її закритою до наступного апгрейду (GDD §15.1).
+        /// Стан і лічильники квесту, як їх побачить гравець: збережений прогрес, підтягнутий
+        /// до поточних порогів. Нічого не пише — квест, закритий порогом, фіксує команда клейму.
         /// </summary>
-        private async Task SyncThresholdsAsync(Guid playerId, Dictionary<string, QuestProgress> progressByKey,
-            DateTime utcNow, CancellationToken cancellationToken)
+        private static (QuestState State, int[] Amounts) Evaluate(QuestConfig config, QuestProgress? progress,
+            IReadOnlyDictionary<string, int> levels)
         {
-            var village = await _villageRepository.GetByPlayerIdAsync(playerId, cancellationToken);
-            if (village is null)
-                return;
-
-            var levels = village.Buildings.ToDictionary(b => b.Type, b => b.Level.Value);
-            var changed = false;
-
-            foreach (var config in _catalog.Quests.Values.Where(q => q.Scope == QuestScope.Personal))
-            {
-                for (var i = 0; i < config.Objectives.Count; i++)
+            var amounts = config.Objectives
+                .Select((objective, i) =>
                 {
-                    var objective = config.Objectives[i];
+                    var stored = progress?.Objectives.FirstOrDefault(p => p.Index == i)?.Amount ?? 0;
 
-                    // Синхронізуємо лише рівні будівель — інші порогові цілі
-                    // (Power) з'являться у фазі 20 і додадуться сюди ж
-                    if (objective.Mode != ObjectiveMode.Threshold
-                        || objective.Type != nameof(BuildingUpgradeCompleted)
-                        || objective.Target is null
-                        || !levels.TryGetValue(objective.Target, out var level))
-                        continue;
+                    return QuestThresholds.CurrentValue(objective, levels) is int level ? Math.Max(stored, level) : stored;
+                })
+                .ToArray();
 
-                    if (!progressByKey.TryGetValue(config.Key, out var progress))
-                    {
-                        // Не заводимо рядок, поки ціль не досягнута — інакше
-                        // при перегляді списку створювався б прогрес на кожен квест
-                        if (level < objective.Count)
-                            continue;
+            if (progress is not null && progress.State != QuestState.InProgress)
+                return (progress.State, amounts);
 
-                        progress = new QuestProgress(Guid.NewGuid(), playerId, _serverContext.ServerId,
-                            config.Key, config.Objectives.Select(o => o.Count), utcNow);
+            // Поріг — той, що зафіксовано в прогресі на старті, як і в домені; без рядка — з конфіга
+            var met = config.Objectives.Count > 0
+                      && config.Objectives
+                          .Select((o, i) => amounts[i] >= (progress?.Objectives.FirstOrDefault(p => p.Index == i)?.Required ?? o.Count))
+                          .All(x => x);
 
-                        await _questRepository.AddAsync(progress, cancellationToken);
-                        progressByKey[config.Key] = progress;
-                    }
-
-                    if (progress.State != QuestState.InProgress)
-                        continue;
-
-                    progress.SetProgress(i, level, utcNow);
-                    changed = true;
-                }
-            }
-
-            if (changed)
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return (met ? QuestState.Completed : QuestState.InProgress, amounts);
         }
     }
 }

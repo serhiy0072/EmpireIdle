@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Quests.Services;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -21,6 +22,7 @@ namespace EmpireIdle.Application.Quests.Commands
     public sealed class ClaimQuestRewardCommandHandler : IRequestHandler<ClaimQuestRewardCommand>
     {
         private readonly IQuestRepository _questRepository;
+        private readonly QuestThresholds _thresholds;
         private readonly RewardDispatcher _rewards;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
@@ -29,6 +31,7 @@ namespace EmpireIdle.Application.Quests.Commands
 
         public ClaimQuestRewardCommandHandler(
             IQuestRepository questRepository,
+            QuestThresholds thresholds,
             RewardDispatcher rewards,
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
@@ -36,6 +39,7 @@ namespace EmpireIdle.Application.Quests.Commands
             ILogger<ClaimQuestRewardCommandHandler> logger)
         {
             _questRepository = questRepository;
+            _thresholds = thresholds;
             _rewards = rewards;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
@@ -52,7 +56,11 @@ namespace EmpireIdle.Application.Quests.Commands
             if (config.Scope != QuestScope.Personal)
                 throw new RequirementNotMetException($"Quest '{request.QuestKey}' is server-scoped — its rewards are granted on completion.");
 
-            var progress = await _questRepository.GetAsync(request.PlayerId, request.QuestKey, cancellationToken)
+            // Поріг (рівень будівлі), досягнутий до відкриття квесту, фіксується тут, а не в запиті
+            // списку: список показав квест завершеним, тож і забрати його мусить бути можна
+            var progress = await _thresholds.SyncAsync(request.PlayerId, config,
+                    await _questRepository.GetAsync(request.PlayerId, request.QuestKey, cancellationToken),
+                    now, cancellationToken)
                 ?? throw new EntityNotFoundException("Quest progress", request.QuestKey);
 
             // Claim повертає false, якщо квест не завершений або вже забраний

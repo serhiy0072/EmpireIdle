@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Quests.Services;
 
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Behaviors;
@@ -104,6 +105,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<HeroGranter>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<ClanSuccession>();
+            services.AddScoped<QuestThresholds>();
             services.AddScoped<ClanStructureRemover>();
             services.AddScoped<StructureMarchRules>();
             services.AddScoped<TerritoryBonus>();

@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.ValueObjects;
+using EmpireIdle.Application.Quests.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Quests.Commands;
 using EmpireIdle.Application.Rewards;
@@ -25,6 +27,7 @@ public class ClaimQuestRewardCommandTests
     private readonly IQuestRepository _quests = Substitute.For<IQuestRepository>();
     private readonly IRewardGranter _granter = Substitute.For<IRewardGranter>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -45,6 +48,20 @@ public class ClaimQuestRewardCommandTests
             },
             new QuestConfig
             {
+                Key = "intro_townhall_3",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Chain,
+                Objectives =
+                [
+                    new QuestObjectiveConfig
+                    {
+                        Type = "BuildingUpgradeCompleted", Target = "townhall", Count = 3, Mode = ObjectiveMode.Threshold
+                    }
+                ],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 20 }]
+            },
+            new QuestConfig
+            {
                 Key = "server_cleanup",
                 Scope = QuestScope.Server,
                 Window = QuestWindow.Chain,
@@ -55,7 +72,8 @@ public class ClaimQuestRewardCommandTests
     };
 
     private ClaimQuestRewardCommandHandler Handler() => new(
-        _quests, new RewardDispatcher([_granter]), _unitOfWork,
+        _quests, new QuestThresholds(_quests, _villages, Substitute.For<IServerContext>()),
+        new RewardDispatcher([_granter]), _unitOfWork,
         new GameCatalog(Config()), new FakeTimeProvider(Now),
         NullLogger<ClaimQuestRewardCommandHandler>.Instance);
 
@@ -154,5 +172,34 @@ public class ClaimQuestRewardCommandTests
             Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "daily_collect"), CancellationToken.None));
 
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Ратушу підняли до 3 ще до відкриття квесту: подія вже минула, рядка прогресу немає.
+    /// Список показує квест завершеним — тож і забрати його можна; поріг фіксує сама команда.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldClaimAThresholdQuest_ReachedBeforeItOpened()
+    {
+        var catalog = new GameCatalog(Config());
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        village.AddBuilding("townhall", catalog.Buildings, Now);
+        var townhall = village.Buildings.Single();
+        for (var i = 1; i < 4; i++)
+        {
+            townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
+            townhall.CompleteConstruction(Now);
+        }
+
+        _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _quests.GetAsync(PlayerId, "intro_townhall_3", Arg.Any<CancellationToken>()).Returns((QuestProgress?)null);
+        _granter.RewardType.Returns("Gems");
+
+        await Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "intro_townhall_3"), CancellationToken.None);
+
+        await _quests.Received(1).AddAsync(
+            Arg.Is<QuestProgress>(p => p.QuestKey == "intro_townhall_3" && p.State == QuestState.Claimed),
+            Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }
