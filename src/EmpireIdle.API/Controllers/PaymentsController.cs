@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Payments.Commands;
+using EmpireIdle.Application.Payments.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -49,8 +50,16 @@ public class PaymentsController : ControllerBase
         {
             var result = _paymentProvider.ParseWebhook(payload, signature);
 
-            if (result.IsPaymentCompleted && result.SessionId is not null)
-                await _mediator.Send(new CompletePaymentCommand(result.SessionId), cancellationToken);
+            switch (result)
+            {
+                case { Outcome: PaymentWebhookOutcome.Paid, SessionId: { } paidSession }:
+                    await _mediator.Send(new CompletePaymentCommand(paidSession), cancellationToken);
+                    break;
+
+                case { Outcome: PaymentWebhookOutcome.Failed, SessionId: { } failedSession }:
+                    await _mediator.Send(new FailPaymentCommand(failedSession), cancellationToken);
+                    break;
+            }
 
             return Ok();
         }

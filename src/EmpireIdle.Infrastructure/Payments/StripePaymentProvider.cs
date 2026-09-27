@@ -74,15 +74,24 @@ namespace EmpireIdle.Infrastructure.Payments
             }
 
             // Не наша подія — не помилка: віддаємо 200, щоб Stripe не ретраїв
-            if (stripeEvent.Type != EventTypes.CheckoutSessionCompleted)
-                return new PaymentWebhookResult(IsPaymentCompleted: false, SessionId: null);
+            if (stripeEvent.Type is not (EventTypes.CheckoutSessionCompleted
+                                         or EventTypes.CheckoutSessionAsyncPaymentSucceeded
+                                         or EventTypes.CheckoutSessionAsyncPaymentFailed
+                                         or EventTypes.CheckoutSessionExpired))
+                return PaymentWebhookResult.Ignored;
 
             if (stripeEvent.Data.Object is not Session session)
                 throw new InvalidOperationException($"Event {stripeEvent.Id} of type {stripeEvent.Type} does not carry a Checkout Session.");
 
-            return new PaymentWebhookResult(
-                IsPaymentCompleted: session.PaymentStatus == "paid",
-                SessionId: session.Id);
+            return stripeEvent.Type switch
+            {
+                // Відкладений метод (SEPA, банківський переказ): completed приходить з «unpaid»,
+                // а гроші — пізніше окремою подією async_payment_succeeded
+                EventTypes.CheckoutSessionCompleted when session.PaymentStatus != "paid" => PaymentWebhookResult.Ignored,
+                EventTypes.CheckoutSessionCompleted or EventTypes.CheckoutSessionAsyncPaymentSucceeded
+                    => new PaymentWebhookResult(PaymentWebhookOutcome.Paid, session.Id),
+                _ => new PaymentWebhookResult(PaymentWebhookOutcome.Failed, session.Id)
+            };
         }
     }
 }
