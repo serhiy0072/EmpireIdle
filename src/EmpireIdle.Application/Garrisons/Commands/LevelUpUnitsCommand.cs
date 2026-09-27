@@ -87,13 +87,11 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 })
                 .ToList();
 
-            var minutesPerUnit = ProgressionCurves.CumulativeUnitLevelCost(
-                config.BaseTrainMinutes, request.FromLevel, request.ToLevel, config.LevelUpCostGrowth);
-
             village.ChargeCost(costPerUnit, now, request.Count);
 
             garrison.LevelUpUnits(request.UnitType, request.FromLevel, request.ToLevel, request.Count,
-                _catalog.Config.MaxLevelUpBatchSize, TimeSpan.FromMinutes(minutesPerUnit * request.Count), now);
+                _catalog.Config.MaxLevelUpBatchSize,
+                TimerDurations.LevelUp(config, request.FromLevel, request.ToLevel, request.Count), now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -166,8 +166,8 @@ namespace EmpireIdle.Domain.Entities
             // Все або нічого — ChargeCost перевіряє всі позиції до першого списання
             ChargeCost(cost, utcNow);
 
-            var buildMinutes = ProgressionCurves.BuildMinutes(config.BaseBuildMinutes, config.BuildTimeGrowth, building.Level.Value);
-            building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost, locationMultiplier);
+            building.BeginUpgrade(config, TimerDurations.Construction(config, building.Level.Value), utcNow, boost,
+                locationMultiplier);
 
             RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id,
                 building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value, utcNow));
