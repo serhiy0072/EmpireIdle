@@ -59,6 +59,9 @@
     "role"
   ],
   "clan.notMember": [],
+  "clan.permissionsExceedOwn": [
+    "role"
+  ],
   "clan.requestExpired": [],
   "clan.requestResolved": [],
   "clan.roleNameTaken": [

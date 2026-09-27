@@ -140,4 +140,48 @@ public class ClanTests
 
         Assert.Equal(RefusalReasons.ClanRoleProtected.Key, refusal.Reason);
     }
+
+    /// <summary>
+    /// Розпорядник ролей не роздає того, чого не має сам: інакше створив би собі роль
+    /// з правом розпуску й піднявся б над лідером.
+    /// </summary>
+    [Fact]
+    public void CreateRole_ShouldRefuse_PermissionsTheActorLacks()
+    {
+        var clan = NewClan();
+        clan.CreateRole(LeaderId, "Steward", 50, ClanPermission.ManageRoles | ClanPermission.Recruit, Now);
+        var steward = Recruit(clan, "Steward");
+
+        var refusal = Assert.Throws<RequirementNotMetException>(() =>
+            clan.CreateRole(steward, "Enforcer", 10, ClanPermission.Recruit | ClanPermission.Disband, Now));
+
+        Assert.Equal(RefusalReasons.ClanPermissionsExceedOwn.Key, refusal.Reason);
+        Assert.Equal("Steward", refusal.Args["role"]);
+    }
+
+    [Fact]
+    public void CreateRole_ShouldAllow_ASubsetOfTheActorsPermissions()
+    {
+        var clan = NewClan();
+        clan.CreateRole(LeaderId, "Steward", 50, ClanPermission.ManageRoles | ClanPermission.Recruit, Now);
+        var steward = Recruit(clan, "Steward");
+
+        clan.CreateRole(steward, "Recruiter", 10, ClanPermission.Recruit, Now);
+
+        Assert.Contains(clan.Roles, r => r.Name == "Recruiter" && r.Permissions == ClanPermission.Recruit);
+    }
+
+    [Fact]
+    public void UpdateRole_ShouldRefuse_PermissionsTheActorLacks()
+    {
+        var clan = NewClan();
+        clan.CreateRole(LeaderId, "Steward", 50, ClanPermission.ManageRoles, Now);
+        clan.CreateRole(LeaderId, "Scout", 10, ClanPermission.None, Now);
+        var steward = Recruit(clan, "Steward");
+
+        var refusal = Assert.Throws<RequirementNotMetException>(() =>
+            clan.UpdateRole(steward, RoleId(clan, "Scout"), "Scout", 10, ClanPermission.Kick, Now));
+
+        Assert.Equal(RefusalReasons.ClanPermissionsExceedOwn.Key, refusal.Reason);
+    }
 }

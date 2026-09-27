@@ -118,6 +118,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "clan.leaderOnly": () => "Лідерство може передати лише лідер",
   "clan.roleProtected": () => "Роль лідера й роль новачків не можна змінити чи видалити",
   "clan.roleNameTaken": ({ name }) => `Роль «${name}» уже є в клані`,
+  "clan.permissionsExceedOwn": ({ role }) => `Роль «${role}» не може видати дозволи, яких сама не має`,
   "clan.requestResolved": () => "Цю заявку вже розглянули",
   "clan.requestExpired": () => "Термін заявки минув",
   "clan.helpAlreadyRequested": () => "Допомогу для цього вже попросили",

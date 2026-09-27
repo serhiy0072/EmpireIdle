@@ -169,6 +169,9 @@
 
         public static readonly RefusalReason ClanRoleNameTaken = new("clan.roleNameTaken", "name");
 
+        /// <summary>Роль видає дозволи, яких сама не має; role — назва ролі виконавця.</summary>
+        public static readonly RefusalReason ClanPermissionsExceedOwn = new("clan.permissionsExceedOwn", "role");
+
         public static readonly RefusalReason ClanRequestResolved = new("clan.requestResolved");
 
         public static readonly RefusalReason ClanRequestExpired = new("clan.requestExpired");

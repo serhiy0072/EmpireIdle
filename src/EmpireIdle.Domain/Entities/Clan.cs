@@ -273,6 +273,7 @@ namespace EmpireIdle.Domain.Entities
             var actor = RequireRole(actorId, ClanPermission.ManageRoles);
 
             EnsureRankBelow(actor, rank);
+            EnsurePermissionsWithin(actor, permissions);
             EnsureNameFree(name, exceptRoleId: null);
 
             var role = new ClanRole(Guid.NewGuid(), Id, name, rank, permissions);
@@ -296,6 +297,7 @@ namespace EmpireIdle.Domain.Entities
 
             EnsureRankBelow(actor, role.Rank);
             EnsureRankBelow(actor, rank);
+            EnsurePermissionsWithin(actor, permissions);
             EnsureNameFree(name, exceptRoleId: roleId);
 
             role.Update(name, rank, permissions);
@@ -404,6 +406,19 @@ namespace EmpireIdle.Domain.Entities
         #region Внутрішнє
 
         /// <summary>Роль виконавця з перевіркою дозволу.</summary>
+        /// <summary>
+        /// Роздати можна лише ті дозволи, які має сам: інакше розпорядник ролей
+        /// створив би собі роль із правом розпуску чи виключення й піднявся б над лідером.
+        /// </summary>
+        private static void EnsurePermissionsWithin(ClanRole actor, ClanPermission permissions)
+        {
+            var excess = permissions & ~actor.Permissions;
+
+            if (excess != ClanPermission.None)
+                throw new RequirementNotMetException(RefusalReasons.ClanPermissionsExceedOwn,
+                    $"'{actor.Name}' cannot grant {excess} it does not have.", actor.Name);
+        }
+
         private ClanRole RequireRole(Guid actorId, ClanPermission permission)
         {
             var role = RoleOf(actorId)
