@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Time.Testing;
+using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Quests.Tracking;
 using EmpireIdle.Domain.Entities;
@@ -174,5 +176,33 @@ public class QuestProgressTrackerServerTests
 
         await _serverQuests.DidNotReceive().AddProgressAsync(
             Arg.Any<ServerQuestProgress>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Подія, на яку підписаний трекер квестів, — для перевірки обробника.</summary>
+    private sealed record MonsterKilled(DateTime OccurredAt) : EmpireIdle.Domain.Events.IDomainEvent;
+
+    /// <summary>
+    /// Обробник подій, а не лише трекер напряму, мусить дістати серверні квести: раніше він
+    /// кликав тільки особистий трекінг, і внески серверних губились безповоротно.
+    /// </summary>
+    [Fact]
+    public async Task Handler_ShouldRecordServerContributions_FromADomainEvent()
+    {
+        _serverQuests.GetContributionAsync(ServerQuestKey, PlayerId, Arg.Any<CancellationToken>())
+            .Returns((ServerQuestContribution?)null);
+
+        var mapper = Substitute.For<IQuestSignalMapper>();
+        mapper.EventType.Returns(typeof(MonsterKilled));
+        mapper.MapAsync(Arg.Any<EmpireIdle.Domain.Events.IDomainEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Signal(increment: 4));
+
+        var handler = new QuestProgressHandler<MonsterKilled>(
+            new QuestSignalResolver([mapper]), Tracker(), new FakeTimeProvider(Now));
+
+        await handler.Handle(new DomainEventNotification<MonsterKilled>(new MonsterKilled(Now)), CancellationToken.None);
+
+        await _serverQuests.Received(1).AddContributionAsync(
+            Arg.Is<ServerQuestContribution>(c => c.QuestKey == ServerQuestKey && c.PlayerId == PlayerId && c.Amount == 4),
+            Arg.Any<CancellationToken>());
     }
 }

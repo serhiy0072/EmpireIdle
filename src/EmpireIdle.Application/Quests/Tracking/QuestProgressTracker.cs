@@ -48,7 +48,7 @@ namespace EmpireIdle.Application.Quests.Tracking
             await TrackClanAsync(signal, utcNow, cancellationToken);
         }
 
-        public async Task TrackPersonalAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
+        private async Task TrackPersonalAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
         {
             var candidates = _catalog.Quests.Values
                 .Where(q => q.Scope == QuestScope.Personal && IsOpen(q, utcNow))
