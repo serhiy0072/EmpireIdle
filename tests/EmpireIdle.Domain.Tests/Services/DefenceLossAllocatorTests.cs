@@ -168,6 +168,38 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Equal(90, host + allied);
         }
 
+        /// <summary>
+        /// Залишок роздається по колу, і стек, що вже заповнився, виходить із черги, не забираючи
+        /// одиницю. Тут маленькі стеки заповнюються раніше, ніж роздано залишок: раніше губилась
+        /// одна втрата — 16 замість 17, і вбитий юніт «виживав».
+        /// </summary>
+        [Fact]
+        public void Allocate_ShouldHandOutTheWholeRemainder_WhenSmallStacksFillUp()
+        {
+            var a = Guid.NewGuid();
+            var b = Guid.NewGuid();
+
+            var stacks = new List<DefenceStack>
+            {
+                new(null, "infantry", 1, 1),
+                new(a, "infantry", 1, 1),
+                new(b, "infantry", 1, 50)
+            };
+
+            var buffs = new DefenceBuffs(
+                StackBuff.None,
+                new Dictionary<Guid, StackBuff>
+                {
+                    [a] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(300)),
+                    [b] = TestKit.Passives.Buff(passives: TestKit.Passives.Defence(900))
+                });
+
+            var losses = _allocator.Allocate(stacks, new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 17 }, buffs);
+
+            Assert.Equal(17, losses.Sum(l => l.Lost));
+            Assert.All(losses, l => Assert.True(l.Lost <= stacks.Single(s => s.OwnerPlayerId == l.OwnerPlayerId).Count));
+        }
+
         /// <summary>Сума втрат по стеках дорівнює загальній за будь-яких бонусів.</summary>
         [Theory]
         [InlineData(1)]
