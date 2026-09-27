@@ -94,6 +94,55 @@ public class GlobalExceptionHandlerTests
         Assert.False(body.TryGetProperty("args", out _));
     }
 
+    /// <summary>Захисна перевірка коду спрацювала — це баг сервера, а не хибний запит гравця.</summary>
+    [Theory]
+    [InlineData(typeof(ArgumentOutOfRangeException))]
+    [InlineData(typeof(ArgumentNullException))]
+    public async Task Handle_ShouldTreatAGuardClause_AsAServerBug(Type exceptionType)
+    {
+        var (status, body) = await HandleAsync((Exception)Activator.CreateInstance(exceptionType, "amount")!);
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, status);
+        Assert.Equal("Internal", body.GetProperty("errorCode").GetString());
+    }
+
+    /// <summary>Звичайний ArgumentException — хибний вхід: лишається 400.</summary>
+    [Fact]
+    public async Task Handle_ShouldKeepAPlainArgumentException_AsBadRequest()
+    {
+        var (status, body) = await HandleAsync(new ArgumentException("Unknown resource 'x'."));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, status);
+        Assert.Equal("InvalidArgument", body.GetProperty("errorCode").GetString());
+    }
+
+    /// <summary>Клієнт пішов — 499 без тіла, а не 500 з LogError.</summary>
+    [Fact]
+    public async Task Handle_ShouldAnswer499_WhenTheClientAborts()
+    {
+        using var aborted = new CancellationTokenSource();
+        aborted.Cancel();
+
+        var context = new DefaultHttpContext { RequestAborted = aborted.Token };
+        context.Response.Body = new MemoryStream();
+
+        var handled = await new GlobalExceptionHandler(NullLogger<GlobalExceptionHandler>.Instance)
+            .TryHandleAsync(context, new OperationCanceledException(aborted.Token), CancellationToken.None);
+
+        Assert.True(handled);
+        Assert.Equal(StatusCodes.Status499ClientClosedRequest, context.Response.StatusCode);
+        Assert.Equal(0, context.Response.Body.Length);
+    }
+
+    /// <summary>Скасування без обриву запиту (наш власний таймаут) — справжній збій, 500.</summary>
+    [Fact]
+    public async Task Handle_ShouldTreatAnInternalCancellation_AsAFailure()
+    {
+        var (status, _) = await HandleAsync(new OperationCanceledException());
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, status);
+    }
+
     [Fact]
     public async Task Handle_ShouldAlwaysCarryATraceId()
     {

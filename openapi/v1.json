@@ -4498,7 +4498,7 @@
             "name": "radius",
             "in": "query",
             "schema": {
-              "maximum": 30,
+              "maximum": 25,
               "minimum": 1,
               "type": "integer",
               "format": "int32"

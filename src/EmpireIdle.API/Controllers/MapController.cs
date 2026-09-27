@@ -36,7 +36,7 @@ namespace EmpireIdle.API.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(MapAreaResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<MapAreaResponse>> GetArea([FromQuery] int centerX, [FromQuery] int centerY, [FromQuery][Range(1, 30)] int radius, CancellationToken cancellationToken)
+        public async Task<ActionResult<MapAreaResponse>> GetArea([FromQuery] int centerX, [FromQuery] int centerY, [FromQuery][Range(1, GetMapAreaQueryHandler.MaxRadius)] int radius, CancellationToken cancellationToken)
         {
             var occupiedCells = await _mediator.Send(new GetMapAreaQuery(_serverContext.ServerId, centerX, centerY, radius), cancellationToken);
 
