@@ -20,10 +20,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => await _context.Players.AddAsync(entity, cancellationToken);
 
         /// <inheritdoc/>
-        public Task<Player?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
-            => _context.Players.FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower(), cancellationToken);
-
-        /// <inheritdoc/>
         public Task<Player?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.Players.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
@@ -31,13 +27,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<Player?> GetByUserIdAsync(string userId, int serverId, CancellationToken cancellationToken = default)
             => _context.Players
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.ServerId == serverId, cancellationToken);
-
-        /// <inheritdoc/>
-        public Task<List<Player>> GetAllByUserIdAsync(string userId, CancellationToken cancellationToken = default)
-            => _context.Players
-                .AsNoTracking()
-                .OrderBy(p => p.ServerId)
-                .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
         public async Task<IReadOnlyList<Guid>> GetIdsByClanAsync(Guid clanId, CancellationToken cancellationToken = default)

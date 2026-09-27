@@ -23,12 +23,6 @@ namespace EmpireIdle.Application.Interfaces
         Task<List<Hero>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Скільки героїв у ростері. Окремим запитом, бо кап маршів
-        /// рахується на кожній відправці, а сам ростер там не потрібен.
-        /// </summary>
-        Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Скільки героїв гравця стоять у цьому гарнізоні й готові виступити.
         /// Гарнізон у ключі навмисно: герой, що стоїть підкріпленням
         /// у союзника, вести похід із дому не може.

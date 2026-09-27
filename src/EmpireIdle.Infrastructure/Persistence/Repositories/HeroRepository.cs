@@ -50,11 +50,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default)
-            => _context.Heroes
-            .CountAsync(h => h.PlayerId == playerId, cancellationToken);
-
-        /// <inheritdoc/>
         public Task<int> CountAvailableAsync(Guid playerId, Guid garrisonId,
             CancellationToken cancellationToken = default)
             => _context.Heroes

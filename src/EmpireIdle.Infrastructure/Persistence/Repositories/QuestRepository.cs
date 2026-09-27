@@ -12,13 +12,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public QuestRepository(AppDbContext context) => _context = context;
 
         /// <inheritdoc/>
-        public Task<QuestProgress?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => _context.QuestProgress
-                .Include(q => q.Objectives)
-                .AsSplitQuery()
-                .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
-
-        /// <inheritdoc/>
         public Task<QuestProgress?> GetAsync(Guid playerId, string questKey, CancellationToken cancellationToken = default)
             => _context.QuestProgress
                 .Include(q => q.Objectives)

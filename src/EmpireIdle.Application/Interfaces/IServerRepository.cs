@@ -11,10 +11,5 @@ namespace EmpireIdle.Application.Interfaces
         /// що торкається виробітку чи геометрії — тому лише одне число.
         /// </summary>
         Task<int> GetLevelAsync(int id, CancellationToken cancellationToken = default);
-
-        /// <summary>Світи, що приймають новачків, у порядку заповнення.</summary>
-        Task<List<Server>> GetAcceptingAsync(CancellationToken cancellationToken = default);
-
-        Task AddAsync(Server server, CancellationToken cancellationToken = default);
     }
 }
