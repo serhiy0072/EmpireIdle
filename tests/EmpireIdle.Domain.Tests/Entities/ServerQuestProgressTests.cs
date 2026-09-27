@@ -110,8 +110,8 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var contribution = NewContribution();
 
-            Assert.True(contribution.MarkRewarded(Now));
-            Assert.False(contribution.MarkRewarded(Now.AddHours(1)));
+            Assert.True(contribution.MarkRewarded(rank: 1, Now));
+            Assert.False(contribution.MarkRewarded(rank: 1, Now.AddHours(1)));
             Assert.Equal(Now, contribution.RewardedAt);
         }
     }

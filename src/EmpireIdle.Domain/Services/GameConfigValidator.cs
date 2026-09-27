@@ -430,7 +430,6 @@ namespace EmpireIdle.Domain.Services
             RequireUniqueKeys(config.Heroes.Select(h => h.Key), "Heroes");
 
             var mainBuildings = config.Buildings.Count(b => b.IsMainBuilding);
-            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
 
             if (mainBuildings != 1)
                 throw new InvalidOperationException(

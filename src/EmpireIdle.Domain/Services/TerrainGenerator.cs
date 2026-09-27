@@ -48,17 +48,9 @@ namespace EmpireIdle.Domain.Services
         public string GetTerrainType(int serverId, int x, int y)
             => GetTerrain(serverId, x, y).Type;
 
-        /// <summary>Чи може армія проходити через клітину.</summary>
-        public bool IsPassable(int serverId, int x, int y)
-            => GetTerrain(serverId, x, y).Passable;
-
         /// <summary>Чи можна розмістити село або монстра на клітині.</summary>
         public bool IsHabitable(int serverId, int x, int y)
             => GetTerrain(serverId, x, y).Habitable;
-
-        /// <summary>Множник часу проходу через клітину.</summary>
-        public double GetMoveCost(int serverId, int x, int y)
-            => GetTerrain(serverId, x, y).MoveCost;
 
         /// <summary>Чи лежить клітина в межах карти.</summary>
         public bool IsInBounds(int x, int y)

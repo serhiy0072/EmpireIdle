@@ -304,44 +304,6 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        /// <summary>
-        /// Видаляє роль. Її носії спускаються на найближчу нижчу за рангом —
-        /// не на найнижчу: втратити роль не має означати впасти на дно.
-        /// </summary>
-        /// <returns>Скільки учасників перепризначено.</returns>
-        public int DeleteRole(Guid actorId, Guid roleId, DateTime utcNow)
-        {
-            var actor = RequireRole(actorId, ClanPermission.ManageRoles);
-
-            var role = _roles.FirstOrDefault(r => r.Id == roleId)
-                ?? throw new EntityNotFoundException("Clan role", roleId);
-
-            if (role.IsLeaderRole)
-                throw new RequirementNotMetException(RefusalReasons.ClanRoleProtected, "The leader role cannot be deleted.");
-
-            if (role.IsDefaultRole)
-                throw new RequirementNotMetException(RefusalReasons.ClanRoleProtected,
-                    "The default role cannot be deleted — new members need one.");
-
-            EnsureRankBelow(actor, role.Rank);
-
-            var fallback = _roles
-                .Where(r => r.Id != roleId && r.Rank < role.Rank)
-                .OrderByDescending(r => r.Rank)
-                .FirstOrDefault()
-                ?? _roles.Single(r => r.IsDefaultRole);
-
-            var affected = _members.Where(m => m.RoleId == roleId).ToList();
-
-            foreach (var member in affected)
-                member.AssignRole(fallback.Id);
-
-            _roles.Remove(role);
-            Touch(utcNow);
-
-            return affected.Count;
-        }
-
         #endregion
 
         #region Очки вкладу

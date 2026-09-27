@@ -18,6 +18,9 @@ namespace EmpireIdle.Domain.Tests.Entities
         private static Hero CreateHero(string heroKey = "warrior_bran")
             => new(Guid.NewGuid(), Guid.NewGuid(), serverId: 1, heroKey, Guid.NewGuid(), asLeader: true, Now);
 
+        private static Hero Stationed(Guid garrison, bool asLeader)
+            => new(Guid.NewGuid(), Guid.NewGuid(), serverId: 1, "warrior_bran", garrison, asLeader, Now);
+
         // ---------- Створення ----------
 
         /// <summary>Сила рахується з ростера, тож кожна зміна героя, що її рухає, лишає подію.</summary>
@@ -90,9 +93,8 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void ReturnHome_ShouldReleaseHero()
         {
-            var hero = CreateHero();
             var garrison = Guid.NewGuid();
-            hero.StationIn(garrison, asLeader: false, Now);
+            var hero = Stationed(garrison, asLeader: false);
             hero.Deploy(Now);
 
             hero.Arrive(garrison, leaderSlotFree: false, Now.AddHours(2));
@@ -115,9 +117,8 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void Wound_ShouldKeepLeadership()
         {
-            var hero = CreateHero();
             var garrison = Guid.NewGuid();
-            hero.StationIn(garrison, asLeader: true, Now);
+            var hero = Stationed(garrison, asLeader: true);
 
             hero.Wound(Now);
 
@@ -141,9 +142,8 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void Arrive_ShouldKeepTheWoundedState()
         {
-            var hero = CreateHero();
             var garrison = Guid.NewGuid();
-            hero.StationIn(garrison, asLeader: false, Now);
+            var hero = Stationed(garrison, asLeader: false);
             hero.Deploy(Now);
             hero.Wound(Now);
 
@@ -156,8 +156,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void SendHome_ShouldMoveTheWoundedHero()
         {
-            var hero = CreateHero();
-            hero.StationIn(Guid.NewGuid(), asLeader: true, Now);
+            var hero = Stationed(Guid.NewGuid(), asLeader: true);
             hero.Wound(Now);
 
             hero.SendHome(Now);
@@ -170,8 +169,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void Heal_ShouldRejectHeroOnTheMove()
         {
-            var hero = CreateHero();
-            hero.StationIn(Guid.NewGuid(), asLeader: false, Now);
+            var hero = Stationed(Guid.NewGuid(), asLeader: false);
             hero.Wound(Now);
             hero.SendHome(Now);
 
@@ -181,8 +179,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void Heal_ShouldRejectHealthyHero()
         {
-            var hero = CreateHero();
-            hero.StationIn(Guid.NewGuid(), asLeader: false, Now);
+            var hero = Stationed(Guid.NewGuid(), asLeader: false);
 
             Assert.Throws<InvalidStateException>(() => hero.Heal(Now));
         }

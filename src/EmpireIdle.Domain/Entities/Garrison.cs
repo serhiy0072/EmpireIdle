@@ -120,9 +120,6 @@ namespace EmpireIdle.Domain.Entities
         public IReadOnlyCollection<Guid> ReinforcementOwners()
             => _reinforcements.Select(r => r.OwnerPlayerId).Distinct().ToList();
 
-        /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
-        public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
-
         /// <summary>
         /// Скільки місця в гарнізоні зайнято: свої юніти плюс усе, що тимчасово
         /// зняте на тренування чи прокачку. Марші й чужі підкріплення сюди

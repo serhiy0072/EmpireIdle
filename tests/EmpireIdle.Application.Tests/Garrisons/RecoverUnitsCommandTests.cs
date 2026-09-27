@@ -86,7 +86,7 @@ public class RecoverUnitsCommandTests
         await Handler().Handle(Recover(5), CancellationToken.None);
 
         Assert.Equal(5, garrison.Units.Sum(u => u.Count));
-        Assert.Equal(5, garrison.RecoverableCount(Now));
+        Assert.Equal(5, garrison.Recoverable.Where(r => r.IsActive(Now)).Sum(r => r.Count));
     }
 
     /// <summary>

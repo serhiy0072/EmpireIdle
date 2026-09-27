@@ -98,9 +98,6 @@ namespace EmpireIdle.Domain.Entities
 
         protected EquipmentItem() { } // Для EF Core
 
-        /// <summary>Чи можна вдягнути просто зараз.</summary>
-        public bool IsWearable => !IsBroken && EquippedByHeroId is null;
-
         /// <summary>
         /// Вдягає предмет на героя в заданий слот.
         ///

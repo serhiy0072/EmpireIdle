@@ -38,16 +38,6 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>Фіксує видачу нагороди. Повторний виклик нічого не змінює.</summary>
-        public bool MarkRewarded(DateTime utcNow)
-        {
-            if (RewardedAt is not null)
-                return false;
-
-            RewardedAt = utcNow;
-            return true;
-        }
-
-        /// <summary>Фіксує видачу нагороди. Повторний виклик нічого не змінює.</summary>
         public bool MarkRewarded(int rank, DateTime utcNow)
         {
             if (RewardedAt is not null)
