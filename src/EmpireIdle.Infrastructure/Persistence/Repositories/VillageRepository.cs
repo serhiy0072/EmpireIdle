@@ -37,6 +37,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .FirstOrDefaultAsync(v => v.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
+        public Task<Village?> GetByIdReadOnlyAsync(Guid id, CancellationToken cancellationToken = default)
+            => _context.Villages
+            .Include(v => v.Buildings)
+            .Include(v => v.Resources)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
+
+        /// <inheritdoc/>
         public Task<Village?> GetByPlayerIdReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.Villages
             .Include(v => v.Buildings)

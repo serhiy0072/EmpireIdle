@@ -22,6 +22,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<Hero>> GetByPlayerReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .AsNoTracking()
+            .Where(h => h.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         /// <remarks>
         /// Спершу поточна одиниця роботи: герой, щойно виданий у тій самій серії роллів,
         /// у базі ще не видно, а дубль мав піти в сузір'я, а не в другий INSERT.
@@ -138,6 +145,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<List<HeroShardProgress>> GetAllShardsAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.HeroShards
+            .AsNoTracking()
             .Where(s => s.PlayerId == playerId)
             .ToListAsync(cancellationToken);
 

@@ -42,7 +42,7 @@ public class GetGarrisonQueryTests
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", [], 0, 0);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, village.ServerId);
 
-        _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdReadOnlyAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
         return (village, garrison);

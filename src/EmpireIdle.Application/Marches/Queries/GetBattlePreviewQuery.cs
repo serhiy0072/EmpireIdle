@@ -73,10 +73,10 @@ namespace EmpireIdle.Application.Marches.Queries
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
+            var village = await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Village for player", request.PlayerId);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
+            var garrison = await _garrisonRepository.GetByVillageIdReadOnlyAsync(village.Id, cancellationToken)
                 ?? throw new EntityNotFoundException("Garrison for village", village.Id);
 
             // Прев'ю не обіцяє того, чого гравець відправити не може:

@@ -38,9 +38,9 @@ namespace EmpireIdle.Application.Heroes.Queries
 
         public async Task<HeroesOverview> Handle(GetHeroesOverviewQuery request, CancellationToken cancellationToken)
         {
-            var heroes = await _heroRepository.GetByPlayerAsync(request.PlayerId, cancellationToken);
+            var heroes = await _heroRepository.GetByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
+            var village = await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
             // Ратуша в процесі будівництва стелі не піднімає, але й не знімає:

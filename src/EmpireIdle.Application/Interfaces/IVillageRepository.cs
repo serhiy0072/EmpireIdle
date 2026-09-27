@@ -12,6 +12,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Знайти село за ідентифікатором гравця для читання (без трекінгу).</summary>
         Task<Village?> GetByPlayerIdReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default);
 
+        /// <summary>Знайти село за ідентифікатором для читання (без трекінгу).</summary>
+        Task<Village?> GetByIdReadOnlyAsync(Guid id, CancellationToken cancellationToken = default);
+
         /// <summary>Назви сіл за id одним запитом — для списків, що підписують цілі.</summary>
         Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> villageIds,
             CancellationToken cancellationToken = default);

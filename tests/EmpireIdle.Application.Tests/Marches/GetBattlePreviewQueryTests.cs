@@ -85,8 +85,8 @@ public class GetBattlePreviewQueryTests
         var monster = new Monster(Guid.NewGuid(), 1, "wolves", 1, 55, 55, Now);
         var hero = new Hero(Guid.NewGuid(), heroOwnerId, 1, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
 
-        _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
-        _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
+        _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _garrisons.GetByVillageIdReadOnlyAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
         _monsters.GetByIdAsync(monster.Id, Arg.Any<CancellationToken>()).Returns(monster);
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 

@@ -35,7 +35,7 @@ namespace EmpireIdle.Application.Garrisons.Queries
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
+            var village = await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
             var garrison = await _garrisonRepository.GetByVillageIdReadOnlyAsync(village.Id, cancellationToken)

@@ -42,7 +42,7 @@ namespace EmpireIdle.Application.Map.Queries
 
             if (cell.OccupantType == MapOccupantType.Monster)
             {
-                var monster = await _monsterRepository.GetByIdAsync(cell.OccupantId, cancellationToken);
+                var monster = (await _monsterRepository.GetByIdsAsync([cell.OccupantId], cancellationToken)).FirstOrDefault();
                 if (monster is null)
                     return null;
 
@@ -61,7 +61,7 @@ namespace EmpireIdle.Application.Map.Queries
                 return new MapCellOccupant("ClanStructure", structure.Id, clan?.Tag, null, null);
             }
 
-            var village = await _villageRepository.GetByIdAsync(cell.OccupantId, cancellationToken);
+            var village = await _villageRepository.GetByIdReadOnlyAsync(cell.OccupantId, cancellationToken);
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             return new MapCellOccupant("Village", cell.OccupantId, village?.Name, null, null,

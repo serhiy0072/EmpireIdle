@@ -17,6 +17,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<List<PlayerItem>> GetItemsAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.PlayerItems
+            .AsNoTracking()
             .Where(i => i.PlayerId == playerId && i.Count > 0)
             .ToListAsync(cancellationToken);
 
@@ -34,6 +35,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<List<EquipmentItem>> GetEquipmentAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.EquipmentItems
+            .AsNoTracking()
             .Include(e => e.Stats)
             .AsSplitQuery()
             .Where(e => e.PlayerId == playerId)

@@ -8,6 +8,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Увесь ростер гравця.</summary>
         Task<List<Hero>> GetByPlayerAsync(Guid playerId, CancellationToken cancellationToken = default);
 
+        /// <summary>Герої гравця лише для читання (без трекінгу) — для оглядових запитів.</summary>
+        Task<List<Hero>> GetByPlayerReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Конкретний герой за типом; null — такого в ростері немає.
         /// Використовується видачею, щоб відрізнити нового героя від дубліката.
