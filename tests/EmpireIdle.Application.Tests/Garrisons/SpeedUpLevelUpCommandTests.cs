@@ -50,7 +50,7 @@ public class SpeedUpLevelUpCommandTests
         garrison.LevelUpUnits("infantry", 1, 2, 5, 10, TimeSpan.FromMinutes(minutesLeft), Now);
 
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
-        wallet.AddGems(new GemAmount(gems), "seed", PlayerId, Now);
+        wallet.AddGems(new GemAmount(gems), "seed", Now);
 
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);

@@ -64,7 +64,7 @@ public class SpeedUpCommandTests
     private PlayerWallet GivenWallet(int gems = 1000)
     {
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
-        wallet.AddGems(new GemAmount(gems), "seed", PlayerId, Now);
+        wallet.AddGems(new GemAmount(gems), "seed", Now);
 
         _wallets.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(wallet);
         _currentPlayer.UserId.Returns(UserId);

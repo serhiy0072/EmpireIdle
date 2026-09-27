@@ -24,7 +24,7 @@ public class GetWalletQueryTests
     public async Task Handle_ShouldReturnTheWalletsGemBalance()
     {
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
-        wallet.AddGems(new GemAmount(250), "seed", PlayerId, DateTime.UtcNow);
+        wallet.AddGems(new GemAmount(250), "seed", DateTime.UtcNow);
 
         _currentPlayer.UserId.Returns(UserId);
         _wallets.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(wallet);

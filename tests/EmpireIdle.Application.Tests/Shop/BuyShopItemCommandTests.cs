@@ -33,7 +33,7 @@ public class BuyShopItemCommandTests
         _players.GetByIdAsync(_playerId, Arg.Any<CancellationToken>()).Returns(player);
 
         _wallet = new PlayerWallet(Guid.NewGuid(), "user-1");
-        _wallet.AddGems(new GemAmount(1_000), "test", _playerId, Now);
+        _wallet.AddGems(new GemAmount(1_000), "test", Now);
         _wallets.GetByUserIdAsync("user-1", Arg.Any<CancellationToken>()).Returns(_wallet);
 
         _granter.RewardType.Returns("Item");

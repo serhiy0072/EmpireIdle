@@ -26,7 +26,7 @@ public class PlayerWalletTests
     {
         var wallet = new PlayerWallet(Guid.NewGuid(), "user-1");
 
-        wallet.AddGems(new GemAmount(100), "cs_test_1", Guid.NewGuid(), Now);
+        wallet.AddGems(new GemAmount(100), "cs_test_1", Now);
 
         Assert.Equal(TransactionType.GemPurchase, Assert.Single(wallet.Transactions).Type);
     }

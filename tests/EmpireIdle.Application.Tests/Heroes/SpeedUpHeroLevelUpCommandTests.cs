@@ -42,7 +42,7 @@ public class SpeedUpHeroLevelUpCommandTests
     {
         var order = new HeroLevelOrder(Guid.NewGuid(), Guid.NewGuid(), PlayerId, 1, targetLevel: 2, Now.AddMinutes(minutesLeft));
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
-        wallet.AddGems(new GemAmount(gems), "seed", PlayerId, Now);
+        wallet.AddGems(new GemAmount(gems), "seed", Now);
 
         _heroes.GetActiveOrderAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(order);
         _wallets.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(wallet);
