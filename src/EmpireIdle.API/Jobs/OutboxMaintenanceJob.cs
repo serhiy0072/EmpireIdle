@@ -55,6 +55,12 @@ namespace EmpireIdle.API.Jobs
             var releasedKeys = await _idempotency.PurgeStaleReservationsAsync(staleCutoff);
             var expiredKeys = await _idempotency.PurgeCompletedAsync(now.AddDays(-_settings.IdempotencyRetentionDays));
 
+            // Прострочений refresh-токен уже нічого не відкриває; відкликані до строку лишаються —
+            // саме по них ловиться повторне використання вкраденого токена
+            var expiredTokens = await _context.RefreshTokens
+                .Where(t => t.ExpiresAt < now)
+                .ExecuteDeleteAsync();
+
             if (deleted > 0)
                 _logger.LogInformation("Outbox cleanup removed {Deleted} processed messages.", deleted);
 
@@ -66,6 +72,9 @@ namespace EmpireIdle.API.Jobs
 
             if (expiredKeys > 0)
                 _logger.LogInformation("Removed {Count} completed idempotency records past retention.", expiredKeys);
+
+            if (expiredTokens > 0)
+                _logger.LogInformation("Removed {Count} expired refresh tokens.", expiredTokens);
         }
     }
 }

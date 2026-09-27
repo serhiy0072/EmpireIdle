@@ -47,7 +47,7 @@ namespace EmpireIdle.API.Controllers
             try
             {
                 // 1. Identity user (валідація пароля, унікальність email)
-                var userId = await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
+                var userId = await _authService.RegisterAsync(request.UserName, request.Email, request.Password, cancellationToken);
 
                 // Реєстрація анонімна — світ беремо з конфіга
                 _serverContext.UseServer(_catalog.Config.DefaultServerId);
@@ -64,7 +64,7 @@ namespace EmpireIdle.API.Controllers
             }
 
             // 3. Логін — уже поза транзакцією, дані закомічені
-            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password);
+            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password, cancellationToken);
 
             return Created((string?)null, new AuthResponse(accessToken, refreshToken, playerId));
         }
@@ -77,7 +77,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] DTOs.LoginRequest request, CancellationToken cancellationToken)
         {
-            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password);
+            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password, cancellationToken);
             return Ok(new AuthResponse(accessToken, refreshToken, playerId));
         }
 
@@ -89,7 +89,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Refresh([FromBody] DTOs.RefreshRequest request, CancellationToken cancellationToken)
         {
-            var (accessToken, refreshToken, playerId) = await _authService.RefreshAsync(request.RefreshToken);
+            var (accessToken, refreshToken, playerId) = await _authService.RefreshAsync(request.RefreshToken, cancellationToken);
             return Ok(new AuthResponse(accessToken, refreshToken, playerId));
         }
     }

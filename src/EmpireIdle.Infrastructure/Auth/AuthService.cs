@@ -34,7 +34,8 @@ namespace EmpireIdle.Infrastructure.Auth
         /// Зареєструвати нового Identity користувача.
         /// </summary>
         /// <returns>IdentityUser.Id</returns>
-        public async Task<string> RegisterAsync(string username, string email, string password)
+        public async Task<string> RegisterAsync(string username, string email, string password,
+            CancellationToken cancellationToken = default)
         {
             var user = new IdentityUser
             {
@@ -60,7 +61,8 @@ namespace EmpireIdle.Infrastructure.Auth
         /// <summary>
         /// Залогінити користувача і повернути JWT + refresh token.
         /// </summary>
-        public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> LoginAsync(string email, string password)
+        public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> LoginAsync(string email, string password,
+            CancellationToken cancellationToken = default)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var user = await _userManager.FindByEmailAsync(email)
@@ -88,19 +90,21 @@ namespace EmpireIdle.Infrastructure.Auth
         /// <summary>
         /// Оновити пару токенів за refresh token. Старий токен ревокується (ротація).
         /// </summary>
-        public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> RefreshAsync(string refreshToken)
+        public async Task<(string AccessToken, string RefreshToken, Guid PlayerId)> RefreshAsync(string refreshToken,
+            CancellationToken cancellationToken = default)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var hash = HashToken(refreshToken);
 
-            var storedToken = await _context.RefreshTokens.AsNoTracking().FirstOrDefaultAsync(rt => rt.Token == hash)
+            var storedToken = await _context.RefreshTokens.AsNoTracking()
+                .FirstOrDefaultAsync(rt => rt.Token == hash, cancellationToken)
                 ?? throw new AuthenticationFailedException("Invalid refresh token.");
 
             // Спроба використати ревокнутий токен = можлива крадіжка — ревокуємо всі
             if (storedToken.RevokedAt is not null)
             {
-                await RevokeAllUserTokensAsync(storedToken.UserId, now);
-                await _context.SaveChangesAsync();
+                await RevokeAllUserTokensAsync(storedToken.UserId, now, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
                 throw new AuthenticationFailedException("Token reuse detected. All sessions revoked.");
             }
 
@@ -110,17 +114,23 @@ namespace EmpireIdle.Infrastructure.Auth
             var newRefreshToken = GenerateRefreshTokenString();
             var newHash = HashToken(newRefreshToken);
 
+            // Відкликання старого й вставка нового — одна транзакція. Окремо вони розходились:
+            // збій між ними лишав клієнта з уже відкликаним токеном, наступний refresh бачив
+            // «reuse detected» і відкликав усі сесії гравця
+            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
             // Атомарна ротація: паралельний запит із тим самим токеном отримає 0 рядків
             var revoked = await _context.RefreshTokens
                 .Where(rt => rt.Id == storedToken.Id && rt.RevokedAt == null)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(rt => rt.RevokedAt, now)
-                    .SetProperty(rt => rt.ReplacedByToken, newHash));
+                    .SetProperty(rt => rt.ReplacedByToken, newHash), cancellationToken);
 
             if (revoked == 0)
             {
-                await RevokeAllUserTokensAsync(storedToken.UserId, now);
-                await _context.SaveChangesAsync();
+                await RevokeAllUserTokensAsync(storedToken.UserId, now, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
                 throw new AuthenticationFailedException("Token reuse detected. All sessions revoked.");
             }
 
@@ -136,7 +146,8 @@ namespace EmpireIdle.Infrastructure.Auth
                 ExpiresAt = now.AddDays(_jwtSettings.RefreshTokenExpirationDays)
             });
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
             var (playerId, serverId) = await GetPlayerAsync(user.Id);
             var accessToken = GenerateAccessToken(user, playerId, serverId, now);
@@ -165,9 +176,10 @@ namespace EmpireIdle.Infrastructure.Auth
             return token;
         }
 
-        private async Task RevokeAllUserTokensAsync(string userId, DateTime utcNow)
+        private async Task RevokeAllUserTokensAsync(string userId, DateTime utcNow, CancellationToken cancellationToken)
         {
-            var tokens = await _context.RefreshTokens.Where(rt => rt.UserId == userId && rt.RevokedAt == null).ToListAsync();
+            var tokens = await _context.RefreshTokens.Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+                .ToListAsync(cancellationToken);
 
             foreach (var token in tokens)
                 token.RevokedAt = utcNow;
