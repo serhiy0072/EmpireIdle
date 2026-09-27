@@ -24,7 +24,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             // Один акаунт — один гравець НА СЕРВЕР. Email більше не унікальний:
             // він дублюється між серверами того самого акаунта.
             builder.HasIndex(p => new { p.UserId, p.ServerId }).IsUnique();
-            builder.HasIndex(p => p.Email);
+            // Члени клану: адресати чату, наступник лідера, розсилки
+            builder.HasIndex(p => p.ClanId).HasFilter("\"ClanId\" IS NOT NULL");
             builder.HasIndex(p => p.ServerId);
         }
     }

@@ -11,7 +11,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.ToTable("BattleReports");
             builder.HasKey(r => r.Id);
-            builder.Property(r => r.PlayerId).ValueGeneratedNever();
+            // Id задає домен (на нього одразу посилаються рядки й викуп) — EF його не генерує
+            builder.Property(r => r.Id).ValueGeneratedNever();
 
             builder.Property(r => r.TerrainType).IsRequired().HasMaxLength(30);
             builder.Property(r => r.TargetName).IsRequired().HasMaxLength(100);

@@ -18,8 +18,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             // Ключ унікальний у межах гравця — головний захист від дублю
             builder.HasIndex(r => new { r.PlayerId, r.Key }).IsUnique();
 
-            // Для періодичної чистки старих записів
-            builder.HasIndex(r => r.CreatedAt).HasFilter("\"ResponseJson\" IS NULL");
+            // Чистка за віком: і завислі резервації, і завершені записи старші за строк зберігання
+            builder.HasIndex(r => r.CreatedAt);
 
             builder.Ignore(r => r.DomainEvents);
         }
