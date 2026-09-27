@@ -28,8 +28,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<bool> ExistsForTargetAsync(Guid targetId, CancellationToken cancellationToken = default)
-            => _context.ClanHelpRequests.AnyAsync(r => r.TargetId == targetId, cancellationToken);
+        public Task<bool> ExistsActiveForTargetAsync(Guid targetId, DateTime utcNow, CancellationToken cancellationToken = default)
+            => _context.ClanHelpRequests.AnyAsync(r => r.TargetId == targetId && r.ExpiresAt > utcNow, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> RemoveForTargetAsync(Guid targetId, DateTime? expiredBefore = null,
+            CancellationToken cancellationToken = default)
+            => _context.ClanHelpRequests
+                .Where(r => r.TargetId == targetId && (expiredBefore == null || r.ExpiresAt <= expiredBefore))
+                .ExecuteDeleteAsync(cancellationToken);
 
         /// <inheritdoc/>
         public async Task AddAsync(ClanHelpRequest request, CancellationToken cancellationToken = default)

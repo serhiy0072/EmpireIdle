@@ -57,7 +57,11 @@ namespace EmpireIdle.Application.Clans.Commands
             var clan = await _clanRepository.GetByMemberAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");
 
-            if (await _helpRepository.ExistsForTargetAsync(request.TargetId, cancellationToken))
+            // Прострочений запит на ту саму ціль уже нічого не важить, але тримає унікальний індекс:
+            // Building.Id між апгрейдами той самий, тож без цього будівля лишилась би без допомоги назавжди
+            await _helpRepository.RemoveForTargetAsync(request.TargetId, expiredBefore: now, cancellationToken);
+
+            if (await _helpRepository.ExistsActiveForTargetAsync(request.TargetId, now, cancellationToken))
                 throw new AlreadyExistsException(RefusalReasons.ClanHelpAlreadyRequested, "Help request", request.TargetId.ToString());
 
             var (fullDuration, completesAt) = await ResolveTimerAsync(request, now, cancellationToken);

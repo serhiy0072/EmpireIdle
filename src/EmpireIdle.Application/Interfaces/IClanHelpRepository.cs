@@ -12,8 +12,15 @@ namespace EmpireIdle.Application.Interfaces
         Task<List<ClanHelpRequest>> GetActiveByClanAsync(Guid clanId, DateTime utcNow,
             CancellationToken cancellationToken = default);
 
-        /// <summary>Чи є вже запит на цю ціль — повторний засмітив би список.</summary>
-        Task<bool> ExistsForTargetAsync(Guid targetId, CancellationToken cancellationToken = default);
+        /// <summary>Чи є вже чинний запит на цю ціль — повторний засмітив би список.</summary>
+        Task<bool> ExistsActiveForTargetAsync(Guid targetId, DateTime utcNow, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Прибирає запити на ціль: усі (таймер завершився — допомагати нічому) або лише
+        /// прострочені до <paramref name="expiredBefore"/>. Внески йдуть каскадом.
+        /// </summary>
+        Task<int> RemoveForTargetAsync(Guid targetId, DateTime? expiredBefore = null,
+            CancellationToken cancellationToken = default);
 
         Task AddAsync(ClanHelpRequest request, CancellationToken cancellationToken = default);
 

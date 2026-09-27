@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Commands;
 using EmpireIdle.Application.Effects.Commands;
 using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Garrisons.Queries;
@@ -32,6 +33,8 @@ namespace EmpireIdle.API.Jobs
                 (mediator, id) => mediator.Send(new CompleteHeroLevelUpCommand(id)));
 
             await _runner.ForEachServerAsync(nameof(RemoveExpiredEffectsCommand), (mediator, _) => mediator.Send(new RemoveExpiredEffectsCommand()));
+
+            await _runner.ForEachServerAsync(nameof(RemoveExpiredClanHelpCommand), (mediator, _) => mediator.Send(new RemoveExpiredClanHelpCommand()));
 
             await _runner.ForEachServerAsync(nameof(CompleteDueMarchesCommand), (mediator, _) => mediator.Send(new CompleteDueMarchesCommand()));
 
