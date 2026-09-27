@@ -130,6 +130,24 @@ public class SendMarchCommandTests
         new(PlayerId, MarchTargetType.Monster, targetId,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, heroId);
 
+    /// <summary>Власне село не атакують: інакше підкріплення соклановців гинули б від господаря.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_AnAttackOnTheOwnVillage()
+    {
+        var (garrison, _, hero) = GivenState(infantry: 100);
+        var village = await _villages.GetByPlayerIdAsync(PlayerId);
+        _villages.GetByIdAsync(village!.Id, Arg.Any<CancellationToken>()).Returns(village);
+        _heroes.GetByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(new List<Hero>());
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Handler().Handle(
+            new SendMarchCommand(PlayerId, MarchTargetType.Village, village.Id,
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, hero.Id),
+            CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.MarchOwnVillage.Key, refusal.Reason);
+        Assert.Equal(100, garrison.Units.Sum(u => u.Count));
+    }
+
     /// <summary>Юніти зникають із гарнізону — армія не може бути у двох місцях.</summary>
     [Fact]
     public async Task Handle_ShouldRemoveUnitsFromTheGarrison()

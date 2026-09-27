@@ -91,7 +91,7 @@ namespace EmpireIdle.Application.Marches.Queries
 
             // Те саме, що відмовить у відправленні: прев'ю не має
             // показувати шанси там, куди йти не можна
-            _targets.EnsureAttackAllowed(village, target, now);
+            await _targets.EnsureAttackAllowedAsync(village, target, now, cancellationToken);
 
             var terrain = _terrain.GetTerrainType(_serverContext.ServerId, target.X, target.Y);
 

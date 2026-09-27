@@ -126,7 +126,8 @@ public class CampTargetTests
 
         var target = await resolver.ResolveAsync(MarchTargetType.Camp, camp.Id, owner, Now, CancellationToken.None);
 
-        var refusal = Assert.Throws<RequirementNotMetException>(() => resolver.EnsureAttackAllowed(owner, target, Now));
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            resolver.EnsureAttackAllowedAsync(owner, target, Now, CancellationToken.None));
 
         Assert.Equal(RefusalReasons.MarchOwnCamp.Key, refusal.Reason);
     }
@@ -140,6 +141,7 @@ public class CampTargetTests
 
         var target = await resolver.ResolveAsync(MarchTargetType.Camp, camp.Id, attacker, Now, CancellationToken.None);
 
-        Assert.Null(Record.Exception(() => resolver.EnsureAttackAllowed(attacker, target, Now)));
+        Assert.Null(await Record.ExceptionAsync(() =>
+            resolver.EnsureAttackAllowedAsync(attacker, target, Now, CancellationToken.None)));
     }
 }

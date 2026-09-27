@@ -150,6 +150,7 @@
   "march.capacity": [
     "capacity"
   ],
+  "march.clanmate": [],
   "march.emptyAttack": [],
   "march.heroElsewhere": [],
   "march.heroUnavailable": [
@@ -160,6 +161,7 @@
   "march.ownShield": [
     "level"
   ],
+  "march.ownVillage": [],
   "march.targetFallShield": [],
   "march.targetShielded": [],
   "market.heroAlreadyOwned": [

@@ -242,6 +242,12 @@
         /// <summary>Власний табір не атакують і не розвідують.</summary>
         public static readonly RefusalReason MarchOwnCamp = new("march.ownCamp");
 
+        /// <summary>Власне село не атакують.</summary>
+        public static readonly RefusalReason MarchOwnVillage = new("march.ownVillage");
+
+        /// <summary>Села й табори соклановців не атакують.</summary>
+        public static readonly RefusalReason MarchClanmate = new("march.clanmate");
+
         public static readonly RefusalReason ReinforceOwnShield = new("reinforce.ownShield", "level");
 
         public static readonly RefusalReason ReinforceTargetShielded = new("reinforce.targetShielded");

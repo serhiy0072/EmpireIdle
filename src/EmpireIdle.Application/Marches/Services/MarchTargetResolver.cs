@@ -57,6 +57,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly ClanTerritoryRules _territory;
         private readonly TerritoryBonus _territoryBonus;
         private readonly IMarchRepository _marchRepository;
+        private readonly HostilityRules _hostility;
 
         public MarchTargetResolver(
             IMonsterRepository monsterRepository,
@@ -87,6 +88,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Той самий розрахунок, що в бою: прев'ю не має розходитись із результатом
             _territoryBonus = new TerritoryBonus(clanRepository, structureRepository, territory);
+            _hostility = new HostilityRules(clanRepository);
         }
 
         /// <summary>Множник атаки кланової території для маршу з цього села — для прев'ю.</summary>
@@ -242,14 +244,29 @@ namespace EmpireIdle.Application.Marches.Services
         /// PvE відкритий із першого рівня. Щит після падіння захищає лише
         /// ціль: власний напад його знімає, а не забороняється ним.
         /// </summary>
+        /// <summary>
+        /// Усі правила нападу на гравця: спершу хто кому ворог (своє й соклановців не
+        /// атакують), потім щити. Те саме бачать і відправка, і прев'ю.
+        /// </summary>
+        public async Task EnsureAttackAllowedAsync(Village origin, MarchTarget target, DateTime utcNow,
+            CancellationToken cancellationToken)
+        {
+            var defender = target.Village?.PlayerId ?? target.CampHome?.PlayerId;
+
+            if (defender is Guid defenderId
+                && await _hostility.RefusalAsync(origin.PlayerId, defenderId, target.Camp is not null, cancellationToken)
+                    is { } refusal)
+                throw new RequirementNotMetException(refusal, $"Player {origin.PlayerId} cannot attack {defenderId}.");
+
+            EnsureAttackAllowed(origin, target, utcNow);
+        }
+
         public void EnsureAttackAllowed(Village origin, MarchTarget target, DateTime utcNow)
         {
             // Споруда клану й табір — теж PvP: новачок під щитом їх не атакує, але щита в них самих немає
             if (target.Village is null && target.Structure is null && target.Camp is null)
                 return;
 
-            if (target.CampHome?.PlayerId == origin.PlayerId)
-                throw new RequirementNotMetException(RefusalReasons.MarchOwnCamp, "You cannot attack your own camp.");
 
             var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
 

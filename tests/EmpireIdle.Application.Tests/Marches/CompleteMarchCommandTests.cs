@@ -192,7 +192,7 @@ public class CompleteMarchCommandTests
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
             catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, heroModifiers, cityFallService, territoryBonus,
+            status, plunder, heroModifiers, cityFallService, territoryBonus, new HostilityRules(_clans),
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
@@ -223,7 +223,7 @@ public class CompleteMarchCommandTests
             _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,
             logistics, aftermath, status, heroModifiers, territoryBonus,
             new CampHomecoming(_heroes, calculator, new HeroProgression(config.HeroSettings), catalog),
-            NullLogger<CampBattleService>.Instance);
+            new HostilityRules(_clans), NullLogger<CampBattleService>.Instance);
 
         var scouts = new ScoutService(_garrisons, _villages, _structures, _serverRepository, _scoutReports, _notifier,
             targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry,
@@ -409,6 +409,25 @@ public class CompleteMarchCommandTests
 
         await _reports.DidNotReceive().AddAsync(Arg.Any<BattleReport>(), Arg.Any<CancellationToken>());
         Assert.Equal(MarchState.Returning, march.State);
+    }
+
+    /// <summary>
+    /// Поки марш ішов, нападник вступив у клан захисника: соклановців не атакують,
+    /// тож бою немає — армія розвертається.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldTurnBack_WhenTheTargetBecameAClanmate()
+    {
+        var (march, attacker, _, defender, defenderGarrison) = GivenVillageBattle();
+        var clan = Guid.NewGuid();
+        _clans.GetClanIdByMemberAsync(attacker.PlayerId, Arg.Any<CancellationToken>()).Returns(clan);
+        _clans.GetClanIdByMemberAsync(defender.PlayerId, Arg.Any<CancellationToken>()).Returns(clan);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(MarchState.Returning, march.State);
+        Assert.Equal(10, defenderGarrison.Units.Sum(u => u.Count));
+        await _reports.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     // ---------- Табір (§2.5) ----------

@@ -139,7 +139,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 throw new RequirementNotMetException(RefusalReasons.MarchEmptyAttack, "An attack needs at least one unit.");
             else
             {
-                _targets.EnsureAttackAllowed(village, target, now);
+                await _targets.EnsureAttackAllowedAsync(village, target, now, cancellationToken);
 
                 // Напад на гравця — на село чи на його табір — знімає власний щит
                 // після падіння: інакше з-під нього можна було б безкарно атакувати

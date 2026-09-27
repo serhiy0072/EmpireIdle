@@ -35,6 +35,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly HeroCombatModifiers _heroModifiers;
         private readonly CityFallService _cityFall;
         private readonly TerritoryBonus _territoryBonus;
+        private readonly HostilityRules _hostility;
         private readonly ILogger<VillageBattleService> _logger;
 
         public VillageBattleService(
@@ -55,6 +56,7 @@ namespace EmpireIdle.Application.Marches.Services
             HeroCombatModifiers heroModifiers,
             CityFallService cityFall,
             TerritoryBonus territoryBonus,
+            HostilityRules hostility,
             ILogger<VillageBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -73,6 +75,7 @@ namespace EmpireIdle.Application.Marches.Services
             _heroModifiers = heroModifiers;
             _cityFall = cityFall;
             _territoryBonus = territoryBonus;
+            _hostility = hostility;
             _logger = logger;
         }
 
@@ -110,7 +113,10 @@ namespace EmpireIdle.Application.Marches.Services
             // Щит новачка міг з'явитись хіба що в нападника, щит падіння — в цілі,
             // поки марш ішов; село могло й зникнути. Це прогін сканера, тож
             // будь-яка невідповідність — розворот, не виняток
+            // Поки марш ішов, нападник міг вступити в клан захисника
             if (targetVillage is null || targetGarrison is null
+                || await _hostility.RefusalAsync(attackerVillage.PlayerId, targetVillage.PlayerId, camp: false,
+                    cancellationToken) is not null
                 || _status.IsShielded(targetVillage)
                 || _status.IsShielded(attackerVillage)
                 || targetVillage.IsShieldedAt(utcNow))

@@ -32,6 +32,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly HeroCombatModifiers _heroModifiers;
         private readonly TerritoryBonus _territoryBonus;
         private readonly CampHomecoming _campHomecoming;
+        private readonly HostilityRules _hostility;
         private readonly ILogger<CampBattleService> _logger;
 
         public CampBattleService(
@@ -49,6 +50,7 @@ namespace EmpireIdle.Application.Marches.Services
             HeroCombatModifiers heroModifiers,
             TerritoryBonus territoryBonus,
             CampHomecoming campHomecoming,
+            HostilityRules hostility,
             ILogger<CampBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -65,6 +67,7 @@ namespace EmpireIdle.Application.Marches.Services
             _heroModifiers = heroModifiers;
             _territoryBonus = territoryBonus;
             _campHomecoming = campHomecoming;
+            _hostility = hostility;
             _logger = logger;
         }
 
@@ -88,6 +91,8 @@ namespace EmpireIdle.Application.Marches.Services
             // Табір могли відкликати, розбити чи забрати телепортом, поки марш ішов;
             // нападник — опинитись під щитом новачка. Бою немає — розворот
             if (camp is null || camp.State != MarchState.Camping || campHome is null
+                || await _hostility.RefusalAsync(attackerVillage.PlayerId, campHome.PlayerId, camp: true,
+                    cancellationToken) is not null
                 || _status.IsShielded(attackerVillage))
             {
                 await _logistics.TurnMarchBackAsync(march, attackerArmy, utcNow, cancellationToken);
