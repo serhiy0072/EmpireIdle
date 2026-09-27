@@ -8,5 +8,8 @@ namespace EmpireIdle.Application.Interfaces
         Task AddAsync(StructureFall fall, CancellationToken cancellationToken = default);
 
         Task<StructureFall?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+        /// <summary>Записи руйнувань за id одним запитом — для скриньки.</summary>
+        Task<List<StructureFall>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
     }
 }

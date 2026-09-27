@@ -36,7 +36,17 @@ public class MailboxTests
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly GameCatalog _catalog = new GameConfigBuilder().WithBuildings().BuildCatalog();
 
-    public MailboxTests() => _serverContext.ServerId.Returns(1);
+    public MailboxTests()
+    {
+        _serverContext.ServerId.Returns(1);
+
+        // Посилання листів підтягуються пакетом за типом; за замовчуванням — нічого
+        _requests.GetByIdsReadOnlyAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+        _clans.GetCardsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, ClanCard>());
+        _falls.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+        _structureFalls.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+    }
 
     private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, _falls, _structureFalls, new FakeTimeProvider(Now));
 
@@ -68,12 +78,14 @@ public class MailboxTests
         var invite = new ClanRequest(Guid.NewGuid(), 1, clanId, PlayerId, ClanRequestKind.Invite, expiresAt, Now);
         var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.ClanInvite, invite.Id, Now, TimeSpan.FromDays(14));
 
-        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
         _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
         _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
-        _requests.GetByIdAsync(invite.Id, Arg.Any<CancellationToken>()).Returns(invite);
-        _clans.GetCardAsync(clanId, Arg.Any<CancellationToken>())
-            .Returns(clanAlive ? new ClanCard(clanId, "Вовки", "WLF", "", ClanJoinPolicy.Open, 5, Now) : null);
+        _requests.GetByIdsReadOnlyAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([invite]);
+        _clans.GetCardsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(clanAlive
+                ? new Dictionary<Guid, ClanCard> { [clanId] = new(clanId, "Вовки", "WLF", "", ClanJoinPolicy.Open, 5, Now) }
+                : new Dictionary<Guid, ClanCard>());
 
         return (letter, invite);
     }
@@ -155,10 +167,10 @@ public class MailboxTests
             Now.AddHours(24), Now);
         var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.CityFall, fall.Id, Now, TimeSpan.FromDays(14));
 
-        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
         _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
         _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
-        _falls.GetByIdAsync(fall.Id, Arg.Any<CancellationToken>()).Returns(fall);
+        _falls.GetByIdsAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(fall.Id)), Arg.Any<CancellationToken>()).Returns([fall]);
 
         var view = Assert.Single((await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None)).Letters);
 
@@ -197,10 +209,10 @@ public class MailboxTests
         var fall = new StructureFall(Guid.NewGuid(), 1, structure, Guid.NewGuid(), "Вовчий кут", Now);
         var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.StructureFall, fall.Id, Now, TimeSpan.FromDays(14));
 
-        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
         _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
         _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
-        _structureFalls.GetByIdAsync(fall.Id, Arg.Any<CancellationToken>()).Returns(fall);
+        _structureFalls.GetByIdsAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(fall.Id)), Arg.Any<CancellationToken>()).Returns([fall]);
 
         var view = Assert.Single((await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None)).Letters);
 

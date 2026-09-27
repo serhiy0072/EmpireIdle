@@ -19,11 +19,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<MailLetter?> GetLetterAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.MailLetters.FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
-        public Task<List<MailLetter>> GetLettersAsync(Guid playerId, DateTime utcNow, CancellationToken cancellationToken = default)
+        public Task<List<MailLetter>> GetLettersAsync(Guid playerId, DateTime utcNow, int limit,
+            CancellationToken cancellationToken = default)
             => _context.MailLetters
                 .AsNoTracking()
                 .Where(l => l.PlayerId == playerId && l.ExpiresAt > utcNow)
                 .OrderByDescending(l => l.CreatedAt)
+                .Take(limit)
                 .ToListAsync(cancellationToken);
 
         public Task<List<MailLetter>> GetClaimableLettersAsync(Guid playerId, DateTime utcNow, CancellationToken cancellationToken = default)

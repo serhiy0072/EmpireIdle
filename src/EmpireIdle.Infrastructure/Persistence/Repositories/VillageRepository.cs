@@ -56,6 +56,14 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> villageIds,
+            CancellationToken cancellationToken = default)
+            => _context.Villages
+                .AsNoTracking()
+                .Where(v => villageIds.Contains(v.Id))
+                .ToDictionaryAsync(v => v.Id, v => v.Name, cancellationToken);
+
+        /// <inheritdoc/>
         public async Task<int> GetMedianMainBuildingLevelAsync(string mainBuildingKey,
             CancellationToken cancellationToken = default)
         {

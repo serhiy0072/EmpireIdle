@@ -114,7 +114,7 @@ public class RecalculatePowerCommandTests
         // Місце важливе — Handler() кличеться після GivenGarrison, тож
         // підстановки тесту мають стояти між ними й не затиратись
         _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(new List<Hero>());
-        _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _inventory.GetEquippedByHeroesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new List<EquipmentItem>());
 
         return garrison;
@@ -245,7 +245,11 @@ public class RecalculatePowerCommandTests
         var sword = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, "sword", EquipmentSlot.Weapon,
             Rarity.Common, [("Attack", 12.0)], Now);
 
-        _inventory.GetEquippedAsync(hero.Id, Arg.Any<CancellationToken>()).Returns([sword]);
+        sword.EquipTo(hero.Id, slotIndex: 0, Now);
+
+        // Весь ростер — одним запитом, а не по запиту на героя
+        _inventory.GetEquippedByHeroesAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(hero.Id)), Arg.Any<CancellationToken>())
+            .Returns([sword]);
 
         await Handler().Handle(new RecalculatePowerCommand(garrison.Id), CancellationToken.None);
 

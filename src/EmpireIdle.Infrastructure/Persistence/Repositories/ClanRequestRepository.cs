@@ -17,6 +17,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.ClanRequests.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<ClanRequest>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.ClanRequests.AsNoTracking().Where(r => ids.Contains(r.Id)).ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public Task<ClanRequest?> GetLatestAsync(Guid clanId, Guid playerId, ClanRequestKind kind,
             CancellationToken cancellationToken = default)
             => _context.ClanRequests

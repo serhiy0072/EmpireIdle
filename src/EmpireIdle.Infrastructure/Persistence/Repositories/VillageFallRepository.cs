@@ -18,5 +18,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
         public Task<VillageFall?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.VillageFalls.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<VillageFall>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.VillageFalls.AsNoTracking().Where(f => ids.Contains(f.Id)).ToListAsync(cancellationToken);
     }
 }

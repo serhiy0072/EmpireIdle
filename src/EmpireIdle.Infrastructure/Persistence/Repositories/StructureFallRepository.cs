@@ -18,5 +18,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
         public Task<StructureFall?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.StructureFalls.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<StructureFall>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.StructureFalls.AsNoTracking().Where(f => ids.Contains(f.Id)).ToListAsync(cancellationToken);
     }
 }

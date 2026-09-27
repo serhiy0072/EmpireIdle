@@ -56,10 +56,17 @@ namespace EmpireIdle.Application.Marches.Queries
             var marches = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
             var views = new List<MarchView>(marches.Count);
 
+            // Цілі — пакетом за типом, а не запитом на кожен марш
+            var monsters = (await _monsterRepository.GetByIdsAsync(
+                    TargetIds(marches, MarchTargetType.Monster), cancellationToken))
+                .ToDictionary(m => m.Id);
+            var villageNames = await _villageRepository.GetNamesAsync(
+                TargetIds(marches, MarchTargetType.Village), cancellationToken);
+
             // Найближче прибуття — першим: за ним гравець і стежить
             foreach (var march in marches.OrderBy(m => m.ArrivesAt))
             {
-                var (targetName, targetLevel) = await ResolveTargetAsync(march, cancellationToken);
+                var (targetName, targetLevel) = ResolveTarget(march, monsters, villageNames);
 
                 views.Add(new MarchView(
                     march.Id,
@@ -82,27 +89,22 @@ namespace EmpireIdle.Application.Marches.Queries
             return views;
         }
 
+        private static List<Guid> TargetIds(IEnumerable<March> marches, MarchTargetType type)
+            => marches.Where(m => m.TargetType == type).Select(m => m.TargetId).Distinct().ToList();
+
         /// <summary>
         /// Назва цілі як у прев'ю бою й рівень монстра окремо; null — ціль уже
         /// зникла з мапи. У села рівня немає.
         /// </summary>
-        private async Task<(string? Name, int? Level)> ResolveTargetAsync(March march, CancellationToken cancellationToken)
-        {
-            switch (march.TargetType)
+        private (string? Name, int? Level) ResolveTarget(March march, IReadOnlyDictionary<Guid, Monster> monsters,
+            IReadOnlyDictionary<Guid, string> villageNames)
+            => march.TargetType switch
             {
-                case MarchTargetType.Monster:
-                    var monster = await _monsterRepository.GetByIdAsync(march.TargetId, cancellationToken);
-
-                    return monster is null ? (null, null) : (_catalog.MonsterName(monster.Type), monster.Level);
-
-                case MarchTargetType.Village:
-                    var village = await _villageRepository.GetByIdAsync(march.TargetId, cancellationToken);
-
-                    return (village?.Name, null);
-
-                default:
-                    return (null, null);
-            }
-        }
+                MarchTargetType.Monster => monsters.TryGetValue(march.TargetId, out var monster)
+                    ? (_catalog.MonsterName(monster.Type), monster.Level)
+                    : (null, null),
+                MarchTargetType.Village => (villageNames.GetValueOrDefault(march.TargetId), null),
+                _ => (null, null)
+            };
     }
 }

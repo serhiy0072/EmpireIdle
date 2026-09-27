@@ -57,6 +57,11 @@ public class GetMarchesQueryTests
         _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdReadOnlyAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
+        // Цілі шукаються пакетом; за замовчуванням — жодної
+        _monsters.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(new List<Monster>());
+        _villages.GetNamesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, string>());
+
         return garrison;
     }
 
@@ -77,7 +82,8 @@ public class GetMarchesQueryTests
         var march = MarchTo(garrison, MarchTargetType.Monster, monster.Id, Now.AddMinutes(30));
 
         _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns([march]);
-        _monsters.GetByIdAsync(monster.Id, Arg.Any<CancellationToken>()).Returns(monster);
+        _monsters.GetByIdsAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(monster.Id)), Arg.Any<CancellationToken>())
+            .Returns([monster]);
 
         var views = await Handler().Handle(new GetMarchesQuery(PlayerId), CancellationToken.None);
 
@@ -96,7 +102,6 @@ public class GetMarchesQueryTests
         var march = MarchTo(garrison, MarchTargetType.Monster, Guid.NewGuid(), Now.AddMinutes(30));
 
         _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns([march]);
-        _monsters.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Monster?)null);
 
         var views = await Handler().Handle(new GetMarchesQuery(PlayerId), CancellationToken.None);
 
@@ -114,7 +119,8 @@ public class GetMarchesQueryTests
         var soon = MarchTo(garrison, MarchTargetType.Village, target.Id, Now.AddSeconds(45));
 
         _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns([late, soon]);
-        _villages.GetByIdAsync(target.Id, Arg.Any<CancellationToken>()).Returns(target);
+        _villages.GetNamesAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(target.Id)), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, string> { [target.Id] = target.Name });
 
         var views = await Handler().Handle(new GetMarchesQuery(PlayerId), CancellationToken.None);
 
@@ -124,5 +130,21 @@ public class GetMarchesQueryTests
         Assert.Equal(0, views[0].SpeedUpCostGems);
         Assert.Equal(Calculator().GetCost(late.ArrivesAt, Now), views[1].SpeedUpCostGems);
         Assert.True(views[1].SpeedUpCostGems > 0, "120 хвилин мають коштувати gems, інакше тест нічого не перевіряє.");
+    }
+
+    /// <summary>Цілі всіх маршів — пакетом за типом: запит на кожен марш множив би їх на довжину списку.</summary>
+    [Fact]
+    public async Task Handle_ShouldLookUpTargetsInBatches_NotPerMarch()
+    {
+        var garrison = GivenGarrison();
+        var marches = Enumerable.Range(0, 5)
+            .Select(i => MarchTo(garrison, MarchTargetType.Monster, Guid.NewGuid(), Now.AddMinutes(i + 1)))
+            .ToList();
+        _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(marches);
+
+        await Handler().Handle(new GetMarchesQuery(PlayerId), CancellationToken.None);
+
+        await _monsters.Received(1).GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>());
+        await _monsters.DidNotReceiveWithAnyArgs().GetByIdAsync(default, default);
     }
 }
