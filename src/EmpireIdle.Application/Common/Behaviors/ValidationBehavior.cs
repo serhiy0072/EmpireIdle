@@ -19,19 +19,19 @@ namespace EmpireIdle.Application.Common.Behaviors
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
-            if(_validators.Any())
+            // Послідовно й кожному свій контекст: async-валідатор може ходити в DbContext,
+            // а той не терпить двох операцій одночасно; спільний контекст ще й накопичує
+            // помилки попередніх валідаторів і дублює їх у кожному результаті
+            var failures = new List<FluentValidation.Results.ValidationFailure>();
+
+            foreach (var validator in _validators)
             {
-                var context = new ValidationContext<TRequest>(request);
-
-                var failures = (await Task.WhenAll(
-                       _validators.Select(v => v.ValidateAsync(context, cancellationToken))))
-                    .SelectMany(result => result.Errors)
-                    .Where(f => f is not null)
-                    .ToList();
-
-                if (failures.Count != 0)
-                    throw new ValidationException(failures);
+                var result = await validator.ValidateAsync(new ValidationContext<TRequest>(request), cancellationToken);
+                failures.AddRange(result.Errors.Where(f => f is not null));
             }
+
+            if (failures.Count != 0)
+                throw new ValidationException(failures);
 
             return await next(cancellationToken);
         }
