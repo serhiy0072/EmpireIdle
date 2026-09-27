@@ -93,8 +93,10 @@ namespace EmpireIdle.Domain.Entities
         {
             var required = requiredCounts.ToList();
 
-            for (var i = 0; i < _objectives.Count; i++)
-                _objectives[i].ResetTo(i < required.Count ? required[i] : _objectives[i].Required);
+            // За Index, як і решта методів: EF не гарантує порядку колекції без OrderBy,
+            // а позиція в списку переплутала б Required між цілями
+            foreach (var objective in _objectives)
+                objective.ResetTo(objective.Index < required.Count ? required[objective.Index] : objective.Required);
 
             State = QuestState.InProgress;
             StartedAt = utcNow;
