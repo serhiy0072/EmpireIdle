@@ -67,8 +67,7 @@ namespace EmpireIdle.API.Controllers
             CancellationToken cancellationToken)
         {
             await _mediator.Send(new UseItemCommand(
-                playerId, request.ItemKey, request.Count, request.TargetId,
-                request.TargetX, request.TargetY), cancellationToken);
+                playerId, request.ItemKey, request.Count, request.TargetX, request.TargetY), cancellationToken);
 
             return NoContent();
         }

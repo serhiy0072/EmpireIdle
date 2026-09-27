@@ -26,9 +26,6 @@ namespace EmpireIdle.Application.Catalog
             _catalog = catalog;
         }
 
-        /// <summary>Каталог мовою за замовчуванням — мовою самих конфігів.</summary>
-        public CatalogResponse Response => ResponseFor(null);
-
         /// <summary>
         /// Каталог заданою мовою. Непідтримувана чи порожня мова — мова за
         /// замовчуванням: гравець бачить назви, а не помилку.

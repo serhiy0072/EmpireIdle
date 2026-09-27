@@ -44,7 +44,6 @@ namespace EmpireIdle.Application.Marches.Services
             IServerRepository serverRepository,
             IHeroRepository heroRepository,
             IRandomSource random,
-            GameCatalog catalog,
             BattleResolver resolver,
             DefenceLossAllocator lossAllocator,
             EffectResolver effectResolver,

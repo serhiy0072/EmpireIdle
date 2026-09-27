@@ -19,7 +19,7 @@ public class GameCatalogProjectionTests
     {
         var catalog = new GameConfigBuilder().WithHeroes().WithEquipment().BuildCatalog();
 
-        var response = new GameCatalogProjection(catalog).Response;
+        var response = new GameCatalogProjection(catalog).ResponseFor(null);
 
         Assert.Equal(catalog.Config.Heroes.Count, response.Heroes.Count);
         Assert.All(response.Heroes, hero => Assert.False(string.IsNullOrWhiteSpace(hero.DisplayName)));
@@ -29,7 +29,7 @@ public class GameCatalogProjectionTests
     [Fact]
     public void Response_ShouldSpellOutRankAndSlot()
     {
-        var response = _projection.Response;
+        var response = _projection.ResponseFor(null);
 
         Assert.All(response.Heroes, hero => Assert.Contains(hero.Rank, new[] { "Common", "Rare", "Unique" }));
         Assert.All(response.Items.Where(item => item.Slot is not null),
@@ -39,12 +39,12 @@ public class GameCatalogProjectionTests
     /// <summary>Швидкість підставляється з налаштувань, якщо в героя її немає.</summary>
     [Fact]
     public void Response_ShouldResolveSpeedFromSettings()
-        => Assert.All(_projection.Response.Heroes, hero => Assert.True(hero.Speed > 0));
+        => Assert.All(_projection.ResponseFor(null).Heroes, hero => Assert.True(hero.Speed > 0));
 
     [Fact]
     public void Response_ShouldCarryResourcesAndBuildings()
     {
-        var response = _projection.Response;
+        var response = _projection.ResponseFor(null);
 
         Assert.NotEmpty(response.Resources);
         Assert.All(response.Resources, resource => Assert.False(string.IsNullOrWhiteSpace(resource.DisplayName)));
@@ -63,7 +63,7 @@ public class GameCatalogProjectionTests
         config.Monetization.SpeedUpFactor = 2.5;
         config.Monetization.SpeedUpExponent = 0.6;
 
-        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var response = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null);
 
         Assert.Equal(new CatalogSpeedUp(45, 2.5, 0.6), response.SpeedUp);
     }
@@ -71,7 +71,7 @@ public class GameCatalogProjectionTests
     /// <summary>Та сама проєкція — та сама версія: інакше ETag мінявся б щозапиту.</summary>
     [Fact]
     public void Version_ShouldBeStableAcrossReads()
-        => Assert.Equal(_projection.Response.Version, _projection.Response.Version);
+        => Assert.Equal(_projection.ResponseFor(null).Version, _projection.ResponseFor(null).Version);
 
     [Fact]
     public void Version_ShouldChangeWithTheConfig()
@@ -79,9 +79,9 @@ public class GameCatalogProjectionTests
         var other = new GameConfigBuilder().WithHeroes().Build();
         other.Heroes[0].DisplayName = "Renamed";
 
-        var changed = new GameCatalogProjection(new EmpireIdle.Domain.Services.GameCatalog(other)).Response;
+        var changed = new GameCatalogProjection(new EmpireIdle.Domain.Services.GameCatalog(other)).ResponseFor(null);
 
-        Assert.NotEqual(_projection.Response.Version, changed.Version);
+        Assert.NotEqual(_projection.ResponseFor(null).Version, changed.Version);
     }
 
     /// <summary>Без вартості й вимог клієнт або мовчить про ціну, або вигадує її сам.</summary>
@@ -95,7 +95,7 @@ public class GameCatalogProjectionTests
             unit.BaseTrainMinutes = 3;
         }).BuildCatalog();
 
-        var response = new GameCatalogProjection(catalog).Response;
+        var response = new GameCatalogProjection(catalog).ResponseFor(null);
 
         Assert.Equal(catalog.Config.Units.Count, response.Units.Count);
         Assert.All(response.Units, unit => Assert.False(string.IsNullOrWhiteSpace(unit.DisplayName)));
@@ -118,7 +118,7 @@ public class GameCatalogProjectionTests
         }).Build();
         config.MaxUnitLevel = 7;
 
-        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var response = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null);
 
         Assert.Equal(7, response.MaxUnitLevel);
         Assert.All(response.Units, unit => Assert.Equal(1.35, unit.LevelUpCostGrowth));
@@ -134,7 +134,7 @@ public class GameCatalogProjectionTests
         var config = new GameConfigBuilder().WithBuildings().Build();
         config.Monetization.HealGemsPerUnit = 3;
 
-        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var response = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null);
 
         Assert.Equal(3, response.HealGemsPerUnit);
     }
@@ -147,7 +147,7 @@ public class GameCatalogProjectionTests
         var townhall = config.Buildings[0];
         townhall.Position = new BuildingPosition { X = 50, Y = 30 };
 
-        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var response = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null);
         var building = response.Buildings.Single(b => b.Key == townhall.Key);
 
         Assert.Equal(new CatalogPosition(50, 30), building.Position);
@@ -161,7 +161,7 @@ public class GameCatalogProjectionTests
         var warehouse = config.Buildings.Single(b => b.Key == TestKeys.Warehouse);
         warehouse.RequiresMainBuildingLevel = 4;
 
-        var response = new GameCatalogProjection(new GameCatalog(config)).Response;
+        var response = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null);
         var building = response.Buildings.Single(b => b.Key == TestKeys.Warehouse);
 
         Assert.Equal(4, building.RequiresMainBuildingLevel);
@@ -208,7 +208,7 @@ public class GameCatalogProjectionTests
         var german = projection.ResponseFor("de");
 
         Assert.Equal("uk", german.Language);
-        Assert.Equal(projection.Response.Version, german.Version);
+        Assert.Equal(projection.ResponseFor(null).Version, german.Version);
     }
 
     /// <summary>Різні мови — різні версії: інакше ETag віддав би 304 на чужу мову.</summary>
@@ -235,7 +235,7 @@ public class GameCatalogProjectionTests
             .WithDungeons()
             .BuildCatalog();
 
-        var set = new GameCatalogProjection(catalog).Response.ArtifactSets.Single();
+        var set = new GameCatalogProjection(catalog).ResponseFor(null).ArtifactSets.Single();
 
         Assert.Equal(TestKeys.DungeonSetKey, set.Key);
         Assert.Equal("Набір Ями", set.DisplayName);
@@ -252,7 +252,7 @@ public class GameCatalogProjectionTests
     {
         var catalog = new GameConfigBuilder().WithDungeons().BuildCatalog();
 
-        var set = new GameCatalogProjection(catalog).Response.ArtifactSets.Single();
+        var set = new GameCatalogProjection(catalog).ResponseFor(null).ArtifactSets.Single();
 
         Assert.Equal(["Common", "Rare", "Unique"], set.Rarities.Select(r => r.Rarity));
 

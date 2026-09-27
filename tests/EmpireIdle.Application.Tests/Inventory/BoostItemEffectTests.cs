@@ -34,7 +34,7 @@ public class BoostItemEffectTests
         var weaker = new ItemConfig { Key = "attack_boost_small", BoostTarget = "Attack", Multiplier = 1.2, DurationHours = 1 };
 
         var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
-            effect.ApplyAsync(new ItemUsageContext(playerId, weaker, 1, null, Now), CancellationToken.None));
+            effect.ApplyAsync(new ItemUsageContext(playerId, weaker, 1, Now), CancellationToken.None));
 
         Assert.Equal(RefusalReasons.ItemStrongerBoostActive.Key, refusal.Reason);
         Assert.Equal(1.5, refusal.Args["multiplier"]);

@@ -19,7 +19,7 @@ public class ScoutVeilItemEffectTests
     private static ItemConfig Veil => new() { Key = "scout_veil_24h", Type = "scoutveil", DurationHours = 24 };
 
     private Task Use(int count = 1)
-        => new ScoutVeilItemEffect(_effects).ApplyAsync(new ItemUsageContext(PlayerId, Veil, count, null, Now), CancellationToken.None);
+        => new ScoutVeilItemEffect(_effects).ApplyAsync(new ItemUsageContext(PlayerId, Veil, count, Now), CancellationToken.None);
 
     [Fact]
     public async Task Veil_ShouldStartNow_ForItsDuration()

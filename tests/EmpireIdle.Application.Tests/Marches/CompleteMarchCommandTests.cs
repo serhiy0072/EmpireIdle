@@ -191,7 +191,7 @@ public class CompleteMarchCommandTests
 
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
-            catalog, resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
+            resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
             status, plunder, heroModifiers, cityFallService, territoryBonus, new HostilityRules(_clans),
             NullLogger<VillageBattleService>.Instance);
 

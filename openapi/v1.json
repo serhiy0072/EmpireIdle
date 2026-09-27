@@ -12184,11 +12184,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "targetId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
           "targetX": {
             "type": "integer",
             "format": "int32",

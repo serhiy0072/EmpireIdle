@@ -55,7 +55,7 @@ public class UseItemCommandTests
         return stack;
     }
 
-    private static UseItemCommand Use(int count = 1) => new(PlayerId, "resource_pack", count, null);
+    private static UseItemCommand Use(int count = 1) => new(PlayerId, "resource_pack", count);
 
     /// <summary>Ефект застосовується, предмет списується.</summary>
     [Fact]
@@ -118,7 +118,7 @@ public class UseItemCommandTests
     public async Task Handle_ShouldThrow_ForUnknownItemKey()
     {
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
-            Handler().Handle(new UseItemCommand(PlayerId, "dragon_egg", 1, null), CancellationToken.None));
+            Handler().Handle(new UseItemCommand(PlayerId, "dragon_egg", 1), CancellationToken.None));
     }
 
     /// <summary>Нульова або від'ємна кількість — помилка запиту.</summary>
@@ -141,7 +141,7 @@ public class UseItemCommandTests
         GivenStack();
 
         await Handler().Handle(
-            new UseItemCommand(PlayerId, "resource_pack", 1, null, TargetX: 42, TargetY: 17),
+            new UseItemCommand(PlayerId, "resource_pack", 1, TargetX: 42, TargetY: 17),
             CancellationToken.None);
 
         await _effect.Received(1).ApplyAsync(
