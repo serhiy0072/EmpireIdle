@@ -118,4 +118,19 @@ public class MarketPricesAndQueriesTests
         Assert.Equal(10, view.Equipment!.Stats["Attack"]);
         Assert.Equal(1, page.Total);
     }
+
+    /// <summary>Номер сторінки з URL обмежений: int.MaxValue дав би від'ємний OFFSET і 500.</summary>
+    [Fact]
+    public async Task Browse_ShouldClampAHugePageNumber()
+    {
+        _bed.MarketRepository.BrowseAsync(null, null, Arg.Any<DateTime>(), Arg.Any<int>(), 20, Arg.Any<CancellationToken>())
+            .Returns((new List<MarketListing>(), 0));
+
+        var page = await new GetMarketListingsQueryHandler(_bed.MarketRepository, _bed.Projection, new FakeTimeProvider(MarketTestBed.Now))
+            .Handle(new GetMarketListingsQuery(_bed.Buyer, null, null, int.MaxValue, 20), CancellationToken.None);
+
+        Assert.Equal(GetMarketListingsQuery.MaxPage, page.Page);
+        await _bed.MarketRepository.Received(1).BrowseAsync(null, null, Arg.Any<DateTime>(),
+            (GetMarketListingsQuery.MaxPage - 1) * 20, 20, Arg.Any<CancellationToken>());
+    }
 }

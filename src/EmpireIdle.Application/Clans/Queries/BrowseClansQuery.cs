@@ -31,6 +31,9 @@ namespace EmpireIdle.Application.Clans.Queries
     {
         private const int MaxPageSize = 50;
 
+        /// <summary>Стеля номера сторінки: (int.MaxValue - 1) * size переповнюється у від'ємний OFFSET.</summary>
+        public const int MaxPage = 10_000;
+
         private readonly IClanRepository _clanRepository;
         private readonly GameCatalog _catalog;
 
@@ -42,7 +45,7 @@ namespace EmpireIdle.Application.Clans.Queries
 
         public async Task<ClanListPage> Handle(BrowseClansQuery request, CancellationToken cancellationToken)
         {
-            var page = Math.Max(request.Page, 1);
+            var page = Math.Clamp(request.Page, 1, MaxPage);
             var pageSize = Math.Clamp(request.PageSize, 1, MaxPageSize);
             var capacity = _catalog.Config.Clan.Capacity;
 
