@@ -27,27 +27,29 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 //  1. КОНФІГУРАЦІЯ
+//  Конфіг гри читається один раз на старті: доменні singleton-и будуються зі знімка,
+//  тож гаряче перезавантаження лише створювало б ілюзію й зайві FileSystemWatcher-и.
 
 builder.Configuration
-    .AddJsonFile("game-config.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("game-config.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -130,6 +132,9 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get
 //  в момент реєстрації й падає раніше за ValidateOnStart.
 
 builder.Services.AddSingleton(sp => new GameCatalog(gameConfig));
+
+// Каталог — і з ним міжсекційна валідація — будується на старті, а не на першому запиті
+builder.Services.AddHostedService<GameCatalogStartupCheck>();
 builder.Services.AddSingleton(sp => new TerrainGenerator(gameConfig.Map));
 builder.Services.AddSingleton(sp => new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetization));
