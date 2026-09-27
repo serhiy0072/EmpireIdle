@@ -39,20 +39,6 @@ namespace EmpireIdle.API.Hubs
             await base.OnConnectedAsync();
         }
 
-        /// <summary>Прибирає з'єднання з групи при відключенні.</summary>
-        public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            var playerId = GetPlayerId();
-
-            if (playerId is not null)
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, playerId);
-
-            if (GetServerId() is { } serverId)
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, ServerGroup(serverId));
-
-            await base.OnDisconnectedAsync(exception);
-        }
-
         /// <summary>Група світу. Префікс не дає їй збігтися з групою гравця.</summary>
         public static string ServerGroup(int serverId) => $"server:{serverId}";
 
