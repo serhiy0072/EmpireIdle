@@ -18,12 +18,10 @@ namespace EmpireIdle.API.Controllers
     public class InventoryController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly GameCatalog _catalog;
 
-        public InventoryController(IMediator mediator, GameCatalog catalog)
+        public InventoryController(IMediator mediator)
         {
             _mediator = mediator;
-            _catalog = catalog;
         }
 
         /// <summary>Вміст інвентаря з описами предметів із конфіга.</summary>
@@ -32,36 +30,23 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<InventoryResponse>> GetInventory(Guid playerId, CancellationToken cancellationToken)
         {
-            var contents = await _mediator.Send(new GetInventoryQuery(playerId), cancellationToken);
+            var inventory = await _mediator.Send(new GetInventoryQuery(playerId), cancellationToken);
 
-            var items = contents.Items
-                .Select(i =>
-                {
-                    // Опис береться з конфіга; невідомий ключ показуємо як є
-                    var config = _catalog.Items.GetValueOrDefault(i.ItemKey);
-                    return new InventoryItemResponse(
-                        i.ItemKey,
-                        config?.DisplayName ?? i.ItemKey,
-                        config?.Description ?? string.Empty,
-                        (config?.Rarity ?? Rarity.Common).ToString().ToLowerInvariant(),
-                        config?.Type ?? "unknown",
-                        i.Count);
-                })
+            var items = inventory.Items
+                .Select(i => new InventoryItemResponse(i.ItemKey, i.DisplayName, i.Description,
+                    i.Rarity.ToString().ToLowerInvariant(), i.Type, i.Count))
                 .ToList();
 
-            // Приріст заточки береться з конфіга: гравець має бачити ті самі
-            // числа, з якими предмет піде в бій
-            var enhancementBonus = _catalog.Config.Equipment.EnhancementBonusPerLevel;
-
-            var equipment = contents.Equipment
+            var equipment = inventory.Equipment
                 .Select(e => new EquipmentResponse(
                     e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
-                    e.EnhancementLevel, e.EquippedByHeroId, e.SlotIndex, e.IsBroken,
-                    e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey, enhancementBonus)),
+                    e.EnhancementLevel, e.EquippedByHeroId, e.SlotIndex, e.IsBroken, e.Stats,
                     e.IsOnMarket, e.ResaleLockedUntil))
                 .ToList();
 
-            var activeEffects = contents.ActiveEffects.Select(e => new ActiveEffectResponse(e.Target.ToString(), e.Multiplier, e.ExpiresAt, e.SourceItemKey)).ToList();
+            var activeEffects = inventory.ActiveEffects
+                .Select(e => new ActiveEffectResponse(e.Target.ToString(), e.Multiplier, e.ExpiresAt, e.SourceItemKey))
+                .ToList();
 
             return Ok(new InventoryResponse(items, equipment, activeEffects));
         }
