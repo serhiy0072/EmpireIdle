@@ -13,6 +13,6 @@ namespace EmpireIdle.API.Jobs
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
         public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachServerAsync(
             nameof(ChatRetentionJob),
-            (mediator, _) => mediator.Send(new DeleteOldChatMessagesCommand()), cancellationToken);
+            (mediator, _, ct) => mediator.Send(new DeleteOldChatMessagesCommand(), ct), cancellationToken);
     }
 }

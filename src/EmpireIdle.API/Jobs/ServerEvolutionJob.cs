@@ -17,6 +17,6 @@ namespace EmpireIdle.API.Jobs
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
         public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachServerAsync(
             nameof(ServerEvolutionJob),
-            (mediator, serverId) => mediator.Send(new EvolveServerCommand(serverId)), cancellationToken);
+            (mediator, serverId, ct) => mediator.Send(new EvolveServerCommand(serverId), ct), cancellationToken);
     }
 }

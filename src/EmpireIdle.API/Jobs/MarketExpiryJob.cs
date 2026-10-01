@@ -18,7 +18,7 @@ namespace EmpireIdle.API.Jobs
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
         public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachItemAsync(
             nameof(ExpireMarketListingCommand),
-            mediator => mediator.Send(new GetMarketListingIdsDueToExpireQuery()),
-            (mediator, listingId) => mediator.Send(new ExpireMarketListingCommand(listingId)), cancellationToken);
+            (mediator, ct) => mediator.Send(new GetMarketListingIdsDueToExpireQuery(), ct),
+            (mediator, listingId, ct) => mediator.Send(new ExpireMarketListingCommand(listingId), ct), cancellationToken);
     }
 }

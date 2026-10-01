@@ -17,6 +17,6 @@ namespace EmpireIdle.API.Jobs
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
         public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachServerAsync(
             nameof(MarketPricesJob),
-            (mediator, serverId) => mediator.Send(new RecalculateMarketPricesCommand(serverId)), cancellationToken);
+            (mediator, serverId, ct) => mediator.Send(new RecalculateMarketPricesCommand(serverId), ct), cancellationToken);
     }
 }

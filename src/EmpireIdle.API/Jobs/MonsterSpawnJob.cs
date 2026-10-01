@@ -16,7 +16,7 @@ namespace EmpireIdle.API.Jobs
 
         /// <summary>Один прогін за раз: перетин дав би подвійне нарахування.</summary>
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
-        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachServerAsync(nameof(MonsterSpawnJob), (mediator, serverId) =>
-            mediator.Send(new SpawnMonstersCommand(serverId)), cancellationToken);
+        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachServerAsync(nameof(MonsterSpawnJob), (mediator, serverId, ct) =>
+            mediator.Send(new SpawnMonstersCommand(serverId), ct), cancellationToken);
     }
 }

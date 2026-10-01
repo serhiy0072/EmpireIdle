@@ -13,6 +13,6 @@ namespace EmpireIdle.API.Jobs
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
         public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachServerAsync(
             nameof(MailRetentionJob),
-            (mediator, _) => mediator.Send(new DeleteExpiredMailCommand()), cancellationToken);
+            (mediator, _, ct) => mediator.Send(new DeleteExpiredMailCommand(), ct), cancellationToken);
     }
 }

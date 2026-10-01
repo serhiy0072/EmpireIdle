@@ -21,27 +21,27 @@ namespace EmpireIdle.API.Jobs
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
         public async Task RunAsync(CancellationToken cancellationToken)
         {
-            await _runner.ForEachItemAsync(nameof(CompleteVillageConstructionsCommand), mediator => mediator.Send(new GetVillageIdsWithDueConstructionsQuery()),
-                (mediator, id) => mediator.Send(new CompleteVillageConstructionsCommand(id)), cancellationToken);
+            await _runner.ForEachItemAsync(nameof(CompleteVillageConstructionsCommand), (mediator, ct) => mediator.Send(new GetVillageIdsWithDueConstructionsQuery(), ct),
+                (mediator, id, ct) => mediator.Send(new CompleteVillageConstructionsCommand(id), ct), cancellationToken);
 
-            await _runner.ForEachItemAsync(nameof(CompleteGarrisonTrainingCommand), mediator => mediator.Send(new GetGarrisonIdsWithDueTrainingQuery()),
-                (mediator, id) => mediator.Send(new CompleteGarrisonTrainingCommand(id)), cancellationToken);
+            await _runner.ForEachItemAsync(nameof(CompleteGarrisonTrainingCommand), (mediator, ct) => mediator.Send(new GetGarrisonIdsWithDueTrainingQuery(), ct),
+                (mediator, id, ct) => mediator.Send(new CompleteGarrisonTrainingCommand(id), ct), cancellationToken);
 
-            await _runner.ForEachItemAsync(nameof(CompleteGarrisonLevelUpsCommand), mediator => mediator.Send(new GetGarrisonIdsWithDueLevelUpsQuery()),
-                (mediator, id) => mediator.Send(new CompleteGarrisonLevelUpsCommand(id)), cancellationToken);
+            await _runner.ForEachItemAsync(nameof(CompleteGarrisonLevelUpsCommand), (mediator, ct) => mediator.Send(new GetGarrisonIdsWithDueLevelUpsQuery(), ct),
+                (mediator, id, ct) => mediator.Send(new CompleteGarrisonLevelUpsCommand(id), ct), cancellationToken);
 
-            await _runner.ForEachItemAsync(nameof(CompleteHeroLevelUpCommand), mediator => mediator.Send(new GetHeroOrderIdsWithDueLevelUpQuery()),
-                (mediator, id) => mediator.Send(new CompleteHeroLevelUpCommand(id)), cancellationToken);
+            await _runner.ForEachItemAsync(nameof(CompleteHeroLevelUpCommand), (mediator, ct) => mediator.Send(new GetHeroOrderIdsWithDueLevelUpQuery(), ct),
+                (mediator, id, ct) => mediator.Send(new CompleteHeroLevelUpCommand(id), ct), cancellationToken);
 
-            await _runner.ForEachServerAsync(nameof(RemoveExpiredEffectsCommand), (mediator, _) => mediator.Send(new RemoveExpiredEffectsCommand()), cancellationToken);
+            await _runner.ForEachServerAsync(nameof(RemoveExpiredEffectsCommand), (mediator, _, ct) => mediator.Send(new RemoveExpiredEffectsCommand(), ct), cancellationToken);
 
-            await _runner.ForEachServerAsync(nameof(RemoveExpiredClanHelpCommand), (mediator, _) => mediator.Send(new RemoveExpiredClanHelpCommand()), cancellationToken);
+            await _runner.ForEachServerAsync(nameof(RemoveExpiredClanHelpCommand), (mediator, _, ct) => mediator.Send(new RemoveExpiredClanHelpCommand(), ct), cancellationToken);
 
             // Кожен похід — у власному scope, тим самим шляхом, що й інші таймери
-            await _runner.ForEachItemAsync(nameof(CompleteMarchCommand), mediator => mediator.Send(new GetDueMarchIdsQuery()),
-                (mediator, id) => mediator.Send(new CompleteMarchCommand(id)), cancellationToken);
+            await _runner.ForEachItemAsync(nameof(CompleteMarchCommand), (mediator, ct) => mediator.Send(new GetDueMarchIdsQuery(), ct),
+                (mediator, id, ct) => mediator.Send(new CompleteMarchCommand(id), ct), cancellationToken);
 
-            await _runner.ForEachServerAsync(nameof(PurgeExpiredRecoverableCommand), (mediator, _) => mediator.Send(new PurgeExpiredRecoverableCommand()), cancellationToken);
+            await _runner.ForEachServerAsync(nameof(PurgeExpiredRecoverableCommand), (mediator, _, ct) => mediator.Send(new PurgeExpiredRecoverableCommand(), ct), cancellationToken);
         }
     }
 }

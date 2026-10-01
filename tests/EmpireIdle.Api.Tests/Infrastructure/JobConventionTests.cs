@@ -58,8 +58,8 @@ public class JobConventionTests
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Runner().ForEachItemAsync(
             "test",
-            _ => Task.FromResult<IReadOnlyList<int>>([1, 2, 3]),
-            (_, _) =>
+            (_, _) => Task.FromResult<IReadOnlyList<int>>([1, 2, 3]),
+            (_, _, _) =>
             {
                 processed++;
                 shutdown.Cancel();
@@ -78,8 +78,8 @@ public class JobConventionTests
 
         await Runner().ForEachItemAsync(
             "test",
-            _ => Task.FromResult<IReadOnlyList<int>>([1, 2, 3]),
-            (_, item) =>
+            (_, _) => Task.FromResult<IReadOnlyList<int>>([1, 2, 3]),
+            (_, item, _) =>
             {
                 processed++;
                 return item == 2 ? throw new InvalidOperationException("boom") : Task.CompletedTask;
@@ -87,6 +87,23 @@ public class JobConventionTests
 
         // Два світи × три елементи
         Assert.Equal(6, processed);
+    }
+
+    /// <summary>Токен зупинки доходить до дії: інакше Send у джобі не дізнався б про деплой.</summary>
+    [Fact]
+    public async Task Runner_ShouldHandTheShutdownTokenToTheAction()
+    {
+        using var shutdown = new CancellationTokenSource();
+        var received = new List<CancellationToken>();
+
+        await Runner().ForEachServerAsync("test", (_, _, ct) =>
+        {
+            received.Add(ct);
+            return Task.CompletedTask;
+        }, shutdown.Token);
+
+        Assert.All(received, ct => Assert.Equal(shutdown.Token, ct));
+        Assert.Equal(2, received.Count);
     }
 
     /// <summary>Світ без HTTP-запиту: раннер лише ставить його в scope.</summary>
