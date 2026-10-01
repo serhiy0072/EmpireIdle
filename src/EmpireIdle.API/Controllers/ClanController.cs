@@ -148,6 +148,18 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Передати лідерство учаснику. Лише лідер; сам він стає на другу за рангом роль.</summary>
+        [HttpPost("{playerId:guid}/members/{targetPlayerId:guid}/leadership")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> TransferLeadership(Guid playerId, Guid targetPlayerId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new TransferLeadershipCommand(playerId, targetPlayerId), cancellationToken);
+
+            return NoContent();
+        }
+
         /// <summary>Призначити роль учаснику. Роль лідера передається окремо.</summary>
         [HttpPost("{playerId:guid}/members/{targetPlayerId:guid}/role")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

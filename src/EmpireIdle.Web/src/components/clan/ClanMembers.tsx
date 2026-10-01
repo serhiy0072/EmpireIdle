@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { ClanMemberResponse, ClanRoleResponse } from "../../lib/apiTypes";
 
@@ -9,9 +10,11 @@ interface Props {
   now: number;
   canKick: boolean;
   canAssignRoles: boolean;
+  isLeader: boolean;
   busy: boolean;
   onKick: (playerId: string) => void;
   onAssignRole: (playerId: string, roleId: string) => void;
+  onTransferLeadership: (playerId: string) => void;
 }
 
 function compact(value: number): string {
@@ -38,10 +41,15 @@ export default function ClanMembers({
   now,
   canKick,
   canAssignRoles,
+  isLeader,
   busy,
   onKick,
   onAssignRole,
+  onTransferLeadership,
 }: Props) {
+  // Передача лідерства незворотна для того, хто натиснув, — тож у два кліки
+  const [confirmLeader, setConfirmLeader] = useState<string | null>(null);
+
   // Більший ранг — старший: лідер угорі
   const sorted = [...members].sort((a, b) => b.rank - a.rank || b.power - a.power);
   // Роль можна дати лише нижчу за свою
@@ -103,7 +111,25 @@ export default function ClanMembers({
                 </td>
                 <td className="px-3 py-2 text-right text-slate-700">{compact(member.power)}</td>
                 <td className="px-3 py-2 text-slate-500">{since(member.lastActiveAt, now)}</td>
-                <td className="px-3 py-2 text-right">
+                <td className="space-x-1 whitespace-nowrap px-3 py-2 text-right">
+                  {isLeader && !me && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirmLeader === member.playerId) {
+                          setConfirmLeader(null);
+                          onTransferLeadership(member.playerId);
+                        } else {
+                          setConfirmLeader(member.playerId);
+                        }
+                      }}
+                      onBlur={() => setConfirmLeader(null)}
+                      disabled={busy}
+                      className="rounded-lg border border-amber-300 px-2 py-0.5 text-xs text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                    >
+                      {confirmLeader === member.playerId ? "Точно передати?" : "Зробити лідером"}
+                    </button>
+                  )}
                   {canKick && below && (
                     <button
                       type="button"

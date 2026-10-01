@@ -24,6 +24,7 @@ import {
   useRecallReinforcements,
   useRequestHelp,
   useResolveRequest,
+  useTransferLeadership,
   useUpdateClanSettings,
 } from "../lib/queries/clans";
 import { useGarrison } from "../lib/queries/garrison";
@@ -54,6 +55,7 @@ export default function ClanPage() {
   const leave = useLeaveClan(playerId);
   const kick = useKickMember(playerId);
   const assignRole = useAssignRole(playerId);
+  const transferLeadership = useTransferLeadership(playerId);
   const settings = useUpdateClanSettings(playerId);
   const requestHelp = useRequestHelp(playerId);
   const giveHelp = useGiveHelp(playerId);
@@ -72,7 +74,7 @@ export default function ClanPage() {
     return <ErrorBanner error={clan.error} />;
   }
 
-  const mutations = [create, join, leave, kick, assignRole, settings, requestHelp, giveHelp, recall, invite, resolve];
+  const mutations = [create, join, leave, kick, assignRole, transferLeadership, settings, requestHelp, giveHelp, recall, invite, resolve];
   const busy = mutations.some((mutation) => mutation.isPending);
   // Помилка лише останньої дії: інакше стара відмова однієї кнопки
   // (скажімо, створення клану) перекривала б свіжу відмову іншої
@@ -182,9 +184,11 @@ export default function ClanPage() {
           now={now}
           canKick={permissions.has("Kick")}
           canAssignRoles={permissions.has("AssignRoles")}
+          isLeader={isLeader}
           busy={busy}
           onKick={(targetPlayerId) => kick.mutate(targetPlayerId)}
           onAssignRole={(targetPlayerId, roleId) => assignRole.mutate({ targetPlayerId, roleId })}
+          onTransferLeadership={(targetPlayerId) => transferLeadership.mutate(targetPlayerId)}
         />
       )}
 

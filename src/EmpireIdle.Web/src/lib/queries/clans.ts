@@ -122,6 +122,15 @@ export function useKickMember(playerId: string) {
   );
 }
 
+/** Лідер передає лідерство учаснику й сам стає на другу за рангом роль. */
+export function useTransferLeadership(playerId: string) {
+  return useClanCommand<string>(
+    playerId,
+    (targetPlayerId) => ({ path: `/api/clans/${playerId}/members/${targetPlayerId}/leadership` }),
+    ["clan"],
+  );
+}
+
 export function useAssignRole(playerId: string) {
   return useClanCommand<{ targetPlayerId: string; roleId: string }>(
     playerId,
