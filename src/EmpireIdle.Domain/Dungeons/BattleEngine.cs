@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
@@ -56,11 +57,13 @@ namespace EmpireIdle.Domain.Dungeons
         }
 
         /// <summary>
-        /// Виконує хід. Ціль перевіряється тут, а не в застосунку: правило
-        /// ліній — частина бою, і клієнт не має шансу його обійти.
+        /// Виконує хід. Енергія й ціль перевіряються тут, а не в застосунку: правило
+        /// ліній — частина бою, і ні клієнт, ні автобій не мають шансу його обійти.
         /// </summary>
         public TurnResult Execute(BattleState state, int actorIndex, BattleAction action, HeroAbilityConfig? ability)
         {
+            EnsureLegal(state, state.Combatants[actorIndex], ability, action);
+
             var combatants = state.Combatants.ToList();
             var actor = combatants[actorIndex];
             var effects = new List<TurnEffect>();
@@ -157,6 +160,28 @@ namespace EmpireIdle.Domain.Dungeons
             var frontAlive = state.Combatants.Any(c => c.Side == target.Side && c.IsAlive && c.Line == BattleLine.Front);
 
             return !frontAlive || target.Line == BattleLine.Front;
+        }
+
+        /// <summary>
+        /// Дія законна в стані, який бачив той, хто ходить: енергії вистачає, а ціль —
+        /// жива й досяжна за правилом ліній. Масові вміння й «на себе» цілі не потребують.
+        /// </summary>
+        private static void EnsureLegal(BattleState state, Combatant actor, HeroAbilityConfig? ability, BattleAction action)
+        {
+            if (ability is not null && actor.Energy < ability.EnergyCost)
+                throw new RequirementNotMetException($"Ability '{ability.Key}' needs {ability.EnergyCost} energy.");
+
+            var needsTarget = ability is null
+                || ability.Target is AbilityTarget.SingleEnemy or AbilityTarget.SingleAlly;
+
+            if (!needsTarget)
+                return;
+
+            if (action.TargetIndex is not { } target)
+                throw new RequirementNotMetException("This action needs a target.");
+
+            if (!CanTarget(state, actor, ability, target))
+                throw new RequirementNotMetException(RefusalReasons.DungeonTargetUnreachable, "That target cannot be reached right now.");
         }
 
         private bool IsUseful(BattleState state, Combatant actor, HeroAbilityConfig ability)

@@ -1,5 +1,6 @@
 using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Tests.Dungeons;
@@ -148,6 +149,44 @@ public class BattleEngineTests
 
         Assert.True(BattleEngine.CanTarget(taunted, taunted.Combatants[0], null, 2));
         Assert.False(BattleEngine.CanTarget(taunted, taunted.Combatants[0], null, 1));
+    }
+
+    // ---------- Законність ходу ----------
+
+    /// <summary>Правило ліній живе в рушії: хід у тил повз живу передню лінію не виконується.</summary>
+    [Fact]
+    public void Execute_ShouldRefuse_AnUnreachableTarget()
+    {
+        var state = State(Hero(0), Enemy(1, BattleLine.Front), Enemy(2, BattleLine.Back));
+
+        var refusal = Assert.Throws<RequirementNotMetException>(() =>
+            Engine().Execute(state, 0, new BattleAction(null, 2), ability: null));
+
+        Assert.Equal(RefusalReasons.DungeonTargetUnreachable.Key, refusal.Reason);
+    }
+
+    [Fact]
+    public void Execute_ShouldRefuse_AnAbilityWithoutEnoughEnergy()
+        => Assert.Throws<RequirementNotMetException>(() =>
+            Engine().Execute(State(Hero(0, energy: 40), Enemy(1)), 0, new BattleAction("strike", 1), Strike(cost: 50)));
+
+    [Fact]
+    public void Execute_ShouldRefuse_ASingleTargetActionWithoutATarget()
+        => Assert.Throws<RequirementNotMetException>(() =>
+            Engine().Execute(State(Hero(0), Enemy(1)), 0, new BattleAction(null, null), ability: null));
+
+    /// <summary>Автобій іде тим самим шляхом: його вибір завжди законний.</summary>
+    [Fact]
+    public void Execute_ShouldAcceptTheAutoChoice()
+    {
+        var state = State(Hero(0, energy: 100), Enemy(1, BattleLine.Front), Enemy(2, BattleLine.Back));
+        var engine = Engine();
+        var abilities = new[] { Strike(cost: 100) };
+
+        var action = engine.ChooseAuto(state, 0, abilities);
+        var result = engine.Execute(state, 0, action, abilities.Single(a => a.Key == action.AbilityKey));
+
+        Assert.Equal(1, result.State.TurnNumber);
     }
 
     // ---------- Удари й енергія ----------
