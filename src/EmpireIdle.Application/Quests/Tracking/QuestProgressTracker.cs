@@ -51,7 +51,7 @@ namespace EmpireIdle.Application.Quests.Tracking
         private async Task TrackPersonalAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
         {
             var candidates = _catalog.Quests.Values
-                .Where(q => q.Scope == QuestScope.Personal && IsOpen(q, utcNow))
+                .Where(q => q.Scope == QuestScope.Personal && q.IsOpenAt(utcNow))
                 .Where(q => q.Objectives.Any(o => Matches(o, signal)))
                 .ToList();
 
@@ -119,7 +119,7 @@ namespace EmpireIdle.Application.Quests.Tracking
         private async Task TrackServerAsync(QuestSignal signal, DateTime utcNow, CancellationToken cancellationToken)
         {
             var candidates = _catalog.Quests.Values
-                .Where(q => q.Scope == QuestScope.Server && IsOpen(q, utcNow))
+                .Where(q => q.Scope == QuestScope.Server && q.IsOpenAt(utcNow))
                 .Where(q => q.Objectives.Any(o => Matches(o, signal)))
                 .ToList();
 
@@ -167,7 +167,7 @@ namespace EmpireIdle.Application.Quests.Tracking
                 return;
 
             var candidates = _catalog.Quests.Values
-                .Where(q => q.Scope == QuestScope.Clan && IsOpen(q, utcNow))
+                .Where(q => q.Scope == QuestScope.Clan && q.IsOpenAt(utcNow))
                 .Where(q => Matches(q.Objectives[0], signal))
                 .ToList();
 
@@ -207,11 +207,6 @@ namespace EmpireIdle.Application.Quests.Tracking
         private static bool Matches(QuestObjectiveConfig objective, QuestSignal signal)
             => objective.Type == signal.EventType
                && (objective.Target is null || objective.Target == signal.Target);
-
-        /// <summary>Квест доступний зараз: вікно Event має межі, решта — завжди.</summary>
-        private static bool IsOpen(QuestConfig config, DateTime utcNow)
-            => (config.ActiveFrom is not { } from || utcNow >= from)
-               && (config.ActiveTo is not { } to || utcNow <= to);
 
 
     }

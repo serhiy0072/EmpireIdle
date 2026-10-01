@@ -62,6 +62,25 @@ public class ClaimQuestRewardCommandTests
             },
             new QuestConfig
             {
+                Key = "chain_next",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Chain,
+                Prerequisite = "daily_collect",
+                Objectives = [new QuestObjectiveConfig { Type = "BuildingCollected", Count = 5 }],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 10 }]
+            },
+            new QuestConfig
+            {
+                Key = "event_over",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Event,
+                ActiveFrom = Now.AddDays(-7),
+                ActiveTo = Now.AddDays(-1),
+                Objectives = [new QuestObjectiveConfig { Type = "BuildingCollected", Count = 5 }],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 10 }]
+            },
+            new QuestConfig
+            {
                 Key = "server_cleanup",
                 Scope = QuestScope.Server,
                 Window = QuestWindow.Chain,
@@ -156,6 +175,56 @@ public class ClaimQuestRewardCommandTests
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
             Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "daily_collect"), CancellationToken.None));
+    }
+
+    /// <summary>Ключ від клієнта, якого немає в каталозі, — 404, а не 500 зі збою каталогу.</summary>
+    [Fact]
+    public async Task Handle_ShouldThrowNotFound_ForAnUnknownQuestKey()
+    {
+        await Assert.ThrowsAsync<EntityNotFoundException>(() =>
+            Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "no_such_quest"), CancellationToken.None));
+    }
+
+    /// <summary>
+    /// Квест за незавершеним пререквізитом у списку не видно — і прямий POST
+    /// його не забирає, навіть якщо прогрес уже набрано.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenThePrerequisiteIsNotComplete()
+    {
+        GivenProgress("daily_collect", completed: false);
+        GivenProgress("chain_next");
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "chain_next"), CancellationToken.None));
+
+        await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Ланцюжок відкривається завершенням пререквізиту, а не його клеймом.</summary>
+    [Fact]
+    public async Task Handle_ShouldClaim_WhenThePrerequisiteIsCompleteButUnclaimed()
+    {
+        _granter.RewardType.Returns("Gems");
+        GivenProgress("daily_collect");
+        var progress = GivenProgress("chain_next");
+
+        await Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "chain_next"), CancellationToken.None);
+
+        Assert.Equal(QuestState.Claimed, progress.State);
+    }
+
+    /// <summary>Вікно події закрилось, поки список був відкритий, — відмова з причиною, без нагороди.</summary>
+    [Fact]
+    public async Task Handle_ShouldReject_OutsideTheEventWindow()
+    {
+        GivenProgress("event_over");
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
+            Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "event_over"), CancellationToken.None));
+        Assert.Equal(RefusalReasons.QuestNotClaimable.Key, refusal.Reason);
+
+        await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>

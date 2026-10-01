@@ -58,10 +58,7 @@ namespace EmpireIdle.Application.Quests.Queries
                 if (config.Prerequisite is not null && !unlocked.Contains(config.Prerequisite))
                     continue;
 
-                if (config.ActiveFrom is { } from && now < from)
-                    continue;
-
-                if (config.ActiveTo is { } to && now > to)
+                if (!config.IsOpenAt(now))
                     continue;
 
                 var (state, amounts) = effective[config.Key];

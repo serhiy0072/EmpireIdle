@@ -32,8 +32,7 @@ namespace EmpireIdle.Application.ServerQuests.Queries
 
             var configs = _catalog.Config.Quests
                 .Where(q => q.Scope == QuestScope.Server)
-                .Where(q => (q.ActiveFrom is not { } from || now >= from)
-                            && (q.ActiveTo is not { } to || now <= to))
+                .Where(q => q.IsOpenAt(now))
                 .ToList();
 
             var views = new List<ServerQuestView>(configs.Count);

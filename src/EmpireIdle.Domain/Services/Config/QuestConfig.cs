@@ -18,6 +18,11 @@ namespace EmpireIdle.Domain.Services.Config
         public DateTime? ActiveFrom { get; set; }
         public DateTime? ActiveTo { get; set; }
 
+        /// <summary>Квест відкритий зараз: вікно Event має межі, решта — завжди.</summary>
+        public bool IsOpenAt(DateTime utcNow)
+            => (ActiveFrom is not { } from || utcNow >= from)
+               && (ActiveTo is not { } to || utcNow <= to);
+
         public List<QuestObjectiveConfig> Objectives { get; set; } = new();
 
         /// <summary>Нагорода для Scope=Personal.</summary>
