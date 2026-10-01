@@ -69,6 +69,19 @@ public class BuildingTests
         Assert.Equal(60, building.StoredAt(Farm, start.AddHours(5), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
+    /// <summary>
+    /// Виробіток понад int (довга відсутність, великий множник) не перевертається
+    /// в від'ємне число при приведенні типу — склад просто повний.
+    /// </summary>
+    [Fact]
+    public void StoredAt_ShouldCapProductionBeyondIntRange()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+
+        Assert.Equal(60, building.StoredAt(Farm, start.AddHours(5), ProductionBoost.None, locationMultiplier: 1e9));
+    }
+
     /// <summary>Рівень множить ставку: 2 рівень виробляє вдвічі швидше.</summary>
     [Fact]
     public void StoredAt_ShouldScaleWithLevel()
