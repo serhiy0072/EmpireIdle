@@ -36,6 +36,7 @@ namespace EmpireIdle.API.Jobs
             _manager.AddOrUpdate<MarketPricesJob>("market-prices", job => job.RunAsync(CancellationToken.None), Cron.Hourly);
             _manager.AddOrUpdate<ChatRetentionJob>("chat-retention", job => job.RunAsync(CancellationToken.None), Cron.Daily);
             _manager.AddOrUpdate<MailRetentionJob>("mail-retention", job => job.RunAsync(CancellationToken.None), Cron.Daily);
+            _manager.AddOrUpdate<MarchRetentionJob>("march-retention", job => job.RunAsync(CancellationToken.None), Cron.Daily);
 
             return Task.CompletedTask;
         }

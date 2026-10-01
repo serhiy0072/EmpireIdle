@@ -32,5 +32,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Додати похід.</summary>
         Task AddAsync(March march, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє одразу в БД завершені марші, востаннє змінені до <paramref name="before"/>. Склад і вантаж — каскадом.</summary>
+        Task<int> DeleteCompletedBeforeAsync(DateTime before, CancellationToken cancellationToken = default);
     }
 }

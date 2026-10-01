@@ -152,7 +152,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public async Task AddAsync(March march, CancellationToken cancellationToken = default)
             =>  await _context.Marches.AddAsync(march, cancellationToken);
-        
+
+        /// <inheritdoc/>
+        public Task<int> DeleteCompletedBeforeAsync(DateTime before, CancellationToken cancellationToken = default)
+            => _context.Marches
+                .Where(m => m.State == MarchState.Completed && m.UpdatedAt < before)
+                .ExecuteDeleteAsync(cancellationToken);
     }
 }
 
