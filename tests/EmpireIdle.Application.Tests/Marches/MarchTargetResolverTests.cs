@@ -37,7 +37,11 @@ public class MarchTargetResolverTests
             new MonsterArmyBuilder(catalog),
             new HeroCombatModifiers(catalog),
             catalog,
-            new VillageStatus(catalog));
+            new VillageStatus(catalog),
+            Substitute.For<IClanStructureRepository>(),
+            Substitute.For<IClanRepository>(),
+            new ClanTerritoryRules(catalog),
+            Substitute.For<IMarchRepository>());
     }
 
     private static Village NewVillage(int townHallLevel)

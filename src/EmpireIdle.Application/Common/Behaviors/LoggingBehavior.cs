@@ -5,7 +5,8 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Common.Behaviors
 {
     /// <summary>
-    /// Pipeline behavior: логує кожен MediatR-запит і час його обробки.
+    /// Pipeline behavior: один запис на кожен MediatR-запит — тривалість і результат.
+    /// Відмову логуємо як Warning з типом винятку; деталі й стек пише той, хто його ловить.
     /// </summary>
     public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : notnull
@@ -19,15 +20,29 @@ namespace EmpireIdle.Application.Common.Behaviors
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
-            var requestName = typeof(TRequest).Name;
-            _logger.LogInformation("Handling {RequestName}", requestName);
-
             var stopwatch = Stopwatch.StartNew();
-            var response = await next(cancellationToken);
-            stopwatch.Stop();
+            Exception? failure = null;
 
-            _logger.LogInformation("Handled {RequestName} in {ElapsedMs}ms", requestName, stopwatch.ElapsedMilliseconds);
-            return response;
+            try
+            {
+                return await next(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                failure = ex;
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                if (failure is null)
+                    _logger.LogInformation("Handled {RequestName} in {ElapsedMs}ms",
+                        typeof(TRequest).Name, stopwatch.ElapsedMilliseconds);
+                else
+                    _logger.LogWarning("Failed {RequestName} in {ElapsedMs}ms with {ExceptionType}",
+                        typeof(TRequest).Name, stopwatch.ElapsedMilliseconds, failure.GetType().Name);
+            }
         }
     }
 }

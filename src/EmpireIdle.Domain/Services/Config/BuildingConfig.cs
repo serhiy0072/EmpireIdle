@@ -25,6 +25,12 @@ namespace EmpireIdle.Domain.Services.Config
         public bool IsMainBuilding { get; set; }
 
         /// <summary>
+        /// Чи має будівля рівні (GDD §3.1). false — функціональна будівля: ратуша її
+        /// відкриває, і вона назавжди стоїть на рівні 1 без апгрейдів (ринок, кузня…).
+        /// </summary>
+        public bool Upgradable { get; set; } = true;
+
+        /// <summary>
         /// Мінімальний рівень головної будівлі для розблокування.
         /// Нижче цього порогу будівля існує в селищі, але схована туманом.
         /// </summary>
@@ -85,12 +91,6 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public double DefenceBonusPerLevel { get; set; }
 
-        /// <summary>Радіус розвідки за рівень (0 — не вежа розвідників).</summary>
-        public int ScoutRangePerLevel { get; set; }
-
-        /// <summary>Скільки одночасних лотів на ринку відкриває рівень (0 — не ринок).</summary>
-        public int MarketSlotsPerLevel { get; set; }
-
         /// <summary>
         /// Скільки чужих юнітів можна прийняти підкріпленням на рівень (0 — не посольство).
         /// Ліміт у господаря, не в того, хто надсилає.
@@ -99,12 +99,6 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Скільки приручених звірів вміщає рівень (0 — не звіринець).</summary>
         public int BeastCapacityPerLevel { get; set; }
-
-        /// <summary>Скільки героїв можна тримати активними на рівень (0 — не зал героїв).</summary>
-        public int HeroSlotsPerLevel { get; set; }
-
-        /// <summary>Скільки одночасних прокачок зброї відкриває рівень (0 — не кузня).</summary>
-        public int WeaponUpgradeSlotsPerLevel { get; set; }
 
         /// <summary>Скільки одиниць ресурсу за рівень не можна пограбувати. Лише для сховищ.</summary>
         public int ProtectedStorage { get; set; }

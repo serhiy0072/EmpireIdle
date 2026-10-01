@@ -25,7 +25,7 @@ namespace EmpireIdle.Application.Common.Behaviors
         private readonly ILogger<IdempotencyBehavior<TRequest, TResponse>> _logger;
 
         private static readonly Regex IdempotencyKeyPattern =
-            new(@"^[A-Za-z0-9._-]{16,128}$", RegexOptions.Compiled);
+            new(@"^[A-Za-z0-9._-]{16,100}$", RegexOptions.Compiled);
 
         public IdempotencyBehavior(
             IIdempotencyRepository repository,
@@ -61,7 +61,7 @@ namespace EmpireIdle.Application.Common.Behaviors
             if (!IdempotencyKeyPattern.IsMatch(key))
                 throw new ValidationException([
                     new ValidationFailure("Idempotency-Key",
-                        "Idempotency-Key must be 16–128 chars of [A-Za-z0-9._-].")]);
+                        "Idempotency-Key must be 16–100 chars of [A-Za-z0-9._-].")]);
 
             var requestType = typeof(TRequest).Name;
 

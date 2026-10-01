@@ -64,7 +64,7 @@ public class RecoverUnitsCommandTests
         }
 
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
-        wallet.AddGems(new GemAmount(gems), "seed", PlayerId, Now);
+        wallet.AddGems(new GemAmount(gems), "seed", Now);
 
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
@@ -86,7 +86,7 @@ public class RecoverUnitsCommandTests
         await Handler().Handle(Recover(5), CancellationToken.None);
 
         Assert.Equal(5, garrison.Units.Sum(u => u.Count));
-        Assert.Equal(5, garrison.RecoverableCount(Now));
+        Assert.Equal(5, garrison.Recoverable.Where(r => r.IsActive(Now)).Sum(r => r.Count));
     }
 
     /// <summary>

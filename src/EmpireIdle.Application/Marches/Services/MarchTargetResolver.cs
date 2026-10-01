@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -16,6 +17,9 @@ namespace EmpireIdle.Application.Marches.Services
     /// <param name="DefenceBuffs">
     /// Пасивки лідерів, що стоять у цій обороні. Для монстра порожні.
     /// </param>
+    /// <param name="Structure">Кланова споруда, якщо ціль — вона. Name тоді — тег клану.</param>
+    /// <param name="Camp">Марш-табір, якщо ціль — він (§2.5). Name тоді — село власника.</param>
+    /// <param name="CampHome">Село власника табору: хто він, куди відступає армія й куди йдуть поранені.</param>
     public record MarchTarget(
         int X,
         int Y,
@@ -24,7 +28,10 @@ namespace EmpireIdle.Application.Marches.Services
         Village? Village,
         IReadOnlyList<DefenceStack> Defence,
         DefenceBuffs DefenceBuffs,
-        double DefenceMultiplier);
+        double DefenceMultiplier,
+        ClanStructure? Structure = null,
+        March? Camp = null,
+        Village? CampHome = null);
 
     /// <summary>
     /// Знаходить ціль походу й описує її однаково для відправлення,
@@ -45,6 +52,12 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly HeroCombatModifiers _heroModifiers;
         private readonly GameCatalog _catalog;
         private readonly VillageStatus _status;
+        private readonly IClanStructureRepository _structureRepository;
+        private readonly IClanRepository _clanRepository;
+        private readonly ClanTerritoryRules _territory;
+        private readonly TerritoryBonus _territoryBonus;
+        private readonly IMarchRepository _marchRepository;
+        private readonly HostilityRules _hostility;
 
         public MarchTargetResolver(
             IMonsterRepository monsterRepository,
@@ -54,7 +67,11 @@ namespace EmpireIdle.Application.Marches.Services
             MonsterArmyBuilder armyBuilder,
             HeroCombatModifiers heroModifiers,
             GameCatalog catalog,
-            VillageStatus status)
+            VillageStatus status,
+            IClanStructureRepository structureRepository,
+            IClanRepository clanRepository,
+            ClanTerritoryRules territory,
+            IMarchRepository marchRepository)
         {
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
@@ -64,7 +81,19 @@ namespace EmpireIdle.Application.Marches.Services
             _heroModifiers = heroModifiers;
             _status = status;
             _catalog = catalog;
+            _structureRepository = structureRepository;
+            _clanRepository = clanRepository;
+            _territory = territory;
+            _marchRepository = marchRepository;
+
+            // Той самий розрахунок, що в бою: прев'ю не має розходитись із результатом
+            _territoryBonus = new TerritoryBonus(clanRepository, structureRepository, territory);
+            _hostility = new HostilityRules(clanRepository);
         }
+
+        /// <summary>Множник атаки кланової території для маршу з цього села — для прев'ю.</summary>
+        public Task<double> AttackMultiplierAsync(Village origin, DateTime utcNow, CancellationToken cancellationToken)
+            => _territoryBonus.AttackMultiplierAsync(origin, utcNow, cancellationToken);
 
         /// <summary>
         /// Резолвить ціль і звіряє світ.
@@ -122,7 +151,71 @@ namespace EmpireIdle.Application.Marches.Services
                         village,
                         defence,
                         buffs,
-                        _status.DefenceMultiplier(village, utcNow));
+                        _status.DefenceMultiplier(village, utcNow)
+                        * await _territoryBonus.DefenceMultiplierAsync(village, utcNow, cancellationToken));
+
+                case MarchTargetType.ClanStructure:
+                    var structure = await _structureRepository.GetByIdAsync(targetId, cancellationToken)
+                        ?? throw new EntityNotFoundException("Clan structure", targetId);
+
+                    if (structure.ServerId != origin.ServerId)
+                        throw new EntityNotFoundException("Clan structure", targetId);
+
+                    var structureGarrison = await _garrisonRepository.GetByIdAsync(structure.GarrisonId, cancellationToken);
+
+                    // Своїх юнітів у споруди немає: уся оборона — підкріплення учасників,
+                    // і лідер кожного діє лише на свій стек
+                    var structureDefence = structureGarrison is null ? [] : structureGarrison.GetDefence();
+
+                    var structureBuffs = structureGarrison is null
+                        ? DefenceBuffs.None
+                        : await BuildDefenceBuffsAsync(structureGarrison.Id, Guid.Empty, cancellationToken);
+
+                    var clan = await _clanRepository.GetCardAsync(structure.ClanId, cancellationToken);
+
+                    return new MarchTarget(
+                        structure.X, structure.Y,
+                        clan?.Tag ?? string.Empty,
+                        Level: 0,
+                        Village: null,
+                        structureDefence,
+                        structureBuffs,
+                        // Споруда завжди в межах власного радіуса: добудована — під своїм бонусом
+                        _territory.DefenceMultiplier(_territory.Enabled && structure.IsActiveAt(utcNow)),
+                        structure);
+
+                case MarchTargetType.Camp:
+                    // Табором вважається лише марш, що стоїть; відкликаний чи розбитий — уже не ціль
+                    var camp = await _marchRepository.GetByIdAsync(targetId, cancellationToken);
+
+                    if (camp is null || camp.State != MarchState.Camping || camp.ServerId != origin.ServerId)
+                        throw new EntityNotFoundException("Camp", targetId);
+
+                    var campGarrison = await _garrisonRepository.GetByIdAsync(camp.GarrisonId, cancellationToken);
+                    var campHome = campGarrison is null
+                        ? null
+                        : await _villageRepository.GetByIdAsync(campGarrison.VillageId, cancellationToken);
+
+                    if (campHome is null)
+                        throw new EntityNotFoundException("Camp", targetId);
+
+                    var campHero = camp.HeroId is Guid campHeroId
+                        ? await _heroRepository.GetByIdAsync(campHeroId, cancellationToken)
+                        : null;
+
+                    return new MarchTarget(
+                        camp.TargetX, camp.TargetY,
+                        campHome.Name,
+                        _status.MainBuildingLevel(campHome),
+                        Village: null,
+                        // Армія табору — одного власника; його герой веде її й у обороні
+                        DefenceStacks.FromArmy(camp.GetUnits()),
+                        new DefenceBuffs(_heroModifiers.For(campHero), new Dictionary<Guid, StackBuff>()),
+                        // Стін у полі немає (§2.5); територія — за клітинкою табору
+                        await _territoryBonus.DefenceMultiplierAtAsync(
+                            campHome.PlayerId, camp.TargetX, camp.TargetY, utcNow, cancellationToken),
+                        Camp: camp,
+                        CampHome: campHome);
 
                 default:
                     throw new RequirementNotMetException($"Unsupported target type '{targetType}'.");
@@ -151,16 +244,38 @@ namespace EmpireIdle.Application.Marches.Services
         /// PvE відкритий із першого рівня. Щит після падіння захищає лише
         /// ціль: власний напад його знімає, а не забороняється ним.
         /// </summary>
+        /// <summary>
+        /// Усі правила нападу на гравця: спершу хто кому ворог (своє й соклановців не
+        /// атакують), потім щити. Те саме бачать і відправка, і прев'ю.
+        /// </summary>
+        public async Task EnsureAttackAllowedAsync(Village origin, MarchTarget target, DateTime utcNow,
+            CancellationToken cancellationToken)
+        {
+            var defender = target.Village?.PlayerId ?? target.CampHome?.PlayerId;
+
+            if (defender is Guid defenderId
+                && await _hostility.RefusalAsync(origin.PlayerId, defenderId, target.Camp is not null, cancellationToken)
+                    is { } refusal)
+                throw new RequirementNotMetException(refusal, $"Player {origin.PlayerId} cannot attack {defenderId}.");
+
+            EnsureAttackAllowed(origin, target, utcNow);
+        }
+
         public void EnsureAttackAllowed(Village origin, MarchTarget target, DateTime utcNow)
         {
-            if (target.Village is null)
+            // Споруда клану й табір — теж PvP: новачок під щитом їх не атакує, але щита в них самих немає
+            if (target.Village is null && target.Structure is null && target.Camp is null)
                 return;
+
 
             var shieldLevel = _catalog.Config.Combat.NewbieShieldTownHallLevel;
 
             if (_status.IsShielded(origin))
                 throw new RequirementNotMetException(RefusalReasons.MarchOwnShield,
                     $"Attacking other players is available from town hall level {shieldLevel}.", shieldLevel);
+
+            if (target.Village is null)
+                return;
 
             if (_status.IsShielded(target.Village))
                 throw new RequirementNotMetException(RefusalReasons.MarchTargetShielded, "This village is under a newbie shield.");

@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -53,7 +54,7 @@ public class ReinforcementReturnerTests
             .Returns(new List<Guid>());
 
         return new ReinforcementReturner(
-            _garrisons, _villages, _marches, _heroes,
+            _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes,
             new MarchCalculator(new TerrainGenerator(config.Map), catalog),
             catalog,
             new HeroProgression(config.HeroSettings),
@@ -101,6 +102,24 @@ public class ReinforcementReturnerTests
                             && m.GetUnits()[new UnitStackKey("infantry", 1)] == 10
                             && m.ArrivesAt > Now),
             Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Контингент вибили в бою до нуля, героя з ним немає: іти додому нікому.
+    /// Порожні стеки прибираються, а марш-привид із нулем юнітів не створюється.
+    /// </summary>
+    [Fact]
+    public async Task ReturnAllOfPlayer_sends_no_march_for_a_contingent_wiped_out_in_battle()
+    {
+        var (host, _) = Deployed(infantry: 10);
+        host.ApplyDefenceLosses([new StackLoss(OwnerId, "infantry", 1, 10)], Now.AddHours(-1));
+
+        var sent = await Returner().ReturnAllOfPlayerAsync(OwnerId, Now);
+
+        sent.Should().Be(0);
+        host.Reinforcements.Should().BeEmpty();
+
+        await _marches.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [Fact]
@@ -162,5 +181,63 @@ public class ReinforcementReturnerTests
         host.ReinforcementCount.Should().Be(0);
 
         await _marches.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
+    }
+
+    /// <summary>
+    /// Переїзд села — виняток із правила «юніти не телепортуються» (§2.5):
+    /// армія переїжджає разом із селом, тож із чужого гарнізону — одразу вдома, без маршу.
+    /// </summary>
+    [Fact]
+    public async Task BringAllOfPlayerHomeNow_moves_the_units_home_without_a_march()
+    {
+        var (host, owner) = Deployed(infantry: 10);
+
+        await Returner().BringAllOfPlayerHomeNowAsync(OwnerId, owner, leaderSlotFree: true, Now);
+
+        host.ReinforcementCount.Should().Be(0);
+        owner.Units.Single().Count.Should().Be(10);
+
+        await _marches.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
+    }
+
+    /// <summary>
+    /// Кілька героїв повертаються в одній транзакції: лідером стає лише перший,
+    /// інакше унікальний індекс лідера зламав би збереження.
+    /// </summary>
+    [Fact]
+    public async Task BringAllOfPlayerHomeNow_gives_the_leader_slot_to_one_hero_only()
+    {
+        var (host, owner) = Deployed(infantry: 10);
+        var returner = Returner();
+
+        var first = new Hero(Guid.NewGuid(), OwnerId, 1, "knight", host.Id, asLeader: false, Now);
+        var second = new Hero(Guid.NewGuid(), OwnerId, 1, "archer", host.Id, asLeader: false, Now);
+
+        _heroes.GetByGarrisonAsync(host.Id, Arg.Any<CancellationToken>()).Returns(new List<Hero> { first, second });
+
+        var slotFree = await returner.BringAllOfPlayerHomeNowAsync(OwnerId, owner, leaderSlotFree: true, Now);
+
+        slotFree.Should().BeFalse();
+        first.StationedGarrisonId.Should().Be(owner.Id);
+        second.StationedGarrisonId.Should().Be(owner.Id);
+        new[] { first.IsLeader, second.IsLeader }.Count(isLeader => isLeader).Should().Be(1);
+    }
+
+    /// <summary>Слот лідера вдома зайнятий — герої повертаються рядовими.</summary>
+    [Fact]
+    public async Task BringAllOfPlayerHomeNow_keeps_heroes_ordinary_when_home_already_has_a_leader()
+    {
+        var (host, owner) = Deployed(infantry: 10);
+        var returner = Returner();
+
+        var hero = new Hero(Guid.NewGuid(), OwnerId, 1, "knight", host.Id, asLeader: true, Now);
+
+        _heroes.GetByGarrisonAsync(host.Id, Arg.Any<CancellationToken>()).Returns(new List<Hero> { hero });
+
+        var slotFree = await returner.BringAllOfPlayerHomeNowAsync(OwnerId, owner, leaderSlotFree: false, Now);
+
+        slotFree.Should().BeFalse();
+        hero.StationedGarrisonId.Should().Be(owner.Id);
+        hero.IsLeader.Should().BeFalse();
     }
 }

@@ -109,9 +109,5 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Податок на виставлення: частка ціни, не менше одного золота.</summary>
         public int ListingTax(int price) => Math.Max(1, (int)Math.Ceiling(price * _market.ListingTaxShare));
-
-        /// <summary>Скільки лотів одночасно дозволяє ринок цього рівня.</summary>
-        public int ListingLimit(int marketLevel)
-            => _market.BaseListings + _market.ListingsPerBuildingLevel * Math.Max(0, marketLevel);
     }
 }

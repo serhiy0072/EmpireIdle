@@ -98,6 +98,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var publisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
+            var notifications = scope.ServiceProvider.GetRequiredService<NotificationBuffer>();
 
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -128,17 +129,23 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
                 var notification = (INotification)Activator.CreateInstance(notificationType, domainEvent)!;
 
                 // Хендлери працюють у тому ж контексті, отже їхні зміни
-                // комітяться разом із позначкою "оброблено"
+                // комітяться разом із позначкою "оброблено". Пуші — лише після коміту
+                notifications.Defer();
                 await publisher.Publish(notification, cancellationToken);
 
                 message.ProcessedAt = now;
                 await context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
+                foreach (var failure in await notifications.FlushAsync())
+                    _logger.LogWarning(failure, "Realtime push for outbox message {MessageId} of type {Type} failed", id, message.Type);
+
                 return true;
             }
             catch (Exception ex)
             {
+                // Відкат — і пуші, що встигли стати в чергу, не летять
+                notifications.Discard();
                 await transaction.RollbackAsync(cancellationToken);
 
                 _logger.LogError(ex, "Failed to publish outbox message {MessageId} of type {Type}", id, message.Type);

@@ -1,12 +1,14 @@
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
-    /// Гарнізон села: юніти та черга тренування. Окремий агрегат —
-    /// не знає про ресурси й вартість (це відповідальність Village/Application).
+    /// Гарнізон села або кланової споруди: юніти та черга тренування. Окремий
+    /// агрегат — не знає про ресурси й вартість (це відповідальність Village/Application).
+    /// Гарнізон споруди своїх юнітів не має: усе в ньому — підкріплення членів клану.
     /// </summary>
     public class Garrison : Entity
     {
@@ -19,8 +21,20 @@ namespace EmpireIdle.Domain.Entities
         private readonly List<RecoverableUnit> _recoverable = new();
         private readonly List<ReinforcementUnit> _reinforcements = new();
 
-        /// <summary>Село, якому належить гарнізон.</summary>
-        public Guid VillageId { get; private set; }
+        /// <summary>Село або споруда, якій належить гарнізон.</summary>
+        public Guid HostId { get; private set; }
+
+        /// <summary>Чий це гарнізон: села чи кланової споруди.</summary>
+        public GarrisonHost HostKind { get; private set; }
+
+        /// <summary>
+        /// Село, якому належить гарнізон. Для гарнізону споруди — виняток:
+        /// сільська логіка (тренування, госпіталь, грабунок) до нього не застосовна,
+        /// і тихо підсунути Id споруди замість села гірше, ніж упасти.
+        /// </summary>
+        public Guid VillageId => HostKind == GarrisonHost.Village
+            ? HostId
+            : throw new InvalidOperationException($"Garrison {Id} belongs to a clan structure, not a village.");
 
         public IReadOnlyCollection<VillageUnit> Units => _units.AsReadOnly();
         public IReadOnlyCollection<UnitTrainingOrder> TrainingOrders => _trainingOrders.AsReadOnly();
@@ -60,11 +74,21 @@ namespace EmpireIdle.Domain.Entities
 
         #region Створення
 
-        public Garrison(Guid id, Guid villageId, int serverId) : base(id)
+        /// <summary>Гарнізон села.</summary>
+        public Garrison(Guid id, Guid villageId, int serverId) : this(id, villageId, GarrisonHost.Village, serverId)
         {
-            VillageId = villageId;
+        }
+
+        private Garrison(Guid id, Guid hostId, GarrisonHost hostKind, int serverId) : base(id)
+        {
+            HostId = hostId;
+            HostKind = hostKind;
             ServerId = serverId;
         }
+
+        /// <summary>Гарнізон кланової споруди: спершу порожній, наповнюється маршами членів клану.</summary>
+        public static Garrison ForStructure(Guid id, Guid structureId, int serverId)
+            => new(id, structureId, GarrisonHost.ClanStructure, serverId);
 
         protected Garrison() { } // Для EF Core
 
@@ -95,9 +119,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Хто тримає тут підкріплення — для екрана оборони й масового відкликання.</summary>
         public IReadOnlyCollection<Guid> ReinforcementOwners()
             => _reinforcements.Select(r => r.OwnerPlayerId).Distinct().ToList();
-
-        /// <summary>Скільки юнітів зараз доступно для викупу.</summary>
-        public int RecoverableCount(DateTime utcNow) => _recoverable.Where(r => r.IsActive(utcNow)).Sum(r => r.Count);
 
         /// <summary>
         /// Скільки місця в гарнізоні зайнято: свої юніти плюс усе, що тимчасово
@@ -144,6 +165,10 @@ namespace EmpireIdle.Domain.Entities
 
             _trainingOrders.Add(new UnitTrainingOrder(
                 Guid.NewGuid(), Id, unitType, level, count, utcNow + trainDuration));
+
+            // Зміна лише дочірньої колекції не чіпає рядок гарнізону — без Touch xmin
+            // кореня не змінився б, і паралельне тренування пройшло б повз перевірку
+            Touch(utcNow);
         }
 
         /// <summary>Завершує дозрілі замовлення: юніти йдуть у гарнізон.</summary>
@@ -353,7 +378,8 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Знімає підкріплення одного союзника — відкликання, кік або вихід
-        /// із клану. Повертає склад, який має вирушити додому.
+        /// із клану. Повертає склад, який має вирушити додому; порожній — іти
+        /// нікому, але стеки, що вибили в бою до нуля, однаково прибираються.
         /// </summary>
         public Dictionary<UnitStackKey, int> WithdrawReinforcements(Guid ownerPlayerId, DateTime utcNow)
         {
@@ -361,12 +387,12 @@ namespace EmpireIdle.Domain.Entities
                 .Where(r => r.OwnerPlayerId == ownerPlayerId)
                 .ToList();
 
+            if (stacks.Count == 0)
+                return [];
+
             var withdrawn = stacks
                 .Where(r => r.Count > 0)
                 .ToDictionary(r => new UnitStackKey(r.UnitType, r.Level), r => r.Count);
-
-            if (withdrawn.Count == 0)
-                return [];
 
             // Гарнізон власника читаємо до видалення — після нього стеків уже немає
             var ownerGarrisonId = stacks[0].OwnerGarrisonId;
@@ -387,8 +413,8 @@ namespace EmpireIdle.Domain.Entities
         /// Знімає з оборони полеглих. Свої юніти зникають зі стеків гарнізону,
         /// чужі — зі стеків підкріплення відповідного власника.
         ///
-        /// Порожні стеки підкріплень лишаються: власник далі числиться тут,
-        /// і повернення додому має що відправити, навіть якщо це нуль.
+        /// Порожні стеки підкріплень лишаються: власник далі числиться тут, поки
+        /// його не відкличуть, — тоді зняття прибере їх без маршу.
         /// </summary>
         public void ApplyDefenceLosses(IReadOnlyList<StackLoss> losses, DateTime utcNow)
         {

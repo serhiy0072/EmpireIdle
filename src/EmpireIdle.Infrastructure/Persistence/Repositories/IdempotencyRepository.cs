@@ -90,5 +90,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Where(r => r.ResponseJson == null && r.CreatedAt < cutoffUtc)
                 .ExecuteDeleteAsync(cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public async Task<int> PurgeCompletedAsync(DateTime cutoffUtc, CancellationToken cancellationToken = default)
+        {
+            await using var scoped = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+            return await scoped.IdempotencyRecords
+                .Where(r => r.ResponseJson != null && r.CreatedAt < cutoffUtc)
+                .ExecuteDeleteAsync(cancellationToken);
+        }
     }
 }

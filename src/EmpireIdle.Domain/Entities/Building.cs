@@ -121,7 +121,9 @@ namespace EmpireIdle.Domain.Entities
             var ratePerMinute = Level.Value * config.BaseProductionPerMinute * locationMultiplier;
             var produced = ratePerMinute * effectiveMinutes;
 
-            return Math.Min(AccruedAmount + (int)produced, cap);
+            // Обрізаємо до стелі ще в double: за довгу відсутність виробіток перевищує int,
+            // і приведення типу до порівняння дало б від'ємне число замість повного складу
+            return (int)Math.Min(AccruedAmount + Math.Floor(produced), cap);
         }
 
         /// <summary>

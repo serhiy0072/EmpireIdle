@@ -8,6 +8,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Увесь ростер гравця.</summary>
         Task<List<Hero>> GetByPlayerAsync(Guid playerId, CancellationToken cancellationToken = default);
 
+        /// <summary>Герої гравця лише для читання (без трекінгу) — для оглядових запитів.</summary>
+        Task<List<Hero>> GetByPlayerReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Конкретний герой за типом; null — такого в ростері немає.
         /// Використовується видачею, щоб відрізнити нового героя від дубліката.
@@ -18,12 +21,6 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Кілька героїв одним запитом — для вітрини ринку, лише читання.</summary>
         Task<List<Hero>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Скільки героїв у ростері. Окремим запитом, бо кап маршів
-        /// рахується на кожній відправці, а сам ростер там не потрібен.
-        /// </summary>
-        Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Скільки героїв гравця стоять у цьому гарнізоні й готові виступити.

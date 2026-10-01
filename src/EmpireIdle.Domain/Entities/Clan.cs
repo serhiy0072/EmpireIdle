@@ -37,6 +37,12 @@ namespace EmpireIdle.Domain.Entities
 
         public IReadOnlyCollection<ClanRole> Roles => _roles.AsReadOnly();
 
+        /// <summary>
+        /// Очки вкладу — кланова валюта (GDD §7.2), не ресурс села. Набігають
+        /// кешбеком із перемог над монстрами й квестами клану, тратяться на споруди.
+        /// </summary>
+        public long ContributionPoints { get; private set; }
+
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
 
@@ -135,17 +141,34 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        /// <summary>Гравець виходить сам. Лідер спершу передає лідерство.</summary>
-        public void Leave(Guid playerId, DateTime utcNow)
+        /// <summary>
+        /// Гравець виходить сам. Лідер, що лишає не порожній клан, передає лідерство
+        /// <paramref name="successorId"/> (його обирає той, хто кличе, за спільним правилом).
+        /// Останній учасник виходить без наступника — розпуск порожнього клану робить викликач.
+        /// </summary>
+        public void Leave(Guid playerId, Guid? successorId, DateTime utcNow)
         {
             var member = _members.FirstOrDefault(m => m.PlayerId == playerId)
                 ?? throw new EntityNotFoundException("Clan member", playerId);
 
-            if (_roles.Single(r => r.Id == member.RoleId).IsLeaderRole)
-                throw new InvalidStateException(RefusalReasons.ClanLeaderMustTransfer, "Transfer leadership before leaving the clan.");
+            if (_roles.Single(r => r.Id == member.RoleId).IsLeaderRole && _members.Count > 1)
+            {
+                if (successorId is not Guid successor || successor == playerId)
+                    throw new InvalidStateException(RefusalReasons.ClanLeaderMustTransfer, "Transfer leadership before leaving the clan.");
+
+                PromoteToLeader(successor, utcNow);
+            }
 
             _members.Remove(member);
             Touch(utcNow);
+        }
+
+        /// <summary>Чи веде цей гравець клан.</summary>
+        public bool IsLeader(Guid playerId)
+        {
+            var leaderRole = _roles.Single(r => r.IsLeaderRole);
+
+            return _members.Any(m => m.PlayerId == playerId && m.RoleId == leaderRole.Id);
         }
 
         /// <summary>
@@ -250,6 +273,7 @@ namespace EmpireIdle.Domain.Entities
             var actor = RequireRole(actorId, ClanPermission.ManageRoles);
 
             EnsureRankBelow(actor, rank);
+            EnsurePermissionsWithin(actor, permissions);
             EnsureNameFree(name, exceptRoleId: null);
 
             var role = new ClanRole(Guid.NewGuid(), Id, name, rank, permissions);
@@ -273,48 +297,49 @@ namespace EmpireIdle.Domain.Entities
 
             EnsureRankBelow(actor, role.Rank);
             EnsureRankBelow(actor, rank);
+            EnsurePermissionsWithin(actor, permissions);
             EnsureNameFree(name, exceptRoleId: roleId);
 
             role.Update(name, rank, permissions);
             Touch(utcNow);
         }
 
+        #endregion
+
+        #region Очки вкладу
+
         /// <summary>
-        /// Видаляє роль. Її носії спускаються на найближчу нижчу за рангом —
-        /// не на найнижчу: втратити роль не має означати впасти на дно.
+        /// Нараховує клану очки вкладу. Якщо їх приніс учасник — вони пишуться
+        /// і в його особистий внесок; квест клану вносить без автора.
         /// </summary>
-        /// <returns>Скільки учасників перепризначено.</returns>
-        public int DeleteRole(Guid actorId, Guid roleId, DateTime utcNow)
+        public void EarnPoints(long amount, Guid? memberId, DateTime utcNow)
         {
-            var actor = RequireRole(actorId, ClanPermission.ManageRoles);
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), "Points to earn cannot be negative.");
 
-            var role = _roles.FirstOrDefault(r => r.Id == roleId)
-                ?? throw new EntityNotFoundException("Clan role", roleId);
+            if (amount == 0)
+                return;
 
-            if (role.IsLeaderRole)
-                throw new RequirementNotMetException(RefusalReasons.ClanRoleProtected, "The leader role cannot be deleted.");
+            ContributionPoints += amount;
 
-            if (role.IsDefaultRole)
-                throw new RequirementNotMetException(RefusalReasons.ClanRoleProtected,
-                    "The default role cannot be deleted — new members need one.");
+            if (memberId is Guid id)
+                _members.FirstOrDefault(m => m.PlayerId == id)?.AddContribution(amount);
 
-            EnsureRankBelow(actor, role.Rank);
-
-            var fallback = _roles
-                .Where(r => r.Id != roleId && r.Rank < role.Rank)
-                .OrderByDescending(r => r.Rank)
-                .FirstOrDefault()
-                ?? _roles.Single(r => r.IsDefaultRole);
-
-            var affected = _members.Where(m => m.RoleId == roleId).ToList();
-
-            foreach (var member in affected)
-                member.AssignRole(fallback.Id);
-
-            _roles.Remove(role);
             Touch(utcNow);
+        }
 
-            return affected.Count;
+        /// <summary>Списує очки вкладу; не вистачає — відмова з тим, скільки треба й скільки є.</summary>
+        public void SpendPoints(long amount, DateTime utcNow)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), "Points to spend cannot be negative.");
+
+            if (ContributionPoints < amount)
+                throw new RequirementNotMetException(RefusalReasons.ClanNotEnoughPoints,
+                    $"Clan has {ContributionPoints} contribution points, {amount} needed.", amount, ContributionPoints);
+
+            ContributionPoints -= amount;
+            Touch(utcNow);
         }
 
         #endregion
@@ -343,6 +368,19 @@ namespace EmpireIdle.Domain.Entities
         #region Внутрішнє
 
         /// <summary>Роль виконавця з перевіркою дозволу.</summary>
+        /// <summary>
+        /// Роздати можна лише ті дозволи, які має сам: інакше розпорядник ролей
+        /// створив би собі роль із правом розпуску чи виключення й піднявся б над лідером.
+        /// </summary>
+        private static void EnsurePermissionsWithin(ClanRole actor, ClanPermission permissions)
+        {
+            var excess = permissions & ~actor.Permissions;
+
+            if (excess != ClanPermission.None)
+                throw new RequirementNotMetException(RefusalReasons.ClanPermissionsExceedOwn,
+                    $"'{actor.Name}' cannot grant {excess} it does not have.", actor.Name);
+        }
+
         private ClanRole RequireRole(Guid actorId, ClanPermission permission)
         {
             var role = RoleOf(actorId)

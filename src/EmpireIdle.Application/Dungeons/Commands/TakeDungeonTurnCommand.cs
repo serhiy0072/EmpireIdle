@@ -121,9 +121,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
 
                     var ability = Resolve(abilities, action.AbilityKey, actor, manual);
 
-                    if (manual)
-                        ValidateManual(state, actor, ability, action);
-
+                    // Енергію, ціль і лінії перевіряє рушій — для ручного ходу й для автобою однаково
                     var result = _engine.Execute(state, actorIndex, action, ability);
 
                     state = result.State;
@@ -227,29 +225,6 @@ namespace EmpireIdle.Application.Dungeons.Commands
                 throw new EntityNotFoundException("Hero ability", key);
 
             return ability;
-        }
-
-        /// <summary>
-        /// Ручний хід перевіряється тут: енергія, жива ціль і правило ліній.
-        /// Клієнт малює те саме, але вирішує сервер.
-        /// </summary>
-        private static void ValidateManual(BattleState state, Combatant actor,
-            Domain.Services.Config.HeroAbilityConfig? ability, BattleAction action)
-        {
-            if (ability is not null && actor.Energy < ability.EnergyCost)
-                throw new RequirementNotMetException($"Ability '{ability.Key}' needs {ability.EnergyCost} energy.");
-
-            var needsTarget = ability is null
-                || ability.Target is AbilityTarget.SingleEnemy or AbilityTarget.SingleAlly;
-
-            if (!needsTarget)
-                return;
-
-            if (action.TargetIndex is not { } target)
-                throw new RequirementNotMetException("This action needs a target.");
-
-            if (!BattleEngine.CanTarget(state, actor, ability, target))
-                throw new RequirementNotMetException(RefusalReasons.DungeonTargetUnreachable, "That target cannot be reached right now.");
         }
     }
 }

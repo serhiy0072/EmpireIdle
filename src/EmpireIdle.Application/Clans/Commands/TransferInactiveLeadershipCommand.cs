@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
@@ -21,6 +22,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly ClanSuccession _succession;
         private readonly ILogger<TransferInactiveLeadershipCommandHandler> _logger;
 
         public TransferInactiveLeadershipCommandHandler(
@@ -29,6 +31,7 @@ namespace EmpireIdle.Application.Clans.Commands
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
             TimeProvider timeProvider,
+            ClanSuccession succession,
             ILogger<TransferInactiveLeadershipCommandHandler> logger)
         {
             _clanRepository = clanRepository;
@@ -36,6 +39,7 @@ namespace EmpireIdle.Application.Clans.Commands
             _unitOfWork = unitOfWork;
             _catalog = catalog;
             _timeProvider = timeProvider;
+            _succession = succession;
             _logger = logger;
         }
 
@@ -60,35 +64,21 @@ namespace EmpireIdle.Application.Clans.Commands
             if (presence.TryGetValue(leaderId.Value, out var leaderSeen) && leaderSeen >= inactiveSince)
                 return false;
 
-            var rankByRole = clan.Roles.ToDictionary(r => r.Id, r => r.Rank);
-
-            // Спуск рангами: зам, далі генерали, офіцери, ветерани, рядові.
-            // Серед рівних — хто був у грі найпізніше
-            var candidates = clan.Members
-                .Where(m => m.PlayerId != leaderId.Value)
-                .OrderByDescending(m => rankByRole.GetValueOrDefault(m.RoleId))
-                .ThenByDescending(m => presence.GetValueOrDefault(m.PlayerId))
-                .ToList();
-
-            if (candidates.Count == 0)
+            // Активний найвищого рангу, а якщо активних немає взагалі — найстарший за рангом:
+            // клан не має лишатись із лідером, який не повернеться. Правило спільне з виходом лідера
+            if (await _succession.ChooseAsync(clan, leaderId.Value, inactiveSince, cancellationToken) is not Guid successorId)
             {
                 _logger.LogInformation("Clan {ClanId} has no other members; leadership kept.", clan.Id);
 
                 return false;
             }
 
-            // Активний найвищого рангу, а якщо не зник лише лідер і активних
-            // немає взагалі — найстарший за рангом: клан не має лишатись
-            // із лідером, який не повернеться
-            var successor = candidates.FirstOrDefault(m => presence.GetValueOrDefault(m.PlayerId) >= inactiveSince)
-                ?? candidates[0];
-
-            clan.PromoteToLeader(successor.PlayerId, now);
+            clan.PromoteToLeader(successorId, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Clan {ClanId}: leadership moved from inactive {OldLeaderId} to {NewLeaderId}.",
-                clan.Id, leaderId.Value, successor.PlayerId);
+                clan.Id, leaderId.Value, successorId);
 
             return true;
         }

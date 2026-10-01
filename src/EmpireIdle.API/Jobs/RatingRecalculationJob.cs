@@ -16,9 +16,9 @@ namespace EmpireIdle.API.Jobs
 
         public RatingRecalculationJob(ServerJobRunner runner) => _runner = runner;
 
-        [DisableConcurrentExecution(timeoutInSeconds: 600)]
-        public Task RunAsync() => _runner.ForEachServerAsync(
+        [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
+        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachServerAsync(
             nameof(RatingRecalculationJob),
-            (mediator, serverId) => mediator.Send(new RecalculateAllRatingsCommand()));
+            (mediator, serverId, ct) => mediator.Send(new RecalculateAllRatingsCommand(), ct), cancellationToken);
     }
 }

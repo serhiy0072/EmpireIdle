@@ -214,27 +214,6 @@ function mine(rock: Faces, ore: Faces): Art {
   };
 }
 
-const house: Art = (cx, cy, s, tier) => {
-  const h = 18 * s;
-  return {
-    foot: 3,
-    height: h + 16,
-    node: (
-      <g>
-        <Box cx={cx} cy={cy} hx={3} hy={3} h={h} faces={tier >= 2 ? STONE : WOOD} />
-        <Windows cx={cx} cy={cy} hx={3} hy={3} h={h} side="left" cols={1} />
-        <Windows cx={cx} cy={cy} hx={3} hy={3} h={h} side="right" cols={1} />
-        <Door cx={cx} cy={cy} hx={3} hy={3} side="left" t={0.7} h={8} />
-        <Gable cx={cx} cy={cy} hx={3.4} hy={3.4} z={h} h={12} faces={ROOF_RED} />
-        <Tiles cx={cx} cy={cy} hx={3.4} hy={3.4} z={h} h={12} kind="gable" />
-        <Chimney x={cx + 1.6} y={cy - 1.6} z={h + 5} h={7} faces={STONE} />
-        <Tree x={cx - 4} y={cy + 3.5} s={0.6} />
-        {tier >= 1 && <Fence from={{ x: cx - 3.5, y: cy + 4 }} to={{ x: cx + 3.5, y: cy + 4 }} h={3} />}
-      </g>
-    ),
-  };
-};
-
 const barracks: Art = (cx, cy, s, tier) => {
   const h = 22 * s;
   const merlons = [-4, -2, 0, 2, 4];
@@ -592,7 +571,6 @@ const ART: Record<string, Art> = {
   sawmill,
   goldmine: mine(ROCK_GOLD, GOLD),
   ironmine: mine(ROCK_IRON, IRON),
-  house,
   barracks,
   bank,
   heroeshall,

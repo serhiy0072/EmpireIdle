@@ -57,6 +57,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "garrison.batchSize": ({ max }) => `За раз — від 1 до ${max} воїнів`,
   "garrison.trainingBusy": () => "Казарма вже тренує партію — дочекайтеся завершення або прискорте її",
   "garrison.levelUpBusy": () => "Казарма вже прокачує партію — дочекайтеся завершення або прискорте її",
+  "garrison.unitLevelCeiling": ({ ceiling }) =>
+    `Воїни не можуть бути вищого рівня, ніж ратуша: зараз максимум ${ceiling}`,
   "garrison.armyCapacity": ({ occupied, capacity, requested }) =>
     `Армія заповнена: ${occupied} з ${capacity}, а ви додаєте ${requested}. Підніміть рівень казарми`,
   "garrison.notEnoughUnits": ({ need, have }) => `Воїнів цього загону менше, ніж треба: потрібно ${need}, є ${have}`,
@@ -75,7 +77,15 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "building.villageLagging": ({ level, buildings }) =>
     `Перш ніж ратуша перейде на новий тір, підтягніть до ${level} рівня: ${buildings}`,
   "building.underConstruction": () => "Ця будівля вже будується",
+  "building.notUpgradable": ({ building }) => `${building} не має рівнів — її не покращують`,
   "building.alreadyCompleted": () => "Будівництво вже завершено",
+
+  // ---------- Розвідка ----------
+  "scout.blocked": () => "Село ховається від розвідки — розвідники нічого не побачать",
+  "scout.ownTarget": () => "Своє село й споруди свого клану розвідувати не треба",
+
+  // ---------- Прискорення ----------
+  "speedup.atFloor": ({ seconds }) => `До кінця ${seconds} с або менше — прискорити вже не можна, зачекайте`,
 
   // ---------- Інвентар, банери, квести, крамниця ----------
   "item.strongerBoostActive": ({ multiplier, until }) =>
@@ -108,6 +118,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "clan.leaderOnly": () => "Лідерство може передати лише лідер",
   "clan.roleProtected": () => "Роль лідера й роль новачків не можна змінити чи видалити",
   "clan.roleNameTaken": ({ name }) => `Роль «${name}» уже є в клані`,
+  "clan.permissionsExceedOwn": ({ role }) => `Роль «${role}» не може видати дозволи, яких сама не має`,
   "clan.requestResolved": () => "Цю заявку вже розглянули",
   "clan.requestExpired": () => "Термін заявки минув",
   "clan.helpAlreadyRequested": () => "Допомогу для цього вже попросили",
@@ -115,6 +126,14 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "clan.helpExpired": () => "Запит на допомогу вже неактуальний",
   "clan.helpAlreadyHelped": () => "Ви вже допомогли з цим запитом",
   "clan.helpFull": ({ max }) => `Запит уже отримав усі ${max} допомог`,
+
+  // ---------- Кланова територія ----------
+  "territory.notEnoughPoints": ({ need, have }) => `Клану бракує очок вкладу: потрібно ${need}, є ${have}`,
+  "territory.noFreeSlot": ({ slots }) => `Усі ${slots} слотів під споруди зайняті — знесіть споруду або відкрийте новий слот`,
+  "territory.cellTaken": () => "Цю клітину вже зайняли — оберіть іншу",
+  "territory.cellUnfit": () => "Тут не можна ставити споруду: вода, гори або край заселеного світу",
+  "territory.foreignStructure": () => "Будувати й стояти гарнізоном можна лише у спорудах свого клану",
+  "territory.ownStructure": () => "Свою споруду не атакують — її можна знести",
 
   // ---------- Марші й підкріплення ----------
   "march.heroUnavailable": ({ state }) =>
@@ -125,6 +144,11 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "march.ownShield": ({ level }) =>
     `Атакувати інших гравців можна з ратуші ${level} рівня — доти діє щит новачка`,
   "march.targetShielded": () => "Це поселення під щитом новачка — атакувати його поки не можна",
+  "march.notCamping": () => "Відкликати можна лише табір — цей похід ще в дорозі",
+  "march.camping": () => "Табір стоїть на місці — прискорювати нічого, його можна лише відкликати",
+  "march.ownCamp": () => "Це ваш власний табір — його можна лише відкликати",
+  "march.ownVillage": () => "Власне село атакувати не можна",
+  "march.clanmate": () => "Соклановців атакувати не можна",
   "march.targetFallShield": () => "Це поселення нещодавно впало й під щитом — атакувати його поки не можна",
   "reinforce.ownShield": ({ level }) => `Підкріплення відкриваються з ратуші ${level} рівня`,
   "reinforce.targetShielded": () => "Це поселення ще під щитом новачка й не приймає підкріплень",

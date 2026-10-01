@@ -18,20 +18,25 @@ namespace EmpireIdle.API.Jobs
 
         public RecurringJobScheduler(IRecurringJobManager manager) => _manager = manager;
 
+        /// <remarks>
+        /// CancellationToken.None у виразі — заглушка: Hangfire підставляє на її місце токен
+        /// зупинки сервера, і джоб на деплої виходить на межі елемента, а не посеред пачки.
+        /// </remarks>
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _manager.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(), Cron.Minutely);
-            _manager.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(), "*/5 * * * *");
-            _manager.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.RunAsync(), Cron.Hourly);
-            _manager.AddOrUpdate<DailyQuestResetJob>("daily-quest-reset", job => job.RunAsync(), Cron.Daily);
-            _manager.AddOrUpdate<ServerEvolutionJob>("server-evolution", job => job.RunAsync(), Cron.Daily);
-            _manager.AddOrUpdate<RatingRecalculationJob>("rating-recalculation", job => job.RunAsync(), Cron.Hourly);
-            _manager.AddOrUpdate<ServerQuestTotalsJob>("server-quest-totals", job => job.RunAsync(), Cron.Minutely);
-            _manager.AddOrUpdate<ClanLeadershipJob>("clan-leadership", job => job.RunAsync(), Cron.Daily);
-            _manager.AddOrUpdate<MarketExpiryJob>("market-expiry", job => job.RunAsync(), Cron.Minutely);
-            _manager.AddOrUpdate<MarketPricesJob>("market-prices", job => job.RunAsync(), Cron.Hourly);
-            _manager.AddOrUpdate<ChatRetentionJob>("chat-retention", job => job.RunAsync(), Cron.Daily);
-            _manager.AddOrUpdate<MailRetentionJob>("mail-retention", job => job.RunAsync(), Cron.Daily);
+            _manager.AddOrUpdate<TimerScanJob>("timer-scan", job => job.RunAsync(CancellationToken.None), Cron.Minutely);
+            _manager.AddOrUpdate<MonsterSpawnJob>("monster-spawn", job => job.RunAsync(CancellationToken.None), "*/5 * * * *");
+            _manager.AddOrUpdate<OutboxMaintenanceJob>("outbox-maintenance", job => job.RunAsync(CancellationToken.None), Cron.Hourly);
+            _manager.AddOrUpdate<DailyQuestResetJob>("daily-quest-reset", job => job.RunAsync(CancellationToken.None), Cron.Daily);
+            _manager.AddOrUpdate<ServerEvolutionJob>("server-evolution", job => job.RunAsync(CancellationToken.None), Cron.Daily);
+            _manager.AddOrUpdate<RatingRecalculationJob>("rating-recalculation", job => job.RunAsync(CancellationToken.None), Cron.Hourly);
+            _manager.AddOrUpdate<ServerQuestTotalsJob>("server-quest-totals", job => job.RunAsync(CancellationToken.None), Cron.Minutely);
+            _manager.AddOrUpdate<ClanLeadershipJob>("clan-leadership", job => job.RunAsync(CancellationToken.None), Cron.Daily);
+            _manager.AddOrUpdate<MarketExpiryJob>("market-expiry", job => job.RunAsync(CancellationToken.None), Cron.Minutely);
+            _manager.AddOrUpdate<MarketPricesJob>("market-prices", job => job.RunAsync(CancellationToken.None), Cron.Hourly);
+            _manager.AddOrUpdate<ChatRetentionJob>("chat-retention", job => job.RunAsync(CancellationToken.None), Cron.Daily);
+            _manager.AddOrUpdate<MailRetentionJob>("mail-retention", job => job.RunAsync(CancellationToken.None), Cron.Daily);
+            _manager.AddOrUpdate<MarchRetentionJob>("march-retention", job => job.RunAsync(CancellationToken.None), Cron.Daily);
 
             return Task.CompletedTask;
         }

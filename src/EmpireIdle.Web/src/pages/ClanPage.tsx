@@ -4,6 +4,7 @@ import ClanHelpPanel from "../components/clan/ClanHelpPanel";
 import ClanMembers from "../components/clan/ClanMembers";
 import ClanRequestsPanel from "../components/clan/ClanRequestsPanel";
 import ClanSettings from "../components/clan/ClanSettings";
+import ClanTerritoryPanel from "../components/clan/ClanTerritoryPanel";
 import ErrorBanner from "../components/ErrorBanner";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
@@ -23,12 +24,14 @@ import {
   useRecallReinforcements,
   useRequestHelp,
   useResolveRequest,
+  useTransferLeadership,
   useUpdateClanSettings,
 } from "../lib/queries/clans";
 import { useGarrison } from "../lib/queries/garrison";
+import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 
-type Tab = "help" | "members" | "requests" | "settings";
+type Tab = "help" | "members" | "territory" | "requests" | "settings";
 
 export default function ClanPage() {
   const session = useSession();
@@ -45,12 +48,14 @@ export default function ClanPage() {
   const applications = useClanApplications(playerId, inClan && canRecruit);
   const village = useVillage(playerId);
   const garrison = useGarrison(playerId);
+  const territory = useClanTerritory(playerId, inClan);
 
   const create = useCreateClan(playerId);
   const join = useJoinClan(playerId);
   const leave = useLeaveClan(playerId);
   const kick = useKickMember(playerId);
   const assignRole = useAssignRole(playerId);
+  const transferLeadership = useTransferLeadership(playerId);
   const settings = useUpdateClanSettings(playerId);
   const requestHelp = useRequestHelp(playerId);
   const giveHelp = useGiveHelp(playerId);
@@ -69,7 +74,7 @@ export default function ClanPage() {
     return <ErrorBanner error={clan.error} />;
   }
 
-  const mutations = [create, join, leave, kick, assignRole, settings, requestHelp, giveHelp, recall, invite, resolve];
+  const mutations = [create, join, leave, kick, assignRole, transferLeadership, settings, requestHelp, giveHelp, recall, invite, resolve];
   const busy = mutations.some((mutation) => mutation.isPending);
   // Помилка лише останньої дії: інакше стара відмова однієї кнопки
   // (скажімо, створення клану) перекривала б свіжу відмову іншої
@@ -118,6 +123,7 @@ export default function ClanPage() {
   const tabs: { key: Tab; label: string; visible: boolean }[] = [
     { key: "help", label: pendingHelp > 0 ? `Допомога · ${pendingHelp}` : "Допомога", visible: true },
     { key: "members", label: `Учасники · ${clan.data.memberCount}/${clan.data.capacity}`, visible: true },
+    { key: "territory", label: "Територія", visible: true },
     {
       key: "requests",
       label: (applications.data?.length ?? 0) > 0 ? `Набір · ${applications.data?.length}` : "Набір",
@@ -178,11 +184,22 @@ export default function ClanPage() {
           now={now}
           canKick={permissions.has("Kick")}
           canAssignRoles={permissions.has("AssignRoles")}
+          isLeader={isLeader}
           busy={busy}
           onKick={(targetPlayerId) => kick.mutate(targetPlayerId)}
           onAssignRole={(targetPlayerId, roleId) => assignRole.mutate({ targetPlayerId, roleId })}
+          onTransferLeadership={(targetPlayerId) => transferLeadership.mutate(targetPlayerId)}
         />
       )}
+
+      {tab === "territory" &&
+        (territory.isError ? (
+          <ErrorBanner error={territory.error} />
+        ) : territory.data == null ? (
+          <p className="text-sm text-slate-500">Завантаження…</p>
+        ) : (
+          <ClanTerritoryPanel territory={territory.data} myPlayerId={playerId} />
+        ))}
 
       {tab === "requests" && canRecruit && (
         <ClanRequestsPanel
@@ -220,17 +237,20 @@ export default function ClanPage() {
               >
                 Відкликати підкріплення
               </button>
-              {/* Лідер не виходить, поки клан не передано: сервер відмовить, тож і кнопки нема */}
-              {!isLeader && (
-                <button
-                  type="button"
-                  onClick={() => leave.mutate()}
-                  disabled={busy}
-                  className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
-                >
-                  Покинути клан
-                </button>
-              )}
+              {/* Лідер теж може вийти: лідерство перейде найвищому за рангом, а сам-один — розпускає клан */}
+              <button
+                type="button"
+                onClick={() => leave.mutate()}
+                disabled={busy}
+                title={
+                  isLeader && clan.data.memberCount > 1
+                    ? "Лідерство перейде учаснику з найвищою роллю"
+                    : undefined
+                }
+                className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+              >
+                {isLeader && clan.data.memberCount <= 1 ? "Розпустити клан" : "Покинути клан"}
+              </button>
             </div>
             {typeof recall.data === "number" && (
               <p className="text-xs text-slate-500">Відкликано маршів: {recall.data}</p>

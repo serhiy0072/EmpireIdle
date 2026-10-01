@@ -1,3 +1,4 @@
+﻿using EmpireIdle.Application;
 using EmpireIdle.API.Hubs;
 using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Middleware;
@@ -27,27 +28,29 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 //  1. КОНФІГУРАЦІЯ
+//  Конфіг гри читається один раз на старті: доменні singleton-и будуються зі знімка,
+//  тож гаряче перезавантаження лише створювало б ілюзію й зайві FileSystemWatcher-и.
 
 builder.Configuration
-    .AddJsonFile("game-config.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("game-config.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -68,11 +71,31 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Map.Terrains.Any(t => t.Weight > 0), "GameConfig.Map has no terrain with positive weight.")
     .Validate(c => c.Map.Width > 0 && c.Map.Height > 0, "GameConfig.Map has non-positive dimensions.")
     .Validate(c => c.Map.CellsPerMonster > 0, "GameConfig.Map.CellsPerMonster must be positive.")
+    .Validate(c => c.Combat.Scouting.Speed > 0, "GameConfig.Combat.Scouting.Speed must be positive.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
+    .Validate(c => c.Monetization.SpeedUpFloorSeconds >= 0, "GameConfig.Monetization.SpeedUpFloorSeconds cannot be negative.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
-    .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
+    .Validate(c => c.Combat.PreviewOddsThresholds.Count == Enum.GetValues<EmpireIdle.Domain.Enums.BattleOdds>().Length - 1,
+        "GameConfig.Combat.PreviewOddsThresholds needs one entry fewer than BattleOdds bands — otherwise previews skip bands or return values outside the enum.")
+    .Validate(c => c.Combat.RandomMin > 0 && c.Combat.RandomMin <= c.Combat.RandomMax && c.Combat.RandomSigma >= 0,
+        "GameConfig.Combat random roll must satisfy 0 < RandomMin ≤ RandomMax and RandomSigma ≥ 0.")
+    .Validate(c => c.Map.Geometry.RingMultipliers.Count > 0 && c.Map.Geometry.RingMultipliers.All(m => m > 0),
+        "GameConfig.Map.Geometry.RingMultipliers must be non-empty and positive — every cell takes its production multiplier from a ring.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
+    .Validate(c => c.Clan.Territory.Radius > 0, "GameConfig.Clan.Territory.Radius must be positive — a structure would cover nothing.")
+    .Validate(c => c.Clan.Territory.MaxStructures > 0 && c.Clan.Territory.StartingSlots >= 0,
+        "GameConfig.Clan.Territory needs a positive MaxStructures and non-negative StartingSlots.")
+    .Validate(c => c.Clan.Territory.StructureCostPoints >= 0 && c.Clan.Territory.BuildMinutes >= 0,
+        "GameConfig.Clan.Territory structure cost and build time cannot be negative.")
+    .Validate(c => c.Clan.Territory.BuildSharePerPower >= 0
+                   && c.Clan.Territory.MaxBuildShare > 0 && c.Clan.Territory.MaxBuildShare <= 1,
+        "GameConfig.Clan.Territory.BuildSharePerPower must be non-negative and MaxBuildShare within (0; 1].")
+    .Validate(c => c.Clan.Territory.GarrisonCapacity > 0, "GameConfig.Clan.Territory.GarrisonCapacity must be positive — no march could garrison a structure.")
+    .Validate(c => c.Clan.Territory.AttackBonus >= 0 && c.Clan.Territory.DefenceBonus >= 0,
+        "GameConfig.Clan.Territory bonuses cannot be negative — territory would weaken its own clan.")
+    .Validate(c => c.Clan.Territory.MonsterLootCashbackShare is >= 0 and <= 1,
+        "GameConfig.Clan.Territory.MonsterLootCashbackShare must be a share within [0; 1].")
     .Validate(c => c.Heroes.Count > 0, "GameConfig.Heroes is empty — check Config/heroes.json.")
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
     .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")
@@ -82,7 +105,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Chat.MaxLength > 0 && c.Chat.RateLimitCount > 0 && c.Chat.RateLimitWindowSeconds > 0 && c.Chat.RetentionDays > 0, "GameConfig.Chat limits must be positive.")
     .Validate(c => c.Market.ListingTaxShare is >= 0 and < 1, "GameConfig.Market.ListingTaxShare must be within [0; 1) — a tax of the whole price leaves the seller nothing.")
     .Validate(c => c.Market.ListingHours > 0 && c.Market.MedianWindowHours > 0 && c.Market.ResaleCooldownHours >= 0, "GameConfig.Market hours must be positive (the resale cooldown may be zero).")
-    .Validate(c => c.Market.BaseListings >= 1 && c.Market.ListingsPerBuildingLevel >= 0, "GameConfig.Market must allow at least one listing.")
+    .Validate(c => c.Market.ListingLimit >= 1, "GameConfig.Market must allow at least one listing.")
     .Validate(c => c.Market.CorridorShare is > 0 and < 1, "GameConfig.Market.CorridorShare must be within (0; 1) — otherwise the corridor is empty or allows free giveaways.")
     .Validate(c => c.Market.MinSalesForMedian >= 1 && c.Market.OutlierTrimShare is >= 0 and < 0.5, "GameConfig.Market needs at least one sale for a median and must trim less than half of the sales on each side.")
     .Validate(c => c.Market.MedianMinAnchorShare is > 0 and <= 1 && c.Market.MedianMaxAnchorShare >= 1, "GameConfig.Market anchor band must contain the anchor itself: MedianMinAnchorShare ≤ 1 ≤ MedianMaxAnchorShare.")
@@ -115,6 +138,9 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get
 //  в момент реєстрації й падає раніше за ValidateOnStart.
 
 builder.Services.AddSingleton(sp => new GameCatalog(gameConfig));
+
+// Каталог — і з ним міжсекційна валідація — будується на старті, а не на першому запиті
+builder.Services.AddHostedService<GameCatalogStartupCheck>();
 builder.Services.AddSingleton(sp => new TerrainGenerator(gameConfig.Map));
 builder.Services.AddSingleton(sp => new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetization));
@@ -133,14 +159,19 @@ builder.Services.AddSingleton(sp => new BattleEngine(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new BattleBuilder(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new HeroStats(sp.GetRequiredService<HeroProgression>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MarketPricing(gameConfig));
-builder.Services.AddSingleton<GameCatalogProjection>();
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<DefenceLossAllocator>();
 builder.Services.AddSingleton<BattleResolver>();
+builder.Services.AddSingleton<VillageCapacities>();
+builder.Services.AddSingleton<VillageStatus>();
+builder.Services.AddSingleton<ClanTerritoryRules>();
+builder.Services.AddSingleton<CityFallRules>();
+builder.Services.AddSingleton<PlunderCalculator>();
 
-//  3. ІНФРАСТРУКТУРА
-//  БД, репозиторії, Identity, MediatR, Outbox — усе в одному місці.
+//  3. ЗАСТОСУНОК І ІНФРАСТРУКТУРА
+//  Сценарії, MediatR і квести — AddApplication; БД, репозиторії, Identity, Outbox — AddInfrastructure.
 
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 //  4. КОНТЕКСТ ЗАПИТУ
@@ -221,6 +252,18 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
+    // Ротація токенів — окремо від логіну: 512-бітний токен перебором не підібрати, а за
+    // одним IP (NAT, кілька вкладок) оновлюються десятки сесій. Лише стеля від зацикленого клієнта
+    options.AddPolicy("refresh", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
     // Решта API — по гравцю, а за його відсутності по IP. Ліміт — від активної
     // сесії, а не від бота: збір з усіх будівель, серія роллів і кілька екранів
     // із таймерами за хвилину дають далеко за сотню запитів
@@ -255,8 +298,11 @@ builder.Services.AddCors(options =>
 // Прибрати IHostedService недостатньо: падає резолвер IJobFilterProvider.
 if (!builder.Environment.IsEnvironment("Testing"))
 {
-    builder.Services.AddHangfire(config =>
-        config.UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString)));
+    // Без ретраїв: усі джоби повторювані, наступний прогін прийде за розкладом. Стандартні 10 спроб
+    // лише множили б очікувачів на лок, що займають пул воркерів
+    builder.Services.AddHangfire(config => config
+        .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString))
+        .UseFilter(new AutomaticRetryAttribute { Attempts = 0 }));
 
     builder.Services.AddHangfireServer();
     builder.Services.AddHostedService<RecurringJobScheduler>();

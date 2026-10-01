@@ -32,6 +32,8 @@ public class TestApiFactory : WebApplicationFactory<global::Program>
         builder.UseSetting("JwtSettings:Issuer", "EmpireIdle.Tests");
         builder.UseSetting("JwtSettings:Audience", "EmpireIdle.Tests");
         builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:5173");
+        builder.UseSetting("StripeSettings:SecretKey", "sk_test_unused");
+        builder.UseSetting("StripeSettings:WebhookSecret", "whsec_unused");
 
         builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
 

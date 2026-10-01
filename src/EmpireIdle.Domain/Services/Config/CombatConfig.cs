@@ -12,6 +12,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Розкид нормального розподілу навколо 1.0.</summary>
         public double RandomSigma { get; set; } = 0.15;
 
+        /// <summary>Марші розвідників: хто відправляє й наскільки вони швидші за військо.</summary>
+        public ScoutingConfig Scouting { get; set; } = new();
+
         /// <summary>Бонуси типів юнітів на різній місцевості.</summary>
         public List<TerrainBonus> TerrainBonuses { get; set; } = new();
 

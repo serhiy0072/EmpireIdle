@@ -17,6 +17,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => _context.ClanRequests.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<ClanRequest>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.ClanRequests.AsNoTracking().Where(r => ids.Contains(r.Id)).ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public Task<ClanRequest?> GetLatestAsync(Guid clanId, Guid playerId, ClanRequestKind kind,
             CancellationToken cancellationToken = default)
             => _context.ClanRequests
@@ -51,6 +55,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public async Task AddAsync(ClanRequest request, CancellationToken cancellationToken = default)
             => await _context.ClanRequests.AddAsync(request, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> RemoveByClanAsync(Guid clanId, CancellationToken cancellationToken = default)
+            => _context.ClanRequests.Where(r => r.ClanId == clanId).ExecuteDeleteAsync(cancellationToken);
 
         /// <inheritdoc/>
         public Task<List<ClanRequest>> GetPendingForPlayerAsync(Guid playerId, DateTime utcNow,

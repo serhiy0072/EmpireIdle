@@ -47,6 +47,21 @@ namespace EmpireIdle.Domain.Tests.Entities
         }
 
         /// <summary>
+        /// Нове замовлення міняє рядок гарнізону: інакше xmin кореня не зрушить і два
+        /// паралельні тренування обидва пройдуть перевірку «казарма вільна».
+        /// </summary>
+        [Fact]
+        public void TrainUnits_ShouldTouchTheGarrison()
+        {
+            var now = new DateTime(2026, 9, 27, 12, 0, 0, DateTimeKind.Utc);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            garrison.TrainUnits("infantry", 1, 1, 5, 100, TimeSpan.FromMinutes(1), now);
+
+            Assert.Equal(now, garrison.UpdatedAt);
+        }
+
+        /// <summary>
         /// Одночасно може тренуватись лише одна партія.
         /// </summary>
         [Fact]
@@ -326,6 +341,29 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             // Assert
             Assert.Empty(withdrawn);
+        }
+
+        /// <summary>
+        /// Контингент, вибитий у бою до нуля: іти додому нікому, але стеки мають зникнути —
+        /// інакше власник вічно числиться в гарнізоні, а кожне відкликання шле порожній марш.
+        /// </summary>
+        [Fact]
+        public void WithdrawReinforcements_ShouldClearStacksWipedOutInBattle()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var ownerId = Guid.NewGuid();
+            var ownerGarrisonId = Guid.NewGuid();
+
+            garrison.AddReinforcements(ownerId, ownerGarrisonId,
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }, 100, DateTime.UtcNow);
+            garrison.ApplyDefenceLosses([new StackLoss(ownerId, "infantry", 1, 5)], DateTime.UtcNow);
+            garrison.ClearDomainEvents();
+
+            var withdrawn = garrison.WithdrawReinforcements(ownerId, DateTime.UtcNow);
+
+            Assert.Empty(withdrawn);
+            Assert.DoesNotContain(garrison.Reinforcements, r => r.OwnerPlayerId == ownerId);
+            Assert.Equal(ownerGarrisonId, Assert.Single(garrison.DomainEvents.OfType<ReinforcementsMoved>()).OwnerGarrisonId);
         }
 
         /// <summary>

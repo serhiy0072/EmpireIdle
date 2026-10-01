@@ -20,6 +20,10 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Рейтинги всіх гравців світу. З трекінгом — джоб їх мутує.</summary>
         Task<List<PlayerRating>> GetAllAsync(CancellationToken cancellationToken = default);
 
+        /// <summary>Рейтинги цих гравців, із трекінгом — пачка джоба перерахунку.</summary>
+        Task<List<PlayerRating>> GetByPlayersAsync(IReadOnlyCollection<Guid> playerIds,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Створює рядок рейтингу. Викликається джобом для гравців, яких
         /// у таблиці ще немає — унікальний індекс на PlayerId не дасть другий.

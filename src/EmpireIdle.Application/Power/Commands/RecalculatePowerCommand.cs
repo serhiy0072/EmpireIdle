@@ -117,6 +117,12 @@ namespace EmpireIdle.Application.Power.Commands
             var heroPower = 0.0;
             var equipmentPower = 0.0;
 
+            // Спорядження всього ростера — одним запитом: команда йде після кожного тренування
+            // й бою, і запит на кожного героя множив би їх на розмір ростера
+            var equippedByHero = (await _inventoryRepository.GetEquippedByHeroesAsync(
+                    heroes.Select(h => h.Id).ToList(), cancellationToken))
+                .ToLookup(e => e.EquippedByHeroId!.Value);
+
             foreach (var hero in heroes)
             {
                 var heroConfig = _catalog.FindHero(hero.HeroKey);
@@ -124,7 +130,7 @@ namespace EmpireIdle.Application.Power.Commands
                 if (heroConfig is null)
                     continue;
 
-                var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
+                var equipped = equippedByHero[hero.Id].ToList();
 
                 var bare = _heroStats.Power(hero, heroConfig);
 

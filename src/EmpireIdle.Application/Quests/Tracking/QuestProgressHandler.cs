@@ -32,7 +32,9 @@ namespace EmpireIdle.Application.Quests.Tracking
             if (signal is null)
                 return;
 
-            await _tracker.TrackPersonalAsync(signal, now, cancellationToken);
+            // Усі три виміри: особисті, серверні й кланові квести. Лише особисті губили
+            // внески серверних і прогрес кланових — outbox позначав подію обробленою назавжди
+            await _tracker.TrackAsync(signal, now, cancellationToken);
         }
     }
 }

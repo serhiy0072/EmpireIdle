@@ -68,7 +68,7 @@ public class RepairWeaponCommandTests
     public async Task Handle_ShouldChargeGemsByLevel_AndRepair()
     {
         GivenForge();
-        _wallet.AddGems(new GemAmount(500), "seed", PlayerId, Now);
+        _wallet.AddGems(new GemAmount(500), "seed", Now);
         var sword = GivenBrokenSword(level: 5);
 
         await Handler().Handle(new RepairWeaponCommand(PlayerId, sword.Id), CancellationToken.None);
@@ -82,7 +82,7 @@ public class RepairWeaponCommandTests
     public async Task Handle_ShouldReject_WhenGemsAreShort()
     {
         GivenForge();
-        _wallet.AddGems(new GemAmount(10), "seed", PlayerId, Now);
+        _wallet.AddGems(new GemAmount(10), "seed", Now);
         var sword = GivenBrokenSword(level: 5);
 
         var error = await Assert.ThrowsAsync<NotEnoughResourcesException>(
@@ -97,7 +97,7 @@ public class RepairWeaponCommandTests
     [Fact]
     public async Task Handle_ShouldDoNothing_WhenTheWeaponIsWhole()
     {
-        _wallet.AddGems(new GemAmount(500), "seed", PlayerId, Now);
+        _wallet.AddGems(new GemAmount(500), "seed", Now);
         var sword = new EquipmentItem(Guid.NewGuid(), PlayerId, ServerId, "sword_iron", EquipmentSlot.Weapon,
             Rarity.Common, [("Attack", 10.0)], Now);
         _inventory.GetEquipmentByIdAsync(sword.Id, Arg.Any<CancellationToken>()).Returns(sword);

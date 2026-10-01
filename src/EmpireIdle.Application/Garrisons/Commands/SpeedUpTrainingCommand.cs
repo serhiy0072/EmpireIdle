@@ -55,21 +55,19 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var order = garrison.TrainingOrders.FirstOrDefault(o => o.Id == request.OrderId)
                 ?? throw new EntityNotFoundException($"Training order", request.OrderId);
 
-            var cost = _calculator.GetInstantFinishCost(order.CompletesAt, now);
+            // Останню хвилину прискорення не зрізає — партію завершить сканер
+            var cut = _calculator.RequireCut(order.CompletesAt, now);
+            var cost = _calculator.GetCost(order.CompletesAt, now);
 
-            if (cost > 0)
-            {
-                var userId = _currentPlayer.UserId
-                    ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
+            var userId = _currentPlayer.UserId
+                ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-                var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                    ?? throw new InvalidOperationException($"Wallet not found.");
+            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                ?? throw new InvalidOperationException($"Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId, now);
-            }
+            wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId, now);
 
-            garrison.ReduceTrainingTime(order.Id, order.CompletesAt - now, now);
-            garrison.CompleteDueTraining(now);
+            garrison.ReduceTrainingTime(order.Id, cut, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

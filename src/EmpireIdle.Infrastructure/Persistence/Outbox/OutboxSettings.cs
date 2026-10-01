@@ -17,5 +17,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
 
         /// <summary>Скільки годин чекати, перш ніж вважати резерв ідемпотентності покинутим і стерти його.</summary>
         public int StaleReservationHours { get; set; } = 24;
+
+        /// <summary>
+        /// Скільки днів тримати завершені записи ідемпотентності. Повтор із тим самим ключем
+        /// приходить за секунди чи хвилини; тиждень — із запасом, а без чистки таблиця росла б вічно.
+        /// </summary>
+        public int IdempotencyRetentionDays { get; set; } = 7;
     }
 }

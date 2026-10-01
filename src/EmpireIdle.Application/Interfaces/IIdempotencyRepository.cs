@@ -29,5 +29,8 @@ namespace EmpireIdle.Application.Interfaces
         /// </summary>
         /// <returns>Кількість видалених записів.</returns>
         Task<int> PurgeStaleReservationsAsync(DateTime cutoffUtc, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє завершені записи (з відповіддю), створені раніше за <paramref name="cutoffUtc"/>.</summary>
+        Task<int> PurgeCompletedAsync(DateTime cutoffUtc, CancellationToken cancellationToken = default);
     }
 }

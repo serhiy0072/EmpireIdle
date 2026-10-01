@@ -11,13 +11,17 @@ namespace EmpireIdle.Infrastructure.Payments
     public class StripePaymentProvider : IPaymentProvider
     {
         private readonly StripeSettings _settings;
+        private readonly IStripeClient _client;
 
-        public StripePaymentProvider(IOptions<StripeSettings> settings)
+        /// <param name="client">
+        /// Один клієнт на процес: він тримає HTTP-з'єднання й ключ. Глобальний
+        /// StripeConfiguration.ApiKey з конструктора перезаписувався б на кожен scope.
+        /// </param>
+        public StripePaymentProvider(IOptions<StripeSettings> settings, IStripeClient client)
         {
             _settings = settings.Value;
-            StripeConfiguration.ApiKey = _settings.SecretKey;
+            _client = client;
         }
-
 
         /// <inheritdoc/>
         public async Task<PaymentSession> CreateSessionAsync(
@@ -53,7 +57,7 @@ namespace EmpireIdle.Infrastructure.Payments
                 }
             };
 
-            var session = await new SessionService().CreateAsync(options, cancellationToken: cancellationToken);
+            var session = await new SessionService(_client).CreateAsync(options, cancellationToken: cancellationToken);
 
             return new PaymentSession(session.Id, session.Url);
         }
@@ -74,15 +78,24 @@ namespace EmpireIdle.Infrastructure.Payments
             }
 
             // Не наша подія — не помилка: віддаємо 200, щоб Stripe не ретраїв
-            if (stripeEvent.Type != EventTypes.CheckoutSessionCompleted)
-                return new PaymentWebhookResult(IsPaymentCompleted: false, SessionId: null);
+            if (stripeEvent.Type is not (EventTypes.CheckoutSessionCompleted
+                                         or EventTypes.CheckoutSessionAsyncPaymentSucceeded
+                                         or EventTypes.CheckoutSessionAsyncPaymentFailed
+                                         or EventTypes.CheckoutSessionExpired))
+                return PaymentWebhookResult.Ignored;
 
             if (stripeEvent.Data.Object is not Session session)
                 throw new InvalidOperationException($"Event {stripeEvent.Id} of type {stripeEvent.Type} does not carry a Checkout Session.");
 
-            return new PaymentWebhookResult(
-                IsPaymentCompleted: session.PaymentStatus == "paid",
-                SessionId: session.Id);
+            return stripeEvent.Type switch
+            {
+                // Відкладений метод (SEPA, банківський переказ): completed приходить з «unpaid»,
+                // а гроші — пізніше окремою подією async_payment_succeeded
+                EventTypes.CheckoutSessionCompleted when session.PaymentStatus != "paid" => PaymentWebhookResult.Ignored,
+                EventTypes.CheckoutSessionCompleted or EventTypes.CheckoutSessionAsyncPaymentSucceeded
+                    => new PaymentWebhookResult(PaymentWebhookOutcome.Paid, session.Id),
+                _ => new PaymentWebhookResult(PaymentWebhookOutcome.Failed, session.Id)
+            };
         }
     }
 }

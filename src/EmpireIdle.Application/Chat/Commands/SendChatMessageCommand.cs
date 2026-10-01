@@ -64,8 +64,6 @@ namespace EmpireIdle.Application.Chat.Commands
             var sender = await _players.GetByIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Player", request.PlayerId.ToString());
 
-            await EnsureNotFloodingAsync(sender.Id, now, cancellationToken);
-
             Guid? clanId = null;
 
             switch (request.Channel)
@@ -93,8 +91,24 @@ namespace EmpireIdle.Application.Chat.Commands
             var message = new ChatMessage(Guid.NewGuid(), _serverContext.ServerId, request.Channel, clanId, sender.Id,
                 request.Channel == ChatChannel.Private ? request.RecipientId : null, text, sender.Language, now);
 
-            await _chat.AddAsync(message, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            // Лічильник антиспаму й вставка — одна критична секція на відправника: без неї
+            // паралельні запити бачать той самий лічильник і всі проходять повз ліміт
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                await _chat.LockSenderAsync(sender.Id, cancellationToken);
+                await EnsureNotFloodingAsync(sender.Id, now, cancellationToken);
+
+                await _chat.AddAsync(message, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
+            }
 
             _logger.LogInformation("Player {PlayerId} wrote to {Channel} chat", sender.Id, request.Channel);
 

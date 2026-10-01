@@ -7,6 +7,9 @@
     "startsAt"
   ],
   "building.alreadyCompleted": [],
+  "building.notUpgradable": [
+    "building"
+  ],
   "building.serverCeiling": [
     "serverLevel",
     "ceiling"
@@ -56,6 +59,9 @@
     "role"
   ],
   "clan.notMember": [],
+  "clan.permissionsExceedOwn": [
+    "role"
+  ],
   "clan.requestExpired": [],
   "clan.requestResolved": [],
   "clan.roleNameTaken": [
@@ -104,6 +110,9 @@
     "have"
   ],
   "garrison.trainingBusy": [],
+  "garrison.unitLevelCeiling": [
+    "ceiling"
+  ],
   "hero.evolutionItemRequired": [
     "item"
   ],
@@ -140,17 +149,22 @@
   ],
   "mail.letterExpired": [],
   "mail.nothingToClaim": [],
+  "march.camping": [],
   "march.capacity": [
     "capacity"
   ],
+  "march.clanmate": [],
   "march.emptyAttack": [],
   "march.heroElsewhere": [],
   "march.heroUnavailable": [
     "state"
   ],
+  "march.notCamping": [],
+  "march.ownCamp": [],
   "march.ownShield": [
     "level"
   ],
+  "march.ownVillage": [],
   "march.targetFallShield": [],
   "march.targetShielded": [],
   "market.heroAlreadyOwned": [
@@ -192,12 +206,28 @@
     "level"
   ],
   "reinforce.targetShielded": [],
+  "scout.blocked": [],
+  "scout.ownTarget": [],
   "shop.maxPerPurchase": [
     "max"
+  ],
+  "speedup.atFloor": [
+    "seconds"
   ],
   "teleport.cellOccupied": [],
   "teleport.cellUnsuitable": [],
   "teleport.outsideRegion": [],
+  "territory.cellTaken": [],
+  "territory.cellUnfit": [],
+  "territory.foreignStructure": [],
+  "territory.noFreeSlot": [
+    "slots"
+  ],
+  "territory.notEnoughPoints": [
+    "need",
+    "have"
+  ],
+  "territory.ownStructure": [],
   "village.alreadyThere": [],
   "village.nothingToRepair": [],
   "village.storageFull": [

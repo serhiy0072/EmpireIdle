@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -38,6 +39,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly MarchCalculator _calculator;
         private readonly MarchTargetResolver _targets;
         private readonly ReinforcementRules _reinforcementRules;
+        private readonly StructureMarchRules _structureMarches;
         private readonly HeroProgression _progression;
         private readonly GameCatalog _catalog;
         private readonly ILogger<SendMarchCommandHandler> _logger;
@@ -53,6 +55,7 @@ namespace EmpireIdle.Application.Marches.Commands
             MarchCalculator calculator,
             MarchTargetResolver targets,
             ReinforcementRules reinforcementRules,
+            StructureMarchRules structureMarches,
             HeroProgression progression,
             GameCatalog catalog,
             ILogger<SendMarchCommandHandler> logger)
@@ -67,6 +70,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _timeProvider = timeProvider;
             _targets = targets;
             _reinforcementRules = reinforcementRules;
+            _structureMarches = structureMarches;
             _progression = progression;
             _catalog = catalog;
             _logger = logger;
@@ -121,18 +125,25 @@ namespace EmpireIdle.Application.Marches.Commands
             // Перевіряємо до зняття юнітів: інакше відмова лишила б гарнізон порожнім.
             // Підкріплення може складатись із самого героя, атака не може:
             // порожня армія в бою дала б нульову силу й гарантовану поразку
+            if (target.Structure is not null)
+                await _structureMarches.EnsureAllowedAsync(request.PlayerId, target.Structure, request.Intent, cancellationToken);
+
+            // Гарнізон споруди місткість звіряє на прибутті: будівництво прискорює й повний
             if (request.Intent == MarchIntent.Reinforce)
-                await _reinforcementRules.EnsureAllowedAsync(
-                    village, target, request.Units.Values.Sum(), cancellationToken);
+            {
+                if (target.Structure is null)
+                    await _reinforcementRules.EnsureAllowedAsync(
+                        village, target, request.Units.Values.Sum(), cancellationToken);
+            }
             else if (request.Units.Values.Sum() < 1)
                 throw new RequirementNotMetException(RefusalReasons.MarchEmptyAttack, "An attack needs at least one unit.");
             else
             {
-                _targets.EnsureAttackAllowed(village, target, now);
+                await _targets.EnsureAttackAllowedAsync(village, target, now, cancellationToken);
 
-                // Напад на гравця знімає власний щит після падіння — інакше
-                // з-під нього можна було б безкарно атакувати
-                if (target.Village is not null)
+                // Напад на гравця — на село чи на його табір — знімає власний щит
+                // після падіння: інакше з-під нього можна було б безкарно атакувати
+                if (target.Village is not null || target.Camp is not null)
                     village.DropShield(now);
             }
 

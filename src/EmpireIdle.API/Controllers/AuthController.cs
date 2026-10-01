@@ -1,12 +1,8 @@
 using EmpireIdle.API.DTOs;
-using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Players.Commands;
-using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure.Auth;
-using EmpireIdle.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -16,55 +12,30 @@ namespace EmpireIdle.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [AllowAnonymous]
-    [EnableRateLimiting("auth")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
         private readonly IMediator _mediator;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IServerContext _serverContext;
-        private readonly GameCatalog _catalog;
 
-        public AuthController(AuthService authService, IMediator mediator, IUnitOfWork unitOfWork, IServerContext serverContext, GameCatalog catalog)
+        public AuthController(AuthService authService, IMediator mediator)
         {
             _authService = authService;
             _mediator = mediator;
-            _unitOfWork = unitOfWork;
-            _serverContext = serverContext;
-            _catalog = catalog;
         }
 
         /// <summary>
-        /// Зареєструвати нового гравця: Identity user + Player + Village + Wallet.
+        /// Зареєструвати нового гравця: акаунт + Player + Village + Wallet, потім вхід.
         /// </summary>
         [HttpPost("register")]
+        [EnableRateLimiting("auth")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] DTOs.RegisterRequest request, CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            await _mediator.Send(new RegisterPlayerCommand(request.UserName, request.Email, request.Password), cancellationToken);
 
-            try
-            {
-                // 1. Identity user (валідація пароля, унікальність email)
-                var userId = await _authService.RegisterAsync(request.UserName, request.Email, request.Password);
-
-                // Реєстрація анонімна — світ беремо з конфіга
-                _serverContext.UseServer(_catalog.Config.DefaultServerId);
-
-                // 2. Доменний Player + Village + Garrison + Wallet
-                await _mediator.Send(new CreatePlayerCommand(request.UserName, request.Email, userId), cancellationToken);
-
-                await _unitOfWork.CommitTransactionAsync(cancellationToken);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                throw; // GlobalExceptionHandler перетворить на 400
-            }
-
-            // 3. Логін — уже поза транзакцією, дані закомічені
-            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password);
+            // Логін — уже поза транзакцією, дані закомічені
+            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password, cancellationToken);
 
             return Created((string?)null, new AuthResponse(accessToken, refreshToken, playerId));
         }
@@ -73,23 +44,26 @@ namespace EmpireIdle.API.Controllers
         /// Залогінитись і отримати JWT токени.
         /// </summary>
         [HttpPost("login")]
+        [EnableRateLimiting("auth")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] DTOs.LoginRequest request, CancellationToken cancellationToken)
         {
-            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password);
+            var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password, cancellationToken);
             return Ok(new AuthResponse(accessToken, refreshToken, playerId));
         }
 
         /// <summary>
-        /// Оновити access token за refresh token (з ротацією).
+        /// Оновити access token за refresh token (з ротацією). Свій, м'якший ліміт: токен не
+        /// підбирається перебором, а за одним IP (NAT, кілька вкладок) оновлюються десятки сесій.
         /// </summary>
         [HttpPost("refresh")]
+        [EnableRateLimiting("refresh")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Refresh([FromBody] DTOs.RefreshRequest request, CancellationToken cancellationToken)
         {
-            var (accessToken, refreshToken, playerId) = await _authService.RefreshAsync(request.RefreshToken);
+            var (accessToken, refreshToken, playerId) = await _authService.RefreshAsync(request.RefreshToken, cancellationToken);
             return Ok(new AuthResponse(accessToken, refreshToken, playerId));
         }
     }

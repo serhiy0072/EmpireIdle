@@ -30,10 +30,6 @@ namespace EmpireIdle.Domain.Services
         public TimeSpan CalculateDuration(int serverId, int fromX, int fromY, int toX, int toY,
             IReadOnlyDictionary<UnitStackKey, int> units, double? heroSpeed = null)
         {
-            var distance = Math.Sqrt(Math.Pow(toX - fromX, 2) + Math.Pow(toY - fromY, 2));
-            if (distance <= 0)
-                return TimeSpan.Zero;
-
             // Швидкість колони = швидкість найповільнішого учасника. Рівень юніта
             // на швидкість не впливає — прокачка стосується бою, не логістики.
             var speeds = units.Keys
@@ -45,7 +41,15 @@ namespace EmpireIdle.Domain.Services
             if (heroSpeed is { } hero && hero > 0)
                 speeds.Add(hero);
 
-            var speed = speeds.DefaultIfEmpty(1.0).Min();
+            return CalculateDuration(serverId, fromX, fromY, toX, toY, speeds.DefaultIfEmpty(1.0).Min());
+        }
+
+        /// <summary>Час дороги із заданою швидкістю колони — для розвідників, у яких юнітів немає.</summary>
+        public TimeSpan CalculateDuration(int serverId, int fromX, int fromY, int toX, int toY, double speed)
+        {
+            var distance = Math.Sqrt(Math.Pow(toX - fromX, 2) + Math.Pow(toY - fromY, 2));
+            if (distance <= 0)
+                return TimeSpan.Zero;
 
             if (speed <= 0)
                 speed = 1.0;

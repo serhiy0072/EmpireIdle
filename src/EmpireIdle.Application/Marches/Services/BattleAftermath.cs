@@ -22,7 +22,6 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IHeroRepository _heroRepository;
-        private readonly IGameNotifier _notifier;
         private readonly CasualtySplitter _casualties;
         private readonly CombatConfig _combatConfig;
         private readonly MarchLogistics _logistics;
@@ -35,7 +34,6 @@ namespace EmpireIdle.Application.Marches.Services
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
             IHeroRepository heroRepository,
-            IGameNotifier notifier,
             CasualtySplitter casualties,
             GameCatalog catalog,
             MarchLogistics logistics,
@@ -47,7 +45,6 @@ namespace EmpireIdle.Application.Marches.Services
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
             _heroRepository = heroRepository;
-            _notifier = notifier;
             _casualties = casualties;
             _combatConfig = catalog.Config.Combat;
             _logistics = logistics;
@@ -202,8 +199,7 @@ namespace EmpireIdle.Application.Marches.Services
                 defenderGarrison.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-            await _notifier.NotifyBattleFinishedAsync(defenderVillage.PlayerId, report.Id,
-                !result.AttackerWon, attackerVillage.Name, cancellationToken);
+            report.AnnounceDefence(utcNow);
         }
 
         /// <summary>
@@ -227,28 +223,175 @@ namespace EmpireIdle.Application.Marches.Services
                 if (group.Key is not { } ownerId)
                     continue;
 
-                var byStack = group
-                    .GroupBy(l => new UnitStackKey(l.UnitType, l.Level))
-                    .ToDictionary(g => g.Key, g => g.Sum(l => l.Lost));
-
-                // Гарнізон союзника стоїть за сотню клітин, але транзакція одна
-                var ownerVillage = await _villageRepository.GetByPlayerIdAsync(ownerId, cancellationToken);
-                var ownerGarrison = ownerVillage is null
-                    ? null
-                    : await _garrisonRepository.GetByVillageIdAsync(ownerVillage.Id, cancellationToken);
-
-                if (ownerVillage is null || ownerGarrison is null)
-                {
-                    _logger.LogWarning("Wounded reinforcements of {OwnerId} dropped: no home garrison.", ownerId);
-                    continue;
-                }
-
-                var capacity = _logistics.CalculateWoundedCapacity(ownerVillage, ownerGarrison);
-                var split = _casualties.Split(byStack, capacity, WoundedSeed(seed));
-
-                ownerGarrison.AdmitWounded(split.Wounded, utcNow);
+                await AdmitOwnerWoundedAsync(ownerId, LostBy(group), seed, utcNow, cancellationToken);
             }
 
+            await DisbandIfLostAsync(hostGarrison, hostOwnerId, defenceLost, utcNow, cancellationToken);
+        }
+
+        /// <summary>
+        /// Бій за кланову споруду для її захисників: кожен, хто стояв у гарнізоні, отримує
+        /// свій звіт і кошик викупу, поранені йдуть у його госпіталь. На відміну від села
+        /// (де союзники звітів не отримують) тут господаря немає — без звіту про бій не знав би ніхто.
+        /// Юнітів у гарнізоні споруди обмежено місткістю, тож і звітів — одиниці, не сотні.
+        /// </summary>
+        public async Task RecordStructureDefenceAsync(
+            March march,
+            ClanStructure structure,
+            Garrison structureGarrison,
+            Village attackerVillage,
+            IReadOnlyList<DefenceStack> defence,
+            IReadOnlyList<StackLoss> defenderLosses,
+            BattleResult result,
+            string terrain,
+            int seed,
+            DateTime utcNow,
+            CancellationToken cancellationToken)
+        {
+            foreach (var ownerId in defence.Select(s => s.OwnerPlayerId).OfType<Guid>().Distinct())
+            {
+                var stood = defence
+                    .Where(s => s.OwnerPlayerId == ownerId)
+                    .GroupBy(s => new UnitStackKey(s.UnitType, s.Level))
+                    .ToDictionary(g => g.Key, g => g.Sum(s => s.Count));
+
+                var admitted = await AdmitOwnerWoundedAsync(ownerId,
+                    LostBy(defenderLosses.Where(l => l.OwnerPlayerId == ownerId)), seed, utcNow, cancellationToken);
+
+                var report = new BattleReport(
+                    Guid.NewGuid(), ownerId, march.Id,
+                    structure.X, structure.Y, terrain,
+                    attackerVillage.Name, _status.MainBuildingLevel(attackerVillage),
+                    !result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
+
+                var woundedByType = ByType(admitted?.Split.Wounded ?? new Dictionary<UnitStackKey, int>());
+                var recoverableByType = ByType(admitted?.Split.Recoverable ?? new Dictionary<UnitStackKey, int>());
+                var deadByType = ByType(admitted?.Split.Dead ?? new Dictionary<UnitStackKey, int>());
+
+                foreach (var (unitType, count) in ByType(stood))
+                {
+                    report.AddLine(unitType, count,
+                        woundedByType.GetValueOrDefault(unitType),
+                        recoverableByType.GetValueOrDefault(unitType),
+                        deadByType.GetValueOrDefault(unitType));
+                }
+
+                await _battleReportRepository.AddAsync(report, cancellationToken);
+
+                if (admitted is { } home && home.Split.Recoverable.Count > 0)
+                    home.Garrison.AddRecoverable(home.Split.Recoverable, report.Id,
+                        utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
+
+                report.AnnounceDefence(utcNow);
+            }
+
+            // Господаря в споруди немає — після поразки додому йдуть усі
+            await DisbandIfLostAsync(structureGarrison, Guid.Empty, result.AttackerWon, utcNow, cancellationToken);
+        }
+
+        private static Dictionary<UnitStackKey, int> LostBy(IEnumerable<StackLoss> losses)
+            => losses
+                .GroupBy(l => new UnitStackKey(l.UnitType, l.Level))
+                .ToDictionary(g => g.Key, g => g.Sum(l => l.Lost));
+
+        /// <summary>
+        /// Бій за табір для його власника (§2.5): втрати списуються з маршу-табору,
+        /// поранені — у госпіталь власника вдома, як і в підкріплень, звіт — на
+        /// клітинку табору. Програна оборона ранить героя, що веде табір.
+        /// </summary>
+        /// <param name="campLost">Утрати табору по стеках — до поділу на поранених і загиблих.</param>
+        public async Task RecordCampDefenceAsync(
+            March attack,
+            March camp,
+            Village campHome,
+            Village attackerVillage,
+            IReadOnlyDictionary<UnitStackKey, int> campLost,
+            BattleResult result,
+            string terrain,
+            int seed,
+            DateTime utcNow,
+            CancellationToken cancellationToken)
+        {
+            // Склад знімаємо до списання: рядок звіту — скільки стояло, а не скільки лишилось
+            var stood = camp.GetUnits();
+
+            camp.ApplyLosses(campLost, utcNow);
+
+            var homeGarrison = await _garrisonRepository.GetByIdAsync(camp.GarrisonId, cancellationToken);
+            var capacity = _logistics.CalculateWoundedCapacity(campHome, homeGarrison);
+            var split = _casualties.Split(campLost, capacity, WoundedSeed(seed));
+
+            homeGarrison?.AdmitWounded(split.Wounded, utcNow);
+
+            var report = new BattleReport(
+                Guid.NewGuid(),
+                campHome.PlayerId,
+                attack.Id,
+                camp.TargetX, camp.TargetY, terrain,
+                attackerVillage.Name, _status.MainBuildingLevel(attackerVillage),
+                !result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
+
+            var woundedByType = ByType(split.Wounded);
+            var recoverableByType = ByType(split.Recoverable);
+            var deadByType = ByType(split.Dead);
+
+            foreach (var (unitType, count) in ByType(stood))
+            {
+                report.AddLine(
+                    unitType,
+                    count,
+                    woundedByType.GetValueOrDefault(unitType),
+                    recoverableByType.GetValueOrDefault(unitType),
+                    deadByType.GetValueOrDefault(unitType));
+            }
+
+            await _battleReportRepository.AddAsync(report, cancellationToken);
+
+            if (split.Recoverable.Count > 0)
+                homeGarrison?.AddRecoverable(split.Recoverable, report.Id,
+                    utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
+
+            if (result.AttackerWon && camp.HeroId is Guid heroId)
+            {
+                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
+
+                hero?.Wound(utcNow);
+            }
+
+            report.AnnounceDefence(utcNow);
+        }
+
+        /// <summary>Поранені союзника — в його госпіталь; null — дому немає, поранених нікуди класти.</summary>
+        private async Task<(Garrison Garrison, CasualtySplit Split)?> AdmitOwnerWoundedAsync(Guid ownerId,
+            Dictionary<UnitStackKey, int> lost, int seed, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            // Гарнізон союзника стоїть за сотню клітин, але транзакція одна
+            var ownerVillage = await _villageRepository.GetByPlayerIdAsync(ownerId, cancellationToken);
+            var ownerGarrison = ownerVillage is null
+                ? null
+                : await _garrisonRepository.GetByVillageIdAsync(ownerVillage.Id, cancellationToken);
+
+            if (ownerVillage is null || ownerGarrison is null)
+            {
+                _logger.LogWarning("Wounded reinforcements of {OwnerId} dropped: no home garrison.", ownerId);
+                return null;
+            }
+
+            var capacity = _logistics.CalculateWoundedCapacity(ownerVillage, ownerGarrison);
+            var split = _casualties.Split(lost, capacity, WoundedSeed(seed));
+
+            ownerGarrison.AdmitWounded(split.Wounded, utcNow);
+
+            return (ownerGarrison, split);
+        }
+
+        /// <summary>
+        /// Після програної оборони лідери союзників ідуть у госпіталь, а контингенти — додому.
+        /// Виграний бій лишає їх стояти.
+        /// </summary>
+        private async Task DisbandIfLostAsync(Garrison hostGarrison, Guid hostOwnerId, bool defenceLost,
+            DateTime utcNow, CancellationToken cancellationToken)
+        {
             if (!defenceLost)
                 return;
 

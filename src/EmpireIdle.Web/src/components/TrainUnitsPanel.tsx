@@ -5,7 +5,7 @@ import { formatRemaining } from "../lib/time";
 import type { CatalogUnit } from "../lib/queries/catalog";
 import { useCatalog } from "../lib/queries/catalog";
 import { speedUpLabel } from "../lib/speedUp";
-import { useGarrison, useSpeedUpTraining, useTrainUnits } from "../lib/queries/garrison";
+import { useGarrison, useSpeedUpTraining, useTrainUnits, useUnitLevelCeiling } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
 
 interface Props {
@@ -36,6 +36,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
   const garrison = useGarrison(playerId);
   const train = useTrainUnits(playerId);
   const speedUp = useSpeedUpTraining(playerId);
+  const levelCeiling = useUnitLevelCeiling(playerId);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [levels, setLevels] = useState<Record<string, number>>({});
 
@@ -59,7 +60,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
 
       {units.map((unit) => {
         const count = counts[unit.key] ?? 1;
-        const level = levels[unit.key] ?? 1;
+        const level = Math.min(levels[unit.key] ?? 1, levelCeiling);
         const minutes = cumulativeUnitLevelCost(unit.baseTrainMinutes, 1, level + 1, unit.levelUpCostGrowth) * count;
 
         return (
@@ -79,7 +80,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
                 }
                 className="rounded-lg border border-slate-300 px-1 py-1 text-sm"
               >
-                {Array.from({ length: catalog.maxUnitLevel }, (_, index) => index + 1).map((lvl) => (
+                {Array.from({ length: levelCeiling }, (_, index) => index + 1).map((lvl) => (
                   <option key={lvl} value={lvl}>
                     рів. {lvl}
                   </option>
@@ -116,14 +117,16 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
               <span>
                 {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.level}) — {formatRemaining(order.completesAt, now)}
               </span>
-              <button
-                type="button"
-                onClick={() => speedUp.mutate(order.id)}
-                disabled={speedUp.isPending}
-                className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-              >
-                {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
-              </button>
+              {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => speedUp.mutate(order.id)}
+                  disabled={speedUp.isPending}
+                  className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
+                </button>
+              )}
             </div>
           ))}
         </div>

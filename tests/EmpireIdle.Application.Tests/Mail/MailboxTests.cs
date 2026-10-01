@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Mail.Commands;
@@ -28,14 +29,26 @@ public class MailboxTests
     private readonly IClanRequestRepository _requests = Substitute.For<IClanRequestRepository>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
+    private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
+    private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly GameCatalog _catalog = new GameConfigBuilder().WithBuildings().BuildCatalog();
 
-    public MailboxTests() => _serverContext.ServerId.Returns(1);
+    public MailboxTests()
+    {
+        _serverContext.ServerId.Returns(1);
 
-    private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, _falls, new FakeTimeProvider(Now));
+        // Посилання листів підтягуються пакетом за типом; за замовчуванням — нічого
+        _requests.GetByIdsReadOnlyAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+        _clans.GetCardsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, ClanCard>());
+        _falls.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+        _structureFalls.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+    }
+
+    private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, _falls, _structureFalls, new FakeTimeProvider(Now));
 
     // ---------- Лист із події ----------
 
@@ -65,12 +78,15 @@ public class MailboxTests
         var invite = new ClanRequest(Guid.NewGuid(), 1, clanId, PlayerId, ClanRequestKind.Invite, expiresAt, Now);
         var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.ClanInvite, invite.Id, Now, TimeSpan.FromDays(14));
 
-        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.CountUnreadLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns(1);
         _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
         _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
-        _requests.GetByIdAsync(invite.Id, Arg.Any<CancellationToken>()).Returns(invite);
-        _clans.GetCardAsync(clanId, Arg.Any<CancellationToken>())
-            .Returns(clanAlive ? new ClanCard(clanId, "Вовки", "WLF", "", ClanJoinPolicy.Open, 5, Now) : null);
+        _requests.GetByIdsReadOnlyAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([invite]);
+        _clans.GetCardsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(clanAlive
+                ? new Dictionary<Guid, ClanCard> { [clanId] = new(clanId, "Вовки", "WLF", "", ClanJoinPolicy.Open, 5, Now) }
+                : new Dictionary<Guid, ClanCard>());
 
         return (letter, invite);
     }
@@ -87,6 +103,18 @@ public class MailboxTests
         Assert.True(invite.CanRespond);
         Assert.Equal("Вовки", invite.ClanName);
         Assert.Equal(1, view.Unread);
+    }
+
+    /// <summary>Список обрізаний до найновіших листів, але лічильник бачить і старші непрочитані.</summary>
+    [Fact]
+    public async Task Mailbox_ShouldCountUnreadLetters_BeyondTheListLimit()
+    {
+        GivenInvite(Now.AddDays(1));
+        _mail.CountUnreadLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns(GetMailboxQueryHandler.LetterLimit + 5);
+
+        var view = await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal(GetMailboxQueryHandler.LetterLimit + 5, view.Unread);
     }
 
     /// <summary>Лист лишається, але протерміноване запрошення — без кнопок.</summary>
@@ -152,15 +180,59 @@ public class MailboxTests
             Now.AddHours(24), Now);
         var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.CityFall, fall.Id, Now, TimeSpan.FromDays(14));
 
-        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.CountUnreadLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns(1);
         _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
         _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
-        _falls.GetByIdAsync(fall.Id, Arg.Any<CancellationToken>()).Returns(fall);
+        _falls.GetByIdsAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(fall.Id)), Arg.Any<CancellationToken>()).Returns([fall]);
 
         var view = Assert.Single((await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None)).Letters);
 
         Assert.Null(view.ClanInvite);
         Assert.Equal(new CityFallLetterView("Вовчий кут", 10, 12, 40, 44, Now.AddHours(24)), view.CityFall);
+    }
+
+    // ---------- Зруйнована споруда клану ----------
+
+    /// <summary>Лист отримує кожен учасник клану: слот і бонус зникли для всіх, а не лише для тих, хто був у грі.</summary>
+    [Fact]
+    public async Task StructureFall_ShouldPutALetterToEveryClanMember()
+    {
+        var clanId = Guid.NewGuid();
+        IReadOnlyList<Guid> members = [PlayerId, Guid.NewGuid(), Guid.NewGuid()];
+        var added = new List<MailLetter>();
+        var fallId = Guid.NewGuid();
+
+        _players.GetIdsByClanAsync(clanId, Arg.Any<CancellationToken>()).Returns(members);
+        await _mail.AddLetterAsync(Arg.Do<MailLetter>(added.Add), Arg.Any<CancellationToken>());
+
+        await new StructureFallMailHandler(_mail, _players, _serverContext, _unitOfWork, _notifier, _catalog).Handle(
+            new DomainEventNotification<ClanStructureFell>(new ClanStructureFell(fallId, clanId, Now)),
+            CancellationToken.None);
+
+        Assert.Equal(members, added.Select(l => l.PlayerId));
+        Assert.All(added, l => Assert.Equal((MailKind.StructureFall, (Guid?)fallId), (l.Kind, l.ReferenceId)));
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _notifier.Received(3).NotifyMailAsync(Arg.Any<Guid>(), "StructureFall", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Mailbox_ShouldDescribeTheStructureFall()
+    {
+        var structure = new ClanStructure(Guid.NewGuid(), 1, Guid.NewGuid(), 30, 31, Guid.NewGuid(), Guid.NewGuid(), TimeSpan.Zero, Now);
+        var fall = new StructureFall(Guid.NewGuid(), 1, structure, Guid.NewGuid(), "Вовчий кут", Now);
+        var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.StructureFall, fall.Id, Now, TimeSpan.FromDays(14));
+
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.CountUnreadLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns(1);
+        _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
+        _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+        _structureFalls.GetByIdsAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(fall.Id)), Arg.Any<CancellationToken>()).Returns([fall]);
+
+        var view = Assert.Single((await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None)).Letters);
+
+        Assert.Null(view.CityFall);
+        Assert.Equal(new StructureFallLetterView("Вовчий кут", 30, 31, Now), view.StructureFall);
     }
 
     // ---------- Прочитання ----------

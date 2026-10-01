@@ -1,6 +1,5 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmpireIdle.Infrastructure.Persistence.Repositories
@@ -22,17 +21,5 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Where(s => s.Id == id)
                 .Select(s => s.Level)
                 .FirstOrDefaultAsync(cancellationToken);
-
-        /// <inheritdoc/>
-        public Task<List<Server>> GetAcceptingAsync(CancellationToken cancellationToken = default)
-            => _context.Servers
-                .AsNoTracking()
-                .Where(s => s.State == ServerState.Active)
-                .OrderBy(s => s.Id)
-                .ToListAsync(cancellationToken);
-
-        /// <inheritdoc/>
-        public async Task AddAsync(Server server, CancellationToken cancellationToken = default)
-            => await _context.Servers.AddAsync(server, cancellationToken);
     }
 }

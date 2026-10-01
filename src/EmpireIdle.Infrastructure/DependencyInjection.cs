@@ -1,21 +1,4 @@
-
-using EmpireIdle.Application.Clans.Services;
-using EmpireIdle.Application.Common.Behaviors;
-using EmpireIdle.Application.Common.Events;
-using EmpireIdle.Application.Dungeons.Services;
-using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Inventory.Effects;
-using EmpireIdle.Application.Marches.Services;
-using EmpireIdle.Application.Quests.Tracking;
-using EmpireIdle.Application.Quests.Tracking.Mappers;
-using EmpireIdle.Application.Rewards;
-using EmpireIdle.Application.Rewards.Granters;
-using EmpireIdle.Application.Chat.Services;
-using EmpireIdle.Application.Market.Services;
-using EmpireIdle.Application.Mail.Services;
-using EmpireIdle.Infrastructure.Translation;
-using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Payments;
@@ -23,18 +6,20 @@ using EmpireIdle.Infrastructure.Persistence;
 using EmpireIdle.Infrastructure.Persistence.Interceptors;
 using EmpireIdle.Infrastructure.Persistence.Outbox;
 using EmpireIdle.Infrastructure.Persistence.Repositories;
-using FluentValidation;
-using MediatR;
+using EmpireIdle.Infrastructure.Translation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Stripe;
 
 namespace EmpireIdle.Infrastructure
 {
     /// <summary>
-    /// Реєстрація всіх Infrastructure залежностей в DI контейнері.
+    /// Реєстрація інфраструктури: БД, репозиторії, outbox, Identity, зовнішні сервіси.
+    /// Сценарії застосунку й MediatR — у AddApplication, доменні сервіси — у Program.
     /// </summary>
     public static class DependencyInjection
     {
@@ -75,104 +60,39 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IServerQuestRepository, ServerQuestRepository>();
             services.AddScoped<IClanRepository, ClanRepository>();
             services.AddScoped<IClanHelpRepository, ClanHelpRepository>();
+            services.AddScoped<IClanStructureRepository, ClanStructureRepository>();
+            services.AddScoped<IClanQuestRepository, ClanQuestRepository>();
             services.AddScoped<IClanRequestRepository, ClanRequestRepository>();
-            services.AddScoped<IHeroRepository, HeroRepository>();
             services.AddScoped<IBannerRepository, BannerRepository>();
             services.AddScoped<IDungeonRepository, DungeonRepository>();
             services.AddScoped<IMarketRepository, MarketRepository>();
             services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IMailRepository, MailRepository>();
             services.AddScoped<IVillageFallRepository, VillageFallRepository>();
+            services.AddScoped<IStructureFallRepository, StructureFallRepository>();
+            services.AddScoped<IScoutReportRepository, ScoutReportRepository>();
             services.AddScoped<ILoginRewardRepository, LoginRewardRepository>();
             services.AddSingleton<ITranslator, NoTranslator>();
 
-            // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
-            services.AddScoped<IItemEffect, ResourceItemEffect>();
-            services.AddScoped<IItemEffect, BoostItemEffect>();
-            services.AddScoped<IItemEffect, TeleportItemEffect>();
-
-            services.AddScoped<ItemEffectDispatcher>();
-            services.AddScoped<EffectResolver>();
-            services.AddScoped<ItemGranter>();
-            services.AddScoped<HeroGranter>();
-            services.AddScoped<ReinforcementReturner>();
-            services.AddScoped<MarchLogistics>();
-            services.AddScoped<ReinforcementDelivery>();
-            services.AddScoped<VillageBattleService>();
-            services.AddScoped<VillageRelocator>();
-            services.AddScoped<CityFallService>();
-            services.AddScoped<MonsterBattleService>();
-            services.AddScoped<MarchTargetResolver>();
-            services.AddScoped<BattleAftermath>();
-            services.AddScoped<ReinforcementRules>();
-
-            services.AddSingleton<VillageCapacities>();
-            services.AddSingleton<VillageStatus>();
-            services.AddSingleton<CityFallRules>();
-            services.AddSingleton<PlunderCalculator>();
-
-            // Нагороди — той самий патерн: усі реалізації + диспетчер за типом
-            services.AddScoped<IRewardGranter, GemRewardGranter>();
-            services.AddScoped<IRewardGranter, ResourceRewardGranter>();
-            services.AddScoped<IRewardGranter, ItemRewardGranter>();
-            services.AddScoped<IRewardGranter, HeroRewardGranter>();
-            services.AddScoped<IRewardGranter, EquipmentRewardGranter>();
-            services.AddScoped<RewardDispatcher>();
-            services.AddScoped<DungeonTeamFactory>();
-            services.AddScoped<DungeonRewarder>();
-            services.AddScoped<MarketGoods>();
-            services.AddScoped<MarketDesk>();
-            services.AddScoped<MarketListingProjection>();
-            services.AddScoped<ChatProjection>();
-            services.AddScoped<MailRewardClaimer>();
-
-            // Квести
-            services.AddScoped<QuestSignalResolver>();
-            services.AddScoped<QuestProgressTracker>();
-
-            // Мапери подій 
-            services.AddScoped<IQuestSignalMapper, BuildingUpgradeCompletedMapper>();
-            services.AddScoped<IQuestSignalMapper, BuildingCollectedMapper>();
-            services.AddScoped<IQuestSignalMapper, MonsterDefeatedMapper>();
-            services.AddScoped<IQuestSignalMapper, BattleFoughtMapper>();
-            services.AddScoped<IQuestSignalMapper, GemsSpentMapper>();
-            services.AddScoped<IQuestSignalMapper, UnitsTrainedMapper>();
-
-            // Закриті типи хендлера — MediatR не вміє резолвити відкритий генерик
-            // для вкладеної нотифікації, тому реєструємо їх рефлексією
-            var eventTypes = typeof(IDomainEvent).Assembly
-                .GetTypes()
-                .Where(t => typeof(IDomainEvent).IsAssignableFrom(t) && t is { IsAbstract: false, IsInterface: false });
-
-            foreach (var eventType in eventTypes)
-            {
-                var notification = typeof(DomainEventNotification<>).MakeGenericType(eventType);
-                var handlerInterface = typeof(INotificationHandler<>).MakeGenericType(notification);
-                var handlerImplementation = typeof(QuestProgressHandler<>).MakeGenericType(eventType);
-
-                services.AddScoped(handlerInterface, handlerImplementation);
-            }
-
             // Зовнішні сервіси
             services.AddSingleton<IRandomSource, SystemRandomSource>();
+            services.AddSingleton<IStripeClient>(sp => new StripeClient(sp.GetRequiredService<IOptions<StripeSettings>>().Value.SecretKey));
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();
 
             services.AddScoped<DomainEventDispatchInterceptor>();
 
-            services.Configure<StripeSettings>(configuration.GetSection(nameof(StripeSettings)));
+            // StripeClient кидає на порожньому ключі вже при створенні — без перевірки на старті
+            // кожен /payments, разом із вебхуком, падав би 400 на резолві контролера
+            services.AddOptions<StripeSettings>()
+                .Bind(configuration.GetSection(nameof(StripeSettings)))
+                .Validate(s => !string.IsNullOrWhiteSpace(s.SecretKey) && !string.IsNullOrWhiteSpace(s.WebhookSecret),
+                    "StripeSettings.SecretKey and WebhookSecret are required — set them in User Secrets.")
+                .Validate(s => Uri.IsWellFormedUriString(s.SuccessUrl, UriKind.Absolute) && Uri.IsWellFormedUriString(s.CancelUrl, UriKind.Absolute),
+                    "StripeSettings.SuccessUrl and CancelUrl must be absolute URLs.")
+                .ValidateOnStart();
 
             services.Configure<OutboxSettings>(configuration.GetSection("Outbox"));
             services.AddHostedService<OutboxProcessor>();
-
-            services.AddMediatR(cfg =>
-                {
-                    cfg.RegisterServicesFromAssembly(typeof(IRepository<>).Assembly);
-                    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
-                    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
-                    cfg.AddOpenBehavior(typeof(PlayerScopeBehavior<,>));
-                    cfg.AddOpenBehavior(typeof(IdempotencyBehavior<,>));
-                });
-            services.AddValidatorsFromAssembly(typeof(IRepository<>).Assembly);
 
             // Identity
             services.AddIdentityCore<IdentityUser>(options =>
@@ -188,6 +108,7 @@ namespace EmpireIdle.Infrastructure
 
             // Auth
             services.AddScoped<AuthService>();
+            services.AddScoped<IUserAccounts>(sp => sp.GetRequiredService<AuthService>());
 
             return services;
         }

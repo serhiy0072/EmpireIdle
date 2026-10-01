@@ -15,10 +15,10 @@ namespace EmpireIdle.API.Jobs
 
         public ClanLeadershipJob(ServerJobRunner runner) => _runner = runner;
 
-        [DisableConcurrentExecution(timeoutInSeconds: 600)]
-        public Task RunAsync() => _runner.ForEachItemAsync(
+        [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
+        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachItemAsync(
             nameof(TransferInactiveLeadershipCommand),
-            mediator => mediator.Send(new GetClansWithInactiveLeaderQuery()),
-            (mediator, clanId) => mediator.Send(new TransferInactiveLeadershipCommand(clanId)));
+            (mediator, ct) => mediator.Send(new GetClansWithInactiveLeaderQuery(), ct),
+            (mediator, clanId, ct) => mediator.Send(new TransferInactiveLeadershipCommand(clanId), ct), cancellationToken);
     }
 }

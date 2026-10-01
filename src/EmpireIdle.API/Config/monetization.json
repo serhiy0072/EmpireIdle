@@ -3,7 +3,7 @@
     "Monetization": {
       "SpeedUpFactor": 6.0,
       "SpeedUpExponent": 0.85,
-      "InstantFinishThresholdMinutes": 3,
+      "SpeedUpFloorSeconds": 60,
       "HealGemsPerUnit": 3
     }
   }

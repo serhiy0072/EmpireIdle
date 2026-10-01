@@ -62,7 +62,8 @@ namespace EmpireIdle.Domain.Services
                 var x = cx + _random.Next(-boundary, boundary + 1);
                 var y = cy + _random.Next(-boundary, boundary + 1);
 
-                if (!_terrain.IsHabitable(serverId, x, y))
+                // Межа туману на верхніх рівнях сягає краю карти: centre + radius уже поза нею
+                if (!_terrain.IsInBounds(x, y) || !_terrain.IsHabitable(serverId, x, y))
                     continue;
 
                 if (await isOccupied(x, y))

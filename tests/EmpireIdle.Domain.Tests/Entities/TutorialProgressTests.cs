@@ -42,6 +42,20 @@ public class TutorialProgressTests
     }
 
     [Fact]
+    public void MarkSeen_ShouldRejectANewStep_OnceTheListIsFull()
+    {
+        var progress = Progress();
+
+        for (var i = 0; i < TutorialProgress.MaxSteps; i++)
+            progress.MarkSeen($"step.{i}", Now);
+
+        Assert.Throws<InvalidStateException>(() => progress.MarkSeen("step.extra", Now));
+
+        // Повтор уже побаченого — не новий крок: клієнт може надіслати його й при повному списку
+        Assert.False(progress.MarkSeen("step.0", Now));
+    }
+
+    [Fact]
     public void MarkSeen_ShouldRejectAKeyLongerThanTheCap()
     {
         var key = new string('a', TutorialProgress.MaxStepKeyLength + 1);

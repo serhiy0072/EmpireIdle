@@ -73,10 +73,10 @@ namespace EmpireIdle.Application.Marches.Queries
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
+            var village = await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Village for player", request.PlayerId);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
+            var garrison = await _garrisonRepository.GetByVillageIdReadOnlyAsync(village.Id, cancellationToken)
                 ?? throw new EntityNotFoundException("Garrison for village", village.Id);
 
             // Прев'ю не обіцяє того, чого гравець відправити не може:
@@ -91,12 +91,13 @@ namespace EmpireIdle.Application.Marches.Queries
 
             // Те саме, що відмовить у відправленні: прев'ю не має
             // показувати шанси там, куди йти не можна
-            _targets.EnsureAttackAllowed(village, target, now);
+            await _targets.EnsureAttackAllowedAsync(village, target, now, cancellationToken);
 
             var terrain = _terrain.GetTerrainType(_serverContext.ServerId, target.X, target.Y);
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
-                request.PlayerId, EffectTarget.Attack, now, cancellationToken);
+                    request.PlayerId, EffectTarget.Attack, now, cancellationToken)
+                * await _targets.AttackMultiplierAsync(village, now, cancellationToken);
 
             // Чужий або неіснуючий герой рахується як відсутній: прев'ю нічого
             // не міняє, відмовить SendMarchCommand. Але й підставити чужого героя

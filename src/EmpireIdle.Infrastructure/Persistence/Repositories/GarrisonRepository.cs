@@ -1,6 +1,7 @@
 
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmpireIdle.Infrastructure.Persistence.Repositories
@@ -25,7 +26,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Include(g => g.Recoverable)
             .Include(g => g.Reinforcements)
             .AsSplitQuery()
-            .FirstOrDefaultAsync(g => g.VillageId == villageId, cancellationToken);
+            .FirstOrDefaultAsync(g => g.HostKind == GarrisonHost.Village && g.HostId == villageId, cancellationToken);
 
         /// <inheritdoc/>
         public Task<Garrison?> GetByVillageIdReadOnlyAsync(Guid villageId, CancellationToken cancellationToken = default)
@@ -38,12 +39,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Include(g => g.Recoverable)
                 .Include(g => g.Reinforcements)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(g => g.VillageId == villageId, cancellationToken);
+                .FirstOrDefaultAsync(g => g.HostKind == GarrisonHost.Village && g.HostId == villageId, cancellationToken);
 
         public async Task AddAsync(Garrison garrison, CancellationToken cancellationToken)
         {
             await _context.Garrisons.AddAsync(garrison, cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public void Remove(Garrison garrison) => _context.Garrisons.Remove(garrison);
 
         /// <inheritdoc/>
         public Task<Garrison?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

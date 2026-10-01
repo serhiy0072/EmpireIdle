@@ -22,6 +22,8 @@ namespace EmpireIdle.API.Hubs
 
         Task MarchReturned(MarchReturnedEvent payload);
 
+        Task MarchCamped(MarchCampedEvent payload);
+
         Task ServerQuestRewarded(ServerQuestRewardedEvent payload);
 
         Task ClanInvite(ClanInviteEvent payload);
@@ -29,5 +31,13 @@ namespace EmpireIdle.API.Hubs
         Task ChatMessage(ChatMessageEvent payload);
 
         Task MailReceived(MailReceivedEvent payload);
+
+        Task AttackIncoming(AttackIncomingEvent payload);
+
+        Task AttackCalledOff(AttackCalledOffEvent payload);
+
+        Task ScoutReportReady(ScoutReportReadyEvent payload);
+
+        Task StructureDestroyed(StructureDestroyedEvent payload);
     }
 }

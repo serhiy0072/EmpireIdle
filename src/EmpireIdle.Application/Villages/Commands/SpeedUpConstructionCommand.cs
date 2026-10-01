@@ -20,13 +20,12 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly SpeedUpCalculator _calculator;
-        private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<SpeedUpConstructionCommandHandler> _logger;
 
         public SpeedUpConstructionCommandHandler(
             IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, ICurrentPlayer currentPlayer, IUnitOfWork unitOfWork,
-            SpeedUpCalculator calculator, GameCatalog catalog, TimeProvider timeProvider, ILogger<SpeedUpConstructionCommandHandler> logger)
+            SpeedUpCalculator calculator, TimeProvider timeProvider, ILogger<SpeedUpConstructionCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _walletRepository = walletRepository;
@@ -34,7 +33,6 @@ namespace EmpireIdle.Application.Villages.Commands
             _unitOfWork = unitOfWork;
             _calculator = calculator;
             _timeProvider = timeProvider;
-            _catalog = catalog;
             _logger = logger;
         }
 
@@ -50,23 +48,19 @@ namespace EmpireIdle.Application.Villages.Commands
             if (!building.IsUnderConstruction)
                 throw new InvalidStateException(RefusalReasons.BuildingAlreadyCompleted, $"Building {request.BuildingId} is not under construction.");
 
-            var cost = _calculator.GetInstantFinishCost(building.ConstructionCompletesAt!.Value, now);
+            // Останню хвилину прискорення не зрізає — будівлю завершить сканер
+            var cut = _calculator.RequireCut(building.ConstructionCompletesAt!.Value, now);
+            var cost = _calculator.GetCost(building.ConstructionCompletesAt.Value, now);
 
-            if (cost > 0)
-            {
-                var userId = _currentPlayer.UserId
-                    ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
+            var userId = _currentPlayer.UserId
+                ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-                var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                    ?? throw new InvalidOperationException("Wallet not found.");
+            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
+                ?? throw new InvalidOperationException("Wallet not found.");
 
-                wallet.SpendGems(new GemAmount(cost), $"Speed up construction of {building.Type}", request.PlayerId, now);
-            }
+            wallet.SpendGems(new GemAmount(cost), $"Speed up construction of {building.Type}", request.PlayerId, now);
 
-            // Завершуємо одразу, не чекаючи сканера
-            var buildingsConfig = _catalog.Buildings.ToDictionary(b => b.Key, b => b);
-            building.ReduceConstructionTime(building.ConstructionCompletesAt.Value - now);
-            village.CompleteDueConstructions(now, _catalog.Buildings);
+            building.ReduceConstructionTime(cut);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

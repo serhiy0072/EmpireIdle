@@ -126,31 +126,6 @@
         "UpgradeCostGrowth": 1.28
       },
       {
-        "Key": "house",
-        "DisplayName": "Житло",
-        "RequiresMainBuildingLevel": 0,
-        "Position": {
-          "X": 30.0,
-          "Y": 60.0
-        },
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 200
-          },
-          {
-            "Resource": "wood",
-            "Amount": 50
-          }
-        ],
-        "BaseBuildMinutes": 5,
-        "BuildTimeGrowth": 1.30,
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
-        "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.28
-      },
-      {
         "Key": "barracks",
         "DisplayName": "Казарма",
         "RequiresMainBuildingLevel": 1,
@@ -205,28 +180,12 @@
       {
         "Key": "heroeshall",
         "DisplayName": "Зала героїв",
+        "Upgradable": false,
         "RequiresMainBuildingLevel": 2,
         "Position": {
           "X": 50.0,
           "Y": 26.0
-        },
-        "HeroSlotsPerLevel": 1,
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 300
-          },
-          {
-            "Resource": "wood",
-            "Amount": 200
-          }
-        ],
-        "BaseBuildMinutes": 5,
-        "BuildTimeGrowth": 1.30,
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
-        "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.28
+        }
       },
       {
         "Key": "ironmine",
@@ -256,27 +215,12 @@
       {
         "Key": "lootshop",
         "DisplayName": "Торгова лавка",
+        "Upgradable": false,
         "RequiresMainBuildingLevel": 3,
         "Position": {
           "X": 68.0,
           "Y": 26.0
-        },
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 350
-          },
-          {
-            "Resource": "wood",
-            "Amount": 250
-          }
-        ],
-        "BaseBuildMinutes": 5,
-        "BuildTimeGrowth": 1.30,
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
-        "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.28
+        }
       },
       {
         "Key": "hospital",
@@ -307,28 +251,12 @@
       {
         "Key": "market",
         "DisplayName": "Ринок",
+        "Upgradable": false,
         "RequiresMainBuildingLevel": 4,
         "Position": {
           "X": 68.0,
           "Y": 42.0
-        },
-        "MarketSlotsPerLevel": 2,
-        "Cost": [
-          {
-            "Resource": "gold",
-            "Amount": 400
-          },
-          {
-            "Resource": "wood",
-            "Amount": 300
-          }
-        ],
-        "BaseBuildMinutes": 5,
-        "BuildTimeGrowth": 1.30,
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
-        "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.28
+        }
       },
       {
         "Key": "wall",
@@ -414,54 +342,22 @@
       {
         "Key": "scouttower",
         "DisplayName": "Вежа розвідки",
+        "Upgradable": false,
         "RequiresMainBuildingLevel": 6,
         "Position": {
           "X": 62.0,
           "Y": 86.0
-        },
-        "ScoutRangePerLevel": 5,
-        "Cost": [
-          {
-            "Resource": "wood",
-            "Amount": 350
-          },
-          {
-            "Resource": "iron",
-            "Amount": 150
-          }
-        ],
-        "BaseBuildMinutes": 5,
-        "BuildTimeGrowth": 1.30,
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
-        "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.28
+        }
       },
       {
         "Key": "forge",
         "DisplayName": "Кузня",
+        "Upgradable": false,
         "RequiresMainBuildingLevel": 7,
         "Position": {
           "X": 86.0,
           "Y": 46.0
-        },
-        "WeaponUpgradeSlotsPerLevel": 1,
-        "Cost": [
-          {
-            "Resource": "iron",
-            "Amount": 400
-          },
-          {
-            "Resource": "wood",
-            "Amount": 300
-          }
-        ],
-        "BaseBuildMinutes": 5,
-        "BuildTimeGrowth": 1.30,
-        "ProducesResource": null,
-        "BaseProductionPerMinute": 0,
-        "BaseStorage": 0,
-        "UpgradeCostGrowth": 1.28
+        }
       },
       {
         "Key": "fishinghut",

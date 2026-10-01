@@ -1,5 +1,6 @@
 
 using EmpireIdle.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 
@@ -17,6 +18,23 @@ namespace EmpireIdle.Infrastructure.Persistence
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> TrySaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                _context.ChangeTracker.Clear();
+
+                return false;
+            }
         }
 
         /// <inheritdoc/>

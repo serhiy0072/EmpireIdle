@@ -5,6 +5,10 @@ namespace EmpireIdle.Domain.Enums
     public enum MarchTargetType
     {
         Monster = 1,
-        Village = 2
+        Village = 2,
+        ClanStructure = 3,
+
+        /// <summary>Табір чужої армії (§2.5); TargetId — id маршу-табору.</summary>
+        Camp = 4
     }
 }

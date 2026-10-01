@@ -17,17 +17,25 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<List<PlayerItem>> GetItemsAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.PlayerItems
+            .AsNoTracking()
             .Where(i => i.PlayerId == playerId && i.Count > 0)
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<PlayerItem?> GetItemAsync(Guid playerId, string itemKey, CancellationToken cancellationToken = default)
-            => _context.PlayerItems
-            .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.ItemKey == itemKey, cancellationToken);
+        /// <remarks>
+        /// Спершу дивимось у поточну одиницю роботи: предмет, щойно доданий у цій же
+        /// транзакції (10-ролл, «Забрати все»), база ще не бачить — і друга видача того
+        /// самого ключа дала б другий INSERT на унікальний (PlayerId, ItemKey).
+        /// </remarks>
+        public async Task<PlayerItem?> GetItemAsync(Guid playerId, string itemKey, CancellationToken cancellationToken = default)
+            => _context.PlayerItems.Local.FirstOrDefault(i => i.PlayerId == playerId && i.ItemKey == itemKey)
+               ?? await _context.PlayerItems
+                   .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.ItemKey == itemKey, cancellationToken);
 
         /// <inheritdoc/>
         public Task<List<EquipmentItem>> GetEquipmentAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.EquipmentItems
+            .AsNoTracking()
             .Include(e => e.Stats)
             .AsSplitQuery()
             .Where(e => e.PlayerId == playerId)
@@ -55,6 +63,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .Include(e => e.Stats)
             .AsSplitQuery()
             .Where(e => e.EquippedByHeroId == heroId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<EquipmentItem>> GetEquippedByHeroesAsync(IReadOnlyCollection<Guid> heroIds,
+            CancellationToken cancellationToken = default)
+            => _context.EquipmentItems
+            .Include(e => e.Stats)
+            .AsSplitQuery()
+            .Where(e => e.EquippedByHeroId != null && heroIds.Contains(e.EquippedByHeroId.Value))
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>

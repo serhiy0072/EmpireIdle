@@ -117,12 +117,12 @@ namespace EmpireIdle.Domain.Tests.Services
             var water = FindCellWithTerrain(generator, "water");
             var swamp = FindCellWithTerrain(generator, "swamp");
 
-            Assert.False(generator.IsPassable(1, water.X, water.Y));
+            Assert.False(generator.GetTerrain(1, water.X, water.Y).Passable);
             Assert.False(generator.IsHabitable(1, water.X, water.Y));
 
-            Assert.True(generator.IsPassable(1, swamp.X, swamp.Y));
+            Assert.True(generator.GetTerrain(1, swamp.X, swamp.Y).Passable);
             Assert.False(generator.IsHabitable(1, swamp.X, swamp.Y));
-            Assert.Equal(2.5, generator.GetMoveCost(1, swamp.X, swamp.Y));
+            Assert.Equal(2.5, generator.GetTerrain(1, swamp.X, swamp.Y).MoveCost);
         }
 
         /// <summary>Шукає першу клітину із заданим типом місцевості.</summary>

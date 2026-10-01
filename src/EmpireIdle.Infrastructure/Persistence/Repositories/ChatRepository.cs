@@ -17,6 +17,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public async Task AddAsync(ChatMessage message, CancellationToken cancellationToken = default)
             => await _context.ChatMessages.AddAsync(message, cancellationToken);
 
+        /// <inheritdoc/>
+        /// <remarks>Транзакційний advisory lock: знімається сам на коміті чи відкаті, рядків не тримає.</remarks>
+        public Task LockSenderAsync(Guid senderId, CancellationToken cancellationToken = default)
+            => _context.Database.ExecuteSqlAsync(
+                $"SELECT pg_advisory_xact_lock(hashtextextended({"chat:" + senderId}, 0))", cancellationToken);
+
         public Task<ChatMessage?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.ChatMessages.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
 
@@ -49,18 +55,36 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public async Task<List<ChatMessage>> GetLatestPrivateMessagesAsync(Guid playerId, int take,
             CancellationToken cancellationToken = default)
         {
-            // Розмова ідентифікується співрозмовником; остання — найсвіжіша в групі
-            var mine = await _context.ChatMessages
+            // Розмова ідентифікується співрозмовником. Групування — в БД: вікно з N останніх
+            // повідомлень губило тих, з ким давно не писались, якщо з іншим ішла жвава розмова
+            var mine = _context.ChatMessages
                 .AsNoTracking()
-                .Where(m => m.Channel == ChatChannel.Private && (m.SenderId == playerId || m.RecipientId == playerId))
-                .OrderByDescending(m => m.SentAt)
-                .Take(take * 20)
+                .Where(m => m.Channel == ChatChannel.Private && (m.SenderId == playerId || m.RecipientId == playerId));
+
+            var conversations = await mine
+                .GroupBy(m => m.SenderId == playerId ? m.RecipientId : (Guid?)m.SenderId)
+                .Select(g => new { PartnerId = g.Key, LastAt = g.Max(m => m.SentAt) })
+                .OrderByDescending(c => c.LastAt)
+                .Take(take)
                 .ToListAsync(cancellationToken);
 
-            return mine
-                .GroupBy(m => m.SenderId == playerId ? m.RecipientId : m.SenderId)
-                .Select(g => g.First())
-                .Take(take)
+            if (conversations.Count == 0)
+                return [];
+
+            // Самі повідомлення — за моментами останніх; збіг часу з чужою розмовою відсіює словник
+            var lastAt = conversations.ToDictionary(c => c.PartnerId!.Value, c => c.LastAt);
+            var moments = lastAt.Values.Distinct().ToList();
+
+            var candidates = await mine
+                .Where(m => moments.Contains(m.SentAt))
+                .ToListAsync(cancellationToken);
+
+            return candidates
+                .Select(m => (Message: m, PartnerId: m.SenderId == playerId ? m.RecipientId!.Value : m.SenderId))
+                .Where(x => lastAt.TryGetValue(x.PartnerId, out var at) && at == x.Message.SentAt)
+                .GroupBy(x => x.PartnerId)
+                .Select(g => g.First().Message)
+                .OrderByDescending(m => m.SentAt)
                 .ToList();
         }
 

@@ -71,8 +71,8 @@ namespace EmpireIdle.Application.Market.Commands
             var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            var level = _desk.RequireOpen(village);
-            var limit = _desk.ListingLimit(level);
+            _desk.RequireOpen(village);
+            var limit = _desk.ListingLimit;
 
             if (await _market.CountActiveAsync(request.PlayerId, cancellationToken) >= limit)
                 throw new RequirementNotMetException(RefusalReasons.MarketListingLimit,

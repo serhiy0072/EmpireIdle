@@ -61,5 +61,12 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Позначає звіт прочитаним.</summary>
         public void MarkAsRead() => IsRead = true;
+
+        /// <summary>
+        /// Звіт захисника: гравець дізнається про бій із події, тобто після коміту.
+        /// Нападник отримує свою подію від походу (BattleFought), тому тут — лише оборона.
+        /// </summary>
+        public void AnnounceDefence(DateTime utcNow)
+            => RaiseDomainEvent(new Events.DefenceReported(PlayerId, Id, Won, TargetName, utcNow));
     }
 }

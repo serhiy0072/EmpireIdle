@@ -61,14 +61,5 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             Assert.Throws<InvalidStateException>(() => hero.AppointLeader(Now));
         }
-
-        [Fact]
-        public void StationIn_ShouldThrow_WhenTheHeroIsOnTheMove()
-        {
-            var hero = Stationed(asLeader: false);
-            hero.Deploy(Now);
-
-            Assert.Throws<InvalidStateException>(() => hero.StationIn(Garrison, asLeader: false, Now));
-        }
     }
 }

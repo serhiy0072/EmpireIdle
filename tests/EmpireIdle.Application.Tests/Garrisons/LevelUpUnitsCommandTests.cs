@@ -52,7 +52,7 @@ public class LevelUpUnitsCommandTests
     }
 
     /// <summary>Село з казармами, гарнізон із партією юнітів першого рівня, ресурси.</summary>
-    private (Village Village, Garrison Garrison) GivenVillage(int infantryAtLevelOne = 10, int food = 10_000)
+    private (Village Village, Garrison Garrison) GivenVillage(int infantryAtLevelOne = 10, int food = 10_000, int townHallLevel = 10)
     {
         var catalog = new GameCatalog(Config());
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
@@ -60,6 +60,8 @@ public class LevelUpUnitsCommandTests
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("barracks", catalog.Buildings, Now);
+
+        RaiseTo(village, catalog, "townhall", townHallLevel);
 
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
         garrison.TrainUnits("infantry", 1, infantryAtLevelOne, 100, 1000, TimeSpan.Zero, Now);
@@ -72,7 +74,7 @@ public class LevelUpUnitsCommandTests
     }
 
     /// <summary>Гарнізон із партією юнітів, готовою одразу на заданому рівні (без витрат часу на це в тесті).</summary>
-    private (Village Village, Garrison Garrison) GivenVillageWithStackAtLevel(int level, int count = 10, int food = 100_000)
+    private (Village Village, Garrison Garrison) GivenVillageWithStackAtLevel(int level, int count = 10, int food = 100_000, int townHallLevel = 10)
     {
         var catalog = new GameCatalog(Config());
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
@@ -80,6 +82,8 @@ public class LevelUpUnitsCommandTests
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("barracks", catalog.Buildings, Now);
+
+        RaiseTo(village, catalog, "townhall", townHallLevel);
 
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
         garrison.TrainUnits("infantry", level, count, 100, 1000, TimeSpan.Zero, Now);
@@ -89,6 +93,49 @@ public class LevelUpUnitsCommandTests
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
         return (village, garrison);
+    }
+
+    /// <summary>Добудовує будівлю до заданого рівня миттєво.</summary>
+    private static void RaiseTo(Village village, GameCatalog catalog, string type, int level)
+    {
+        var building = village.Buildings.Single(b => b.Type == type);
+
+        while (building.Level.Value < level)
+        {
+            building.BeginUpgrade(catalog.Buildings[type], TimeSpan.Zero, Now,
+                ProductionBoost.None, locationMultiplier: 1.0);
+            building.CompleteConstruction(Now);
+        }
+    }
+
+    /// <summary>
+    /// Прокачка — не обхід стелі: юніт не підніметься вище ратуші,
+    /// а партія лишається в гарнізоні й ресурси не списуються.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenTargetLevelIsAboveTheTownHall()
+    {
+        var (village, garrison) = GivenVillageWithStackAtLevel(level: 4, count: 10, townHallLevel: 4);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new LevelUpUnitsCommand(PlayerId, "infantry", 4, 5, 1), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.GarrisonUnitLevelCeiling.Key, refusal.Reason);
+        Assert.Equal(4, refusal.Args["ceiling"]);
+        Assert.Empty(garrison.LevelUpOrders);
+        Assert.Equal(10, garrison.Units.Single(u => u.Level == 4).Count);
+        Assert.Equal(100_000, village.Resources.Single(r => r.ResourceType == "food").Amount);
+    }
+
+    /// <summary>До рівня ратуші включно прокачка дозволена.</summary>
+    [Fact]
+    public async Task Handle_ShouldAllow_LevellingUpToTheTownHallLevel()
+    {
+        var (_, garrison) = GivenVillageWithStackAtLevel(level: 3, count: 10, townHallLevel: 4);
+
+        await Handler().Handle(new LevelUpUnitsCommand(PlayerId, "infantry", 3, 4, 1), CancellationToken.None);
+
+        Assert.Single(garrison.LevelUpOrders);
     }
 
     /// <summary>

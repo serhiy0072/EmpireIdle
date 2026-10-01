@@ -28,6 +28,10 @@ namespace EmpireIdle.Application.Interfaces
         /// </summary>
         Task<List<EquipmentItem>> GetEquippedAsync(Guid heroId, CancellationToken cancellationToken = default);
 
+        /// <summary>Спорядження на всіх цих героях одним запитом — для сили ростера без N+1.</summary>
+        Task<List<EquipmentItem>> GetEquippedByHeroesAsync(IReadOnlyCollection<Guid> heroIds,
+            CancellationToken cancellationToken = default);
+
         /// <summary>Додати стек предметів.</summary>
         Task AddItemAsync(PlayerItem item, CancellationToken cancellationToken = default);
 

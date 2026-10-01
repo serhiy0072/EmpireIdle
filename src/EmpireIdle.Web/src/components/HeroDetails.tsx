@@ -102,14 +102,16 @@ export default function HeroDetails({
             <span className="text-sky-900">
               До рівня {order.targetLevel}: {formatRemaining(order.completesAt, now)}
             </span>
-            <button
-              type="button"
-              onClick={onSpeedUp}
-              disabled={busy}
-              className="rounded-lg border border-sky-300 bg-white px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100 disabled:opacity-50"
-            >
-              {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
-            </button>
+            {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
+              <button
+                type="button"
+                onClick={onSpeedUp}
+                disabled={busy}
+                className="rounded-lg border border-sky-300 bg-white px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100 disabled:opacity-50"
+              >
+                {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
+              </button>
+            )}
           </div>
         )}
 

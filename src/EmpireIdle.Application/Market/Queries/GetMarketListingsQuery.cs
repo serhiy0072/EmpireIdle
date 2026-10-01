@@ -13,6 +13,9 @@ namespace EmpireIdle.Application.Market.Queries
         : IRequest<MarketPageView>, IPlayerScopedRequest
     {
         public const int MaxPageSize = 50;
+
+        /// <summary>Стеля номера сторінки: (int.MaxValue - 1) * size переповнюється у від'ємний OFFSET.</summary>
+        public const int MaxPage = 10_000;
     }
 
     public sealed class GetMarketListingsQueryHandler : IRequestHandler<GetMarketListingsQuery, MarketPageView>
@@ -31,7 +34,7 @@ namespace EmpireIdle.Application.Market.Queries
         public async Task<MarketPageView> Handle(GetMarketListingsQuery request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
-            var page = Math.Max(1, request.Page);
+            var page = Math.Clamp(request.Page, 1, GetMarketListingsQuery.MaxPage);
             var size = Math.Clamp(request.PageSize, 1, GetMarketListingsQuery.MaxPageSize);
 
             var (listings, total) = await _market.BrowseAsync(request.Kind, request.ItemKey, now,

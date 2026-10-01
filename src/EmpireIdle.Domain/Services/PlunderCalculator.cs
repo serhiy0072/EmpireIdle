@@ -78,6 +78,39 @@ namespace EmpireIdle.Domain.Services
             return loot;
         }
 
+        /// <summary>
+        /// Що можна винести з села зараз, без обмеження вантажопідйомністю, — для звіту
+        /// розвідки. Ті самі правила, що й у <see cref="Plunder"/>: буфери будівель повністю,
+        /// зі складу — понад захищений запас. Чиста функція: село не змінює.
+        /// </summary>
+        public Dictionary<string, int> Lootable(Village village, ProductionBoost boost, double locationMultiplier,
+            DateTime utcNow)
+        {
+            var loot = new Dictionary<string, int>();
+
+            foreach (var building in village.Buildings)
+            {
+                if (!village.IsProducing(building, _catalog.Buildings))
+                    continue;
+
+                var config = _catalog.Buildings[building.Type];
+                var stored = building.StoredAt(config, utcNow, boost, locationMultiplier);
+
+                if (stored > 0)
+                    Add(loot, config.ProducesResource!, stored);
+            }
+
+            foreach (var resource in village.Resources)
+            {
+                var available = resource.Amount - _capacities.ProtectedReserveFor(village, resource.ResourceType);
+
+                if (available > 0)
+                    Add(loot, resource.ResourceType, available);
+            }
+
+            return loot;
+        }
+
         private static void Add(Dictionary<string, int> loot, string key, int amount)
             => loot[key] = loot.GetValueOrDefault(key) + amount;
     }

@@ -8,6 +8,9 @@ namespace EmpireIdle.Application.Interfaces
     {
         Task<ClanRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+        /// <summary>Заявки й запрошення за id одним запитом, лише для читання — для скриньки.</summary>
+        Task<List<ClanRequest>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Остання заявка гравця в цей клан цього виду, у будь-якому статусі.
         /// Потрібна і щоб не дублювати відкриту, і щоб перевірити кулдаун
@@ -25,6 +28,9 @@ namespace EmpireIdle.Application.Interfaces
             CancellationToken cancellationToken = default);
 
         Task AddAsync(ClanRequest request, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє всі заявки й запрошення клану одразу в БД — під час розпуску.</summary>
+        Task<int> RemoveByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Усі відкриті заявки й запрошення гравця, з трекінгом.

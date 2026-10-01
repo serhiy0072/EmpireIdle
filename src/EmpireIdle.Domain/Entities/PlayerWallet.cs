@@ -52,13 +52,24 @@ public class PlayerWallet : Entity
     /// </summary>
     /// <param name="amount">Кількість gems.</param>
     /// <param name="reference">ID платежу в Stripe для idempotency.</param>
-    /// <param name="notifyPlayerId">Гравець, у чию SignalR-групу піде подія про баланс.</param>
-    public void AddGems(GemAmount amount, string reference, Guid notifyPlayerId, DateTime utcNow)
+    public void AddGems(GemAmount amount, string reference, DateTime utcNow)
     {
         GemBalance = GemBalance.Add(amount);
         _transactions.Add(new WalletTransaction( Guid.NewGuid(), Id, TransactionType.GemPurchase, amount.Value, reference, utcNow));
 
-        RaiseDomainEvent(new GemsPurchased(notifyPlayerId, amount, GemBalance, utcNow));
+        Touch(utcNow);
+    }
+
+    /// <summary>
+    /// Нараховує gems як ігрову нагороду: журнал відрізняє їх від куплених —
+    /// для підтримки, повернень і аналітики монетизації.
+    /// </summary>
+    /// <param name="reference">Джерело нагороди (квест, лист) для журналу.</param>
+    public void GrantGems(GemAmount amount, string reference, DateTime utcNow)
+    {
+        GemBalance = GemBalance.Add(amount);
+        _transactions.Add(new WalletTransaction(Guid.NewGuid(), Id, TransactionType.GemReward, amount.Value, reference, utcNow));
+
         Touch(utcNow);
     }
 

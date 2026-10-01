@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Quests.Services;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -21,6 +22,7 @@ namespace EmpireIdle.Application.Quests.Commands
     public sealed class ClaimQuestRewardCommandHandler : IRequestHandler<ClaimQuestRewardCommand>
     {
         private readonly IQuestRepository _questRepository;
+        private readonly QuestThresholds _thresholds;
         private readonly RewardDispatcher _rewards;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
@@ -29,6 +31,7 @@ namespace EmpireIdle.Application.Quests.Commands
 
         public ClaimQuestRewardCommandHandler(
             IQuestRepository questRepository,
+            QuestThresholds thresholds,
             RewardDispatcher rewards,
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
@@ -36,6 +39,7 @@ namespace EmpireIdle.Application.Quests.Commands
             ILogger<ClaimQuestRewardCommandHandler> logger)
         {
             _questRepository = questRepository;
+            _thresholds = thresholds;
             _rewards = rewards;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
@@ -47,12 +51,26 @@ namespace EmpireIdle.Application.Quests.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var config = _catalog.Quest(request.QuestKey);
+            // Ключ приходить від клієнта: невідомий — це 404, а не збій каталогу
+            if (!_catalog.Quests.TryGetValue(request.QuestKey, out var config))
+                throw new EntityNotFoundException("Quest", request.QuestKey);
 
             if (config.Scope != QuestScope.Personal)
                 throw new RequirementNotMetException($"Quest '{request.QuestKey}' is server-scoped — its rewards are granted on completion.");
 
-            var progress = await _questRepository.GetAsync(request.PlayerId, request.QuestKey, cancellationToken)
+            // Ті самі межі, що й у списку: квест, якого гравець не бачить, не забирається прямим запитом.
+            // Вікно події може закритись, поки список відкритий, — тому це відмова з причиною
+            if (!config.IsOpenAt(now))
+                throw new InvalidStateException(RefusalReasons.QuestNotClaimable, $"Quest '{request.QuestKey}' is outside its active window.");
+
+            if (config.Prerequisite is { } prerequisiteKey && !await IsCompletedAsync(request.PlayerId, prerequisiteKey, now, cancellationToken))
+                throw new RequirementNotMetException($"Quest '{request.QuestKey}' is locked behind '{prerequisiteKey}'.");
+
+            // Поріг (рівень будівлі), досягнутий до відкриття квесту, фіксується тут, а не в запиті
+            // списку: список показав квест завершеним, тож і забрати його мусить бути можна
+            var progress = await _thresholds.SyncAsync(request.PlayerId, config,
+                    await _questRepository.GetAsync(request.PlayerId, request.QuestKey, cancellationToken),
+                    now, cancellationToken)
                 ?? throw new EntityNotFoundException("Quest progress", request.QuestKey);
 
             // Claim повертає false, якщо квест не завершений або вже забраний
@@ -65,6 +83,18 @@ namespace EmpireIdle.Application.Quests.Commands
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Player {PlayerId} claimed quest {QuestKey}", request.PlayerId, request.QuestKey);
+        }
+
+        /// <summary>
+        /// Ланцюжок відкривається завершенням, а не клеймом — як у списку й трекері. Поріг
+        /// пререквізиту, досягнутий до його відкриття, теж рахується: список показав його закритим.
+        /// </summary>
+        private async Task<bool> IsCompletedAsync(Guid playerId, string questKey, DateTime now, CancellationToken cancellationToken)
+        {
+            var progress = await _thresholds.SyncAsync(playerId, _catalog.Quest(questKey),
+                await _questRepository.GetAsync(playerId, questKey, cancellationToken), now, cancellationToken);
+
+            return progress is not null && progress.State != QuestState.InProgress;
         }
     }
 }

@@ -56,6 +56,8 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExpiresAt");
+
                     b.HasIndex("PlayerId", "Target")
                         .IsUnique();
 
@@ -215,7 +217,6 @@ namespace EmpireIdle.Infrastructure.Migrations
             modelBuilder.Entity("EmpireIdle.Domain.Entities.BattleReport", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<double>("AttackerPower")
@@ -430,6 +431,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<long>("ContributionPoints")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -477,7 +481,6 @@ namespace EmpireIdle.Infrastructure.Migrations
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanHelpContribution", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("HelpedAt")
@@ -540,11 +543,13 @@ namespace EmpireIdle.Infrastructure.Migrations
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanMember", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ClanId")
                         .HasColumnType("uuid");
+
+                    b.Property<long>("Contribution")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
@@ -566,6 +571,48 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ClanMembers", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanQuestProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("QuestKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Target")
+                        .HasColumnType("bigint");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId", "QuestKey")
+                        .IsUnique();
+
+                    b.ToTable("ClanQuestProgress", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanRequest", b =>
@@ -600,6 +647,12 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClanId", "Status");
@@ -616,7 +669,6 @@ namespace EmpireIdle.Infrastructure.Migrations
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanRole", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ClanId")
@@ -645,6 +697,60 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ClanRoles", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanStructure", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("AcceleratedShare")
+                        .HasColumnType("double precision");
+
+                    b.Property<TimeSpan>("BuildDuration")
+                        .HasColumnType("interval");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CompletesAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GarrisonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PlacedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId");
+
+                    b.HasIndex("ServerId", "X", "Y")
+                        .IsUnique();
+
+                    b.ToTable("ClanStructures", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.DungeonClear", b =>
@@ -871,6 +977,12 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("HostKind")
+                        .HasColumnType("integer");
+
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
 
@@ -883,12 +995,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.Property<Guid>("VillageId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("VillageId")
+                    b.HasIndex("HostKind", "HostId")
                         .IsUnique();
 
                     b.ToTable("Garrisons", (string)null);
@@ -1050,8 +1159,7 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedAt")
-                        .HasFilter("\"ResponseJson\" IS NULL");
+                    b.HasIndex("CreatedAt");
 
                     b.HasIndex("PlayerId", "Key")
                         .IsUnique();
@@ -1197,6 +1305,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("Intent")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("LegStartedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("OriginX")
                         .HasColumnType("integer");
 
@@ -1236,7 +1347,8 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasIndex("HeroId");
 
-                    b.HasIndex("State", "ArrivesAt");
+                    b.HasIndex("ServerId", "ArrivesAt")
+                        .HasFilter("\"State\" <> 3 AND \"State\" <> 4");
 
                     b.ToTable("Marches", (string)null);
                 });
@@ -1541,7 +1653,8 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email");
+                    b.HasIndex("ClanId")
+                        .HasFilter("\"ClanId\" IS NOT NULL");
 
                     b.HasIndex("ServerId");
 
@@ -1777,10 +1890,10 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ServerId");
-
                     b.HasIndex("PlayerId", "QuestKey")
                         .IsUnique();
+
+                    b.HasIndex("ServerId", "StartedAt");
 
                     b.ToTable("QuestProgress");
                 });
@@ -1853,6 +1966,76 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ReinforcementUnits", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ScoutReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("DefencePower")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid>("MarchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Outcome")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TargetName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "CreatedAt");
+
+                    b.ToTable("ScoutReports", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ScoutReportResource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("ScoutReportId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScoutReportId");
+
+                    b.ToTable("ScoutReportResources", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Server", b =>
@@ -1972,6 +2155,44 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ServerQuestProgress");
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.StructureFall", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttackerPlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AttackerVillageName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("StructureId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId", "OccurredAt");
+
+                    b.ToTable("StructureFalls", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.TutorialProgress", b =>
@@ -2677,6 +2898,15 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ScoutReportResource", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.ScoutReport", null)
+                        .WithMany("Resources")
+                        .HasForeignKey("ScoutReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.UnitLevelUpOrder", b =>
                 {
                     b.HasOne("EmpireIdle.Domain.Entities.Garrison", null)
@@ -2836,6 +3066,11 @@ namespace EmpireIdle.Infrastructure.Migrations
             modelBuilder.Entity("EmpireIdle.Domain.Entities.QuestProgress", b =>
                 {
                     b.Navigation("Objectives");
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ScoutReport", b =>
+                {
+                    b.Navigation("Resources");
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Village", b =>

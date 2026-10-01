@@ -61,8 +61,9 @@ export interface Catalog {
   /** Родина, до якої належить предмет; null — предмет поза наборами. */
   setOfItem: (itemKey: string) => CatalogArtifactSet | null;
   /**
-   * Ціна прискорення таймера на момент `now` — та сама формула, що в SpeedUpCalculator.
-   * Знімок із запиту застарівав разом із відліком; поки каталог не приїхав — він і є ціною.
+   * Ціна прискорення таймера на момент `now` — та сама формула, що в SpeedUpCalculator:
+   * платиться все понад межу (floorSeconds), щонайменше 1 gem. 0 — лишилась межа,
+   * прискорювати нічого, кнопку не показуємо. Поки каталог не приїхав — ціна із запиту.
    */
   speedUpCost: (completesAt: string, now: number, serverCost: number) => number;
 }
@@ -139,10 +140,10 @@ export function useCatalog(): Catalog {
       speedUpCost: (completesAt, now, serverCost) => {
         if (data === undefined) return serverCost;
 
-        const minutes = (new Date(completesAt).getTime() - now) / 60_000;
-        const { freeUnderMinutes, factor, exponent } = data.speedUp;
+        const { floorSeconds, factor, exponent } = data.speedUp;
+        const minutes = (new Date(completesAt).getTime() - now - floorSeconds * 1_000) / 60_000;
 
-        return minutes <= freeUnderMinutes ? 0 : Math.ceil(factor * Math.pow(minutes, exponent));
+        return minutes <= 0 ? 0 : Math.max(1, Math.ceil(factor * Math.pow(minutes, exponent)));
       },
     };
   }, [query.data]);

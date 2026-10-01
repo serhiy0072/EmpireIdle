@@ -44,18 +44,6 @@ namespace EmpireIdle.Domain.Services
         public int ReinforcementSlots(Village village)
             => SumPerLevel(village, c => c.ReinforcementSlotsPerLevel);
 
-        /// <summary>
-        /// Вільних місць у госпіталі. Немає госпіталю — немає поранених,
-        /// усі втрати безповоротні.
-        /// </summary>
-        public int FreeWoundedSlots(Village? village, Garrison? garrison)
-        {
-            if (village is null || garrison is null)
-                return 0;
-
-            return Math.Max(0, SumPerLevel(village, c => c.WoundedCapacityPerLevel) - garrison.WoundedCount);
-        }
-
         private int SumPerLevel(Village village, Func<BuildingConfig, int> perLevel)
             => village.Buildings
                 .Where(b => !b.IsUnderConstruction)

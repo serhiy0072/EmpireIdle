@@ -1,4 +1,22 @@
 {
+  "AttackCalledOff": [
+    "marchId"
+  ],
+  "AttackIncoming": [
+    "arrivesAt",
+    "attackerClanTag",
+    "attackerName",
+    "departedAt",
+    "fromX",
+    "fromY",
+    "intent",
+    "marchId",
+    "targetId",
+    "targetName",
+    "targetType",
+    "targetX",
+    "targetY"
+  ],
   "BattleFinished": [
     "reportId",
     "targetName",
@@ -32,13 +50,28 @@
   "MailReceived": [
     "kind"
   ],
+  "MarchCamped": [
+    "marchId",
+    "x",
+    "y"
+  ],
   "MarchReturned": [
     "marchId"
+  ],
+  "ScoutReportReady": [
+    "outcome",
+    "reportId",
+    "targetName"
   ],
   "ServerQuestRewarded": [
     "contribution",
     "questKey",
     "rank"
+  ],
+  "StructureDestroyed": [
+    "structureId",
+    "x",
+    "y"
   ],
   "UpgradeCompleted": [
     "buildingId",

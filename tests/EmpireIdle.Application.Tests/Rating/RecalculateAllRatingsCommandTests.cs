@@ -70,7 +70,9 @@ public class RecalculateAllRatingsCommandTests
     {
         _villages.GetAllWithBuildingsAsync(Arg.Any<CancellationToken>()).Returns(villages);
         _powers.GetAllAsync(Arg.Any<CancellationToken>()).Returns(powers);
-        _ratings.GetAllAsync(Arg.Any<CancellationToken>()).Returns(ratings);
+        _ratings.GetByPlayersAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(call => ratings.Where(r => call.Arg<IReadOnlyCollection<Guid>>().Contains(r.PlayerId)).ToList());
+        _unitOfWork.TrySaveChangesAsync(Arg.Any<CancellationToken>()).Returns(true);
     }
 
     /// <summary>Гравцю без рядка рейтингу він створюється при першому прогоні.</summary>
@@ -145,7 +147,7 @@ public class RecalculateAllRatingsCommandTests
     /// не пише, конфлікту не буде, а тисяча транзакцій щогодини дорожча.
     /// </summary>
     [Fact]
-    public async Task Handle_ShouldSaveOnceForTheWholeWorld()
+    public async Task Handle_ShouldSaveOncePerBatch()
     {
         var players = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToList();
 
@@ -153,10 +155,27 @@ public class RecalculateAllRatingsCommandTests
 
         await Handler().Handle(new RecalculateAllRatingsCommand(), CancellationToken.None);
 
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).TrySaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    /// <summary>Читання світу — рівно три вибірки, без запиту на гравця.</summary>
+    /// <summary>
+    /// Конфлікт xmin у пачці (outbox оновив рейтинг гравця паралельно) відкочує лише її:
+    /// решта світу зберігається, пропущені наздоженуть наступним прогоном.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldKeepGoing_WhenOneBatchConflicts()
+    {
+        var players = Enumerable.Range(0, 450).Select(_ => Guid.NewGuid()).ToList();
+
+        Given(players.Select(p => VillageFor(p)).ToList(), [], []);
+        _unitOfWork.TrySaveChangesAsync(Arg.Any<CancellationToken>()).Returns(false, true, true);
+
+        await Handler().Handle(new RecalculateAllRatingsCommand(), CancellationToken.None);
+
+        await _unitOfWork.Received(3).TrySaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Села й сила — по одній вибірці на світ, рейтинги — по одній на пачку, без запиту на гравця.</summary>
     [Fact]
     public async Task Handle_ShouldReadTheWorldInThreeQueries()
     {
@@ -168,7 +187,7 @@ public class RecalculateAllRatingsCommandTests
 
         await _villages.Received(1).GetAllWithBuildingsAsync(Arg.Any<CancellationToken>());
         await _powers.Received(1).GetAllAsync(Arg.Any<CancellationToken>());
-        await _ratings.Received(1).GetAllAsync(Arg.Any<CancellationToken>());
+        await _ratings.Received(1).GetByPlayersAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>Порожній світ не валить джоб.</summary>

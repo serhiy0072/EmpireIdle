@@ -14,7 +14,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(g => g.UpdatedAt).IsRequired();
             builder.Property<uint>("Version").IsRowVersion();
 
-            builder.HasIndex(g => g.VillageId).IsUnique();
+            // VillageId — обчислювана, у базі лише господар і його вид
+            builder.Ignore(g => g.VillageId);
+            builder.Property(g => g.HostKind).HasConversion<int>();
+
+            // Один гарнізон на господаря
+            builder.HasIndex(g => new { g.HostKind, g.HostId }).IsUnique();
 
             builder.HasMany(g=>g.Units)
                 .WithOne()

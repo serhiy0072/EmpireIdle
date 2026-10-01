@@ -56,6 +56,15 @@
         ]
       },
       {
+        "Key": "scout_veil_24h",
+        "Tradeable": false,
+        "DisplayName": "Завіса туману",
+        "Description": "Ховає ваше село від розвідки на 24 години",
+        "Rarity": "rare",
+        "Type": "scoutveil",
+        "DurationHours": 24
+      },
+      {
         "Key": "boost_production_2x_4h",
         "Tradeable": true,
         "DisplayName": "Прискорення виробництва",

@@ -49,6 +49,9 @@
 
         public static readonly RefusalReason GarrisonLevelUpBusy = new("garrison.levelUpBusy");
 
+        /// <summary>Юніт не може бути вищого рівня, ніж ратуша; ceiling — поточна стеля.</summary>
+        public static readonly RefusalReason GarrisonUnitLevelCeiling = new("garrison.unitLevelCeiling", "ceiling");
+
         public static readonly RefusalReason GarrisonArmyCapacity = new("garrison.armyCapacity", "occupied", "capacity", "requested");
 
         /// <summary>У стеку цього рівня менше юнітів, ніж просять прокачати.</summary>
@@ -69,6 +72,9 @@
         /// <summary>Правило A: стеля будівель від рівня світу.</summary>
         public static readonly RefusalReason BuildingServerCeiling = new("building.serverCeiling", "serverLevel", "ceiling");
 
+        /// <summary>Функціональна будівля без рівнів (GDD §3.1); building — її назва для гравця.</summary>
+        public static readonly RefusalReason BuildingNotUpgradable = new("building.notUpgradable", "building");
+
         /// <summary>Правило C: будівля не переростає ратушу.</summary>
         public static readonly RefusalReason BuildingTownHallCeiling = new("building.townHallCeiling", "building", "level");
 
@@ -79,6 +85,19 @@
 
         /// <summary>Прискорення прийшло, коли таймер уже добіг кінця.</summary>
         public static readonly RefusalReason BuildingAlreadyCompleted = new("building.alreadyCompleted");
+
+        // ---------- Розвідка ----------
+
+        /// <summary>У цілі діє завіса від розвідки. Строк свідомо не розкривається.</summary>
+        public static readonly RefusalReason ScoutBlocked = new("scout.blocked");
+
+        /// <summary>Своє село й споруди свого клану розвідувати нема сенсу.</summary>
+        public static readonly RefusalReason ScoutOwnTarget = new("scout.ownTarget");
+
+        // ---------- Прискорення ----------
+
+        /// <summary>До кінця таймера лишилось не більше межі: прискорювати нічого, треба дочекатись; seconds — межа.</summary>
+        public static readonly RefusalReason SpeedUpAtFloor = new("speedup.atFloor", "seconds");
 
         // ---------- Інвентар, банери, квести, крамниця ----------
 
@@ -150,6 +169,9 @@
 
         public static readonly RefusalReason ClanRoleNameTaken = new("clan.roleNameTaken", "name");
 
+        /// <summary>Роль видає дозволи, яких сама не має; role — назва ролі виконавця.</summary>
+        public static readonly RefusalReason ClanPermissionsExceedOwn = new("clan.permissionsExceedOwn", "role");
+
         public static readonly RefusalReason ClanRequestResolved = new("clan.requestResolved");
 
         public static readonly RefusalReason ClanRequestExpired = new("clan.requestExpired");
@@ -164,6 +186,26 @@
         public static readonly RefusalReason ClanHelpAlreadyHelped = new("clan.helpAlreadyHelped");
 
         public static readonly RefusalReason ClanHelpFull = new("clan.helpFull", "max");
+
+        // ---------- Кланова територія ----------
+
+        /// <summary>Очок вкладу клану не вистачає на дію; need і have — скільки треба й скільки є.</summary>
+        public static readonly RefusalReason ClanNotEnoughPoints = new("territory.notEnoughPoints", "need", "have");
+
+        /// <summary>Усі відкриті слоти під споруди зайняті; slots — скільки їх зараз відкрито.</summary>
+        public static readonly RefusalReason TerritoryNoFreeSlot = new("territory.noFreeSlot", "slots");
+
+        /// <summary>Клітину зайняли, поки гравець обирав місце.</summary>
+        public static readonly RefusalReason TerritoryCellTaken = new("territory.cellTaken");
+
+        /// <summary>На клітині не можна ставити споруду: вода, гори або поза заселеною частиною світу.</summary>
+        public static readonly RefusalReason TerritoryCellUnfit = new("territory.cellUnfit");
+
+        /// <summary>Будувати чи стояти гарнізоном можна лише у спорудах свого клану.</summary>
+        public static readonly RefusalReason TerritoryForeignStructure = new("territory.foreignStructure");
+
+        /// <summary>Свою споруду не атакують — її зносять.</summary>
+        public static readonly RefusalReason TerritoryOwnStructure = new("territory.ownStructure");
 
         // ---------- Марші й підкріплення ----------
 
@@ -193,6 +235,21 @@
 
         /// <summary>Ціль нещодавно впала й під щитом після падіння (GDD §2.6).</summary>
         public static readonly RefusalReason MarchTargetFallShield = new("march.targetFallShield");
+
+        /// <summary>Відкликати можна лише табір.</summary>
+        public static readonly RefusalReason MarchNotCamping = new("march.notCamping");
+
+        /// <summary>Табір стоїть на місці — прискорювати нічого, спершу його відкликають.</summary>
+        public static readonly RefusalReason MarchCamping = new("march.camping");
+
+        /// <summary>Власний табір не атакують і не розвідують.</summary>
+        public static readonly RefusalReason MarchOwnCamp = new("march.ownCamp");
+
+        /// <summary>Власне село не атакують.</summary>
+        public static readonly RefusalReason MarchOwnVillage = new("march.ownVillage");
+
+        /// <summary>Села й табори соклановців не атакують.</summary>
+        public static readonly RefusalReason MarchClanmate = new("march.clanmate");
 
         public static readonly RefusalReason ReinforceOwnShield = new("reinforce.ownShield", "level");
 

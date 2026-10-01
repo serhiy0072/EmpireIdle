@@ -22,9 +22,21 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<Hero?> GetByKeyAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
+        public Task<List<Hero>> GetByPlayerReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.Heroes
-            .FirstOrDefaultAsync(h => h.PlayerId == playerId && h.HeroKey == heroKey, cancellationToken);
+            .AsNoTracking()
+            .Where(h => h.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Спершу поточна одиниця роботи: герой, щойно виданий у тій самій серії роллів,
+        /// у базі ще не видно, а дубль мав піти в сузір'я, а не в другий INSERT.
+        /// </remarks>
+        public async Task<Hero?> GetByKeyAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
+            => _context.Heroes.Local.FirstOrDefault(h => h.PlayerId == playerId && h.HeroKey == heroKey)
+               ?? await _context.Heroes
+                   .FirstOrDefaultAsync(h => h.PlayerId == playerId && h.HeroKey == heroKey, cancellationToken);
 
         /// <inheritdoc/>
         public Task<Hero?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -36,11 +48,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .AsNoTracking()
             .Where(h => ids.Contains(h.Id))
             .ToListAsync(cancellationToken);
-
-        /// <inheritdoc/>
-        public Task<int> CountAsync(Guid playerId, CancellationToken cancellationToken = default)
-            => _context.Heroes
-            .CountAsync(h => h.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
         public Task<int> CountAvailableAsync(Guid playerId, Guid garrisonId,
@@ -57,20 +64,37 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<Hero?> GetLeaderAsync(Guid garrisonId, Guid playerId, CancellationToken cancellationToken = default)
-            => _context.Heroes
-            .FirstOrDefaultAsync(h => h.StationedGarrisonId == garrisonId
-                && h.PlayerId == playerId
-                && h.IsLeader, cancellationToken);
+        /// <remarks>
+        /// Лідер, призначений у цій же транзакції, у базі ще не видно — тож спершу
+        /// одиниця роботи. Відповідь бази звіряємо ще раз уже на трекнутому
+        /// екземплярі: лідерство могли зняти в пам'яті, не зберігши.
+        /// </remarks>
+        public async Task<Hero?> GetLeaderAsync(Guid garrisonId, Guid playerId, CancellationToken cancellationToken = default)
+        {
+            bool IsLeaderHere(Hero h) => h.StationedGarrisonId == garrisonId && h.PlayerId == playerId && h.IsLeader;
+
+            var local = _context.Heroes.Local.FirstOrDefault(IsLeaderHere);
+
+            if (local is not null)
+                return local;
+
+            var stored = await _context.Heroes
+                .FirstOrDefaultAsync(h => h.StationedGarrisonId == garrisonId
+                    && h.PlayerId == playerId
+                    && h.IsLeader, cancellationToken);
+
+            return stored is not null && IsLeaderHere(stored) ? stored : null;
+        }
 
         /// <inheritdoc/>
         public async Task<IReadOnlyList<Guid>> GetForeignGarrisonIdsAsync(Guid playerId,
             CancellationToken cancellationToken = default)
             => await _context.Heroes
             .Where(h => h.PlayerId == playerId && h.StationedGarrisonId != null)
-            .Join(_context.Garrisons, h => h.StationedGarrisonId, g => g.Id, (h, g) => new { Hero = h, g.VillageId })
-            .Join(_context.Villages, x => x.VillageId, v => v.Id, (x, v) => new { x.Hero, v.PlayerId })
-            .Where(x => x.PlayerId != playerId)
+            .Join(_context.Garrisons, h => h.StationedGarrisonId, g => g.Id, (h, g) => new { Hero = h, g.HostId, g.HostKind })
+            // Гарнізон кланової споруди чужий завжди: власного господаря в нього немає
+            .Where(x => x.HostKind == GarrisonHost.ClanStructure
+                || _context.Villages.Any(v => v.Id == x.HostId && v.PlayerId != playerId))
             .Select(x => x.Hero.StationedGarrisonId!.Value)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -116,6 +140,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<List<HeroShardProgress>> GetAllShardsAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.HeroShards
+            .AsNoTracking()
             .Where(s => s.PlayerId == playerId)
             .ToListAsync(cancellationToken);
 

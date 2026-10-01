@@ -60,15 +60,24 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>
         /// Встановлює лічильник із поточного стану (режим Threshold).
         /// Назад не йде: втрата будівлі не скасовує вже досягнуту віху.
+        /// Без зміни рядок не торкається — інакше кожен виклик писав би UPDATE.
         /// </summary>
-        public void SetProgress(int objectiveIndex, int current, DateTime utcNow)
+        /// <returns>true, якщо лічильник справді зріс.</returns>
+        public bool SetProgress(int objectiveIndex, int current, DateTime utcNow)
         {
             if (State != QuestState.InProgress)
-                return;
+                return false;
 
-            Objective(objectiveIndex).RaiseTo(current);
+            var objective = Objective(objectiveIndex);
+
+            if (current <= objective.Amount)
+                return false;
+
+            objective.RaiseTo(current);
             TryComplete(utcNow);
             Touch(utcNow);
+
+            return true;
         }
 
         /// <summary>Забрати нагороду. Ідемпотентно: повторний виклик нічого не робить.</summary>
@@ -93,8 +102,10 @@ namespace EmpireIdle.Domain.Entities
         {
             var required = requiredCounts.ToList();
 
-            for (var i = 0; i < _objectives.Count; i++)
-                _objectives[i].ResetTo(i < required.Count ? required[i] : _objectives[i].Required);
+            // За Index, як і решта методів: EF не гарантує порядку колекції без OrderBy,
+            // а позиція в списку переплутала б Required між цілями
+            foreach (var objective in _objectives)
+                objective.ResetTo(objective.Index < required.Count ? required[objective.Index] : objective.Required);
 
             State = QuestState.InProgress;
             StartedAt = utcNow;

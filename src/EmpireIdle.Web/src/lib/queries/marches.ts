@@ -3,6 +3,7 @@ import { api } from "../api";
 import type {
   BattleOdds,
   BattlePreviewResult,
+  IncomingAttackResponse,
   MarchIntent,
   MarchResponse,
   MarchState,
@@ -18,16 +19,20 @@ export const MARCH_STATE = {
   outbound: 1,
   returning: 2,
   completed: 3,
+  camping: 4,
 } as const satisfies Record<string, MarchState>;
 
 export const MARCH_INTENT = {
   attack: 1,
   reinforce: 2,
+  scout: 3,
 } as const satisfies Record<string, MarchIntent>;
 
 export const MARCH_TARGET = {
   monster: 1,
   village: 2,
+  clanStructure: 3,
+  camp: 4,
 } as const satisfies Record<string, MarchTargetType>;
 
 /** Смуга шансів: сервер навмисно не віддає числа, лише оцінку. */
@@ -43,8 +48,24 @@ export function useMarches(playerId: string): UseQueryResult<MarchResponse[]> {
   return useQuery({
     queryKey: queryKeys.marches(playerId),
     queryFn: () => api<MarchResponse[]>(`/api/marches/${playerId}`),
-    // Прибуття й повернення обробляє сканер: перепитуємо на найближчий дедлайн
-    refetchInterval: refetchAtDue<MarchResponse[]>((marches) => marches.map((march) => march.arrivesAt)),
+    // Прибуття й повернення обробляє сканер: перепитуємо на найближчий дедлайн.
+    // Табір стоїть до відкликання, його час — у минулому: інакше опитували б безперервно
+    refetchInterval: refetchAtDue<MarchResponse[]>((marches) =>
+      marches.filter((march) => march.state !== MARCH_STATE.camping).map((march) => march.arrivesAt),
+    ),
+  });
+}
+
+/**
+ * Ворожі марші в дорозі на своє село, села соклановців і споруди клану.
+ * Тривога приходить подією, а це — стан після перезавантаження; бій за прибуттям
+ * проводить сканер, тож перепитуємо на найближчий дедлайн.
+ */
+export function useIncomingAttacks(playerId: string): UseQueryResult<IncomingAttackResponse[]> {
+  return useQuery({
+    queryKey: queryKeys.incoming(playerId),
+    queryFn: () => api<IncomingAttackResponse[]>(`/api/marches/${playerId}/incoming`),
+    refetchInterval: refetchAtDue<IncomingAttackResponse[]>((attacks) => attacks.map((attack) => attack.arrivesAt)),
   });
 }
 
@@ -64,6 +85,20 @@ export function useSendMarch(playerId: string) {
     mutationFn: (request: SendMarchRequest) =>
       api<string>(`/api/marches/${playerId}`, { method: "POST", body: request, idempotent: true }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["marches", "garrison", "heroes"]),
+  });
+}
+
+/** Відкликати табір (§2.5): армія йде додому звичайним маршем, у списку він стає поверненням. */
+export function useRecallCamp(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (marchId: string) =>
+      api<void>(`/api/marches/${playerId}/${marchId}/recall`, { method: "POST", idempotent: true }),
+    onSuccess: () => {
+      invalidatePlayer(queryClient, playerId, ["marches"]);
+      void queryClient.invalidateQueries({ queryKey: ["map"] });
+    },
   });
 }
 

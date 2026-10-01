@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Map.ReadModels;
+using EmpireIdle.Application.Marches.ReadModels;
 using EmpireIdle.Domain.Entities;
 
 namespace EmpireIdle.Application.Interfaces
@@ -14,7 +16,24 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Похід за ідентифікатором (із загонами).</summary>
         Task<March?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Ворожі марші в дорозі на села й табори <paramref name="defenderPlayerIds"/> і на споруди
+        /// клану <paramref name="clanId"/>, найближче прибуття — першим.
+        /// </summary>
+        Task<List<IncomingAttack>> GetIncomingAttacksAsync(IReadOnlyCollection<Guid> defenderPlayerIds, Guid? clanId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Один ворожий марш очима захисника; null — марш уже не в дорозі або це не напад.</summary>
+        Task<IncomingAttack?> GetIncomingAttackAsync(Guid marchId, CancellationToken cancellationToken = default);
+
+        /// <summary>Табори (§2.5) у прямокутнику — з власником і його кланом, для мапи.</summary>
+        Task<List<CampOnMap>> GetCampsInAreaAsync(int minX, int minY, int maxX, int maxY,
+            CancellationToken cancellationToken = default);
+
         /// <summary>Додати похід.</summary>
         Task AddAsync(March march, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє одразу в БД завершені марші, востаннє змінені до <paramref name="before"/>. Склад і вантаж — каскадом.</summary>
+        Task<int> DeleteCompletedBeforeAsync(DateTime before, CancellationToken cancellationToken = default);
     }
 }

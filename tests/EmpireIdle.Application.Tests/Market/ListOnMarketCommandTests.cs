@@ -77,17 +77,17 @@ public class ListOnMarketCommandTests
         Assert.Empty(_bed.Added);
     }
 
-    /// <summary>Ринок 1 рівня дозволяє два лоти: базовий плюс один за рівень.</summary>
+    /// <summary>Ліміт лотів фіксований — 10: ринок рівнів не має (GDD §3.1).</summary>
     [Fact]
     public async Task Handle_ShouldRefuse_WhenTheListingLimitIsReached()
     {
         var sword = _bed.GivenSword();
-        _bed.MarketRepository.CountActiveAsync(_bed.Seller, Arg.Any<CancellationToken>()).Returns(2);
+        _bed.MarketRepository.CountActiveAsync(_bed.Seller, Arg.Any<CancellationToken>()).Returns(10);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => ListSword(sword.Id, 100));
 
         Assert.Equal(RefusalReasons.MarketListingLimit.Key, refusal.Reason);
-        Assert.Equal(2, refusal.Args["limit"]);
+        Assert.Equal(10, refusal.Args["limit"]);
     }
 
     /// <summary>Чужий предмет не відрізняється від неіснуючого.</summary>

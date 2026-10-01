@@ -3,8 +3,11 @@ namespace EmpireIdle.Domain.Services.Config
     /// <summary>Параметри монетизації.</summary>
     public class MonetizationConfig
     {
-        /// <summary>Скільки хвилин до кінця можна завершити безкоштовно (зручність UX).</summary>
-        public int InstantFinishThresholdMinutes { get; set; } = 5;
+        /// <summary>
+        /// Скільки секунд таймера прискорення за gems не зрізає: після покупки
+        /// все одно треба дочекатись цієї межі. Безкоштовного фінішу немає.
+        /// </summary>
+        public int SpeedUpFloorSeconds { get; set; } = 60;
 
         /// <summary>Скільки gems коштує вилікувати одного пораненого.</summary>
         public int HealGemsPerUnit { get; set; } = 1;

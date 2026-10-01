@@ -1,6 +1,8 @@
 using EmpireIdle.API.Hubs.Events;
 using EmpireIdle.Application.Chat.Contracts;
+using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Marches.ReadModels;
 using Microsoft.AspNetCore.SignalR;
 
 namespace EmpireIdle.API.Hubs
@@ -10,68 +12,105 @@ namespace EmpireIdle.API.Hubs
     ///
     /// Group, а не User: UserIdentifier у SignalR — це IdentityUser.Id (sub), а не playerId.
     /// cancellationToken не передається далі: подія летить після вже закоміченої
-    /// транзакції, скасовувати її нема сенсу.
+    /// транзакції, скасовувати її нема сенсу. Коли коміт ще попереду (обробники outbox),
+    /// пуш чекає його в NotificationBuffer.
     /// </summary>
     public class SignalRGameNotifier : IGameNotifier
     {
         private readonly IHubContext<GameHub, IGameClient> _hubContext;
+        private readonly NotificationBuffer _buffer;
 
-        public SignalRGameNotifier(IHubContext<GameHub, IGameClient> hubContext)
+        /// <param name="buffer">
+        /// Черга пушів scope: в обробниках outbox пуш чекає коміту, у звичайному запиті йде одразу.
+        /// </param>
+        public SignalRGameNotifier(IHubContext<GameHub, IGameClient> hubContext, NotificationBuffer buffer)
         {
             _hubContext = hubContext;
+            _buffer = buffer;
         }
 
         /// <inheritdoc/>
         public Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected,
             int newVillageAmount, CancellationToken cancellationToken = default)
-            => Player(playerId).BuildingCollected(
-                new BuildingCollectedEvent(buildingId, resourceType, collected, newVillageAmount));
+            => _buffer.SendAsync(() => Player(playerId).BuildingCollected(
+                new BuildingCollectedEvent(buildingId, resourceType, collected, newVillageAmount)));
 
         /// <inheritdoc/>
         public Task NotifyUpgradeStartedAsync(Guid playerId, Guid buildingId, DateTime completesAt,
             CancellationToken cancellationToken = default)
-            => Player(playerId).UpgradeStarted(new UpgradeStartedEvent(buildingId, completesAt));
+            => _buffer.SendAsync(() => Player(playerId).UpgradeStarted(new UpgradeStartedEvent(buildingId, completesAt)));
 
         /// <inheritdoc/>
         public Task NotifyUpgradeCompletedAsync(Guid playerId, Guid buildingId, int newLevel,
             CancellationToken cancellationToken = default)
-            => Player(playerId).UpgradeCompleted(new UpgradeCompletedEvent(buildingId, newLevel));
+            => _buffer.SendAsync(() => Player(playerId).UpgradeCompleted(new UpgradeCompletedEvent(buildingId, newLevel)));
 
         /// <inheritdoc/>
         public Task NotifyBattleFinishedAsync(Guid playerId, Guid reportId, bool won, string targetName,
             CancellationToken cancellationToken = default)
-            => Player(playerId).BattleFinished(new BattleFinishedEvent(reportId, won, targetName));
+            => _buffer.SendAsync(() => Player(playerId).BattleFinished(new BattleFinishedEvent(reportId, won, targetName)));
 
         /// <inheritdoc/>
         public Task NotifyServerQuestRewardedAsync(Guid playerId, string questKey, int rank, long contribution,
             CancellationToken cancellationToken = default)
-            => Player(playerId).ServerQuestRewarded(new ServerQuestRewardedEvent(questKey, rank, contribution));
+            => _buffer.SendAsync(() => Player(playerId).ServerQuestRewarded(new ServerQuestRewardedEvent(questKey, rank, contribution)));
 
         /// <inheritdoc/>
         public Task NotifyMarchReturnedAsync(Guid playerId, Guid marchId, CancellationToken cancellationToken = default)
-            => Player(playerId).MarchReturned(new MarchReturnedEvent(marchId));
+            => _buffer.SendAsync(() => Player(playerId).MarchReturned(new MarchReturnedEvent(marchId)));
+
+        /// <inheritdoc/>
+        public Task NotifyMarchCampedAsync(Guid playerId, Guid marchId, int x, int y,
+            CancellationToken cancellationToken = default)
+            => _buffer.SendAsync(() => Player(playerId).MarchCamped(new MarchCampedEvent(marchId, x, y)));
 
         /// <inheritdoc/>
         public Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag,
             DateTime expiresAt, CancellationToken cancellationToken = default)
-            => Player(playerId).ClanInvite(new ClanInviteEvent(requestId, clanId, clanName, clanTag, expiresAt));
+            => _buffer.SendAsync(() => Player(playerId).ClanInvite(new ClanInviteEvent(requestId, clanId, clanName, clanTag, expiresAt)));
 
         /// <inheritdoc/>
         public Task NotifyMailAsync(Guid playerId, string kind, CancellationToken cancellationToken = default)
-            => Player(playerId).MailReceived(new MailReceivedEvent(kind));
+            => _buffer.SendAsync(() => Player(playerId).MailReceived(new MailReceivedEvent(kind)));
 
         /// <inheritdoc/>
         public Task NotifyAnnouncementAsync(int serverId, CancellationToken cancellationToken = default)
-            => _hubContext.Clients.Group(GameHub.ServerGroup(serverId)).MailReceived(new MailReceivedEvent("Announcement"));
+            => _buffer.SendAsync(() => _hubContext.Clients.Group(GameHub.ServerGroup(serverId)).MailReceived(new MailReceivedEvent("Announcement")));
 
         /// <inheritdoc/>
         public Task NotifyChatToServerAsync(int serverId, ChatMessageNotice notice, CancellationToken cancellationToken = default)
-            => _hubContext.Clients.Group(GameHub.ServerGroup(serverId)).ChatMessage(ToEvent(notice));
+            => _buffer.SendAsync(() => _hubContext.Clients.Group(GameHub.ServerGroup(serverId)).ChatMessage(ToEvent(notice)));
 
         /// <inheritdoc/>
         public Task NotifyChatToPlayersAsync(IReadOnlyCollection<Guid> playerIds, ChatMessageNotice notice,
             CancellationToken cancellationToken = default)
-            => _hubContext.Clients.Groups(playerIds.Select(id => id.ToString()).ToList()).ChatMessage(ToEvent(notice));
+            => _buffer.SendAsync(() => _hubContext.Clients.Groups(playerIds.Select(id => id.ToString()).ToList()).ChatMessage(ToEvent(notice)));
+
+        /// <inheritdoc/>
+        public Task NotifyAttackIncomingAsync(IReadOnlyCollection<Guid> playerIds, IncomingAttack attack,
+            CancellationToken cancellationToken = default)
+            => _buffer.SendAsync(() => Players(playerIds).AttackIncoming(new AttackIncomingEvent(
+                attack.MarchId, attack.Intent.ToString(), attack.TargetType.ToString(), attack.TargetId, attack.TargetName,
+                attack.TargetX, attack.TargetY, attack.FromX, attack.FromY,
+                attack.AttackerName, attack.AttackerClanTag, attack.DepartedAt, attack.ArrivesAt)));
+
+        /// <inheritdoc/>
+        public Task NotifyScoutReportReadyAsync(Guid playerId, Guid reportId, string targetName, string outcome,
+            CancellationToken cancellationToken = default)
+            => _buffer.SendAsync(() => Player(playerId).ScoutReportReady(new ScoutReportReadyEvent(reportId, targetName, outcome)));
+
+        /// <inheritdoc/>
+        public Task NotifyAttackCalledOffAsync(IReadOnlyCollection<Guid> playerIds, Guid marchId,
+            CancellationToken cancellationToken = default)
+            => _buffer.SendAsync(() => Players(playerIds).AttackCalledOff(new AttackCalledOffEvent(marchId)));
+
+        /// <inheritdoc/>
+        public Task NotifyStructureDestroyedAsync(IReadOnlyCollection<Guid> playerIds, Guid structureId, int x, int y,
+            CancellationToken cancellationToken = default)
+            => _buffer.SendAsync(() => Players(playerIds).StructureDestroyed(new StructureDestroyedEvent(structureId, x, y)));
+
+        private IGameClient Players(IReadOnlyCollection<Guid> playerIds)
+            => _hubContext.Clients.Groups(playerIds.Select(id => id.ToString()).ToList());
 
         private static ChatMessageEvent ToEvent(ChatMessageNotice notice)
             => new(notice.Id, notice.Channel, notice.SenderId, notice.SenderName, notice.ClanId, notice.RecipientId,

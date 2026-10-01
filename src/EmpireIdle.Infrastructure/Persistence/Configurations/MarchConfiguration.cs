@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,7 +19,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(m => m.UpdatedAt).IsRequired();
 
             builder.HasIndex(m => m.GarrisonId);
-            builder.HasIndex(m => new { m.State, m.ArrivesAt }); // сканер шукає дозрілі
+            // Сканер шукає дозрілі в межах світу; завершені й табори (стоять до відкликання) не сканує.
+            // Фільтр дослівно повторює умову GetDueAsync — інакше планувальник індекс не візьме
+            builder.HasIndex(m => new { m.ServerId, m.ArrivesAt })
+                .HasFilter($"\"State\" <> {(int)MarchState.Completed} AND \"State\" <> {(int)MarchState.Camping}");
             builder.HasIndex(m => m.HeroId);
 
             builder.HasMany(m => m.Units)

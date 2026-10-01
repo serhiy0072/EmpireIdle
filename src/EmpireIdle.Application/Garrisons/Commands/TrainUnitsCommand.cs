@@ -85,6 +85,12 @@ namespace EmpireIdle.Application.Garrisons.Commands
             if (request.Level < 1 || request.Level > _catalog.Config.MaxUnitLevel)
                 throw new RequirementNotMetException($"Unit level must be between 1 and {_catalog.Config.MaxUnitLevel}.");
 
+            var levelCeiling = _status.UnitLevelCeiling(village);
+
+            if (request.Level > levelCeiling)
+                throw new RequirementNotMetException(RefusalReasons.GarrisonUnitLevelCeiling,
+                    $"Unit level {request.Level} is above the town hall ceiling {levelCeiling}.", levelCeiling);
+
             var armyCapacity = trainingBuilding.Level.Value * _catalog.Config.ArmyCapacityPerBarracksLevel;
 
             // Тренування з нуля на обраний рівень коштує суму кроків від 1 до нього —
@@ -97,13 +103,10 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 })
                 .ToList();
 
-            var minutesPerUnit = ProgressionCurves.CumulativeUnitLevelCost(
-                config.BaseTrainMinutes, 1, request.Level + 1, config.LevelUpCostGrowth);
-
             village.ChargeCost(costPerUnit, now, request.Count);
 
             garrison.TrainUnits(request.UnitType, request.Level, request.Count, _catalog.Config.MaxTrainingBatchSize,
-                armyCapacity, TimeSpan.FromMinutes(minutesPerUnit * request.Count), now);
+                armyCapacity, TimerDurations.Training(config, request.Level, request.Count), now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

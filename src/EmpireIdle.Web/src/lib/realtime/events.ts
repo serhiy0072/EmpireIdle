@@ -34,6 +34,13 @@ export interface MarchReturnedEvent {
   marchId: string;
 }
 
+/** Атака не застала села на місці — армія стала табором на (x, y) і чекає відкликання. */
+export interface MarchCampedEvent {
+  marchId: string;
+  x: number;
+  y: number;
+}
+
 export interface ServerQuestRewardedEvent {
   questKey: string;
   rank: number;
@@ -68,16 +75,64 @@ export interface MailReceivedEvent {
   kind: string;
 }
 
+/**
+ * Ворожий марш іде на село чи споруду клану — отримують захисник і весь його клан.
+ * Від departedAt до arrivesAt загін іде прямою від (fromX, fromY) до цілі.
+ */
+export interface AttackIncomingEvent {
+  marchId: string;
+  /** "Attack" або "Scout" — розвідники йдуть подивитись, а не битись. */
+  intent: string;
+  /** "Village" або "ClanStructure". */
+  targetType: string;
+  targetId: string;
+  /** Назва села або тег клану-власника споруди. */
+  targetName: string | null;
+  targetX: number;
+  targetY: number;
+  fromX: number;
+  fromY: number;
+  attackerName: string;
+  attackerClanTag: string | null;
+  departedAt: string;
+  arrivesAt: string;
+}
+
+/** Розвідники дійшли — звіт готовий. */
+export interface ScoutReportReadyEvent {
+  reportId: string;
+  targetName: string;
+  /** "Success", "Blocked", "TargetMoved" або "TargetGone". */
+  outcome: string;
+}
+
+/** Ворожий марш розвернувся, не дійшовши: тривогу знято. */
+export interface AttackCalledOffEvent {
+  marchId: string;
+}
+
+/** Кланову споруду зруйновано: слот вільний, бонус у її радіусі зник. */
+export interface StructureDestroyedEvent {
+  structureId: string;
+  x: number;
+  y: number;
+}
+
 export interface GameEvents {
   BuildingCollected: BuildingCollectedEvent;
   UpgradeStarted: UpgradeStartedEvent;
   UpgradeCompleted: UpgradeCompletedEvent;
   BattleFinished: BattleFinishedEvent;
   MarchReturned: MarchReturnedEvent;
+  MarchCamped: MarchCampedEvent;
   ServerQuestRewarded: ServerQuestRewardedEvent;
   ClanInvite: ClanInviteEvent;
   ChatMessage: ChatMessageEvent;
   MailReceived: MailReceivedEvent;
+  AttackIncoming: AttackIncomingEvent;
+  AttackCalledOff: AttackCalledOffEvent;
+  ScoutReportReady: ScoutReportReadyEvent;
+  StructureDestroyed: StructureDestroyedEvent;
 }
 
 export type GameEventName = keyof GameEvents;
@@ -88,8 +143,13 @@ export const gameEventNames: GameEventName[] = [
   "UpgradeCompleted",
   "BattleFinished",
   "MarchReturned",
+  "MarchCamped",
   "ServerQuestRewarded",
   "ClanInvite",
   "ChatMessage",
   "MailReceived",
+  "AttackIncoming",
+  "AttackCalledOff",
+  "ScoutReportReady",
+  "StructureDestroyed",
 ];

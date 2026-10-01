@@ -100,13 +100,27 @@ namespace EmpireIdle.Domain.Combat
                 .ToList();
 
             var extra = new int[members.Count];
+            var given = 0;
+            var cursor = 0;
 
-            for (var i = 0; i < remainder && queue.Count > 0; i++)
+            // По колу, доки залишок не роздано. Повний стек виходить із черги, і лічильник
+            // на ньому не рухається: пропуск з кроком «вперед» губив би одиницю втрат,
+            // і вбиті юніти «виживали» б
+            while (given < remainder && queue.Count > 0)
             {
-                var slot = queue[i % queue.Count];
+                cursor %= queue.Count;
+                var slot = queue[cursor];
 
                 if (exact[slot.Index].Whole + extra[slot.Index] < slot.Stack.Count)
+                {
                     extra[slot.Index]++;
+                    given++;
+                    cursor++;
+                }
+                else
+                {
+                    queue.RemoveAt(cursor);
+                }
             }
 
             for (var i = 0; i < exact.Count; i++)

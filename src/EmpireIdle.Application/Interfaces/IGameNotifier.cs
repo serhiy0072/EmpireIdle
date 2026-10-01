@@ -23,6 +23,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Повідомити гравця, що армія повернулася додому: гарнізон і склад уже оновлені.</summary>
         Task NotifyMarchReturnedAsync(Guid playerId, Guid marchId, CancellationToken cancellationToken = default);
 
+        /// <summary>Атака не застала села на місці — армія стала табором на (x, y).</summary>
+        Task NotifyMarchCampedAsync(Guid playerId, Guid marchId, int x, int y, CancellationToken cancellationToken = default);
+
         /// <summary>Повідомити гравця про запрошення в клан.</summary>
         Task NotifyClanInviteAsync(Guid playerId, Guid requestId, Guid clanId, string clanName, string clanTag, DateTime expiresAt, CancellationToken cancellationToken = default);
 
@@ -37,6 +40,22 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Нове повідомлення кланового чи приватного чату — переліченим гравцям.</summary>
         Task NotifyChatToPlayersAsync(IReadOnlyCollection<Guid> playerIds, Chat.Contracts.ChatMessageNotice notice, CancellationToken cancellationToken = default);
+
+        /// <summary>Ворожий марш іде на село чи споруду — тривога захисникам із маршрутом і часом прибуття.</summary>
+        Task NotifyAttackIncomingAsync(IReadOnlyCollection<Guid> playerIds, Marches.ReadModels.IncomingAttack attack,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Розвідники дійшли — звіт готовий. outcome — ScoutOutcome.</summary>
+        Task NotifyScoutReportReadyAsync(Guid playerId, Guid reportId, string targetName, string outcome,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Ворожий марш розвернувся в дорозі — захисникам зняти тривогу.</summary>
+        Task NotifyAttackCalledOffAsync(IReadOnlyCollection<Guid> playerIds, Guid marchId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Кланову споруду зруйновано — всім учасникам клану.</summary>
+        Task NotifyStructureDestroyedAsync(IReadOnlyCollection<Guid> playerIds, Guid structureId, int x, int y,
+            CancellationToken cancellationToken = default);
 
     }
 }

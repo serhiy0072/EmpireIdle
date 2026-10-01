@@ -48,6 +48,14 @@ export function tilePath(x: number, y: number): string {
   return toPath([at(cx - h, cy - h), at(cx + h, cy - h), at(cx + h, cy + h), at(cx - h, cy + h)]);
 }
 
+/** Квадрат клітин на відстані Чебишова ≤ radius від (x, y) — зона дії кланової споруди. */
+export function areaPath(x: number, y: number, radius: number): string {
+  const { x: cx, y: cy } = cellOrigin(x, y);
+  const h = TILE / 2 + radius * TILE;
+
+  return toPath([at(cx - h, cy - h), at(cx + h, cy - h), at(cx + h, cy + h), at(cx - h, cy + h)]);
+}
+
 /**
  * Деталі поверх основи. Порожній фрагмент для рівнини — більшість клітин
  * рівнина, і саме вони тримають кількість вузлів SVG у нормі.
@@ -108,6 +116,12 @@ const HOME_ROOF = faces("#f87171", "#dc2626", "#991b1b");
 const HOME_WALL = faces("#e2e8f0", "#94a3b8", "#64748b");
 const OTHER_ROOF = faces("#93c5fd", "#3b82f6", "#1d4ed8");
 const OTHER_WALL = faces("#e7c9a0", "#b88a5a", "#8a6238");
+const TOWER_STONE = faces("#e5e7eb", "#9ca3af", "#6b7280");
+const SCAFFOLD = faces("#fde68a", "#d97706", "#92400e");
+const OWN_CAP = faces("#6ee7b7", "#10b981", "#047857");
+const FOREIGN_CAP = faces("#c4b5fd", "#8b5cf6", "#6d28d9");
+const OWN_TENT = faces("#fde68a", "#f59e0b", "#b45309");
+const FOREIGN_TENT = faces("#fda4af", "#e11d48", "#9f1239");
 const HIDE = faces("#7c3aed", "#5b21b6", "#3b0764");
 const HORN = faces("#fef3c7", "#e7c9a0", "#b88a5a");
 const CLAW = faces("#1e293b", "#0f172a", "#020617");
@@ -210,11 +224,63 @@ function monsterArt(cx: number, cy: number, type: string | null | undefined, lev
   }
 }
 
-/** Мітка окупанта клітини: своє село — червоний дах і прапор, чуже — синій, монстр — істота свого типу. */
-export function occupantArt(occupant: MapOccupantCell, isHome: boolean): ReactElement {
+/**
+ * Кланова споруда — вежа: своя зелена, чужа фіолетова. Поки будується — низький
+ * дерев'яний каркас без прапора: бонусу вона ще не дає.
+ */
+function structureArt(cx: number, cy: number, own: boolean, building: boolean): ReactElement {
+  if (building) {
+    return (
+      <g opacity={0.85}>
+        <Box cx={cx} cy={cy} hx={0.9} hy={0.9} h={5} faces={SCAFFOLD} />
+        <Cone cx={cx} cy={cy} r={0.9} z={5} h={3} faces={own ? OWN_CAP : FOREIGN_CAP} />
+      </g>
+    );
+  }
+
+  return (
+    <g>
+      <Cylinder cx={cx} cy={cy} r={0.9} h={11} faces={TOWER_STONE} />
+      <Cone cx={cx} cy={cy} r={1.1} z={11} h={5} faces={own ? OWN_CAP : FOREIGN_CAP} />
+      <Flag x={cx} y={cy} z={16} h={8} color={own ? "#10b981" : "#8b5cf6"} />
+    </g>
+  );
+}
+
+/**
+ * Табір (§2.5): намет із прапорцем — свій жовтий, чужий червоний. Стоїть у куті клітини:
+ * клітинки табір не займає, і на ній може стояти ще й село.
+ */
+export function campArt(x: number, y: number, own: boolean): ReactElement {
+  const { x: cx, y: cy } = cellOrigin(x, y);
+  const tx = cx + 0.9;
+  const ty = cy + 0.9;
+
+  return (
+    <g>
+      <Pyramid cx={tx} cy={ty} hx={0.8} hy={0.8} z={0} h={3.5} faces={own ? OWN_TENT : FOREIGN_TENT} />
+      <Flag x={tx} y={ty} z={3.5} h={5} color={own ? "#f59e0b" : "#e11d48"} />
+    </g>
+  );
+}
+
+/** Чи споруда ще будується: до ReadyAt бонусу немає. */
+export function isStructureBuilding(occupant: MapOccupantCell, now: number): boolean {
+  return occupant.readyAt != null && Date.parse(occupant.readyAt) > now;
+}
+
+/**
+ * Мітка окупанта клітини: своє село — червоний дах і прапор, чуже — синій, монстр — істота свого типу,
+ * кланова споруда — вежа (ownClanId відрізняє свою від чужої).
+ */
+export function occupantArt(occupant: MapOccupantCell, isHome: boolean, ownClanId: string | null, now: number): ReactElement {
   const { x: cx, y: cy } = cellOrigin(occupant.x, occupant.y);
 
   if (occupant.occupantType === "Monster") return monsterArt(cx, cy, occupant.monsterType, occupant.monsterLevel);
+
+  if (occupant.occupantType === "ClanStructure") {
+    return structureArt(cx, cy, ownClanId !== null && occupant.clanId === ownClanId, isStructureBuilding(occupant, now));
+  }
 
   const roof: Faces = isHome ? HOME_ROOF : OTHER_ROOF;
   const wall: Faces = isHome ? HOME_WALL : OTHER_WALL;

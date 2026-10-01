@@ -26,9 +26,9 @@ public record ActiveEffectResponse(string Target, double Multiplier, DateTime Ex
 
 /// <summary>
 /// Запит на використання предмета.
-/// TargetId — для предметів, що діють на сутність; TargetX/TargetY — на клітину карти.
+/// TargetX/TargetY — для предметів, що діють на клітину карти.
 /// </summary>
-public record UseItemRequest(string ItemKey, int Count, Guid? TargetId = null, int? TargetX = null, int? TargetY = null);
+public record UseItemRequest(string ItemKey, int Count, int? TargetX = null, int? TargetY = null);
 
 /// <summary>Подарунок члену свого клану.</summary>
 public record GiftItemRequest(Guid RecipientId, string ItemKey, int Count);

@@ -26,6 +26,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasIndex(r => new { r.PlayerId, r.Status });
             builder.HasIndex(r => new { r.ClanId, r.Status });
 
+            // «Прийняти» проти «відхилити/скасувати» з різних рук: без токена обидва
+            // зберегли б свій статус, і програвший перезаписав би переможця
+            builder.Property<uint>("Version").IsRowVersion();
+
             builder.Ignore(r => r.DomainEvents);
         }
     }

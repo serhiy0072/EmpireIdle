@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Tests.Common;
 
 public class IdempotencyBehaviorTests
 {
-    private const string ValidKey = "abcdefghijklmnop-0123";   // 21 символ, у межах 16–128
+    private const string ValidKey = "abcdefghijklmnop-0123";   // 21 символ, у межах 16–100
 
     private readonly IIdempotencyRepository _repository = Substitute.For<IIdempotencyRepository>();
     private readonly ICurrentPlayer _currentPlayer = Substitute.For<ICurrentPlayer>();
@@ -263,13 +263,17 @@ public class IdempotencyBehaviorTests
         var act = async () => await behavior.Handle(new PayCommand(10), Handler(), CancellationToken.None);
 
         await act.Should().ThrowAsync<ValidationException>()
-            .WithMessage("*16–128 chars*");
+            .WithMessage("*16–100 chars*");
     }
 
+    /// <summary>
+    /// Межа — довжина колонки Key (100): довший ключ пройшов би валідацію й упав би на
+    /// вставці з 22001, а клієнт отримав би 500 замість 400.
+    /// </summary>
     [Fact]
     public async Task Handle_ShouldReject_WhenKeyExceedsMaximumLength()
     {
-        _requestContext.IdempotencyKey.Returns(new string('a', 129));
+        _requestContext.IdempotencyKey.Returns(new string('a', 101));
 
         var behavior = BehaviorFor<PayCommand>();
 
@@ -281,7 +285,7 @@ public class IdempotencyBehaviorTests
     [Fact]
     public async Task Handle_ShouldAccept_KeyAtExactBoundaryLengths()
     {
-        foreach (var key in new[] { new string('a', 16), new string('b', 128) })
+        foreach (var key in new[] { new string('a', 16), new string('b', 100) })
         {
             _requestContext.IdempotencyKey.Returns(key);
             _repository.ClearReceivedCalls();

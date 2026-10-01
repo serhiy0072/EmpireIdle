@@ -47,5 +47,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task<List<PlayerRating>> GetAllAsync(CancellationToken cancellationToken = default)
             => _context.PlayerRatings.ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<PlayerRating>> GetByPlayersAsync(IReadOnlyCollection<Guid> playerIds,
+            CancellationToken cancellationToken = default)
+            => _context.PlayerRatings.Where(r => playerIds.Contains(r.PlayerId)).ToListAsync(cancellationToken);
     }
 }

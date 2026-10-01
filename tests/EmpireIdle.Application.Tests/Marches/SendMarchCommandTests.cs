@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -32,6 +33,7 @@ public class SendMarchCommandTests
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -72,7 +74,8 @@ public class SendMarchCommandTests
         var heroModifiers = new HeroCombatModifiers(catalog);
 
         var targets = new MarchTargetResolver(
-            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog, status);
+            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog, status,
+            _structures, _clans, new ClanTerritoryRules(catalog), _marches);
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
@@ -80,7 +83,7 @@ public class SendMarchCommandTests
             _villages, _garrisons, _marches, _heroes, _unitOfWork, _serverContext,
             new FakeTimeProvider(Now),
             new MarchCalculator(terrain, catalog),
-            targets, reinforcementRules,
+            targets, reinforcementRules, new StructureMarchRules(_clans),
             new HeroProgression(config.HeroSettings),
             catalog,
             NullLogger<SendMarchCommandHandler>.Instance);
@@ -102,8 +105,7 @@ public class SendMarchCommandTests
 
         var monster = new Monster(Guid.NewGuid(), 1, "wolves", 1, 55, 55, Now);
 
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
-        hero.StationIn(garrison.Id, asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "warrior_bran", garrison.Id, asLeader: true, Now);
 
         var existing = Enumerable.Range(0, activeMarches)
             .Select(_ => new March(
@@ -126,6 +128,24 @@ public class SendMarchCommandTests
     private static SendMarchCommand Send(Guid targetId, Guid heroId, int infantry = 10) =>
         new(PlayerId, MarchTargetType.Monster, targetId,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, heroId);
+
+    /// <summary>Власне село не атакують: інакше підкріплення соклановців гинули б від господаря.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_AnAttackOnTheOwnVillage()
+    {
+        var (garrison, _, hero) = GivenState(infantry: 100);
+        var village = await _villages.GetByPlayerIdAsync(PlayerId);
+        _villages.GetByIdAsync(village!.Id, Arg.Any<CancellationToken>()).Returns(village);
+        _heroes.GetByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(new List<Hero>());
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Handler().Handle(
+            new SendMarchCommand(PlayerId, MarchTargetType.Village, village.Id,
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, hero.Id),
+            CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.MarchOwnVillage.Key, refusal.Reason);
+        Assert.Equal(100, garrison.Units.Sum(u => u.Count));
+    }
 
     /// <summary>Юніти зникають із гарнізону — армія не може бути у двох місцях.</summary>
     [Fact]
@@ -231,8 +251,7 @@ public class SendMarchCommandTests
     {
         var (garrison, near, hero) = GivenState();
 
-        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", Guid.NewGuid(), asLeader: false, Now);
-        second.StationIn(garrison.Id, asLeader: false, Now);
+        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
         _heroes.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(second);
 
         var far = new Monster(Guid.NewGuid(), 1, "wolves", 1, 90, 90, Now);
@@ -284,8 +303,7 @@ public class SendMarchCommandTests
     {
         var (garrison, monster, _) = GivenState();
 
-        var stranger = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, "warrior_bran", Guid.NewGuid(), asLeader: false, Now);
-        stranger.StationIn(garrison.Id, asLeader: false, Now);
+        var stranger = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, "warrior_bran", garrison.Id, asLeader: false, Now);
         _heroes.GetByIdAsync(stranger.Id, Arg.Any<CancellationToken>()).Returns(stranger);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
@@ -331,8 +349,11 @@ public class SendMarchCommandTests
     [Fact]
     public async Task Handle_ShouldReject_WhenTheHeroIsStationedElsewhere()
     {
-        var (_, monster, hero) = GivenState();
-        hero.StationIn(Guid.NewGuid(), asLeader: false, Now);
+        var (_, monster, stationedHere) = GivenState();
+
+        // Той самий герой, але стоїть в іншому гарнізоні
+        var hero = new Hero(stationedHere.Id, PlayerId, 1, "warrior_bran", Guid.NewGuid(), asLeader: false, Now);
+        _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));

@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.ValueObjects;
 
@@ -46,6 +47,13 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime DepartedAt { get; private set; }
 
+        /// <summary>
+        /// Коли почалась поточна нога: вихід до цілі або розворот додому. Від неї
+        /// до ArrivesAt клієнт веде загін по прямій — DepartedAt для зворотної ноги
+        /// не годиться, він лишається моментом першого виходу.
+        /// </summary>
+        public DateTime LegStartedAt { get; private set; }
+
         /// <summary>Склад армії (тільки для читання).</summary>
         public IReadOnlyCollection<MarchUnit> Units => _units.AsReadOnly();
 
@@ -74,26 +82,38 @@ namespace EmpireIdle.Domain.Entities
             State = MarchState.Outbound;
             ArrivesAt = arrivesAt;
             DepartedAt = departedAt;
+            LegStartedAt = departedAt;
             Intent = intent;
 
             foreach (var (stack, count) in units)
                 _units.Add(new MarchUnit(Guid.NewGuid(), id, stack.UnitType, stack.Level, count));
+
+            // Напад чи розвідка того, хто захищається, — тривога захисникові й клану ще до прибуття
+            if (IsHostileToPlayers)
+                RaiseDomainEvent(new HostileMarchLaunched(id, targetType, targetId, arrivesAt, departedAt));
         }
 
         protected March() { } // Для EF Core
+
+        /// <summary>Напад або розвідка гравця чи споруди клану — те, про що тривожать захисників.</summary>
+        public bool IsHostileToPlayers
+            => Intent != MarchIntent.Reinforce && TargetType != MarchTargetType.Monster;
 
         /// <summary>
         /// Похід, що одразу вирушає додому: підкріплення, зняте з чужого
         /// гарнізону. Фази Outbound у нього немає — армія вже на місці.
         /// </summary>
         /// <param name="garrisonId">Гарнізон власника: саме туди повернуться юніти.</param>
+        /// <param name="fromId">Село чи кланова споруда, з якої знято військо.</param>
+        /// <param name="fromType">Що саме — село чи споруда.</param>
         public static March ReturningHome(Guid id, int serverId, Guid garrisonId, Guid? heroId,
-            int homeX, int homeY, int fromX, int fromY, Guid fromVillageId,
-            IReadOnlyDictionary<UnitStackKey, int> units, TimeSpan duration, DateTime utcNow)
+            int homeX, int homeY, int fromX, int fromY, Guid fromId,
+            IReadOnlyDictionary<UnitStackKey, int> units, TimeSpan duration, DateTime utcNow,
+            MarchTargetType fromType = MarchTargetType.Village)
         {
             // Origin — дім: гілка Returning у сканері веде армію саме туди
             var march = new March(id, serverId, garrisonId, heroId, homeX, homeY, fromX, fromY,
-                MarchTargetType.Village, fromVillageId, units, utcNow + duration, utcNow,
+                fromType, fromId, units, utcNow + duration, utcNow,
                 MarchIntent.Reinforce);
 
             march.State = MarchState.Returning;
@@ -138,28 +158,67 @@ namespace EmpireIdle.Domain.Entities
 
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
+            LegStartedAt = utcNow;
 
             Touch(utcNow);
         }
 
         /// <summary>
-        /// Рідне поселення переїхало — армія розвертається до нових координат.
-        /// Зворотний час дорівнює вже пройденому: скільки йшла, стільки й вертатиметься.
-        ///
-        /// Тільки для Outbound: марш, що вже повертається, віддає юнітів у гарнізон,
-        /// а гарнізон прив'язаний до села, не до клітини — переїзд його не стосується.
+        /// Атака дійшла, а села на клітинці вже немає — воно переїхало (§2.5).
+        /// Армія не доганяє його, а стає табором і стоїть, доки власник не відкличе.
+        /// Захисникам тривогу знято: на їхнє село вже ніхто не йде.
         /// </summary>
-        public void RecallAfterRelocation(int originX, int originY, DateTime utcNow)
+        public void Camp(DateTime utcNow)
         {
-            if (State != MarchState.Outbound)
-                return;
+            if (State != MarchState.Outbound || Intent != MarchIntent.Attack)
+                throw new InvalidStateException($"March {Id} is not an outbound attack.");
 
-            var travelled = utcNow - DepartedAt;
+            State = MarchState.Camping;
+            ArrivesAt = utcNow;
+            LegStartedAt = utcNow;
+
+            RaiseDomainEvent(new HostileMarchCalledOff(Id, TargetType, TargetId, utcNow));
+            RaiseDomainEvent(new MarchCamped(Id, GarrisonId, TargetX, TargetY, utcNow));
+
+            Touch(utcNow);
+        }
+
+        /// <summary>Власник відкликав табір: армія йде додому звичайним маршем.</summary>
+        public void BreakCamp(int originX, int originY, TimeSpan returnDuration, DateTime utcNow)
+        {
+            if (State != MarchState.Camping)
+                throw new InvalidStateException(RefusalReasons.MarchNotCamping, $"March {Id} is not camping.");
 
             OriginX = originX;
             OriginY = originY;
             State = MarchState.Returning;
-            ArrivesAt = utcNow + travelled;
+            ArrivesAt = utcNow + returnDuration;
+            LegStartedAt = utcNow;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Рідне поселення переїхало — армія вже вдома, на нових координатах (§2.5):
+        /// марш стає поверненням, що прибуває просто зараз. Завершує його той, хто
+        /// кличе, звичайним шляхом повернення — зі здобиччю й героєм.
+        ///
+        /// Для завершеного маршу нічого не робить: переїзд його не стосується.
+        /// </summary>
+        public void CallHomeAtOnce(int originX, int originY, DateTime utcNow)
+        {
+            if (State == MarchState.Completed)
+                return;
+
+            // Напад зірвано ще в дорозі — захисники мають зняти тривогу, а не чекати прибуття
+            if (State == MarchState.Outbound && IsHostileToPlayers)
+                RaiseDomainEvent(new HostileMarchCalledOff(Id, TargetType, TargetId, utcNow));
+
+            OriginX = originX;
+            OriginY = originY;
+            State = MarchState.Returning;
+            ArrivesAt = utcNow;
+            LegStartedAt = utcNow;
 
             Touch(utcNow);
         }
@@ -172,6 +231,20 @@ namespace EmpireIdle.Domain.Entities
         {
             if (State != MarchState.Outbound)
                 throw new InvalidStateException($"March {Id} is not outbound.");
+
+            State = MarchState.Completed;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Розвідники дійшли й подивились: звіт складено на місці, назад вони не йдуть —
+        /// ні юнітів, ні героя в марші немає.
+        /// </summary>
+        public void FinishScouting(DateTime utcNow)
+        {
+            if (Intent != MarchIntent.Scout || State != MarchState.Outbound)
+                throw new InvalidStateException($"March {Id} is not an outbound scout march.");
 
             State = MarchState.Completed;
 
@@ -228,6 +301,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Прискорює прибуття (speedup за gems).</summary>
         public void ReduceTravelTime(TimeSpan reduction, DateTime utcNow)
         {
+            if (State == MarchState.Camping)
+                throw new InvalidStateException(RefusalReasons.MarchCamping, $"March {Id} is camping.");
+
             ArrivesAt -= reduction;
             Touch(utcNow);
         }

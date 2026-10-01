@@ -8,5 +8,8 @@ namespace EmpireIdle.Application.Interfaces
         Task AddAsync(VillageFall fall, CancellationToken cancellationToken = default);
 
         Task<VillageFall?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+        /// <summary>Записи падінь за id одним запитом — для скриньки.</summary>
+        Task<List<VillageFall>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
     }
 }

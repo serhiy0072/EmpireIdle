@@ -16,10 +16,18 @@ namespace EmpireIdle.Application.Chat.Validators
         {
             RuleFor(x => x.PlayerId).NotEmpty();
             RuleFor(x => x.Channel).IsInEnum();
-            RuleFor(x => x.Text).NotEmpty().MaximumLength(HardMaxLength).Must(text => !string.IsNullOrWhiteSpace(text));
+            RuleFor(x => x.Text).NotEmpty().MaximumLength(HardMaxLength).Must(text => !string.IsNullOrWhiteSpace(text))
+                .Must(HasNoControlCharacters).WithMessage("Text must not contain control characters.");
 
             When(x => x.Channel == ChatChannel.Private, () => RuleFor(x => x.RecipientId).NotNull().NotEqual(Guid.Empty));
             When(x => x.Channel != ChatChannel.Private, () => RuleFor(x => x.RecipientId).Null());
         }
+
+        /// <summary>
+        /// Керівні символи (U+0000–U+001F, U+007F) ламають розмітку чату й логи, а NUL
+        /// Postgres у text не приймає взагалі. Перенос рядка й табуляція — легітимні.
+        /// </summary>
+        private static bool HasNoControlCharacters(string? text)
+            => text is null || !text.Any(c => char.IsControl(c) && c <= '\u007F' && c is not '\n' and not '\t');
     }
 }

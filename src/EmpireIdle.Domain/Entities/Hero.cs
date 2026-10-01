@@ -167,20 +167,6 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Ставить героя в гарнізон, не змінюючи стану. Використовується
-        /// видачею й переведенням між гарнізонами.
-        /// </summary>
-        public void StationIn(Guid garrisonId, bool asLeader, DateTime utcNow)
-        {
-            if (State == HeroState.Deployed)
-                throw new InvalidStateException($"Hero {Id} is on the move and cannot be stationed.");
-
-            StationedGarrisonId = garrisonId;
-            IsLeader = asLeader;
-            Touch(utcNow);
-        }
-
-        /// <summary>
         /// Призначає лідером гарнізону, у якому герой уже стоїть.
         /// Поранений лідером бути може: бонус дає той, хто в строю,
         /// а перевірка стану — справа бойової формули, не призначення.

@@ -41,6 +41,168 @@ namespace EmpireIdle.Domain.Services
             ValidateBanners(config);
             ValidateBuildingLayout(config);
             ValidateLoginRewards(config);
+            ValidateClanTerritory(config);
+            ValidateScouting(config);
+            ValidateFlatBuildings(config);
+            ValidateMonsters(config);
+        }
+
+        /// <summary>
+        /// Склад і нагорода монстра. Дубль юніта в загоні розколов би армію на два стеки
+        /// одного типу, невідомий юніт дав би нульову силу, невідомий ресурс — нагороду,
+        /// яку нікуди покласти.
+        /// </summary>
+        private static void ValidateMonsters(GameConfig config)
+        {
+            var unitKeys = config.Units.Select(u => u.Key).ToHashSet();
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+
+            foreach (var monster in config.Monsters)
+            {
+                var duplicates = monster.Units
+                    .GroupBy(u => u.UnitType)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (duplicates.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Monster '{monster.Key}' lists units more than once: {string.Join(", ", duplicates)}.");
+
+                if (monster.Units.Any(u => u.Count <= 0))
+                    throw new InvalidOperationException($"Monster '{monster.Key}' has a unit stack with non-positive Count.");
+
+                // Порожній список юнітів чи ресурсів — фікстура їх не описує; перевіряємо лише задане
+                var unknownUnits = unitKeys.Count == 0
+                    ? []
+                    : monster.Units.Where(u => !unitKeys.Contains(u.UnitType)).Select(u => u.UnitType).ToList();
+
+                if (unknownUnits.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Monster '{monster.Key}' references unknown units: {string.Join(", ", unknownUnits)}.");
+
+                var brokenRewards = monster.Rewards
+                    .Where(r => r.Amount <= 0 || (resourceKeys.Count > 0 && !resourceKeys.Contains(r.Resource)))
+                    .Select(r => $"{r.Resource} ×{r.Amount}")
+                    .ToList();
+
+                if (brokenRewards.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Monster '{monster.Key}' rewards unknown resources or non-positive amounts: {string.Join(", ", brokenRewards)}.");
+            }
+        }
+
+        /// <summary>
+        /// Будівля без рівнів (GDD §3.1) назавжди стоїть на рівні 1. Усе, що росте з рівнем,
+        /// у неї було б мертвим числом, ціна апгрейду — ціною того, чого не купиш, а гейт
+        /// юніта чи квест на вищий рівень — недосяжною ціллю.
+        /// </summary>
+        private static void ValidateFlatBuildings(GameConfig config)
+        {
+            var flat = config.Buildings.Where(b => !b.Upgradable).ToList();
+
+            var levelled = flat
+                .Where(b => b.IsMainBuilding
+                            || b.ProducesResource is not null
+                            || b.StoresResources is { Count: > 0 }
+                            || b.Cost.Count > 0
+                            || b.WoundedCapacityPerLevel > 0
+                            || b.DefenceBonusPerLevel > 0
+                            || b.ReinforcementSlotsPerLevel > 0
+                            || b.BeastCapacityPerLevel > 0
+                            || b.ProtectedStorage > 0)
+                .Select(b => b.Key)
+                .ToList();
+
+            if (levelled.Count > 0)
+                throw new InvalidOperationException(
+                    "Buildings without levels cannot be the main building, produce, store, cost an upgrade "
+                    + $"or grow anything with level: {string.Join(", ", levelled)}.");
+
+            var flatKeys = flat.Select(b => b.Key).ToHashSet();
+
+            var unreachable = config.Units
+                .Where(u => u.RequiresBuilding is { } key && flatKeys.Contains(key) && u.RequiresBuildingLevel > 1)
+                .Select(u => $"unit {u.Key}")
+                .Concat(config.Quests.SelectMany(q => q.Objectives
+                    .Where(o => o.Type == "BuildingUpgradeCompleted" && o.Target is { } key && flatKeys.Contains(key))
+                    .Select(_ => $"quest {q.Key}")))
+                .ToList();
+
+            if (unreachable.Count > 0)
+                throw new InvalidOperationException(
+                    $"These require a level of a building that has no levels: {string.Join(", ", unreachable)}.");
+        }
+
+        /// <summary>
+        /// Розвідка: будівля, що відправляє розвідників, мусить існувати, розвідники — обганяти
+        /// будь-який юніт, а завіса від
+        /// розвідки — мати строк: предмет без тривалості списувався б, нічого не ховаючи.
+        /// </summary>
+        private static void ValidateScouting(GameConfig config)
+        {
+            var building = config.Combat.Scouting.RequiredBuilding;
+
+            if (building is not null && config.Buildings.All(b => b.Key != building))
+                throw new InvalidOperationException(
+                    $"Combat.Scouting.RequiredBuilding '{building}' is not in Buildings.");
+
+            // Розвідка має обганяти будь-яку армію, інакше вона запізнюється до власного нападу
+            var fastest = config.Units.Select(u => u.Stats.GetValueOrDefault("Speed", 1.0)).DefaultIfEmpty(0).Max();
+
+            if (building is not null && config.Combat.Scouting.Speed <= fastest)
+                throw new InvalidOperationException(
+                    $"Combat.Scouting.Speed ({config.Combat.Scouting.Speed}) must exceed the fastest unit ({fastest}).");
+
+            foreach (var veil in config.Items.Where(i => i.Type == "scoutveil" && i.DurationHours <= 0))
+                throw new InvalidOperationException($"Scout veil '{veil.Key}' has no DurationHours.");
+        }
+
+        /// <summary>
+        /// Кланова територія й кланові квести (GDD §7.2). Квест клану — одна накопичувальна
+        /// ціль без порогу й без особистих нагород: нагорода йде клану очками вкладу.
+        /// Слот відкриває рівно одна умова, і квест у ній мусить бути клановим.
+        /// </summary>
+        private static void ValidateClanTerritory(GameConfig config)
+        {
+            var clanQuests = config.Quests.Where(q => q.Scope == QuestScope.Clan).ToList();
+
+            var brokenQuests = clanQuests
+                .Where(q => q.Objectives.Count != 1
+                            || q.Objectives[0].Mode == ObjectiveMode.Threshold
+                            || q.Objectives[0].Count <= 0
+                            || q.Window != QuestWindow.Chain
+                            || q.Rewards.Count > 0
+                            || q.RewardTiers.Count > 0
+                            || q.ClanPoints < 0)
+                .Select(q => q.Key)
+                .ToList();
+
+            if (brokenQuests.Count > 0)
+                throw new InvalidOperationException(
+                    "Clan quests need exactly one accumulating objective with a positive count, the Chain window, " +
+                    $"no personal or tiered rewards and non-negative ClanPoints: {string.Join(", ", brokenQuests)}.");
+
+            var territory = config.Clan.Territory;
+
+            if (territory.StartingSlots > territory.MaxStructures)
+                throw new InvalidOperationException(
+                    $"Clan territory opens {territory.StartingSlots} starting slots but allows only {territory.MaxStructures} structures.");
+
+            var clanQuestKeys = clanQuests.Select(q => q.Key).ToHashSet();
+
+            var brokenUnlocks = territory.SlotUnlocks
+                .Select((unlock, index) => (Unlock: unlock, Index: index + 1))
+                .Where(x => (x.Unlock.MinMembers is null) == (x.Unlock.QuestKey is null)
+                            || x.Unlock.MinMembers is <= 0
+                            || (x.Unlock.QuestKey is { } key && !clanQuestKeys.Contains(key)))
+                .Select(x => $"#{x.Index}")
+                .ToList();
+
+            if (brokenUnlocks.Count > 0)
+                throw new InvalidOperationException(
+                    "Every clan slot unlock needs exactly one condition — a positive MinMembers or the key of a clan quest: " +
+                    $"{string.Join(", ", brokenUnlocks)}.");
         }
 
         /// <summary>Нагороди за вхід видає той самий диспетчер, що й квестові — ключі мусять існувати.</summary>
@@ -314,7 +476,6 @@ namespace EmpireIdle.Domain.Services
             RequireUniqueKeys(config.Heroes.Select(h => h.Key), "Heroes");
 
             var mainBuildings = config.Buildings.Count(b => b.IsMainBuilding);
-            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
 
             if (mainBuildings != 1)
                 throw new InvalidOperationException(
@@ -541,6 +702,30 @@ namespace EmpireIdle.Domain.Services
             // Перевіряємо лише те, що задано.
             if (config.Heroes.Count == 0)
                 return;
+
+            // Щит без тривалості згасає в тому ж ході, в якому його наклали: стан тікає
+            // наприкінці ходу носія, тож на себе потрібно щонайменше 2
+            var shortShields = config.Heroes
+                .SelectMany(h => h.Abilities)
+                .Where(a => a.ShieldPercent > 0 && a.ShieldTurns < (a.Target == AbilityTarget.Self ? 2 : 1))
+                .Select(a => a.Key)
+                .ToList();
+
+            if (shortShields.Count > 0)
+                throw new InvalidOperationException(
+                    $"Shield abilities vanish before they can absorb anything — raise ShieldTurns: {string.Join(", ", shortShields)}.");
+
+            // Шкала енергії бійця в данжі впирається в Dungeons.MaxEnergy: дорожче вміння не настане ніколи
+            var unaffordable = config.Heroes
+                .SelectMany(h => h.Abilities)
+                .Where(a => a.EnergyCost <= 0 || a.EnergyCost > config.Dungeons.MaxEnergy)
+                .Select(a => $"{a.Key} ({a.EnergyCost})")
+                .ToList();
+
+            if (unaffordable.Count > 0)
+                throw new InvalidOperationException(
+                    $"Hero abilities must cost between 1 and Dungeons.MaxEnergy ({config.Dungeons.MaxEnergy}) energy: "
+                    + $"{string.Join(", ", unaffordable)}.");
 
             var settings = config.HeroSettings;
 

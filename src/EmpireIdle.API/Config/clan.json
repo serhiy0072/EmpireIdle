@@ -7,7 +7,38 @@
       "HelpRequestLifetimeHours": 24,
       "LeaderInactivityDays": 7,
       "RequestLifetimeHours": 72,
-      "RejectedCooldownHours": 12
+      "RejectedCooldownHours": 12,
+      "Territory": {
+        "Enabled": true,
+        "Radius": 5,
+        "MaxStructures": 10,
+        "StartingSlots": 5,
+        "SlotUnlocks": [
+          {
+            "MinMembers": 20
+          },
+          {
+            "MinMembers": 50
+          },
+          {
+            "QuestKey": "clan_hunt"
+          },
+          {
+            "QuestKey": "clan_builders"
+          },
+          {
+            "QuestKey": "clan_muster"
+          }
+        ],
+        "StructureCostPoints": 1000,
+        "BuildMinutes": 1440,
+        "BuildSharePerPower": 0.0005,
+        "MaxBuildShare": 1.0,
+        "GarrisonCapacity": 500,
+        "AttackBonus": 0.1,
+        "DefenceBonus": 0.1,
+        "MonsterLootCashbackShare": 0.05
+      }
     }
   }
 }

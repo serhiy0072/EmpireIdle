@@ -4,7 +4,7 @@ import { cumulativeUnitLevelCost } from "../lib/progression";
 import { formatRemaining } from "../lib/time";
 import { useCatalog } from "../lib/queries/catalog";
 import { speedUpLabel } from "../lib/speedUp";
-import { useGarrison, useLevelUpUnits, useSpeedUpLevelUp } from "../lib/queries/garrison";
+import { useGarrison, useLevelUpUnits, useSpeedUpLevelUp, useUnitLevelCeiling } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 
 /**
  * Прокачка вже навчених юнітів на вищий рівень (§5.2 GDD): +10%/рівень,
- * кап 10. Юніти на прокачці зняті з гарнізону, поки не завершиться.
+ * кап 10 і не вище ратуші. Юніти на прокачці зняті з гарнізону, поки не завершиться.
  */
 export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
   const now = useNow();
@@ -22,6 +22,7 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
   const garrison = useGarrison(playerId);
   const levelUp = useLevelUpUnits(playerId);
   const speedUp = useSpeedUpLevelUp(playerId);
+  const levelCeiling = useUnitLevelCeiling(playerId);
 
   const [targetLevels, setTargetLevels] = useState<Record<string, number>>({});
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -29,7 +30,7 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
   const belongsToBuilding = (unitType: string) => catalog.unit(unitType)?.requiresBuilding === buildingType;
 
   const stacks = (garrison.data?.units ?? []).filter(
-    (stack) => stack.count > 0 && stack.level < catalog.maxUnitLevel && belongsToBuilding(stack.unitType),
+    (stack) => stack.count > 0 && stack.level < levelCeiling && belongsToBuilding(stack.unitType),
   );
 
   const queue = (garrison.data?.levelUpOrders ?? []).filter((order) => belongsToBuilding(order.unitType));
@@ -47,7 +48,7 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
       {stacks.map((stack) => {
         const key = `${stack.unitType}@${stack.level}`;
         const unit = catalog.unit(stack.unitType);
-        const maxToLevel = catalog.maxUnitLevel;
+        const maxToLevel = levelCeiling;
         const toLevel = Math.min(Math.max(targetLevels[key] ?? stack.level + 1, stack.level + 1), maxToLevel);
         const count = Math.min(Math.max(counts[key] ?? 1, 1), stack.count);
 
@@ -124,14 +125,16 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
                 {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.fromLevel}→{order.toLevel}) —{" "}
                 {formatRemaining(order.completesAt, now)}
               </span>
-              <button
-                type="button"
-                onClick={() => speedUp.mutate(order.id)}
-                disabled={speedUp.isPending}
-                className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-              >
-                {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
-              </button>
+              {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => speedUp.mutate(order.id)}
+                  disabled={speedUp.isPending}
+                  className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
+                </button>
+              )}
             </div>
           ))}
         </div>

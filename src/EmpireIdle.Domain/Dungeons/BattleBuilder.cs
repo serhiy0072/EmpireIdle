@@ -60,7 +60,6 @@ namespace EmpireIdle.Domain.Dungeons
         {
             var heroes = state.Combatants
                 .Where(c => c.Side == BattleSide.Heroes)
-                .Select(c => c with { Index = c.Index })
                 .ToList();
 
             return BuildWave(heroes, dungeon, level, state.Wave + 1, state.Seed, state.TurnNumber);

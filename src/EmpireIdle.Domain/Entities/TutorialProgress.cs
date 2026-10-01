@@ -16,6 +16,12 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Довший ключ — помилка клієнта, а не новий крок.</summary>
         public const int MaxStepKeyLength = 64;
 
+        /// <summary>
+        /// Стеля побачених кроків. Ключі визначає клієнт, тож без неї будь-хто роздув би
+        /// рядок прогресу довільними ключами. У клієнті кроків на порядок менше.
+        /// </summary>
+        public const int MaxSteps = 200;
+
         private readonly List<string> _seenSteps = new();
 
         public Guid PlayerId { get; private set; }
@@ -48,6 +54,9 @@ namespace EmpireIdle.Domain.Entities
 
             if (_seenSteps.Contains(stepKey))
                 return false;
+
+            if (_seenSteps.Count >= MaxSteps)
+                throw new InvalidStateException($"Tutorial progress already holds the maximum of {MaxSteps} steps.");
 
             _seenSteps.Add(stepKey);
             UpdatedAt = utcNow;

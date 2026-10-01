@@ -3,7 +3,9 @@ import { api } from "../api";
 import type { GarrisonResponse, HealPaymentMethod } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer, type PlayerScope } from "./invalidate";
+import { useCatalog } from "./catalog";
 import { refetchAtDue } from "./polling";
+import { useVillage } from "./village";
 
 /** Значення HealPaymentMethod з контракту: числа на дроті, імена — тут. */
 export const HEAL_PAYMENT = {
@@ -94,4 +96,18 @@ export function useRecoverUnits(playerId: string) {
     () => `/api/garrisons/${playerId}/units/recover`,
     ["garrison", "power", "wallet"],
   );
+}
+
+/**
+ * Найвищий рівень, на який можна тренувати чи прокачати воїнів: не вище ратуші
+ * й не вище капу — те саме правило, що й VillageStatus.UnitLevelCeiling на беку.
+ */
+export function useUnitLevelCeiling(playerId: string): number {
+  const catalog = useCatalog();
+  const village = useVillage(playerId);
+
+  const mainLevel =
+    village.data?.buildings.find((building) => building.type === catalog.mainBuildingKey)?.level ?? 1;
+
+  return Math.min(mainLevel, catalog.maxUnitLevel);
 }

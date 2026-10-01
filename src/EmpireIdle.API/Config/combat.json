@@ -11,6 +11,10 @@
       "PreviewOddsThresholds": [ 2.5, 1.3, 0.8, 0.4 ],
       "NoLossShareThreshold": 0.03,
       "NewbieShieldTownHallLevel": 3,
+      "Scouting": {
+        "RequiredBuilding": "scouttower",
+        "Speed": 24.0
+      },
       "CityFall": {
         "Enabled": true,
         "DefeatsToEvict": 3,

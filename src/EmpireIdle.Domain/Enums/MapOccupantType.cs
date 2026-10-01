@@ -4,6 +4,7 @@ namespace EmpireIdle.Domain.Enums
     public enum MapOccupantType
     {
         Village = 1,
-        Monster = 2
+        Monster = 2,
+        ClanStructure = 3
     }
 }

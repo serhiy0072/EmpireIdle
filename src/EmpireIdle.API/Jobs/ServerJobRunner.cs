@@ -29,16 +29,20 @@ namespace EmpireIdle.API.Jobs
         /// Пропущене підбирає наступний тік — не покладайся на завершення як на факт.
         /// </summary>
         /// <param name="jobName">Ім'я джоба для логів: через раннер ходять кілька.</param>
-        /// <param name="action">Дія у контексті світу; отримує <c>IMediator</c> зі свого scope.</param>
-        public async Task ForEachServerAsync(string jobName, Func<IMediator, int, Task> action)
+        /// <param name="action">Дія у контексті світу; отримує <c>IMediator</c> зі свого scope і токен зупинки — його треба передати в Send.</param>
+        public async Task ForEachServerAsync(string jobName, Func<IMediator, int, CancellationToken, Task> action,
+            CancellationToken cancellationToken = default)
         {
             foreach (var serverId in _catalog.Config.ActiveServerIds)
             {
+                // Зупинка сервера (деплой) — виходимо між світами, не посеред обробки
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
-                    await InScopeAsync(serverId, mediator => action(mediator, serverId));
+                    await InScopeAsync(serverId, mediator => action(mediator, serverId, cancellationToken));
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
                     // Один світ не зупиняє решту — наступний тік підбере пропущене
                     _logger.LogError(ex, "{Job} failed for server {ServerId}; continuing.", jobName, serverId);
@@ -57,18 +61,21 @@ namespace EmpireIdle.API.Jobs
         /// <param name="process">Обробка одного елемента у власному scope.</param>
         public async Task ForEachItemAsync<TItem>(
             string jobName,
-            Func<IMediator, Task<IReadOnlyList<TItem>>> load,
-            Func<IMediator, TItem, Task> process)
+            Func<IMediator, CancellationToken, Task<IReadOnlyList<TItem>>> load,
+            Func<IMediator, TItem, CancellationToken, Task> process,
+            CancellationToken cancellationToken = default)
         {
             foreach (var serverId in _catalog.Config.ActiveServerIds)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 IReadOnlyList<TItem> items;
 
                 try
                 {
-                    items = await InScopeAsync(serverId, load);
+                    items = await InScopeAsync(serverId, mediator => load(mediator, cancellationToken));
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
                     _logger.LogError(ex, "{Job}: load failed for server {ServerId}; continuing.", jobName, serverId);
                     continue;
@@ -76,11 +83,14 @@ namespace EmpireIdle.API.Jobs
 
                 foreach (var item in items)
                 {
+                    // Між елементами: кожен уже в своїй транзакції, тож перерваний прогін нічого не лишає навпіл
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     try
                     {
-                        await InScopeAsync(serverId, mediator => process(mediator, item));
+                        await InScopeAsync(serverId, mediator => process(mediator, item, cancellationToken));
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                     {
                         _logger.LogError(ex, "{Job}: item {Item} failed on server {ServerId}; continuing.",
                             jobName, item, serverId);
@@ -89,9 +99,11 @@ namespace EmpireIdle.API.Jobs
             }
         }
 
+        // Асинхронний scope: DbContext і частина сервісів звільняються асинхронно,
+        // і синхронний Dispose блокував би потік воркера Hangfire
         private async Task InScopeAsync(int serverId, Func<IMediator, Task> action)
         {
-            using var scope = _scopeFactory.CreateScope();
+            await using var scope = _scopeFactory.CreateAsyncScope();
             scope.ServiceProvider.GetRequiredService<IServerContext>().UseServer(serverId);
 
             await action(scope.ServiceProvider.GetRequiredService<IMediator>());
@@ -99,7 +111,7 @@ namespace EmpireIdle.API.Jobs
 
         private async Task<TResult> InScopeAsync<TResult>(int serverId, Func<IMediator, Task<TResult>> action)
         {
-            using var scope = _scopeFactory.CreateScope();
+            await using var scope = _scopeFactory.CreateAsyncScope();
             scope.ServiceProvider.GetRequiredService<IServerContext>().UseServer(serverId);
 
             return await action(scope.ServiceProvider.GetRequiredService<IMediator>());

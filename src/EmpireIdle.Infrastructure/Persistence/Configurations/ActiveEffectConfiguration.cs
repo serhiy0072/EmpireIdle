@@ -19,6 +19,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             // Один активний ефект на ціль у межах гравця — повторний буст продовжує наявний
             builder.HasIndex(e => new { e.PlayerId, e.Target }).IsUnique();
 
+            // Фонове прибирання прострочених
+            builder.HasIndex(e => e.ExpiresAt);
+
             builder.Ignore(e => e.DomainEvents);
         }
     }

@@ -26,9 +26,6 @@ namespace EmpireIdle.Application.Catalog
             _catalog = catalog;
         }
 
-        /// <summary>Каталог мовою за замовчуванням — мовою самих конфігів.</summary>
-        public CatalogResponse Response => ResponseFor(null);
-
         /// <summary>
         /// Каталог заданою мовою. Непідтримувана чи порожня мова — мова за
         /// замовчуванням: гравець бачить назви, а не помилку.
@@ -103,7 +100,8 @@ namespace EmpireIdle.Application.Catalog
                     Name("building", building.Key, building.DisplayName),
                     building.ProducesResource,
                     building.Position is null ? null : new CatalogPosition(building.Position.X, building.Position.Y),
-                    building.RequiresMainBuildingLevel))
+                    building.RequiresMainBuildingLevel,
+                    building.Upgradable))
                 .ToList();
 
             var units = config.Units
@@ -136,7 +134,7 @@ namespace EmpireIdle.Application.Catalog
                 config.Equipment.RepairGemsBase,
                 config.Equipment.RepairGemsPerLevel,
                 new CatalogSpeedUp(
-                    config.Monetization.InstantFinishThresholdMinutes,
+                    config.Monetization.SpeedUpFloorSeconds,
                     config.Monetization.SpeedUpFactor,
                     config.Monetization.SpeedUpExponent),
                 config.Map.Width,

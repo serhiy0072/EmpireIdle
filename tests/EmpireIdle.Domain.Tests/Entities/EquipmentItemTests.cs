@@ -62,7 +62,6 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             Assert.Equal(hero, item.EquippedByHeroId);
             Assert.Equal(2, item.SlotIndex);
-            Assert.False(item.IsWearable);
         }
 
         [Fact]
@@ -84,7 +83,6 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             Assert.Null(item.EquippedByHeroId);
             Assert.Equal(0, item.SlotIndex);
-            Assert.True(item.IsWearable);
         }
 
         /// <summary>
@@ -102,7 +100,6 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             Assert.True(item.IsBroken);
             Assert.Null(item.EquippedByHeroId);
-            Assert.False(item.IsWearable);
 
             // Рівень лишається: гравець утратив спробу, а не прогрес
             Assert.Equal(1, item.EnhancementLevel);
@@ -127,7 +124,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             item.Repair(Now);
 
             Assert.False(item.IsBroken);
-            Assert.True(item.IsWearable);
+            Assert.Null(item.EquippedByHeroId);
         }
 
         [Fact]

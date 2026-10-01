@@ -98,9 +98,6 @@ namespace EmpireIdle.Domain.Entities
 
         protected EquipmentItem() { } // Для EF Core
 
-        /// <summary>Чи можна вдягнути просто зараз.</summary>
-        public bool IsWearable => !IsBroken && EquippedByHeroId is null;
-
         /// <summary>
         /// Вдягає предмет на героя в заданий слот.
         ///
@@ -162,6 +159,9 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void Break(DateTime utcNow)
         {
+            // Виставлений лот ламати не можна: покупець заплатив би за зламану зброю
+            EnsureNotOnMarket();
+
             var wasEquipped = EquippedByHeroId is not null;
 
             IsBroken = true;
@@ -285,7 +285,11 @@ namespace EmpireIdle.Domain.Entities
             RaiseDomainEvent(new EquipmentChanged(buyerId, Id, utcNow));
         }
 
-        private void EnsureNotOnMarket()
+        /// <summary>
+        /// Предмет у заставі ринку: будь-яка дія з ним — відмова. Публічний, бо заточка
+        /// мусить перевірити це до списання золота, а не після кидка.
+        /// </summary>
+        public void EnsureNotOnMarket()
         {
             if (IsOnMarket)
                 throw new InvalidStateException(RefusalReasons.MarketItemListed, $"Equipment {Id} is on the market.");

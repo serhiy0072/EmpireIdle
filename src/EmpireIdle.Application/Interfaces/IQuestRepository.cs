@@ -3,8 +3,10 @@ using EmpireIdle.Domain.Entities;
 namespace EmpireIdle.Application.Interfaces
 {
     /// <summary>Репозиторій прогресу квестів.</summary>
-    public interface IQuestRepository : IRepository<QuestProgress>
+    public interface IQuestRepository
     {
+        Task AddAsync(QuestProgress progress, CancellationToken cancellationToken = default);
+
         /// <summary>Прогрес конкретного квесту; null — гравець його ще не починав.</summary>
         Task<QuestProgress?> GetAsync(Guid playerId, string questKey, CancellationToken cancellationToken = default);
 

@@ -146,6 +146,11 @@ namespace EmpireIdle.Domain.Entities
             if (!buildingConfigs.TryGetValue(building.Type, out var config))
                 throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
 
+            // Функціональна будівля рівнів не має (GDD §3.1) — ціну й час їй і не рахуємо
+            if (!config.Upgradable)
+                throw new InvalidStateException(RefusalReasons.BuildingNotUpgradable,
+                    $"'{building.Type}' has no levels.", config.DisplayName);
+
             EnsureTierAllows(building, config, buildingConfigs, mainBuildingKey, serverLevel, levelsPerTier);
 
             // Ціну рахуємо один раз: перевірка й списання мають бачити те саме число,
@@ -161,8 +166,8 @@ namespace EmpireIdle.Domain.Entities
             // Все або нічого — ChargeCost перевіряє всі позиції до першого списання
             ChargeCost(cost, utcNow);
 
-            var buildMinutes = ProgressionCurves.BuildMinutes(config.BaseBuildMinutes, config.BuildTimeGrowth, building.Level.Value);
-            building.BeginUpgrade(config, TimeSpan.FromMinutes(buildMinutes), utcNow, boost, locationMultiplier);
+            building.BeginUpgrade(config, TimerDurations.Construction(config, building.Level.Value), utcNow, boost,
+                locationMultiplier);
 
             RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id,
                 building.Type, ConstructionCompletesAt: building.ConstructionCompletesAt!.Value, utcNow));
@@ -611,7 +616,8 @@ namespace EmpireIdle.Domain.Entities
         /// A. Стеля від рівня сервера — контент відкривається для всіх одночасно.
         /// B. Темп усередині тіру (тільки ратуша) — за межу тіру не пускаємо,
         ///    поки решта селища не підтягнулась. Будівлі під туманом не рахуються:
-        ///    інакше гравець мусив би прокачати те, чого ще не бачить.
+        ///    інакше гравець мусив би прокачати те, чого ще не бачить. Будівлі
+        ///    без рівнів — теж: вони назавжди на 1 і зупинили б ратушу на першій межі.
         /// C. Рівномірність — жодна будівля не переростає ратушу.
         ///
         /// Будівля в процесі апгрейду рахується за ПОТОЧНИМ рівнем: інакше
@@ -648,6 +654,7 @@ namespace EmpireIdle.Domain.Entities
             var lagging = _buildings
                 .Where(b => b.Type != mainBuildingKey
                             && buildingConfigs.TryGetValue(b.Type, out var c)
+                            && c.Upgradable
                             && c.RequiresMainBuildingLevel <= townhall.Level.Value
                             && b.Level.Value < required)
                 .Select(b => b.Type)

@@ -12,7 +12,7 @@ namespace EmpireIdle.Application.Mail.Contracts
     /// <param name="Sequence">Порядковий номер у серії — день для щоденної нагороди.</param>
     /// <param name="CanClaim">Вкладення ще не забране й не згоріло.</param>
     public record MailLetterView(Guid Id, string Kind, DateTime CreatedAt, DateTime ExpiresAt, bool IsRead,
-        ClanInviteLetterView? ClanInvite, CityFallLetterView? CityFall,
+        ClanInviteLetterView? ClanInvite, CityFallLetterView? CityFall, StructureFallLetterView? StructureFall,
         IReadOnlyList<MailRewardView> Rewards, int? Sequence, DateTime? ClaimedAt, bool CanClaim);
 
     /// <param name="Type">Gems, Resource, Item… — як у конфігу нагород.</param>
@@ -28,6 +28,9 @@ namespace EmpireIdle.Application.Mail.Contracts
 
     /// <summary>Падіння міста: хто виселив, звідки й куди, до коли щит.</summary>
     public record CityFallLetterView(string AttackerName, int FromX, int FromY, int ToX, int ToY, DateTime ShieldUntil);
+
+    /// <summary>Споруду клану зруйновано: де стояла й хто зруйнував (назва села — знімок на момент бою).</summary>
+    public record StructureFallLetterView(string AttackerName, int X, int Y, DateTime OccurredAt);
 
     /// <param name="Kind">"News", "Event" або "Maintenance".</param>
     public record AnnouncementView(Guid Id, string Kind, string Title, string Body, DateTime PublishedAt, bool IsRead);

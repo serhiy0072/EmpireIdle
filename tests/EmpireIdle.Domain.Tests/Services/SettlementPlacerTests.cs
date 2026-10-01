@@ -57,6 +57,29 @@ namespace EmpireIdle.Domain.Tests.Services
             }
         }
 
+        /// <summary>
+        /// На максимальному рівні межа туману дорівнює радіусу: centre + radius = Width,
+        /// тобто клітина вже поза картою. Такий кидок пропускається, а не повертається.
+        /// </summary>
+        [Fact]
+        public async Task FindSpotAsync_ShouldSkipTheCellBeyondTheMapEdge_AtMaxServerLevel()
+        {
+            var config = Config();
+            config.MaxServerLevel = 3;
+            config.Geometry = new MapGeometryConfig
+            {
+                RingBoundaries = [0.20, 0.50], RingMultipliers = [2.0, 1.4, 1.0],
+                RingsAtFirstLevel = 0.40, FogMinShare = 0.40, FogMaxShare = 1.0
+            };
+            config.Terrains = [new() { Type = "plain", Weight = 1, Passable = true, MoveCost = 1.0, Habitable = true }];
+            var terrain = new TerrainGenerator(config);
+            var placer = new SettlementPlacer(terrain, new WorldGeometry(config), new EdgeFirstRandom());
+
+            var (x, y) = await placer.FindSpotAsync(1, serverLevel: 3, (_, _) => Task.FromResult(false));
+
+            Assert.True(terrain.IsInBounds(x, y), $"Coordinates ({x},{y}) are outside the map.");
+        }
+
         /// <summary>Зайняті клітини пропускаються — село не ставиться на чуже місце.</summary>
         [Fact]
         public async Task FindSpotAsync_ShouldSkipOccupiedCells()

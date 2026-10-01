@@ -11,6 +11,9 @@ namespace EmpireIdle.Application.Rating.Commands
 
     public sealed class RecalculateAllRatingsCommandHandler : IRequestHandler<RecalculateAllRatingsCommand>
     {
+        /// <summary>Скільки гравців на одне збереження: конфлікт відкочує лише свою пачку.</summary>
+        private const int BatchSize = 200;
+
         private readonly IPlayerRatingRepository _ratingRepository;
         private readonly IPlayerPowerRepository _powerRepository;
         private readonly IVillageRepository _villageRepository;
@@ -41,30 +44,41 @@ namespace EmpireIdle.Application.Rating.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            // Три вибірки замість запиту на гравця: годинний джоб читає світ
-            // цілком, і N+1 тут коштував би тисяч запитів
+            // Села й сила — одним читанням на світ: годинний джоб без N+1. Рейтинги — пачками,
+            // кожна своїм збереженням: outbox паралельно оновлює рейтинги окремих гравців, і
+            // один конфлікт xmin не має відкотити весь світ — пропущена пачка наздожене наступним прогоном
             var villages = await _villageRepository.GetAllWithBuildingsAsync(cancellationToken);
             var powers = await _powerRepository.GetAllAsync(cancellationToken);
-            var ratings = await _ratingRepository.GetAllAsync(cancellationToken);
 
             var powerByPlayer = powers.ToDictionary(p => p.PlayerId, p => p.TotalPower);
-            var ratingByPlayer = ratings.ToDictionary(r => r.PlayerId);
+            var skipped = 0;
 
-            foreach (var village in villages)
+            foreach (var batch in villages.Chunk(BatchSize))
             {
-                if (!ratingByPlayer.TryGetValue(village.PlayerId, out var rating))
+                var ratingByPlayer = (await _ratingRepository.GetByPlayersAsync(
+                        batch.Select(v => v.PlayerId).ToList(), cancellationToken))
+                    .ToDictionary(r => r.PlayerId);
+
+                foreach (var village in batch)
                 {
-                    rating = new PlayerRating(Guid.NewGuid(), village.PlayerId, village.ServerId, now);
-                    await _ratingRepository.AddAsync(rating, cancellationToken);
+                    if (!ratingByPlayer.TryGetValue(village.PlayerId, out var rating))
+                    {
+                        rating = new PlayerRating(Guid.NewGuid(), village.PlayerId, village.ServerId, now);
+                        await _ratingRepository.AddAsync(rating, cancellationToken);
+                    }
+
+                    var power = powerByPlayer.GetValueOrDefault(village.PlayerId);
+                    var development = village.Buildings.Sum(b => b.Level.Value);
+
+                    rating.Recalculate(power, development, _catalog.Config.Rating, now);
                 }
 
-                var power = powerByPlayer.GetValueOrDefault(village.PlayerId);
-                var development = village.Buildings.Sum(b => b.Level.Value);
-
-                rating.Recalculate(power, development, _catalog.Config.Rating, now);
+                if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+                    skipped += batch.Length;
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (skipped > 0)
+                _logger.LogWarning("Rating recalculation skipped {Count} players on concurrency conflicts", skipped);
 
             _logger.LogInformation("Recalculated ratings for {Count} players", villages.Count);
         }

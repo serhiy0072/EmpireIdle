@@ -17,6 +17,9 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime LastActiveAt { get; private set; }
 
+        /// <summary>Скільки очок вкладу цей учасник приніс клану — для рейтингу всередині клану.</summary>
+        public long Contribution { get; private set; }
+
         public ClanMember(Guid id, Guid clanId, Guid playerId, Guid roleId, DateTime utcNow) : base(id)
         {
             ClanId = clanId;
@@ -31,5 +34,7 @@ namespace EmpireIdle.Domain.Entities
         internal void AssignRole(Guid roleId) => RoleId = roleId;
 
         internal void Touch(DateTime utcNow) => LastActiveAt = utcNow;
+
+        internal void AddContribution(long amount) => Contribution += amount;
     }
 }

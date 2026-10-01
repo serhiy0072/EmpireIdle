@@ -54,7 +54,7 @@ public class HealWoundedCommandTests
         garrison.AdmitWounded(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = woundedInfantry }, Now);
 
         var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
-        wallet.AddGems(new GemAmount(gems), "seed", PlayerId, Now);
+        wallet.AddGems(new GemAmount(gems), "seed", Now);
 
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);

@@ -57,7 +57,11 @@ namespace EmpireIdle.Application.Clans.Commands
             var clan = await _clanRepository.GetByMemberAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");
 
-            if (await _helpRepository.ExistsForTargetAsync(request.TargetId, cancellationToken))
+            // Прострочений запит на ту саму ціль уже нічого не важить, але тримає унікальний індекс:
+            // Building.Id між апгрейдами той самий, тож без цього будівля лишилась би без допомоги назавжди
+            await _helpRepository.RemoveForTargetAsync(request.TargetId, expiredBefore: now, cancellationToken);
+
+            if (await _helpRepository.ExistsActiveForTargetAsync(request.TargetId, now, cancellationToken))
                 throw new AlreadyExistsException(RefusalReasons.ClanHelpAlreadyRequested, "Help request", request.TargetId.ToString());
 
             var (fullDuration, completesAt) = await ResolveTimerAsync(request, now, cancellationToken);
@@ -107,14 +111,10 @@ namespace EmpireIdle.Application.Clans.Commands
                     if (!building.IsUnderConstruction)
                         throw new InvalidStateException(RefusalReasons.ClanHelpNotNeeded, "That building is not under construction.");
 
-                    var config = _catalog.Building(building.Type);
-
-                    // Рівень уже піднімуть при завершенні, тому крива береться
-                    // від поточного — того самого, що й при старті апгрейду
-                    var minutes = config.BaseBuildMinutes
-                                  * Math.Pow(config.BuildTimeGrowth, building.Level.Value - 1);
-
-                    return (TimeSpan.FromMinutes(minutes), building.ConstructionCompletesAt!.Value);
+                    // Рівень уже піднімуть при завершенні, тому тривалість — від поточного,
+                    // тією самою формулою, що й при старті апгрейду
+                    return (TimerDurations.Construction(_catalog.Building(building.Type), building.Level.Value),
+                        building.ConstructionCompletesAt!.Value);
 
                 case ClanHelpTarget.Training:
                     var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
@@ -123,9 +123,7 @@ namespace EmpireIdle.Application.Clans.Commands
                     var order = garrison.TrainingOrders.FirstOrDefault(o => o.Id == request.TargetId)
                         ?? throw new EntityNotFoundException("Training order", request.TargetId);
 
-                    var unit = _catalog.Unit(order.UnitType);
-
-                    return (TimeSpan.FromMinutes(unit.BaseTrainMinutes * order.Count), order.CompletesAt);
+                    return (TimerDurations.Training(_catalog.Unit(order.UnitType), order.Level, order.Count), order.CompletesAt);
 
                 default:
                     throw new RequirementNotMetException($"Unsupported help target '{request.TargetType}'.");

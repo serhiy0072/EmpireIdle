@@ -24,9 +24,7 @@ public class MarketPricingTests
                 OutlierTrimShare = 0.1,
                 MedianMinAnchorShare = 0.5,
                 MedianMaxAnchorShare = 2.0,
-                ListingTaxShare = 0.05,
-                BaseListings = 1,
-                ListingsPerBuildingLevel = 1
+                ListingTaxShare = 0.05
             }
         };
 
@@ -118,12 +116,5 @@ public class MarketPricingTests
     {
         Assert.Equal(50, Pricing().ListingTax(1000));
         Assert.Equal(1, Pricing().ListingTax(3));
-    }
-
-    [Fact]
-    public void ListingLimit_ShouldGrowWithTheMarketLevel()
-    {
-        Assert.Equal(2, Pricing().ListingLimit(1));
-        Assert.Equal(6, Pricing().ListingLimit(5));
     }
 }

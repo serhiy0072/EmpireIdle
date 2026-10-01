@@ -11,10 +11,9 @@ using Microsoft.Extensions.Options;
 namespace EmpireIdle.Application.Inventory.Commands
 {
     /// <summary>
-    /// Використати предмет з інвентаря.
-    /// TargetId — необов'язкова ціль (для предметів, що діють на конкретний об'єкт).
+    /// Використати предмет з інвентаря. TargetX/TargetY — для предметів, що діють на клітину карти.
     /// </summary>
-    public record UseItemCommand(Guid PlayerId, string ItemKey, int Count, Guid? TargetId, int? TargetX = null, int? TargetY = null)
+    public record UseItemCommand(Guid PlayerId, string ItemKey, int Count, int? TargetX = null, int? TargetY = null)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
@@ -55,7 +54,7 @@ namespace EmpireIdle.Application.Inventory.Commands
 
             // Ефект застосовуємо ДО списання: якщо він неможливий, предмет не згорить
             var context = new ItemUsageContext(
-                request.PlayerId, config, request.Count, request.TargetId, now,
+                request.PlayerId, config, request.Count, now,
                 request.TargetX, request.TargetY);
 
             await _dispatcher.ApplyAsync(context, cancellationToken);

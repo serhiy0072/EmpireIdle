@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Domain.Entities;
 
 namespace EmpireIdle.Application.Interfaces

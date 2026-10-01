@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.ValueObjects;
+using EmpireIdle.Application.Quests.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Quests.Commands;
 using EmpireIdle.Application.Rewards;
@@ -25,6 +27,7 @@ public class ClaimQuestRewardCommandTests
     private readonly IQuestRepository _quests = Substitute.For<IQuestRepository>();
     private readonly IRewardGranter _granter = Substitute.For<IRewardGranter>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -45,6 +48,39 @@ public class ClaimQuestRewardCommandTests
             },
             new QuestConfig
             {
+                Key = "intro_townhall_3",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Chain,
+                Objectives =
+                [
+                    new QuestObjectiveConfig
+                    {
+                        Type = "BuildingUpgradeCompleted", Target = "townhall", Count = 3, Mode = ObjectiveMode.Threshold
+                    }
+                ],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 20 }]
+            },
+            new QuestConfig
+            {
+                Key = "chain_next",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Chain,
+                Prerequisite = "daily_collect",
+                Objectives = [new QuestObjectiveConfig { Type = "BuildingCollected", Count = 5 }],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 10 }]
+            },
+            new QuestConfig
+            {
+                Key = "event_over",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Event,
+                ActiveFrom = Now.AddDays(-7),
+                ActiveTo = Now.AddDays(-1),
+                Objectives = [new QuestObjectiveConfig { Type = "BuildingCollected", Count = 5 }],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 10 }]
+            },
+            new QuestConfig
+            {
                 Key = "server_cleanup",
                 Scope = QuestScope.Server,
                 Window = QuestWindow.Chain,
@@ -55,7 +91,8 @@ public class ClaimQuestRewardCommandTests
     };
 
     private ClaimQuestRewardCommandHandler Handler() => new(
-        _quests, new RewardDispatcher([_granter]), _unitOfWork,
+        _quests, new QuestThresholds(_quests, _villages, Substitute.For<IServerContext>()),
+        new RewardDispatcher([_granter]), _unitOfWork,
         new GameCatalog(Config()), new FakeTimeProvider(Now),
         NullLogger<ClaimQuestRewardCommandHandler>.Instance);
 
@@ -140,6 +177,56 @@ public class ClaimQuestRewardCommandTests
             Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "daily_collect"), CancellationToken.None));
     }
 
+    /// <summary>Ключ від клієнта, якого немає в каталозі, — 404, а не 500 зі збою каталогу.</summary>
+    [Fact]
+    public async Task Handle_ShouldThrowNotFound_ForAnUnknownQuestKey()
+    {
+        await Assert.ThrowsAsync<EntityNotFoundException>(() =>
+            Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "no_such_quest"), CancellationToken.None));
+    }
+
+    /// <summary>
+    /// Квест за незавершеним пререквізитом у списку не видно — і прямий POST
+    /// його не забирає, навіть якщо прогрес уже набрано.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenThePrerequisiteIsNotComplete()
+    {
+        GivenProgress("daily_collect", completed: false);
+        GivenProgress("chain_next");
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "chain_next"), CancellationToken.None));
+
+        await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Ланцюжок відкривається завершенням пререквізиту, а не його клеймом.</summary>
+    [Fact]
+    public async Task Handle_ShouldClaim_WhenThePrerequisiteIsCompleteButUnclaimed()
+    {
+        _granter.RewardType.Returns("Gems");
+        GivenProgress("daily_collect");
+        var progress = GivenProgress("chain_next");
+
+        await Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "chain_next"), CancellationToken.None);
+
+        Assert.Equal(QuestState.Claimed, progress.State);
+    }
+
+    /// <summary>Вікно події закрилось, поки список був відкритий, — відмова з причиною, без нагороди.</summary>
+    [Fact]
+    public async Task Handle_ShouldReject_OutsideTheEventWindow()
+    {
+        GivenProgress("event_over");
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
+            Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "event_over"), CancellationToken.None));
+        Assert.Equal(RefusalReasons.QuestNotClaimable.Key, refusal.Reason);
+
+        await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+    }
+
     /// <summary>
     /// Невідомий тип нагороди валить операцію ДО збереження: краще не видати
     /// нічого, ніж списати клейм і загубити нагороду.
@@ -154,5 +241,34 @@ public class ClaimQuestRewardCommandTests
             Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "daily_collect"), CancellationToken.None));
 
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Ратушу підняли до 3 ще до відкриття квесту: подія вже минула, рядка прогресу немає.
+    /// Список показує квест завершеним — тож і забрати його можна; поріг фіксує сама команда.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldClaimAThresholdQuest_ReachedBeforeItOpened()
+    {
+        var catalog = new GameCatalog(Config());
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        village.AddBuilding("townhall", catalog.Buildings, Now);
+        var townhall = village.Buildings.Single();
+        for (var i = 1; i < 4; i++)
+        {
+            townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
+            townhall.CompleteConstruction(Now);
+        }
+
+        _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _quests.GetAsync(PlayerId, "intro_townhall_3", Arg.Any<CancellationToken>()).Returns((QuestProgress?)null);
+        _granter.RewardType.Returns("Gems");
+
+        await Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "intro_townhall_3"), CancellationToken.None);
+
+        await _quests.Received(1).AddAsync(
+            Arg.Is<QuestProgress>(p => p.QuestKey == "intro_townhall_3" && p.State == QuestState.Claimed),
+            Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }
