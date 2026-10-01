@@ -22,6 +22,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly TimeProvider _timeProvider;
         private readonly ReinforcementReturner _returner;
         private readonly ClanSuccession _succession;
+        private readonly ClanDisbander _disbander;
         private readonly ILogger<LeaveClanCommandHandler> _logger;
 
         public LeaveClanCommandHandler(
@@ -32,8 +33,10 @@ namespace EmpireIdle.Application.Clans.Commands
             TimeProvider timeProvider,
             ReinforcementReturner returner,
             ClanSuccession succession,
+            ClanDisbander disbander,
             ILogger<LeaveClanCommandHandler> logger)
         {
+            _disbander = disbander;
             _clanRepository = clanRepository;
             _playerRepository = playerRepository;
             _villageRepository = villageRepository;
@@ -74,11 +77,25 @@ namespace EmpireIdle.Application.Clans.Commands
             // назву й тег зайнятими назавжди
             if (clan.Members.Count == 0)
             {
-                _clanRepository.Remove(clan);
-                _logger.LogInformation("Clan {ClanId} disbanded: last member left", clan.Id);
-            }
+                // Розпуск видаляє залежні рядки одразу в БД — разом із виходом це одна транзакція
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                try
+                {
+                    await _disbander.DisbandAsync(clan, now, cancellationToken);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                }
+                catch
+                {
+                    await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                    throw;
+                }
+            }
+            else
+            {
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
 
             if (successor is Guid newLeader)
                 _logger.LogInformation("Clan {ClanId}: leader {PlayerId} left, leadership passed to {NewLeaderId}",

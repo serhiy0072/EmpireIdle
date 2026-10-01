@@ -59,6 +59,7 @@ namespace EmpireIdle.Application
             services.AddScoped<HeroGranter>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<ClanSuccession>();
+            services.AddScoped<ClanDisbander>();
             services.AddScoped<QuestThresholds>();
             services.AddScoped<ClanStructureRemover>();
             services.AddScoped<StructureMarchRules>();

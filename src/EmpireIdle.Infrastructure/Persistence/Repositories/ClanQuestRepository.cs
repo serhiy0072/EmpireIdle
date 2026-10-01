@@ -29,5 +29,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public async Task AddAsync(ClanQuestProgress progress, CancellationToken cancellationToken = default)
             => await _context.ClanQuestProgress.AddAsync(progress, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> RemoveByClanAsync(Guid clanId, CancellationToken cancellationToken = default)
+            => _context.ClanQuestProgress.Where(p => p.ClanId == clanId).ExecuteDeleteAsync(cancellationToken);
     }
 }

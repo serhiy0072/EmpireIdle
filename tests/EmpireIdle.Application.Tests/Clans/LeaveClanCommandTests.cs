@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Clans.Commands;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -25,6 +26,15 @@ public class LeaveClanCommandTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
+    private readonly IClanRequestRepository _requests = Substitute.For<IClanRequestRepository>();
+    private readonly IClanHelpRepository _helps = Substitute.For<IClanHelpRepository>();
+    private readonly IClanQuestRepository _quests = Substitute.For<IClanQuestRepository>();
+    private readonly IMapRepository _map = Substitute.For<IMapRepository>();
+
+    // Окремий стаб у тесті має перекривати цей — тому він у конструкторі, а не в Handler()
+    public LeaveClanCommandTests() =>
+        _structures.GetByClanAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<ClanStructure>());
 
     private LeaveClanCommandHandler Handler()
     {
@@ -43,12 +53,17 @@ public class LeaveClanCommandTests
         _garrisons.GetHoldingReinforcementsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Garrison>());
         _heroes.GetForeignGarrisonIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Guid>());
 
-        var returner = new ReinforcementReturner(_garrisons, _villages, Substitute.For<IClanStructureRepository>(),
+        var returner = new ReinforcementReturner(_garrisons, _villages, _structures,
             Substitute.For<IMarchRepository>(), _heroes, new MarchCalculator(new TerrainGenerator(config.Map), catalog),
             catalog, new HeroProgression(config.HeroSettings), NullLogger<ReinforcementReturner>.Instance);
 
+        var structureRemover = new ClanStructureRemover(_structures, _garrisons, _map, returner,
+            NullLogger<ClanStructureRemover>.Instance);
+        var disbander = new ClanDisbander(_clans, _structures, _requests, _helps, _quests, structureRemover,
+            NullLogger<ClanDisbander>.Instance);
+
         return new LeaveClanCommandHandler(_clans, _players, _villages, _unitOfWork, new FakeTimeProvider(Now),
-            returner, new ClanSuccession(_players), NullLogger<LeaveClanCommandHandler>.Instance);
+            returner, new ClanSuccession(_players), disbander, NullLogger<LeaveClanCommandHandler>.Instance);
     }
 
     private Clan GivenClan(params (Guid Id, string Role, DateTime LastSeen)[] members)
@@ -112,5 +127,37 @@ public class LeaveClanCommandTests
 
         Assert.Empty(clan.Members);
         _clans.Received(1).Remove(clan);
+    }
+
+    /// <summary>
+    /// Споруди, заявки, запити допомоги й прогрес квестів тримаються за клан лише значенням
+    /// ClanId — каскад БД їх не бачить, тож розпуск прибирає їх сам і в одній транзакції.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldRemoveEverythingTiedToTheClan_WhenItIsDisbanded()
+    {
+        var clan = GivenClan();
+        var structure = new ClanStructure(Guid.NewGuid(), 1, clan.Id, 10, 10, Guid.NewGuid(), LeaderId, TimeSpan.Zero, Now);
+        _structures.GetByClanAsync(clan.Id, Arg.Any<CancellationToken>()).Returns(new List<ClanStructure> { structure });
+
+        await Handler().Handle(new LeaveClanCommand(LeaderId), CancellationToken.None);
+
+        _structures.Received(1).Remove(structure);
+        await _requests.Received(1).RemoveByClanAsync(clan.Id, Arg.Any<CancellationToken>());
+        await _helps.Received(1).RemoveByClanAsync(clan.Id, Arg.Any<CancellationToken>());
+        await _quests.Received(1).RemoveByClanAsync(clan.Id, Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).BeginTransactionAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).CommitTransactionAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_ShouldKeepClanData_WhenTheClanSurvives()
+    {
+        var clan = GivenClan((Guid.NewGuid(), "default", Now));
+
+        await Handler().Handle(new LeaveClanCommand(LeaderId), CancellationToken.None);
+
+        await _requests.DidNotReceive().RemoveByClanAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.DidNotReceive().BeginTransactionAsync(Arg.Any<CancellationToken>());
     }
 }

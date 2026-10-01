@@ -24,6 +24,9 @@ namespace EmpireIdle.Application.Interfaces
 
         Task AddAsync(ClanHelpRequest request, CancellationToken cancellationToken = default);
 
+        /// <summary>Видаляє всі запити клану одразу в БД — під час розпуску. Внески йдуть каскадом.</summary>
+        Task<int> RemoveByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
+
         /// <summary>Прибирає прострочені запити (фонове очищення).</summary>
         Task<int> RemoveExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default);
     }

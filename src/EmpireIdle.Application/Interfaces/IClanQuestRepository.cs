@@ -13,5 +13,8 @@ namespace EmpireIdle.Application.Interfaces
         Task<List<string>> GetCompletedKeysAsync(Guid clanId, CancellationToken cancellationToken = default);
 
         Task AddAsync(ClanQuestProgress progress, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє прогрес усіх квестів клану одразу в БД — під час розпуску.</summary>
+        Task<int> RemoveByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
     }
 }

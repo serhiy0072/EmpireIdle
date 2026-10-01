@@ -29,6 +29,9 @@ namespace EmpireIdle.Application.Interfaces
 
         Task AddAsync(ClanRequest request, CancellationToken cancellationToken = default);
 
+        /// <summary>Видаляє всі заявки й запрошення клану одразу в БД — під час розпуску.</summary>
+        Task<int> RemoveByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Усі відкриті заявки й запрошення гравця, з трекінгом.
         /// Потрібні, щоб закрити їх, коли він кудись вступив.
