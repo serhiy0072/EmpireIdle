@@ -87,6 +87,22 @@ namespace EmpireIdle.Domain.Tests.Services
             }
         }
 
+        /// <summary>На максимальному рівні межа туману сягає краю: клітина за ним пропускається.</summary>
+        [Fact]
+        public async Task TrySpawnAsync_ShouldSkipTheCellBeyondTheMapEdge_AtMaxServerLevel()
+        {
+            var config = Config();
+            config.Terrains = [new() { Type = "plain", Weight = 1, Passable = true, MoveCost = 1.0, Habitable = true }];
+            var terrain = new TerrainGenerator(config);
+            var spawner = new MonsterSpawner(terrain, config, Catalog(), new WorldGeometry(config), new EdgeFirstRandom());
+
+            var spawn = await spawner.TrySpawnAsync(1, serverLevel: 3, (_, _) => Task.FromResult(false));
+
+            Assert.NotNull(spawn);
+            Assert.True(terrain.IsInBounds(spawn!.Value.X, spawn.Value.Y),
+                $"Monster spawned outside the map at ({spawn.Value.X},{spawn.Value.Y}).");
+        }
+
         /// <summary>Клітина завжди придатна — монстр у воді недосяжний.</summary>
         [Fact]
         public async Task TrySpawnAsync_ShouldOnlyUseHabitableCells()
