@@ -44,4 +44,15 @@ public class RefreshRotationTests : IClassFixture<RegistrationFixture>
         (await RefreshAsync(first.RefreshToken)).StatusCode.Should().NotBe(HttpStatusCode.OK);
         (await RefreshAsync(second.RefreshToken)).StatusCode.Should().NotBe(HttpStatusCode.OK);
     }
+
+    /// <summary>
+    /// Ротація не ділить жорсткий ліміт логіну (10 за хвилину з IP): кілька гравців за
+    /// одним NAT інакше вилітали б із сесій, щойно хтось із них оновить токен удесяте.
+    /// </summary>
+    [Fact]
+    public async Task Refresh_ShouldNotBeThrottledByTheLoginLimit()
+    {
+        for (var i = 0; i < 15; i++)
+            (await RefreshAsync($"not-a-token-{i}")).StatusCode.Should().NotBe(HttpStatusCode.TooManyRequests);
+    }
 }

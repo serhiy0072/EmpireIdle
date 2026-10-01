@@ -12,7 +12,6 @@ namespace EmpireIdle.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [AllowAnonymous]
-    [EnableRateLimiting("auth")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -28,6 +27,7 @@ namespace EmpireIdle.API.Controllers
         /// Зареєструвати нового гравця: акаунт + Player + Village + Wallet, потім вхід.
         /// </summary>
         [HttpPost("register")]
+        [EnableRateLimiting("auth")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] DTOs.RegisterRequest request, CancellationToken cancellationToken)
@@ -44,6 +44,7 @@ namespace EmpireIdle.API.Controllers
         /// Залогінитись і отримати JWT токени.
         /// </summary>
         [HttpPost("login")]
+        [EnableRateLimiting("auth")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] DTOs.LoginRequest request, CancellationToken cancellationToken)
@@ -53,9 +54,11 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Оновити access token за refresh token (з ротацією).
+        /// Оновити access token за refresh token (з ротацією). Свій, м'якший ліміт: токен не
+        /// підбирається перебором, а за одним IP (NAT, кілька вкладок) оновлюються десятки сесій.
         /// </summary>
         [HttpPost("refresh")]
+        [EnableRateLimiting("refresh")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Refresh([FromBody] DTOs.RefreshRequest request, CancellationToken cancellationToken)

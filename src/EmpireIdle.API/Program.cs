@@ -252,6 +252,18 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
+    // Ротація токенів — окремо від логіну: 512-бітний токен перебором не підібрати, а за
+    // одним IP (NAT, кілька вкладок) оновлюються десятки сесій. Лише стеля від зацикленого клієнта
+    options.AddPolicy("refresh", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
     // Решта API — по гравцю, а за його відсутності по IP. Ліміт — від активної
     // сесії, а не від бота: збір з усіх будівель, серія роллів і кілька екранів
     // із таймерами за хвилину дають далеко за сотню запитів
