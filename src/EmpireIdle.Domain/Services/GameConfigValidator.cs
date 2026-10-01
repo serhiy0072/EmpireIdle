@@ -44,6 +44,52 @@ namespace EmpireIdle.Domain.Services
             ValidateClanTerritory(config);
             ValidateScouting(config);
             ValidateFlatBuildings(config);
+            ValidateMonsters(config);
+        }
+
+        /// <summary>
+        /// Склад і нагорода монстра. Дубль юніта в загоні розколов би армію на два стеки
+        /// одного типу, невідомий юніт дав би нульову силу, невідомий ресурс — нагороду,
+        /// яку нікуди покласти.
+        /// </summary>
+        private static void ValidateMonsters(GameConfig config)
+        {
+            var unitKeys = config.Units.Select(u => u.Key).ToHashSet();
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+
+            foreach (var monster in config.Monsters)
+            {
+                var duplicates = monster.Units
+                    .GroupBy(u => u.UnitType)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (duplicates.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Monster '{monster.Key}' lists units more than once: {string.Join(", ", duplicates)}.");
+
+                if (monster.Units.Any(u => u.Count <= 0))
+                    throw new InvalidOperationException($"Monster '{monster.Key}' has a unit stack with non-positive Count.");
+
+                // Порожній список юнітів чи ресурсів — фікстура їх не описує; перевіряємо лише задане
+                var unknownUnits = unitKeys.Count == 0
+                    ? []
+                    : monster.Units.Where(u => !unitKeys.Contains(u.UnitType)).Select(u => u.UnitType).ToList();
+
+                if (unknownUnits.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Monster '{monster.Key}' references unknown units: {string.Join(", ", unknownUnits)}.");
+
+                var brokenRewards = monster.Rewards
+                    .Where(r => r.Amount <= 0 || (resourceKeys.Count > 0 && !resourceKeys.Contains(r.Resource)))
+                    .Select(r => $"{r.Resource} ×{r.Amount}")
+                    .ToList();
+
+                if (brokenRewards.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Monster '{monster.Key}' rewards unknown resources or non-positive amounts: {string.Join(", ", brokenRewards)}.");
+            }
         }
 
         /// <summary>
@@ -668,6 +714,18 @@ namespace EmpireIdle.Domain.Services
             if (shortShields.Count > 0)
                 throw new InvalidOperationException(
                     $"Shield abilities vanish before they can absorb anything — raise ShieldTurns: {string.Join(", ", shortShields)}.");
+
+            // Шкала енергії бійця в данжі впирається в Dungeons.MaxEnergy: дорожче вміння не настане ніколи
+            var unaffordable = config.Heroes
+                .SelectMany(h => h.Abilities)
+                .Where(a => a.EnergyCost <= 0 || a.EnergyCost > config.Dungeons.MaxEnergy)
+                .Select(a => $"{a.Key} ({a.EnergyCost})")
+                .ToList();
+
+            if (unaffordable.Count > 0)
+                throw new InvalidOperationException(
+                    $"Hero abilities must cost between 1 and Dungeons.MaxEnergy ({config.Dungeons.MaxEnergy}) energy: "
+                    + $"{string.Join(", ", unaffordable)}.");
 
             var settings = config.HeroSettings;
 

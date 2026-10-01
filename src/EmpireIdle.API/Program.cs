@@ -76,7 +76,12 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Monetization.SpeedUpFloorSeconds >= 0, "GameConfig.Monetization.SpeedUpFloorSeconds cannot be negative.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
-    .Validate(c => c.Combat.PreviewOddsThresholds.Count > 0, "GameConfig.Combat.PreviewOddsThresholds is empty — every battle preview would return the worst band.")
+    .Validate(c => c.Combat.PreviewOddsThresholds.Count == Enum.GetValues<EmpireIdle.Domain.Enums.BattleOdds>().Length - 1,
+        "GameConfig.Combat.PreviewOddsThresholds needs one entry fewer than BattleOdds bands — otherwise previews skip bands or return values outside the enum.")
+    .Validate(c => c.Combat.RandomMin > 0 && c.Combat.RandomMin <= c.Combat.RandomMax && c.Combat.RandomSigma >= 0,
+        "GameConfig.Combat random roll must satisfy 0 < RandomMin ≤ RandomMax and RandomSigma ≥ 0.")
+    .Validate(c => c.Map.Geometry.RingMultipliers.Count > 0 && c.Map.Geometry.RingMultipliers.All(m => m > 0),
+        "GameConfig.Map.Geometry.RingMultipliers must be non-empty and positive — every cell takes its production multiplier from a ring.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
     .Validate(c => c.Clan.Territory.Radius > 0, "GameConfig.Clan.Territory.Radius must be positive — a structure would cover nothing.")
     .Validate(c => c.Clan.Territory.MaxStructures > 0 && c.Clan.Territory.StartingSlots >= 0,
