@@ -142,6 +142,38 @@ public class OptimisticLockingTests : IAsyncLifetime
         Assert.Single(final.Buildings, b => b.Type == "farm");
     }
 
+    /// <summary>
+    /// Офіцер приймає заявку, а гравець тієї ж миті її скасовує. Без токена обидва
+    /// зберегли б свій статус, і програвший мовчки перезаписав би переможця.
+    /// </summary>
+    [Fact]
+    public async Task ClanRequest_ShouldRejectAConcurrentResolution()
+    {
+        var now = DateTime.UtcNow;
+        var playerId = Guid.NewGuid();
+        var request = new ClanRequest(Guid.NewGuid(), 1, Guid.NewGuid(), playerId,
+            Domain.Enums.ClanRequestKind.Application, now.AddDays(1), now);
+
+        await using (var seed = CreateContext())
+        {
+            seed.ClanRequests.Add(request);
+            await seed.SaveChangesAsync();
+        }
+
+        await using var officer = CreateContext();
+        await using var applicant = CreateContext();
+
+        var accepted = await officer.ClanRequests.SingleAsync(r => r.Id == request.Id);
+        var cancelled = await applicant.ClanRequests.SingleAsync(r => r.Id == request.Id);
+
+        accepted.Accept(Guid.NewGuid(), now);
+        cancelled.Cancel(playerId, now);
+
+        await officer.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => applicant.SaveChangesAsync());
+    }
+
     private AppDbContext CreateContext()
     {
         var scope = _factory.Services.CreateScope();
