@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Options;
 
 namespace EmpireIdle.Api.Tests;
 
@@ -13,10 +14,28 @@ public class StartupTests : IClassFixture<WebApplicationFactory<global::Program>
     [Fact]
     public void Application_Starts()
     {
-        // Testing вимикає Hangfire: він кешує LoggerFactory у статиці,
-        // а WebApplicationFactory будує хост двічі
-        using var factory = _factory.WithWebHostBuilder(builder =>
+        using var factory = Configure(stripeSecretKey: "sk_test_unused");
+
+        // Кине, якщо ValidateOnStart не пройшов або DI не резолвиться
+        var client = factory.CreateClient();
+        Assert.NotNull(client);
+    }
+
+    [Fact]
+    public void Application_WithoutStripeKey_FailsOnStart()
+    {
+        using var factory = Configure(stripeSecretKey: "");
+
+        var exception = Assert.Throws<OptionsValidationException>(() => factory.CreateClient());
+
+        Assert.Contains("StripeSettings.SecretKey", exception.Message);
+    }
+
+    private WebApplicationFactory<global::Program> Configure(string stripeSecretKey) =>
+        _factory.WithWebHostBuilder(builder =>
         {
+            // Testing вимикає Hangfire: він кешує LoggerFactory у статиці,
+            // а WebApplicationFactory будує хост двічі
             builder.UseEnvironment("Testing");
 
             // Той самий конфіг, що в CI: тест перевіряє, що хост піднімається,
@@ -26,10 +45,7 @@ public class StartupTests : IClassFixture<WebApplicationFactory<global::Program>
             builder.UseSetting("JwtSettings:Audience", "EmpireIdle.Tests");
             builder.UseSetting("ConnectionStrings:DefaultConnection", "Host=localhost;Database=placeholder");
             builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:5173");
+            builder.UseSetting("StripeSettings:SecretKey", stripeSecretKey);
+            builder.UseSetting("StripeSettings:WebhookSecret", "whsec_unused");
         });
-
-        // Кине, якщо ValidateOnStart не пройшов або DI не резолвиться
-        var client = factory.CreateClient();
-        Assert.NotNull(client);
-    }
 }

@@ -81,7 +81,15 @@ namespace EmpireIdle.Infrastructure
 
             services.AddScoped<DomainEventDispatchInterceptor>();
 
-            services.Configure<StripeSettings>(configuration.GetSection(nameof(StripeSettings)));
+            // StripeClient кидає на порожньому ключі вже при створенні — без перевірки на старті
+            // кожен /payments, разом із вебхуком, падав би 400 на резолві контролера
+            services.AddOptions<StripeSettings>()
+                .Bind(configuration.GetSection(nameof(StripeSettings)))
+                .Validate(s => !string.IsNullOrWhiteSpace(s.SecretKey) && !string.IsNullOrWhiteSpace(s.WebhookSecret),
+                    "StripeSettings.SecretKey and WebhookSecret are required — set them in User Secrets.")
+                .Validate(s => Uri.IsWellFormedUriString(s.SuccessUrl, UriKind.Absolute) && Uri.IsWellFormedUriString(s.CancelUrl, UriKind.Absolute),
+                    "StripeSettings.SuccessUrl and CancelUrl must be absolute URLs.")
+                .ValidateOnStart();
 
             services.Configure<OutboxSettings>(configuration.GetSection("Outbox"));
             services.AddHostedService<OutboxProcessor>();
