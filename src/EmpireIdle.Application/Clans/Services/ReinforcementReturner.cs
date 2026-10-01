@@ -181,6 +181,11 @@ namespace EmpireIdle.Application.Clans.Services
 
             var units = host.WithdrawReinforcements(ownerPlayerId, utcNow);
 
+            // Стеки, вибиті в бою до нуля, і жодного героя — іти додому нікому.
+            // Зняття вже прибрало порожні стеки; марш-привид не потрібен
+            if (units.Count == 0 && heroes.Count == 0)
+                return false;
+
             Guid? escort = null;
 
             if (heroes.Count > 0)

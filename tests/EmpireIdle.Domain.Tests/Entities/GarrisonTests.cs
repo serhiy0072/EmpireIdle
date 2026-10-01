@@ -344,6 +344,29 @@ namespace EmpireIdle.Domain.Tests.Entities
         }
 
         /// <summary>
+        /// Контингент, вибитий у бою до нуля: іти додому нікому, але стеки мають зникнути —
+        /// інакше власник вічно числиться в гарнізоні, а кожне відкликання шле порожній марш.
+        /// </summary>
+        [Fact]
+        public void WithdrawReinforcements_ShouldClearStacksWipedOutInBattle()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var ownerId = Guid.NewGuid();
+            var ownerGarrisonId = Guid.NewGuid();
+
+            garrison.AddReinforcements(ownerId, ownerGarrisonId,
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }, 100, DateTime.UtcNow);
+            garrison.ApplyDefenceLosses([new StackLoss(ownerId, "infantry", 1, 5)], DateTime.UtcNow);
+            garrison.ClearDomainEvents();
+
+            var withdrawn = garrison.WithdrawReinforcements(ownerId, DateTime.UtcNow);
+
+            Assert.Empty(withdrawn);
+            Assert.DoesNotContain(garrison.Reinforcements, r => r.OwnerPlayerId == ownerId);
+            Assert.Equal(ownerGarrisonId, Assert.Single(garrison.DomainEvents.OfType<ReinforcementsMoved>()).OwnerGarrisonId);
+        }
+
+        /// <summary>
         /// Чужі підкріплення не займають ліміт власної армії: він рахується
         /// від казарм і стосується лише своїх юнітів.
         /// </summary>

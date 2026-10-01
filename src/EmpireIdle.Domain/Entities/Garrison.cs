@@ -378,7 +378,8 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Знімає підкріплення одного союзника — відкликання, кік або вихід
-        /// із клану. Повертає склад, який має вирушити додому.
+        /// із клану. Повертає склад, який має вирушити додому; порожній — іти
+        /// нікому, але стеки, що вибили в бою до нуля, однаково прибираються.
         /// </summary>
         public Dictionary<UnitStackKey, int> WithdrawReinforcements(Guid ownerPlayerId, DateTime utcNow)
         {
@@ -386,12 +387,12 @@ namespace EmpireIdle.Domain.Entities
                 .Where(r => r.OwnerPlayerId == ownerPlayerId)
                 .ToList();
 
+            if (stacks.Count == 0)
+                return [];
+
             var withdrawn = stacks
                 .Where(r => r.Count > 0)
                 .ToDictionary(r => new UnitStackKey(r.UnitType, r.Level), r => r.Count);
-
-            if (withdrawn.Count == 0)
-                return [];
 
             // Гарнізон власника читаємо до видалення — після нього стеків уже немає
             var ownerGarrisonId = stacks[0].OwnerGarrisonId;
@@ -412,8 +413,8 @@ namespace EmpireIdle.Domain.Entities
         /// Знімає з оборони полеглих. Свої юніти зникають зі стеків гарнізону,
         /// чужі — зі стеків підкріплення відповідного власника.
         ///
-        /// Порожні стеки підкріплень лишаються: власник далі числиться тут,
-        /// і повернення додому має що відправити, навіть якщо це нуль.
+        /// Порожні стеки підкріплень лишаються: власник далі числиться тут, поки
+        /// його не відкличуть, — тоді зняття прибере їх без маршу.
         /// </summary>
         public void ApplyDefenceLosses(IReadOnlyList<StackLoss> losses, DateTime utcNow)
         {

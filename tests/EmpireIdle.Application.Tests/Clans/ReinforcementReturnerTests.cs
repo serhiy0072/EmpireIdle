@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -101,6 +102,24 @@ public class ReinforcementReturnerTests
                             && m.GetUnits()[new UnitStackKey("infantry", 1)] == 10
                             && m.ArrivesAt > Now),
             Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Контингент вибили в бою до нуля, героя з ним немає: іти додому нікому.
+    /// Порожні стеки прибираються, а марш-привид із нулем юнітів не створюється.
+    /// </summary>
+    [Fact]
+    public async Task ReturnAllOfPlayer_sends_no_march_for_a_contingent_wiped_out_in_battle()
+    {
+        var (host, _) = Deployed(infantry: 10);
+        host.ApplyDefenceLosses([new StackLoss(OwnerId, "infantry", 1, 10)], Now.AddHours(-1));
+
+        var sent = await Returner().ReturnAllOfPlayerAsync(OwnerId, Now);
+
+        sent.Should().Be(0);
+        host.Reinforcements.Should().BeEmpty();
+
+        await _marches.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [Fact]
