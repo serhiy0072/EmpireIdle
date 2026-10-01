@@ -69,7 +69,9 @@ namespace EmpireIdle.Application.Mail.Queries
                 .Select(a => new AnnouncementView(a.Id, a.Kind.ToString(), a.Title, a.Body, a.PublishedAt, read.Contains(a.Id)))
                 .ToList();
 
-            var unread = letterViews.Count(l => !l.IsRead) + announcementViews.Count(a => !a.IsRead);
+            // Листи рахує БД: список обрізаний до LetterLimit, а непрочитані можуть бути й старші
+            var unread = await _mail.CountUnreadLettersAsync(request.PlayerId, now, cancellationToken)
+                + announcementViews.Count(a => !a.IsRead);
 
             return new MailboxView(letterViews, announcementViews, unread);
         }

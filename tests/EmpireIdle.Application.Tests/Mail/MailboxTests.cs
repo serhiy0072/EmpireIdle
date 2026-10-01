@@ -79,6 +79,7 @@ public class MailboxTests
         var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.ClanInvite, invite.Id, Now, TimeSpan.FromDays(14));
 
         _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.CountUnreadLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns(1);
         _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
         _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
         _requests.GetByIdsReadOnlyAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([invite]);
@@ -102,6 +103,18 @@ public class MailboxTests
         Assert.True(invite.CanRespond);
         Assert.Equal("Вовки", invite.ClanName);
         Assert.Equal(1, view.Unread);
+    }
+
+    /// <summary>Список обрізаний до найновіших листів, але лічильник бачить і старші непрочитані.</summary>
+    [Fact]
+    public async Task Mailbox_ShouldCountUnreadLetters_BeyondTheListLimit()
+    {
+        GivenInvite(Now.AddDays(1));
+        _mail.CountUnreadLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns(GetMailboxQueryHandler.LetterLimit + 5);
+
+        var view = await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal(GetMailboxQueryHandler.LetterLimit + 5, view.Unread);
     }
 
     /// <summary>Лист лишається, але протерміноване запрошення — без кнопок.</summary>
@@ -168,6 +181,7 @@ public class MailboxTests
         var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.CityFall, fall.Id, Now, TimeSpan.FromDays(14));
 
         _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.CountUnreadLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns(1);
         _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
         _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
         _falls.GetByIdsAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(fall.Id)), Arg.Any<CancellationToken>()).Returns([fall]);
@@ -210,6 +224,7 @@ public class MailboxTests
         var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.StructureFall, fall.Id, Now, TimeSpan.FromDays(14));
 
         _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.CountUnreadLettersAsync(PlayerId, Now, Arg.Any<CancellationToken>()).Returns(1);
         _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
         _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
         _structureFalls.GetByIdsAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(fall.Id)), Arg.Any<CancellationToken>()).Returns([fall]);
