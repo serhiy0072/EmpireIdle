@@ -5,8 +5,8 @@ using MediatR;
 
 namespace EmpireIdle.Application.Map.Queries
 {
-    /// <summary>Ділянка карти навколо центру: місцевість і зайняті клітини.</summary>
-    public record GetMapAreaQuery(int ServerId, int CenterX, int CenterY, int Radius) : IRequest<MapAreaView>;
+    /// <summary>Ділянка карти поточного світу навколо центру: місцевість і зайняті клітини.</summary>
+    public record GetMapAreaQuery(int CenterX, int CenterY, int Radius) : IRequest<MapAreaView>;
 
     /// <summary>Вікно карти з межами: місцевість лише в межах світу, окупанти — з бази.</summary>
     public record MapAreaView(int MinX, int MinY, int MaxX, int MaxY, List<MapTerrainTile> Terrain, List<MapAreaOccupant> Occupants);
@@ -34,11 +34,13 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly IClanRepository _clanRepository;
         private readonly TerrainGenerator _terrain;
         private readonly GameCatalog _catalog;
+        private readonly IServerContext _serverContext;
 
         public GetMapAreaQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
             IClanStructureRepository structureRepository, IClanRepository clanRepository,
-            TerrainGenerator terrain, GameCatalog catalog)
+            TerrainGenerator terrain, GameCatalog catalog, IServerContext serverContext)
         {
+            _serverContext = serverContext;
             _mapRepository = mapRepository;
             _monsterRepository = monsterRepository;
             _structureRepository = structureRepository;
@@ -55,9 +57,10 @@ namespace EmpireIdle.Application.Map.Queries
             var (minX, minY) = (request.CenterX - request.Radius, request.CenterY - request.Radius);
             var (maxX, maxY) = (request.CenterX + request.Radius, request.CenterY + request.Radius);
 
-            var occupants = await OccupantsAsync(request.ServerId, minX, minY, maxX, maxY, cancellationToken);
+            var serverId = _serverContext.ServerId;
+            var occupants = await OccupantsAsync(serverId, minX, minY, maxX, maxY, cancellationToken);
 
-            return new MapAreaView(minX, minY, maxX, maxY, Terrain(request.ServerId, minX, minY, maxX, maxY), occupants);
+            return new MapAreaView(minX, minY, maxX, maxY, Terrain(serverId, minX, minY, maxX, maxY), occupants);
         }
 
         private List<MapTerrainTile> Terrain(int serverId, int minX, int minY, int maxX, int maxY)

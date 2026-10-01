@@ -29,8 +29,16 @@ public class GetMapAreaQueryTests
         return config;
     }
 
+    private static IServerContext ServerOne()
+    {
+        var context = Substitute.For<IServerContext>();
+        context.ServerId.Returns(1);
+
+        return context;
+    }
+
     private GetMapAreaQueryHandler Handler()
-        => new(_map, _monsters, _structures, _clans, new TerrainGenerator(Config.Map), new GameCatalog(Config));
+        => new(_map, _monsters, _structures, _clans, new TerrainGenerator(Config.Map), new GameCatalog(Config), ServerOne());
 
     /// <summary>Споруда несе свій клан, тег і момент готовності — клієнт малює радіус і відрізняє свою територію.</summary>
     [Fact]
@@ -46,7 +54,7 @@ public class GetMapAreaQueryTests
         _clans.GetCardsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(
             new Dictionary<Guid, ClanCard> { [clanId] = new(clanId, "Northern Watch", "NW", "", ClanJoinPolicy.Open, 3, Now) });
 
-        var occupant = Assert.Single((await Handler().Handle(new GetMapAreaQuery(1, 0, 0, 2), CancellationToken.None)).Occupants);
+        var occupant = Assert.Single((await Handler().Handle(new GetMapAreaQuery(0, 0, 2), CancellationToken.None)).Occupants);
 
         Assert.Equal(clanId, occupant.ClanId);
         Assert.Equal("NW", occupant.ClanTag);
@@ -70,7 +78,7 @@ public class GetMapAreaQueryTests
         _monsters.GetByIdsAsync(Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Single() == wolfId), Arg.Any<CancellationToken>())
             .Returns([new Monster(wolfId, 1, "wolf", 3, 0, 0, Now)]);
 
-        var result = (await Handler().Handle(new GetMapAreaQuery(1, 0, 0, 2), CancellationToken.None)).Occupants;
+        var result = (await Handler().Handle(new GetMapAreaQuery(0, 0, 2), CancellationToken.None)).Occupants;
 
         var wolf = Assert.Single(result, o => o.OccupantType == MapOccupantType.Monster);
         Assert.Equal("wolf", wolf.MonsterType);
@@ -91,7 +99,7 @@ public class GetMapAreaQueryTests
             new MapCell(Guid.NewGuid(), 1, 0, 0, MapOccupantType.Village, Guid.NewGuid())
         ]);
 
-        var result = (await Handler().Handle(new GetMapAreaQuery(1, 0, 0, 1), CancellationToken.None)).Occupants;
+        var result = (await Handler().Handle(new GetMapAreaQuery(0, 0, 1), CancellationToken.None)).Occupants;
 
         Assert.Single(result);
         await _monsters.DidNotReceive().GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>());
@@ -107,7 +115,7 @@ public class GetMapAreaQueryTests
         ]);
         _monsters.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
 
-        var result = (await Handler().Handle(new GetMapAreaQuery(1, 0, 0, 1), CancellationToken.None)).Occupants;
+        var result = (await Handler().Handle(new GetMapAreaQuery(0, 0, 1), CancellationToken.None)).Occupants;
 
         var cell = Assert.Single(result);
         Assert.Equal(MapOccupantType.Monster, cell.OccupantType);
@@ -123,7 +131,7 @@ public class GetMapAreaQueryTests
     {
         _map.GetAreaAsync(1, -1, -1, 1, 1, Arg.Any<CancellationToken>()).Returns([]);
 
-        var area = await Handler().Handle(new GetMapAreaQuery(1, 0, 0, 1), CancellationToken.None);
+        var area = await Handler().Handle(new GetMapAreaQuery(0, 0, 1), CancellationToken.None);
 
         Assert.Equal((-1, -1, 1, 1), (area.MinX, area.MinY, area.MaxX, area.MaxY));
         // З дев'яти клітин вікна у світі лише чотири: (0,0), (0,1), (1,0), (1,1)
@@ -135,5 +143,5 @@ public class GetMapAreaQueryTests
     [Fact]
     public async Task Handle_ShouldReject_ARadiusBeyondTheCap()
         => await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => Handler().Handle(new GetMapAreaQuery(1, 0, 0, 26), CancellationToken.None));
+            () => Handler().Handle(new GetMapAreaQuery(0, 0, 26), CancellationToken.None));
 }
