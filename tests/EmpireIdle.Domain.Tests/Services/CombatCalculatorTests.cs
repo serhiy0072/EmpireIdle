@@ -90,7 +90,7 @@ namespace EmpireIdle.Domain.Tests.Services
         /// крихкіша за піхоту, атака однакова — щоб різниця у втратах
         /// пояснювалась саме захистом, а не внеском у силу.
         /// </summary>
-        private static CombatCalculator CalculatorWithFragileSiege()
+        private static CombatCalculator CalculatorWithFragileSiege(LossBand? winnerBand = null)
         {
             var combatConfig = new CombatConfig
             {
@@ -99,6 +99,9 @@ namespace EmpireIdle.Domain.Tests.Services
                 RandomMax = 1.4,
                 NoLossShareThreshold = 0.03
             };
+
+            if (winnerBand is not null)
+                combatConfig.AttackerWinLosses = winnerBand;
 
             var catalog = new GameCatalog(new GameConfig
             {
@@ -146,6 +149,42 @@ namespace EmpireIdle.Domain.Tests.Services
             // Захист 4 проти 12 — облога має танути помітно швидше
             Assert.True(siegeShare > infantryShare,
                 $"siege {siegeShare:P1} має бути більшим за infantry {infantryShare:P1}");
+        }
+
+        /// <summary>
+        /// Дешева «губка» не рятує еліту понад власну чисельність (GDD §5): 2% від 1010 = 20 втрат.
+        /// Піхота нижче порога, тож спершу тане облога — але її лише 10, і решта 10
+        /// лягає на піхоту, а не зникає.
+        /// </summary>
+        [Fact]
+        public void Resolve_ShouldMoveOverflowToShelteredStacks_WhenExposedOnesRunOut()
+        {
+            var calculator = CalculatorWithFragileSiege(winnerBand: new LossBand { Min = 0.02, Max = 0.02 });
+            var infantry = new UnitStackKey("infantry", 1);
+            var siege = new UnitStackKey("siege", 1);
+            var attacker = new Dictionary<UnitStackKey, int> { [infantry] = 1000, [siege] = 10 };
+
+            var result = calculator.Resolve(attacker, DefenceStacks.FromArmy(Army(1)), "plain", seed: 42);
+
+            Assert.True(result.AttackerWon);
+            Assert.Equal(10, result.AttackerLosses[siege]);
+            Assert.Equal(10, result.AttackerLosses[infantry]);
+        }
+
+        /// <summary>Поки незахищені стеки вміщують усі втрати, стійкі виходять без утрат.</summary>
+        [Fact]
+        public void Resolve_ShouldSpareShelteredStacks_WhenExposedOnesCoverTheLosses()
+        {
+            var calculator = CalculatorWithFragileSiege(winnerBand: new LossBand { Min = 0.02, Max = 0.02 });
+            var infantry = new UnitStackKey("infantry", 1);
+            var siege = new UnitStackKey("siege", 1);
+            var attacker = new Dictionary<UnitStackKey, int> { [infantry] = 1000, [siege] = 100 };
+
+            var result = calculator.Resolve(attacker, DefenceStacks.FromArmy(Army(1)), "plain", seed: 42);
+
+            Assert.True(result.AttackerWon);
+            Assert.Equal(22, result.AttackerLosses[siege]);
+            Assert.Equal(0, result.AttackerLosses[infantry]);
         }
 
         [Fact]

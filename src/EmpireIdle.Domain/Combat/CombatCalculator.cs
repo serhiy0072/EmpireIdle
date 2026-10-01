@@ -225,11 +225,21 @@ namespace EmpireIdle.Domain.Combat
                         : (double)pair.Value))
                 .ToList();
 
-            if (sideWon)
-                weighted = DropNegligible(weighted, totalLost);
+            if (!sideWon)
+            {
+                Spread(weighted, totalLost, result);
 
-            foreach (var (key, lost) in Spread(weighted, totalLost))
-                result[key] = lost;
+                return result;
+            }
+
+            // Поріг перерозподіляє втрати, але не зменшує їх (GDD §5): що не вмістилось
+            // у незахищені стеки, лягає на відсічені за тими самими вагами. Інакше дешева
+            // «губка» в елітній армії рятувала б еліту понад власну чисельність
+            var (exposed, sheltered) = SplitNegligible(weighted, totalLost);
+            var rest = Spread(exposed, totalLost, result);
+
+            if (rest > 0)
+                Spread(sheltered, rest, result);
 
             return result;
         }
@@ -250,34 +260,38 @@ namespace EmpireIdle.Domain.Combat
         }
 
         /// <summary>
-        /// Обнуляє ваги стеків, чия частка втрат нижча за поріг. Один прохід:
-        /// після обнулення решта ділить усе між собою, і це вже може підняти
+        /// Відділяє стеки, чия частка втрат нижча за поріг. Один прохід:
+        /// після відсічення решта ділить усе між собою, і це вже може підняти
         /// когось вище порога — але другий прохід зробив би результат
         /// залежним від порядку, а не від чисел.
         /// </summary>
-        private List<(UnitStackKey Key, int Count, double Weight)> DropNegligible(
-            List<(UnitStackKey Key, int Count, double Weight)> weighted, int totalLost)
+        private (List<(UnitStackKey Key, int Count, double Weight)> Exposed, List<(UnitStackKey Key, int Count, double Weight)> Sheltered)
+            SplitNegligible(List<(UnitStackKey Key, int Count, double Weight)> weighted, int totalLost)
         {
             var totalWeight = weighted.Sum(x => x.Weight);
 
             if (totalWeight <= 0)
-                return weighted;
+                return (weighted, []);
 
-            var survivors = weighted
+            var exposed = weighted
                 .Where(x => totalLost * x.Weight / totalWeight / x.Count >= _config.NoLossShareThreshold)
                 .ToList();
 
             // Якщо поріг відсік геть усіх, втрати мають лягти хоч кудись
-            return survivors.Count > 0 ? survivors : weighted;
+            return exposed.Count > 0
+                ? (exposed, weighted.Except(exposed).ToList())
+                : (weighted, []);
         }
 
         /// <summary>
         /// Розкидає ціле число втрат за вагами: цілі частини плюс залишок
         /// за найбільшими дробовими частинами. Стек не може втратити більше,
         /// ніж мав, тож надлишок перерозподіляється між рештою.
+        /// Додає втрати до <paramref name="result"/>.
         /// </summary>
-        private static IEnumerable<(UnitStackKey Key, int Lost)> Spread(
-            List<(UnitStackKey Key, int Count, double Weight)> weighted, int totalLost)
+        /// <returns>Скільки втрат не вмістилось у ці стеки — вони скінчились.</returns>
+        private static int Spread(
+            List<(UnitStackKey Key, int Count, double Weight)> weighted, int totalLost, Dictionary<UnitStackKey, int> result)
         {
             var assigned = weighted.ToDictionary(x => x.Key, _ => 0);
             var open = weighted.ToList();
@@ -332,7 +346,10 @@ namespace EmpireIdle.Domain.Combat
                 open = open.Where(x => assigned[x.Key] < x.Count).ToList();
             }
 
-            return assigned.Where(pair => pair.Value > 0).Select(pair => (pair.Key, pair.Value));
+            foreach (var (key, lost) in assigned)
+                result[key] += lost;
+
+            return remaining;
         }
 
     }
