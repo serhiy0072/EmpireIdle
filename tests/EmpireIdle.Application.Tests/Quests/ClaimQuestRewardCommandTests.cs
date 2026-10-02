@@ -86,6 +86,44 @@ public class ClaimQuestRewardCommandTests
                 Window = QuestWindow.Chain,
                 Objectives = [new QuestObjectiveConfig { Type = "MonsterDefeated", Count = 100 }],
                 Rewards = [new RewardConfig { Type = "Gems", Amount = 50 }]
+            },
+                        new QuestConfig
+            {
+                Key = "gate_collect",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Chain,
+                Objectives = [new QuestObjectiveConfig { Type = "BuildingCollected", Count = 5 }],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 10 }]
+            },
+            new QuestConfig
+            {
+                Key = "gated_townhall_2",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Chain,
+                Prerequisite = "gate_collect",
+                Objectives =
+                [
+                    new QuestObjectiveConfig
+                    {
+                        Type = "BuildingUpgradeCompleted", Target = "townhall", Count = 2, Mode = ObjectiveMode.Threshold
+                    }
+                ],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 10 }]
+            },
+            new QuestConfig
+            {
+                Key = "gated_townhall_3",
+                Scope = QuestScope.Personal,
+                Window = QuestWindow.Chain,
+                Prerequisite = "gated_townhall_2",
+                Objectives =
+                [
+                    new QuestObjectiveConfig
+                    {
+                        Type = "BuildingUpgradeCompleted", Target = "townhall", Count = 3, Mode = ObjectiveMode.Threshold
+                    }
+                ],
+                Rewards = [new RewardConfig { Type = "Gems", Amount = 20 }]
             }
         ]
     };
@@ -270,5 +308,58 @@ public class ClaimQuestRewardCommandTests
             Arg.Is<QuestProgress>(p => p.QuestKey == "intro_townhall_3" && p.State == QuestState.Claimed),
             Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Село з ратушею заданого рівня — для порогових квестів.</summary>
+    private void GivenTownHall(int level)
+    {
+        var catalog = new GameCatalog(Config());
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        village.AddBuilding("townhall", catalog.Buildings, Now);
+
+        var townhall = village.Buildings.Single();
+        for (var i = 1; i < level; i++)
+        {
+            townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
+            townhall.CompleteConstruction(Now);
+        }
+
+        _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+    }
+
+    /// <summary>
+    /// Ланцюжок перевіряється до кінця: ратуша 3 закриває порогом і другу, і третю ланку,
+    /// але перша (збір) не виконана — тож друга ще зачинена, а третя не забирається.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReject_WhenAnEarlierLinkOfTheChainIsNotComplete()
+    {
+        GivenTownHall(level: 3);
+        GivenProgress("gate_collect", completed: false);
+        _quests.GetAsync(PlayerId, "gated_townhall_2", Arg.Any<CancellationToken>()).Returns((QuestProgress?)null);
+        _quests.GetAsync(PlayerId, "gated_townhall_3", Arg.Any<CancellationToken>()).Returns((QuestProgress?)null);
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "gated_townhall_3"), CancellationToken.None));
+
+        await _quests.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
+        await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Перша ланка виконана — пороги закривають решту ланцюжка, і третя забирається.</summary>
+    [Fact]
+    public async Task Handle_ShouldClaim_WhenEveryEarlierLinkIsComplete()
+    {
+        GivenTownHall(level: 3);
+        GivenProgress("gate_collect");
+        _quests.GetAsync(PlayerId, "gated_townhall_2", Arg.Any<CancellationToken>()).Returns((QuestProgress?)null);
+        _quests.GetAsync(PlayerId, "gated_townhall_3", Arg.Any<CancellationToken>()).Returns((QuestProgress?)null);
+        _granter.RewardType.Returns("Gems");
+
+        await Handler().Handle(new ClaimQuestRewardCommand(PlayerId, "gated_townhall_3"), CancellationToken.None);
+
+        await _quests.Received(1).AddAsync(
+            Arg.Is<QuestProgress>(p => p.QuestKey == "gated_townhall_3" && p.State == QuestState.Claimed),
+            Arg.Any<CancellationToken>());
     }
 }

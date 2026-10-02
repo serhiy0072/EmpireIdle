@@ -44,6 +44,35 @@ public class GetQuestsQueryTests
                 Key = "next_step", Scope = QuestScope.Personal, Window = QuestWindow.Chain,
                 Prerequisite = "intro_townhall_3",
                 Objectives = [new QuestObjectiveConfig { Type = "BuildingCollected", Count = 5 }]
+            },
+                        new QuestConfig
+            {
+                Key = "gate_collect", Scope = QuestScope.Personal, Window = QuestWindow.Chain,
+                Objectives = [new QuestObjectiveConfig { Type = "BuildingCollected", Count = 5 }]
+            },
+            new QuestConfig
+            {
+                Key = "gated_townhall_2", Scope = QuestScope.Personal, Window = QuestWindow.Chain,
+                Prerequisite = "gate_collect",
+                Objectives =
+                [
+                    new QuestObjectiveConfig
+                    {
+                        Type = "BuildingUpgradeCompleted", Target = "townhall", Count = 2, Mode = ObjectiveMode.Threshold
+                    }
+                ]
+            },
+            new QuestConfig
+            {
+                Key = "gated_townhall_3", Scope = QuestScope.Personal, Window = QuestWindow.Chain,
+                Prerequisite = "gated_townhall_2",
+                Objectives =
+                [
+                    new QuestObjectiveConfig
+                    {
+                        Type = "BuildingUpgradeCompleted", Target = "townhall", Count = 3, Mode = ObjectiveMode.Threshold
+                    }
+                ]
             }
         ]
     };
@@ -95,5 +124,37 @@ public class GetQuestsQueryTests
 
         Assert.Equal(QuestState.InProgress, views.Single(v => v.Key == "intro_townhall_3").State);
         Assert.DoesNotContain(views, v => v.Key == "next_step");
+    }
+
+    /// <summary>
+    /// Поріг не відкриває ланцюжок повз невиконану першу ланку: друга ланка зачинена,
+    /// тож і третя лишається прихованою, хоч рівень ратуші закрив би обидві.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldHideLaterLinks_WhenAnEarlierLinkIsNotComplete()
+    {
+        GivenTownHall(level: 4);
+
+        var views = await Handler().Handle(new GetQuestsQuery(PlayerId), CancellationToken.None);
+
+        Assert.Contains(views, v => v.Key == "gate_collect");
+        Assert.DoesNotContain(views, v => v.Key == "gated_townhall_2");
+        Assert.DoesNotContain(views, v => v.Key == "gated_townhall_3");
+    }
+
+    /// <summary>Перша ланка виконана — пороги відкривають решту ланцюжка.</summary>
+    [Fact]
+    public async Task Handle_ShouldOpenLaterLinks_WhenTheFirstLinkIsComplete()
+    {
+        GivenTownHall(level: 4);
+
+        var gate = new QuestProgress(Guid.NewGuid(), PlayerId, 1, "gate_collect", [5], Now);
+        gate.Advance(0, 5, Now);
+        _quests.GetAllAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(new List<QuestProgress> { gate });
+
+        var views = await Handler().Handle(new GetQuestsQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal(QuestState.Completed, views.Single(v => v.Key == "gated_townhall_2").State);
+        Assert.Contains(views, v => v.Key == "gated_townhall_3");
     }
 }

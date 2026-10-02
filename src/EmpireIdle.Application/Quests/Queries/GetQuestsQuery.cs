@@ -45,17 +45,36 @@ namespace EmpireIdle.Application.Quests.Queries
             // Стан кожного квесту з урахуванням порогів — один раз, бо від нього ж залежить і ланцюжок
             var effective = personal.ToDictionary(c => c.Key, c => Evaluate(c, progressByKey.GetValueOrDefault(c.Key), levels));
 
-            // Ланцюжок відкривається завершенням, а не клеймом
-            var unlocked = effective
-                .Where(e => e.Value.State != QuestState.InProgress)
-                .Select(e => e.Key)
-                .ToHashSet();
+            // Ланцюжок відкривається завершенням, а не клеймом. Поріг закриває ланку лише тоді,
+            // коли вона сама вже відкрита: інакше ратуша 3 відкрила б третій квест повз перший
+            var configByKey = personal.ToDictionary(c => c.Key);
+            var doneByKey = new Dictionary<string, bool>();
+
+            bool IsDone(string key)
+            {
+                if (doneByKey.TryGetValue(key, out var known))
+                    return known;
+
+                // Запис до рекурсії — захист від циклу в конфігу
+                doneByKey[key] = false;
+
+                if (!configByKey.TryGetValue(key, out var quest))
+                    return false;
+
+                var done = progressByKey.GetValueOrDefault(key) is { State: not QuestState.InProgress }
+                           || (effective[key].State != QuestState.InProgress
+                               && (quest.Prerequisite is null || IsDone(quest.Prerequisite)));
+
+                doneByKey[key] = done;
+
+                return done;
+            }
 
             var views = new List<QuestView>();
 
             foreach (var config in personal)
             {
-                if (config.Prerequisite is not null && !unlocked.Contains(config.Prerequisite))
+                if (config.Prerequisite is not null && !IsDone(config.Prerequisite))
                     continue;
 
                 if (!config.IsOpenAt(now))

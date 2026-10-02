@@ -63,7 +63,7 @@ namespace EmpireIdle.Application.Quests.Commands
             if (!config.IsOpenAt(now))
                 throw new InvalidStateException(RefusalReasons.QuestNotClaimable, $"Quest '{request.QuestKey}' is outside its active window.");
 
-            if (config.Prerequisite is { } prerequisiteKey && !await IsCompletedAsync(request.PlayerId, prerequisiteKey, now, cancellationToken))
+            if (config.Prerequisite is { } prerequisiteKey && !await IsCompletedAsync(request.PlayerId, prerequisiteKey, now, new HashSet<string>(), cancellationToken))
                 throw new RequirementNotMetException($"Quest '{request.QuestKey}' is locked behind '{prerequisiteKey}'.");
 
             // Поріг (рівень будівлі), досягнутий до відкриття квесту, фіксується тут, а не в запиті
@@ -87,12 +87,29 @@ namespace EmpireIdle.Application.Quests.Commands
 
         /// <summary>
         /// Ланцюжок відкривається завершенням, а не клеймом — як у списку й трекері. Поріг
-        /// пререквізиту, досягнутий до його відкриття, теж рахується: список показав його закритим.
+        /// пререквізиту, досягнутий до його відкриття, теж рахується, але лише коли сама ланка
+        /// вже відкрита: інакше ратуша 3 закрила б другий квест повз невиконаний перший.
         /// </summary>
-        private async Task<bool> IsCompletedAsync(Guid playerId, string questKey, DateTime now, CancellationToken cancellationToken)
+        private async Task<bool> IsCompletedAsync(Guid playerId, string questKey, DateTime now,
+            HashSet<string> visited, CancellationToken cancellationToken)
         {
-            var progress = await _thresholds.SyncAsync(playerId, _catalog.Quest(questKey),
-                await _questRepository.GetAsync(playerId, questKey, cancellationToken), now, cancellationToken);
+            // Цикл у конфігу не має зациклити запит
+            if (!visited.Add(questKey))
+                return false;
+
+            var stored = await _questRepository.GetAsync(playerId, questKey, cancellationToken);
+
+            // Збережене завершення вже пройшло свій ланцюжок: зачинених квестів трекер не рухає
+            if (stored is not null && stored.State != QuestState.InProgress)
+                return true;
+
+            var config = _catalog.Quest(questKey);
+
+            if (config.Prerequisite is { } previous
+                && !await IsCompletedAsync(playerId, previous, now, visited, cancellationToken))
+                return false;
+
+            var progress = await _thresholds.SyncAsync(playerId, config, stored, now, cancellationToken);
 
             return progress is not null && progress.State != QuestState.InProgress;
         }
