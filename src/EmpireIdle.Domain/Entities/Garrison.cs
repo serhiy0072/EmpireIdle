@@ -311,6 +311,14 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
+
+        /// <summary>
+        /// Герой іде в похід без юнітів. Склад гарнізону не міняється, але корінь треба
+        /// зрушити: інакше xmin не спрацює, і два паралельні відправлення обидва пройдуть
+        /// перевірку стелі маршів.
+        /// </summary>
+        public void SendHeroAlone(DateTime utcNow) => Touch(utcNow);
+
         /// <summary>Повертає юнітів у гарнізон (після походу).</summary>
         public void ReceiveUnits(IReadOnlyDictionary<UnitStackKey, int> units, DateTime utcNow)
         {

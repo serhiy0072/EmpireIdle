@@ -61,6 +61,23 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(now, garrison.UpdatedAt);
         }
 
+
+        /// <summary>
+        /// Похід із самого героя юнітів не знімає, але рядок гарнізону міняє: інакше xmin
+        /// кореня не зрушить і два паралельні відправлення обидва пройдуть стелю маршів.
+        /// </summary>
+        [Fact]
+        public void SendHeroAlone_ShouldTouchTheGarrison()
+        {
+            var now = new DateTime(2026, 10, 2, 12, 0, 0, DateTimeKind.Utc);
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            garrison.SendHeroAlone(now);
+
+            Assert.Equal(now, garrison.UpdatedAt);
+            Assert.Empty(garrison.Units);
+        }
+
         /// <summary>
         /// Одночасно може тренуватись лише одна партія.
         /// </summary>

@@ -147,9 +147,12 @@ namespace EmpireIdle.Application.Marches.Commands
                     village.DropShield(now);
             }
 
-            // Знімаємо юнітів із гарнізону (перевірки наявності — всередині)
+            // Знімаємо юнітів із гарнізону (перевірки наявності — всередині). Похід із самого
+            // героя теж зрушує гарнізон: на його xmin тримається стеля маршів
             if (request.Units.Count > 0)
                 garrison.SendUnits(request.Units, now);
+            else
+                garrison.SendHeroAlone(now);
 
             hero.Deploy(now);
 
