@@ -359,4 +359,56 @@ public class SendMarchCommandTests
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
         Assert.Equal(RefusalReasons.MarchHeroElsewhere.Key, refusal.Reason);
     }
+
+    /// <summary>Ратуша заданого рівня: з рівня 3 спадає щит новачка, без цього підкріплення не шлють.</summary>
+    private static void RaiseTownHall(Village village, int level)
+    {
+        var catalog = new GameCatalog(Config());
+        village.AddBuilding("townhall", catalog.Buildings, Now);
+
+        var townhall = village.Buildings.Single();
+        for (var i = 1; i < level; i++)
+        {
+            townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
+            townhall.CompleteConstruction(Now);
+        }
+    }
+
+    /// <summary>
+    /// Підкріплення з самого героя юнітів не знімає, але гарнізон зрушує: на його xmin
+    /// тримається стеля маршів, і без цього два паралельні відправлення обидва пройшли б перевірку.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldTouchTheGarrison_WhenAHeroReinforcesAlone()
+    {
+        var (garrison, _, hero) = GivenState(infantry: 0);
+
+        var origin = await _villages.GetByPlayerIdAsync(PlayerId);
+        RaiseTownHall(origin!, level: 3);
+
+        var allyId = Guid.NewGuid();
+        var allyVillage = new Village(Guid.NewGuid(), allyId, "Ally", ["food"], 52, 52);
+        RaiseTownHall(allyVillage, level: 3);
+        var allyGarrison = new Garrison(Guid.NewGuid(), allyVillage.Id, 1);
+
+        _villages.GetByIdAsync(allyVillage.Id, Arg.Any<CancellationToken>()).Returns(allyVillage);
+        _garrisons.GetByVillageIdAsync(allyVillage.Id, Arg.Any<CancellationToken>()).Returns(allyGarrison);
+        _heroes.GetByGarrisonAsync(allyGarrison.Id, Arg.Any<CancellationToken>()).Returns(new List<Hero>());
+
+        var clanId = Guid.NewGuid();
+        _clans.GetClanIdByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(clanId);
+        _clans.GetClanIdByMemberAsync(allyId, Arg.Any<CancellationToken>()).Returns(clanId);
+
+        await Handler().Handle(
+            new SendMarchCommand(PlayerId, MarchTargetType.Village, allyVillage.Id,
+                new Dictionary<UnitStackKey, int>(), hero.Id, MarchIntent.Reinforce),
+            CancellationToken.None);
+
+        Assert.Equal(Now, garrison.UpdatedAt);
+        Assert.Equal(HeroState.Deployed, hero.State);
+
+        await _marches.Received(1).AddAsync(
+            Arg.Is<March>(m => m.Intent == MarchIntent.Reinforce && m.HeroId == hero.Id && m.GetUnits().Count == 0),
+            Arg.Any<CancellationToken>());
+    }
 }
