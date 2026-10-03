@@ -319,6 +319,11 @@ builder.Services.AddScoped<ServerEvolutionJob>();
 builder.Services.AddScoped<RatingRecalculationJob>();
 builder.Services.AddScoped<ServerQuestTotalsJob>();
 builder.Services.AddScoped<ClanLeadershipJob>();
+builder.Services.AddScoped<ChatRetentionJob>();
+builder.Services.AddScoped<MailRetentionJob>();
+builder.Services.AddScoped<MarchRetentionJob>();
+builder.Services.AddScoped<MarketExpiryJob>();
+builder.Services.AddScoped<MarketPricesJob>();
 
 //  8. ВЕБ-ШАР
 

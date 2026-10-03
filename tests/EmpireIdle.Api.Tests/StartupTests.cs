@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Services;
 using EmpireIdle.Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,6 +68,27 @@ public class StartupTests : IClassFixture<WebApplicationFactory<global::Program>
 
         Assert.Contains(failures, f => f.Contains("RandomMin"));
     }
+
+    /// <summary>
+    /// Hangfire сам створить джоб, якого немає в контейнері, тож пропуск не падає, а тихо
+    /// обходить scoped-життя. Кожен клас *Job має бути зареєстрований явно.
+    /// </summary>
+    [Fact]
+    public void Application_RegistersEveryJob()
+    {
+        using var factory = Configure(stripeSecretKey: "sk_test_unused");
+        factory.CreateClient();
+
+        var registry = factory.Services.GetRequiredService<IServiceProviderIsService>();
+        var missing = typeof(ServerJobRunner).Assembly.GetTypes()
+            .Where(t => t.Namespace == typeof(ServerJobRunner).Namespace && t.Name.EndsWith("Job"))
+            .Where(t => !registry.IsService(t))
+            .Select(t => t.Name)
+            .ToList();
+
+        Assert.Empty(missing);
+    }
+
     private WebApplicationFactory<global::Program> Configure(string stripeSecretKey, params (string Key, string Value)[] overrides) =>
         _factory.WithWebHostBuilder(builder =>
         {
