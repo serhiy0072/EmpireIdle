@@ -164,6 +164,12 @@ export default function HeroCodexPage() {
               <p className="text-sm text-slate-600">{selected.description}</p>
             )}
 
+            {selected.lore != null && selected.lore !== "" && (
+              <blockquote className="border-l-2 border-amber-300 pl-3 text-sm italic leading-relaxed text-slate-600">
+                {selected.lore}
+              </blockquote>
+            )}
+
             <dl className="grid grid-cols-3 gap-1 text-sm">
               {Object.entries(selected.baseStats).map(([stat, value]) => (
                 <div key={stat} className="rounded bg-slate-50 px-2 py-1">

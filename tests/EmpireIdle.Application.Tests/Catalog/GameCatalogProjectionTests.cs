@@ -25,6 +25,18 @@ public class GameCatalogProjectionTests
         Assert.All(response.Heroes, hero => Assert.False(string.IsNullOrWhiteSpace(hero.DisplayName)));
     }
 
+    /// <summary>Історія героя з конфіга доходить до клієнта як є, а не губиться в проєкції.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheHeroLore()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        config.Heroes.First(h => h.Key == TestKeys.CommonHero).Lore = "Колись був ковалем.";
+
+        var hero = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).Heroes.Single(h => h.Key == TestKeys.CommonHero);
+
+        Assert.Equal("Колись був ковалем.", hero.Lore);
+    }
+
     /// <summary>Ранг і слот ідуть рядками: число в типах клієнта вимагало б власної мапи.</summary>
     [Fact]
     public void Response_ShouldSpellOutRankAndSlot()

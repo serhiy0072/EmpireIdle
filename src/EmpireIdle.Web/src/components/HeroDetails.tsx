@@ -69,6 +69,14 @@ export default function HeroDetails({
         {config?.description !== null && config?.description !== undefined && (
           <p className="mt-2 text-sm text-slate-500">{config.description}</p>
         )}
+
+        {/* Картка героя щільна: історію розгортають на вимогу, повністю вона — у кодексі */}
+        {config?.lore !== null && config?.lore !== undefined && config.lore !== "" && (
+          <details className="mt-2 text-sm">
+            <summary className="cursor-pointer text-xs font-medium uppercase tracking-wide text-slate-500">Історія</summary>
+            <p className="mt-1 border-l-2 border-amber-300 pl-3 italic leading-relaxed text-slate-600">{config.lore}</p>
+          </details>
+        )}
       </div>
 
       {config !== null && config.passives.length > 0 && (

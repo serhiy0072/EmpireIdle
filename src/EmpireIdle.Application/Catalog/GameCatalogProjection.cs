@@ -56,6 +56,7 @@ namespace EmpireIdle.Application.Catalog
                     hero.Class,
                     hero.Rank.ToString(),
                     hero.Description,
+                    hero.Lore,
                     hero.Speed ?? config.HeroSettings.DefaultMarchSpeed,
                     hero.SummonShards,
                     hero.ShardPriceGold,

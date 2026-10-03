@@ -47,12 +47,14 @@
     public record CatalogSpeedUp(int FloorSeconds, double Factor, double Exponent);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
+    /// <param name="Lore">Історія героя для кодексу й картки; коротший підсумок — у Description.</param>
     public record CatalogHero(
         string Key,
         string DisplayName,
         string Class,
         string Rank,
         string? Description,
+        string? Lore,
         double Speed,
         int SummonShards,
         int ShardPriceGold,
