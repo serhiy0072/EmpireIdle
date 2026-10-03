@@ -99,6 +99,29 @@ namespace EmpireIdle.API.Jobs
             }
         }
 
+        /// <summary>
+        /// Виконує дію один раз у scope без світу — для даних, не прив'язаних до світу
+        /// (на кшталт активних ефектів). Прогін на кожен світ робив би ту саму роботу N разів.
+        /// Помилка логується й не кидається, як і в інших методах раннера.
+        /// </summary>
+        /// <param name="jobName">Ім'я джоба для логів.</param>
+        /// <param name="action">Дія; отримує <c>IMediator</c> зі свого scope і токен зупинки.</param>
+        public async Task RunOnceAsync(string jobName, Func<IMediator, CancellationToken, Task> action,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                await using var scope = _scopeFactory.CreateAsyncScope();
+                await action(scope.ServiceProvider.GetRequiredService<IMediator>(), cancellationToken);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogError(ex, "{Job} failed; the next tick retries.", jobName);
+            }
+        }
+
         // Асинхронний scope: DbContext і частина сервісів звільняються асинхронно,
         // і синхронний Dispose блокував би потік воркера Hangfire
         private async Task InScopeAsync(int serverId, Func<IMediator, Task> action)

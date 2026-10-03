@@ -106,6 +106,44 @@ public class JobConventionTests
         Assert.Equal(2, received.Count);
     }
 
+    /// <summary>Дані без світу обробляються раз за тік, а не на кожен із двох світів.</summary>
+    [Fact]
+    public async Task RunOnce_ShouldRunTheActionOnceWithTheShutdownToken()
+    {
+        using var shutdown = new CancellationTokenSource();
+        var received = new List<CancellationToken>();
+
+        await Runner().RunOnceAsync("test", (_, ct) =>
+        {
+            received.Add(ct);
+            return Task.CompletedTask;
+        }, shutdown.Token);
+
+        Assert.Equal(shutdown.Token, Assert.Single(received));
+    }
+
+    /// <summary>Помилка без зупинки логується: джоб не падає, наступний тік повторить.</summary>
+    [Fact]
+    public async Task RunOnce_ShouldSwallowAFailure()
+        => Assert.Null(await Record.ExceptionAsync(() => Runner().RunOnceAsync("test",
+            (_, _) => throw new InvalidOperationException("boom"))));
+
+    [Fact]
+    public async Task RunOnce_ShouldStop_WhenShutdownIsRequested()
+    {
+        using var shutdown = new CancellationTokenSource();
+        shutdown.Cancel();
+        var ran = false;
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Runner().RunOnceAsync("test", (_, _) =>
+        {
+            ran = true;
+            return Task.CompletedTask;
+        }, shutdown.Token));
+
+        Assert.False(ran);
+    }
+
     /// <summary>Світ без HTTP-запиту: раннер лише ставить його в scope.</summary>
     private sealed class FixedServerContext : IServerContext
     {
