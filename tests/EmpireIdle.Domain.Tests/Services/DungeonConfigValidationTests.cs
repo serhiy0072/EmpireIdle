@@ -59,6 +59,19 @@ public class DungeonConfigValidationTests
         Assert.Null(Record.Exception(() => GameConfigValidator.Validate(config)));
     }
 
+    /// <summary>Помилка в ключі ресурсу мовчки забрала б нагороду за забіг.</summary>
+    [Fact]
+    public void Validate_ShouldRejectADungeonRewardOfAnUnknownResource()
+        => Assert.Contains("mithril", Rejects(c => c.Dungeons.Dungeons.Single().Reward =
+            [new ResourceCost { Resource = "mithril", Amount = 100 }]).Message);
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public void Validate_ShouldRejectANonPositiveDungeonReward(int amount)
+        => Assert.Contains(TestKeys.Dungeon, Rejects(c => c.Dungeons.Dungeons.Single().Reward =
+            [new ResourceCost { Resource = TestKeys.AllResources[0], Amount = amount }]).Message);
+
     /// <summary>Набір данжу без опису родини ролився б без рівня — мовчки слабшим.</summary>
     [Fact]
     public void Validate_ShouldRejectADungeonSetWithoutAFamily()

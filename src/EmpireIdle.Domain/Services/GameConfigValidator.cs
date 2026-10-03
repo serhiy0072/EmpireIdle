@@ -260,9 +260,20 @@ namespace EmpireIdle.Domain.Services
                 .ToHashSet();
 
             var rarities = Enum.GetNames<Rarity>().Select(r => r.ToLowerInvariant()).ToList();
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
 
             foreach (var dungeon in dungeons.Dungeons)
             {
+                // Як у монстрів: помилка в ключі ресурсу мовчки забрала б нагороду за забіг
+                var brokenRewards = dungeon.Reward
+                    .Where(r => r.Amount <= 0 || (resourceKeys.Count > 0 && !resourceKeys.Contains(r.Resource)))
+                    .Select(r => $"{r.Resource} ×{r.Amount}")
+                    .ToList();
+
+                if (brokenRewards.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Dungeon '{dungeon.Key}' rewards unknown resources or non-positive amounts: {string.Join(", ", brokenRewards)}.");
+
                 if (dungeon.Boss.Count == 0)
                     throw new InvalidOperationException($"Dungeon '{dungeon.Key}' has no boss wave.");
 
