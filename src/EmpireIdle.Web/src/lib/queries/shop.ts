@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
-import type { ShopView } from "../apiTypes";
+import type { CheckoutResponse, ShopView } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 
@@ -28,6 +28,6 @@ export function useBuyShopItem(playerId: string) {
 export function useCheckout(playerId: string) {
   return useMutation({
     mutationFn: (packKey: string) =>
-      api<{ checkoutUrl: string }>(`/api/payments/${playerId}/checkout/${packKey}`, { method: "POST" }),
+      api<CheckoutResponse>(`/api/payments/${playerId}/checkout/${packKey}`, { method: "POST" }),
   });
 }

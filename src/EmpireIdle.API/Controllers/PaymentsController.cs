@@ -1,3 +1,4 @@
+using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Payments.Commands;
@@ -27,11 +28,11 @@ public class PaymentsController : ControllerBase
 
     /// <summary>Створює сесію оплати й повертає посилання на Stripe Checkout.</summary>
     [HttpPost("{playerId:guid}/checkout/{packKey}")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<IActionResult> CreateCheckout(Guid playerId, string packKey, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(CheckoutResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CheckoutResponse>> CreateCheckout(Guid playerId, string packKey, CancellationToken cancellationToken)
     {
         var url = await _mediator.Send(new CreateCheckoutSessionCommand(playerId, packKey), cancellationToken);
-        return Ok(new { checkoutUrl = url });
+        return Ok(new CheckoutResponse(url));
     }
 
     /// <summary>

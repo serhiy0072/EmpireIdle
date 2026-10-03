@@ -5930,13 +5930,19 @@
             "description": "OK",
             "content": {
               "text/plain": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
               },
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
               },
               "text/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
               }
             }
           }
@@ -8773,6 +8779,18 @@
           "letters": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CheckoutResponse": {
+        "required": [
+          "checkoutUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "checkoutUrl": {
+            "type": "string"
           }
         },
         "additionalProperties": false

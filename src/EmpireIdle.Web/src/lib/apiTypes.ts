@@ -72,5 +72,6 @@ export type PowerResponse = components["schemas"]["PowerResponse"];
 export type PlayerRankResponse = components["schemas"]["PlayerRankResponse"];
 export type LeaderboardEntryResponse = components["schemas"]["LeaderboardEntryResponse"];
 export type ShopView = components["schemas"]["ShopView"];
+export type CheckoutResponse = components["schemas"]["CheckoutResponse"];
 export type ShopItemView = components["schemas"]["ShopItemView"];
 export type GemPackView = components["schemas"]["GemPackView"];
