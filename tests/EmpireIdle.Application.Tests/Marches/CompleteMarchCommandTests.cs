@@ -155,7 +155,7 @@ public class CompleteMarchCommandTests
         var heroModifiers = new HeroCombatModifiers(catalog);
 
         var logistics = new MarchLogistics(
-            _villages, _heroes, catalog, calculator, capacities, new HeroProgression(config.HeroSettings),
+            _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
             NullLogger<MarchLogistics>.Instance);
 
         var territory = new ClanTerritoryRules(catalog);
@@ -293,10 +293,9 @@ public class CompleteMarchCommandTests
 
         var attacker = NewVillage(catalog, PlayerId, 50, 50);
         var defender = NewVillage(catalog, Guid.NewGuid(), 55, 55);
-        var capacities = new VillageCapacities(catalog);
 
         if (defenderFood > 0)
-            defender.GrantResource("food", defenderFood, capacities.StorageCapFor(defender, "food"), Now);
+            defender.GrantResource("food", defenderFood, Now);
 
         var attackerGarrison = new Garrison(Guid.NewGuid(), attacker.Id, 1);
         var defenderGarrison = new Garrison(Guid.NewGuid(), defender.Id, 1);
@@ -938,11 +937,10 @@ public class CompleteMarchCommandTests
     private (March March, Village Target, Garrison TargetGarrison) GivenScouts(int atX = 55, int atY = 55)
     {
         var catalog = new GameCatalog(Config());
-        var capacities = new VillageCapacities(catalog);
 
         var scouter = NewVillage(catalog, PlayerId, 50, 50);
         var target = NewVillage(catalog, Guid.NewGuid(), 55, 55);
-        target.GrantResource("food", 500, capacities.StorageCapFor(target, "food"), Now);
+        target.GrantResource("food", 500, Now);
 
         var scouterGarrison = new Garrison(Guid.NewGuid(), scouter.Id, 1);
         var targetGarrison = new Garrison(Guid.NewGuid(), target.Id, 1);

@@ -11,9 +11,10 @@ namespace EmpireIdle.Domain.Entities
     {
         public Guid VillageId { get; private set; }
         public string ResourceType { get; private set; } = null!;
-        public int Amount { get; private set; }
+        /// <summary>Запас без стелі (GDD §4.1), тому long: int переповнився б на пізній грі.</summary>
+        public long Amount { get; private set; }
 
-        public VillageResource(Guid villageId, string resourceType, int amount = 0)
+        public VillageResource(Guid villageId, string resourceType, long amount = 0)
         {
             VillageId = villageId;
             ResourceType = resourceType;
@@ -23,16 +24,17 @@ namespace EmpireIdle.Domain.Entities
         public VillageResource() { } // Для EF Core
 
         /// <summary>Додає кількість ресурсу.</summary>
-        public void Add(int amount)
+        public void Add(long amount)
         {
             if (amount < 0)
                 throw new InvalidOperationException("Amount to add cannot be negative.");
 
-            Amount += amount;
+            // Насичення замість переповнення: запас без стелі, а long.MaxValue недосяжний чесною грою
+            Amount = amount > long.MaxValue - Amount ? long.MaxValue : Amount + amount;
         }
 
         /// <summary>Списує кількість ресурсу. Кидає виняток, якщо не вистачає.</summary>
-        public void Subtract(int amount)
+        public void Subtract(long amount)
         {
             if (amount < 0)
                 throw new InvalidOperationException("Amount to subtract cannot be negative.");
@@ -41,22 +43,6 @@ namespace EmpireIdle.Domain.Entities
                 throw new NotEnoughResourcesException(ResourceType, amount, Amount);
 
             Amount -= amount;
-        }
-
-        /// <summary>
-        /// Додає ресурс у межах місткості сховища. Повертає, скільки реально
-        /// зараховано: надлишок згорає — це і є причина качати склад.
-        /// </summary>
-        /// <param name="cap">Місткість сховища для цього ресурсу.</param>
-        public int AddUpTo(int amount, int cap)
-        {
-            if (amount < 0)
-                throw new InvalidOperationException("Amount to add cannot be negative.");
-
-            var accepted = Math.Max(0, Math.Min(amount, cap - Amount));
-            Amount += accepted;
-
-            return accepted;
         }
     }
 }

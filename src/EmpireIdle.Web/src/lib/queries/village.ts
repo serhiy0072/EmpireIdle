@@ -59,10 +59,7 @@ export function useRepairVillage(playerId: string) {
   });
 }
 
-/**
- * Зібрати все одразу: один запит замість кліку по кожній будівлі.
- * Повний склад не валить запит — він приходить у fullStorages.
- */
+/** Зібрати все одразу: один запит замість кліку по кожній будівлі. */
 export function useCollectAll(playerId: string) {
   const queryClient = useQueryClient();
 

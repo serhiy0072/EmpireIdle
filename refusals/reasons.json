@@ -229,8 +229,5 @@
   ],
   "territory.ownStructure": [],
   "village.alreadyThere": [],
-  "village.nothingToRepair": [],
-  "village.storageFull": [
-    "resource"
-  ]
+  "village.nothingToRepair": []
 }

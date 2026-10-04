@@ -6,7 +6,6 @@ import DamageBanner from "../components/village/DamageBanner";
 import VillageMap from "../components/village/VillageMap";
 import { useSession } from "../hooks/useSession";
 import { useCatalog } from "../lib/queries/catalog";
-import { resourceGenitive } from "../lib/resourceNames";
 import {
   useCollectAll,
   useCollectBuilding,
@@ -46,7 +45,6 @@ export default function VillagePage() {
     collect.isPending || upgrade.isPending || speedUp.isPending || collectAll.isPending || repair.isPending;
   const actions = { collect, upgrade, speedUp, collectAll, repair };
   const failure = lastAction === null ? null : actions[lastAction].error;
-  const fullStorages = lastAction === "collectAll" ? (collectAll.data?.fullStorages ?? []) : [];
 
   const run = (action: VillageAction, perform: () => void) => {
     setLastAction(action);
@@ -84,15 +82,6 @@ export default function VillagePage() {
           busy={busy}
           onRepair={() => run("repair", () => repair.mutate())}
         />
-      )}
-
-      {fullStorages.length > 0 && (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          {fullStorages.length === 1 ? "Склад" : "Склади"}{" "}
-          {fullStorages.map(resourceGenitive).join(", ")}{" "}
-          {fullStorages.length === 1 ? "заповнений" : "заповнені"} — решта чекає
-          в будівлях. Витратьте частину, щоб зібрати.
-        </p>
       )}
 
       <div className="relative min-h-0 flex-1">

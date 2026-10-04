@@ -74,12 +74,12 @@ public class VillageCommandTests
 
     private CollectBuildingCommandHandler CollectHandler() => new(
         _villages, _unitOfWork, _servers, new EffectResolver(_effects),
-        Catalog(), new FakeTimeProvider(Now), Geometry(), new VillageCapacities(Catalog()),
+        Catalog(), new FakeTimeProvider(Now), Geometry(),
         NullLogger<CollectBuildingCommandHandler>.Instance);
 
     private CollectAllBuildingsCommandHandler CollectAllHandler() => new(
         _villages, _unitOfWork, _servers, new EffectResolver(_effects),
-        Catalog(), new FakeTimeProvider(Now), Geometry(), new VillageCapacities(Catalog()),
+        Catalog(), new FakeTimeProvider(Now), Geometry(),
         NullLogger<CollectAllBuildingsCommandHandler>.Instance);
 
     private UpgradeBuildingCommandHandler UpgradeHandler() => new(
@@ -187,7 +187,6 @@ public class VillageCommandTests
         // Та сама математика, що й для одиночного збору: одна виробнича будівля (farm)
         Assert.Equal(600, village.Resources.Single(r => r.ResourceType == "food").Amount);
         Assert.Equal([new CollectedResourceView("food", 600)], result.Collected);
-        Assert.Empty(result.FullStorages);
     }
 
     /// <summary>
@@ -208,18 +207,16 @@ public class VillageCommandTests
         Assert.Equal(0, farm.AccruedAmount);
     }
 
-    /// <summary>Повний склад — не відмова всієї команди, а рядок у відповіді.</summary>
+    /// <summary>Стелі складу немає (GDD §4.1): запас понад колишній ліміт складу не заважає збору.</summary>
     [Fact]
-    public async Task CollectAll_ShouldReportAFullStorage_InsteadOfRefusing()
+    public async Task CollectAll_ShouldCollect_WhateverIsInStore()
     {
-        // Склад їжі — 100 000 від warehouse; заповнюємо під стелю
         var village = GivenVillage(food: 100_000, accruedMinutes: 60);
 
         var result = await CollectAllHandler().Handle(new CollectAllBuildingsCommand(PlayerId), CancellationToken.None);
 
-        Assert.Equal(["food"], result.FullStorages);
-        Assert.Empty(result.Collected);
-        Assert.Equal(100_000, village.Resources.Single(r => r.ResourceType == "food").Amount);
+        Assert.Equal([new CollectedResourceView("food", 600)], result.Collected);
+        Assert.Equal(100_600, village.Resources.Single(r => r.ResourceType == "food").Amount);
     }
 
     /// <summary>Апгрейд списує вартість і ставить будівлю в стан будівництва.</summary>

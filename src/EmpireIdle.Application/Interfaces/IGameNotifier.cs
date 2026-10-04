@@ -7,7 +7,7 @@ namespace EmpireIdle.Application.Interfaces
     public interface IGameNotifier
     {
         /// <summary>Сповістити гравця про зібрані з будівлі ресурси та новий баланс.</summary>
-        Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected, int newVillageAmount, CancellationToken cancellationToken = default);
+        Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected, long newVillageAmount, CancellationToken cancellationToken = default);
         
         /// <summary>Повідомити гравця про старт апгрейду (для таймера на фронті).</summary>
         Task NotifyUpgradeStartedAsync(Guid playerId, Guid buildingId, DateTime completesAt, CancellationToken cancellationToken = default);

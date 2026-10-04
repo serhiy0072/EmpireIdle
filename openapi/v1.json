@@ -9476,8 +9476,7 @@
       },
       "CollectAllResponse": {
         "required": [
-          "collected",
-          "fullStorages"
+          "collected"
         ],
         "type": "object",
         "properties": {
@@ -9485,12 +9484,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CollectedResourceResponse"
-            }
-          },
-          "fullStorages": {
-            "type": "array",
-            "items": {
-              "type": "string"
             }
           }
         },
@@ -11698,7 +11691,7 @@
           },
           "amount": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           "isUnlocked": {
             "type": "boolean"
@@ -11792,7 +11785,7 @@
             "type": "object",
             "additionalProperties": {
               "type": "integer",
-              "format": "int32"
+              "format": "int64"
             }
           },
           "createdAt": {

@@ -51,10 +51,8 @@ public class BattleAftermathTests
         var config = Config();
         var catalog = new GameCatalog(config);
         var calculator = new MarchCalculator(new TerrainGenerator(config.Map), catalog);
-        var capacities = new VillageCapacities(catalog);
-
         var logistics = new MarchLogistics(
-            _villages, _heroes, catalog, calculator, capacities, new HeroProgression(config.HeroSettings),
+            _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
             NullLogger<MarchLogistics>.Instance);
 
         var returner = new ReinforcementReturner(

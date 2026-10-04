@@ -84,7 +84,7 @@ internal sealed class MarketTestBed
 
     public MarketListingProjection Projection => new(Inventory, Heroes, Catalog);
 
-    public int Gold(Village village) => village.Resources.Single(r => r.ResourceType == TestKeys.Gold).Amount;
+    public long Gold(Village village) => village.Resources.Single(r => r.ResourceType == TestKeys.Gold).Amount;
 
     /// <summary>Меч продавця з 10 атаки — Power 10, коридор 70–130 золота.</summary>
     public EquipmentItem GivenSword(Guid? owner = null)

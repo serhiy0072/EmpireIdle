@@ -19,7 +19,6 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IHeroRepository _heroRepository;
         private readonly GameCatalog _catalog;
         private readonly MarchCalculator _calculator;
-        private readonly VillageCapacities _capacities;
         private readonly HeroProgression _progression;
         private readonly ILogger<MarchLogistics> _logger;
 
@@ -28,7 +27,6 @@ namespace EmpireIdle.Application.Marches.Services
             IHeroRepository heroRepository,
             GameCatalog catalog,
             MarchCalculator calculator,
-            VillageCapacities capacities,
             HeroProgression progression,
             ILogger<MarchLogistics> logger)
         {
@@ -36,7 +34,6 @@ namespace EmpireIdle.Application.Marches.Services
             _heroRepository = heroRepository;
             _catalog = catalog;
             _calculator = calculator;
-            _capacities = capacities;
             _progression = progression;
             _logger = logger;
         }
@@ -91,14 +88,11 @@ namespace EmpireIdle.Application.Marches.Services
             var village = await _villageRepository.GetByIdAsync(garrison.VillageId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village {garrison.VillageId} not found for garrison {garrison.Id}.");
 
-            var stored = 0;
-
             foreach (var (resourceType, amount) in cargo)
-                stored += village.GrantResource(
-                    resourceType, amount, _capacities.StorageCapFor(village, resourceType), utcNow);
+                village.GrantResource(resourceType, amount, utcNow);
 
-            _logger.LogInformation("March {MarchId} unloaded {Stored} of {Carried} carried resources.",
-                march.Id, stored, cargo.Values.Sum());
+            _logger.LogInformation("March {MarchId} unloaded {Carried} carried resources.",
+                march.Id, cargo.Values.Sum());
         }
 
         /// <summary>

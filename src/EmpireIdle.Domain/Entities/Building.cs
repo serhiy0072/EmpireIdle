@@ -162,17 +162,13 @@ namespace EmpireIdle.Domain.Entities
             DamagedProductionMultiplier = 1.0;
         }
 
-        /// <summary>
-        /// Забирає з буфера не більше, ніж <paramref name="limit"/>. Решта лишається
-        /// в буфері: місце на складі визначає, скільки взяти, а не скільки знищити.
-        /// </summary>
+        /// <summary>Забирає весь буфер: склад без стелі приймає все (GDD §4.1).</summary>
         /// <returns>Зібрана кількість.</returns>
-        public int Collect(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier, int limit)
+        public int Collect(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
-            var stored = StoredAt(config, utcNow, boost, locationMultiplier);
-            var collected = Math.Min(stored, Math.Max(0, limit));
+            var collected = StoredAt(config, utcNow, boost, locationMultiplier);
 
-            AccruedAmount = stored - collected;
+            AccruedAmount = 0;
             LastAccruedAt = utcNow;
             LastCollectedAt = utcNow;
 

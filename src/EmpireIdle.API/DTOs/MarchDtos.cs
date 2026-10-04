@@ -79,5 +79,5 @@ public record ScoutReportResponse(
     int Y,
     string Outcome,
     double? DefencePower,
-    Dictionary<string, int> Lootable,
+    Dictionary<string, long> Lootable,
     DateTime CreatedAt);

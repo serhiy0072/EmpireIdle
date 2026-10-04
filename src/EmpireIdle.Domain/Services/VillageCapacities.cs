@@ -14,21 +14,6 @@ namespace EmpireIdle.Domain.Services
         public VillageCapacities(GameCatalog catalog) => _catalog = catalog;
 
         /// <summary>
-        /// Місткість сховища для ресурсу. Золото в банку, решта на складі:
-        /// два різні сховища, два різні рівні. Будівля під будівництвом
-        /// місткості не дає.
-        /// </summary>
-        public int StorageCapFor(Village village, string resourceKey)
-        {
-            var storage = StorageFor(village, resourceKey, out var config);
-
-            if (config is null)
-                return int.MaxValue;
-
-            return storage is null ? 0 : config.BaseStorage * storage.Level.Value;
-        }
-
-        /// <summary>
         /// Недоторканий запас — абсолютне число від рівня сховища.
         /// Не частка від місткості: інакше качання складу піднімало б
         /// і захист, і здобич, і гравець не мав би важеля.

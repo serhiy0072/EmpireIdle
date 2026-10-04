@@ -72,7 +72,6 @@ namespace EmpireIdle.API.Controllers
 
         /// <summary>
         /// Зібрати накопичені ресурси з усіх будівель села разом.
-        /// Повний склад не зупиняє збір решти — він повертається у FullStorages.
         /// </summary>
         [HttpPost("{playerId:guid}/collect-all")]
         [ProducesResponseType(typeof(CollectAllResponse), StatusCodes.Status200OK)]
@@ -81,8 +80,7 @@ namespace EmpireIdle.API.Controllers
             var result = await _mediator.Send(new CollectAllBuildingsCommand(playerId), cancellationToken);
 
             return Ok(new CollectAllResponse(
-                result.Collected.Select(c => new CollectedResourceResponse(c.ResourceType, c.Amount)).ToList(),
-                result.FullStorages));
+                result.Collected.Select(c => new CollectedResourceResponse(c.ResourceType, c.Amount)).ToList()));
         }
 
         /// <summary>

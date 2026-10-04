@@ -42,5 +42,5 @@ namespace EmpireIdle.Application.Villages.ReadModels
         DateTime? DamagedUntil = null);
 
     /// <summary>Ресурс села.</summary>
-    public record ResourceView(string ResourceType, int Amount, bool IsUnlocked);
+    public record ResourceView(string ResourceType, long Amount, bool IsUnlocked);
 }

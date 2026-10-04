@@ -64,9 +64,6 @@
 
         // ---------- Село й будівлі ----------
 
-        /// <summary>resource — ключ ресурсу: назву в потрібному відмінку підставляє клієнт.</summary>
-        public static readonly RefusalReason VillageStorageFull = new("village.storageFull", "resource");
-
         public static readonly RefusalReason VillageAlreadyThere = new("village.alreadyThere");
 
         /// <summary>Правило A: стеля будівель від рівня світу.</summary>

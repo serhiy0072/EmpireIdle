@@ -1,30 +1,21 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.Services;
-using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Rewards.Granters
 {
-    /// <summary>
-    /// Нараховує ресурси в село. Обрізається по капу складу —
-    /// інакше нагорода вивела б гравця за межі, які тримає домен.
-    /// Виняток — <see cref="RewardContext.IgnoreStorageCap"/> (листи).
-    /// </summary>
+    /// <summary>Нараховує ресурси в село. Стелі складу немає (GDD §4.1).</summary>
     public class ResourceRewardGranter : IRewardGranter
     {
         private readonly IVillageRepository _villageRepository;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
-        private readonly VillageCapacities _capacities;
-        private readonly ILogger<ResourceRewardGranter> _logger;
 
-        public ResourceRewardGranter(IVillageRepository villageRepository, GameCatalog catalog, TimeProvider timeProvider, VillageCapacities capacities, ILogger<ResourceRewardGranter> logger)
+        public ResourceRewardGranter(IVillageRepository villageRepository, GameCatalog catalog, TimeProvider timeProvider)
         {
             _villageRepository = villageRepository;
             _catalog = catalog;
             _timeProvider = timeProvider;
-            _capacities = capacities;
-            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -44,13 +35,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {context.PlayerId}.");
 
-            var cap = context.IgnoreStorageCap ? int.MaxValue : _capacities.StorageCapFor(village, key);
-            var granted = village.GrantResource(key, context.Reward.Amount, cap, now);
-
-            if (granted < context.Reward.Amount)
-                _logger.LogInformation(
-                    "Reward from {Reference} capped for player {PlayerId}: {Granted} of {Requested} {Resource}",
-                    context.Reference, context.PlayerId, granted, context.Reward.Amount, key);
+            village.GrantResource(key, context.Reward.Amount, now);
         }
     }
 }

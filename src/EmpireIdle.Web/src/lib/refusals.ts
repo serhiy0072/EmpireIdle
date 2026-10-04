@@ -5,7 +5,6 @@
  * контрактний тест на беку з RefusalReasons. Тип нижче виводиться з того
  * файлу, тож новий ключ без тексту тут не пройде typecheck.
  */
-import { resourceGenitive } from "./resourceNames";
 
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
@@ -64,8 +63,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "garrison.notEnoughUnits": ({ need, have }) => `Воїнів цього загону менше, ніж треба: потрібно ${need}, є ${have}`,
 
   // ---------- Село й будівлі ----------
-  "village.storageFull": ({ resource }) =>
-    `Склад ${resourceGenitive(String(resource))} заповнений — витратьте частину, перш ніж збирати`,
   "village.alreadyThere": () => "Поселення вже стоїть на цій клітинці",
   "mail.nothingToClaim": () => "Тут нічого забирати — нагороду вже отримано",
   "mail.letterExpired": () => "Строк листа минув — нагорода згоріла",

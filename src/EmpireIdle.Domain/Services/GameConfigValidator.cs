@@ -538,8 +538,8 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Buildings cost resources unlocked later: {string.Join("; ", unreachable)}.");
 
-            // Кожен вироблюваний ресурс має сховище, інакше він накопичується
-            // без ліміту й тихо ламає економіку складу
+            // Кожен вироблюваний ресурс має сховище: стелі складу немає (GDD §4.1),
+            // але без сховища в ресурсу не було б захищеного запасу від грабунку
             var stored = config.Buildings
                 .Where(b => b.StoresResources is not null)
                 .SelectMany(b => b.StoresResources!)

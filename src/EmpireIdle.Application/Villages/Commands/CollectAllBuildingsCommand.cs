@@ -20,7 +20,6 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly WorldGeometry _geometry;
-        private readonly VillageCapacities _capacities;
         private readonly ILogger<CollectAllBuildingsCommandHandler> _logger;
 
         public CollectAllBuildingsCommandHandler(
@@ -31,7 +30,6 @@ namespace EmpireIdle.Application.Villages.Commands
             GameCatalog catalog,
             TimeProvider timeProvider,
             WorldGeometry geometry,
-            VillageCapacities capacities,
             ILogger<CollectAllBuildingsCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -41,7 +39,6 @@ namespace EmpireIdle.Application.Villages.Commands
             _catalog = catalog;
             _timeProvider = timeProvider;
             _geometry = geometry;
-            _capacities = capacities;
             _logger = logger;
         }
 
@@ -56,17 +53,13 @@ namespace EmpireIdle.Application.Villages.Commands
             var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
             var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
 
-            var summary = village.CollectAll(_catalog.Buildings,
-                resource => _capacities.StorageCapFor(village, resource), now, boost, locationMultiplier);
+            var summary = village.CollectAll(_catalog.Buildings, now, boost, locationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Collected all buildings for player {PlayerId}; full storages: {FullStorages}",
-                request.PlayerId, summary.FullStorages);
+            _logger.LogInformation("Collected all buildings for player {PlayerId}", request.PlayerId);
 
-            return new CollectAllView(
-                summary.Collected.Select(c => new CollectedResourceView(c.Key, c.Value)).ToList(),
-                summary.FullStorages.ToList());
+            return new CollectAllView(summary.Collected.Select(c => new CollectedResourceView(c.Key, c.Value)).ToList());
         }
     }
 }
