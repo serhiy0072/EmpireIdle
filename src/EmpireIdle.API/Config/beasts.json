@@ -5,6 +5,10 @@
       "MaxTameChanceMultiplier": 2.0,
       "PityWins": 10,
       "MaxRank": 5,
+      "LevelsPerRank": 10,
+      "FeedItemKey": "beast_feed",
+      "BaseExperience": 100,
+      "ExperienceGrowth": 1.25,
       "Types": [
         {
           "Key": "wolf",

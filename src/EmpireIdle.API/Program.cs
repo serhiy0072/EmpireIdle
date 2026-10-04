@@ -166,6 +166,7 @@ builder.Services.AddSingleton<BattleResolver>();
 builder.Services.AddSingleton<VillageCapacities>();
 builder.Services.AddSingleton<VillageStatus>();
 builder.Services.AddSingleton<BeastTaming>();
+builder.Services.AddSingleton<BeastProgression>();
 builder.Services.AddSingleton<ClanTerritoryRules>();
 builder.Services.AddSingleton<CityFallRules>();
 builder.Services.AddSingleton<PlunderCalculator>();

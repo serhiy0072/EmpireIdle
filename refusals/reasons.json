@@ -6,6 +6,13 @@
   "banner.notOpen": [
     "startsAt"
   ],
+  "beast.levelCapped": [
+    "level"
+  ],
+  "beast.notEnoughFeed": [
+    "need",
+    "have"
+  ],
   "beast.notTameable": [],
   "beast.penFull": [
     "capacity"

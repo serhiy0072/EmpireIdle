@@ -14,16 +14,18 @@ namespace EmpireIdle.Application.Beasts.Queries
         private readonly IBeastPenRepository _pens;
         private readonly IVillageRepository _villages;
         private readonly BeastTaming _taming;
+        private readonly BeastProgression _progression;
         private readonly VillageCapacities _capacities;
         private readonly VillageStatus _status;
         private readonly GameCatalog _catalog;
 
         public GetBeastPenQueryHandler(IBeastPenRepository pens, IVillageRepository villages, BeastTaming taming,
-            VillageCapacities capacities, VillageStatus status, GameCatalog catalog)
+            BeastProgression progression, VillageCapacities capacities, VillageStatus status, GameCatalog catalog)
         {
             _pens = pens;
             _villages = villages;
             _taming = taming;
+            _progression = progression;
             _capacities = capacities;
             _status = status;
             _catalog = catalog;
@@ -40,7 +42,10 @@ namespace EmpireIdle.Application.Beasts.Queries
 
             return new BeastPenView(
                 _capacities.BeastSlots(village, _status),
-                pen?.Beasts.Select(b => new BeastView(b.BeastKey, b.Rank, b.TamedAt)).ToList() ?? [],
+                pen?.Beasts
+                    .Select(b => new BeastView(b.BeastKey, b.Rank, b.Level, b.Experience,
+                        _progression.ExperienceToNext(b.Level), _progression.MaxLevel(b.Rank), b.TamedAt))
+                    .ToList() ?? [],
                 _catalog.Config.Beasts.Types
                     .Select(beast => new BeastTamingView(beast.Key, beast.MonsterKey,
                         _taming.ChanceFor(beast, penLevel), pen?.MissesFor(beast.Key) ?? 0, pityWins))

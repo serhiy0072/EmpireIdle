@@ -43,6 +43,11 @@ public static class TestKeys
     public const string LooseArtifact = "lone_charm";
     public const string SetKey = "dawn";
 
+    public const string BeastPen = "beastpen";
+    public const string BeastMonster = "wolves";
+    public const string Beast = "wolf";
+    public const string BeastFeed = "beast_feed";
+
     public const string Dungeon = "test_pit";
     public const string DungeonEnemy = "test_brute";
     public const string DungeonBoss = "test_warden";

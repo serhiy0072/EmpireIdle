@@ -37,6 +37,28 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Місце є, якщо вид уже живе тут (дублікат місця не займає) або є вільне.</summary>
         public bool HasRoomFor(string beastKey, int capacity) => Has(beastKey) || _beasts.Count < capacity;
 
+        /// <summary>
+        /// Годує звіра кормом (GDD §5.10). Бере не більше, ніж треба до стелі рівня:
+        /// корм понад стелю лишається гравцю, а не згоряє.
+        /// </summary>
+        /// <param name="offered">Скільки корму гравець готовий віддати.</param>
+        /// <param name="experienceToNext">Скільки досвіду треба з рівня L на L+1.</param>
+        /// <param name="levelsPerRank">Ранг × це число — стеля рівня.</param>
+        /// <returns>Скільки корму з'їдено; 0 — звір уже на стелі.</returns>
+        /// <exception cref="Exceptions.EntityNotFoundException">Такого звіра в звіринці немає.</exception>
+        public int Feed(string beastKey, int offered, Func<int, int> experienceToNext, int levelsPerRank, DateTime utcNow)
+        {
+            var beast = _beasts.FirstOrDefault(b => b.BeastKey == beastKey)
+                ?? throw new Exceptions.EntityNotFoundException("Beast", beastKey);
+
+            var eaten = beast.Feed(offered, experienceToNext, beast.Rank * levelsPerRank);
+
+            if (eaten > 0)
+                Touch(utcNow);
+
+            return eaten;
+        }
+
         /// <summary>Скільки перемог поспіль без звіра цього типу.</summary>
         public int MissesFor(string beastKey) => _pity.FirstOrDefault(p => p.BeastKey == beastKey)?.Misses ?? 0;
 
@@ -104,6 +126,13 @@ namespace EmpireIdle.Domain.Entities
         public Guid BeastPenId { get; private set; }
         public string BeastKey { get; private set; } = null!;
         public int Rank { get; private set; }
+
+        /// <summary>Рівень від корму; визначає силу пасивки. Не вище ранг × LevelsPerRank.</summary>
+        public int Level { get; private set; }
+
+        /// <summary>Досвід усередині поточного рівня.</summary>
+        public int Experience { get; private set; }
+
         public DateTime TamedAt { get; private set; }
 
         internal Beast(Guid id, Guid beastPenId, string beastKey, DateTime utcNow) : base(id)
@@ -111,12 +140,36 @@ namespace EmpireIdle.Domain.Entities
             BeastPenId = beastPenId;
             BeastKey = beastKey;
             Rank = 1;
+            Level = 1;
             TamedAt = utcNow;
         }
 
         protected Beast() { } // Для EF Core
 
         internal void RankUp() => Rank++;
+
+        /// <returns>Скільки корму з'їдено.</returns>
+        internal int Feed(int offered, Func<int, int> experienceToNext, int maxLevel)
+        {
+            var eaten = 0;
+
+            while (eaten < offered && Level < maxLevel)
+            {
+                var need = experienceToNext(Level) - Experience;
+                var take = Math.Min(need, offered - eaten);
+
+                Experience += take;
+                eaten += take;
+
+                if (Experience >= experienceToNext(Level))
+                {
+                    Level++;
+                    Experience = 0;
+                }
+            }
+
+            return eaten;
+        }
     }
 
     /// <summary>Перемоги поспіль без звіра одного типу — лічильник гарантії.</summary>

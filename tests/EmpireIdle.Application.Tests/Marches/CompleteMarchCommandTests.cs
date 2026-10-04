@@ -78,10 +78,15 @@ public class CompleteMarchCommandTests
                 UpgradeCostGrowth = 1.45 },
             new BuildingConfig { Key = "beastpen", BeastCapacityPerLevel = 1, UpgradeCostGrowth = 1.45 }
         ],
+        Items = [new ItemConfig { Key = "beast_feed", DisplayName = "Корм", Description = "Корм", Type = "feed" }],
         Beasts = new BeastsConfig
         {
             PityWins = 10,
             MaxRank = 2,
+            LevelsPerRank = 10,
+            FeedItemKey = "beast_feed",
+            BaseExperience = 100,
+            ExperienceGrowth = 1.25,
             Types = [new BeastConfig { Key = "wolf", MonsterKey = "wolves", TameChance = 0.2 }]
         },
         Units =

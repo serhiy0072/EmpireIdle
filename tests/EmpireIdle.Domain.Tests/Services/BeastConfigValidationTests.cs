@@ -6,29 +6,11 @@ namespace EmpireIdle.Domain.Tests.Services;
 
 /// <summary>
 /// Звірі в конфігу (GDD §5.10). Кожен тест ламає одну річ у валідному конфігу:
-/// звір із наявного монстра, звіринець із місцями.
+/// звір із наявного монстра, звіринець із місцями, корм-предмет.
 /// </summary>
 public class BeastConfigValidationTests
 {
-    private const string Pen = "beastpen";
-
-    private static GameConfig Valid()
-    {
-        var config = new GameConfigBuilder().WithBuildings(Pen).Build();
-
-        config.Buildings.Single(b => b.Key == Pen).BeastCapacityPerLevel = 1;
-        config.Monsters = [new MonsterConfig { Key = "wolves", DisplayName = "Вовки", Units = [], Rewards = [] }];
-        config.Beasts = new BeastsConfig
-        {
-            TameChancePerPenLevel = 0.01,
-            MaxTameChanceMultiplier = 2,
-            PityWins = 10,
-            MaxRank = 5,
-            Types = [new BeastConfig { Key = "wolf", DisplayName = "Вовк", MonsterKey = "wolves", TameChance = 0.2 }]
-        };
-
-        return config;
-    }
+    private static GameConfig Valid() => new GameConfigBuilder().WithBeasts().Build();
 
     private static InvalidOperationException Rejects(Action<GameConfig> break_)
     {
@@ -44,7 +26,7 @@ public class BeastConfigValidationTests
 
     [Fact]
     public void Validate_ShouldRejectABeastOfAnUnknownMonster()
-        => Assert.Contains("wolf", Rejects(c => c.Beasts.Types[0].MonsterKey = "ghosts").Message);
+        => Assert.Contains(TestKeys.Beast, Rejects(c => c.Beasts.Types[0].MonsterKey = "ghosts").Message);
 
     [Theory]
     [InlineData(0)]
@@ -55,7 +37,8 @@ public class BeastConfigValidationTests
     /// <summary>Два звірі з одного монстра: тип монстра однозначно визначає звіра.</summary>
     [Fact]
     public void Validate_ShouldRejectTwoBeastsOfOneMonster()
-        => Rejects(c => c.Beasts.Types.Add(new BeastConfig { Key = "dire_wolf", MonsterKey = "wolves", TameChance = 0.1 }));
+        => Rejects(c => c.Beasts.Types.Add(
+            new BeastConfig { Key = "dire_wolf", MonsterKey = TestKeys.BeastMonster, TameChance = 0.1 }));
 
     [Fact]
     public void Validate_ShouldRejectAChanceCapBelowTheBase()
@@ -63,5 +46,23 @@ public class BeastConfigValidationTests
 
     [Fact]
     public void Validate_ShouldRejectBeastsWithoutAPen()
-        => Assert.Contains("beast slots", Rejects(c => c.Buildings.Single(b => b.Key == Pen).BeastCapacityPerLevel = 0).Message);
+        => Assert.Contains("beast slots",
+            Rejects(c => c.Buildings.Single(b => b.Key == TestKeys.BeastPen).BeastCapacityPerLevel = 0).Message);
+
+    /// <summary>Годувати нічим: корм мусить бути стаковим предметом із каталогу.</summary>
+    [Fact]
+    public void Validate_ShouldRejectAnUnknownFeedItem()
+        => Assert.Contains("FeedItemKey", Rejects(c => c.Beasts.FeedItemKey = "nothing").Message);
+
+    [Theory]
+    [InlineData(0, 100, 1.25)]
+    [InlineData(10, 0, 1.25)]
+    [InlineData(10, 100, 0.9)]
+    public void Validate_ShouldRejectBrokenLeveling(int levelsPerRank, int baseExperience, double growth)
+        => Rejects(c =>
+        {
+            c.Beasts.LevelsPerRank = levelsPerRank;
+            c.Beasts.BaseExperience = baseExperience;
+            c.Beasts.ExperienceGrowth = growth;
+        });
 }

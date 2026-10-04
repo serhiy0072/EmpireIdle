@@ -353,5 +353,11 @@
 
         /// <summary>Цей монстр не приручається.</summary>
         public static readonly RefusalReason BeastNotTameable = new("beast.notTameable");
+
+        /// <summary>Корму менше, ніж гравець хоче віддати. need — скільки просив, have — скільки є.</summary>
+        public static readonly RefusalReason BeastNotEnoughFeed = new("beast.notEnoughFeed", "need", "have");
+
+        /// <summary>Звір на стелі рівня для свого рангу: далі веде лише дублікат. level — стеля.</summary>
+        public static readonly RefusalReason BeastLevelCapped = new("beast.levelCapped", "level");
     }
 }

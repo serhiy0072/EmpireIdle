@@ -305,6 +305,55 @@
             return this;
         }
 
+        /// <summary>
+        /// Звірі (GDD §5.10): звіринець на одне місце за рівень, монстр, з якого приручається
+        /// вовк, і корм-предмет. Будівлі задає WithBuildings, тож звіринець додається поверх них.
+        /// </summary>
+        public GameConfigBuilder WithBeasts(Action<BeastsConfig>? tune = null)
+        {
+            if (_config.Buildings.Count == 0)
+                WithBuildings();
+
+            var pen = Building(TestKeys.BeastPen);
+            pen.BeastCapacityPerLevel = 1;
+            _config.Buildings.Add(pen);
+
+            _config.Monsters.Add(new MonsterConfig
+            {
+                Key = TestKeys.BeastMonster,
+                DisplayName = "Вовки",
+                MinLevel = 1,
+                MaxLevel = 10,
+                Units = [],
+                Rewards = []
+            });
+
+            _config.Items.Add(new ItemConfig
+            {
+                Key = TestKeys.BeastFeed,
+                DisplayName = "Корм",
+                Description = "Корм для звірів",
+                Type = "feed"
+            });
+
+            _config.Beasts = new BeastsConfig
+            {
+                TameChancePerPenLevel = 0.01,
+                MaxTameChanceMultiplier = 2,
+                PityWins = 10,
+                MaxRank = 5,
+                LevelsPerRank = 10,
+                FeedItemKey = TestKeys.BeastFeed,
+                BaseExperience = 100,
+                ExperienceGrowth = 1.25,
+                Types = [new BeastConfig { Key = TestKeys.Beast, DisplayName = "Вовк", MonsterKey = TestKeys.BeastMonster, TameChance = 0.2 }]
+            };
+
+            tune?.Invoke(_config.Beasts);
+
+            return this;
+        }
+
         public GameConfig Build() => _config;
 
         /// <summary>Конфіг разом із каталогом — тобто вже провалідований.</summary>

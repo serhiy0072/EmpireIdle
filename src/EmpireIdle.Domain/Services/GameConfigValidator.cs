@@ -347,7 +347,7 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         /// <summary>
         /// Звірі (GDD §5.10): кожен тип приручається з наявного монстра, один звір на монстра,
-        /// шанс у (0; 1], і є звіринець із місцями — інакше приручати нікуди.
+        /// шанс у (0; 1], є звіринець із місцями й корм-предмет — інакше приручати нікуди й годувати нічим.
         /// </summary>
         private static void ValidateBeasts(GameConfig config)
         {
@@ -375,6 +375,15 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     "Beasts need a non-negative chance per pen level, a chance cap multiplier of at least 1, "
                     + "PityWins and MaxRank of at least 1.");
+
+            if (beasts.LevelsPerRank < 1 || beasts.BaseExperience < 1 || beasts.ExperienceGrowth < 1)
+                throw new InvalidOperationException(
+                    "Beasts need LevelsPerRank and BaseExperience of at least 1 and ExperienceGrowth of at least 1.");
+
+            // Корм — стаковий предмет: спорядження поштучне й годувати ним не можна
+            if (config.Items.FirstOrDefault(i => i.Key == beasts.FeedItemKey) is not { Slot: null })
+                throw new InvalidOperationException(
+                    $"Beasts.FeedItemKey '{beasts.FeedItemKey}' must be a stackable item from Items.");
 
             if (!config.Buildings.Any(b => b.BeastCapacityPerLevel > 0))
                 throw new InvalidOperationException("Beasts are configured, but no building gives beast slots.");

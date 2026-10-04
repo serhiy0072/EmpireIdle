@@ -116,6 +116,13 @@
         "Giftable": true
       },
       {
+        "Key": "beast_feed",
+        "DisplayName": "Корм для звірів",
+        "Description": "Годуйте прирученого звіра в звіринці — він набирає рівень, і його пасивка сильнішає",
+        "Rarity": "common",
+        "Type": "feed"
+      },
+      {
         "Key": "sword_iron",
         "Type": "equipment",
         "Rarity": "common",
