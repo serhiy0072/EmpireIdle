@@ -13,6 +13,7 @@ export type CatalogResource = components["schemas"]["CatalogResource"];
 export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
 export type CatalogPassive = components["schemas"]["CatalogPassive"];
 export type CatalogUnit = components["schemas"]["CatalogUnit"];
+export type CatalogBeast = components["schemas"]["CatalogBeast"];
 export type CatalogArtifactSet = components["schemas"]["CatalogArtifactSet"];
 export type CatalogSetRarity = components["schemas"]["CatalogSetRarity"];
 export type CatalogArtifactSlot = components["schemas"]["CatalogArtifactSlot"];
@@ -31,6 +32,9 @@ export interface Catalog {
   resourceName: (key: string) => string;
   buildingName: (key: string) => string;
   unitName: (key: string) => string;
+  beastName: (key: string) => string;
+  /** Звір, якого дає монстр цього типу; null — монстр не приручається. */
+  beastForMonster: (monsterType: string) => CatalogBeast | null;
   /** Юніти, які ця будівля вже може тренувати на своєму поточному рівні. */
   unitsFor: (buildingType: string, buildingLevel: number) => CatalogUnit[];
   /** Ключі будівель, що тренують хоч один тип юнітів. */
@@ -92,6 +96,8 @@ export function useCatalog(): Catalog {
     const resources = new Map((data?.resources ?? []).map((resource) => [resource.key, resource]));
     const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
     const units = new Map((data?.units ?? []).map((unit) => [unit.key, unit]));
+    const beasts = new Map((data?.beasts ?? []).map((beast) => [beast.key, beast]));
+    const beastsByMonster = new Map((data?.beasts ?? []).map((beast) => [beast.monsterKey, beast]));
     // SetKey предмета («dawn_rare») → родина («dawn»): так картка артефакту знає свій набір
     const familyBySetKey = new Map(
       (data?.artifactSets ?? []).flatMap((set) => set.rarities.map((rarity) => [rarity.setKey, set] as const)),
@@ -110,6 +116,8 @@ export function useCatalog(): Catalog {
       resourceName: (key) => resources.get(key)?.displayName ?? key,
       buildingName: (key) => buildings.get(key)?.displayName ?? key,
       unitName: (key) => units.get(key)?.displayName ?? key,
+      beastName: (key) => beasts.get(key)?.displayName ?? key,
+      beastForMonster: (monsterType) => beastsByMonster.get(monsterType) ?? null,
       unitsFor: (buildingType, buildingLevel) =>
         (data?.units ?? []).filter(
           (unit) => unit.requiresBuilding === buildingType && unit.requiresBuildingLevel <= buildingLevel,

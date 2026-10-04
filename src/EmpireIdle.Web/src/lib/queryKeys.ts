@@ -20,6 +20,7 @@ export const queryKeys = {
   scoutReports: (playerId: string) => ["scoutReports", playerId] as const,
   tutorial: (playerId: string) => ["tutorial", playerId] as const,
   inventory: (playerId: string) => ["inventory", playerId] as const,
+  beasts: (playerId: string) => ["beasts", playerId] as const,
   /** Історія каналу; для приватного — з конкретним співрозмовником. */
   chatHistory: (playerId: string, channel: string, partnerId: string | null) =>
     ["chat", playerId, channel, partnerId] as const,

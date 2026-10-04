@@ -68,7 +68,8 @@ namespace EmpireIdle.Application.Map.Queries
                 if (monster is null)
                     return null;
 
-                return new MapCellOccupant("Monster", monster.Id, monster.Type,monster.Level,_armyBuilder.BuildArmy(monster.Type, monster.Level));
+                return new MapCellOccupant("Monster", monster.Id, monster.Type, monster.Level,
+                    _armyBuilder.BuildArmy(monster.Type, monster.Level), MonsterType: monster.Type);
             }
 
             if (cell.OccupantType == MapOccupantType.ClanStructure)

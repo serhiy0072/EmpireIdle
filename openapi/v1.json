@@ -8570,6 +8570,30 @@
         },
         "additionalProperties": false
       },
+      "CatalogBeast": {
+        "required": [
+          "displayName",
+          "effect",
+          "key",
+          "monsterKey"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "monsterKey": {
+            "type": "string"
+          },
+          "effect": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogBuilding": {
         "required": [
           "displayName",
@@ -8821,6 +8845,7 @@
         "required": [
           "artifactSets",
           "artifactSlots",
+          "beasts",
           "buildings",
           "healGemsPerUnit",
           "heroClasses",
@@ -8870,6 +8895,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CatalogUnit"
+            }
+          },
+          "beasts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogBeast"
             }
           },
           "artifactSets": {
@@ -11156,6 +11187,10 @@
           "shieldUntil": {
             "type": "string",
             "format": "date-time",
+            "nullable": true
+          },
+          "monsterType": {
+            "type": "string",
             "nullable": true
           }
         },

@@ -33,8 +33,10 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
     UpgradeCompleted: [queryKeys.village(playerId), queryKeys.quests(playerId)],
     // Бій ранить героїв і юнітів гарнізону
     // Після бою марш розвертається, монстр міг зникнути з мапи
+    // Перемога з наміром «Приручити» селить звіра в звіринець
     BattleFinished: [
       queryKeys.battleReports(playerId),
+      queryKeys.beasts(playerId),
       queryKeys.heroes(playerId),
       queryKeys.garrison(playerId),
       queryKeys.quests(playerId),

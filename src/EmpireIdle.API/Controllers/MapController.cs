@@ -59,7 +59,7 @@ namespace EmpireIdle.API.Controllers
                 cell.X, cell.Y,
                 cell.TerrainType, cell.Passable, cell.Habitable, cell.MoveCost,
                 occupant?.OccupantType, occupant?.OccupantId, occupant?.OccupantName,
-                occupant?.MonsterLevel, occupant?.MonsterUnits, occupant?.ShieldUntil));
+                occupant?.MonsterLevel, occupant?.MonsterUnits, occupant?.ShieldUntil, occupant?.MonsterType));
         }
     }
 }

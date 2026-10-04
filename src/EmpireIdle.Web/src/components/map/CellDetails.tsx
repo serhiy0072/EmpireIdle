@@ -7,6 +7,7 @@ import type {
   MarchIntent,
   MarchTargetType,
 } from "../../lib/apiTypes";
+import { useBeastPen } from "../../lib/queries/beasts";
 import { useCatalog } from "../../lib/queries/catalog";
 import { MARCH_INTENT, MARCH_TARGET, useRecallCamp } from "../../lib/queries/marches";
 import { useSendScout } from "../../lib/queries/scouting";
@@ -41,7 +42,16 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
   const recall = useRecallCamp(playerId);
   const now = useNow();
 
+  const pen = useBeastPen(playerId);
+
   const occupant = cell.occupantType ?? null;
+
+  // Приручити можна, лише коли з цього монстра є звір і звіринець уже відкритий (GDD §5.10)
+  const beast = occupant === "Monster" && cell.monsterType != null ? catalog.beastForMonster(cell.monsterType) : null;
+  const tameable =
+    beast !== null && (pen.data?.capacity ?? 0) > 0
+      ? (pen.data?.taming.find((taming) => taming.beastKey === beast.key) ?? null)
+      : null;
   const ownStructure =
     occupant === "ClanStructure" ? (territory?.structures.find((s) => s.id === cell.occupantId) ?? null) : null;
   const structureName = `Споруда клану${cell.occupantName == null ? "" : ` [${cell.occupantName}]`}`;
@@ -204,6 +214,18 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
           className="w-full rounded-lg bg-rose-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-rose-700"
         >
           Атакувати
+        </button>
+      )}
+
+      {tameable !== null && cell.occupantId != null && (
+        <button
+          type="button"
+          onClick={() =>
+            onMarch({ type: MARCH_TARGET.monster, id: cell.occupantId as string, name, intent: MARCH_INTENT.tame })
+          }
+          className="w-full rounded-lg border border-amber-400 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-50"
+        >
+          Приручити · шанс {Math.round(tameable.chance * 1000) / 10}%
         </button>
       )}
 

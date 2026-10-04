@@ -24,6 +24,7 @@
         IReadOnlyList<CatalogResource> Resources,
         IReadOnlyList<CatalogBuilding> Buildings,
         IReadOnlyList<CatalogUnit> Units,
+        IReadOnlyList<CatalogBeast> Beasts,
         IReadOnlyList<CatalogArtifactSet> ArtifactSets,
         IReadOnlyList<string> HeroClasses,
         int MaxConstellation,
@@ -45,6 +46,10 @@
     /// FloorSeconds; щонайменше 1 gem. Останні FloorSeconds не прискорюються.
     /// </summary>
     public record CatalogSpeedUp(int FloorSeconds, double Factor, double Exponent);
+
+    /// <summary>Тип звіра (GDD §5.10): з якого монстра приручається й на що діє пасивка.</summary>
+    /// <param name="Effect">Production, Attack, Defense, MarchSpeed або Carry.</param>
+    public record CatalogBeast(string Key, string DisplayName, string MonsterKey, string Effect);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
     /// <param name="Lore">Історія героя для кодексу й картки; коротший підсумок — у Description.</param>

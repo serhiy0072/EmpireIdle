@@ -116,12 +116,18 @@ namespace EmpireIdle.Application.Catalog
                     unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList()))
                 .ToList();
 
+            var beasts = config.Beasts.Types
+                .Select(beast => new CatalogBeast(beast.Key, Name("beast", beast.Key, beast.DisplayName), beast.MonsterKey,
+                    beast.Effect.ToString()))
+                .ToList();
+
             var response = new CatalogResponse(
                 heroes,
                 items,
                 resources,
                 buildings,
                 units,
+                beasts,
                 ArtifactSets(config, Name),
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxConstellation,

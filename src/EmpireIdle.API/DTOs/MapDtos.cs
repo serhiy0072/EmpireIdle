@@ -30,4 +30,4 @@ public record MapCellDetailsResponse(
     string TerrainType, bool Passable, bool Habitable, double MoveCost,
     string? OccupantType, Guid? OccupantId, string? OccupantName,
     int? MonsterLevel, Dictionary<string, int>? MonsterUnits,
-    DateTime? ShieldUntil);
+    DateTime? ShieldUntil, string? MonsterType);

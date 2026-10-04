@@ -18,6 +18,7 @@ const TYPE_LABELS: Record<string, string> = {
   boost: "Буст",
   teleport: "Телепорт",
   evolution: "Еволюція",
+  feed: "Корм",
 };
 
 /**
@@ -93,6 +94,12 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
 
       {item.type === "evolution" && (
         <p className="mt-2 text-xs text-slate-500">Витрачається під час еволюції героя.</p>
+      )}
+
+      {item.type === "feed" && (
+        <Link to="/beasts" className="mt-2 block text-xs text-emerald-700 hover:underline">
+          Нагодувати звірів у звіринці
+        </Link>
       )}
     </div>
   );

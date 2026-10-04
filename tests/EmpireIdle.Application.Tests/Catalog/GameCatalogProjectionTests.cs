@@ -37,6 +37,18 @@ public class GameCatalogProjectionTests
         Assert.Equal("Колись був ковалем.", hero.Lore);
     }
 
+    /// <summary>Звірі в каталозі: клієнт бере звідти назву, монстра-джерело й ефект пасивки (GDD §5.10).</summary>
+    [Fact]
+    public void Response_ShouldCarryTheBeasts()
+    {
+        var catalog = new GameConfigBuilder().WithBeasts().BuildCatalog();
+
+        var beast = Assert.Single(new GameCatalogProjection(catalog).ResponseFor(null).Beasts);
+
+        Assert.Equal((TestKeys.Beast, "Вовк", TestKeys.BeastMonster, "Attack"),
+            (beast.Key, beast.DisplayName, beast.MonsterKey, beast.Effect));
+    }
+
     /// <summary>Ранг і слот ідуть рядками: число в типах клієнта вимагало б власної мапи.</summary>
     [Fact]
     public void Response_ShouldSpellOutRankAndSlot()

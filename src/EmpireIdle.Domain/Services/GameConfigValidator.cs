@@ -487,6 +487,7 @@ namespace EmpireIdle.Domain.Services
                 .Concat(config.Resources.Select(r => $"resource.{r.Key}"))
                 .Concat(config.Units.Select(u => $"unit.{u.Key}"))
                 .Concat(config.Monsters.Select(m => $"monster.{m.Key}"))
+                .Concat(config.Beasts.Types.Select(b => $"beast.{b.Key}"))
                 .Concat(config.Equipment.ArtifactSets.Select(s => $"artifactSet.{s.Key}"))
                 .Concat(config.Equipment.ArtifactSlots.Select(s => $"artifactSlot.{s.Key}"))
                 .ToHashSet();
