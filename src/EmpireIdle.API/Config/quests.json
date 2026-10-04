@@ -230,6 +230,11 @@
           {
             "Type": "Gems",
             "Amount": 10
+          },
+          {
+            "Type": "Item",
+            "Key": "beast_feed",
+            "Amount": 30
           }
         ]
       },
@@ -266,6 +271,11 @@
           {
             "Type": "Gems",
             "Amount": 15
+          },
+          {
+            "Type": "Item",
+            "Key": "beast_feed",
+            "Amount": 50
           }
         ]
       },

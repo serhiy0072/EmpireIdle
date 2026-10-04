@@ -71,6 +71,11 @@
           "ItemKey": "teleport",
           "PriceGems": 500,
           "MaxPerPurchase": 1
+        },
+        {
+          "ItemKey": "beast_feed",
+          "PriceGems": 1,
+          "MaxPerPurchase": 100
         }
       ],
       "Banners": [

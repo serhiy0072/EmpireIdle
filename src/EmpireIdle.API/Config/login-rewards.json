@@ -13,7 +13,7 @@
         { "Rewards": [ { "Type": "Gems", "Amount": 20 } ] },
         { "Rewards": [ { "Type": "Gems", "Amount": 50 } ] }
       ],
-      "Weekly": [ { "Type": "Gems", "Amount": 100 } ],
+      "Weekly": [ { "Type": "Gems", "Amount": 100 }, { "Type": "Item", "Key": "beast_feed", "Amount": 300 } ],
       "Monthly": [ { "Type": "Item", "Key": "teleport", "Amount": 3 } ]
     }
   }

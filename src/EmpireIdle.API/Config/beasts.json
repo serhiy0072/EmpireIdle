@@ -8,7 +8,7 @@
       "LevelsPerRank": 10,
       "FeedItemKey": "beast_feed",
       "BaseExperience": 100,
-      "ExperienceGrowth": 1.25,
+      "ExperienceGrowth": 1.08,
       "Types": [
         {
           "Key": "wolf",
