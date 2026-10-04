@@ -50,6 +50,89 @@
           }
         ],
         "RewardGrowth": 1.5
+      },
+      {
+        "Key": "boar",
+        "DisplayName": "Вепр",
+        "MinLevel": 2,
+        "MaxLevel": 7,
+        "RequiresServerLevel": 0,
+        "Units": [
+          {
+            "UnitType": "infantry",
+            "Count": 12
+          }
+        ],
+        "UnitGrowth": 1.5,
+        "Rewards": [
+          {
+            "Resource": "food",
+            "Amount": 70
+          },
+          {
+            "Resource": "wood",
+            "Amount": 30
+          }
+        ],
+        "RewardGrowth": 1.5
+      },
+      {
+        "Key": "bear",
+        "DisplayName": "Ведмідь",
+        "MinLevel": 4,
+        "MaxLevel": 10,
+        "RequiresServerLevel": 1,
+        "Units": [
+          {
+            "UnitType": "infantry",
+            "Count": 20
+          }
+        ],
+        "UnitGrowth": 1.55,
+        "Rewards": [
+          {
+            "Resource": "food",
+            "Amount": 60
+          },
+          {
+            "Resource": "iron",
+            "Amount": 50
+          },
+          {
+            "Resource": "gold",
+            "Amount": 40
+          }
+        ],
+        "RewardGrowth": 1.5
+      },
+      {
+        "Key": "griffin",
+        "DisplayName": "Грифон",
+        "MinLevel": 8,
+        "MaxLevel": 15,
+        "RequiresServerLevel": 3,
+        "Units": [
+          {
+            "UnitType": "cavalry",
+            "Count": 20
+          },
+          {
+            "UnitType": "archer",
+            "Count": 15
+          }
+        ],
+        "UnitGrowth": 1.6,
+        "Rewards": [
+          {
+            "Resource": "gold",
+            "Amount": 150
+          },
+          {
+            "Resource": "iron",
+            "Amount": 120
+          }
+        ],
+        "RewardGrowth": 1.5
       }
     ]
   }
