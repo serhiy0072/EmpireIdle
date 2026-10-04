@@ -365,5 +365,16 @@
 
         /// <summary>Такий самий ефект уже дає інший звір; beast — його ключ.</summary>
         public static readonly RefusalReason BeastEffectActive = new("beast.effectActive", "beast");
+
+        // ---------- Телепорти ----------
+
+        /// <summary>Клітина далі, ніж дозволяє телепорт ближнього переїзду; range — його радіус.</summary>
+        public static readonly RefusalReason TeleportTooFar = new("teleport.tooFar", "range");
+
+        /// <summary>Клановий телепорт — без клану.</summary>
+        public static readonly RefusalReason TeleportNoClan = new("teleport.noClan");
+
+        /// <summary>Клановий телепорт — клітина поза територією свого клану.</summary>
+        public static readonly RefusalReason TeleportOutsideClanTerritory = new("teleport.outsideClanTerritory");
     }
 }

@@ -73,6 +73,21 @@
           "MaxPerPurchase": 1
         },
         {
+          "ItemKey": "teleport_nearby",
+          "PriceGems": 200,
+          "MaxPerPurchase": 5
+        },
+        {
+          "ItemKey": "teleport_clan",
+          "PriceGems": 150,
+          "MaxPerPurchase": 5
+        },
+        {
+          "ItemKey": "teleport_random",
+          "PriceGems": 50,
+          "MaxPerPurchase": 5
+        },
+        {
           "ItemKey": "beast_feed",
           "PriceGems": 1,
           "MaxPerPurchase": 100

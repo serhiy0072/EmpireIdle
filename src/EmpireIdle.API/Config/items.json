@@ -116,6 +116,34 @@
         "Giftable": true
       },
       {
+        "Key": "teleport_nearby",
+        "DisplayName": "Ближній телепорт",
+        "Description": "Переносить поселення на обрану вільну клітину не далі 100 клітин від нинішнього місця",
+        "Rarity": "common",
+        "Type": "teleport",
+        "TeleportScope": "Nearby",
+        "TeleportRange": 100,
+        "Giftable": true
+      },
+      {
+        "Key": "teleport_clan",
+        "DisplayName": "Клановий телепорт",
+        "Description": "Переносить поселення на обрану вільну клітину території свого клану",
+        "Rarity": "common",
+        "Type": "teleport",
+        "TeleportScope": "ClanTerritory",
+        "Giftable": true
+      },
+      {
+        "Key": "teleport_random",
+        "DisplayName": "Випадковий телепорт",
+        "Description": "Переносить поселення на випадкову вільну клітину відкритої частини світу",
+        "Rarity": "common",
+        "Type": "teleport",
+        "TeleportScope": "Random",
+        "Giftable": true
+      },
+      {
         "Key": "beast_feed",
         "DisplayName": "Корм для звірів",
         "Description": "Годуйте прирученого звіра в звіринці — він набирає рівень, і його пасивка сильнішає",

@@ -8760,6 +8760,10 @@
           },
           "giftable": {
             "type": "boolean"
+          },
+          "teleportScope": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

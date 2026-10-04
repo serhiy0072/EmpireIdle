@@ -36,6 +36,7 @@ namespace EmpireIdle.Domain.Services
             ValidateUnlockThresholds(config);
             ValidateMarket(config);
             ValidateBeasts(config);
+            ValidateTeleports(config);
             ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
@@ -401,6 +402,18 @@ namespace EmpireIdle.Domain.Services
 
             if (!config.Buildings.Any(b => b.BeastCapacityPerLevel > 0))
                 throw new InvalidOperationException("Beasts are configured, but no building gives beast slots.");
+        }
+
+        /// <summary>Телепорт ближнього переїзду без радіусу не переносив би нікуди (GDD §8.9).</summary>
+        private static void ValidateTeleports(GameConfig config)
+        {
+            var broken = config.Items
+                .Where(i => i.Type == "teleport" && i.TeleportScope == TeleportScope.Nearby && i.TeleportRange <= 0)
+                .Select(i => i.Key)
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException($"Nearby teleports need a positive TeleportRange: {string.Join(", ", broken)}.");
         }
 
         private static void ValidateMarket(GameConfig config)

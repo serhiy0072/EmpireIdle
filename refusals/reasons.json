@@ -234,7 +234,12 @@
   ],
   "teleport.cellOccupied": [],
   "teleport.cellUnsuitable": [],
+  "teleport.noClan": [],
+  "teleport.outsideClanTerritory": [],
   "teleport.outsideRegion": [],
+  "teleport.tooFar": [
+    "range"
+  ],
   "territory.cellTaken": [],
   "territory.cellUnfit": [],
   "territory.foreignStructure": [],

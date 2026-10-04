@@ -79,6 +79,7 @@
     /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
     /// <param name="ArtifactSlot">Тип слота артефакта (ключ з ArtifactSlots); null — не артефакт.</param>
     /// <param name="Tradeable">Стаковий предмет можна виставити на ринок; спорядження торгується завжди.</param>
+    /// <param name="TeleportScope">Для телепорта — Exact, Nearby, ClanTerritory або Random (GDD §8.9); null для решти.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -92,7 +93,8 @@
         string? ArtifactSlot,
         int PriceGold,
         bool Tradeable,
-        bool Giftable);
+        bool Giftable,
+        string? TeleportScope);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);

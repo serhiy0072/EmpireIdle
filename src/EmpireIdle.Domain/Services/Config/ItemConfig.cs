@@ -83,8 +83,14 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>
         /// Стаковий предмет можна подарувати члену свого клану (GDD §8.8).
-        /// Поки що лише телепорт.
+        /// Поки що лише телепорти.
         /// </summary>
         public bool Giftable { get; set; }
+
+        /// <summary>Для телепорта — куди він переносить (GDD §8.9). Решта предметів поле ігнорує.</summary>
+        public TeleportScope TeleportScope { get; set; }
+
+        /// <summary>Для телепорта Nearby — найдальша клітина від нинішнього села (відстань Чебишева).</summary>
+        public int TeleportRange { get; set; }
     }
 }
