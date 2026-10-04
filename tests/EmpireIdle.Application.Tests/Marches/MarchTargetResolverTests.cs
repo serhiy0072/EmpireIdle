@@ -2,6 +2,7 @@
 using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -25,13 +26,13 @@ public class MarchTargetResolverTests
         Combat = new CombatConfig { NewbieShieldTownHallLevel = ShieldLevel }
     };
 
-    private static MarchTargetResolver Resolver()
+    private static MarchTargetResolver Resolver(IVillageRepository? villages = null, IActiveEffectRepository? effects = null)
     {
         var catalog = new GameCatalog(Config());
 
         return new MarchTargetResolver(
             Substitute.For<IMonsterRepository>(),
-            Substitute.For<IVillageRepository>(),
+            villages ?? Substitute.For<IVillageRepository>(),
             Substitute.For<IGarrisonRepository>(),
             Substitute.For<IHeroRepository>(),
             new MonsterArmyBuilder(catalog),
@@ -41,7 +42,8 @@ public class MarchTargetResolverTests
             Substitute.For<IClanStructureRepository>(),
             Substitute.For<IClanRepository>(),
             new ClanTerritoryRules(catalog),
-            Substitute.For<IMarchRepository>());
+            Substitute.For<IMarchRepository>(),
+            TestEffects.Resolver(effects ?? Substitute.For<IActiveEffectRepository>()));
     }
 
     private static Village NewVillage(int townHallLevel)
@@ -112,5 +114,26 @@ public class MarchTargetResolverTests
             Resolver().EnsureAttackAllowed(NewVillage(townHallLevel: 5), TargetOf(target), Now.AddHours(24)));
 
         Assert.Null(afterShield);
+    }
+
+    /// <summary>
+    /// Буст захисту господаря (крамниця чи пасивка звіра) — у силі оборони села. Прев'ю бачить те саме,
+    /// що й бій: без цього куплений буст захисту не діяв ніде.
+    /// </summary>
+    [Fact]
+    public async Task ResolveAsync_ShouldApplyTheOwnersDefenceBoost()
+    {
+        var target = NewVillage(townHallLevel: 5);
+        var villages = Substitute.For<IVillageRepository>();
+        villages.GetByIdAsync(target.Id, Arg.Any<CancellationToken>()).Returns(target);
+
+        var effects = Substitute.For<IActiveEffectRepository>();
+        effects.GetAsync(target.PlayerId, EffectTarget.Defense, Arg.Any<CancellationToken>())
+            .Returns(new ActiveEffect(Guid.NewGuid(), target.PlayerId, EffectTarget.Defense, 1.25, Now, Now.AddHours(8), "defence"));
+
+        var resolved = await Resolver(villages, effects)
+            .ResolveAsync(MarchTargetType.Village, target.Id, NewVillage(townHallLevel: 5), Now, CancellationToken.None);
+
+        Assert.Equal(1.25, resolved.DefenceMultiplier, precision: 10);
     }
 }

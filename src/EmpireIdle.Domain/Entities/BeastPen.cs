@@ -59,6 +59,33 @@ namespace EmpireIdle.Domain.Entities
             return eaten;
         }
 
+        /// <summary>
+        /// Вмикає пасивку звіра (GDD §5.10): діє <paramref name="duration"/>, перезаряджається
+        /// <paramref name="cooldown"/> від моменту активації. Два звірі з тим самим ефектом
+        /// одночасно не діють — інакше місця звіринця множили б один бонус.
+        /// </summary>
+        /// <param name="effectOf">Ефект звіра за ключем — з конфіга.</param>
+        public void Activate(string beastKey, Func<string, EffectTarget> effectOf, TimeSpan duration, TimeSpan cooldown,
+            DateTime utcNow)
+        {
+            var beast = _beasts.FirstOrDefault(b => b.BeastKey == beastKey)
+                ?? throw new Exceptions.EntityNotFoundException("Beast", beastKey);
+
+            if (beast.CooldownUntil is { } readyAt && readyAt > utcNow)
+                throw new Exceptions.RequirementNotMetException(Exceptions.RefusalReasons.BeastOnCooldown,
+                    $"Beast '{beastKey}' is ready at {readyAt:u}.",
+                    DateTime.SpecifyKind(readyAt, DateTimeKind.Utc).ToString("O"));
+
+            var effect = effectOf(beastKey);
+
+            if (_beasts.FirstOrDefault(b => b != beast && b.IsActiveAt(utcNow) && effectOf(b.BeastKey) == effect) is { } rival)
+                throw new Exceptions.RequirementNotMetException(Exceptions.RefusalReasons.BeastEffectActive,
+                    $"Beast '{rival.BeastKey}' already gives {effect}.", rival.BeastKey);
+
+            beast.Activate(duration, cooldown, utcNow);
+            Touch(utcNow);
+        }
+
         /// <summary>Скільки перемог поспіль без звіра цього типу.</summary>
         public int MissesFor(string beastKey) => _pity.FirstOrDefault(p => p.BeastKey == beastKey)?.Misses ?? 0;
 
@@ -135,6 +162,16 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime TamedAt { get; private set; }
 
+        /// <summary>Остання активація пасивки; разом з ActiveUntil — вікно, у якому вона діяла.</summary>
+        public DateTime? ActivatedAt { get; private set; }
+
+        public DateTime? ActiveUntil { get; private set; }
+
+        /// <summary>Коли пасивку знову можна активувати.</summary>
+        public DateTime? CooldownUntil { get; private set; }
+
+        public bool IsActiveAt(DateTime utcNow) => ActiveUntil > utcNow;
+
         internal Beast(Guid id, Guid beastPenId, string beastKey, DateTime utcNow) : base(id)
         {
             BeastPenId = beastPenId;
@@ -147,6 +184,13 @@ namespace EmpireIdle.Domain.Entities
         protected Beast() { } // Для EF Core
 
         internal void RankUp() => Rank++;
+
+        internal void Activate(TimeSpan duration, TimeSpan cooldown, DateTime utcNow)
+        {
+            ActivatedAt = utcNow;
+            ActiveUntil = utcNow + duration;
+            CooldownUntil = utcNow + cooldown;
+        }
 
         /// <returns>Скільки корму з'їдено.</returns>
         internal int Feed(int offered, Func<int, int> experienceToNext, int maxLevel)

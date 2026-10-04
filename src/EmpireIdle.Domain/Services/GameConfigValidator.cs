@@ -380,6 +380,20 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     "Beasts need LevelsPerRank and BaseExperience of at least 1 and ExperienceGrowth of at least 1.");
 
+            // Пасивка мусить щось давати, діяти й мати перезарядку, не коротшу за дію: інакше вона діяла б завжди
+            var brokenPassives = beasts.Types
+                .Where(b => b.Effect is not (EffectTarget.Production or EffectTarget.Attack or EffectTarget.Defense
+                                or EffectTarget.MarchSpeed or EffectTarget.Carry)
+                            || b.BaseBonus <= 0 || b.BonusPerLevel < 0 || b.DurationMinutes <= 0
+                            || b.CooldownMinutes < b.DurationMinutes || b.ActivationFood <= 0)
+                .Select(b => b.Key)
+                .ToList();
+
+            if (brokenPassives.Count > 0)
+                throw new InvalidOperationException(
+                    "Beast passives need a multiplier effect, a positive bonus, a duration, a cooldown no shorter "
+                    + $"than the duration and a food price: {string.Join(", ", brokenPassives)}.");
+
             // Корм — стаковий предмет: спорядження поштучне й годувати ним не можна
             if (config.Items.FirstOrDefault(i => i.Key == beasts.FeedItemKey) is not { Slot: null })
                 throw new InvalidOperationException(

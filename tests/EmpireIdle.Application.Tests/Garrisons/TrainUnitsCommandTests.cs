@@ -21,7 +21,7 @@ public class TrainUnitsCommandTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
-    private EffectResolver Effects() => new(_effects);
+    private EffectResolver Effects() => TestEffects.Resolver(_effects);
 
     private static GameConfig Config() => new()
     {

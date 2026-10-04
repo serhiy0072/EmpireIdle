@@ -66,17 +66,15 @@ namespace EmpireIdle.Application.Marches.Services
                 return;
             }
 
+            // Швидкість від пасивки звіра зафіксована на марші при виході — і назад іде так само
             var backDuration = _calculator.CalculateDuration(
                 march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors,
-                heroOnTheMove ? _progression.MarchSpeed(_catalog.FindHero(hero!.HeroKey)) : null);
+                heroOnTheMove ? _progression.MarchSpeed(_catalog.FindHero(hero!.HeroKey)) : null) / march.SpeedMultiplier;
 
             march.TurnBack(backDuration, utcNow);
         }
 
-        /// <summary>
-        /// Розвантажує здобич на склад. Надлишок понад кап згорає: везти
-        /// більше, ніж вміщає сховище, гравець може, зберегти — ні.
-        /// </summary>
+        /// <summary>Розвантажує здобич на склад. Стелі складу немає (GDD §4.1) — лягає все.</summary>
         public async Task UnloadCargoAsync(March march, Garrison garrison, DateTime utcNow,
             CancellationToken cancellationToken)
         {
@@ -99,10 +97,11 @@ namespace EmpireIdle.Application.Marches.Services
         /// Скільки армія здатна винести: сума CarryCapacity по вцілілих.
         /// Саме по вцілілих — інакше вигідно вести гарматне м'ясо заради місця.
         /// </summary>
-        public int CalculateCarryCapacity(IReadOnlyDictionary<UnitStackKey, int> survivors)
-            => survivors.Sum(pair => _catalog.Units.TryGetValue(pair.Key.UnitType, out var config)
-                ? (int)(config.Stats.GetValueOrDefault("CarryCapacity", 0) * pair.Value)
-                : 0);
+        /// <param name="multiplier">Бонус гравця до вантажу (пасивка звіра, GDD §5.10).</param>
+        public int CalculateCarryCapacity(IReadOnlyDictionary<UnitStackKey, int> survivors, double multiplier = 1.0)
+            => (int)(survivors.Sum(pair => _catalog.Units.TryGetValue(pair.Key.UnitType, out var config)
+                ? config.Stats.GetValueOrDefault("CarryCapacity", 0) * pair.Value
+                : 0) * multiplier);
 
         /// <summary>
         /// Обрізає здобич до вантажопідйомності, пропорційно по ресурсах.
@@ -110,10 +109,10 @@ namespace EmpireIdle.Application.Marches.Services
         /// сума частин розійшлася б із лімітом.
         /// </summary>
         public Dictionary<string, int> LimitToCarryCapacity(
-            IReadOnlyDictionary<string, int> loot, IReadOnlyDictionary<UnitStackKey, int> survivors)
+            IReadOnlyDictionary<string, int> loot, IReadOnlyDictionary<UnitStackKey, int> survivors, double multiplier = 1.0)
         {
             var total = loot.Values.Sum();
-            var capacity = CalculateCarryCapacity(survivors);
+            var capacity = CalculateCarryCapacity(survivors, multiplier);
 
             if (total <= capacity)
                 return loot.ToDictionary(pair => pair.Key, pair => pair.Value);

@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>
@@ -51,5 +53,26 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Базовий шанс приручення за перемогу, (0; 1].</summary>
         public double TameChance { get; set; }
+
+        /// <summary>
+        /// На що діє пасивка: виробіток, атака, захист, швидкість маршів чи вантажопідйомність.
+        /// Пасивки складаються з бустами крамниці додаванням (GDD §5.10).
+        /// </summary>
+        public EffectTarget Effect { get; set; }
+
+        /// <summary>Надбавка на 1 рівні звіра: 0.15 — +15%.</summary>
+        public double BaseBonus { get; set; }
+
+        /// <summary>Скільки додає кожен наступний рівень звіра.</summary>
+        public double BonusPerLevel { get; set; }
+
+        /// <summary>Скільки діє пасивка після активації.</summary>
+        public int DurationMinutes { get; set; }
+
+        /// <summary>Перезарядка від моменту активації; не коротша за дію.</summary>
+        public int CooldownMinutes { get; set; }
+
+        /// <summary>Скільки їжі зі складу коштує активація — стік для запасів без стелі.</summary>
+        public int ActivationFood { get; set; }
     }
 }

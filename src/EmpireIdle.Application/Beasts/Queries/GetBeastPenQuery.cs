@@ -44,12 +44,21 @@ namespace EmpireIdle.Application.Beasts.Queries
                 _capacities.BeastSlots(village, _status),
                 pen?.Beasts
                     .Select(b => new BeastView(b.BeastKey, b.Rank, b.Level, b.Experience,
-                        _progression.ExperienceToNext(b.Level), _progression.MaxLevel(b.Rank), b.TamedAt))
+                        _progression.ExperienceToNext(b.Level), _progression.MaxLevel(b.Rank), b.TamedAt,
+                        Passive(b)))
                     .ToList() ?? [],
                 _catalog.Config.Beasts.Types
                     .Select(beast => new BeastTamingView(beast.Key, beast.MonsterKey,
                         _taming.ChanceFor(beast, penLevel), pen?.MissesFor(beast.Key) ?? 0, pityWins))
                     .ToList());
+        }
+
+        private BeastPassiveView Passive(Domain.Entities.Beast beast)
+        {
+            var config = _catalog.Beasts[beast.BeastKey];
+
+            return new BeastPassiveView(config.Effect.ToString(), _progression.Bonus(config, beast.Level),
+                config.DurationMinutes, config.CooldownMinutes, config.ActivationFood, beast.ActiveUntil, beast.CooldownUntil);
         }
     }
 }

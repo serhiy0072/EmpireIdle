@@ -148,8 +148,10 @@ namespace EmpireIdle.Application.Marches.Services
                     attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
                 * await _territoryBonus.AttackMultiplierAsync(attackerVillage, utcNow, cancellationToken);
 
+            // Буст захисту й пасивка звіра — господаря: вони стережуть його село
             var defenderBonus = _status.DefenceMultiplier(targetVillage, utcNow)
-                * await _territoryBonus.DefenceMultiplierAsync(targetVillage, utcNow, cancellationToken);
+                * await _territoryBonus.DefenceMultiplierAsync(targetVillage, utcNow, cancellationToken)
+                * await _effectResolver.GetMultiplierAsync(targetVillage.PlayerId, EffectTarget.Defense, utcNow, cancellationToken);
 
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіти обох сторін
             var seed = _random.Next(int.MaxValue);
@@ -173,7 +175,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Грабунок до звітів: вантаж має бути на марші, коли той його згадає
             if (result.AttackerWon)
-                await PlunderAsync(march, targetVillage, utcNow, cancellationToken);
+                await PlunderAsync(march, attackerVillage.PlayerId, targetVillage, utcNow, cancellationToken);
 
             await _aftermath.RecordAttackerAsync(march, attackerVillage, attackerGarrison,
                 targetVillage.Name, _status.MainBuildingLevel(targetVillage),
@@ -198,9 +200,11 @@ namespace EmpireIdle.Application.Marches.Services
         /// Забирає здобич після переможного бою. Вантажопідйомність рахується
         /// по тих, хто пережив бій, тож великі втрати зменшують і винесене.
         /// </summary>
-        private async Task PlunderAsync(March march, Village target, DateTime utcNow, CancellationToken cancellationToken)
+        private async Task PlunderAsync(March march, Guid attackerPlayerId, Village target, DateTime utcNow,
+            CancellationToken cancellationToken)
         {
-            var capacity = _logistics.CalculateCarryCapacity(march.GetUnits());
+            var carry = await _effectResolver.GetMultiplierAsync(attackerPlayerId, EffectTarget.Carry, utcNow, cancellationToken);
+            var capacity = _logistics.CalculateCarryCapacity(march.GetUnits(), carry);
 
             if (capacity <= 0)
                 return;

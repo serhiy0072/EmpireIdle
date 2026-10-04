@@ -5,7 +5,17 @@ public record BeastPenResponse(int Capacity, List<BeastResponse> Beasts, List<Be
 
 /// <summary>Приручений звір. Рівень росте від корму до MaxLevel — стелі рангу; Experience — досвід усередині рівня.</summary>
 public record BeastResponse(string BeastKey, int Rank, int Level, int Experience, int ExperienceToNext, int MaxLevel,
-    DateTime TamedAt);
+    DateTime TamedAt, BeastPassiveResponse Passive);
+
+/// <summary>
+/// Пасивка звіра (GDD §5.10). Effect — Production, Attack, Defense, MarchSpeed або Carry; Bonus — надбавка на
+/// нинішньому рівні (0.15 — +15%). ActiveUntil/CooldownUntil у минулому або null — не діє / готова.
+/// </summary>
+public record BeastPassiveResponse(string Effect, double Bonus, int DurationMinutes, int CooldownMinutes, int ActivationFood,
+    DateTime? ActiveUntil, DateTime? CooldownUntil);
+
+/// <summary>Пасивку ввімкнено: діє до ActiveUntil, знову можна з CooldownUntil.</summary>
+public record BeastActivatedResponse(string BeastKey, DateTime ActiveUntil, DateTime CooldownUntil);
 
 /// <summary>Підсумок годування: Eaten — скільки корму з'їдено, решта лишилась в інвентарі.</summary>
 public record BeastFedResponse(string BeastKey, int Level, int Experience, int Eaten);

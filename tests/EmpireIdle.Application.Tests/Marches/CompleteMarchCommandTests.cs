@@ -87,7 +87,14 @@ public class CompleteMarchCommandTests
             FeedItemKey = "beast_feed",
             BaseExperience = 100,
             ExperienceGrowth = 1.25,
-            Types = [new BeastConfig { Key = "wolf", MonsterKey = "wolves", TameChance = 0.2 }]
+            Types =
+            [
+                new BeastConfig
+                {
+                    Key = "wolf", MonsterKey = "wolves", TameChance = 0.2, Effect = EffectTarget.Carry,
+                    BaseBonus = 0.5, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                }
+            ]
         },
         Units =
         [
@@ -160,7 +167,7 @@ public class CompleteMarchCommandTests
         var casualties = new CasualtySplitter(config.Combat);
         var resolver = new BattleResolver(combat, casualties);
         var armyBuilder = new MonsterArmyBuilder(catalog);
-        var effects = new EffectResolver(_effects);
+        var effects = TestEffects.Resolver(_effects, _pens, catalog);
 
         var capacities = new VillageCapacities(catalog);
         var status = new VillageStatus(catalog);
@@ -232,7 +239,7 @@ public class CompleteMarchCommandTests
             NullLogger<StructureBattleService>.Instance);
 
         var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, heroModifiers,
-            catalog, status, _structures, _clans, territory, _marches);
+            catalog, status, _structures, _clans, territory, _marches, effects);
 
         var campBattle = new CampBattleService(
             _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,
@@ -1261,5 +1268,26 @@ public class CompleteMarchCommandTests
 
         await _pens.DidNotReceive().AddAsync(Arg.Any<BeastPen>(), Arg.Any<CancellationToken>());
         Assert.NotEmpty(march.GetCargo());
+    }
+
+    // ---------- Пасивки звірів (GDD §5.10) ----------
+
+    /// <summary>Активний вовк із вантажем +50%: армія виносить у півтора раза більше, ніж підняла б сама.</summary>
+    [Fact]
+    public async Task CarryPassive_ShouldRaiseWhatTheArmyBringsHome()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 5);
+
+        var pen = new BeastPen(Guid.NewGuid(), PlayerId, 1, Now);
+        pen.ResolveTaming("wolf", rolled: true, pityWins: 10, capacity: 1, maxRank: 2, Now);
+        pen.Activate("wolf", _ => EffectTarget.Carry, TimeSpan.FromHours(2), TimeSpan.FromHours(8), Now.AddMinutes(-10));
+        _pens.GetByPlayerReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pen);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        // Піхотинець несе 40; вантаж рахується по вцілілих
+        var ownCarry = march.GetUnits().Values.Sum() * 40;
+        Assert.True(ownCarry * 1.5 < 500, "здобич має впертись у вантажопідйомність, інакше тест нічого не перевіряє");
+        Assert.Equal((int)(ownCarry * 1.5), march.GetCargo().Values.Sum());
     }
 }

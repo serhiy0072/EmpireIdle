@@ -206,6 +206,9 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "beast.notEnoughFeed": ({ need, have }) => `Корму не вистачає: потрібно ${need}, є ${have}`,
   "beast.levelCapped": ({ level }) =>
     `Звір досяг стелі рівня ${level} для свого рангу — підніміть ранг, приручивши ще одного такого звіра`,
+  "beast.onCooldown": ({ readyAt }) =>
+    `Звір ще відпочиває — пасивку можна ввімкнути ${localTime(readyAt)}`,
+  "beast.effectActive": () => "Такий самий бонус уже дає інший звір — дочекайтесь, поки його дія скінчиться",
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */

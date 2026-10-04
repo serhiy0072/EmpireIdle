@@ -46,6 +46,17 @@ public class BeastTamingTests
     public void ExperienceToNext_ShouldGrowGeometrically(int level, int expected)
         => Assert.Equal(expected, new BeastProgression(Catalog()).ExperienceToNext(level));
 
+    /// <summary>Пасивка сильнішає з рівнем: 0.15 на 1-му, +0.01 за кожен наступний.</summary>
+    [Fact]
+    public void Bonus_ShouldGrowWithTheLevel()
+    {
+        var catalog = Catalog();
+        var progression = new BeastProgression(catalog);
+
+        Assert.Equal(0.15, progression.Bonus(catalog.Beasts[TestKeys.Beast], level: 1), precision: 10);
+        Assert.Equal(0.24, progression.Bonus(catalog.Beasts[TestKeys.Beast], level: 10), precision: 10);
+    }
+
     [Fact]
     public void MaxLevel_ShouldBeRankTimesLevelsPerRank()
         => Assert.Equal(30, new BeastProgression(Catalog()).MaxLevel(rank: 3));

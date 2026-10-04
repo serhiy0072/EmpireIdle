@@ -66,12 +66,12 @@ public class GetBattlePreviewQueryTests
         var targets = new MarchTargetResolver(
             _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog,
             new VillageStatus(catalog), Substitute.For<IClanStructureRepository>(), Substitute.For<IClanRepository>(),
-            new ClanTerritoryRules(catalog), Substitute.For<IMarchRepository>());
+            new ClanTerritoryRules(catalog), Substitute.For<IMarchRepository>(), TestEffects.Resolver(_effects));
 
         return new GetBattlePreviewQueryHandler(
             _villages, _garrisons, _heroes, _serverContext,
             new CombatCalculator(config.Combat, catalog), terrain, new MarchCalculator(terrain, catalog),
-            new EffectResolver(_effects), new FakeTimeProvider(Now), targets, heroModifiers, catalog,
+            TestEffects.Resolver(_effects), new FakeTimeProvider(Now), targets, heroModifiers, catalog,
             new HeroProgression(config.HeroSettings));
     }
 

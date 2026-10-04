@@ -177,9 +177,11 @@ namespace EmpireIdle.Application.Marches.Services
         {
             var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
 
+            var carry = await _effectResolver.GetMultiplierAsync(playerId, EffectTarget.Carry, utcNow, cancellationToken);
+
             var carried = _logistics.LimitToCarryCapacity(
                 rewards.ToDictionary(r => r.Resource, r => r.Amount),
-                march.GetUnits());
+                march.GetUnits(), carry);
 
             march.LoadCargo(carried, utcNow);
 

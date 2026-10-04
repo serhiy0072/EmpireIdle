@@ -73,17 +73,17 @@ public class VillageCommandTests
     private static WorldGeometry Geometry() => new(Config().Map);
 
     private CollectBuildingCommandHandler CollectHandler() => new(
-        _villages, _unitOfWork, _servers, new EffectResolver(_effects),
+        _villages, _unitOfWork, _servers, TestEffects.Resolver(_effects),
         Catalog(), new FakeTimeProvider(Now), Geometry(),
         NullLogger<CollectBuildingCommandHandler>.Instance);
 
     private CollectAllBuildingsCommandHandler CollectAllHandler() => new(
-        _villages, _unitOfWork, _servers, new EffectResolver(_effects),
+        _villages, _unitOfWork, _servers, TestEffects.Resolver(_effects),
         Catalog(), new FakeTimeProvider(Now), Geometry(),
         NullLogger<CollectAllBuildingsCommandHandler>.Instance);
 
     private UpgradeBuildingCommandHandler UpgradeHandler() => new(
-        _villages, _unitOfWork, _servers, new EffectResolver(_effects),
+        _villages, _unitOfWork, _servers, TestEffects.Resolver(_effects),
         new FakeTimeProvider(Now), Catalog(), Geometry(),
         NullLogger<UpgradeBuildingCommandHandler>.Instance);
 

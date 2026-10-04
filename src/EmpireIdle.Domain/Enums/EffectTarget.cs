@@ -13,6 +13,12 @@ namespace EmpireIdle.Domain.Enums
         Defense = 3,
 
         /// <summary>Приховує село від розвідки, поки діє. Множника не має.</summary>
-        ScoutBlock = 4
+        ScoutBlock = 4,
+
+        /// <summary>Швидкість маршів гравця (пасивка звіра, GDD §5.10).</summary>
+        MarchSpeed = 5,
+
+        /// <summary>Вантажопідйомність військ гравця (пасивка звіра, GDD §5.10).</summary>
+        Carry = 6
     }
 }

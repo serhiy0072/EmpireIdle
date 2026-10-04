@@ -14,31 +14,61 @@
           "Key": "wolf",
           "DisplayName": "Вовк",
           "MonsterKey": "wolf",
-          "TameChance": 0.20
+          "TameChance": 0.20,
+          "Effect": "MarchSpeed",
+          "BaseBonus": 0.2,
+          "BonusPerLevel": 0.002,
+          "DurationMinutes": 120,
+          "CooldownMinutes": 480,
+          "ActivationFood": 1500
         },
         {
           "Key": "boar",
           "DisplayName": "Вепр",
           "MonsterKey": "boar",
-          "TameChance": 0.15
+          "TameChance": 0.15,
+          "Effect": "Production",
+          "BaseBonus": 0.15,
+          "BonusPerLevel": 0.002,
+          "DurationMinutes": 120,
+          "CooldownMinutes": 480,
+          "ActivationFood": 1500
         },
         {
           "Key": "bear",
           "DisplayName": "Ведмідь",
           "MonsterKey": "bear",
-          "TameChance": 0.10
+          "TameChance": 0.10,
+          "Effect": "Defense",
+          "BaseBonus": 0.15,
+          "BonusPerLevel": 0.002,
+          "DurationMinutes": 240,
+          "CooldownMinutes": 720,
+          "ActivationFood": 3000
         },
         {
           "Key": "warg",
           "DisplayName": "Варг",
           "MonsterKey": "orc",
-          "TameChance": 0.08
+          "TameChance": 0.08,
+          "Effect": "Carry",
+          "BaseBonus": 0.25,
+          "BonusPerLevel": 0.002,
+          "DurationMinutes": 120,
+          "CooldownMinutes": 480,
+          "ActivationFood": 5000
         },
         {
           "Key": "griffin",
           "DisplayName": "Грифон",
           "MonsterKey": "griffin",
-          "TameChance": 0.05
+          "TameChance": 0.05,
+          "Effect": "Attack",
+          "BaseBonus": 0.15,
+          "BonusPerLevel": 0.002,
+          "DurationMinutes": 120,
+          "CooldownMinutes": 480,
+          "ActivationFood": 8000
         }
       ]
     }

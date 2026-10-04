@@ -29,7 +29,7 @@ public class BoostItemEffectTests
 
         var config = new GameConfigBuilder().WithBuildings().Build();
         var effect = new BoostItemEffect(effects, Substitute.For<IVillageRepository>(), Substitute.For<IServerRepository>(),
-            new GameCatalog(config), new WorldGeometry(config.Map));
+            new GameCatalog(config), new WorldGeometry(config.Map), TestEffects.Resolver(effects));
 
         var weaker = new ItemConfig { Key = "attack_boost_small", BoostTarget = "Attack", Multiplier = 1.2, DurationHours = 1 };
 

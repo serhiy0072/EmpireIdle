@@ -9,8 +9,18 @@ namespace EmpireIdle.Application.Beasts.ReadModels
     /// <param name="Experience">Досвід усередині поточного рівня.</param>
     /// <param name="ExperienceToNext">Скільки корму треба на наступний рівень.</param>
     /// <param name="MaxLevel">Стеля рівня для нинішнього рангу.</param>
+    /// <param name="Passive">Пасивка на нинішньому рівні й стан її таймерів.</param>
     public record BeastView(string BeastKey, int Rank, int Level, int Experience, int ExperienceToNext, int MaxLevel,
-        DateTime TamedAt);
+        DateTime TamedAt, BeastPassiveView Passive);
+
+    /// <param name="Effect">На що діє: Production, Attack, Defense, MarchSpeed, Carry.</param>
+    /// <param name="Bonus">Надбавка на нинішньому рівні: 0.15 — +15%.</param>
+    /// <param name="ActiveUntil">До коли діє; null або минуле — не діє.</param>
+    /// <param name="CooldownUntil">Коли знову можна активувати; null або минуле — готова.</param>
+    public record BeastPassiveView(string Effect, double Bonus, int DurationMinutes, int CooldownMinutes, int ActivationFood,
+        DateTime? ActiveUntil, DateTime? CooldownUntil);
+
+    public record BeastActivatedView(string BeastKey, DateTime ActiveUntil, DateTime CooldownUntil);
 
     /// <summary>Підсумок годування: Eaten — скільки корму з'їдено (решта лишилась в інвентарі).</summary>
     public record BeastFedView(string BeastKey, int Level, int Experience, int Eaten);

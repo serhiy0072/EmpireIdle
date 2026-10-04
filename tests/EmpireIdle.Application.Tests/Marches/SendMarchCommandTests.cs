@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Beasts.Services;
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Services;
@@ -36,6 +37,9 @@ public class SendMarchCommandTests
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
     private readonly IBeastPenRepository _pens = Substitute.For<IBeastPenRepository>();
+    private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+
+    private EffectResolver Effects(GameCatalog catalog) => TestEffects.Resolver(_effects, _pens, catalog);
 
     private static GameConfig Config() => new()
     {
@@ -85,8 +89,16 @@ public class SendMarchCommandTests
             ExperienceGrowth = 1.25,
             Types =
             [
-                new BeastConfig { Key = "wolf", MonsterKey = "wolves", TameChance = 0.2 },
-                new BeastConfig { Key = "boar", MonsterKey = "boars", TameChance = 0.2 }
+                new BeastConfig
+                {
+                    Key = "wolf", MonsterKey = "wolves", TameChance = 0.2, Effect = EffectTarget.MarchSpeed,
+                    BaseBonus = 0.25, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                },
+                new BeastConfig
+                {
+                    Key = "boar", MonsterKey = "boars", TameChance = 0.2, Effect = EffectTarget.Production,
+                    BaseBonus = 0.15, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                }
             ]
         },
         HeroSettings = new HeroesConfig
@@ -109,7 +121,7 @@ public class SendMarchCommandTests
 
         var targets = new MarchTargetResolver(
             _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog, status,
-            _structures, _clans, new ClanTerritoryRules(catalog), _marches);
+            _structures, _clans, new ClanTerritoryRules(catalog), _marches, Effects(catalog));
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
@@ -121,6 +133,7 @@ public class SendMarchCommandTests
             new HeroProgression(config.HeroSettings),
             catalog,
             new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog),
+            Effects(catalog),
             NullLogger<SendMarchCommandHandler>.Instance);
     }
 
@@ -508,5 +521,34 @@ public class SendMarchCommandTests
         await _marches.Received(1).AddAsync(
             Arg.Is<March>(m => m.Intent == MarchIntent.Reinforce && m.HeroId == hero.Id && m.GetUnits().Count == 0),
             Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Активний вовк зі швидкістю +25%: дорога коротша в 1.25 раза, і множник фіксується
+    /// на марші — зворотна дорога піде так само швидко.
+    /// </summary>
+    [Fact]
+    public async Task SpeedPassive_ShouldShortenTheMarch_AndStayOnIt()
+    {
+        var marches = new List<March>();
+        await _marches.AddAsync(Arg.Do<March>(marches.Add), Arg.Any<CancellationToken>());
+
+        var (_, plainTarget, plainHero) = GivenState();
+        await Handler().Handle(Send(plainTarget.Id, plainHero.Id), CancellationToken.None);
+
+        var (_, fastTarget, fastHero) = GivenState();
+        var pen = new BeastPen(Guid.NewGuid(), PlayerId, 1, Now);
+        pen.ResolveTaming("wolf", rolled: true, pityWins: 10, capacity: 1, maxRank: 5, Now);
+        pen.Activate("wolf", _ => EffectTarget.MarchSpeed, TimeSpan.FromHours(2), TimeSpan.FromHours(8), Now.AddMinutes(-10));
+        _pens.GetByPlayerReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pen);
+
+        await Handler().Handle(Send(fastTarget.Id, fastHero.Id), CancellationToken.None);
+
+        var plain = marches[0].ArrivesAt - Now;
+        var fast = marches[1].ArrivesAt - Now;
+
+        Assert.Equal(plain.TotalSeconds / 1.25, fast.TotalSeconds, precision: 3);
+        Assert.Equal(1.25, marches[1].SpeedMultiplier, precision: 10);
+        Assert.Equal(1.0, marches[0].SpeedMultiplier, precision: 10);
     }
 }

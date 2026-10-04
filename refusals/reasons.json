@@ -6,6 +6,9 @@
   "banner.notOpen": [
     "startsAt"
   ],
+  "beast.effectActive": [
+    "beast"
+  ],
   "beast.levelCapped": [
     "level"
   ],
@@ -14,6 +17,9 @@
     "have"
   ],
   "beast.notTameable": [],
+  "beast.onCooldown": [
+    "readyAt"
+  ],
   "beast.penFull": [
     "capacity"
   ],

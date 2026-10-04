@@ -100,23 +100,20 @@ namespace EmpireIdle.Domain.Entities
                 return Math.Min(AccruedAmount, cap);
 
             var totalMinutes = (utcNow - LastAccruedAt).TotalMinutes;
-            var boostedMinutes = boost.OverlapMinutes(LastAccruedAt, utcNow);
 
             // Пошкодження діє від LastAccruedAt (удар матеріалізує буфер) до
-            // DamagedUntil — будівля могла відновитись посеред інтервалу.
-            // Буст і пошкодження перекриваються, тож хвилини діляться на чотири частини
+            // DamagedUntil — будівля могла відновитись посеред інтервалу
             var damageEnd = DamagedUntil is { } until && until > LastAccruedAt
                 ? (until < utcNow ? until : utcNow)
                 : LastAccruedAt;
             var damagedMinutes = (damageEnd - LastAccruedAt).TotalMinutes;
-            var bothMinutes = boost.OverlapMinutes(LastAccruedAt, damageEnd);
 
+            // Кожна хвилина дає (1 + надбавки бустів) × (пошкодження в цю хвилину):
+            // усі хвилини з бустами, а на пошкоджених — та сама сума, зменшена в damaged разів
             var damaged = DamagedProductionMultiplier;
             var effectiveMinutes =
-                (totalMinutes - boostedMinutes - damagedMinutes + bothMinutes)
-                + (boostedMinutes - bothMinutes) * boost.Multiplier
-                + (damagedMinutes - bothMinutes) * damaged
-                + bothMinutes * boost.Multiplier * damaged;
+                totalMinutes + boost.BonusMinutes(LastAccruedAt, utcNow)
+                + (damaged - 1) * (damagedMinutes + boost.BonusMinutes(LastAccruedAt, damageEnd));
 
             var ratePerMinute = Level.Value * config.BaseProductionPerMinute * locationMultiplier;
             var produced = ratePerMinute * effectiveMinutes;

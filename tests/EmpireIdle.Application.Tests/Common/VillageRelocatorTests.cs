@@ -58,7 +58,7 @@ public class VillageRelocatorTests
         var catalog = new GameCatalog(config);
         var terrain = new TerrainGenerator(config.Map);
         var calculator = new MarchCalculator(terrain, catalog);
-        var effects = new EffectResolver(_effects);
+        var effects = TestEffects.Resolver(_effects);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
         _heroes.GetForeignGarrisonIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Guid>());

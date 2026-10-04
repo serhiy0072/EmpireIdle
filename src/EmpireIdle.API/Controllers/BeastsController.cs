@@ -27,7 +27,9 @@ namespace EmpireIdle.API.Controllers
             return Ok(new BeastPenResponse(
                 pen.Capacity,
                 pen.Beasts.Select(b => new BeastResponse(
-                    b.BeastKey, b.Rank, b.Level, b.Experience, b.ExperienceToNext, b.MaxLevel, b.TamedAt)).ToList(),
+                    b.BeastKey, b.Rank, b.Level, b.Experience, b.ExperienceToNext, b.MaxLevel, b.TamedAt,
+                    new BeastPassiveResponse(b.Passive.Effect, b.Passive.Bonus, b.Passive.DurationMinutes, b.Passive.CooldownMinutes,
+                        b.Passive.ActivationFood, b.Passive.ActiveUntil, b.Passive.CooldownUntil))).ToList(),
                 pen.Taming.Select(t => new BeastTamingResponse(t.BeastKey, t.MonsterKey, t.Chance, t.Misses, t.PityWins)).ToList()));
         }
 
@@ -41,6 +43,18 @@ namespace EmpireIdle.API.Controllers
             var fed = await _mediator.Send(new FeedBeastCommand(playerId, beastKey, count), cancellationToken);
 
             return Ok(new BeastFedResponse(fed.BeastKey, fed.Level, fed.Experience, fed.Eaten));
+        }
+
+        /// <summary>Увімкнути пасивку звіра за їжу зі складу; далі — перезарядка.</summary>
+        [HttpPost("{playerId:guid}/{beastKey}/activate")]
+        [ProducesResponseType(typeof(BeastActivatedResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<BeastActivatedResponse>> Activate(Guid playerId, string beastKey,
+            CancellationToken cancellationToken)
+        {
+            var activated = await _mediator.Send(new ActivateBeastCommand(playerId, beastKey), cancellationToken);
+
+            return Ok(new BeastActivatedResponse(activated.BeastKey, activated.ActiveUntil, activated.CooldownUntil));
         }
     }
 }

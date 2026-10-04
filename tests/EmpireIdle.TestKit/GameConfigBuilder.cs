@@ -346,7 +346,15 @@
                 FeedItemKey = TestKeys.BeastFeed,
                 BaseExperience = 100,
                 ExperienceGrowth = 1.25,
-                Types = [new BeastConfig { Key = TestKeys.Beast, DisplayName = "Вовк", MonsterKey = TestKeys.BeastMonster, TameChance = 0.2 }]
+                Types =
+                [
+                    new BeastConfig
+                    {
+                        Key = TestKeys.Beast, DisplayName = "Вовк", MonsterKey = TestKeys.BeastMonster, TameChance = 0.2,
+                        Effect = EffectTarget.Attack, BaseBonus = 0.15, BonusPerLevel = 0.01,
+                        DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                    }
+                ]
             };
 
             tune?.Invoke(_config.Beasts);

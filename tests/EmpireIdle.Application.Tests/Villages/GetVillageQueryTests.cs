@@ -62,7 +62,7 @@ public class GetVillageQueryTests
     private static SpeedUpCalculator Calculator() => new(Config().Monetization);
 
     private GetVillageQueryHandler Handler() => new(
-        _villages, _servers, new EffectResolver(_effects), Catalog(), new FakeTimeProvider(Now),
+        _villages, _servers, TestEffects.Resolver(_effects), Catalog(), new FakeTimeProvider(Now),
         new WorldGeometry(new MapConfig { Width = 1, Height = 1, MaxServerLevel = 1,
             Geometry = new MapGeometryConfig { RingBoundaries = [], RingMultipliers = [1.0],
                 RingsAtFirstLevel = 1.0, FogMinShare = 0, FogMaxShare = 1.0 } }),

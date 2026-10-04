@@ -359,5 +359,11 @@
 
         /// <summary>Звір на стелі рівня для свого рангу: далі веде лише дублікат. level — стеля.</summary>
         public static readonly RefusalReason BeastLevelCapped = new("beast.levelCapped", "level");
+
+        /// <summary>Пасивка ще перезаряджається; readyAt — коли знову можна (ISO 8601, UTC).</summary>
+        public static readonly RefusalReason BeastOnCooldown = new("beast.onCooldown", "readyAt");
+
+        /// <summary>Такий самий ефект уже дає інший звір; beast — його ключ.</summary>
+        public static readonly RefusalReason BeastEffectActive = new("beast.effectActive", "beast");
     }
 }
