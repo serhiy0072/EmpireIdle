@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
@@ -42,6 +43,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly StructureMarchRules _structureMarches;
         private readonly HeroProgression _progression;
         private readonly GameCatalog _catalog;
+        private readonly BeastTamer _tamer;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
         public SendMarchCommandHandler(
@@ -58,6 +60,7 @@ namespace EmpireIdle.Application.Marches.Commands
             StructureMarchRules structureMarches,
             HeroProgression progression,
             GameCatalog catalog,
+            BeastTamer tamer,
             ILogger<SendMarchCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -73,6 +76,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _structureMarches = structureMarches;
             _progression = progression;
             _catalog = catalog;
+            _tamer = tamer;
             _logger = logger;
         }
 
@@ -140,6 +144,9 @@ namespace EmpireIdle.Application.Marches.Commands
             else
             {
                 await _targets.EnsureAttackAllowedAsync(village, target, now, cancellationToken);
+
+                if (request.Intent == MarchIntent.Tame)
+                    await _tamer.EnsureAllowedAsync(village, request.TargetId, cancellationToken);
 
                 // Напад на гравця — на село чи на його табір — знімає власний щит
                 // після падіння: інакше з-під нього можна було б безкарно атакувати

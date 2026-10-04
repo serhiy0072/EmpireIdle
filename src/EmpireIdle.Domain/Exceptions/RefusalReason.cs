@@ -342,5 +342,16 @@
 
         /// <summary>Ціль закрита передньою лінією або провокацією.</summary>
         public static readonly RefusalReason DungeonTargetUnreachable = new("dungeon.targetUnreachable");
+
+        // ---------- Звірі ----------
+
+        /// <summary>Звіринець ще не відкритий: приручати нікуди.</summary>
+        public static readonly RefusalReason BeastPenMissing = new("beast.penMissing");
+
+        /// <summary>Новий вид, а всі місця звіринця зайняті. capacity — скільки місць.</summary>
+        public static readonly RefusalReason BeastPenFull = new("beast.penFull", "capacity");
+
+        /// <summary>Цей монстр не приручається.</summary>
+        public static readonly RefusalReason BeastNotTameable = new("beast.notTameable");
     }
 }

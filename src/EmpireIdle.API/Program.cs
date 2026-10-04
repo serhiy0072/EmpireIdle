@@ -50,6 +50,7 @@ builder.Configuration
     .AddJsonFile("Config/market.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/beasts.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
@@ -164,6 +165,7 @@ builder.Services.AddSingleton<DefenceLossAllocator>();
 builder.Services.AddSingleton<BattleResolver>();
 builder.Services.AddSingleton<VillageCapacities>();
 builder.Services.AddSingleton<VillageStatus>();
+builder.Services.AddSingleton<BeastTaming>();
 builder.Services.AddSingleton<ClanTerritoryRules>();
 builder.Services.AddSingleton<CityFallRules>();
 builder.Services.AddSingleton<PlunderCalculator>();

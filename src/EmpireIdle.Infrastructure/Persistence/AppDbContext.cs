@@ -42,6 +42,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<Server> Servers => Set<Server>();
         public DbSet<PlayerPower> PlayerPowers => Set<PlayerPower>();
         public DbSet<TutorialProgress> TutorialProgress => Set<TutorialProgress>();
+        public DbSet<BeastPen> BeastPens => Set<BeastPen>();
         public DbSet<PlayerRating> PlayerRatings => Set<PlayerRating>();
         public DbSet<Clan> Clans => Set<Clan>();
         public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
@@ -114,6 +115,7 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<StructureFall>().HasQueryFilter(f => f.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<ScoutReport>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<LoginRewardProgress>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<BeastPen>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

@@ -6,6 +6,11 @@
   "banner.notOpen": [
     "startsAt"
   ],
+  "beast.notTameable": [],
+  "beast.penFull": [
+    "capacity"
+  ],
+  "beast.penMissing": [],
   "building.alreadyCompleted": [],
   "building.notUpgradable": [
     "building"

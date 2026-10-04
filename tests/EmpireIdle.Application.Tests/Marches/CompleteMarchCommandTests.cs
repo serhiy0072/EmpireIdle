@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -46,6 +47,7 @@ public class CompleteMarchCommandTests
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
     private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
     private readonly IScoutReportRepository _scoutReports = Substitute.For<IScoutReportRepository>();
+    private readonly IBeastPenRepository _pens = Substitute.For<IBeastPenRepository>();
 
     private const int StructureGarrisonCapacity = 50;
 
@@ -73,8 +75,15 @@ public class CompleteMarchCommandTests
             new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 },
             new BuildingConfig { Key = "hospital", WoundedCapacityPerLevel = 100, UpgradeCostGrowth = 1.45 },
             new BuildingConfig { Key = "warehouse", StoresResources = ["food"], BaseStorage = 100_000,
-                UpgradeCostGrowth = 1.45 }
+                UpgradeCostGrowth = 1.45 },
+            new BuildingConfig { Key = "beastpen", BeastCapacityPerLevel = 1, UpgradeCostGrowth = 1.45 }
         ],
+        Beasts = new BeastsConfig
+        {
+            PityWins = 10,
+            MaxRank = 2,
+            Types = [new BeastConfig { Key = "wolf", MonsterKey = "wolves", TameChance = 0.2 }]
+        },
         Units =
         [
             new UnitConfig
@@ -175,6 +184,7 @@ public class CompleteMarchCommandTests
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _heroes, _random,
             armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, catalog, territoryBonus, territory, _clans,
+            new BeastTamer(_pens, _monsters, _random, new BeastTaming(catalog), capacities, status, catalog),
             NullLogger<MonsterBattleService>.Instance);
 
         var homecoming = new MarchHomecoming(_heroes, logistics, NullLogger<MarchHomecoming>.Instance);
@@ -246,6 +256,7 @@ public class CompleteMarchCommandTests
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("hospital", catalog.Buildings, Now);
         village.AddBuilding("warehouse", catalog.Buildings, Now);
+        village.AddBuilding("beastpen", catalog.Buildings, Now);
 
         var townhall = village.Buildings.Single(b => b.Type == "townhall");
 
@@ -260,7 +271,7 @@ public class CompleteMarchCommandTests
 
     /// <summary>Село, гарнізон, марш до монстра — стандартна сцена бою.</summary>
     private (March March, Village Village, Garrison Garrison, Monster Monster) GivenBattle(
-        int attackerInfantry = 100, int monsterLevel = 1)
+        int attackerInfantry = 100, int monsterLevel = 1, MarchIntent intent = MarchIntent.Attack)
     {
         var catalog = new GameCatalog(Config());
 
@@ -273,7 +284,7 @@ public class CompleteMarchCommandTests
             Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
             MarchTargetType.Monster, monster.Id,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = attackerInfantry },
-            Now, Now.AddMinutes(-30));
+            Now, Now.AddMinutes(-30), intent);
 
         _marches.GetByIdAsync(march.Id, Arg.Any<CancellationToken>()).Returns(march);
         _garrisons.GetByIdAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(garrison);
@@ -1171,5 +1182,79 @@ public class CompleteMarchCommandTests
 
         Assert.NotNull(report);
         Assert.Equal(ScoutOutcome.TargetGone, report.Outcome);
+    }
+
+    // ---------- Приручення (GDD §5.10) ----------
+
+    /// <summary>Перемога з наміром «Приручити», що вдалась: звір у звіринці замість здобичі, звір — у звіті.</summary>
+    [Fact]
+    public async Task Tame_ShouldPutTheBeastInThePen_InsteadOfLoot()
+    {
+        var (march, _, _, monster) = GivenBattle(attackerInfantry: 500, intent: MarchIntent.Tame);
+        _random.NextDouble().Returns(0.0);
+
+        BeastPen? pen = null;
+        await _pens.AddAsync(Arg.Do<BeastPen>(p => pen = p), Arg.Any<CancellationToken>());
+
+        BattleReport? report = null;
+        await _reports.AddAsync(Arg.Do<BattleReport>(r => report = r), Arg.Any<CancellationToken>());
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.NotNull(pen);
+        Assert.Equal(("wolf", 1), Assert.Single(pen.Beasts.Select(b => (b.BeastKey, b.Rank))));
+        Assert.Empty(march.GetCargo());
+        Assert.Equal("wolf", report?.TamedBeastKey);
+        _monsters.Received(1).Remove(monster);
+    }
+
+    /// <summary>Невдалий кидок — звичайна здобич, а лічильник гарантії росте.</summary>
+    [Fact]
+    public async Task Tame_ShouldLoadLoot_WhenTheRollMisses()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 500, intent: MarchIntent.Tame);
+        _random.NextDouble().Returns(0.99);
+
+        BeastPen? pen = null;
+        await _pens.AddAsync(Arg.Do<BeastPen>(p => pen = p), Arg.Any<CancellationToken>());
+
+        BattleReport? report = null;
+        await _reports.AddAsync(Arg.Do<BattleReport>(r => report = r), Arg.Any<CancellationToken>());
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.NotEmpty(march.GetCargo());
+        Assert.Null(report?.TamedBeastKey);
+        Assert.Empty(pen!.Beasts);
+        Assert.Equal(1, pen.MissesFor("wolf"));
+    }
+
+    /// <summary>Дублікат піднімає ранг звіра, що вже живе в звіринці.</summary>
+    [Fact]
+    public async Task Tame_ShouldRankUpTheBeast_AlreadyInThePen()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 500, intent: MarchIntent.Tame);
+        _random.NextDouble().Returns(0.0);
+
+        var pen = new BeastPen(Guid.NewGuid(), PlayerId, 1, Now);
+        pen.ResolveTaming("wolf", rolled: true, pityWins: 10, capacity: 1, maxRank: 2, Now);
+        _pens.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pen);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(2, pen.Beasts.Single().Rank);
+        Assert.Empty(march.GetCargo());
+    }
+
+    /// <summary>Звичайна атака звіринця не чіпає, навіть коли монстр приручається.</summary>
+    [Fact]
+    public async Task Attack_ShouldNotTame()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 500);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        await _pens.DidNotReceive().AddAsync(Arg.Any<BeastPen>(), Arg.Any<CancellationToken>());
+        Assert.NotEmpty(march.GetCargo());
     }
 }

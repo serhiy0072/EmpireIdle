@@ -1,0 +1,42 @@
+{
+  "GameConfig": {
+    "Beasts": {
+      "TameChancePerPenLevel": 0.01,
+      "MaxTameChanceMultiplier": 2.0,
+      "PityWins": 10,
+      "MaxRank": 5,
+      "Types": [
+        {
+          "Key": "wolf",
+          "DisplayName": "Вовк",
+          "MonsterKey": "wolf",
+          "TameChance": 0.20
+        },
+        {
+          "Key": "boar",
+          "DisplayName": "Вепр",
+          "MonsterKey": "boar",
+          "TameChance": 0.15
+        },
+        {
+          "Key": "bear",
+          "DisplayName": "Ведмідь",
+          "MonsterKey": "bear",
+          "TameChance": 0.10
+        },
+        {
+          "Key": "warg",
+          "DisplayName": "Варг",
+          "MonsterKey": "orc",
+          "TameChance": 0.08
+        },
+        {
+          "Key": "griffin",
+          "DisplayName": "Грифон",
+          "MonsterKey": "griffin",
+          "TameChance": 0.05
+        }
+      ]
+    }
+  }
+}

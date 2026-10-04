@@ -35,6 +35,7 @@ namespace EmpireIdle.Domain.Services
             ValidateDungeons(config);
             ValidateUnlockThresholds(config);
             ValidateMarket(config);
+            ValidateBeasts(config);
             ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
@@ -344,6 +345,41 @@ namespace EmpireIdle.Domain.Services
         /// Ринок: будівля існує, кожен товар має якір ціни. Без якоря коридор
         /// рахувався б із першого ж продажу, і його задавав би вош.
         /// </summary>
+        /// <summary>
+        /// Звірі (GDD §5.10): кожен тип приручається з наявного монстра, один звір на монстра,
+        /// шанс у (0; 1], і є звіринець із місцями — інакше приручати нікуди.
+        /// </summary>
+        private static void ValidateBeasts(GameConfig config)
+        {
+            var beasts = config.Beasts;
+
+            if (beasts.Types.Count == 0)
+                return;
+
+            RequireUniqueKeys(beasts.Types.Select(b => b.Key), "Beasts.Types");
+            RequireUniqueKeys(beasts.Types.Select(b => b.MonsterKey), "Beasts.Types monster keys");
+
+            var monsterKeys = config.Monsters.Select(m => m.Key).ToHashSet();
+
+            var broken = beasts.Types
+                .Where(b => !monsterKeys.Contains(b.MonsterKey) || b.TameChance <= 0 || b.TameChance > 1)
+                .Select(b => b.Key)
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException(
+                    $"Beasts need an existing monster and a tame chance in (0; 1]: {string.Join(", ", broken)}.");
+
+            if (beasts.TameChancePerPenLevel < 0 || beasts.MaxTameChanceMultiplier < 1
+                || beasts.PityWins < 1 || beasts.MaxRank < 1)
+                throw new InvalidOperationException(
+                    "Beasts need a non-negative chance per pen level, a chance cap multiplier of at least 1, "
+                    + "PityWins and MaxRank of at least 1.");
+
+            if (!config.Buildings.Any(b => b.BeastCapacityPerLevel > 0))
+                throw new InvalidOperationException("Beasts are configured, but no building gives beast slots.");
+        }
+
         private static void ValidateMarket(GameConfig config)
         {
             var market = config.Market;

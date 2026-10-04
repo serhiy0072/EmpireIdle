@@ -548,6 +548,67 @@
         }
       }
     },
+    "/api/beasts/{playerId}": {
+      "get": {
+        "tags": [
+          "Beasts"
+        ],
+        "operationId": "Beasts_GetPen",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeastPenResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeastPenResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeastPenResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/catalog": {
       "get": {
         "tags": [
@@ -7990,6 +8051,10 @@
             "items": {
               "$ref": "#/components/schemas/BattleReportLineResponse"
             }
+          },
+          "tamedBeastKey": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -8006,6 +8071,86 @@
         ],
         "type": "integer",
         "format": "int32"
+      },
+      "BeastPenResponse": {
+        "required": [
+          "beasts",
+          "capacity",
+          "taming"
+        ],
+        "type": "object",
+        "properties": {
+          "capacity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "beasts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BeastResponse"
+            }
+          },
+          "taming": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BeastTamingResponse"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeastResponse": {
+        "required": [
+          "beastKey",
+          "rank",
+          "tamedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "beastKey": {
+            "type": "string"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tamedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeastTamingResponse": {
+        "required": [
+          "beastKey",
+          "chance",
+          "misses",
+          "monsterKey",
+          "pityWins"
+        ],
+        "type": "object",
+        "properties": {
+          "beastKey": {
+            "type": "string"
+          },
+          "monsterKey": {
+            "type": "string"
+          },
+          "chance": {
+            "type": "number",
+            "format": "double"
+          },
+          "misses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pityWins": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
       },
       "BuildingResponse": {
         "required": [
@@ -10823,7 +10968,8 @@
         "enum": [
           1,
           2,
-          3
+          3,
+          4
         ],
         "type": "integer",
         "format": "int32"
@@ -12409,6 +12555,9 @@
     },
     {
       "name": "BattleReport"
+    },
+    {
+      "name": "Beasts"
     },
     {
       "name": "Catalog"

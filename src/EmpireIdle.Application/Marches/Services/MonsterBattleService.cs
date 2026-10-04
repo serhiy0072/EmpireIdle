@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.Services;
@@ -35,6 +36,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly TerritoryBonus _territoryBonus;
         private readonly ClanTerritoryRules _territory;
         private readonly IClanRepository _clanRepository;
+        private readonly BeastTamer _tamer;
         private readonly ILogger<MonsterBattleService> _logger;
 
         public MonsterBattleService(
@@ -54,6 +56,7 @@ namespace EmpireIdle.Application.Marches.Services
             TerritoryBonus territoryBonus,
             ClanTerritoryRules territory,
             IClanRepository clanRepository,
+            BeastTamer tamer,
             ILogger<MonsterBattleService> logger)
         {
             _monsterRepository = monsterRepository;
@@ -72,6 +75,7 @@ namespace EmpireIdle.Application.Marches.Services
             _territoryBonus = territoryBonus;
             _territory = territory;
             _clanRepository = clanRepository;
+            _tamer = tamer;
             _logger = logger;
         }
 
@@ -124,12 +128,23 @@ namespace EmpireIdle.Application.Marches.Services
             march.ApplyLosses(result.AttackerLosses, utcNow);
             garrison.AdmitWounded(split.Wounded, utcNow);
 
+            string? tamed = null;
+
             if (result.AttackerWon)
-                await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken);
+            {
+                await RemoveFromMapAsync(monster, cancellationToken);
+
+                // Приручений звір замінює здобич; невдача — звичайна здобич (GDD §5.10)
+                if (march.Intent == MarchIntent.Tame)
+                    tamed = await _tamer.TameAsync(village, monster.Type, utcNow, cancellationToken);
+
+                if (tamed is null)
+                    await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken);
+            }
 
             await _aftermath.RecordAttackerAsync(march, village, garrison,
                 _catalog.MonsterName(monster.Type), monster.Level,
-                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken);
+                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken, tamed);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
@@ -142,13 +157,8 @@ namespace EmpireIdle.Application.Marches.Services
             await _logistics.TurnMarchBackAsync(march, march.GetUnits(), utcNow, cancellationToken);
         }
 
-        /// <summary>
-        /// Прибирає переможеного монстра з карти й вантажить нагороду.
-        /// Здобич не з'являється в момент перемоги: вона їде з армією
-        /// й лягає на склад лише по прибутті, у межах вантажопідйомності.
-        /// </summary>
-        private async Task TakeSpoilsAsync(March march, Monster monster, Guid playerId, DateTime utcNow,
-            CancellationToken cancellationToken)
+        /// <summary>Переможений монстр зникає з карти — і тоді, коли його приручили.</summary>
+        private async Task RemoveFromMapAsync(Monster monster, CancellationToken cancellationToken)
         {
             _monsterRepository.Remove(monster);
 
@@ -156,7 +166,15 @@ namespace EmpireIdle.Application.Marches.Services
 
             if (cell is not null)
                 _mapRepository.Remove(cell);
+        }
 
+        /// <summary>
+        /// Вантажить нагороду. Здобич не з'являється в момент перемоги: вона їде з армією
+        /// й лягає на склад лише по прибутті, у межах вантажопідйомності.
+        /// </summary>
+        private async Task TakeSpoilsAsync(March march, Monster monster, Guid playerId, DateTime utcNow,
+            CancellationToken cancellationToken)
+        {
             var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
 
             var carried = _logistics.LimitToCarryCapacity(

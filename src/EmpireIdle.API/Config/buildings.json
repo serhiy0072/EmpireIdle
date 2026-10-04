@@ -390,7 +390,7 @@
           "X": 30.0,
           "Y": 86.0
         },
-        "BeastCapacityPerLevel": 2,
+        "BeastCapacityPerLevel": 1,
         "Cost": [
           {
             "Resource": "wood",

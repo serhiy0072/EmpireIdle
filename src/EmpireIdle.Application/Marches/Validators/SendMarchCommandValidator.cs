@@ -31,6 +31,11 @@ namespace EmpireIdle.Application.Marches.Validators
                 .When(x => x.Intent == MarchIntent.Reinforce)
                 .WithMessage("Reinforcements can only be sent to a village or a clan structure.");
 
+            // Приручають лише монстрів (GDD §5.10)
+            RuleFor(x => x.TargetType).Equal(MarchTargetType.Monster)
+                .When(x => x.Intent == MarchIntent.Tame)
+                .WithMessage("Only monsters can be tamed.");
+
             RuleForEach(x => x.Units).ChildRules(unit =>
             {
                 unit.RuleFor(u => u.Key.UnitType).NotEmpty().MaximumLength(50);

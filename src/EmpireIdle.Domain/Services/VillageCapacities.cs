@@ -25,6 +25,27 @@ namespace EmpireIdle.Domain.Services
             return storage is null || config is null ? 0 : config.ProtectedStorage * storage.Level.Value;
         }
 
+        /// <summary>
+        /// Скільки видів звірів вміщає звіринець (GDD §5.10). Звіринець під туманом
+        /// місць не дає: будівля існує з першого дня, але гравцю ще не відкрита.
+        /// </summary>
+        public int BeastSlots(Village village, VillageStatus status)
+            => village.Buildings
+                .Where(b => !b.IsUnderConstruction && status.IsUnlocked(village, b.Type))
+                .Sum(b => _catalog.Buildings.TryGetValue(b.Type, out var config)
+                    ? config.BeastCapacityPerLevel * b.Level.Value
+                    : 0);
+
+        /// <summary>Рівень звіринця — від нього росте шанс приручення; 0, якщо його немає чи він під туманом.</summary>
+        public int BeastPenLevel(Village village, VillageStatus status)
+            => village.Buildings
+                .Where(b => status.IsUnlocked(village, b.Type)
+                            && _catalog.Buildings.TryGetValue(b.Type, out var config)
+                            && config.BeastCapacityPerLevel > 0)
+                .Select(b => b.Level.Value)
+                .DefaultIfEmpty(0)
+                .Max();
+
         /// <summary>Скільки чужих юнітів вміщає посольство.</summary>
         public int ReinforcementSlots(Village village)
             => SumPerLevel(village, c => c.ReinforcementSlotsPerLevel);
