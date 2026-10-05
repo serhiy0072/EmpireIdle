@@ -104,7 +104,7 @@ public class ClanStructureCommandTests
 
         var returner = new ReinforcementReturner(_garrisons, _villages, _structures, _marches, _heroes,
             new MarchCalculator(new TerrainGenerator(config.Map), catalog), catalog,
-            new HeroProgression(config.HeroSettings), NullLogger<ReinforcementReturner>.Instance);
+            new HeroProgression(config.HeroSettings), TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
 
         var remover = new ClanStructureRemover(_structures, _garrisons, _map, returner,
             NullLogger<ClanStructureRemover>.Instance);

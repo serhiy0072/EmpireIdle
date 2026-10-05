@@ -70,7 +70,7 @@ public class VillageRelocatorTests
         var returner = new ReinforcementReturner(
             _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes,
             calculator, catalog, new HeroProgression(config.HeroSettings),
-            NullLogger<ReinforcementReturner>.Instance);
+            TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
 
         return new VillageRelocator(_map, _marches, _garrisons, _heroes, _servers, catalog,
             new WorldGeometry(config.Map), effects,

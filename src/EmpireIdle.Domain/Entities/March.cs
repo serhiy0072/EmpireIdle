@@ -117,12 +117,12 @@ namespace EmpireIdle.Domain.Entities
         public static March ReturningHome(Guid id, int serverId, Guid garrisonId, Guid? heroId,
             int homeX, int homeY, int fromX, int fromY, Guid fromId,
             IReadOnlyDictionary<UnitStackKey, int> units, TimeSpan duration, DateTime utcNow,
-            MarchTargetType fromType = MarchTargetType.Village)
+            MarchTargetType fromType = MarchTargetType.Village, double speedMultiplier = 1.0)
         {
             // Origin — дім: гілка Returning у сканері веде армію саме туди
             var march = new March(id, serverId, garrisonId, heroId, homeX, homeY, fromX, fromY,
                 fromType, fromId, units, utcNow + duration, utcNow,
-                MarchIntent.Reinforce);
+                MarchIntent.Reinforce, speedMultiplier);
 
             march.State = MarchState.Returning;
 

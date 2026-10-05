@@ -27,6 +27,7 @@ public class ReinforcementReturnerTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
 
     private static GameConfig Config() => new()
     {
@@ -58,6 +59,7 @@ public class ReinforcementReturnerTests
             new MarchCalculator(new TerrainGenerator(config.Map), catalog),
             catalog,
             new HeroProgression(config.HeroSettings),
+            TestEffects.Resolver(_effects),
             NullLogger<ReinforcementReturner>.Instance);
     }
 
@@ -102,6 +104,36 @@ public class ReinforcementReturnerTests
                             && m.GetUnits()[new UnitStackKey("infantry", 1)] == 10
                             && m.ArrivesAt > Now),
             Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Пасивка швидкості власника діє й на дорогу додому: +25% — колона йде в 1.25 раза швидше,
+    /// а множник фіксується на марші, як і при звичайній відправці (GDD §5.10).
+    /// </summary>
+    [Fact]
+    public async Task ReturnAllOfPlayer_applies_the_owners_march_speed()
+    {
+        Deployed(infantry: 10);
+        var plain = await ReturnedMarchAsync();
+
+        _marches.ClearReceivedCalls();
+        Deployed(infantry: 10);
+        _effects.GetAsync(OwnerId, EffectTarget.MarchSpeed, Arg.Any<CancellationToken>())
+            .Returns(new ActiveEffect(Guid.NewGuid(), OwnerId, EffectTarget.MarchSpeed, 1.25, Now.AddHours(-1), Now.AddHours(1), "test"));
+        var hastened = await ReturnedMarchAsync();
+
+        hastened.SpeedMultiplier.Should().Be(1.25);
+        (hastened.ArrivesAt - Now).TotalSeconds.Should().BeApproximately((plain.ArrivesAt - Now).TotalSeconds / 1.25, 1);
+    }
+
+    private async Task<March> ReturnedMarchAsync()
+    {
+        March? sent = null;
+        _marches.When(m => m.AddAsync(Arg.Any<March>(), Arg.Any<CancellationToken>())).Do(call => sent = call.Arg<March>());
+
+        await Returner().ReturnAllOfPlayerAsync(OwnerId, Now);
+
+        return sent ?? throw new InvalidOperationException("No march was sent home.");
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -25,6 +26,7 @@ namespace EmpireIdle.Application.Clans.Services
         private readonly MarchCalculator _calculator;
         private readonly GameCatalog _catalog;
         private readonly HeroProgression _progression;
+        private readonly EffectResolver _effects;
         private readonly ILogger<ReinforcementReturner> _logger;
 
         public ReinforcementReturner(
@@ -36,6 +38,7 @@ namespace EmpireIdle.Application.Clans.Services
             MarchCalculator calculator,
             GameCatalog catalog,
             HeroProgression progression,
+            EffectResolver effects,
             ILogger<ReinforcementReturner> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -46,6 +49,7 @@ namespace EmpireIdle.Application.Clans.Services
             _calculator = calculator;
             _catalog = catalog;
             _progression = progression;
+            _effects = effects;
             _logger = logger;
         }
 
@@ -194,18 +198,22 @@ namespace EmpireIdle.Application.Clans.Services
                 escort = heroes[0].Id;
             }
 
+            // Пасивка швидкості власника (GDD §5.10) діє й на дорогу додому: це теж його марш.
+            // Фіксуємо на марші, як і при відправці, — щоб час не плив, коли пасивка скінчиться
+            var speed = await _effects.GetMultiplierAsync(ownerPlayerId, EffectTarget.MarchSpeed, utcNow, cancellationToken);
+
             // Колона йде за найповільнішим, і герой у цьому рахунку нарівні
             // з юнітами: важкий супровід гальмує відхід так само, як облога
             var duration = _calculator.CalculateDuration(
                 host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y, units,
                 heroes.Count > 0
                     ? _progression.MarchSpeed(_catalog.FindHero(heroes[0].HeroKey))
-                    : null);
+                    : null) / speed;
 
             var march = March.ReturningHome(
                 Guid.NewGuid(), host.ServerId, ownerGarrison!.Id, escort,
                 ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
-                units, duration, utcNow, from.Value.Type);
+                units, duration, utcNow, from.Value.Type, speed);
 
             await _marchRepository.AddAsync(march, cancellationToken);
 
@@ -218,12 +226,12 @@ namespace EmpireIdle.Application.Clans.Services
                 var soloDuration = _calculator.CalculateDuration(
                     host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y,
                     new Dictionary<UnitStackKey, int>(),
-                    _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey)));
+                    _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey))) / speed;
 
                 await _marchRepository.AddAsync(March.ReturningHome(
                     Guid.NewGuid(), host.ServerId, ownerGarrison.Id, extra.Id,
                     ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
-                    new Dictionary<UnitStackKey, int>(), soloDuration, utcNow, from.Value.Type), cancellationToken);
+                    new Dictionary<UnitStackKey, int>(), soloDuration, utcNow, from.Value.Type, speed), cancellationToken);
             }
 
             _logger.LogInformation(
