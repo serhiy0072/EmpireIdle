@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ActiveEffects from "../components/inventory/ActiveEffects";
 import EquipmentCard from "../components/inventory/EquipmentCard";
@@ -58,6 +58,7 @@ export default function InventoryPage() {
   const heroes = useHeroes(playerId);
 
   const consume = useUseItem(playerId);
+  const navigate = useNavigate();
   const equip = useEquip(playerId);
   const unequip = useUnequip(playerId);
 
@@ -159,7 +160,14 @@ export default function InventoryPage() {
                 playerId={playerId}
                 item={item}
                 busy={busy}
-                onUse={(request) => consume.mutate(request)}
+                onUse={(request) =>
+                  consume.mutate(request, {
+                    // Телепорт без обраної клітини: місце обрала гра — ведемо на мапу, де видно, куди переїхало село
+                    onSuccess: () => {
+                      if (item.type === "teleport") void navigate("/map");
+                    },
+                  })
+                }
               />
             ))}
           </div>

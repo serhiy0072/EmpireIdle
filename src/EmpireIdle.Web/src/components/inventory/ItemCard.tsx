@@ -19,6 +19,7 @@ const TYPE_LABELS: Record<string, string> = {
   teleport: "Телепорт",
   evolution: "Еволюція",
   feed: "Корм",
+  scoutveil: "Захист від розвідки",
 };
 
 /**
@@ -28,6 +29,7 @@ const TYPE_LABELS: Record<string, string> = {
 export default function ItemCard({ playerId, item, busy, onUse }: Props) {
   const catalog = useCatalog();
   const [count, setCount] = useState(1);
+  const [confirming, setConfirming] = useState(false);
 
   const giftable = catalog.item(item.itemKey)?.giftable === true;
 
@@ -88,14 +90,39 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
         <div className="mt-3 flex flex-wrap justify-end gap-2">
           {giftable && <GiftPanel playerId={playerId} item={item} />}
           {gamePicksCell ? (
-            <button
-              type="button"
-              onClick={() => onUse({ itemKey: item.itemKey, count: 1, targetX: null, targetY: null })}
-              disabled={busy}
-              className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {teleportScope === "ClanLeader" ? "Переселитись до лідера" : "Переселитись навмання"}
-            </button>
+            confirming ? (
+              // Переїзд не скасувати, а місце обирає гра — тож другий клік, а не випадковий перший
+              <div className="flex w-full flex-wrap items-center justify-end gap-2 text-sm">
+                <span className="text-slate-600">Переїхати? Усе військо одразу повернеться додому.</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirming(false);
+                    onUse({ itemKey: item.itemKey, count: 1, targetX: null, targetY: null });
+                  }}
+                  disabled={busy}
+                  className="rounded-lg bg-emerald-600 px-3 py-1 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  Так
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirming(false)}
+                  className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50"
+                >
+                  Ні
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirming(true)}
+                disabled={busy}
+                className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {teleportScope === "ClanLeader" ? "Переселитись до лідера" : "Переселитись навмання"}
+              </button>
+            )
           ) : (
             <Link
               to={`/map?teleport=${encodeURIComponent(item.itemKey)}`}

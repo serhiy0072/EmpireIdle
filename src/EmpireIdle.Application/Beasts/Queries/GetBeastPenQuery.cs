@@ -57,7 +57,8 @@ namespace EmpireIdle.Application.Beasts.Queries
         {
             var config = _catalog.Beasts[beast.BeastKey];
 
-            return new BeastPassiveView(config.Effect.ToString(), _progression.Bonus(config, beast.Level),
+            // Сума кроків рівня в double дає хвіст (0.21800000000000003) — клієнту віддаємо чисте число
+            return new BeastPassiveView(config.Effect.ToString(), Math.Round(_progression.Bonus(config, beast.Level), 6),
                 config.DurationMinutes, config.CooldownMinutes, config.ActivationFood, beast.ActiveUntil, beast.CooldownUntil);
         }
     }
