@@ -91,6 +91,12 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скільки рівнів будівель відкриває один рівень сервера.</summary>
         public int BuildingLevelsPerTier { get; set; } = 10;
 
+        /// <summary>
+        /// Абсолютна стеля будівель. Рівень світу росте без межі (GDD §2.7), а ратуша й будівлі —
+        /// лише до цього рівня: нові рівні світу відкривають контент, а не поверхи.
+        /// </summary>
+        public int MaxBuildingLevel { get; set; } = 30;
+
         /// <summary>Ваги й орієнтири серверного рейтингу.</summary>
         public RatingConfig Rating { get; set; } = new();
 

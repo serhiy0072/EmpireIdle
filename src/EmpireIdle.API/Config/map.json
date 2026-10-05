@@ -5,7 +5,7 @@
       "Height": 500,
       "TerrainSeed": 20260922,
       "CellsPerMonster": 90,
-      "MaxServerLevel": 3,
+      "FullyOpenAtLevel": 3,
       "Geometry": {
         "RingBoundaries": [ 0.20, 0.50 ],
         "RingMultipliers": [ 2.0, 1.4, 1.0 ],
@@ -15,8 +15,7 @@
       },
       "Evolution": {
         "DensityThreshold": 0.35,
-        "MaturityMarginLevels": 2,
-        "MinDaysBetweenLevels": 45
+        "DaysPerLevel": 45
       },
       "Terrains": [
         {

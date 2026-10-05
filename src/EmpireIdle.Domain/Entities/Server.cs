@@ -21,7 +21,7 @@ namespace EmpireIdle.Domain.Entities
 
         public string Name { get; private set; } = null!;
 
-        /// <summary>Рівень світу. Росте від зрілості або від перенаселення.</summary>
+        /// <summary>Рівень світу. Росте з часом і стелі не має (GDD §2.7).</summary>
         public int Level { get; private set; }
 
         public ServerState State { get; private set; }
@@ -29,9 +29,7 @@ namespace EmpireIdle.Domain.Entities
         public DateTime CreatedAt { get; private set; }
 
         /// <summary>
-        /// Коли рівень підвищувався востаннє. Потрібне для мінімального
-        /// інтервалу між підйомами: без нього обидва тригери могли б
-        /// спрацювати поспіль і перескочити тір.
+        /// Коли рівень підвищувався востаннє — від цього моменту відлічується наступний.
         /// </summary>
         public DateTime? LevelRaisedAt { get; private set; }
 
@@ -53,21 +51,16 @@ namespace EmpireIdle.Domain.Entities
         protected Server() { } // для EF Core
 
         /// <summary>
-        /// Підвищує рівень світу на один.
+        /// Підвищує рівень світу на один. Стелі немає: новий рівень відкриває контент (GDD §2.7).
         ///
         /// Закритий світ теж розвивається: закриття реєстрації означає
-        /// «новачків не беремо», а не «зупинилися». Його гравці мають дійти
-        /// до стелі так само, як усі.
+        /// «новачків не беремо», а не «зупинилися».
         /// </summary>
-        /// <param name="maxLevel">Стеля з конфіга карти.</param>
-        /// <exception cref="InvalidStateException">Світ згортається або вже на стелі.</exception>
-        public void RaiseLevel(int maxLevel, DateTime utcNow)
+        /// <exception cref="InvalidStateException">Світ згортається.</exception>
+        public void RaiseLevel(DateTime utcNow)
         {
             if (State is ServerState.Sunset or ServerState.Archived)
                 throw new InvalidStateException($"Server {Id} is {State} and does not evolve.");
-
-            if (Level >= maxLevel)
-                throw new InvalidStateException($"Server {Id} is already at the maximum level {maxLevel}.");
 
             Level++;
             LevelRaisedAt = utcNow;

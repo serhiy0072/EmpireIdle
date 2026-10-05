@@ -19,8 +19,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Типи місцевості з їхніми вагами та властивостями.</summary>
         public List<TerrainConfig> Terrains { get; set; } = new();
 
-        /// <summary>Скільки рівнів може мати сервер. Останній — максимальна геометрія.</summary>
-        public int MaxServerLevel { get; set; } = 3;
+        /// <summary>
+        /// Рівень світу, на якому туман і кільця досягають повного розміру. Сам рівень світу
+        /// стелі не має (GDD §2.7): далі світ росте контентом, а не площею.
+        /// </summary>
+        public int FullyOpenAtLevel { get; set; } = 3;
 
         /// <summary>Межі кілець і туману як частки радіуса карти.</summary>
         public MapGeometryConfig Geometry { get; set; } = new();

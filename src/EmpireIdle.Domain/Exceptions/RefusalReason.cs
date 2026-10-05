@@ -69,6 +69,9 @@
         /// <summary>Правило A: стеля будівель від рівня світу.</summary>
         public static readonly RefusalReason BuildingServerCeiling = new("building.serverCeiling", "serverLevel", "ceiling");
 
+        /// <summary>Будівля на абсолютній стелі; рівень світу її вже не підніме (GDD §2.7).</summary>
+        public static readonly RefusalReason BuildingMaxLevel = new("building.maxLevel", "maxLevel");
+
         /// <summary>Функціональна будівля без рівнів (GDD §3.1); building — її назва для гравця.</summary>
         public static readonly RefusalReason BuildingNotUpgradable = new("building.notUpgradable", "building");
 

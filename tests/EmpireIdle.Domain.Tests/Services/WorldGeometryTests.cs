@@ -9,7 +9,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             Width = size,
             Height = size,
-            MaxServerLevel = 3,
+            FullyOpenAtLevel = 3,
             Geometry = new MapGeometryConfig
             {
                 RingBoundaries = new List<double> { 0.20, 0.50 },

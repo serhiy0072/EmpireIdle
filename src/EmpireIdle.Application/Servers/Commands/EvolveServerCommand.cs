@@ -1,17 +1,16 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Servers.Commands
 {
     /// <summary>
-    /// Перевіряє, чи світ дозрів для наступного рівня, і закриває реєстрацію,
-    /// коли він заповнився. Дві незалежні дії: рівень росте від зрілості,
-    /// щільність закриває вхід — заповнений світ не розтягується, натомість
-    /// новачки йдуть у наступний.
+    /// Розвиток світу (GDD §2.7, рішення 04.10.2026). Дві незалежні дії:
+    /// рівень росте з часом і стелі не має — новий рівень відкриває контент;
+    /// щільність закриває реєстрацію — заповнений світ не розтягується,
+    /// натомість новачки йдуть у наступний.
     /// </summary>
     public record EvolveServerCommand(int ServerId) : IRequest;
 
@@ -49,34 +48,38 @@ namespace EmpireIdle.Application.Servers.Commands
 
             var server = await _serverRepository.GetByIdAsync(request.ServerId, cancellationToken);
 
-            if (server is null
-                || server.State is ServerState.Sunset or ServerState.Archived
-                || (!server.AcceptsNewPlayers && server.Level >= _catalog.Config.Map.MaxServerLevel))
+            if (server is null || server.State is ServerState.Sunset or ServerState.Archived)
                 return;
 
             var evolution = _catalog.Config.Map.Evolution;
             var changed = false;
 
-            // Щільність від УСІЄЇ площі туман, не від придатної: непрохідні
-            // клітини теж у знаменнику, і поріг калібрується з урахуванням цього
-            var boundary = _geometry.SettlementBoundary(server.Level);
-            var openArea = (boundary * 2 + 1) * (boundary * 2 + 1);
-            var villages = await _villageRepository.CountAsync(cancellationToken);
-
-            if (server.AcceptsNewPlayers && (double)villages / openArea >= evolution.DensityThreshold)
+            if (server.AcceptsNewPlayers)
             {
-                server.CloseRegistration(now);
-                changed = true;
+                // Щільність від УСІЄЇ площі туману, не від придатної: непрохідні
+                // клітини теж у знаменнику, і поріг калібрується з урахуванням цього
+                var boundary = _geometry.SettlementBoundary(server.Level);
+                var openArea = (boundary * 2 + 1) * (boundary * 2 + 1);
+                var villages = await _villageRepository.CountAsync(cancellationToken);
 
-                _logger.LogInformation(
-                    "Server {ServerId} closed for registration: {Villages} villages in {Area} cells",
-                    server.Id, villages, openArea);
+                if ((double)villages / openArea >= evolution.DensityThreshold)
+                {
+                    server.CloseRegistration(now);
+                    changed = true;
+
+                    _logger.LogInformation(
+                        "Server {ServerId} closed for registration: {Villages} villages in {Area} cells",
+                        server.Id, villages, openArea);
+                }
             }
 
-            if (CanRaiseLevel(server, evolution, now)
-                && await IsMatureAsync(server, evolution, cancellationToken))
+            // Світ, що ще не піднімався, відлічує строк від створення. Один рівень за прогін:
+            // джоб щоденний, і світ, що простояв без джоба, наздожене за кілька днів, а не стрибком
+            var since = server.LevelRaisedAt ?? server.CreatedAt;
+
+            if (now - since >= TimeSpan.FromDays(evolution.DaysPerLevel))
             {
-                server.RaiseLevel(_catalog.Config.Map.MaxServerLevel, now);
+                server.RaiseLevel(now);
                 changed = true;
 
                 _logger.LogInformation("Server {ServerId} evolved to level {Level}", server.Id, server.Level);
@@ -84,26 +87,6 @@ namespace EmpireIdle.Application.Servers.Commands
 
             if (changed)
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
-        }
-
-        /// <summary>Строк — нижня межа: без нього обидва рівні могли б стрибнути поспіль.</summary>
-        private static bool CanRaiseLevel(Domain.Entities.Server server, ServerEvolutionConfig evolution, DateTime now)
-        {
-            // Світ, що ще не піднімався, відлічує строк від створення
-            var since = server.LevelRaisedAt ?? server.CreatedAt;
-
-            return now - since >= TimeSpan.FromDays(evolution.MinDaysBetweenLevels);
-        }
-
-        private async Task<bool> IsMatureAsync(Domain.Entities.Server server, ServerEvolutionConfig evolution,
-            CancellationToken cancellationToken)
-        {
-            var median = await _villageRepository.GetMedianMainBuildingLevelAsync(
-                _catalog.MainBuildingKey, cancellationToken);
-
-            var ceiling = server.Level * _catalog.Config.BuildingLevelsPerTier;
-
-            return median >= ceiling - evolution.MaturityMarginLevels;
         }
     }
 }

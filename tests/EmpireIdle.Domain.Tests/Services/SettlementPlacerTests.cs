@@ -65,7 +65,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public async Task FindSpotAsync_ShouldSkipTheCellBeyondTheMapEdge_AtMaxServerLevel()
         {
             var config = Config();
-            config.MaxServerLevel = 3;
+            config.FullyOpenAtLevel = 3;
             config.Geometry = new MapGeometryConfig
             {
                 RingBoundaries = [0.20, 0.50], RingMultipliers = [2.0, 1.4, 1.0],

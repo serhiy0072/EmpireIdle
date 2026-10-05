@@ -12,6 +12,7 @@ public class FlatBuildingTests
 {
     private const string Market = "market";
     private const int LevelsPerTier = 10;
+    private const int MaxBuildingLevel = 30;
     private const int UngatedServerLevel = 99;
 
     private static Dictionary<string, BuildingConfig> Configs()
@@ -33,7 +34,7 @@ public class FlatBuildingTests
 
         var refusal = Assert.Throws<InvalidStateException>(() =>
             village.BeginBuildingUpgrade(market.Id, Configs(), TestKit.Entities.Now, ProductionBoost.None,
-                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier,
+                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel,
                 locationMultiplier: 1.0));
 
         Assert.Equal(RefusalReasons.BuildingNotUpgradable.Key, refusal.Reason);
@@ -60,7 +61,7 @@ public class FlatBuildingTests
         var townhall = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Townhall);
 
         village.BeginBuildingUpgrade(townhall.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
-            mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier,
+            mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel,
             locationMultiplier: 1.0);
 
         Assert.True(townhall.IsUnderConstruction);

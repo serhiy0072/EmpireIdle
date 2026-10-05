@@ -11,7 +11,7 @@ namespace EmpireIdle.Domain.Tests.Services
             Height = 200,
             TerrainSeed = 4242,
             CellsPerMonster = 100,
-            MaxServerLevel = 3,
+            FullyOpenAtLevel = 3,
             Geometry = new MapGeometryConfig
             {
                 RingBoundaries = [0.20, 0.50],

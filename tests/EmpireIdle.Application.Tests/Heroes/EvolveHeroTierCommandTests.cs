@@ -39,7 +39,7 @@ public class EvolveHeroTierCommandTests
         var server = new Server(ServerId, "Test World", Now);
 
         for (var current = 1; current < level; current++)
-            server.RaiseLevel(maxLevel: 10, Now);
+            server.RaiseLevel(Now);
 
         _servers.GetByIdAsync(ServerId, Arg.Any<CancellationToken>()).Returns(server);
     }

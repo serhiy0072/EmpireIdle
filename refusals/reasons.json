@@ -25,6 +25,9 @@
   ],
   "beast.penMissing": [],
   "building.alreadyCompleted": [],
+  "building.maxLevel": [
+    "maxLevel"
+  ],
   "building.notUpgradable": [
     "building"
   ],

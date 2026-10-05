@@ -73,34 +73,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .ToDictionaryAsync(v => v.Id, v => v.Name, cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<int> GetMedianMainBuildingLevelAsync(string mainBuildingKey,
-            CancellationToken cancellationToken = default)
-        {
-            // Світ — через село: у будівлі немає ні ServerId, ні фільтра світу, тож без
-            // join медіана рахувалась би по всіх світах разом. Рівень — сама властивість із
-            // конвертером (EF сортує колонку), а не .Value: доступ до члена він у SQL не перекладає
-            var levels = from b in _context.Buildings.AsNoTracking()
-                         join v in _context.Villages on b.VillageId equals v.Id
-                         where b.Type == mainBuildingKey
-                         select b.Level;
-
-            var count = await levels.CountAsync(cancellationToken);
-
-            if (count == 0)
-                return 0;
-
-            // OrderBy + Skip, а не PERCENTILE_CONT: тягне один рядок
-            // і не прив'язує репозиторій до діалекту Postgres
-            var median = await levels
-                .OrderBy(level => level)
-                .Skip(count / 2)
-                .Take(1)
-                .FirstAsync(cancellationToken);
-
-            return median.Value;
-        }
-
-        /// <inheritdoc/>
         public Task<int> CountAsync(CancellationToken cancellationToken = default)
             => _context.Villages.AsNoTracking().CountAsync(cancellationToken);
 

@@ -69,6 +69,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "village.nothingToRepair": () => "Ремонтувати нічого — усі будівлі цілі",
   "building.serverCeiling": ({ serverLevel, ceiling }) =>
     `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
+  "building.maxLevel": ({ maxLevel }) => `Будівля вже на найвищому рівні ${maxLevel}`,
   "building.townHallCeiling": ({ building, level }) =>
     `«${building}» не може бути вищою за ратушу (${level} рівень) — спершу підніміть ратушу`,
   "building.villageLagging": ({ level, buildings }) =>
