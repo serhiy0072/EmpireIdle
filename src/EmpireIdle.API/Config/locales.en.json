@@ -38,6 +38,7 @@
           "item.teleport_nearby": "Nearby Teleport",
           "item.teleport_clan": "Clan Teleport",
           "item.teleport_random": "Random Teleport",
+          "item.teleport_leader": "Leader Teleport",
           "item.beast_feed": "Beast Feed",
           "monster.wolf": "Wolf",
           "monster.orc": "Orc Raider",

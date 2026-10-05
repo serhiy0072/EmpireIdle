@@ -173,4 +173,59 @@ public class TeleportItemEffectTests
         Assert.InRange(village.X, 0, 199);
         Assert.InRange(village.Y, 0, 199);
     }
+
+    /// <summary>Клан гравця, де глава — інший гравець із селом у (leaderX, leaderY).</summary>
+    private void GivenClanLedBy(Guid leaderId, int leaderX, int leaderY)
+    {
+        var clan = new Clan(Guid.NewGuid(), 1, "Wolves", "WLF", leaderId, Now.AddDays(-1));
+        _clans.GetByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(clan);
+
+        // Глава — сам гравець: його село вже задав GivenVillage
+        if (leaderId == PlayerId)
+            return;
+
+        clan.Join(PlayerId, 50, Now.AddHours(-1));
+
+        var leaderVillage = new Village(Guid.NewGuid(), leaderId, "Hall", ["food"], leaderX, leaderY);
+        _villages.GetByPlayerIdAsync(leaderId, Arg.Any<CancellationToken>()).Returns(leaderVillage);
+        _map.GetAreaAsync(1, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new List<MapCell> { new(Guid.NewGuid(), 1, leaderX, leaderY, MapOccupantType.Village, leaderVillage.Id) });
+    }
+
+    /// <summary>До лідера — на сусідню з його селом клітину; координати гравець не передає.</summary>
+    [Fact]
+    public async Task ClanLeader_ShouldMoveNextToTheLeader()
+    {
+        var village = GivenVillage();
+        GivenClanLedBy(Guid.NewGuid(), 140, 60);
+
+        await Effect().ApplyAsync(Use(TeleportScope.ClanLeader, null, null), CancellationToken.None);
+
+        Assert.Equal(1, Math.Max(Math.Abs(village.X - 140), Math.Abs(village.Y - 60)));
+    }
+
+    [Fact]
+    public async Task ClanLeader_ShouldRefuse_WithoutAClan()
+    {
+        GivenVillage();
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Effect().ApplyAsync(Use(TeleportScope.ClanLeader, null, null), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.TeleportNoClan.Key, refusal.Reason);
+    }
+
+    /// <summary>Глава клану сам до себе не летить — предмет лишається.</summary>
+    [Fact]
+    public async Task ClanLeader_ShouldRefuse_TheLeaderThemself()
+    {
+        var village = GivenVillage();
+        GivenClanLedBy(PlayerId, 140, 60);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Effect().ApplyAsync(Use(TeleportScope.ClanLeader, null, null), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.TeleportYouAreLeader.Key, refusal.Reason);
+        Assert.Equal((100, 100), (village.X, village.Y));
+    }
 }

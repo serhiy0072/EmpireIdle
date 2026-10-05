@@ -376,5 +376,8 @@
 
         /// <summary>Клановий телепорт — клітина поза територією свого клану.</summary>
         public static readonly RefusalReason TeleportOutsideClanTerritory = new("teleport.outsideClanTerritory");
+
+        /// <summary>Телепорт до лідера — гравець сам глава клану.</summary>
+        public static readonly RefusalReason TeleportYouAreLeader = new("teleport.youAreLeader");
     }
 }

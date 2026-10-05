@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
-import { api } from "../api";
+import { api, isApiError } from "../api";
 import type { EnhancementResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
@@ -16,13 +16,28 @@ export function useInventory(playerId: string): UseQueryResult<InventoryResponse
   });
 }
 
+/** Скільки разів пробуємо телепорт, клітину якому обирає гра, якщо її щойно зайняв інший гравець. */
+const GAME_PICKED_CELL_ATTEMPTS = 3;
+
 /** Ящик наливає ресурси в село, буст з'являється в інвентарі, телепорт рухає село мапою. */
 export function useUseItem(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UseItemRequest) =>
-      api<void>(`/api/inventory/${playerId}/use`, { method: "POST", body: input, idempotent: true }),
+    mutationFn: async (input: UseItemRequest) => {
+      // Клітину обирає гра (випадковий, до лідера): двох одночасних гравців на одну клітину розводить
+      // індекс мапи — другий отримує 409, а повтор із новим ключем дістане наступну вільну (GDD §8.9).
+      // Відмова відкочує команду цілком, тож повтор нічого не списує вдруге
+      for (let attempt = 1; ; attempt++) {
+        try {
+          return await api<void>(`/api/inventory/${playerId}/use`, { method: "POST", body: input, idempotent: true });
+        } catch (error: unknown) {
+          const cellTaken = input.targetX == null && isApiError(error) && error.is("AlreadyExists");
+
+          if (!cellTaken || attempt >= GAME_PICKED_CELL_ATTEMPTS) throw error;
+        }
+      }
+    },
     onSuccess: () => {
       // Телепорт одразу повертає додому всі війська — з маршів і з чужих гарнізонів
       invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes", "garrison", "marches", "power"]);

@@ -31,8 +31,9 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
 
   const giftable = catalog.item(item.itemKey)?.giftable === true;
 
-  // Випадковий телепорт клітини не потребує — гра обирає її сама (GDD §8.9)
-  const randomTeleport = item.type === "teleport" && catalog.item(item.itemKey)?.teleportScope === "Random";
+  // Випадковий і до лідера клітини не потребують — гра обирає її сама (GDD §8.9)
+  const teleportScope = item.type === "teleport" ? catalog.item(item.itemKey)?.teleportScope : undefined;
+  const gamePicksCell = teleportScope === "Random" || teleportScope === "ClanLeader";
 
   const usable = item.type === "resources" || item.type === "boost" || item.type === "scoutveil";
   const safeCount = Math.min(item.count, Math.max(1, count));
@@ -86,14 +87,14 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
       {item.type === "teleport" && (
         <div className="mt-3 flex flex-wrap justify-end gap-2">
           {giftable && <GiftPanel playerId={playerId} item={item} />}
-          {randomTeleport ? (
+          {gamePicksCell ? (
             <button
               type="button"
               onClick={() => onUse({ itemKey: item.itemKey, count: 1, targetX: null, targetY: null })}
               disabled={busy}
               className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              Переселитись навмання
+              {teleportScope === "ClanLeader" ? "Переселитись до лідера" : "Переселитись навмання"}
             </button>
           ) : (
             <Link

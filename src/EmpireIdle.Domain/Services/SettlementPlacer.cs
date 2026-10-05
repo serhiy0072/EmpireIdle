@@ -108,5 +108,53 @@ namespace EmpireIdle.Domain.Services
 
             return null;
         }
+
+        /// <summary>
+        /// Найближча до (x, y) вільна придатна клітина відкритої зони — телепорт до лідера клану (GDD §8.9).
+        /// Ближчі за евклідовою відстанню — раніше: гравці, що прилітають один за одним, щільно оточують ціль.
+        /// Зайнятість питаємо квадратом і подвоюємо його, поки місце не знайдеться.
+        /// Null — у відкритій зоні вільної клітини немає.
+        /// </summary>
+        /// <param name="occupiedIn">Зайняті клітини квадрата (minX, minY, maxX, maxY) — один запит до БД.</param>
+        public async Task<(int X, int Y)?> FindSpotNearAsync(
+            int serverId,
+            int serverLevel,
+            int x,
+            int y,
+            Func<int, int, int, int, Task<IReadOnlyCollection<(int X, int Y)>>> occupiedIn,
+            int initialRadius = 4)
+        {
+            var (cx, cy) = _geometry.Centre;
+
+            // Квадрат із таким радіусом уже накриває всю відкриту зону — далі шукати нема де
+            var maxRadius = Math.Max(Math.Abs(x - cx), Math.Abs(y - cy)) + _geometry.SettlementBoundary(serverLevel);
+
+            for (var radius = Math.Clamp(initialRadius, 1, maxRadius); ; radius = Math.Min(radius * 2, maxRadius))
+            {
+                var occupied = (await occupiedIn(x - radius, y - radius, x + radius, y + radius)).ToHashSet();
+
+                // Сортуємо весь квадрат, а перевірки ліниві: перша придатна клітина й є відповіддю
+                var spot = Square(x, y, radius)
+                    .OrderBy(c => (c.X - x) * (c.X - x) + (c.Y - y) * (c.Y - y))
+                    .ThenBy(c => c.Y)
+                    .ThenBy(c => c.X)
+                    .Where(c => !occupied.Contains(c)
+                        && _terrain.IsInBounds(c.X, c.Y)
+                        && _geometry.IsWithinFog(c.X, c.Y, serverLevel)
+                        && _terrain.IsHabitable(serverId, c.X, c.Y))
+                    .Select(c => ((int X, int Y)?)c)
+                    .FirstOrDefault();
+
+                if (spot is not null || radius >= maxRadius)
+                    return spot;
+            }
+        }
+
+        private static IEnumerable<(int X, int Y)> Square(int x, int y, int radius)
+        {
+            for (var dy = -radius; dy <= radius; dy++)
+                for (var dx = -radius; dx <= radius; dx++)
+                    yield return (x + dx, y + dy);
+        }
     }
 }

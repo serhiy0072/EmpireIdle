@@ -144,6 +144,15 @@
         "Giftable": true
       },
       {
+        "Key": "teleport_leader",
+        "DisplayName": "Телепорт до лідера",
+        "Description": "Переносить поселення на найближчу вільну клітину біля села глави вашого клану",
+        "Rarity": "common",
+        "Type": "teleport",
+        "TeleportScope": "ClanLeader",
+        "Giftable": true
+      },
+      {
         "Key": "beast_feed",
         "DisplayName": "Корм для звірів",
         "Description": "Годуйте прирученого звіра в звіринці — він набирає рівень, і його пасивка сильнішає",

@@ -240,6 +240,7 @@
   "teleport.tooFar": [
     "range"
   ],
+  "teleport.youAreLeader": [],
   "territory.cellTaken": [],
   "territory.cellUnfit": [],
   "territory.foreignStructure": [],

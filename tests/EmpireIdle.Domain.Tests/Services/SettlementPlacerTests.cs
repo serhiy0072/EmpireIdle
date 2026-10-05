@@ -119,5 +119,99 @@ namespace EmpireIdle.Domain.Tests.Services
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 placer.FindSpotAsync(1, serverLevel: 1, (_, _) => Task.FromResult(true), maxAttempts: 10));
         }
+
+        private const int LeaderX = 100;
+        private const int LeaderY = 100;
+
+        private static (TerrainGenerator Terrain, SettlementPlacer Placer) NearPlacer()
+        {
+            var config = Config();
+            var terrain = new TerrainGenerator(config);
+            return (terrain, new SettlementPlacer(terrain, new WorldGeometry(config), new SystemRandomSource()));
+        }
+
+        /// <summary>Зайняті клітини квадрата з набору — так, як їх віддала б БД.</summary>
+        private static Func<int, int, int, int, Task<IReadOnlyCollection<(int X, int Y)>>> OccupiedFrom(
+            HashSet<(int X, int Y)> occupied)
+            => (minX, minY, maxX, maxY) => Task.FromResult<IReadOnlyCollection<(int X, int Y)>>(
+                occupied.Where(c => c.X >= minX && c.X <= maxX && c.Y >= minY && c.Y <= maxY).ToList());
+
+        private static int Distance2((int X, int Y) cell) => (cell.X - LeaderX) * (cell.X - LeaderX) + (cell.Y - LeaderY) * (cell.Y - LeaderY);
+
+        /// <summary>Телепорт до лідера ставить село на найближчу вільну придатну клітину — ближчої не лишається.</summary>
+        [Fact]
+        public async Task FindSpotNearAsync_ShouldPickTheNearestFreeHabitableCell()
+        {
+            var (terrain, placer) = NearPlacer();
+            var occupied = new HashSet<(int X, int Y)> { (LeaderX, LeaderY) };
+
+            var spot = await placer.FindSpotNearAsync(1, 1, LeaderX, LeaderY, OccupiedFrom(occupied));
+
+            Assert.NotNull(spot);
+            Assert.True(terrain.IsHabitable(1, spot.Value.X, spot.Value.Y));
+            Assert.DoesNotContain(spot.Value, occupied);
+
+            var closer = Enumerable.Range(-5, 11)
+                .SelectMany(dy => Enumerable.Range(-5, 11).Select(dx => (X: LeaderX + dx, Y: LeaderY + dy)))
+                .Where(c => !occupied.Contains(c) && terrain.IsHabitable(1, c.X, c.Y) && Distance2(c) < Distance2(spot.Value));
+            Assert.Empty(closer);
+        }
+
+        /// <summary>Гравці, що прилітають один за одним, займають різні клітини й щільно оточують лідера.</summary>
+        [Fact]
+        public async Task FindSpotNearAsync_ShouldSurroundTheLeaderTightly_WhenSeveralArriveInTurn()
+        {
+            var (_, placer) = NearPlacer();
+            var occupied = new HashSet<(int X, int Y)> { (LeaderX, LeaderY) };
+            var previous = 0;
+
+            for (var i = 0; i < 12; i++)
+            {
+                var spot = await placer.FindSpotNearAsync(1, 1, LeaderX, LeaderY, OccupiedFrom(occupied));
+
+                Assert.NotNull(spot);
+                Assert.True(occupied.Add(spot.Value), $"Cell {spot} was handed out twice.");
+                Assert.True(Distance2(spot.Value) >= previous, "A later arrival landed closer than an earlier one.");
+                previous = Distance2(spot.Value);
+            }
+        }
+
+        /// <summary>Сусідство лідера заселене щільно — пошук розширюється, а не відмовляє.</summary>
+        [Fact]
+        public async Task FindSpotNearAsync_ShouldWidenTheSearch_WhenTheNeighbourhoodIsFull()
+        {
+            var (terrain, placer) = NearPlacer();
+            var occupied = Enumerable.Range(-10, 21)
+                .SelectMany(dy => Enumerable.Range(-10, 21).Select(dx => (X: LeaderX + dx, Y: LeaderY + dy)))
+                .ToHashSet();
+            var squares = new List<int>();
+            var query = OccupiedFrom(occupied);
+
+            var spot = await placer.FindSpotNearAsync(1, 1, LeaderX, LeaderY, (minX, minY, maxX, maxY) =>
+            {
+                squares.Add((maxX - minX) / 2);
+                return query(minX, minY, maxX, maxY);
+            });
+
+            Assert.NotNull(spot);
+            Assert.True(Math.Max(Math.Abs(spot.Value.X - LeaderX), Math.Abs(spot.Value.Y - LeaderY)) > 10);
+            Assert.True(terrain.IsHabitable(1, spot.Value.X, spot.Value.Y));
+            Assert.Equal([4, 8, 16], squares);
+        }
+
+        /// <summary>Уся відкрита зона зайнята — null, а не нескінченний пошук.</summary>
+        [Fact]
+        public async Task FindSpotNearAsync_ShouldReturnNull_WhenEverythingIsTaken()
+        {
+            var (_, placer) = NearPlacer();
+
+            var spot = await placer.FindSpotNearAsync(1, 1, LeaderX, LeaderY, (minX, minY, maxX, maxY) =>
+                Task.FromResult<IReadOnlyCollection<(int X, int Y)>>(
+                    Enumerable.Range(minY, maxY - minY + 1)
+                        .SelectMany(y => Enumerable.Range(minX, maxX - minX + 1).Select(x => (x, y)))
+                        .ToList()));
+
+            Assert.Null(spot);
+        }
     }
 }
