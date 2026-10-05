@@ -25,10 +25,13 @@ namespace EmpireIdle.Domain.Services.Config
 
         public List<QuestObjectiveConfig> Objectives { get; set; } = new();
 
-        /// <summary>Нагорода для Scope=Personal.</summary>
+        /// <summary>
+        /// Нагорода за виконання. Для Scope=Server — кожному гравцю світу листом,
+        /// незалежно від внеску (GDD §2.7, §8.4).
+        /// </summary>
         public List<RewardConfig> Rewards { get; set; } = new();
 
-        /// <summary>Нагорода за рангом для Scope=Server.</summary>
+        /// <summary>Бонус топу за внеском для Scope=Server — додається в той самий лист.</summary>
         public List<RewardTierConfig> RewardTiers { get; set; } = new();
 
         /// <summary>Очки вкладу, які клан отримує за завершення (Scope=Clan).</summary>

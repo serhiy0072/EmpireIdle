@@ -29,6 +29,16 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.ServerId == serverId, cancellationToken);
 
         /// <inheritdoc/>
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsAfterAsync(Guid? after, int take, CancellationToken cancellationToken = default)
+            => await _context.Players
+                .AsNoTracking()
+                .Where(p => after == null || p.Id.CompareTo(after.Value) > 0)
+                .OrderBy(p => p.Id)
+                .Select(p => p.Id)
+                .Take(take)
+                .ToListAsync(cancellationToken);
+
         public async Task<IReadOnlyList<Guid>> GetIdsByClanAsync(Guid clanId, CancellationToken cancellationToken = default)
             => await _context.Players
                 .AsNoTracking()

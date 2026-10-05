@@ -64,6 +64,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Items.Count > 0, "GameConfig.Items is empty — check Config/items.json.")
     .Validate(c => c.Quests.Count > 0, "GameConfig.Quests is empty — check Config/quests.json.")
     .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
+    .Validate(c => c.Quests.Where(q => q.Scope == EmpireIdle.Domain.Enums.QuestScope.Server).All(q => q.Rewards.Count > 0),
+        "GameConfig has a server quest without Rewards — every player of the world gets them by mail.")
     .Validate(c => c.Quests.SelectMany(q => q.Rewards.Concat(q.RewardTiers.SelectMany(t => t.Rewards))).All(r => r.Amount > 0), "GameConfig has a quest reward with non-positive Amount.")
     .Validate(c => c.Shop.GemPacks.Count > 0, "GameConfig.Shop.GemPacks is empty — check Config/shop.json.")
     .Validate(c => c.Shop.Items.All(i => i.PriceGems > 0 && i.MaxPerPurchase is >= 1 and <= 100), "GameConfig.Shop.Items has an offer with a non-positive price or MaxPerPurchase outside 1–100.")

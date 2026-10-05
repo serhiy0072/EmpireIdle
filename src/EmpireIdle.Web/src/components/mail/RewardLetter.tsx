@@ -13,6 +13,7 @@ const TITLES: Record<string, (letter: MailLetterView) => string> = {
   DailyReward: (letter) => `Щоденна нагорода — день ${letter.sequence ?? 1}`,
   WeeklyReward: () => "Нагорода тижня",
   MonthlyReward: () => "Нагорода місяця",
+  ServerQuestReward: () => "Нагорода світу за спільний квест",
 };
 
 const date = (iso: string) =>

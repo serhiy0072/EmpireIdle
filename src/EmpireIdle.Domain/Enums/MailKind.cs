@@ -23,6 +23,9 @@ namespace EmpireIdle.Domain.Enums
         MonthlyReward = 5,
 
         /// <summary>Зруйновано споруду клану; ReferenceId — StructureFall.</summary>
-        StructureFall = 6
+        StructureFall = 6,
+
+        /// <summary>Нагорода за серверний квест: кожному гравцю світу, топу — з бонусом (GDD §8.4).</summary>
+        ServerQuestReward = 7
     }
 }
