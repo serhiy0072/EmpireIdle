@@ -47,14 +47,13 @@ public class RecalculatePowerCommandTests
         Combat = new CombatConfig(),
         HeroSettings = new HeroesConfig
         {
-            MaxTier = 1,
             LevelsPerTier = 10,
             MaxMarches = 3,
             BuildingKey = "heroeshall",
             HealBuildingKey = "hospital",
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
             Classes = ["warrior"],
-            TierStatMultipliers = [1.0],
+            TierGrowth = 1.1,
             EvolutionItemKeys = [],
             OverflowSeals = new Dictionary<string, int> { ["Common"] = 0 }
         },

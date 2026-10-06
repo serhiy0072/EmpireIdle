@@ -97,8 +97,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "teleport.cellOccupied": () => "Ця клітинка вже зайнята",
   "banner.notOpen": ({ startsAt }) => `Банер відкриється ${localTime(startsAt)}`,
   "banner.closed": () => "Цей банер уже закрито",
+  "banner.worldLevel": ({ level }) => `Банер відкриється на рівні світу ${level}`,
   "quest.notClaimable": () => "Нагороду за цей квест зараз не можна забрати — можливо, вже забрано",
   "shop.maxPerPurchase": ({ max }) => `За одну покупку — не більше ${max} шт.`,
+  "shop.offerClosed": () => "Ця пропозиція вже не продається",
 
   // ---------- Клани ----------
   "clan.notMember": () => "Ви вже не в клані — оновіть сторінку",
@@ -164,6 +166,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
     `Наступний тір відкриється на рівні світу ${required} (зараз ${current})`,
   "hero.evolutionItemRequired": ({ item }) => `Для еволюції потрібен предмет «${item}»`,
   "hero.maxTier": ({ tier }) => `Герой уже на найвищому тірі (${tier})`,
+  "hero.tierLocked": ({ tier }) => `Герой ${tier} тіру з'явиться на рівні світу ${tier}`,
   "hero.notEnoughShards": ({ hero, need, have }) => `Для призову «${hero}» потрібно ${need} уламків, зібрано ${have}`,
 
   // ---------- Спорядження ----------

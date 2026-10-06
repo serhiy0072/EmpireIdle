@@ -2,12 +2,8 @@
   "GameConfig": {
     "HeroSettings": {
       "LevelsPerTier": 10,
-      "MaxTier": 3,
-      "TierStatMultipliers": [
-        1.0,
-        1.35,
-        1.8
-      ],
+      "TierGrowth": 1.10,
+      "EvolutionPenalty": 0.95,
       "EvolutionItemKeys": [
         "hero_essence_t2",
         "hero_essence_t3"

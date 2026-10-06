@@ -244,9 +244,8 @@ namespace EmpireIdle.Domain.Tests.Services
             config.HeroSettings = new HeroesConfig
             {
                 LevelsPerTier = 10,
-                MaxTier = 3,
                 MaxMarches = 8,
-                TierStatMultipliers = [1.0, 1.35, 1.8],
+                TierGrowth = 1.10,
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
                 OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 BuildingKey = "heroeshall",
@@ -337,23 +336,20 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectDuplicateClasses()
             => RejectsHero(c => c.HeroSettings.Classes = ["warrior", "warrior", "archer"]);
 
-        /// <summary>Множників має бути рівно стільки, скільки тірів.</summary>
+        /// <summary>Тір без росту — новий тір не сильніший за старий (GDD §6.1).</summary>
         [Fact]
-        public void Validate_ShouldRejectTierMultiplierCountMismatch()
-            => RejectsHero(c => c.HeroSettings.TierStatMultipliers = [1.0, 1.35]);
+        public void Validate_ShouldRejectATierGrowthOfOneOrLess()
+            => RejectsHero(c => c.HeroSettings.TierGrowth = 1.0);
 
-        /// <summary>
-        /// Незростаючі множники означають, що еволюція піднімає лише стелю,
-        /// і два герої різних тірів на тому самому рівні однакові.
-        /// </summary>
+        /// <summary>Штраф понад 1 зробив би піднятого героя сильнішим за рідного.</summary>
         [Fact]
-        public void Validate_ShouldRejectNonIncreasingTierMultipliers()
-            => RejectsHero(c => c.HeroSettings.TierStatMultipliers = [1.0, 1.35, 1.35]);
+        public void Validate_ShouldRejectAnEvolutionPenaltyAboveOne()
+            => RejectsHero(c => c.HeroSettings.EvolutionPenalty = 1.05);
 
-        /// <summary>Переходів рівно на один менше, ніж тірів.</summary>
+        /// <summary>Рідний тір, якого немає серед описаних тірів, — героя ніколи б не видали.</summary>
         [Fact]
-        public void Validate_ShouldRejectEvolutionItemCountMismatch()
-            => RejectsHero(c => c.HeroSettings.EvolutionItemKeys = ["hero_essence_t2"]);
+        public void Validate_ShouldRejectANativeTierAboveTheHighestTier()
+            => RejectsHero(c => c.Heroes[0].NativeTier = 4);
 
         [Fact]
         public void Validate_ShouldRejectUnknownEvolutionItem()

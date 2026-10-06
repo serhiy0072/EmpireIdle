@@ -39,6 +39,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public string? FeaturedKey { get; set; }
 
+        /// <summary>
+        /// Рівень світу, з якого банер відкритий (GDD §6.1): герої тіру N приходять лише зі світу N.
+        /// Валідатор не дає покласти в банер героя з рідним тіром вище за цей поріг.
+        /// </summary>
+        public int RequiresServerLevel { get; set; } = 1;
+
         /// <summary>Вікно показу. null з обох боків — банер постійний.</summary>
         public DateTimeOffset? StartsAt { get; set; }
 

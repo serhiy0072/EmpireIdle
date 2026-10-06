@@ -23,14 +23,16 @@ public class BuyHeroShardsCommandTests
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
+    private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
 
-    private BuyHeroShardsCommandHandler Handler()
+    private BuyHeroShardsCommandHandler Handler(GameCatalog? catalog = null, int serverLevel = 1)
     {
         _serverContext.ServerId.Returns(1);
+        _servers.GetLevelAsync(1, Arg.Any<CancellationToken>()).Returns(serverLevel);
 
         return new BuyHeroShardsCommandHandler(
-            _villages, _heroes, _unitOfWork, _serverContext, new FakeTimeProvider(Now),
-            NullLogger<BuyHeroShardsCommandHandler>.Instance, HeroTestConfig.Catalog());
+            _villages, _heroes, _unitOfWork, _serverContext, _servers, new FakeTimeProvider(Now),
+            NullLogger<BuyHeroShardsCommandHandler>.Instance, catalog ?? HeroTestConfig.Catalog());
     }
 
     /// <summary>Село із залою героїв і золотом.</summary>
@@ -199,5 +201,34 @@ public class BuyHeroShardsCommandTests
             Handler().Handle(new BuyHeroShardsCommand(PlayerId, "warrior_bran", 5), CancellationToken.None));
 
         await _heroes.DidNotReceive().AddShardsAsync(Arg.Any<HeroShardProgress>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Герой тіру 2 з'являється в залі лише зі світу 2 (GDD §6.1): раніше золото не списується.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_AHeroAboveTheWorldLevel()
+    {
+        var config = HeroTestConfig.Create();
+        config.Heroes.Single(h => h.Key == "warrior_bran").NativeTier = 2;
+        var village = GivenVillage(gold: 1000);
+        GivenShardStore();
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler(new GameCatalog(config), serverLevel: 1).Handle(new BuyHeroShardsCommand(PlayerId, "warrior_bran", 1), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.HeroTierLocked.Key, refusal.Reason);
+        Assert.Equal(1000, village.Resources.Single(r => r.ResourceType == "gold").Amount);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSell_AHeroOfTheCurrentWorldLevel()
+    {
+        var config = HeroTestConfig.Create();
+        config.Heroes.Single(h => h.Key == "warrior_bran").NativeTier = 2;
+        GivenVillage(gold: 1000);
+        GivenShardStore();
+
+        await Handler(new GameCatalog(config), serverLevel: 2).Handle(new BuyHeroShardsCommand(PlayerId, "warrior_bran", 1), CancellationToken.None);
+
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

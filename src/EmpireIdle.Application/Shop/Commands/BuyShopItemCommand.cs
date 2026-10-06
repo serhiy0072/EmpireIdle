@@ -19,6 +19,8 @@ namespace EmpireIdle.Application.Shop.Commands
     {
         private readonly IPlayerRepository _playerRepository;
         private readonly IPlayerWalletRepository _walletRepository;
+        private readonly IServerRepository _serverRepository;
+        private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
         private readonly RewardDispatcher _dispatcher;
         private readonly IUnitOfWork _unitOfWork;
@@ -28,6 +30,8 @@ namespace EmpireIdle.Application.Shop.Commands
         public BuyShopItemCommandHandler(
             IPlayerRepository playerRepository,
             IPlayerWalletRepository walletRepository,
+            IServerRepository serverRepository,
+            IServerContext serverContext,
             GameCatalog catalog,
             RewardDispatcher dispatcher,
             IUnitOfWork unitOfWork,
@@ -36,6 +40,8 @@ namespace EmpireIdle.Application.Shop.Commands
         {
             _playerRepository = playerRepository;
             _walletRepository = walletRepository;
+            _serverRepository = serverRepository;
+            _serverContext = serverContext;
             _catalog = catalog;
             _dispatcher = dispatcher;
             _unitOfWork = unitOfWork;
@@ -52,6 +58,18 @@ namespace EmpireIdle.Application.Shop.Commands
                 throw new RequirementNotMetException(RefusalReasons.ShopMaxPerPurchase,
                     $"At most {offer.MaxPerPurchase} × '{offer.ItemKey}' per purchase.", offer.MaxPerPurchase);
 
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
+            // Вікно перевіряє сервер, а не лише вітрина: клієнт міг тримати сторінку відкритою після кінця вікна
+            if (offer.ServerLevel is not null)
+            {
+                var server = await _serverRepository.GetByIdAsync(_serverContext.ServerId, cancellationToken)
+                    ?? throw new InvalidOperationException($"Server {_serverContext.ServerId} not found.");
+
+                if (!offer.IsOnSaleAt(server.Level, server.LevelSince, now))
+                    throw new RequirementNotMetException(RefusalReasons.ShopOfferClosed, $"'{offer.ItemKey}' is not on sale now.");
+            }
+
             var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Player", request.PlayerId);
 
@@ -65,7 +83,6 @@ namespace EmpireIdle.Application.Shop.Commands
             if (wallet.GemBalance.Value < total)
                 throw new NotEnoughResourcesException("gems", total, wallet.GemBalance.Value);
 
-            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var reference = $"shop:{offer.ItemKey}";
 
             wallet.SpendGems(new GemAmount(total), reference, request.PlayerId, now);

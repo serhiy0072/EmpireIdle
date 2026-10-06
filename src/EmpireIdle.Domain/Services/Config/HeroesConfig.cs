@@ -9,21 +9,25 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки рівнів героя відкриває один тір. Стеля тіру = Tier × це число.</summary>
         public int LevelsPerTier { get; set; } = 10;
 
-        /// <summary>Найвищий досяжний тір.</summary>
-        public int MaxTier { get; set; } = 3;
-
         /// <summary>
-        /// Множник базових стат за тіром, від першого до MaxTier.
-        /// Без нього еволюція піднімала б лише стелю, і два герої різних тірів
-        /// на десятому рівні були б однакові.
+        /// Ріст статів за тір, складним відсотком (GDD §6.1): рідний T(n) = TierGrowth^(n−1).
+        /// Формула, а не список: тіри відкриваються з рівнем світу, і список довелося б дописувати щоразу.
         /// </summary>
-        public List<double> TierStatMultipliers { get; set; } = new();
+        public double TierGrowth { get; set; } = 1.10;
 
         /// <summary>
-        /// Ключі предметів еволюції, від переходу 1→2 і далі.
-        /// Записів рівно на один менше за MaxTier.
+        /// Штраф за кожен ап тіру: піднятий герой слабший за рідного того самого тіру
+        /// в EvolutionPenalty^(кількість апів) раз. Нові герої завжди сильніші за старих улюбленців.
+        /// </summary>
+        public double EvolutionPenalty { get; set; } = 0.95;
+
+        /// <summary>
+        /// Ключі предметів еволюції, від переходу 1→2 і далі. Кожен новий тір додає свій предмет.
         /// </summary>
         public List<string> EvolutionItemKeys { get; set; } = new();
+
+        /// <summary>Найвищий тір — скільки переходів описано, плюс перший.</summary>
+        public int MaxTier => EvolutionItemKeys.Count + 1;
 
         /// <summary>Стеля сузір'я — скільки дублікатів герой поглинає.</summary>
         public int MaxConstellation { get; set; } = 6;

@@ -141,12 +141,11 @@ internal static class HeroTestConfig
             BuildingKey = Hall,
             HealBuildingKey = "hospital",
             LevelsPerTier = 10,
-            MaxTier = 3,
             MaxMarches = 8,
             MaxConstellation = 6,
             BaseLevelUpMinutes = 4,
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
-            TierStatMultipliers = [1.0, 1.35, 1.8],
+            TierGrowth = 1.35,
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
             OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
             Classes = ["warrior", "mage"]

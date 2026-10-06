@@ -8632,6 +8632,7 @@
           "class",
           "displayName",
           "key",
+          "nativeTier",
           "passives",
           "rank",
           "shardPriceGold",
@@ -8652,6 +8653,10 @@
           },
           "rank": {
             "type": "string"
+          },
+          "nativeTier": {
+            "type": "integer",
+            "format": "int32"
           },
           "description": {
             "type": "string",
@@ -12413,6 +12418,11 @@
           "maxPerPurchase": {
             "type": "integer",
             "format": "int32"
+          },
+          "onSaleUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false

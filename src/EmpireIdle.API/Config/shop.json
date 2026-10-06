@@ -35,12 +35,16 @@
         {
           "ItemKey": "hero_essence_t2",
           "PriceGems": 300,
-          "MaxPerPurchase": 5
+          "MaxPerPurchase": 5,
+          "ServerLevel": 2,
+          "WindowDays": 14
         },
         {
           "ItemKey": "hero_essence_t3",
           "PriceGems": 900,
-          "MaxPerPurchase": 5
+          "MaxPerPurchase": 5,
+          "ServerLevel": 3,
+          "WindowDays": 14
         },
         {
           "ItemKey": "crate_mixed_large",

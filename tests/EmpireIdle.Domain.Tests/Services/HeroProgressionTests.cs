@@ -11,16 +11,16 @@ namespace EmpireIdle.Domain.Tests.Services
     {
         private static HeroProgression Create(
             int levelsPerTier = 10,
-            int maxTier = 3,
             int maxMarches = 8,
-            List<double>? multipliers = null,
+            double tierGrowth = 1.10,
+            double evolutionPenalty = 0.95,
             List<string>? evolutionItems = null)
             => new(new HeroesConfig
             {
                 LevelsPerTier = levelsPerTier,
-                MaxTier = maxTier,
                 MaxMarches = maxMarches,
-                TierStatMultipliers = multipliers ?? [1.0, 1.35, 1.8],
+                TierGrowth = tierGrowth,
+                EvolutionPenalty = evolutionPenalty,
                 EvolutionItemKeys = evolutionItems ?? ["hero_essence_t2", "hero_essence_t3"],
                 HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
                 BaseLevelUpMinutes = 4
@@ -32,8 +32,8 @@ namespace EmpireIdle.Domain.Tests.Services
         private static HeroesConfig Settings() => new()
         {
             LevelsPerTier = 10,
-            MaxTier = 3,
-            TierStatMultipliers = [1.0, 1.35, 1.8],
+            TierGrowth = 1.10,
+            EvolutionPenalty = 0.95,
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
             MaxConstellation = 6,
             MaxMarches = 8,
@@ -74,35 +74,39 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Множник тіру ----------
 
-        /// <summary>
-        /// Без множника еволюція піднімала б лише стелю, і два герої
-        /// різних тірів на десятому рівні були б однакові.
-        /// </summary>
+        /// <summary>Рідний тір — складний відсоток (GDD §6.1): T2 = 1.10, T3 = 1.21.</summary>
         [Fact]
-        public void TierMultiplier_ShouldGrowWithTier()
+        public void TierMultiplier_ShouldCompoundForNativeHeroes()
         {
             var progression = Create();
 
-            Assert.True(progression.TierMultiplier(2) > progression.TierMultiplier(1));
-            Assert.True(progression.TierMultiplier(3) > progression.TierMultiplier(2));
+            Assert.Equal(1.0, progression.TierMultiplier(tier: 1, nativeTier: 1), 6);
+            Assert.Equal(1.10, progression.TierMultiplier(tier: 2, nativeTier: 2), 6);
+            Assert.Equal(1.21, progression.TierMultiplier(tier: 3, nativeTier: 3), 6);
         }
 
+        /// <summary>
+        /// Кожен ап — ще −5%, і штраф накопичується: T1→T2 = 1.045, T1→T3 = 1.092 (рідний T3 — 1.21).
+        /// Старий герой лишається в грі, але новий того самого тіру завжди сильніший.
+        /// </summary>
         [Fact]
-        public void TierMultiplier_ShouldFallBackToOne_WhenNotConfigured()
+        public void TierMultiplier_ShouldPenaliseEveryEvolutionStep()
         {
-            var progression = Create(multipliers: []);
+            var progression = Create();
 
-            Assert.Equal(1.0, progression.TierMultiplier(2));
+            Assert.Equal(1.045, progression.TierMultiplier(tier: 2, nativeTier: 1), 6);
+            Assert.Equal(1.21 * 0.95, progression.TierMultiplier(tier: 3, nativeTier: 2), 6);
+            Assert.Equal(1.21 * 0.9025, progression.TierMultiplier(tier: 3, nativeTier: 1), 6);
         }
 
-        /// <summary>Коротший список не має валити бій — беремо останній відомий.</summary>
+        /// <summary>Ап усе одно сильніший за тір, з якого герой вийшов, — інакше предмет апу нічого б не давав.</summary>
         [Fact]
-        public void TierMultiplier_ShouldClampOutsideTheConfiguredRange()
+        public void TierMultiplier_ShouldStillReward_AnEvolution()
         {
-            var progression = Create(multipliers: [1.0, 1.5]);
+            var progression = Create();
 
-            Assert.Equal(1.0, progression.TierMultiplier(0));
-            Assert.Equal(1.5, progression.TierMultiplier(9));
+            Assert.True(progression.TierMultiplier(tier: 2, nativeTier: 1) > progression.TierMultiplier(tier: 1, nativeTier: 1));
+            Assert.True(progression.TierMultiplier(tier: 3, nativeTier: 1) > progression.TierMultiplier(tier: 2, nativeTier: 1));
         }
 
         // ---------- Стати ----------
@@ -114,18 +118,18 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void StatValue_ShouldApplyGrowthThenTierMultiplier()
         {
-            var progression = Create(multipliers: [1.0, 2.0, 3.0]);
+            var progression = Create(tierGrowth: 2.0);
 
             // (40 + 4 × 4) × 2.0
-            Assert.Equal(112.0, progression.StatValue(Hero(), "Attack", level: 5, tier: 2), 6);
+            Assert.Equal(112.0, progression.StatValue(Hero(), "Attack", level: 5, tier: 2, nativeTier: 2), 6);
         }
 
         [Fact]
         public void StatValue_ShouldReturnBaseAtFirstLevel()
         {
-            var progression = Create(multipliers: [1.0, 2.0, 3.0]);
+            var progression = Create(tierGrowth: 2.0);
 
-            Assert.Equal(40.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1), 6);
+            Assert.Equal(40.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1), 6);
         }
 
         /// <summary>
@@ -137,7 +141,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var progression = Create();
 
-            Assert.Equal(0.0, progression.StatValue(Hero(), "Mana", level: 5, tier: 1));
+            Assert.Equal(0.0, progression.StatValue(Hero(), "Mana", level: 5, tier: 1, nativeTier: 1));
         }
 
         // ---------- Еволюція ----------

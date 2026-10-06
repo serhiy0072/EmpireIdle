@@ -28,8 +28,14 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Ключ типу героя з конфіга (наприклад "archer_lyra").</summary>
         public string HeroKey { get; private set; } = null!;
 
-        /// <summary>Тір 1–3. Стелить рівень і множить базові стати.</summary>
+        /// <summary>Поточний тір. Стелить рівень і множить базові стати.</summary>
         public int Tier { get; private set; }
+
+        /// <summary>
+        /// Тір, у якому герой прийшов (GDD §6.1). Знімок із конфіга на момент отримання:
+        /// ребаланс конфіга не має непомітно міняти силу вже виданих героїв.
+        /// </summary>
+        public int NativeTier { get; private set; }
 
         /// <summary>Поточний рівень. Качається чергою в залі героїв.</summary>
         public int Level { get; private set; }
@@ -78,12 +84,16 @@ namespace EmpireIdle.Domain.Entities
         public DateTime? ResaleLockedUntil { get; private set; }
 
         public Hero(Guid id, Guid playerId, int serverId, string heroKey, Guid garrisonId, bool asLeader,
-            DateTime utcNow) : base(id)
+            DateTime utcNow, int nativeTier = 1) : base(id)
         {
+            if (nativeTier < 1)
+                throw new ArgumentOutOfRangeException(nameof(nativeTier), nativeTier, "A hero's native tier starts at 1.");
+
             PlayerId = playerId;
             ServerId = serverId;
             HeroKey = heroKey;
-            Tier = 1;
+            Tier = nativeTier;
+            NativeTier = nativeTier;
             Level = 1;
             Constellation = 0;
             State = HeroState.Idle;

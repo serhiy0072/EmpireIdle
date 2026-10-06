@@ -103,15 +103,16 @@ public static class Entities
     /// <summary>Герой заданого рівня, тіру й сузір'я.</summary>
     public static Hero Hero(string heroKey = TestKeys.CommonHero, Guid? playerId = null,
         Guid? garrisonId = null, bool asLeader = true, int level = 1, int tier = 1,
-        int constellation = 0, int maxConstellation = 6, int serverId = 1)
+        int constellation = 0, int maxConstellation = 6, int serverId = 1, int nativeTier = 1)
     {
         var hero = new Hero(Guid.NewGuid(), playerId ?? Guid.NewGuid(), serverId, heroKey,
-            garrisonId ?? Guid.NewGuid(), asLeader, Now);
+            garrisonId ?? Guid.NewGuid(), asLeader, Now, nativeTier);
 
         for (var i = 1; i < level; i++)
             hero.GainLevel(level, Now);
 
-        for (var i = 1; i < tier; i++)
+        // Тір понад рідний — апами, як у грі: кожен ап несе свій штраф (GDD §6.1)
+        for (var i = nativeTier; i < tier; i++)
             hero.EvolveTier(tier, Now);
 
         for (var i = 0; i < constellation; i++)

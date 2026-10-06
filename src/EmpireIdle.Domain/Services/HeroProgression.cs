@@ -32,19 +32,15 @@ namespace EmpireIdle.Domain.Services
             => Math.Min(townHallLevel, tier * _config.LevelsPerTier);
 
         /// <summary>
-        /// Множник базових стат за тіром. Поза межами списку повертає
-        /// останній відомий: конфіг із коротшим списком не має валити бій.
+        /// Множник статів за тіром (GDD §6.1): TierGrowth^(тір−1) × EvolutionPenalty^(тір − рідний тір).
+        /// Рідний T2 — ×1.10, піднятий з T1 до T2 — ×1.045: апи тримають старих героїв у грі,
+        /// але нові того самого тіру завжди сильніші.
         /// </summary>
-        public double TierMultiplier(int tier)
+        public double TierMultiplier(int tier, int nativeTier)
         {
-            var multipliers = _config.TierStatMultipliers;
+            var steps = Math.Max(0, tier - nativeTier);
 
-            if (multipliers.Count == 0)
-                return 1.0;
-
-            var index = Math.Clamp(tier - 1, 0, multipliers.Count - 1);
-
-            return multipliers[index];
+            return Math.Pow(_config.TierGrowth, Math.Max(0, tier - 1)) * Math.Pow(_config.EvolutionPenalty, steps);
         }
 
         /// <summary>
@@ -52,12 +48,12 @@ namespace EmpireIdle.Domain.Services
         /// на множник тіру. Порядок саме такий — множник діє і на приріст,
         /// інакше високий тір знецінювався б з кожним рівнем.
         /// </summary>
-        public double StatValue(HeroConfig hero, string statKey, int level, int tier)
+        public double StatValue(HeroConfig hero, string statKey, int level, int tier, int nativeTier)
         {
             var basis = hero.BaseStats.GetValueOrDefault(statKey, 0.0);
             var growth = hero.StatGrowth.GetValueOrDefault(statKey, 0.0);
 
-            return (basis + growth * (level - 1)) * TierMultiplier(tier);
+            return (basis + growth * (level - 1)) * TierMultiplier(tier, nativeTier);
         }
 
         /// <summary>

@@ -17,6 +17,12 @@ namespace EmpireIdle.Domain.Services.Config
 
         public string DisplayName { get; set; } = null!;
 
+        /// <summary>
+        /// Рідний тір (GDD §6.1, рішення 06.10.2026): герой приходить уже в ньому, а з'являється
+        /// в банерах і залі лише з рівня світу, що дорівнює цьому тіру.
+        /// </summary>
+        public int NativeTier { get; set; } = 1;
+
         /// <summary>Ключ класу з HeroesConfig.Classes. Визначає придатну зброю.</summary>
         public string Class { get; set; } = null!;
 

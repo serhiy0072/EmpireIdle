@@ -47,6 +47,40 @@ namespace EmpireIdle.Domain.Services
             ValidateScouting(config);
             ValidateFlatBuildings(config);
             ValidateMonsters(config);
+            ValidateTierGates(config);
+        }
+
+        /// <summary>
+        /// Тір героя відкривається з рівнем світу (GDD §6.1): банер не може видати героя
+        /// вищого тіру, ніж світ, з якого банер відкритий, а вікно продажу предмета апу
+        /// не може пережити свій рівень світу — інакше його ніколи не закрила б ця модель.
+        /// </summary>
+        private static void ValidateTierGates(GameConfig config)
+        {
+            var heroes = config.Heroes.ToDictionary(h => h.Key);
+
+            var early = config.Shop.Banners
+                .SelectMany(b => b.Drops
+                    .SelectMany(d => d.Rewards)
+                    .Where(r => r.Type == "Hero" && r.Key is not null && heroes.TryGetValue(r.Key, out var hero)
+                                && hero.NativeTier > b.RequiresServerLevel)
+                    .Select(r => $"{b.Key} → {r.Key} (tier {heroes[r.Key!].NativeTier}, banner opens at {b.RequiresServerLevel})"))
+                .ToList();
+
+            if (early.Count > 0)
+                throw new InvalidOperationException(
+                    $"Banners hand out heroes above their world level: {string.Join(", ", early)}.");
+
+            var badWindows = config.Shop.Items
+                .Where(i => i.ServerLevel is { } level
+                            && (level < 1 || i.WindowDays <= 0 || i.WindowDays > config.Map.Evolution.DaysPerLevel))
+                .Select(i => $"{i.ItemKey} (level {i.ServerLevel}, {i.WindowDays} days)")
+                .ToList();
+
+            if (badWindows.Count > 0)
+                throw new InvalidOperationException(
+                    $"Shop windows need a world level ≥ 1 and 1–{config.Map.Evolution.DaysPerLevel} days "
+                    + $"(no longer than a world level): {string.Join(", ", badWindows)}.");
         }
 
         /// <summary>
@@ -813,9 +847,6 @@ namespace EmpireIdle.Domain.Services
 
             var settings = config.HeroSettings;
 
-            if (settings.MaxTier < 1)
-                throw new InvalidOperationException("HeroSettings.MaxTier must be at least 1.");
-
             if (settings.LevelsPerTier < 1)
                 throw new InvalidOperationException("HeroSettings.LevelsPerTier must be at least 1.");
 
@@ -852,24 +883,23 @@ namespace EmpireIdle.Domain.Services
                     $"HeroSettings.HealBuildingKey '{settings.HealBuildingKey}' is not a known building — "
                     + "wounded heroes would have nowhere to be healed.");
 
-            if (settings.TierStatMultipliers.Count != settings.MaxTier)
+            // Тір має бути відчутним, а ап — не вигіднішим за рідного героя (GDD §6.1)
+            if (settings.TierGrowth <= 1.0)
                 throw new InvalidOperationException(
-                    $"HeroSettings.TierStatMultipliers needs exactly MaxTier entries ({settings.MaxTier}), "
-                    + $"got {settings.TierStatMultipliers.Count}.");
+                    "HeroSettings.TierGrowth must be above 1 — otherwise a higher tier is not stronger.");
 
-            for (var i = 1; i < settings.TierStatMultipliers.Count; i++)
-            {
-                if (settings.TierStatMultipliers[i] <= settings.TierStatMultipliers[i - 1])
-                    throw new InvalidOperationException(
-                        "HeroSettings.TierStatMultipliers must increase: otherwise evolution raises only the "
-                        + "ceiling, and two heroes of different tiers are identical at the same level.");
-            }
-
-            // Переходів рівно на один менше, ніж тірів: 1→2 і 2→3 для трьох тірів
-            if (settings.EvolutionItemKeys.Count != settings.MaxTier - 1)
+            if (settings.EvolutionPenalty is <= 0.0 or > 1.0)
                 throw new InvalidOperationException(
-                    $"HeroSettings.EvolutionItemKeys needs MaxTier - 1 entries ({settings.MaxTier - 1}), "
-                    + $"got {settings.EvolutionItemKeys.Count}.");
+                    "HeroSettings.EvolutionPenalty must be in (0, 1] — an evolved hero cannot outgrow a native one.");
+
+            var badTiers = config.Heroes
+                .Where(h => h.NativeTier < 1 || h.NativeTier > settings.MaxTier)
+                .Select(h => $"{h.Key} ({h.NativeTier})")
+                .ToList();
+
+            if (badTiers.Count > 0)
+                throw new InvalidOperationException(
+                    $"Heroes have a NativeTier outside 1–{settings.MaxTier}: {string.Join(", ", badTiers)}.");
 
             var itemKeys = config.Items.Select(i => i.Key).ToHashSet();
 

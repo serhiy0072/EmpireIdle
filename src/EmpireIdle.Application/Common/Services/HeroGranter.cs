@@ -64,7 +64,8 @@ namespace EmpireIdle.Application.Common.Services
 
                 var leader = await _heroRepository.GetLeaderAsync(garrison.Id, playerId, cancellationToken);
 
-                var hero = new Hero(Guid.NewGuid(), playerId, _serverContext.ServerId, heroKey, garrison.Id, asLeader: leader is null, utcNow);
+                var hero = new Hero(Guid.NewGuid(), playerId, _serverContext.ServerId, heroKey, garrison.Id,
+                    asLeader: leader is null, utcNow, config.NativeTier);
 
                 await _heroRepository.AddAsync(hero, cancellationToken);
 

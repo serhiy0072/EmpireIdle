@@ -24,6 +24,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerContext _serverContext;
+        private readonly IServerRepository _serverRepository;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<BuyHeroShardsCommandHandler> _logger;
         private readonly GameCatalog _catalog;
@@ -33,6 +34,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             IHeroRepository heroRepository,
             IUnitOfWork unitOfWork,
             IServerContext serverContext,
+            IServerRepository serverRepository,
             TimeProvider timeProvider,
             ILogger<BuyHeroShardsCommandHandler> logger,
             GameCatalog catalog)
@@ -41,6 +43,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             _heroRepository = heroRepository;
             _unitOfWork = unitOfWork;
             _serverContext = serverContext;
+            _serverRepository = serverRepository;
             _timeProvider = timeProvider;
             _logger = logger;
             _catalog = catalog;
@@ -59,6 +62,11 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (config.Rank != Rarity.Common)
                 throw new RequirementNotMetException(
                     $"Hero '{request.HeroKey}' is {config.Rank} and cannot be bought with gold.");
+
+            // Герой тіру N з'являється в залі лише зі світу N (GDD §6.1)
+            if (await _serverRepository.GetLevelAsync(_serverContext.ServerId, cancellationToken) < config.NativeTier)
+                throw new RequirementNotMetException(RefusalReasons.HeroTierLocked,
+                    $"Hero '{request.HeroKey}' of tier {config.NativeTier} opens at world level {config.NativeTier}.", config.NativeTier);
 
             var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");

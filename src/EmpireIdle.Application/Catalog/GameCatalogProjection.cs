@@ -55,6 +55,7 @@ namespace EmpireIdle.Application.Catalog
                     Name("hero", hero.Key, hero.DisplayName),
                     hero.Class,
                     hero.Rank.ToString(),
+                    hero.NativeTier,
                     hero.Description,
                     hero.Lore,
                     hero.Speed ?? config.HeroSettings.DefaultMarchSpeed,

@@ -40,8 +40,11 @@ public class RollBannerCommandTests
         _granter.RewardType.Returns("Gems");
     }
 
-    private static BannerConfig Banner(DateTimeOffset? startsAt = null, DateTimeOffset? endsAt = null) => new()
+    private int _serverLevel = 1;
+
+    private static BannerConfig Banner(DateTimeOffset? startsAt = null, DateTimeOffset? endsAt = null, int requiresServerLevel = 1) => new()
     {
+        RequiresServerLevel = requiresServerLevel,
         Key = BannerKey,
         DisplayName = "Test banner",
         Kind = BannerKind.Hero,
@@ -82,6 +85,9 @@ public class RollBannerCommandTests
         var serverContext = Substitute.For<IServerContext>();
         serverContext.ServerId.Returns(1);
 
+        var servers = Substitute.For<IServerRepository>();
+        servers.GetLevelAsync(1, Arg.Any<CancellationToken>()).Returns(_serverLevel);
+
         return new RollBannerCommandHandler(
             _players,
             _wallets,
@@ -90,6 +96,7 @@ public class RollBannerCommandTests
             new RewardDispatcher([_granter]),
             random,
             serverContext,
+            servers,
             _unitOfWork,
             new FakeTimeProvider(Now),
             NullLogger<RollBannerCommandHandler>.Instance);
@@ -248,5 +255,17 @@ public class RollBannerCommandTests
 
         Assert.Equal(RefusalReasons.BannerNotOpen.Key, refusal.Reason);
         Assert.False(string.IsNullOrEmpty(refusal.Args["startsAt"] as string));
+    }
+
+    /// <summary>Банер героїв тіру 2 відкривається лише зі світу 2 (GDD §6.1): раніше gems не списуються.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_ABannerAboveTheWorldLevel()
+    {
+        _serverLevel = 1;
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(requiresServerLevel: 2)));
+
+        Assert.Equal(RefusalReasons.BannerWorldLevel.Key, refusal.Reason);
+        Assert.Equal(1_000, _wallet.GemBalance.Value);
     }
 }

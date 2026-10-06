@@ -55,6 +55,7 @@ namespace EmpireIdle.Application.Banners.Commands
         private readonly RewardDispatcher _dispatcher;
         private readonly IRandomSource _random;
         private readonly IServerContext _serverContext;
+        private readonly IServerRepository _serverRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<RollBannerCommandHandler> _logger;
@@ -67,6 +68,7 @@ namespace EmpireIdle.Application.Banners.Commands
             RewardDispatcher dispatcher,
             IRandomSource random,
             IServerContext serverContext,
+            IServerRepository serverRepository,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ILogger<RollBannerCommandHandler> logger)
@@ -78,6 +80,7 @@ namespace EmpireIdle.Application.Banners.Commands
             _dispatcher = dispatcher;
             _random = random;
             _serverContext = serverContext;
+            _serverRepository = serverRepository;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -96,6 +99,11 @@ namespace EmpireIdle.Application.Banners.Commands
 
             if (banner.EndsAt is { } end && now >= end)
                 throw new RequirementNotMetException(RefusalReasons.BannerClosed, $"Banner '{banner.Key}' closed at {end:u}.");
+
+            // Герої тіру N приходять лише зі світу N (GDD §6.1)
+            if (await _serverRepository.GetLevelAsync(_serverContext.ServerId, cancellationToken) < banner.RequiresServerLevel)
+                throw new RequirementNotMetException(RefusalReasons.BannerWorldLevel,
+                    $"Banner '{banner.Key}' opens at world level {banner.RequiresServerLevel}.", banner.RequiresServerLevel);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
             var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)

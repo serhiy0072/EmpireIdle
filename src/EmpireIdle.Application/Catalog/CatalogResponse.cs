@@ -52,12 +52,14 @@
     public record CatalogBeast(string Key, string DisplayName, string MonsterKey, string Effect);
 
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
+    /// <param name="NativeTier">Рідний тір: герой приходить у ньому й з'являється лише зі світу цього рівня (GDD §6.1).</param>
     /// <param name="Lore">Історія героя для кодексу й картки; коротший підсумок — у Description.</param>
     public record CatalogHero(
         string Key,
         string DisplayName,
         string Class,
         string Rank,
+        int NativeTier,
         string? Description,
         string? Lore,
         double Speed,

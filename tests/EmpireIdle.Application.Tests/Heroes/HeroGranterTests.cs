@@ -26,7 +26,7 @@ public class HeroGranterTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
 
-    private HeroGranter Granter()
+    private HeroGranter Granter(GameCatalog? catalog = null)
     {
         _serverContext.ServerId.Returns(ServerId);
 
@@ -39,7 +39,7 @@ public class HeroGranterTests
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
         return new HeroGranter(_heroes, _players, _wallets, _villages, _garrisons, _serverContext,
-            HeroTestConfig.Catalog());
+            catalog ?? HeroTestConfig.Catalog());
     }
 
     private PlayerWallet GivenWallet()
@@ -122,4 +122,17 @@ public class HeroGranterTests
     public async Task Grant_ShouldThrow_ForUnknownHero()
         => await Assert.ThrowsAsync<InvalidOperationException>(() =>
             Granter().GrantAsync(PlayerId, "dragon_rider", "quest", Now));
+
+    /// <summary>Герой приходить у своєму рідному тірі (GDD §6.1) — без апу й без штрафу за ап.</summary>
+    [Fact]
+    public async Task Grant_ShouldCreateTheHero_InItsNativeTier()
+    {
+        var config = HeroTestConfig.Create();
+        config.Heroes.Single(h => h.Key == "warrior_bran").NativeTier = 2;
+
+        await Granter(new GameCatalog(config)).GrantAsync(PlayerId, "warrior_bran", "quest", Now);
+
+        await _heroes.Received(1).AddAsync(
+            Arg.Is<Hero>(h => h.Tier == 2 && h.NativeTier == 2), Arg.Any<CancellationToken>());
+    }
 }

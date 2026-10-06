@@ -34,7 +34,7 @@ namespace EmpireIdle.Domain.Services
             var result = new Dictionary<string, double>();
 
             foreach (var stat in config.BaseStats.Keys)
-                result[stat] = _progression.StatValue(config, stat, hero.Level, hero.Tier);
+                result[stat] = _progression.StatValue(config, stat, hero.Level, hero.Tier, hero.NativeTier);
 
             foreach (var item in equipped)
             {
@@ -58,7 +58,7 @@ namespace EmpireIdle.Domain.Services
         /// що на ньому вдягнено, — екіп живе своїм життям і продається окремо.
         /// </summary>
         public double Power(Hero hero, HeroConfig config)
-            => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.Level, hero.Tier));
+            => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.Level, hero.Tier, hero.NativeTier));
 
         /// <summary>
         /// Сила предмета: сума його статів із заточкою. Зламаний дає нуль —

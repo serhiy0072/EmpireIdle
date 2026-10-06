@@ -277,6 +277,15 @@
 
         public static readonly RefusalReason HeroMaxTier = new("hero.maxTier", "tier");
 
+        /// <summary>Герой рідного тіру, вищого за рівень світу (GDD §6.1); tier — потрібний рівень світу.</summary>
+        public static readonly RefusalReason HeroTierLocked = new("hero.tierLocked", "tier");
+
+        /// <summary>Банер відкриється з рівня світу level (GDD §6.1).</summary>
+        public static readonly RefusalReason BannerWorldLevel = new("banner.worldLevel", "level");
+
+        /// <summary>Пропозиція крамниці поза своїм вікном продажу (GDD §6.1).</summary>
+        public static readonly RefusalReason ShopOfferClosed = new("shop.offerClosed");
+
         public static readonly RefusalReason HeroNotEnoughShards = new("hero.notEnoughShards", "hero", "need", "have");
 
         // ---------- Спорядження ----------

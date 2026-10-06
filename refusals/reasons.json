@@ -6,6 +6,9 @@
   "banner.notOpen": [
     "startsAt"
   ],
+  "banner.worldLevel": [
+    "level"
+  ],
   "beast.effectActive": [
     "beast"
   ],
@@ -151,6 +154,9 @@
   ],
   "hero.onMarket": [],
   "hero.onTheMove": [],
+  "hero.tierLocked": [
+    "tier"
+  ],
   "hero.trainingBusy": [],
   "hero.worldLevelRequired": [
     "required",
@@ -232,6 +238,7 @@
   "shop.maxPerPurchase": [
     "max"
   ],
+  "shop.offerClosed": [],
   "speedup.atFloor": [
     "seconds"
   ],

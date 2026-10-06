@@ -132,13 +132,12 @@
                 HealBuildingKey = TestKeys.Hospital,
 
                 LevelsPerTier = 10,
-                MaxTier = 3,
                 MaxMarches = 8,
                 MaxConstellation = 6,
                 BaseLevelUpMinutes = 4,
                 DefaultMarchSpeed = 6,
                 HealCostPerLevel = [new ResourceCost { Resource = TestKeys.Food, Amount = 40 }],
-                TierStatMultipliers = [1.0, 1.5, 2.0],
+                TierGrowth = 1.5,
                 EvolutionItemKeys = [TestKeys.EssenceT2, TestKeys.EssenceT3],
                 OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 Classes = ["warrior", "knight", "archer", "mage"]
