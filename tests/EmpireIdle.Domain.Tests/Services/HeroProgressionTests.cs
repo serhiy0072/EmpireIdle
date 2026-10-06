@@ -17,29 +17,25 @@ namespace EmpireIdle.Domain.Tests.Services
             List<string>? evolutionItems = null)
             => new(new HeroesConfig
             {
-                LevelsPerTier = levelsPerTier,
                 MaxMarches = maxMarches,
                 TierGrowth = tierGrowth,
                 EvolutionPenalty = evolutionPenalty,
                 EvolutionItemKeys = evolutionItems ?? ["hero_essence_t2", "hero_essence_t3"],
                 HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
-                BaseLevelUpMinutes = 4
-            });
+});
 
         private static HeroProgression Progression(HeroesConfig? settings = null)
             => new(settings ?? Settings());
 
         private static HeroesConfig Settings() => new()
         {
-            LevelsPerTier = 10,
             TierGrowth = 1.10,
             EvolutionPenalty = 0.95,
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
             MaxConstellation = 6,
             MaxMarches = 8,
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
-            BaseLevelUpMinutes = 4
-        };
+};
 
         private static HeroConfig Hero() => new()
         {
@@ -51,25 +47,43 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Стеля рівня ----------
 
-        /// <summary>
-        /// Ратуша нижча за стелю тіру — вона й обмежує. Саме тому еволюція
-        /// не обов'язкова для прогресу на ранніх ратушах.
-        /// </summary>
-        [Fact]
-        public void MaxLevel_ShouldFollowTownHall_WhenItIsTheLowerBound()
-        {
-            var progression = Create();
+        // ---------- Досвід ----------
 
-            Assert.Equal(8, progression.MaxLevel(townHallLevel: 8, tier: 2));
+        /// <summary>Стеля одна для всіх героїв — ні ратуша, ні тір її більше не задають (GDD §6.1).</summary>
+        [Fact]
+        public void MaxLevel_ShouldComeFromTheConfig()
+            => Assert.Equal(80, Progression(new HeroesConfig { MaxLevel = 80 }).MaxLevel);
+
+        /// <summary>Крива: ExperienceBase × L^ExperienceExponent — кожен наступний рівень дорожчий.</summary>
+        [Fact]
+        public void ExperienceToNext_ShouldFollowThePowerCurve()
+        {
+            var progression = Progression(new HeroesConfig { ExperienceBase = 10, ExperienceExponent = 2 });
+
+            Assert.Equal(10, progression.ExperienceToNext(1));
+            Assert.Equal(40, progression.ExperienceToNext(2));
+            Assert.Equal(1000, progression.ExperienceToNext(10));
         }
 
         [Fact]
-        public void MaxLevel_ShouldFollowTier_WhenTownHallIsHigher()
+        public void ExperienceBetween_ShouldSumEveryStep()
         {
-            var progression = Create();
+            var progression = Progression(new HeroesConfig { ExperienceBase = 10, ExperienceExponent = 2 });
 
-            Assert.Equal(10, progression.MaxLevel(townHallLevel: 25, tier: 1));
-            Assert.Equal(20, progression.MaxLevel(townHallLevel: 25, tier: 2));
+            // 1→2: 10, 2→3: 40, 3→4: 90
+            Assert.Equal(140, progression.ExperienceBetween(1, 4));
+            Assert.Equal(0, progression.ExperienceBetween(4, 4));
+        }
+
+        /// <summary>Скидання повертає все вкладене мінус штраф; округлення вниз — штраф не зникає на малих сумах.</summary>
+        [Fact]
+        public void ResetRefund_ShouldReturnTheInvestedExperienceMinusThePenalty()
+        {
+            var progression = Progression(new HeroesConfig { ExperienceBase = 10, ExperienceExponent = 2, ResetPenalty = 0.01 });
+
+            // Вкладено 140 → повертається 138.6 → 138
+            Assert.Equal(138, progression.ResetRefund(level: 4));
+            Assert.Equal(0, progression.ResetRefund(level: 1));
         }
 
         // ---------- Множник тіру ----------
@@ -220,100 +234,6 @@ namespace EmpireIdle.Domain.Tests.Services
             var cost = progression.HealCost(level: 10);
 
             Assert.Equal(400, cost.Single(c => c.Resource == "food").Amount);
-        }
-
-        [Fact]
-        public void LevelUpDuration_ShouldScaleWithTargetLevel()
-        {
-            var progression = Create();
-
-            Assert.Equal(TimeSpan.FromMinutes(20), progression.LevelUpDuration(targetLevel: 5));
-        }
-
-        // ---------- Смуги вартості ----------
-
-        private static HeroConfig BandedHero() => new()
-        {
-            Key = "warrior_bran",
-            Class = "warrior",
-            LevelUpCosts =
-            [
-                new HeroLevelCostBand
-                {
-                    FromLevel = 1,
-                    Cost = [new ResourceCost { Resource = "gold", Amount = 400 }]
-                },
-                new HeroLevelCostBand
-                {
-                    FromLevel = 11,
-                    Cost =
-                    [
-                        new ResourceCost { Resource = "gold", Amount = 900 },
-                        new ResourceCost { Resource = "iron", Amount = 300 }
-                    ]
-                }
-            ]
-        };
-
-        /// <summary>Нижче другої межі діє перша смуга.</summary>
-        [Theory]
-        [InlineData(1)]
-        [InlineData(10)]
-        public void LevelUpCost_ShouldTakeTheFirstBand_BelowTheNextBoundary(int level)
-        {
-            var cost = Progression().LevelUpCost(BandedHero(), level);
-
-            Assert.Equal(400, Assert.Single(cost).Amount);
-        }
-
-        /// <summary>
-        /// З рівнем міняється не лише кількість, а й набір ресурсів:
-        /// на одинадцятому з'являється залізо, якого до того не було.
-        /// </summary>
-        [Fact]
-        public void LevelUpCost_ShouldSwitchBands_AtTheBoundary()
-        {
-            var cost = Progression().LevelUpCost(BandedHero(), 11);
-
-            Assert.Equal(2, cost.Count);
-            Assert.Contains(cost, c => c.Resource == "iron" && c.Amount == 300);
-        }
-
-        /// <summary>Вище останньої межі діє остання смуга, а не жодна.</summary>
-        [Fact]
-        public void LevelUpCost_ShouldKeepTheLastBand_AboveEveryBoundary()
-        {
-            var cost = Progression().LevelUpCost(BandedHero(), 30);
-
-            Assert.Contains(cost, c => c.Resource == "iron");
-        }
-
-        /// <summary>
-        /// Порядок смуг у конфігу не має значення — береться найбільший
-        /// FromLevel, що не перевищує цільовий рівень.
-        /// </summary>
-        [Fact]
-        public void LevelUpCost_ShouldIgnoreBandOrderInConfig()
-        {
-            var hero = BandedHero();
-            hero.LevelUpCosts.Reverse();
-
-            var cost = Progression().LevelUpCost(hero, 5);
-
-            Assert.Equal(400, Assert.Single(cost).Amount);
-        }
-
-        /// <summary>
-        /// Діра в смугах — це помилка конфіга, а не мовчазний нуль:
-        /// безкоштовна прокачка помітна пізніше й гірше.
-        /// </summary>
-        [Fact]
-        public void LevelUpCost_ShouldThrow_WhenNoBandCoversTheLevel()
-        {
-            var hero = BandedHero();
-            hero.LevelUpCosts = [new HeroLevelCostBand { FromLevel = 5, Cost = [] }];
-
-            Assert.Throws<InvalidOperationException>(() => Progression().LevelUpCost(hero, 3));
         }
 
         /// <summary>

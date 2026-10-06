@@ -54,26 +54,15 @@ namespace EmpireIdle.Application.Interfaces
 
         Task AddShardsAsync(HeroShardProgress progress, CancellationToken cancellationToken = default);
 
-        /// <summary>Активне замовлення на прокачку; null — черга вільна.</summary>
-        Task<HeroLevelOrder?> GetActiveOrderAsync(Guid playerId, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Id дозрілих замовлень по світу. Сканерний запит: віддає лише
-        /// ідентифікатори, бо кожне далі обробляється у власному scope.
-        /// </summary>
-        Task<IReadOnlyList<Guid>> GetIdsWithDueLevelUpAsync(DateTime utcNow, int batchSize,
-            CancellationToken cancellationToken = default);
-
         /// <summary>
         /// Усі накопичені уламки гравця. Одним запитом, а не по ключу
         /// в циклі — ростер відкривається часто.
         /// </summary>
         Task<List<HeroShardProgress>> GetAllShardsAsync(Guid playerId, CancellationToken cancellationToken = default);
 
-        Task<HeroLevelOrder?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        /// <summary>Пул досвіду героїв гравця; null — досвіду ще не було. З трекінгом: його змінюють.</summary>
+        Task<HeroExperiencePool?> GetExperienceAsync(Guid playerId, CancellationToken cancellationToken = default);
 
-        Task AddOrderAsync(HeroLevelOrder order, CancellationToken cancellationToken = default);
-
-        void RemoveOrder(HeroLevelOrder order);
+        Task AddExperienceAsync(HeroExperiencePool pool, CancellationToken cancellationToken = default);
     }
 }

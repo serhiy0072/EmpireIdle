@@ -63,12 +63,6 @@ namespace EmpireIdle.Domain.Services.Config
         public int ShardPriceGold { get; set; }
 
         /// <summary>
-        /// Вартість прокачки по смугах рівнів. Порожній список означає,
-        /// що герой не качається — валідатор такого не пропустить.
-        /// </summary>
-        public List<HeroLevelCostBand> LevelUpCosts { get; set; } = new();
-
-        /// <summary>
         /// Пасивні вміння. Саме вони, а не стати героя, впливають на бій:
         /// стати вирішують силу самого героя, пасивки — силу його війська.
         /// </summary>

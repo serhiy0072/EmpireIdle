@@ -21,7 +21,7 @@ namespace EmpireIdle.API.Controllers
         public HeroesController(IMediator mediator) => _mediator = mediator;
 
         /// <summary>
-        /// Ростер із поточною стелею рівня, уламками та активною чергою.
+        /// Ростер зі стелею рівня, ціною наступного рівня, уламками та пулом досвіду.
         /// </summary>
         [HttpGet("{playerId:guid}")]
         [ProducesResponseType(typeof(HeroesOverview), StatusCodes.Status200OK)]
@@ -49,24 +49,24 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
-        /// <summary>Поставити героя в чергу на підняття рівня.</summary>
+        /// <summary>Підняти рівень героя одразу за досвід із пулу гравця (GDD §6.1).</summary>
         [HttpPost("{playerId:guid}/{heroId:guid}/level-up")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> LevelUp(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        public async Task<IActionResult> LevelUp(Guid playerId, Guid heroId, [FromQuery] int levels = 1,
+            CancellationToken cancellationToken = default)
         {
-            await _mediator.Send(new StartHeroLevelUpCommand(playerId, heroId), cancellationToken);
+            await _mediator.Send(new LevelUpHeroCommand(playerId, heroId, levels), cancellationToken);
             return NoContent();
         }
 
-        /// <summary>Миттєво завершити прокачку героя за gems. Новий рівень видно одразу.</summary>
-        [HttpPost("{playerId:guid}/level-up/{orderId:guid}/speedup")]
+        /// <summary>Скинути героя на перший рівень: досвід повертається в пул мінус штраф.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/reset-level")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> SpeedUpLevelUp(Guid playerId, Guid orderId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ResetLevel(Guid playerId, Guid heroId, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new SpeedUpHeroLevelUpCommand(playerId, orderId), cancellationToken);
+            await _mediator.Send(new ResetHeroLevelCommand(playerId, heroId), cancellationToken);
             return NoContent();
         }
 

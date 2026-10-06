@@ -4,9 +4,7 @@ import ErrorBanner from "../components/ErrorBanner";
 import HeroCard from "../components/HeroCard";
 import HeroDetails from "../components/HeroDetails";
 import ShardsPanel from "../components/ShardsPanel";
-import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
-import { formatRemaining } from "../lib/time";
 import {
   useAppointLeader,
   useBuyShards,
@@ -14,14 +12,13 @@ import {
   useHealHero,
   useHeroes,
   useLevelUpHero,
-  useSpeedUpHeroLevelUp,
+  useResetHeroLevel,
   useSummonHero,
 } from "../lib/queries/heroes";
 
 export default function HeroesPage() {
   const session = useSession();
   const playerId = session?.playerId ?? "";
-  const now = useNow();
 
   const heroes = useHeroes(playerId);
   const levelUp = useLevelUpHero(playerId);
@@ -30,13 +27,9 @@ export default function HeroesPage() {
   const heal = useHealHero(playerId);
   const summon = useSummonHero(playerId);
   const buyShards = useBuyShards(playerId);
-  const speedUp = useSpeedUpHeroLevelUp(playerId);
+  const resetLevel = useResetHeroLevel(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  // Чергу завершує сканер на сервері; useHeroes сам перепитує ростер на її дедлайн
-  const order = heroes.data?.activeOrder ?? null;
-  const orderLeft = order === null ? null : formatRemaining(order.completesAt, now);
 
   if (heroes.isPending) {
     return <p className="text-slate-500">Завантаження героїв…</p>;
@@ -53,7 +46,7 @@ export default function HeroesPage() {
     heal.isPending ||
     summon.isPending ||
     buyShards.isPending ||
-    speedUp.isPending;
+    resetLevel.isPending;
 
   const failure =
     levelUp.error ??
@@ -62,7 +55,7 @@ export default function HeroesPage() {
     heal.error ??
     summon.error ??
     buyShards.error ??
-    speedUp.error;
+    resetLevel.error;
 
   const selected = heroes.data.heroes.find((hero) => hero.id === selectedId) ?? heroes.data.heroes[0] ?? null;
   const free = heroes.data.heroes.filter((hero) => hero.state === "Idle").length;
@@ -72,7 +65,8 @@ export default function HeroesPage() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Герої</h1>
         <p className="text-sm text-slate-500">
-          Вільних: {free} · стеля маршів: {heroes.data.marchCapacity} ·{" "}
+          Досвід героїв: {heroes.data.experience.toLocaleString("uk-UA")} · вільних: {free} · стеля маршів:{" "}
+          {heroes.data.marchCapacity} ·{" "}
           <Link to="/heroes/codex" className="text-emerald-700 hover:underline">
             кодекс
           </Link>
@@ -92,7 +86,6 @@ export default function HeroesPage() {
                   key={hero.id}
                   hero={hero}
                   selected={selected?.id === hero.id}
-                  levelingUntil={order !== null && order.heroId === hero.id ? orderLeft : null}
                   onSelect={() => setSelectedId(hero.id)}
                 />
               ))}
@@ -113,11 +106,10 @@ export default function HeroesPage() {
         {selected !== null && (
           <HeroDetails
             hero={selected}
-            queueBusy={order !== null}
-            order={order !== null && order.heroId === selected.id ? order : null}
+            experience={heroes.data.experience}
             busy={busy}
-            onSpeedUp={() => order !== null && speedUp.mutate(order.id)}
-            onLevelUp={() => levelUp.mutate(selected.id)}
+            onLevelUp={() => levelUp.mutate({ heroId: selected.id, levels: 1 })}
+            onResetLevel={() => resetLevel.mutate(selected.id)}
             onEvolve={() => evolve.mutate(selected.id)}
             onAppointLeader={() => appointLeader.mutate(selected.id)}
             onHeal={() => heal.mutate(selected.id)}

@@ -6,8 +6,20 @@ namespace EmpireIdle.Domain.Services.Config
     /// </summary>
     public class HeroesConfig
     {
-        /// <summary>Скільки рівнів героя відкриває один тір. Стеля тіру = Tier × це число.</summary>
-        public int LevelsPerTier { get; set; } = 10;
+        /// <summary>Стеля рівня героя (GDD §6.1): інших меж немає — ні ратуша, ні тір рівень не обмежують.</summary>
+        public int MaxLevel { get; set; } = 80;
+
+        /// <summary>
+        /// Крива досвіду: перехід із рівня L на L+1 коштує ExperienceBase × L^ExperienceExponent.
+        /// Заглушки до Режисера.
+        /// </summary>
+        public double ExperienceBase { get; set; } = 8;
+
+        /// <inheritdoc cref="ExperienceBase"/>
+        public double ExperienceExponent { get; set; } = 2.6;
+
+        /// <summary>Частка досвіду, що згорає при безкоштовному скиданні рівня (GDD §6.1): 0.01 — 1%.</summary>
+        public double ResetPenalty { get; set; } = 0.01;
 
         /// <summary>
         /// Ріст статів за тір, складним відсотком (GDD §6.1): рідний T(n) = TierGrowth^(n−1).
@@ -56,9 +68,6 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Будівля, без якої лікувати нікому.</summary>
         public string HealBuildingKey { get; set; } = "hospital";
-
-        /// <summary>Базовий час підняття рівня, хвилин. Множиться на цільовий рівень.</summary>
-        public double BaseLevelUpMinutes { get; set; } = 4;
 
         /// <summary>
         /// Будівля, у якій купуються й качаються герої. Ключем із конфіга,

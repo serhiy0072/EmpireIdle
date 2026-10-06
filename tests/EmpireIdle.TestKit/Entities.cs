@@ -108,8 +108,8 @@ public static class Entities
         var hero = new Hero(Guid.NewGuid(), playerId ?? Guid.NewGuid(), serverId, heroKey,
             garrisonId ?? Guid.NewGuid(), asLeader, Now, nativeTier);
 
-        for (var i = 1; i < level; i++)
-            hero.GainLevel(level, Now);
+        if (level > 1)
+            hero.GainLevels(level - 1, level, Now);
 
         // Тір понад рідний — апами, як у грі: кожен ап несе свій штраф (GDD §6.1)
         for (var i = nativeTier; i < tier; i++)

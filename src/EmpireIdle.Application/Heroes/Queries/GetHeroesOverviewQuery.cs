@@ -7,49 +7,29 @@ using MediatR;
 namespace EmpireIdle.Application.Heroes.Queries
 {
     /// <summary>
-    /// Ростер гравця разом зі стелею рівня, уламками й активною чергою.
+    /// Ростер гравця разом зі стелею рівня, ціною наступного рівня, уламками й пулом досвіду.
     /// </summary>
     public record GetHeroesOverviewQuery(Guid PlayerId) : IRequest<HeroesOverview>, IPlayerScopedRequest;
 
     internal sealed class GetHeroesOverviewQueryHandler : IRequestHandler<GetHeroesOverviewQuery, HeroesOverview>
     {
         private readonly IHeroRepository _heroRepository;
-        private readonly IVillageRepository _villageRepository;
         private readonly HeroProgression _progression;
         private readonly GameCatalog _catalog;
-        private readonly TimeProvider _timeProvider;
-        private readonly SpeedUpCalculator _calculator;
 
         public GetHeroesOverviewQueryHandler(
             IHeroRepository heroRepository,
-            IVillageRepository villageRepository,
             HeroProgression progression,
-            GameCatalog catalog,
-            TimeProvider timeProvider,
-            SpeedUpCalculator calculator)
+            GameCatalog catalog)
         {
             _heroRepository = heroRepository;
-            _villageRepository = villageRepository;
             _progression = progression;
             _catalog = catalog;
-            _timeProvider = timeProvider;
-            _calculator = calculator;
         }
 
         public async Task<HeroesOverview> Handle(GetHeroesOverviewQuery request, CancellationToken cancellationToken)
         {
             var heroes = await _heroRepository.GetByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
-
-            var village = await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
-
-            // Ратуша в процесі будівництва стелі не піднімає, але й не знімає:
-            // Level росте лише по завершенні, тож це рівень, який уже стоїть.
-            // Ратуші немає зовсім — FirstOrDefault дає 0, і стеля чесно стає нулем.
-            var townHallLevel = village.Buildings
-                .Where(b => b.Type == _catalog.MainBuildingKey)
-                .Select(b => b.Level.Value)
-                .FirstOrDefault();
 
             var summaries = heroes
                 .Select(h => new HeroSummary(
@@ -57,7 +37,8 @@ namespace EmpireIdle.Application.Heroes.Queries
                     h.HeroKey,
                     h.Tier,
                     h.Level,
-                    _progression.MaxLevel(townHallLevel, h.Tier),
+                    _progression.MaxLevel,
+                    h.Level < _progression.MaxLevel ? _progression.ExperienceToNext(h.Level) : 0,
                     h.Constellation,
                     // Ім'я enum як є: клієнт розгалужується за "Idle", а не за "idle"
                     h.State.ToString(),
@@ -74,15 +55,13 @@ namespace EmpireIdle.Application.Heroes.Queries
                 .Select(s => new HeroShardSummary(s.HeroKey, s.Count, _catalog.Hero(s.HeroKey).SummonShards))
                 .ToList();
 
-            var order = await _heroRepository.GetActiveOrderAsync(request.PlayerId, cancellationToken);
+            // Пул лише читаємо: без трекінгу тут нема чого зберігати, а свіжість — та сама
+            var experience = await _heroRepository.GetExperienceAsync(request.PlayerId, cancellationToken);
 
             return new HeroesOverview(
                 summaries,
                 shardSummaries,
-                order is null
-                    ? null
-                    : new HeroLevelOrderSummary(order.Id, order.HeroId, order.TargetLevel, order.CompletesAt,
-                        _calculator.GetCost(order.CompletesAt, _timeProvider.GetUtcNow().UtcDateTime)),
+                experience?.Amount ?? 0,
                 _progression.MarchCapacity(heroes.Count(h => h.IsAvailable)));
         }
     }

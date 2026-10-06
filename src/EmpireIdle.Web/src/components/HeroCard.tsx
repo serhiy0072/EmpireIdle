@@ -5,7 +5,6 @@ import HeroPortrait from "./heroes/HeroPortrait";
 interface Props {
   hero: HeroSummary;
   selected: boolean;
-  levelingUntil: string | null;
   onSelect: () => void;
 }
 
@@ -20,7 +19,7 @@ function Constellation({ value, max }: { value: number; max: number }) {
   );
 }
 
-export default function HeroCard({ hero, selected, levelingUntil, onSelect }: Props) {
+export default function HeroCard({ hero, selected, onSelect }: Props) {
   const catalog = useCatalog();
   const config = catalog.hero(hero.heroKey);
 
@@ -61,7 +60,6 @@ export default function HeroCard({ hero, selected, levelingUntil, onSelect }: Pr
         )}
         <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{heroState(hero.state)}</span>
         {hero.isLeader && <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">Лідер</span>}
-        {levelingUntil !== null && <span className="rounded bg-sky-100 px-2 py-0.5 text-sky-800">{levelingUntil}</span>}
       </div>
     </button>
   );

@@ -159,9 +159,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   // ---------- Герої ----------
   "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
   "hero.onMarket": () => "Герой виставлений на ринок — спершу зніміть лот",
-  "hero.levelCeiling": ({ hero, ceiling }) =>
-    `${hero} досяг стелі ${ceiling} рівня: підніміть ратушу або еволюціонуйте тір`,
-  "hero.trainingBusy": () => "Зала героїв уже тренує іншого героя",
+  "hero.levelCeiling": ({ hero, ceiling }) => `${hero} уже на найвищому рівні — ${ceiling}`,
   "hero.worldLevelRequired": ({ required, current }) =>
     `Наступний тір відкриється на рівні світу ${required} (зараз ${current})`,
   "hero.evolutionItemRequired": ({ item }) => `Для еволюції потрібен предмет «${item}»`,
@@ -183,7 +181,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "market.notEnoughItems": ({ item, need, have }) => `Не вистачає «${item}»: потрібно ${need}, є ${have}`,
   "market.resaleCooldown": ({ until }) => `Щойно куплене можна перепродати після ${localTime(until)}`,
   "market.heroBusy": () => "Виставити можна лише героя, що вдома й вільний",
-  "market.heroTraining": () => "Герой саме тренується в залі героїв — дочекайтеся кінця",
   "market.heroAlreadyOwned": ({ hero }) => `${hero} уже у вашому загоні — другого такого купити не можна`,
   "market.itemListed": () => "Предмет виставлений на ринок — спершу зніміть лот",
   "market.listingClosed": () => "Лот уже продано або знято",

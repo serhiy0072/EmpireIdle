@@ -30,8 +30,6 @@ namespace EmpireIdle.API.Jobs
             await _runner.ForEachItemAsync(nameof(CompleteGarrisonLevelUpsCommand), (mediator, ct) => mediator.Send(new GetGarrisonIdsWithDueLevelUpsQuery(), ct),
                 (mediator, id, ct) => mediator.Send(new CompleteGarrisonLevelUpsCommand(id), ct), cancellationToken);
 
-            await _runner.ForEachItemAsync(nameof(CompleteHeroLevelUpCommand), (mediator, ct) => mediator.Send(new GetHeroOrderIdsWithDueLevelUpQuery(), ct),
-                (mediator, id, ct) => mediator.Send(new CompleteHeroLevelUpCommand(id), ct), cancellationToken);
 
             // Ефекти не прив'язані до світу: одне видалення на тік, а не по одному на кожен світ
             await _runner.RunOnceAsync(nameof(RemoveExpiredEffectsCommand), (mediator, ct) => mediator.Send(new RemoveExpiredEffectsCommand(), ct), cancellationToken);

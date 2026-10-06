@@ -37,7 +37,7 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public int NativeTier { get; private set; }
 
-        /// <summary>Поточний рівень. Качається чергою в залі героїв.</summary>
+        /// <summary>Поточний рівень. Піднімається одразу за досвід із пулу гравця (GDD §6.1).</summary>
         public int Level { get; private set; }
 
         /// <summary>
@@ -235,19 +235,33 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Піднімає рівень на один. Стеля перевіряється викликачем через
-        /// HeroProgression: вона залежить від ратуші й тіру, а агрегат
-        /// героя ні про село, ні про конфіг не знає.
+        /// Піднімає рівень на <paramref name="levels"/>. Досвід списує викликач із пулу гравця:
+        /// пул — окремий агрегат, герой про нього не знає.
         /// </summary>
-        public void GainLevel(int maxLevel, DateTime utcNow)
+        public void GainLevels(int levels, int maxLevel, DateTime utcNow)
         {
-            if (Level >= maxLevel)
-                throw new RequirementNotMetException(
-                    $"Hero {Id} is at its ceiling of {maxLevel}: raise the town hall or evolve the tier.");
+            if (levels < 1)
+                throw new ArgumentOutOfRangeException(nameof(levels), levels, "Levels to gain must be positive.");
 
-            Level++;
+            if (Level + levels > maxLevel)
+                throw new RequirementNotMetException(RefusalReasons.HeroLevelCeiling,
+                    $"Hero {Id} cannot go above level {maxLevel}.", HeroKey, maxLevel);
+
+            Level += levels;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Скидає героя на перший рівень. Повернення досвіду рахує викликач. Повертає рівень до скидання.</summary>
+        public int ResetLevel(DateTime utcNow)
+        {
+            var previous = Level;
+
+            Level = 1;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+
+            return previous;
         }
 
         /// <summary>

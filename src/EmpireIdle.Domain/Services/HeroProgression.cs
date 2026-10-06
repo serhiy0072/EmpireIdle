@@ -21,15 +21,30 @@ namespace EmpireIdle.Domain.Services
             _config = config;
         }
 
+        /// <summary>Стеля рівня героя — одна для всіх (GDD §6.1).</summary>
+        public int MaxLevel => _config.MaxLevel;
+
+        /// <summary>Скільки досвіду коштує перехід із рівня <paramref name="level"/> на наступний.</summary>
+        public long ExperienceToNext(int level)
+            => (long)Math.Round(_config.ExperienceBase * Math.Pow(Math.Max(1, level), _config.ExperienceExponent));
+
+        /// <summary>Скільки досвіду коштує дорога з рівня <paramref name="from"/> до <paramref name="to"/>.</summary>
+        public long ExperienceBetween(int from, int to)
+        {
+            long total = 0;
+
+            for (var level = from; level < to; level++)
+                total += ExperienceToNext(level);
+
+            return total;
+        }
+
         /// <summary>
-        /// Стеля рівня героя. Дві незалежні межі, береться нижча:
-        /// ратуша обмежує всіх героїв гравця, тір — конкретного героя.
-        ///
-        /// Саме тому еволюція не є обов'язковою для прогресу: гравець
-        /// із ратушею 8 упреться в ратушу, а не в тір.
+        /// Скільки досвіду повертає скидання героя з рівня <paramref name="level"/> на перший:
+        /// усе вкладене мінус ResetPenalty (GDD §6.1). Округлення вниз — штраф не стає нулем на малих сумах.
         /// </summary>
-        public int MaxLevel(int townHallLevel, int tier)
-            => Math.Min(townHallLevel, tier * _config.LevelsPerTier);
+        public long ResetRefund(int level)
+            => (long)Math.Floor(ExperienceBetween(1, level) * (1 - _config.ResetPenalty));
 
         /// <summary>
         /// Множник статів за тіром (GDD §6.1): TierGrowth^(тір−1) × EvolutionPenalty^(тір − рідний тір).
@@ -105,28 +120,5 @@ namespace EmpireIdle.Domain.Services
             => _config.HealCostPerLevel
             .Select(c => new ResourceCost { Resource = c.Resource, Amount = c.Amount * level })
             .ToList();
-
-        /// <summary>Скільки триває підняття рівня до targetLevel.</summary>
-        public TimeSpan LevelUpDuration(int targetLevel)
-            => TimeSpan.FromMinutes(_config.BaseLevelUpMinutes * targetLevel);
-
-        /// <summary>
-        /// Вартість переходу на targetLevel. Береться смуга з найбільшим
-        /// FromLevel, який не перевищує цільовий рівень.
-        ///
-        /// Список повертається як є, без множення: множник передається
-        /// у ChargeCost, щоб вартість і списання не розходились у двох місцях.
-        /// </summary>
-        public List<ResourceCost> LevelUpCost(HeroConfig hero, int targetLevel)
-        {
-            var band = hero.LevelUpCosts
-                .Where(b => b.FromLevel <= targetLevel)
-                .OrderByDescending(b => b.FromLevel)
-                .FirstOrDefault()
-                ?? throw new InvalidOperationException(
-                    $"Hero '{hero.Key}' has no cost band covering level {targetLevel}.");
-
-            return band.Cost;
-        }
     }
 }

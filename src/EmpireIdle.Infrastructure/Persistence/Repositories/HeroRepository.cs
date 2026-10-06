@@ -117,27 +117,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
-        public Task<HeroLevelOrder?> GetActiveOrderAsync(Guid playerId, CancellationToken cancellationToken = default)
-            => _context.HeroLevelOrders
-            .FirstOrDefaultAsync(o => o.PlayerId == playerId, cancellationToken);
-
-        /// <inheritdoc/>
-        public async Task AddOrderAsync(HeroLevelOrder order, CancellationToken cancellationToken = default)
-        {
-            await _context.HeroLevelOrders.AddAsync(order, cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public async Task<IReadOnlyList<Guid>> GetIdsWithDueLevelUpAsync(DateTime utcNow, int batchSize,
-            CancellationToken cancellationToken = default)
-            => await _context.HeroLevelOrders
-            .Where(o => o.CompletesAt <= utcNow)
-            .OrderBy(o => o.CompletesAt)
-            .Take(batchSize)
-            .Select(o => o.Id)
-            .ToListAsync(cancellationToken);
-
-        /// <inheritdoc/>
         public Task<List<HeroShardProgress>> GetAllShardsAsync(Guid playerId, CancellationToken cancellationToken = default)
             => _context.HeroShards
             .AsNoTracking()
@@ -145,11 +124,16 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public Task<HeroLevelOrder?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => _context.HeroLevelOrders
-            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        public async Task<HeroExperiencePool?> GetExperienceAsync(Guid playerId, CancellationToken cancellationToken = default)
+            // Спершу трекер: пул, створений раніше в цій самій транзакції (нагорода з кількох рядків
+            // досвіду), у базі ще не видно, і друге створення впало б на унікальному індексі
+            => _context.HeroExperience.Local.FirstOrDefault(p => p.PlayerId == playerId)
+               ?? await _context.HeroExperience.FirstOrDefaultAsync(p => p.PlayerId == playerId, cancellationToken);
 
         /// <inheritdoc/>
-        public void RemoveOrder(HeroLevelOrder order) => _context.HeroLevelOrders.Remove(order);
+        public async Task AddExperienceAsync(HeroExperiencePool pool, CancellationToken cancellationToken = default)
+        {
+            await _context.HeroExperience.AddAsync(pool, cancellationToken);
+        }
     }
 }

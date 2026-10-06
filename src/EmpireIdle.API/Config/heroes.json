@@ -1,8 +1,11 @@
 {
   "GameConfig": {
     "HeroSettings": {
-      "LevelsPerTier": 10,
-      "TierGrowth": 1.10,
+      "MaxLevel": 80,
+      "ExperienceBase": 8,
+      "ExperienceExponent": 2.6,
+      "ResetPenalty": 0.01,
+      "TierGrowth": 1.1,
       "EvolutionPenalty": 0.95,
       "EvolutionItemKeys": [
         "hero_essence_t2",
@@ -26,7 +29,6 @@
         }
       ],
       "HealBuildingKey": "hospital",
-      "BaseLevelUpMinutes": 12,
       "BuildingKey": "heroeshall",
       "Classes": [
         "warrior",
@@ -50,55 +52,6 @@
           "Defense": 60,
           "Health": 300
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 4,
           "Defense": 7,
@@ -171,55 +124,6 @@
           "Defense": 30,
           "Health": 220
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 3,
@@ -288,55 +192,6 @@
           "Defense": 75,
           "Health": 380
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 8,
@@ -411,55 +266,6 @@
           "Defense": 35,
           "Health": 260
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 13,
           "Defense": 4,
@@ -546,55 +352,6 @@
           "Defense": 90,
           "Health": 420
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 6,
           "Defense": 10,
@@ -667,55 +424,6 @@
           "Defense": 90,
           "Health": 420
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 6,
           "Defense": 10,
@@ -788,55 +496,6 @@
           "Defense": 90,
           "Health": 420
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 6,
           "Defense": 10,
@@ -909,55 +568,6 @@
           "Defense": 75,
           "Health": 380
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 8,
@@ -1023,55 +633,6 @@
           "Defense": 75,
           "Health": 380
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 8,
@@ -1137,55 +698,6 @@
           "Defense": 40,
           "Health": 300
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 11,
           "Defense": 4,
@@ -1254,55 +766,6 @@
           "Defense": 40,
           "Health": 300
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 11,
           "Defense": 4,
@@ -1371,55 +834,6 @@
           "Defense": 40,
           "Health": 300
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 11,
           "Defense": 4,
@@ -1488,55 +902,6 @@
           "Defense": 35,
           "Health": 250
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 12,
           "Defense": 4,
@@ -1602,55 +967,6 @@
           "Defense": 35,
           "Health": 250
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 12,
           "Defense": 4,
@@ -1716,55 +1032,6 @@
           "Defense": 90,
           "Health": 546
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 10,
@@ -1855,55 +1122,6 @@
           "Defense": 75,
           "Health": 494
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 10,
           "Defense": 8,
@@ -1990,55 +1208,6 @@
           "Defense": 40,
           "Health": 390
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 14,
           "Defense": 4,
@@ -2122,55 +1291,6 @@
           "Defense": 35,
           "Health": 325
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 16,
           "Defense": 4,
@@ -2257,55 +1377,6 @@
           "Defense": 35,
           "Health": 325
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 16,
           "Defense": 4,

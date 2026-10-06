@@ -3,7 +3,6 @@ import { api } from "../api";
 import type { components } from "../schema";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer, type PlayerScope } from "./invalidate";
-import { refetchAtDue } from "./polling";
 
 export type HeroesOverview = components["schemas"]["HeroesOverview"];
 export type HeroSummary = components["schemas"]["HeroSummary"];
@@ -13,8 +12,6 @@ export function useHeroes(playerId: string): UseQueryResult<HeroesOverview> {
   return useQuery({
     queryKey: queryKeys.heroes(playerId),
     queryFn: () => api<HeroesOverview>(`/api/heroes/${playerId}`),
-    // Чергу прокачки завершує сканер на сервері: перепитуємо на її дедлайн
-    refetchInterval: refetchAtDue<HeroesOverview>((overview) => [overview.activeOrder?.completesAt]),
   });
 }
 
@@ -28,20 +25,20 @@ function useHeroAction(playerId: string, path: (heroId: string) => string, scope
   });
 }
 
-/** Прокачка коштує ресурсів села. */
+/** Рівень піднімається одразу за досвід із пулу гравця (GDD §6.1) — без черги й таймера. */
 export function useLevelUpHero(playerId: string) {
-  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/level-up`, ["heroes", "village", "power"]);
-}
-
-/** Прискорення платить gems; сервер завершує прокачку одразу — новий рівень видно в тій самій відповіді. */
-export function useSpeedUpHeroLevelUp(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (orderId: string) =>
-      api<void>(`/api/heroes/${playerId}/level-up/${orderId}/speedup`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "wallet", "power"]),
+    mutationFn: ({ heroId, levels }: { heroId: string; levels: number }) =>
+      api<void>(`/api/heroes/${playerId}/${heroId}/level-up?levels=${levels}`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "power"]),
   });
+}
+
+/** Скидання на перший рівень: досвід повертається в пул мінус 1%. */
+export function useResetHeroLevel(playerId: string) {
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/reset-level`, ["heroes", "power"]);
 }
 
 export function useEvolveHero(playerId: string) {

@@ -15,6 +15,7 @@ namespace EmpireIdle.Application.Heroes.Contracts
         int Tier,
         int Level,
         int MaxLevel,
+        long ExperienceToNext,
         int Constellation,
         string State,
         Guid? StationedGarrisonId,

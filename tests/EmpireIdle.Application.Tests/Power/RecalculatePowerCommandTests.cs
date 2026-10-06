@@ -47,7 +47,6 @@ public class RecalculatePowerCommandTests
         Combat = new CombatConfig(),
         HeroSettings = new HeroesConfig
         {
-            LevelsPerTier = 10,
             MaxMarches = 3,
             BuildingKey = "heroeshall",
             HealBuildingKey = "hospital",
@@ -66,15 +65,7 @@ public class RecalculatePowerCommandTests
                 SummonShards = 10,
                 ShardPriceGold = 100,
                 BaseStats = new Dictionary<string, double> { ["Attack"] = 100, ["Defense"] = 40 },
-                LevelUpCosts =
-                [
-                    new HeroLevelCostBand
-                    {
-                        FromLevel = 1,
-                        Cost = [new ResourceCost { Resource = "food", Amount = 50 }]
-                    }
-                ]
-            }
+}
         ]
     };
 

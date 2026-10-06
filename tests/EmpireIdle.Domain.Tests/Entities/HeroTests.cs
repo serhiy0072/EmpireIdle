@@ -31,7 +31,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
             hero.ClearDomainEvents();
 
-            hero.GainLevel(maxLevel: 10, Now);
+            hero.GainLevels(1, maxLevel: 10, Now);
             Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
             hero.ClearDomainEvents();
 
@@ -186,26 +186,39 @@ namespace EmpireIdle.Domain.Tests.Entities
 
         // ---------- Рівні й тіри ----------
 
+        /// <summary>Рівень піднімається одразу на кілька — досвід списано з пулу ще до цього.</summary>
         [Fact]
-        public void GainLevel_ShouldRaiseLevelBelowTheCeiling()
+        public void GainLevels_ShouldRaiseSeveralLevelsAtOnce()
         {
             var hero = CreateHero();
 
-            hero.GainLevel(maxLevel: 10, Now);
+            hero.GainLevels(4, maxLevel: 80, Now);
 
-            Assert.Equal(2, hero.Level);
+            Assert.Equal(5, hero.Level);
         }
 
-        /// <summary>
-        /// Стеля приходить ззовні: вона залежить від ратуші й тіру, а герой
-        /// ні про село, ні про конфіг не знає.
-        /// </summary>
+        /// <summary>Понад стелю — відмова, рівень не змінюється навіть частково.</summary>
         [Fact]
-        public void GainLevel_ShouldRejectAtTheCeiling()
+        public void GainLevels_ShouldRefuse_AboveTheCeiling()
         {
             var hero = CreateHero();
 
-            Assert.Throws<RequirementNotMetException>(() => hero.GainLevel(maxLevel: 1, Now));
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.GainLevels(5, maxLevel: 5, Now));
+
+            Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
+            Assert.Equal(1, hero.Level);
+        }
+
+        /// <summary>Скидання — на перший рівень; повертає рівень до скидання, щоб викликач порахував досвід.</summary>
+        [Fact]
+        public void ResetLevel_ShouldReturnToLevelOne()
+        {
+            var hero = CreateHero();
+            hero.GainLevels(9, maxLevel: 80, Now);
+
+            var previous = hero.ResetLevel(Now);
+
+            Assert.Equal(10, previous);
             Assert.Equal(1, hero.Level);
         }
 
@@ -236,8 +249,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void EvolveTier_ShouldKeepTheCurrentLevel()
         {
             var hero = CreateHero();
-            hero.GainLevel(maxLevel: 10, Now);
-            hero.GainLevel(maxLevel: 10, Now);
+            hero.GainLevels(2, maxLevel: 10, Now);
 
             hero.EvolveTier(maxTier: 3, Now);
 

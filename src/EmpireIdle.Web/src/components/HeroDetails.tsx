@@ -1,22 +1,15 @@
+import { useState } from "react";
 import { heroState, passivePercent, rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
-import { useNow } from "../hooks/useNow";
-import { speedUpLabel } from "../lib/speedUp";
-import type { components } from "../lib/schema";
 import type { HeroSummary } from "../lib/queries/heroes";
-import { formatRemaining } from "../lib/time";
 import HeroPortrait from "./heroes/HeroPortrait";
-
-type HeroLevelOrder = components["schemas"]["HeroLevelOrderSummary"];
 
 interface Props {
   hero: HeroSummary;
-  /** Черга одна на гравця: поки вона зайнята, інші герої качатись не можуть. */
-  queueBusy: boolean;
-  /** Активна прокачка саме цього героя; null — він не в черзі. */
-  order: HeroLevelOrder | null;
+  /** Пул досвіду гравця (GDD §6.1): з нього качається будь-який герой. */
+  experience: number;
   busy: boolean;
   onLevelUp: () => void;
-  onSpeedUp: () => void;
+  onResetLevel: () => void;
   onEvolve: () => void;
   onAppointLeader: () => void;
   onHeal: () => void;
@@ -24,20 +17,20 @@ interface Props {
 
 export default function HeroDetails({
   hero,
-  queueBusy,
-  order,
+  experience,
   busy,
   onLevelUp,
-  onSpeedUp,
+  onResetLevel,
   onEvolve,
   onAppointLeader,
   onHeal,
 }: Props) {
   const catalog = useCatalog();
-  const now = useNow();
   const config = catalog.hero(hero.heroKey);
+  const [confirmingReset, setConfirmingReset] = useState(false);
 
   const atLevelCap = hero.level >= hero.maxLevel;
+  const affordable = experience >= hero.experienceToNext;
   const atTierCap = hero.tier >= catalog.maxTier;
   const stationed = hero.stationedGarrisonId !== null && hero.stationedGarrisonId !== undefined;
 
@@ -105,32 +98,56 @@ export default function HeroDetails({
       )}
 
       <div className="space-y-2">
-        {order !== null && (
-          <div className="flex items-center justify-between gap-2 rounded-lg bg-sky-50 px-3 py-2 text-sm">
-            <span className="text-sky-900">
-              До рівня {order.targetLevel}: {formatRemaining(order.completesAt, now)}
-            </span>
-            {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
-              <button
-                type="button"
-                onClick={onSpeedUp}
-                disabled={busy}
-                className="rounded-lg border border-sky-300 bg-white px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100 disabled:opacity-50"
-              >
-                {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
-              </button>
-            )}
-          </div>
-        )}
-
         <button
           type="button"
           onClick={onLevelUp}
-          disabled={busy || queueBusy || atLevelCap}
+          disabled={busy || atLevelCap || !affordable}
           className="w-full rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
         >
-          {atLevelCap ? "Рівень уперся в стелю" : queueBusy ? "Черга зайнята" : "Підняти рівень"}
+          {atLevelCap
+            ? "Найвищий рівень"
+            : `Підняти рівень · ${hero.experienceToNext.toLocaleString("uk-UA")} досвіду`}
         </button>
+        {!atLevelCap && !affordable && (
+          <p className="text-xs text-slate-500">
+            Бракує {(hero.experienceToNext - experience).toLocaleString("uk-UA")} досвіду — його дають баночки досвіду.
+          </p>
+        )}
+
+        {/* Скидання не скасувати — тож другий клік; досвід повертається в пул мінус 1% */}
+        {hero.level > 1 &&
+          (confirmingReset ? (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="flex-1 text-slate-600">Скинути на 1 рівень? Досвід повернеться мінус 1%.</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmingReset(false);
+                  onResetLevel();
+                }}
+                disabled={busy}
+                className="rounded-lg bg-rose-600 px-3 py-1 text-white hover:bg-rose-700 disabled:opacity-50"
+              >
+                Так
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingReset(false)}
+                className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50"
+              >
+                Ні
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmingReset(true)}
+              disabled={busy}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              Скинути рівень
+            </button>
+          ))}
 
         <button
           type="button"

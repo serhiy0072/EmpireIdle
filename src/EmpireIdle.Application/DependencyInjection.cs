@@ -53,6 +53,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IItemEffect, BoostItemEffect>();
             services.AddScoped<IItemEffect, TeleportItemEffect>();
             services.AddScoped<IItemEffect, ScoutVeilItemEffect>();
+            services.AddScoped<IItemEffect, HeroExperienceItemEffect>();
 
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<EffectResolver>();
@@ -91,6 +92,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IRewardGranter, ItemRewardGranter>();
             services.AddScoped<IRewardGranter, HeroRewardGranter>();
             services.AddScoped<IRewardGranter, EquipmentRewardGranter>();
+            services.AddScoped<IRewardGranter, HeroExperienceRewardGranter>();
             services.AddScoped<RewardDispatcher>();
             services.AddScoped<DungeonTeamFactory>();
             services.AddScoped<DungeonRewarder>();

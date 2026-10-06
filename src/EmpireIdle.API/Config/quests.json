@@ -253,6 +253,11 @@
           {
             "Type": "Gems",
             "Amount": 12
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_small",
+            "Amount": 2
           }
         ]
       },

@@ -243,7 +243,6 @@ namespace EmpireIdle.Domain.Tests.Services
 
             config.HeroSettings = new HeroesConfig
             {
-                LevelsPerTier = 10,
                 MaxMarches = 8,
                 TierGrowth = 1.10,
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
@@ -260,27 +259,11 @@ namespace EmpireIdle.Domain.Tests.Services
                     {
                         Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
                         SummonShards = 10, ShardPriceGold = 1200,
-                        LevelUpCosts =
-                        [
-                            new HeroLevelCostBand
-                            {
-                                FromLevel = 1,
-                                Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
-                            }
-                        ]
-                    },
+},
                     new HeroConfig
                     {
                         Key = "archer_lyra", Class = "archer", Rank = Rarity.Unique,
-                        LevelUpCosts =
-                        [
-                            new HeroLevelCostBand
-                            {
-                                FromLevel = 1,
-                                Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
-                            }
-                        ]
-                    }
+}
             ];
 
             return config;
@@ -385,23 +368,19 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectMissingOverflowSealsForRank()
             => RejectsHero(c => c.HeroSettings.OverflowSeals.Remove("Unique"));
 
-        /// <summary>Герой без смуг вартості не качався б узагалі.</summary>
+        /// <summary>Крива без росту — пізні рівні коштували б як перші (GDD §6.1).</summary>
         [Fact]
-        public void Validate_ShouldRejectHeroWithoutLevelUpCosts()
-            => RejectsHero(c => c.Heroes[0].LevelUpCosts = []);
+        public void Validate_ShouldRejectANonPositiveExperienceCurve()
+            => RejectsHero(c => c.HeroSettings.ExperienceExponent = 0);
 
-        /// <summary>
-        /// Смуга має починатися з першого рівня, інакше герой упреться
-        /// в дірку одразу після призову.
-        /// </summary>
+        /// <summary>Штраф 100% спалив би весь досвід — скидання стало б покаранням, а не виправленням.</summary>
         [Fact]
-        public void Validate_ShouldRejectLevelUpCostsNotStartingAtOne()
-            => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].FromLevel = 5);
+        public void Validate_ShouldRejectAResetPenaltyOfOne()
+            => RejectsHero(c => c.HeroSettings.ResetPenalty = 1.0);
 
         [Fact]
-        public void Validate_ShouldRejectLevelUpCostWithUnknownResource()
-            => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].Cost =
-                [new ResourceCost { Resource = "mithril", Amount = 10 }]);
+        public void Validate_ShouldRejectAMaxLevelBelowOne()
+            => RejectsHero(c => c.HeroSettings.MaxLevel = 0);
 
         [Fact]
         public void Validate_ShouldRejectAnUnknownHealBuilding()

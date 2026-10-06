@@ -268,8 +268,6 @@
 
         public static readonly RefusalReason HeroLevelCeiling = new("hero.levelCeiling", "hero", "ceiling");
 
-        /// <summary>Зала героїв тренує одного героя за раз.</summary>
-        public static readonly RefusalReason HeroTrainingBusy = new("hero.trainingBusy");
 
         public static readonly RefusalReason HeroWorldLevelRequired = new("hero.worldLevelRequired", "required", "current");
 
@@ -315,8 +313,6 @@
         /// <summary>Герой не вдома, у поході, пораненій чи на ринку.</summary>
         public static readonly RefusalReason MarketHeroBusy = new("market.heroBusy");
 
-        /// <summary>Герой саме качається в залі героїв.</summary>
-        public static readonly RefusalReason MarketHeroTraining = new("market.heroTraining");
 
         /// <summary>Такий герой у покупця вже є — купівля обійшла б сузір'я.</summary>
         public static readonly RefusalReason MarketHeroAlreadyOwned = new("market.heroAlreadyOwned", "hero");

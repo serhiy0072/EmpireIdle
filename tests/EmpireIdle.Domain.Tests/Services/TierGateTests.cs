@@ -23,7 +23,7 @@ namespace EmpireIdle.Domain.Tests.Services
             config.Heroes.Add(new HeroConfig
             {
                 Key = "rare_tier_hero", DisplayName = "Rare", Class = unique.Class, Rank = Rarity.Rare,
-                BaseStats = unique.BaseStats, StatGrowth = unique.StatGrowth, LevelUpCosts = unique.LevelUpCosts
+                BaseStats = unique.BaseStats, StatGrowth = unique.StatGrowth
             });
             config.Shop.Banners =
             [

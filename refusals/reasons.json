@@ -157,7 +157,6 @@
   "hero.tierLocked": [
     "tier"
   ],
-  "hero.trainingBusy": [],
   "hero.worldLevelRequired": [
     "required",
     "current"
@@ -198,7 +197,6 @@
     "hero"
   ],
   "market.heroBusy": [],
-  "market.heroTraining": [],
   "market.itemListed": [],
   "market.listingClosed": [],
   "market.listingLimit": [

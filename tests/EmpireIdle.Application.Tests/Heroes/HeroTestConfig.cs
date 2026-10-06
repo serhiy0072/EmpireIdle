@@ -26,7 +26,6 @@ internal static class HeroTestConfig
 
     public const int ShardPriceGold = 100;
     public const int SummonShards = 10;
-    public const int LevelUpGold = 100;
     public const int WeaponPriceGold = 500;
     /// <summary>Номери слотів за типом — позиції в Equipment.ArtifactSlots.</summary>
     public const int NecklaceSlot = 0;
@@ -140,10 +139,8 @@ internal static class HeroTestConfig
         {
             BuildingKey = Hall,
             HealBuildingKey = "hospital",
-            LevelsPerTier = 10,
             MaxMarches = 8,
             MaxConstellation = 6,
-            BaseLevelUpMinutes = 4,
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
             TierGrowth = 1.35,
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
@@ -161,8 +158,7 @@ internal static class HeroTestConfig
                 ShardPriceGold = ShardPriceGold,
                 BaseStats = new Dictionary<string, double> { ["Attack"] = 40 },
                 StatGrowth = new Dictionary<string, double> { ["Attack"] = 4 },
-                LevelUpCosts = [Band()]
-            },
+},
             new HeroConfig
             {
                 Key = UniqueHero,
@@ -170,18 +166,11 @@ internal static class HeroTestConfig
                 Rank = Rarity.Unique,
                 BaseStats = new Dictionary<string, double> { ["Attack"] = 105 },
                 StatGrowth = new Dictionary<string, double> { ["Attack"] = 13 },
-                LevelUpCosts = [Band()]
-            }
+}
         ]
     };
 
     public static GameCatalog Catalog() => new(Create());
 
     public static HeroProgression Progression() => new(Create().HeroSettings);
-
-    private static HeroLevelCostBand Band() => new()
-    {
-        FromLevel = 1,
-        Cost = [new ResourceCost { Resource = "gold", Amount = LevelUpGold }]
-    };
 }

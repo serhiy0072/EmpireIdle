@@ -160,6 +160,30 @@
         "Type": "feed"
       },
       {
+        "Key": "hero_xp_small",
+        "DisplayName": "Мала баночка досвіду",
+        "Description": "Додає 500 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "common",
+        "Type": "heroxp",
+        "HeroExperience": 500
+      },
+      {
+        "Key": "hero_xp_medium",
+        "DisplayName": "Баночка досвіду",
+        "Description": "Додає 5 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "rare",
+        "Type": "heroxp",
+        "HeroExperience": 5000
+      },
+      {
+        "Key": "hero_xp_large",
+        "DisplayName": "Велика баночка досвіду",
+        "Description": "Додає 50 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "unique",
+        "Type": "heroxp",
+        "HeroExperience": 50000
+      },
+      {
         "Key": "sword_iron",
         "Type": "equipment",
         "Rarity": "common",

@@ -131,10 +131,8 @@
                 BuildingKey = TestKeys.Hall,
                 HealBuildingKey = TestKeys.Hospital,
 
-                LevelsPerTier = 10,
                 MaxMarches = 8,
                 MaxConstellation = 6,
-                BaseLevelUpMinutes = 4,
                 DefaultMarchSpeed = 6,
                 HealCostPerLevel = [new ResourceCost { Resource = TestKeys.Food, Amount = 40 }],
                 TierGrowth = 1.5,
@@ -411,14 +409,6 @@
                 // Швидкість — окреме поле: у BaseStats вона множилась би тіром і йшла в Power
                 Speed = 4,
                 StatGrowth = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 4 },
-                LevelUpCosts =
-                [
-                    new HeroLevelCostBand
-                    {
-                        FromLevel = 1,
-                        Cost = [new ResourceCost { Resource = TestKeys.Gold, Amount = 100 }]
-                    }
-                ],
                 Passives = [.. passives ?? []]
             };
 

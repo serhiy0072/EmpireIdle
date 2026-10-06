@@ -115,13 +115,6 @@ namespace EmpireIdle.Application.Market.Services
                 {
                     var hero = await OwnHeroAsync(playerId, goods.HeroId, cancellationToken);
 
-                    // Лот продається за силу на момент виставлення: прокачка, що
-                    // завершиться вже на ринку, продала б покупцю не того героя
-                    var order = await _heroes.GetActiveOrderAsync(playerId, cancellationToken);
-
-                    if (order is not null && order.HeroId == hero.Id)
-                        throw new RequirementNotMetException(RefusalReasons.MarketHeroTraining, $"Hero {hero.Id} is training.");
-
                     hero.PutOnMarket(utcNow);
                     break;
                 }

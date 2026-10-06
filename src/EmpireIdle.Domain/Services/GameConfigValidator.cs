@@ -847,8 +847,17 @@ namespace EmpireIdle.Domain.Services
 
             var settings = config.HeroSettings;
 
-            if (settings.LevelsPerTier < 1)
-                throw new InvalidOperationException("HeroSettings.LevelsPerTier must be at least 1.");
+            // Крива досвіду героя (GDD §6.1): без росту пізні рівні коштували б як перші
+            if (settings.MaxLevel < 1)
+                throw new InvalidOperationException("HeroSettings.MaxLevel must be at least 1.");
+
+            if (settings.ExperienceBase <= 0 || settings.ExperienceExponent <= 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.ExperienceBase and ExperienceExponent must be positive — levels would cost nothing.");
+
+            if (settings.ResetPenalty is < 0 or >= 1)
+                throw new InvalidOperationException(
+                    "HeroSettings.ResetPenalty must be in [0, 1) — a reset would mint experience or burn all of it.");
 
             if (settings.MaxMarches < 1)
                 throw new InvalidOperationException(
@@ -958,30 +967,6 @@ namespace EmpireIdle.Domain.Services
 
             foreach (var hero in config.Heroes)
             {
-                // Смуги вартості прокачки. Набір ресурсів міняється з рівнем, тож діра
-                // між смугами вилізла б лише тоді, коли до неї дійшов би гравець.
-                if (hero.LevelUpCosts.Count == 0)
-                    throw new InvalidOperationException(
-                        $"Hero '{hero.Key}' has no LevelUpCosts — it could never be levelled.");
-
-                if (hero.LevelUpCosts.All(b => b.FromLevel > 1))
-                    throw new InvalidOperationException(
-                        $"Hero '{hero.Key}' has no cost band starting at level 1.");
-
-                RequireUniqueKeys(
-                    hero.LevelUpCosts.Select(b => b.FromLevel.ToString()),
-                    $"Hero '{hero.Key}' LevelUpCosts.FromLevel");
-
-                var brokenLines = hero.LevelUpCosts
-                    .SelectMany(b => b.Cost.Select(c => (b.FromLevel, c.Resource, c.Amount)))
-                    .Where(x => !resourceKeys.Contains(x.Resource) || x.Amount < 1)
-                    .Select(x => $"from {x.FromLevel}: '{x.Resource}' × {x.Amount}")
-                    .ToList();
-
-                if (brokenLines.Count > 0)
-                    throw new InvalidOperationException(
-                        $"Hero '{hero.Key}' has invalid LevelUpCosts entries: {string.Join(", ", brokenLines)}.");
-
                 if (hero.Speed is <= 0)
                     throw new InvalidOperationException($"Hero '{hero.Key}' has non-positive Speed — its marches would never arrive.");
 
