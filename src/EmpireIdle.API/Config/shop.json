@@ -132,57 +132,57 @@
           "Drops": [
             {
               "Key": "hero_mage_iselle",
-              "DisplayName": "Ізелла Дев'ятого Полум'я",
+              "DisplayName": "Ізелла Дев'ятого Полум'я · осколки ×10",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "mage_iselle",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_knight_ordwin",
-              "DisplayName": "Ордвін Непохитний",
+              "DisplayName": "Ордвін Непохитний · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 4,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "knight_ordwin",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_archer_finn",
-              "DisplayName": "Фінн Далекоокий",
+              "DisplayName": "Фінн Далекоокий · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 4,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "archer_finn",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_mage_calder",
-              "DisplayName": "Кальдер Громовий",
+              "DisplayName": "Кальдер Громовий · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 4,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "mage_calder",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
@@ -366,85 +366,85 @@
           "Drops": [
             {
               "Key": "hero_mage_iselle",
-              "DisplayName": "Ізелла Дев'ятого Полум'я",
+              "DisplayName": "Ізелла Дев'ятого Полум'я · осколки ×10",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 1,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "mage_iselle",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_warrior_gunnar",
-              "DisplayName": "Гуннар Скеля",
+              "DisplayName": "Гуннар Скеля · осколки ×10",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 1,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "warrior_gunnar",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_knight_elowen",
-              "DisplayName": "Еловен Світанкова",
+              "DisplayName": "Еловен Світанкова · осколки ×10",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 1,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "knight_elowen",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_archer_kestrel",
-              "DisplayName": "Кестрель Соколиця",
+              "DisplayName": "Кестрель Соколиця · осколки ×10",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 1,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "archer_kestrel",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_mage_vael",
-              "DisplayName": "Ваель Безмовний",
+              "DisplayName": "Ваель Безмовний · осколки ×10",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 1,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "mage_vael",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_mage_sabine",
-              "DisplayName": "Сабіна Морозна",
+              "DisplayName": "Сабіна Морозна · осколки ×10",
               "Rarity": "Unique",
               "Kind": "Hero",
               "Weight": 1,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "mage_sabine",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
@@ -464,155 +464,155 @@
             },
             {
               "Key": "hero_knight_ordwin",
-              "DisplayName": "Ордвін Непохитний",
+              "DisplayName": "Ордвін Непохитний · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "knight_ordwin",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_warrior_hedda",
-              "DisplayName": "Гедда Щитоносиця",
+              "DisplayName": "Гедда Щитоносиця · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "warrior_hedda",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_warrior_torvald",
-              "DisplayName": "Торвальд Незламний",
+              "DisplayName": "Торвальд Незламний · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "warrior_torvald",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_warrior_maren",
-              "DisplayName": "Марен Сокирниця",
+              "DisplayName": "Марен Сокирниця · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "warrior_maren",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_knight_aldric",
-              "DisplayName": "Альдрік Списоносець",
+              "DisplayName": "Альдрік Списоносець · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "knight_aldric",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_knight_serah",
-              "DisplayName": "Сера Вартова",
+              "DisplayName": "Сера Вартова · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "knight_serah",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_archer_finn",
-              "DisplayName": "Фінн Далекоокий",
+              "DisplayName": "Фінн Далекоокий · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "archer_finn",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_archer_ysolde",
-              "DisplayName": "Ізольда Тихоструна",
+              "DisplayName": "Ізольда Тихоструна · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "archer_ysolde",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_archer_rook",
-              "DisplayName": "Рук Строкатий",
+              "DisplayName": "Рук Строкатий · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "archer_rook",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_mage_calder",
-              "DisplayName": "Кальдер Громовий",
+              "DisplayName": "Кальдер Громовий · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "mage_calder",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },
             {
               "Key": "hero_mage_nerys",
-              "DisplayName": "Неріс Дзеркальна",
+              "DisplayName": "Неріс Дзеркальна · осколки ×10",
               "Rarity": "Rare",
               "Kind": "Hero",
               "Weight": 2,
               "Rewards": [
                 {
-                  "Type": "Hero",
+                  "Type": "HeroShards",
                   "Key": "mage_nerys",
-                  "Amount": 1
+                  "Amount": 10
                 }
               ]
             },

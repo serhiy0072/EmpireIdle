@@ -71,6 +71,35 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Contains("tier_banner", error.Message);
         }
 
+        /// <summary>Банер видає осколки героя (GDD §6.1): лот з осколками — повноцінний «героїчний» лот.</summary>
+        [Fact]
+        public void Validate_ShouldAccept_HeroShardsAsABannerHeroDrop()
+        {
+            var config = Config();
+            ToShards(config);
+
+            GameConfigValidator.Validate(config);
+        }
+
+        /// <summary>Осколки героя T2 з банера світу 1 відкрили б героя раніше за його тір.</summary>
+        [Fact]
+        public void Validate_ShouldReject_ShardsOfAHeroAboveTheBannersWorldLevel()
+        {
+            var config = Config(heroTier: 2, bannerLevel: 1);
+            ToShards(config);
+
+            Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+        }
+
+        private static void ToShards(GameConfig config)
+        {
+            foreach (var reward in config.Shop.Banners.SelectMany(b => b.Drops).SelectMany(d => d.Rewards).Where(r => r.Type == "Hero"))
+            {
+                reward.Type = "HeroShards";
+                reward.Amount = 10;
+            }
+        }
+
         // ---------- Вікно продажу ----------
 
         /// <summary>Вікно довше за рівень світу пережило б свій тір — модель вікна його ніколи б не закрила.</summary>

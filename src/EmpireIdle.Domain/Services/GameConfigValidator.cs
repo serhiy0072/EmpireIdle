@@ -62,7 +62,7 @@ namespace EmpireIdle.Domain.Services
             var early = config.Shop.Banners
                 .SelectMany(b => b.Drops
                     .SelectMany(d => d.Rewards)
-                    .Where(r => r.Type == "Hero" && r.Key is not null && heroes.TryGetValue(r.Key, out var hero)
+                    .Where(r => r.Type is "Hero" or "HeroShards" && r.Key is not null && heroes.TryGetValue(r.Key, out var hero)
                                 && hero.NativeTier > b.RequiresServerLevel)
                     .Select(r => $"{b.Key} → {r.Key} (tier {heroes[r.Key!].NativeTier}, banner opens at {b.RequiresServerLevel})"))
                 .ToList();
@@ -1156,7 +1156,7 @@ namespace EmpireIdle.Domain.Services
             {
                 null => true,
                 "resource" => reward.Key is null || !resourceKeys.Contains(reward.Key),
-                "hero" => reward.Key is null || !heroKeys.Contains(reward.Key),
+                "hero" or "heroshards" => reward.Key is null || !heroKeys.Contains(reward.Key),
                 "item" => reward.Key is null || items.GetValueOrDefault(reward.Key) is not { Slot: null },
                 "equipment" => reward.Key is null || items.GetValueOrDefault(reward.Key) is not { Slot: not null },
                 _ => false
@@ -1258,8 +1258,10 @@ namespace EmpireIdle.Domain.Services
                             $"Banner '{banner.Key}' drop '{drop.Key}' is a {drop.Rarity} filler — "
                             + "only the banner's own category carries rare and unique drops.");
 
+                    // Банер видає осколки героя (GDD §6.1) — 10 осколків це герой; цілий герой теж годиться
                     if (drop.Kind == BannerKind.Hero
-                        && !drop.Rewards.Any(r => string.Equals(r.Type, "Hero", StringComparison.OrdinalIgnoreCase)))
+                        && !drop.Rewards.Any(r => string.Equals(r.Type, "Hero", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(r.Type, "HeroShards", StringComparison.OrdinalIgnoreCase)))
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a hero drop but grants no hero.");
 
@@ -1279,17 +1281,6 @@ namespace EmpireIdle.Domain.Services
                             throw new InvalidOperationException(
                                 $"Banner '{banner.Key}' drop '{drop.Key}' is {drop.Rarity}, but item '{reward.Key}' is {equipment.Rarity} in Items.");
                     }
-
-                    // Звичайні герої купуються за золото в залі (§6.1).
-                    // У пулі за gems вони перетворили б банер на лотерею із золотим дном
-                    var commonHero = drop.Rewards
-                        .Where(r => string.Equals(r.Type, "Hero", StringComparison.OrdinalIgnoreCase) && r.Key is not null)
-                        .FirstOrDefault(r => heroes[r.Key!].Rank == Rarity.Common);
-
-                    if (commonHero is not null)
-                        throw new InvalidOperationException(
-                            $"Banner '{banner.Key}' drop '{drop.Key}' grants the common hero '{commonHero.Key}' — "
-                            + "banners carry rare and unique heroes only.");
                 }
             }
         }
