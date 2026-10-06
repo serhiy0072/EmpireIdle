@@ -29,13 +29,35 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<HeroesOverview>> GetOverview(Guid playerId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new GetHeroesOverviewQuery(playerId), cancellationToken));
 
-        /// <summary>Купити уламки звичайного героя за золото.</summary>
-        [HttpPost("{playerId:guid}/shards/buy")]
+        /// <summary>Перетворити універсальні осколки на осколки відкритого героя 1:1.</summary>
+        [HttpPost("{playerId:guid}/shards/convert")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> BuyShards(Guid playerId, [FromBody] BuyHeroShardsRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> ConvertShards(Guid playerId, [FromBody] ConvertUniversalShardsRequest request,
+            CancellationToken cancellationToken)
         {
-            await _mediator.Send(new BuyHeroShardsCommand(playerId, request.HeroKey, request.Count), cancellationToken);
+            await _mediator.Send(new ConvertUniversalShardsCommand(playerId, request.HeroKey, request.Count), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Обміняти універсальні осколки на рідкість вищу (коли всі герої рідкості прокачані).</summary>
+        [HttpPost("{playerId:guid}/shards/upgrade")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpgradeShards(Guid playerId, [FromBody] UpgradeUniversalShardsRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new UpgradeUniversalShardsCommand(playerId, request.From, request.Count), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Заповнити наступну частинку зірки героя за його осколки.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/star")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AdvanceStar(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new AdvanceHeroStarCommand(playerId, heroId), cancellationToken);
             return NoContent();
         }
 

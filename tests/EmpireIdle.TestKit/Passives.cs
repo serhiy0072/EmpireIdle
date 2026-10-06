@@ -7,25 +7,25 @@ namespace EmpireIdle.TestKit;
 public static class Passives
 {
     public static HeroPassiveConfig Defence(double percent, string target = TestKeys.Infantry,
-        int unlockConstellation = 0, double perConstellation = 0) => new()
+        int unlockStars = 0, double perStar = 0) => new()
         {
-            Key = $"defence_{target}_{unlockConstellation}",
+            Key = $"defence_{target}_{unlockStars}",
             Target = target,
             Stat = "Defense",
-            UnlockConstellation = unlockConstellation,
+            UnlockStars = unlockStars,
             BasePercent = percent,
-            PercentPerConstellation = perConstellation
+            PercentPerStar = perStar
         };
 
     public static HeroPassiveConfig Attack(double percent, string target = TestKeys.Infantry,
-        int unlockConstellation = 0, double perConstellation = 0) => new()
+        int unlockStars = 0, double perStar = 0) => new()
         {
-            Key = $"attack_{target}_{unlockConstellation}",
+            Key = $"attack_{target}_{unlockStars}",
             Target = target,
             Stat = "Attack",
-            UnlockConstellation = unlockConstellation,
+            UnlockStars = unlockStars,
             BasePercent = percent,
-            PercentPerConstellation = perConstellation
+            PercentPerStar = perStar
         };
 
     /// <summary>
@@ -33,14 +33,14 @@ public static class Passives
     /// через HeroCombatModifiers. Складати StackBuff вручну тест не може
     /// й не має, інакше перевірятиме власну арифметику.
     /// </summary>
-    public static StackBuff Buff(int constellation = 0, params HeroPassiveConfig[] passives)
+    public static StackBuff Buff(int stars = 0, params HeroPassiveConfig[] passives)
     {
         var catalog = new GameConfigBuilder()
             .WithUnits()
             .WithHeroes(passives: passives)
             .BuildCatalog();
 
-        var hero = Entities.Hero(TestKeys.CommonHero, constellation: constellation);
+        var hero = Entities.Hero(TestKeys.CommonHero, stars: stars);
 
         return new HeroCombatModifiers(catalog).For(hero);
     }

@@ -922,26 +922,50 @@ namespace EmpireIdle.Domain.Services
 
             // Надлишок понад стелю сузір'я стає печатками призову. Забутий ранг означав би,
             // що дублікат зникає без сліду — саме те, чого ми уникали.
+            // Зірки (GDD §6.1): ціна кожної частинки, інакше заповнення впало б на першій дірці
+            if (settings.SummonShards < 1)
+                throw new InvalidOperationException("HeroSettings.SummonShards must be at least 1 — summoning would be free.");
+
+            if (settings.MaxStars < 1 || settings.PartsPerStar < 1)
+                throw new InvalidOperationException("HeroSettings.MaxStars and PartsPerStar must be at least 1.");
+
+            if (settings.StarPartCosts.Count != settings.MaxStars
+                || settings.StarPartCosts.Any(star => star.Count != settings.PartsPerStar || star.Any(cost => cost < 1)))
+                throw new InvalidOperationException(
+                    $"HeroSettings.StarPartCosts needs {settings.MaxStars} stars of {settings.PartsPerStar} positive part costs.");
+
+            if (settings.StarPartBonus < 0)
+                throw new InvalidOperationException("HeroSettings.StarPartBonus cannot be negative — a star never weakens a hero.");
+
             var rankNames = Enum.GetNames<Rarity>().ToHashSet();
 
-            var unknownRanks = settings.OverflowSeals.Keys
-                .Where(k => !rankNames.Contains(k))
+            // Обмін на вищу рідкість: з найвищої міняти нікуди
+            var badUpgrades = settings.UniversalShardUpgrade
+                .Where(u => !rankNames.Contains(u.Key) || u.Key == Rarity.Unique.ToString() || u.Value < 1)
+                .Select(u => $"{u.Key} ({u.Value})")
                 .ToList();
 
-            if (unknownRanks.Count > 0)
+            if (badUpgrades.Count > 0)
                 throw new InvalidOperationException(
-                    $"HeroSettings.OverflowSeals has keys that are not ranks: {string.Join(", ", unknownRanks)}.");
+                    $"HeroSettings.UniversalShardUpgrade has invalid entries: {string.Join(", ", badUpgrades)}.");
 
-            var missingRanks = config.Heroes
-                .Select(h => h.Rank.ToString())
+            // Кожна рідкість ростеру — зі своїм універсальним осколком, інакше надлишок прокачаного героя нікуди подіти
+            var universal = config.Items
+                .Where(item => item.Type == "universalshard")
+                .GroupBy(item => item.Rarity)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var badUniversal = config.Heroes
+                .Select(h => h.Rank)
                 .Distinct()
-                .Where(r => !settings.OverflowSeals.ContainsKey(r))
+                .Where(rank => universal.GetValueOrDefault(rank) != 1)
+                .Select(rank => rank.ToString())
                 .ToList();
 
-            if (missingRanks.Count > 0)
+            if (badUniversal.Count > 0)
                 throw new InvalidOperationException(
-                    "HeroSettings.OverflowSeals has no entry for ranks in the roster: "
-                    + $"{string.Join(", ", missingRanks)}.");
+                    "Every hero rarity needs exactly one universal shard item (Type = universalshard): "
+                    + $"{string.Join(", ", badUniversal)}.");
 
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
             var unitKeys = config.Units.Select(u => u.Key).ToHashSet();
@@ -985,29 +1009,17 @@ namespace EmpireIdle.Domain.Services
                             $"Hero '{hero.Key}' passive '{passive.Key}' affects unknown stat '{passive.Stat}' — "
                             + "combat knows Attack and Defense.");
 
-                    if (passive.UnlockConstellation < 0 || passive.UnlockConstellation > settings.MaxConstellation)
+                    if (passive.UnlockStars < 0 || passive.UnlockStars > settings.MaxStars)
                         throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' unlocks at constellation "
-                            + $"{passive.UnlockConstellation}, outside 0..{settings.MaxConstellation}.");
+                            $"Hero '{hero.Key}' passive '{passive.Key}' unlocks at star "
+                            + $"{passive.UnlockStars}, outside 0..{settings.MaxStars}.");
 
-                    if (passive.BasePercent < 0 || passive.PercentPerConstellation < 0)
+                    if (passive.BasePercent < 0 || passive.PercentPerStar < 0)
                         throw new InvalidOperationException(
                             $"Hero '{hero.Key}' passive '{passive.Key}' has negative percentages — "
                             + "a passive never weakens its own army.");
                 }
             }
-
-            // Звичайні герої купуються уламками за золото — це основний щоденний
-            // стік золота. Решта приходить із банерів цілими, ціни не має.
-            var brokenShards = config.Heroes
-                .Where(h => h.Rank == Rarity.Common && (h.SummonShards < 1 || h.ShardPriceGold < 1))
-                .Select(h => h.Key)
-                .ToList();
-
-            if (brokenShards.Count > 0)
-                throw new InvalidOperationException(
-                    "Common heroes need SummonShards and ShardPriceGold above zero: "
-                    + $"{string.Join(", ", brokenShards)}.");
         }
 
         /// <summary>Спорядження: слоти, класи зброї, набори, ціни.</summary>

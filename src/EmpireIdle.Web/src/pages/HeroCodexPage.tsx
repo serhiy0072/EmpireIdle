@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import HeroPortrait from "../components/heroes/HeroPortrait";
 import { useSession } from "../hooks/useSession";
-import { rankLabel, rankStyle, useCatalog, type CatalogHero } from "../lib/queries/catalog";
+import { rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
 
 const RANK_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
@@ -25,9 +25,9 @@ const TARGET_LABELS: Record<string, string> = {
   siege: "облогові",
 };
 
-/** Звідки береться герой: звичайні — за уламки, решта — з банерів. */
-function source(hero: CatalogHero): string {
-  return hero.summonShards > 0 ? `уламки · ${hero.summonShards} шт. по ${hero.shardPriceGold} золота` : "банери";
+/** Звідки береться герой (GDD §6.1): усі — з осколків, що падають із банерів і скриньок. */
+function source(summonShards: number): string {
+  return `осколки · ${summonShards} для призову`;
 }
 
 /**
@@ -155,7 +155,7 @@ export default function HeroCodexPage() {
                   <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">швидкість {selected.speed}</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">
-                  {owned.has(selected.key) ? "У вашій залі героїв" : `Ще не зібрано · ${source(selected)}`}
+                  {owned.has(selected.key) ? "У вашій залі героїв" : `Ще не зібрано · ${source(catalog.summonShards)}`}
                 </p>
               </div>
             </div>
@@ -195,8 +195,8 @@ export default function HeroCodexPage() {
                     </span>
                     <span className="whitespace-nowrap text-xs text-slate-500">
                       +{passive.basePercent}%
-                      {passive.percentPerConstellation > 0 && ` (+${passive.percentPerConstellation}% за сузір'я)`}
-                      {passive.unlockConstellation > 0 && ` · з сузір'я ${passive.unlockConstellation}`}
+                      {passive.percentPerStar > 0 && ` (+${passive.percentPerStar}% за зірку)`}
+                      {passive.unlockStars > 0 && ` · з ${passive.unlockStars} зірки`}
                     </span>
                   </li>
                 ))}

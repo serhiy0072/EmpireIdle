@@ -41,18 +41,33 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Найвищий тір — скільки переходів описано, плюс перший.</summary>
         public int MaxTier => EvolutionItemKeys.Count + 1;
 
-        /// <summary>Стеля сузір'я — скільки дублікатів герой поглинає.</summary>
-        public int MaxConstellation { get; set; } = 6;
+        /// <summary>Скільки осколків коштує призов будь-якого героя (GDD §6.1): 10 осколків — це герой.</summary>
+        public int SummonShards { get; set; } = 10;
+
+        /// <summary>Скільки зірок має герой.</summary>
+        public int MaxStars { get; set; } = 6;
+
+        /// <summary>Скільки частинок у зірці.</summary>
+        public int PartsPerStar { get; set; } = 6;
 
         /// <summary>
-        /// Скільки джемів дає дублікат понад стелю сузір'я: ключ — назва рангу.
-        /// Рахується як чверть вартості ролла, тобто чотири надлишкових
-        /// дублікати повертають один ролл.
-        ///
-        /// Це єдине місце, де джеми з'являються не з покупки й не з квесту,
-        /// тому числа тут чіпати обережно.
+        /// Ціна кожної частинки в осколках: зовнішній список — зірки, внутрішній — частинки.
+        /// Перша зірка дешева (10 разом), частинка шостої — 100. Заглушки до Режисера.
         /// </summary>
-        public Dictionary<string, int> OverflowSeals { get; set; } = new();
+        public List<List<int>> StarPartCosts { get; set; } = new();
+
+        /// <summary>Скільки бойової міці дає кожна частинка зірки: 0.05 — +5% до всіх статів.</summary>
+        public double StarPartBonus { get; set; } = 0.05;
+
+        /// <summary>Скільки частинок має повністю прокачаний герой.</summary>
+        public int MaxStarParts => MaxStars * PartsPerStar;
+
+        /// <summary>
+        /// Обмін універсальних осколків на рідкість вищу (GDD §6.1): ключ — рідкість, з якої міняють,
+        /// значення — скільки треба за один осколок наступної. Відкривається, коли всі герої цієї
+        /// рідкості прокачані до кінця.
+        /// </summary>
+        public Dictionary<string, int> UniversalShardUpgrade { get; set; } = new();
 
         /// <summary>
         /// Жорсткий кап одночасних маршів. Кількість маршів і так дорівнює

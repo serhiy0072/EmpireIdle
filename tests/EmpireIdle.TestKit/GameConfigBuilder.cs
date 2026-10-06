@@ -125,6 +125,7 @@
             EnsureResources();
             EnsureBuildings(TestKeys.Hall, TestKeys.Hospital);
             EnsureItems(TestKeys.EssenceT2, TestKeys.EssenceT3);
+            _config.Items.AddRange(UniversalShards.All().Where(u => _config.Items.All(i => i.Key != u.Key)));
 
             _config.HeroSettings = new HeroesConfig
             {
@@ -132,12 +133,11 @@
                 HealBuildingKey = TestKeys.Hospital,
 
                 MaxMarches = 8,
-                MaxConstellation = 6,
+                StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]],
                 DefaultMarchSpeed = 6,
                 HealCostPerLevel = [new ResourceCost { Resource = TestKeys.Food, Amount = 40 }],
                 TierGrowth = 1.5,
                 EvolutionItemKeys = [TestKeys.EssenceT2, TestKeys.EssenceT3],
-                OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 Classes = ["warrior", "knight", "archer", "mage"]
             };
 
@@ -397,8 +397,6 @@
                 Key = key,
                 Class = heroClass,
                 Rank = rank,
-                SummonShards = 10,
-                ShardPriceGold = 100,
                 DisplayName = $"Hero {key}",
                 Description = $"Test hero {key}",
                 BaseStats = new Dictionary<string, double>

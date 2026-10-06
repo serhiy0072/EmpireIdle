@@ -31,6 +31,10 @@ namespace EmpireIdle.Application.Heroes.Queries
         {
             var heroes = await _heroRepository.GetByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
+            var shards = await _heroRepository.GetAllShardsAsync(request.PlayerId, cancellationToken);
+            var shardCounts = shards.ToDictionary(s => s.HeroKey, s => s.Count);
+            var owned = heroes.Select(h => h.HeroKey).ToHashSet();
+
             var summaries = heroes
                 .Select(h => new HeroSummary(
                     h.Id,
@@ -39,20 +43,19 @@ namespace EmpireIdle.Application.Heroes.Queries
                     h.Level,
                     _progression.MaxLevel,
                     h.Level < _progression.MaxLevel ? _progression.ExperienceToNext(h.Level) : 0,
-                    h.Constellation,
+                    h.StarParts,
+                    _progression.NextStarPartCost(h.StarParts),
+                    shardCounts.GetValueOrDefault(h.HeroKey),
                     // Ім'я enum як є: клієнт розгалужується за "Idle", а не за "idle"
                     h.State.ToString(),
                     h.StationedGarrisonId,
                     h.IsLeader))
                 .ToList();
 
-            var shards = await _heroRepository.GetAllShardsAsync(request.PlayerId, cancellationToken);
-
-            // Уламки показуються лише для тих, кого взагалі можна призвати:
-            // решта приходить із банерів цілими
+            // Осколки ще не призваних героїв — до призову; осколки відкритих ідуть у зірки й стоять у картці героя
             var shardSummaries = shards
-                .Where(s => _catalog.FindHero(s.HeroKey)?.SummonShards > 0)
-                .Select(s => new HeroShardSummary(s.HeroKey, s.Count, _catalog.Hero(s.HeroKey).SummonShards))
+                .Where(s => !owned.Contains(s.HeroKey) && _catalog.FindHero(s.HeroKey) is not null)
+                .Select(s => new HeroShardSummary(s.HeroKey, s.Count, _catalog.Config.HeroSettings.SummonShards))
                 .ToList();
 
             // Пул лише читаємо: без трекінгу тут нема чого зберігати, а свіжість — та сама

@@ -39,7 +39,11 @@ export interface Catalog {
   unitsFor: (buildingType: string, buildingLevel: number) => CatalogUnit[];
   /** Ключі будівель, що тренують хоч один тип юнітів. */
   trainingBuildingKeys: string[];
-  maxConstellation: number;
+  /** Зірки героя (GDD §6.1): скільки їх і скільки частинок у кожній. */
+  maxStars: number;
+  partsPerStar: number;
+  /** Скільки осколків коштує призов будь-якого героя. */
+  summonShards: number;
   maxTier: number;
   /** Кап рівня юніта від тренування чи прокачки (§5.2 GDD). */
   maxUnitLevel: number;
@@ -125,7 +129,9 @@ export function useCatalog(): Catalog {
       trainingBuildingKeys: [
         ...new Set((data?.units ?? []).flatMap((unit) => (unit.requiresBuilding == null ? [] : [unit.requiresBuilding]))),
       ],
-      maxConstellation: data?.maxConstellation ?? 6,
+      maxStars: data?.maxStars ?? 6,
+      partsPerStar: data?.partsPerStar ?? 6,
+      summonShards: data?.summonShards ?? 10,
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
@@ -190,8 +196,8 @@ export function heroState(state: string): string {
 }
 
 /** Поточна сила пасивки: база плюс приріст за кожне сузір'я понад те, що її відкрило. */
-export function passivePercent(passive: CatalogPassive, constellation: number): number | null {
-  if (constellation < passive.unlockConstellation) return null;
+export function passivePercent(passive: CatalogPassive, stars: number): number | null {
+  if (stars < passive.unlockStars) return null;
 
-  return passive.basePercent + passive.percentPerConstellation * (constellation - passive.unlockConstellation);
+  return passive.basePercent + passive.percentPerStar * (stars - passive.unlockStars);
 }

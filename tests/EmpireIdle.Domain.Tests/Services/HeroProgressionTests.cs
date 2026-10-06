@@ -32,7 +32,7 @@ namespace EmpireIdle.Domain.Tests.Services
             TierGrowth = 1.10,
             EvolutionPenalty = 0.95,
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-            MaxConstellation = 6,
+            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]],
             MaxMarches = 8,
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
 };
@@ -135,7 +135,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var progression = Create(tierGrowth: 2.0);
 
             // (40 + 4 × 4) × 2.0
-            Assert.Equal(112.0, progression.StatValue(Hero(), "Attack", level: 5, tier: 2, nativeTier: 2), 6);
+            Assert.Equal(112.0, progression.StatValue(Hero(), "Attack", level: 5, tier: 2, nativeTier: 2, starParts: 0), 6);
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var progression = Create(tierGrowth: 2.0);
 
-            Assert.Equal(40.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1), 6);
+            Assert.Equal(40.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 0), 6);
         }
 
         /// <summary>
@@ -155,7 +155,33 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var progression = Create();
 
-            Assert.Equal(0.0, progression.StatValue(Hero(), "Mana", level: 5, tier: 1, nativeTier: 1));
+            Assert.Equal(0.0, progression.StatValue(Hero(), "Mana", level: 5, tier: 1, nativeTier: 1, starParts: 0));
+        }
+
+        /// <summary>Кожна частинка зірки — +5% до всіх статів (GDD §6.1); множиться з тіром.</summary>
+        [Fact]
+        public void StatValue_ShouldGrowWithEveryStarPart()
+        {
+            var progression = Create(tierGrowth: 2.0);
+
+            // 40 × 1.0 (тір 1) × (1 + 0.05 × 6)
+            Assert.Equal(52.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 6), 6);
+        }
+
+        [Fact]
+        public void NextStarPartCost_ShouldWalkTheStarsAndStopAtTheEnd()
+        {
+            var progression = Progression(new HeroesConfig
+            {
+                MaxStars = 2, PartsPerStar = 2, StarPartCosts = [[1, 3], [10, 100]]
+            });
+
+            Assert.Equal(1, progression.NextStarPartCost(0));
+            Assert.Equal(3, progression.NextStarPartCost(1));
+            Assert.Equal(10, progression.NextStarPartCost(2));
+            Assert.Equal(100, progression.NextStarPartCost(3));
+            Assert.Null(progression.NextStarPartCost(4));
+            Assert.Equal(1, progression.Stars(3));
         }
 
         // ---------- Еволюція ----------

@@ -54,16 +54,15 @@ public class RecalculatePowerCommandTests
             Classes = ["warrior"],
             TierGrowth = 1.1,
             EvolutionItemKeys = [],
-            OverflowSeals = new Dictionary<string, int> { ["Common"] = 0 }
+            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]]
         },
+        Items = [.. TestKit.UniversalShards.All()],
         Heroes =
         [
             new HeroConfig
             {
                 Key = HeroKey,
                 Class = "warrior",
-                SummonShards = 10,
-                ShardPriceGold = 100,
                 BaseStats = new Dictionary<string, double> { ["Attack"] = 100, ["Defense"] = 40 },
 }
         ]

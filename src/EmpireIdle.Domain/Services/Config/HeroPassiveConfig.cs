@@ -15,10 +15,10 @@ namespace EmpireIdle.Domain.Services.Config
         public string DisplayName { get; set; } = null!;
 
         /// <summary>
-        /// Із якого сузір'я вміння працює. Нуль означає «з першого дня»:
+        /// Зі скількох повних зірок вміння працює. Нуль означає «з першого дня»:
         /// у героя завжди є хоча б одна пасивка, інакше він порожній.
         /// </summary>
-        public int UnlockConstellation { get; set; }
+        public int UnlockStars { get; set; }
 
         /// <summary>
         /// Ключ типу юніта або "all" на все військо. Клас героя на це
@@ -32,7 +32,7 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Бонус у відсотках на момент відкриття.</summary>
         public double BasePercent { get; set; }
 
-        /// <summary>Приріст за кожне сузір'я понад те, що відкрило вміння.</summary>
-        public double PercentPerConstellation { get; set; }
+        /// <summary>Приріст за кожну повну зірку понад ту, що відкрила вміння.</summary>
+        public double PercentPerStar { get; set; }
     }
 }

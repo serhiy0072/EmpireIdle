@@ -237,6 +237,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             config.Items =
             [
+                .. TestKit.UniversalShards.All(),
                 new ItemConfig { Key = "hero_essence_t2" },
                 new ItemConfig { Key = "hero_essence_t3" }
             ];
@@ -245,8 +246,8 @@ namespace EmpireIdle.Domain.Tests.Services
             {
                 MaxMarches = 8,
                 TierGrowth = 1.10,
+                StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]],
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-                OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 BuildingKey = "heroeshall",
                 HealBuildingKey = "hospital",
                 HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
@@ -258,7 +259,6 @@ namespace EmpireIdle.Domain.Tests.Services
                 new HeroConfig
                     {
                         Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
-                        SummonShards = 10, ShardPriceGold = 1200,
 },
                     new HeroConfig
                     {
@@ -299,8 +299,8 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectDuplicateHeroKeys()
             => RejectsHero(c => c.Heroes =
             [
-                new HeroConfig { Key = "warrior_bran", Class = "warrior", SummonShards = 1, ShardPriceGold = 1 },
-                new HeroConfig { Key = "warrior_bran", Class = "warrior", SummonShards = 1, ShardPriceGold = 1 }
+                new HeroConfig { Key = "warrior_bran", Class = "warrior" },
+                new HeroConfig { Key = "warrior_bran", Class = "warrior" }
             ]);
 
         /// <summary>
@@ -338,17 +338,25 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectUnknownEvolutionItem()
             => RejectsHero(c => c.HeroSettings.EvolutionItemKeys = ["hero_essence_t2", "missing_essence"]);
 
-        /// <summary>
-        /// Звичайні герої — основний щоденний стік золота. Без ціни уламка
-        /// вони роздавались би безкоштовно.
-        /// </summary>
+        /// <summary>Зірка з неповним списком цін упала б на першій же частинці без ціни (GDD §6.1).</summary>
         [Fact]
-        public void Validate_ShouldRejectCommonHeroWithoutShardPrice()
-            => RejectsHero(c => c.Heroes[0].ShardPriceGold = 0);
+        public void Validate_ShouldRejectAStarWithoutEveryPartCost()
+            => RejectsHero(c => c.HeroSettings.StarPartCosts[5] = [100, 100]);
 
+        /// <summary>Безкоштовна частинка — зірки задарма.</summary>
         [Fact]
-        public void Validate_ShouldRejectCommonHeroWithoutShardCount()
-            => RejectsHero(c => c.Heroes[0].SummonShards = 0);
+        public void Validate_ShouldRejectAFreeStarPart()
+            => RejectsHero(c => c.HeroSettings.StarPartCosts[0][0] = 0);
+
+        /// <summary>Без універсального осколка рідкості надлишок прокачаного героя нікуди подіти.</summary>
+        [Fact]
+        public void Validate_ShouldRejectARosterRarityWithoutAUniversalShard()
+            => RejectsHero(c => c.Items.RemoveAll(i => i.Key == TestKit.UniversalShards.Unique));
+
+        /// <summary>З найвищої рідкості міняти нікуди.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAnUpgradeFromTheTopRarity()
+            => RejectsHero(c => c.HeroSettings.UniversalShardUpgrade["Unique"] = 500);
 
         /// <summary>Нуль маршів лишив би гравця з героями без доступу до карти.</summary>
         [Fact]
@@ -359,14 +367,6 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Validate_ShouldRejectUnknownHeroBuilding()
             => RejectsHero(c => c.HeroSettings.BuildingKey = "ghosthall");
-
-        /// <summary>
-        /// Забутий ранг означав би, що дублікат понад стелю сузір'я
-        /// зникає без сліду — саме те, чого ми уникали.
-        /// </summary>
-        [Fact]
-        public void Validate_ShouldRejectMissingOverflowSealsForRank()
-            => RejectsHero(c => c.HeroSettings.OverflowSeals.Remove("Unique"));
 
         /// <summary>Крива без росту — пізні рівні коштували б як перші (GDD §6.1).</summary>
         [Fact]
@@ -504,7 +504,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldAcceptAShopItem_ThatSellsAnExistingConsumable()
         {
             var config = ValidConfig();
-            config.Items = [new ItemConfig { Key = "hero_essence_t2", DisplayName = "Essence", Description = "", Type = "evolution" }];
+            config.Items = [.. TestKit.UniversalShards.All(), new ItemConfig { Key = "hero_essence_t2", DisplayName = "Essence", Description = "", Type = "evolution" }];
             config.Shop.Items = [new ShopItemConfig { ItemKey = "hero_essence_t2", PriceGems = 300 }];
 
             var exception = Record.Exception(() => GameConfigValidator.Validate(config));

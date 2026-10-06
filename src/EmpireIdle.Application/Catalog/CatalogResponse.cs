@@ -27,7 +27,10 @@
         IReadOnlyList<CatalogBeast> Beasts,
         IReadOnlyList<CatalogArtifactSet> ArtifactSets,
         IReadOnlyList<string> HeroClasses,
-        int MaxConstellation,
+        int MaxStars,
+        int PartsPerStar,
+        double StarPartBonus,
+        int SummonShards,
         int MaxTier,
         int MaxUnitLevel,
         int HealGemsPerUnit,
@@ -63,8 +66,6 @@
         string? Description,
         string? Lore,
         double Speed,
-        int SummonShards,
-        int ShardPriceGold,
         IReadOnlyDictionary<string, double> BaseStats,
         IReadOnlyDictionary<string, double> StatGrowth,
         IReadOnlyList<CatalogPassive> Passives);
@@ -72,11 +73,11 @@
     public record CatalogPassive(
         string Key,
         string DisplayName,
-        int UnlockConstellation,
+        int UnlockStars,
         string Target,
         string Stat,
         double BasePercent,
-        double PercentPerConstellation);
+        double PercentPerStar);
 
     /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
     /// <param name="ArtifactSlot">Тип слота артефакта (ключ з ArtifactSlots); null — не артефакт.</param>

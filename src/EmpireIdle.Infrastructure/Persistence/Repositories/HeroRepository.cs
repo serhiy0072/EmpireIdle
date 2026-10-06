@@ -106,9 +106,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
-        public Task<HeroShardProgress?> GetShardsAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
-            => _context.HeroShards
-            .FirstOrDefaultAsync(s => s.PlayerId == playerId && s.HeroKey == heroKey, cancellationToken);
+        public async Task<HeroShardProgress?> GetShardsAsync(Guid playerId, string heroKey, CancellationToken cancellationToken = default)
+            // Спершу трекер: десять прокрутів банера можуть видати осколки одного героя двічі за транзакцію
+            => _context.HeroShards.Local.FirstOrDefault(s => s.PlayerId == playerId && s.HeroKey == heroKey)
+               ?? await _context.HeroShards.FirstOrDefaultAsync(s => s.PlayerId == playerId && s.HeroKey == heroKey, cancellationToken);
 
         /// <inheritdoc/>
         public async Task AddShardsAsync(HeroShardProgress progress, CancellationToken cancellationToken = default)

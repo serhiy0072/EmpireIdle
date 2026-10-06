@@ -9,9 +9,8 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
-    /// Призов героя за накопичені уламки. Окремо від купівлі навмисно:
-    /// гравець сам вирішує, коли витратити набране, і може тримати уламки
-    /// про запас.
+    /// Призов героя за накопичені осколки — 10 осколків це герой (GDD §6.1). Окремо від здобуття
+    /// навмисно: гравець сам вирішує, коли витратити набране.
     /// </summary>
     public record SummonHeroCommand(Guid PlayerId, string HeroKey)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
@@ -19,6 +18,8 @@ namespace EmpireIdle.Application.Heroes.Commands
     internal sealed class SummonHeroCommandHandler : IRequestHandler<SummonHeroCommand>
     {
         private readonly IHeroRepository _heroRepository;
+        private readonly IServerRepository _serverRepository;
+        private readonly IServerContext _serverContext;
         private readonly HeroGranter _heroGranter;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
@@ -27,6 +28,8 @@ namespace EmpireIdle.Application.Heroes.Commands
 
         public SummonHeroCommandHandler(
             IHeroRepository heroRepository,
+            IServerRepository serverRepository,
+            IServerContext serverContext,
             HeroGranter heroGranter,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
@@ -34,6 +37,8 @@ namespace EmpireIdle.Application.Heroes.Commands
             GameCatalog catalog)
         {
             _heroRepository = heroRepository;
+            _serverRepository = serverRepository;
+            _serverContext = serverContext;
             _heroGranter = heroGranter;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
@@ -48,20 +53,21 @@ namespace EmpireIdle.Application.Heroes.Commands
             var config = _catalog.FindHero(request.HeroKey)
                 ?? throw new EntityNotFoundException("Hero", request.HeroKey);
 
-            // Герой без порогу уламків приходить лише з банерів. Без цієї
-            // перевірки TryConsume(0) давав би безкоштовний призов, щойно
-            // рядок уламків з'явиться з будь-якого нового джерела
-            if (config.SummonShards < 1)
-                throw new RequirementNotMetException($"Hero '{request.HeroKey}' cannot be summoned from shards.");
+            var cost = _catalog.Config.HeroSettings.SummonShards;
+
+            // Герой тіру N приходить лише зі світу N (GDD §6.1), хоч би звідки взялись осколки
+            if (await _serverRepository.GetLevelAsync(_serverContext.ServerId, cancellationToken) < config.NativeTier)
+                throw new RequirementNotMetException(RefusalReasons.HeroTierLocked,
+                    $"Hero '{request.HeroKey}' of tier {config.NativeTier} opens at world level {config.NativeTier}.", config.NativeTier);
 
             var progress = await _heroRepository.GetShardsAsync(request.PlayerId, request.HeroKey, cancellationToken)
                 ?? throw new RequirementNotMetException(RefusalReasons.HeroNotEnoughShards,
-                    $"No shards of '{request.HeroKey}' collected yet.", config.DisplayName, config.SummonShards, 0);
+                    $"No shards of '{request.HeroKey}' collected yet.", config.DisplayName, cost, 0);
 
-            if (!progress.TryConsume(config.SummonShards))
+            if (!progress.TryConsume(cost))
                 throw new RequirementNotMetException(RefusalReasons.HeroNotEnoughShards,
-                    $"Summoning '{request.HeroKey}' needs {config.SummonShards} shards, {progress.Count} collected.",
-                    config.DisplayName, config.SummonShards, progress.Count);
+                    $"Summoning '{request.HeroKey}' needs {cost} shards, {progress.Count} collected.",
+                    config.DisplayName, cost, progress.Count);
 
             await _heroGranter.GrantAsync(request.PlayerId, request.HeroKey, "shard-summon", now, cancellationToken);
 
@@ -69,7 +75,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             _logger.LogInformation(
                 "Player {PlayerId} summoned {HeroKey} for {Cost} shards, {Remaining} left",
-                request.PlayerId, request.HeroKey, config.SummonShards, progress.Count);
+                request.PlayerId, request.HeroKey, cost, progress.Count);
         }
     }
 }

@@ -16,7 +16,9 @@ namespace EmpireIdle.Application.Heroes.Contracts
         int Level,
         int MaxLevel,
         long ExperienceToNext,
-        int Constellation,
+        int StarParts,
+        int? NextStarPartCost,
+        int Shards,
         string State,
         Guid? StationedGarrisonId,
         bool IsLeader);

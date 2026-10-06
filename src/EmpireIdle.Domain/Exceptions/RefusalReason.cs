@@ -275,6 +275,15 @@
 
         public static readonly RefusalReason HeroMaxTier = new("hero.maxTier", "tier");
 
+        /// <summary>Усі зірки героя вже заповнені (GDD §6.1); parts — скільки частинок усього.</summary>
+        public static readonly RefusalReason HeroMaxStars = new("hero.maxStars", "parts");
+
+        /// <summary>Універсальні осколки йдуть лише в уже відкритого героя (GDD §6.1).</summary>
+        public static readonly RefusalReason HeroNotOwned = new("hero.notOwned", "hero");
+
+        /// <summary>Обмін на вищу рідкість — лише коли всі герої рідкості прокачані до кінця; rarity — з якої міняють.</summary>
+        public static readonly RefusalReason ShardUpgradeLocked = new("hero.shardUpgradeLocked", "rarity");
+
         /// <summary>Герой рідного тіру, вищого за рівень світу (GDD §6.1); tier — потрібний рівень світу.</summary>
         public static readonly RefusalReason HeroTierLocked = new("hero.tierLocked", "tier");
 

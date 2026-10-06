@@ -59,19 +59,17 @@ namespace EmpireIdle.Application.Catalog
                     hero.Description,
                     hero.Lore,
                     hero.Speed ?? config.HeroSettings.DefaultMarchSpeed,
-                    hero.SummonShards,
-                    hero.ShardPriceGold,
                     hero.BaseStats,
                     hero.StatGrowth,
                     hero.Passives
                         .Select(passive => new CatalogPassive(
                             passive.Key,
                             passive.DisplayName,
-                            passive.UnlockConstellation,
+                            passive.UnlockStars,
                             passive.Target,
                             passive.Stat,
                             passive.BasePercent,
-                            passive.PercentPerConstellation))
+                            passive.PercentPerStar))
                         .ToList()))
                 .ToList();
 
@@ -133,7 +131,10 @@ namespace EmpireIdle.Application.Catalog
                 beasts,
                 ArtifactSets(config, Name),
                 config.HeroSettings.Classes,
-                config.HeroSettings.MaxConstellation,
+                config.HeroSettings.MaxStars,
+                config.HeroSettings.PartsPerStar,
+                config.HeroSettings.StarPartBonus,
+                config.HeroSettings.SummonShards,
                 config.HeroSettings.MaxTier,
                 config.MaxUnitLevel,
                 config.Monetization.HealGemsPerUnit,

@@ -1,16 +1,14 @@
 using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Services.Config;
-using EmpireIdle.Domain.ValueObjects;
 using NSubstitute;
 
 namespace EmpireIdle.Application.Tests.Heroes;
 
 /// <summary>
-/// Правило «новий герой / сузір'я / надлишок у джеми» живе в одному місці
+/// Правило «новий герой — у ростер, дублікат — осколками» (GDD §6.1) живе в одному місці
 /// саме тому, що його легко розсинхронізувати між джерелами видачі.
 /// </summary>
 public class HeroGranterTests
@@ -20,15 +18,31 @@ public class HeroGranterTests
     private const int ServerId = 1;
 
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
-    private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
-    private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
+    private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
+    private readonly Dictionary<string, HeroShardProgress> _shards = new();
+    private readonly Dictionary<string, PlayerItem> _items = new();
+
+    public HeroGranterTests()
+    {
+        _serverContext.ServerId.Returns(ServerId);
+
+        // Підміни, що поводяться як сховища: додане видно наступним читанням
+        _heroes.GetShardsAsync(PlayerId, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(call => _shards.GetValueOrDefault(call.ArgAt<string>(1)));
+        _heroes.AddShardsAsync(Arg.Any<HeroShardProgress>(), Arg.Any<CancellationToken>())
+            .Returns(call => { var p = call.Arg<HeroShardProgress>(); _shards[p.HeroKey] = p; return Task.CompletedTask; });
+        _inventory.GetItemAsync(PlayerId, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(call => _items.GetValueOrDefault(call.ArgAt<string>(1)));
+        _inventory.AddItemAsync(Arg.Any<PlayerItem>(), Arg.Any<CancellationToken>())
+            .Returns(call => { var i = call.Arg<PlayerItem>(); _items[i.ItemKey] = i; return Task.CompletedTask; });
+    }
 
     private HeroGranter Granter(GameCatalog? catalog = null)
     {
-        _serverContext.ServerId.Returns(ServerId);
+        var resolved = catalog ?? HeroTestConfig.Catalog();
 
         // Видача оселяє героя в гарнізоні, тож село й гарнізон мусять існувати,
         // інакше granter кине ще до перевірки правила видачі
@@ -38,19 +52,15 @@ public class HeroGranterTests
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
-        return new HeroGranter(_heroes, _players, _wallets, _villages, _garrisons, _serverContext,
-            catalog ?? HeroTestConfig.Catalog());
+        return new HeroGranter(_heroes, new HeroShardBank(_heroes, _inventory, _serverContext, resolved),
+            _villages, _garrisons, _serverContext, resolved);
     }
 
-    private PlayerWallet GivenWallet()
+    private Hero GivenOwned(string heroKey, int stars = 0)
     {
-        var player = new Player(Guid.NewGuid(), "tester", "a@b.c", "user-1", Now, ServerId);
-        var wallet = new PlayerWallet(Guid.NewGuid(), "user-1");
-
-        _players.GetByIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(player);
-        _wallets.GetByUserIdAsync(player.UserId, Arg.Any<CancellationToken>()).Returns(wallet);
-
-        return wallet;
+        var owned = TestKit.Entities.Hero(heroKey, PlayerId, stars: stars);
+        _heroes.GetByKeyAsync(PlayerId, heroKey, Arg.Any<CancellationToken>()).Returns(owned);
+        return owned;
     }
 
     [Fact]
@@ -62,56 +72,31 @@ public class HeroGranterTests
             Arg.Is<Hero>(h => h.HeroKey == "warrior_bran"), Arg.Any<CancellationToken>());
     }
 
+    /// <summary>Дублікат — це 10 осколків на зірки (ціна призову), а не другий рядок героя.</summary>
     [Fact]
-    public async Task Grant_ShouldRaiseConstellation_WhenOwnedBelowTheCap()
+    public async Task Grant_ShouldTurnADuplicateIntoShards()
     {
-        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "mage_iselle", Guid.NewGuid(), asLeader: true, Now);
-        _heroes.GetByKeyAsync(PlayerId, "mage_iselle", Arg.Any<CancellationToken>()).Returns(owned);
+        GivenOwned("mage_iselle");
 
         await Granter().GrantAsync(PlayerId, "mage_iselle", "banner", Now);
 
-        Assert.Equal(1, owned.Constellation);
+        Assert.Equal(10, _shards["mage_iselle"].Count);
+        await _heroes.DidNotReceive().AddAsync(Arg.Any<Hero>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>
-    /// На стелі дублікат стає печатками призову за рангом. Тихе поглинання означало б
-    /// зникнення унікального дропу без сліду.
+    /// Прокачаному до кінця героєві осколки нічого не дадуть — вони стають універсальними
+    /// його рідкості, а не зникають без сліду.
     /// </summary>
     [Fact]
-    public async Task Grant_ShouldConvertToSeals_AtTheConstellationCap()
+    public async Task Grant_ShouldTurnADuplicateOfAFullyStarredHeroIntoUniversalShards()
     {
-        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "mage_iselle", Guid.NewGuid(), asLeader: true, Now);
-
-        for (var i = 0; i < 6; i++)
-            owned.TryAddConstellation(6, Now);
-
-        _heroes.GetByKeyAsync(PlayerId, "mage_iselle", Arg.Any<CancellationToken>()).Returns(owned);
-
-        var wallet = GivenWallet();
+        GivenOwned("mage_iselle", stars: 6);
 
         await Granter().GrantAsync(PlayerId, "mage_iselle", "banner", Now);
 
-        Assert.Equal(40, wallet.SealBalance);
-        Assert.Equal(6, owned.Constellation);
-    }
-
-    /// <summary>
-    /// Ставка нуль означає «не конвертувати»: інакше звичайні герої
-    /// відкрили б перегін золота в джеми.
-    /// </summary>
-    [Fact]
-    public async Task Grant_ShouldNotTouchTheWallet_WhenTheRankConvertsToZero()
-    {
-        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
-
-        for (var i = 0; i < 6; i++)
-            owned.TryAddConstellation(6, Now);
-
-        _heroes.GetByKeyAsync(PlayerId, "warrior_bran", Arg.Any<CancellationToken>()).Returns(owned);
-
-        await Granter().GrantAsync(PlayerId, "warrior_bran", "quest", Now);
-
-        await _wallets.DidNotReceive().GetByUserIdAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        Assert.Equal(10, _items[TestKit.UniversalShards.Unique].Count);
+        Assert.False(_shards.ContainsKey("mage_iselle"));
     }
 
     /// <summary>

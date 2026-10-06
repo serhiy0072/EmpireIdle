@@ -1,23 +1,21 @@
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Application.Common.Services
 {
     /// <summary>
-    /// Видає героя незалежно від джерела: квест, віха, призов за уламки,
-    /// згодом банер.
+    /// Видає героя незалежно від джерела: квест, віха, призов за осколки.
     ///
-    /// Правило одне на всіх — новий герой іде в ростер, дублікат у сузір'я,
-    /// надлишок понад стелю в джеми. Тримається в одному місці навмисно:
-    /// продубльоване, воно розійшлося б на першій же зміні балансу.
+    /// Правило одне на всіх (GDD §6.1) — новий герой іде в ростер, а дублікат стає осколками
+    /// (стільки, скільки коштує призов), які банк осколків розкладає далі. Тримається в одному
+    /// місці навмисно: продубльоване, воно розійшлося б на першій же зміні балансу.
     /// </summary>
     public class HeroGranter
     {
         private readonly IHeroRepository _heroRepository;
-        private readonly IPlayerRepository _playerRepository;
-        private readonly IPlayerWalletRepository _walletRepository;
+        private readonly HeroShardBank _shards;
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IServerContext _serverContext;
@@ -25,16 +23,14 @@ namespace EmpireIdle.Application.Common.Services
 
         public HeroGranter(
             IHeroRepository heroRepository,
-            IPlayerRepository playerRepository,
-            IPlayerWalletRepository walletRepository,
+            HeroShardBank shards,
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
             IServerContext serverContext,
             GameCatalog catalog)
         {
             _heroRepository = heroRepository;
-            _playerRepository = playerRepository;
-            _walletRepository = walletRepository;
+            _shards = shards;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _serverContext = serverContext;
@@ -72,24 +68,8 @@ namespace EmpireIdle.Application.Common.Services
                 return;
             }
 
-            var settings = _catalog.Config.HeroSettings;
-
-            if (existing.TryAddConstellation(settings.MaxConstellation, utcNow))
-                return;
-
-            var seals = settings.OverflowSeals.GetValueOrDefault(config.Rank.ToString(), 0);
-
-            if (seals < 1)
-                return;
-
-            // Гаманець належить акаунту, а не гравцю — потрібен перехід через Player
-            var player = await _playerRepository.GetByIdAsync(playerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Player {playerId} not found.");
-
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new InvalidOperationException($"Wallet not found for player {playerId}.");
-
-            wallet.AddSeals(seals, $"hero-overflow:{heroKey}", utcNow);
+            // Дублікат — це осколки на зірки; прокачаному героєві банк віддасть їх універсальними
+            await _shards.AddAsync(playerId, heroKey, _catalog.Config.HeroSettings.SummonShards, cancellationToken);
         }
     }
 }

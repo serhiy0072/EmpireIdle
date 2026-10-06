@@ -165,7 +165,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.evolutionItemRequired": ({ item }) => `Для еволюції потрібен предмет «${item}»`,
   "hero.maxTier": ({ tier }) => `Герой уже на найвищому тірі (${tier})`,
   "hero.tierLocked": ({ tier }) => `Герой ${tier} тіру з'явиться на рівні світу ${tier}`,
-  "hero.notEnoughShards": ({ hero, need, have }) => `Для призову «${hero}» потрібно ${need} уламків, зібрано ${have}`,
+  "hero.notEnoughShards": ({ hero, need, have }) => `«${hero}»: потрібно ${need} осколків, зібрано ${have}`,
+  "hero.maxStars": () => "Усі зірки героя вже заповнені",
+  "hero.notOwned": ({ hero }) => `Універсальні осколки йдуть лише у відкритого героя, а «${hero}» ще не призваний`,
+  "hero.shardUpgradeLocked": () => "Обмін відкриється, коли всі герої цієї рідкості матимуть усі зірки",
 
   // ---------- Спорядження ----------
   "equipment.maxEnhancement": ({ max }) => `Уже максимальне посилення +${max}`,

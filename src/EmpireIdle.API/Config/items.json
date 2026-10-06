@@ -160,6 +160,27 @@
         "Type": "feed"
       },
       {
+        "Key": "universal_shard_common",
+        "DisplayName": "Універсальний осколок (звичайний)",
+        "Description": "Перетворюється на осколок будь-якого вже відкритого героя цієї рідкості — для прокачки зірок",
+        "Rarity": "common",
+        "Type": "universalshard"
+      },
+      {
+        "Key": "universal_shard_rare",
+        "DisplayName": "Універсальний осколок (рідкісний)",
+        "Description": "Перетворюється на осколок будь-якого вже відкритого героя цієї рідкості — для прокачки зірок",
+        "Rarity": "rare",
+        "Type": "universalshard"
+      },
+      {
+        "Key": "universal_shard_unique",
+        "DisplayName": "Універсальний осколок (унікальний)",
+        "Description": "Перетворюється на осколок будь-якого вже відкритого героя цієї рідкості — для прокачки зірок",
+        "Rarity": "unique",
+        "Type": "universalshard"
+      },
+      {
         "Key": "hero_xp_small",
         "DisplayName": "Мала баночка досвіду",
         "Description": "Додає 500 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",

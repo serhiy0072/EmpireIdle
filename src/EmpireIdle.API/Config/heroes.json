@@ -11,11 +11,63 @@
         "hero_essence_t2",
         "hero_essence_t3"
       ],
-      "MaxConstellation": 6,
-      "OverflowSeals": {
-        "Common": 0,
-        "Rare": 15,
-        "Unique": 60
+      "SummonShards": 10,
+      "MaxStars": 6,
+      "PartsPerStar": 6,
+      "StarPartCosts": [
+        [
+          1,
+          1,
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        [
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ]
+      ],
+      "StarPartBonus": 0.05,
+      "UniversalShardUpgrade": {
+        "Common": 100,
+        "Rare": 300
       },
       "MaxMarches": 8,
       "HealCostPerLevel": [
@@ -44,8 +96,6 @@
         "Rank": "common",
         "Description": "Тримає стрій. Зменшує безповоротні втрати піхоти в обороні.",
         "Lore": "Бран був ковалем у прикордонному селі, доки повз нього не пройшло військо, яке не спинилось. Із того дня він носить щит, скутий із дверей власної кузні, і не відступив жодного разу. Каже, що не з упертості, а тому що вже пробував відступати.",
-        "SummonShards": 10,
-        "ShardPriceGold": 1200,
         "Speed": 4,
         "BaseStats": {
           "Attack": 40,
@@ -61,20 +111,20 @@
           {
             "Key": "shieldwall",
             "DisplayName": "Стіна щитів",
-            "UnlockConstellation": 0,
             "Target": "infantry",
             "Stat": "Defense",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "hold_the_line",
             "DisplayName": "Тримати стрій",
-            "UnlockConstellation": 3,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 4,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 3,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -116,8 +166,6 @@
         "Rank": "common",
         "Description": "Б'є першою. Підвищує шанс криту стрільців у наступальному марші.",
         "Lore": "Ліра виросла на сторожовій вежі, де єдиною розвагою було рахувати кроки чужинців на обрії. Вона навчилась влучати в те, чого ще не видно іншим. Стріляє мовчки й ніколи не дивиться, чи влучила.",
-        "SummonShards": 10,
-        "ShardPriceGold": 1200,
         "Speed": 6,
         "BaseStats": {
           "Attack": 65,
@@ -133,20 +181,20 @@
           {
             "Key": "volley",
             "DisplayName": "Залп",
-            "UnlockConstellation": 0,
             "Target": "archer",
             "Stat": "Attack",
             "BasePercent": 7,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "steady_aim",
             "DisplayName": "Тверда рука",
-            "UnlockConstellation": 4,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 3,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 4,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -184,8 +232,6 @@
         "Rank": "rare",
         "Description": "Пробиває броню. Підсилює важку кінноту й зменшує захист оборонця.",
         "Lore": "Ордвін присягав трьом володарям, і всі троє програли. Четвертому він служити відмовився, забрав коня та спис і пішов на схід. Тепер його спис коштує дорожче за титул, який йому колись обіцяли.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 8,
         "BaseStats": {
           "Attack": 70,
@@ -201,29 +247,29 @@
           {
             "Key": "lance_charge",
             "DisplayName": "Удар списом",
-            "UnlockConstellation": 0,
             "Target": "cavalry",
             "Stat": "Attack",
             "BasePercent": 9,
-            "PercentPerConstellation": 2.5
+            "UnlockStars": 0,
+            "PercentPerStar": 2.5
           },
           {
             "Key": "barded_horses",
             "DisplayName": "Кінська броня",
-            "UnlockConstellation": 2,
             "Target": "cavalry",
             "Stat": "Defense",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 2,
+            "PercentPerStar": 2
           },
           {
             "Key": "vanguard",
             "DisplayName": "Авангард",
-            "UnlockConstellation": 5,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 5,
-            "PercentPerConstellation": 2
+            "UnlockStars": 5,
+            "PercentPerStar": 2
           }
         ],
         "Abilities": [
@@ -258,8 +304,6 @@
         "Rank": "unique",
         "Description": "Множить шкоду по масі. Найсильніша проти щільного строю.",
         "Lore": "Із дев'яти вогнів академії Ізель лишили доглядати найменший — той, що гасне від протягу. Вона роздула його так, що згоріла й академія, і вісім інших вогнів. Її не судили: не лишилось нікого, хто б міг.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 105,
@@ -275,38 +319,38 @@
           {
             "Key": "flame_wave",
             "DisplayName": "Вогняна хвиля",
-            "UnlockConstellation": 0,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 8,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "scorched_ranks",
             "DisplayName": "Випалені лави",
-            "UnlockConstellation": 2,
             "Target": "siege",
             "Stat": "Attack",
             "BasePercent": 10,
-            "PercentPerConstellation": 2
+            "UnlockStars": 2,
+            "PercentPerStar": 2
           },
           {
             "Key": "ward",
             "DisplayName": "Оберіг",
-            "UnlockConstellation": 4,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 5,
-            "PercentPerConstellation": 2
+            "UnlockStars": 4,
+            "PercentPerStar": 2
           },
           {
             "Key": "ninth_flame",
             "DisplayName": "Дев'яте полум'я",
-            "UnlockConstellation": 6,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 8,
-            "PercentPerConstellation": 0
+            "UnlockStars": 6,
+            "PercentPerStar": 0
           }
         ],
         "Abilities": [
@@ -344,8 +388,6 @@
         "Rank": "rare",
         "Description": "Тримає стрій там, де інші відступають.",
         "Lore": "Виросла в прикордонній заставі; перший щит отримала раніше за перший хліб.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 55,
@@ -361,20 +403,20 @@
           {
             "Key": "iron_stance",
             "DisplayName": "Залізна стійка",
-            "UnlockConstellation": 0,
             "Target": "infantry",
             "Stat": "Defense",
             "BasePercent": 7,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "rally",
             "DisplayName": "Клич",
-            "UnlockConstellation": 3,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 4,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 3,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -416,8 +458,6 @@
         "Rank": "rare",
         "Description": "Ветеран сотні облог, живий усім на диво.",
         "Lore": "Кажуть, він не програв жодної оборони — бо ніколи не здавав стін.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 55,
@@ -433,20 +473,20 @@
           {
             "Key": "bulwark",
             "DisplayName": "Бастіон",
-            "UnlockConstellation": 0,
             "Target": "infantry",
             "Stat": "Defense",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "last_stand",
             "DisplayName": "Останній рубіж",
-            "UnlockConstellation": 4,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 4,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 4,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -488,8 +528,6 @@
         "Rank": "rare",
         "Description": "Б'є першою й не питає імен.",
         "Lore": "Її сокира старша за неї — спадок від матері, теж сокирниці.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 55,
@@ -505,20 +543,20 @@
           {
             "Key": "cleave",
             "DisplayName": "Розріз",
-            "UnlockConstellation": 0,
             "Target": "infantry",
             "Stat": "Attack",
             "BasePercent": 7,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "frenzy",
             "DisplayName": "Шал",
-            "UnlockConstellation": 3,
             "Target": "infantry",
             "Stat": "Attack",
             "BasePercent": 5,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 3,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -560,8 +598,6 @@
         "Rank": "rare",
         "Description": "Веде кінноту клином, що не знає зупинки.",
         "Lore": "Лицар без замку: усе, що має, — кінь, спис і слово.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 8,
         "BaseStats": {
           "Attack": 70,
@@ -577,20 +613,20 @@
           {
             "Key": "wedge",
             "DisplayName": "Клин",
-            "UnlockConstellation": 0,
             "Target": "cavalry",
             "Stat": "Attack",
             "BasePercent": 8,
-            "PercentPerConstellation": 2.5
+            "UnlockStars": 0,
+            "PercentPerStar": 2.5
           },
           {
             "Key": "barding",
             "DisplayName": "Броня коней",
-            "UnlockConstellation": 3,
             "Target": "cavalry",
             "Stat": "Defense",
             "BasePercent": 5,
-            "PercentPerConstellation": 2
+            "UnlockStars": 3,
+            "PercentPerStar": 2
           }
         ],
         "Abilities": [
@@ -625,8 +661,6 @@
         "Rank": "rare",
         "Description": "Береже фланги так, ніби вони — її дім.",
         "Lore": "Служила в кінній варті трьох володарів і жодного не зрадила.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 8,
         "BaseStats": {
           "Attack": 70,
@@ -642,20 +676,20 @@
           {
             "Key": "flank_guard",
             "DisplayName": "Варта флангу",
-            "UnlockConstellation": 0,
             "Target": "cavalry",
             "Stat": "Defense",
             "BasePercent": 7,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "escort",
             "DisplayName": "Ескорт",
-            "UnlockConstellation": 4,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 3,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 4,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -690,8 +724,6 @@
         "Rank": "rare",
         "Description": "Стріляє туди, куди інші ще не дивляться.",
         "Lore": "Мисливець із північних лісів; уперше побачив місто в двадцять.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 6,
         "BaseStats": {
           "Attack": 95,
@@ -707,20 +739,20 @@
           {
             "Key": "long_shot",
             "DisplayName": "Далекий постріл",
-            "UnlockConstellation": 0,
             "Target": "archer",
             "Stat": "Attack",
             "BasePercent": 8,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "marksman",
             "DisplayName": "Влучність",
-            "UnlockConstellation": 3,
             "Target": "archer",
             "Stat": "Attack",
             "BasePercent": 4,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 3,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -758,8 +790,6 @@
         "Rank": "rare",
         "Description": "Її тятиви не чути, а стріли — не бачать.",
         "Lore": "Учениця лісових розвідників; говорить мало, влучає завжди.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 6,
         "BaseStats": {
           "Attack": 95,
@@ -775,20 +805,20 @@
           {
             "Key": "silent_volley",
             "DisplayName": "Тихий залп",
-            "UnlockConstellation": 0,
             "Target": "archer",
             "Stat": "Attack",
             "BasePercent": 7,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "cover_fire",
             "DisplayName": "Прикриття",
-            "UnlockConstellation": 4,
             "Target": "infantry",
             "Stat": "Defense",
             "BasePercent": 4,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 4,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -826,8 +856,6 @@
         "Rank": "rare",
         "Description": "Найманець із луком і сумлінням за окрему плату.",
         "Lore": "Змінив п'ять прапорів, але жодного разу — сторону в бою.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 6,
         "BaseStats": {
           "Attack": 95,
@@ -843,20 +871,20 @@
           {
             "Key": "barrage",
             "DisplayName": "Обстріл",
-            "UnlockConstellation": 0,
             "Target": "archer",
             "Stat": "Attack",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "harass",
             "DisplayName": "Виснаження",
-            "UnlockConstellation": 3,
             "Target": "cavalry",
             "Stat": "Attack",
             "BasePercent": 4,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 3,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -894,8 +922,6 @@
         "Rank": "rare",
         "Description": "Викликає грозу там, де стоїть ворог.",
         "Lore": "Вигнаний з академії за надто гучні досліди — і надто вдалі.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 100,
@@ -911,20 +937,20 @@
           {
             "Key": "thunder",
             "DisplayName": "Грім",
-            "UnlockConstellation": 0,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "storm_siege",
             "DisplayName": "Буря над стінами",
-            "UnlockConstellation": 3,
             "Target": "siege",
             "Stat": "Attack",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 3,
+            "PercentPerStar": 2
           }
         ],
         "Abilities": [
@@ -959,8 +985,6 @@
         "Rank": "rare",
         "Description": "Відбиває удари ще до того, як вони завдані.",
         "Lore": "Її щити — з світла й розрахунку; жодного разу не тріснули.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 100,
@@ -976,20 +1000,20 @@
           {
             "Key": "mirror_ward",
             "DisplayName": "Дзеркальний оберіг",
-            "UnlockConstellation": 0,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "refraction",
             "DisplayName": "Заломлення",
-            "UnlockConstellation": 4,
             "Target": "siege",
             "Stat": "Defense",
             "BasePercent": 5,
-            "PercentPerConstellation": 1.5
+            "UnlockStars": 4,
+            "PercentPerStar": 1.5
           }
         ],
         "Abilities": [
@@ -1024,8 +1048,6 @@
         "Rank": "unique",
         "Description": "Стіна, що йде в наступ.",
         "Lore": "Кажуть, у нього немає серця — лише камінь, що б'ється повільно і вічно.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 72,
@@ -1041,38 +1063,38 @@
           {
             "Key": "stone_skin",
             "DisplayName": "Кам'яна шкіра",
-            "UnlockConstellation": 0,
             "Target": "infantry",
             "Stat": "Defense",
             "BasePercent": 9,
-            "PercentPerConstellation": 2.5
+            "UnlockStars": 0,
+            "PercentPerStar": 2.5
           },
           {
             "Key": "avalanche",
             "DisplayName": "Лавина",
-            "UnlockConstellation": 2,
             "Target": "infantry",
             "Stat": "Attack",
             "BasePercent": 7,
-            "PercentPerConstellation": 2
+            "UnlockStars": 2,
+            "PercentPerStar": 2
           },
           {
             "Key": "unbroken",
             "DisplayName": "Незламність",
-            "UnlockConstellation": 4,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 5,
-            "PercentPerConstellation": 2
+            "UnlockStars": 4,
+            "PercentPerStar": 2
           },
           {
             "Key": "mountain_heart",
             "DisplayName": "Серце гори",
-            "UnlockConstellation": 6,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 6,
-            "PercentPerConstellation": 0
+            "UnlockStars": 6,
+            "PercentPerStar": 0
           }
         ],
         "Abilities": [
@@ -1114,8 +1136,6 @@
         "Rank": "unique",
         "Description": "Перший промінь і перший удар — завжди її.",
         "Lore": "Народжена на світанку битви, яка вирішила долю трьох королівств.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 8,
         "BaseStats": {
           "Attack": 91,
@@ -1131,38 +1151,38 @@
           {
             "Key": "dawn_charge",
             "DisplayName": "Світанковий наступ",
-            "UnlockConstellation": 0,
             "Target": "cavalry",
             "Stat": "Attack",
             "BasePercent": 10,
-            "PercentPerConstellation": 2.5
+            "UnlockStars": 0,
+            "PercentPerStar": 2.5
           },
           {
             "Key": "radiance",
             "DisplayName": "Сяйво",
-            "UnlockConstellation": 2,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 5,
-            "PercentPerConstellation": 2
+            "UnlockStars": 2,
+            "PercentPerStar": 2
           },
           {
             "Key": "aegis",
             "DisplayName": "Егіда",
-            "UnlockConstellation": 4,
             "Target": "cavalry",
             "Stat": "Defense",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 4,
+            "PercentPerStar": 2
           },
           {
             "Key": "first_light",
             "DisplayName": "Перше світло",
-            "UnlockConstellation": 6,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 8,
-            "PercentPerConstellation": 0
+            "UnlockStars": 6,
+            "PercentPerStar": 0
           }
         ],
         "Abilities": [
@@ -1200,8 +1220,6 @@
         "Rank": "unique",
         "Description": "Жодна ціль не надто далека, жодна — не надто швидка.",
         "Lore": "Її сокіл бачить далі, ніж вона стріляє, — і це єдине, що її дратує.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 6,
         "BaseStats": {
           "Attack": 124,
@@ -1217,38 +1235,38 @@
           {
             "Key": "hawk_eye",
             "DisplayName": "Соколине око",
-            "UnlockConstellation": 0,
             "Target": "archer",
             "Stat": "Attack",
             "BasePercent": 10,
-            "PercentPerConstellation": 2.5
+            "UnlockStars": 0,
+            "PercentPerStar": 2.5
           },
           {
             "Key": "piercing",
             "DisplayName": "Пробиття",
-            "UnlockConstellation": 2,
             "Target": "cavalry",
             "Stat": "Attack",
             "BasePercent": 6,
-            "PercentPerConstellation": 2
+            "UnlockStars": 2,
+            "PercentPerStar": 2
           },
           {
             "Key": "high_ground",
             "DisplayName": "Висота",
-            "UnlockConstellation": 4,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 5,
-            "PercentPerConstellation": 2
+            "UnlockStars": 4,
+            "PercentPerStar": 2
           },
           {
             "Key": "stoop",
             "DisplayName": "Пике",
-            "UnlockConstellation": 6,
             "Target": "archer",
             "Stat": "Attack",
             "BasePercent": 8,
-            "PercentPerConstellation": 0
+            "UnlockStars": 6,
+            "PercentPerStar": 0
           }
         ],
         "Abilities": [
@@ -1283,8 +1301,6 @@
         "Rank": "unique",
         "Description": "Мовчить, поки вороги ще дихають.",
         "Lore": "Обітниця мовчання — ціна сили, яку він узяв з мертвої академії.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 130,
@@ -1300,38 +1316,38 @@
           {
             "Key": "hush",
             "DisplayName": "Тиша",
-            "UnlockConstellation": 0,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 8,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "shatter",
             "DisplayName": "Розлом",
-            "UnlockConstellation": 2,
             "Target": "siege",
             "Stat": "Attack",
             "BasePercent": 10,
-            "PercentPerConstellation": 2
+            "UnlockStars": 2,
+            "PercentPerStar": 2
           },
           {
             "Key": "null_ward",
             "DisplayName": "Порожній оберіг",
-            "UnlockConstellation": 4,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 5,
-            "PercentPerConstellation": 2
+            "UnlockStars": 4,
+            "PercentPerStar": 2
           },
           {
             "Key": "silence",
             "DisplayName": "Безмов'я",
-            "UnlockConstellation": 6,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 8,
-            "PercentPerConstellation": 0
+            "UnlockStars": 6,
+            "PercentPerStar": 0
           }
         ],
         "Abilities": [
@@ -1369,8 +1385,6 @@
         "Rank": "unique",
         "Description": "Зупиняє армії, не проливаючи крові.",
         "Lore": "Її зима приходить у липні й іде, коли їй заманеться.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 130,
@@ -1386,38 +1400,38 @@
           {
             "Key": "frost",
             "DisplayName": "Мороз",
-            "UnlockConstellation": 0,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 7,
-            "PercentPerConstellation": 2
+            "UnlockStars": 0,
+            "PercentPerStar": 2
           },
           {
             "Key": "glacier",
             "DisplayName": "Льодовик",
-            "UnlockConstellation": 2,
             "Target": "infantry",
             "Stat": "Defense",
             "BasePercent": 8,
-            "PercentPerConstellation": 2
+            "UnlockStars": 2,
+            "PercentPerStar": 2
           },
           {
             "Key": "cold_snap",
             "DisplayName": "Хапавка",
-            "UnlockConstellation": 4,
             "Target": "all",
             "Stat": "Attack",
             "BasePercent": 5,
-            "PercentPerConstellation": 2
+            "UnlockStars": 4,
+            "PercentPerStar": 2
           },
           {
             "Key": "deep_winter",
             "DisplayName": "Глибока зима",
-            "UnlockConstellation": 6,
             "Target": "all",
             "Stat": "Defense",
             "BasePercent": 8,
-            "PercentPerConstellation": 0
+            "UnlockStars": 6,
+            "PercentPerStar": 0
           }
         ],
         "Abilities": [

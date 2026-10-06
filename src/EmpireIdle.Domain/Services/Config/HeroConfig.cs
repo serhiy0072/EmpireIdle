@@ -53,14 +53,7 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Приріст стата за рівень, у тих самих ключах, що й BaseStats.</summary>
         public Dictionary<string, double> StatGrowth { get; set; } = new();
 
-        /// <summary>
-        /// Скільки уламків потрібно на призов. Має сенс лише для звичайних:
-        /// решта приходить із банерів цілими.
-        /// </summary>
-        public int SummonShards { get; set; }
 
-        /// <summary>Ціна одного уламка в золоті. Основний щоденний стік золота.</summary>
-        public int ShardPriceGold { get; set; }
 
         /// <summary>
         /// Пасивні вміння. Саме вони, а не стати героя, впливають на бій:

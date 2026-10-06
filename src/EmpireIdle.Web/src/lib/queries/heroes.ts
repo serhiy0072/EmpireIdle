@@ -64,14 +64,29 @@ export function useSummonHero(playerId: string) {
   });
 }
 
-export function useBuyShards(playerId: string) {
+/** Заповнити наступну частинку зірки за осколки героя (GDD §6.1). */
+export function useAdvanceHeroStar(playerId: string) {
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/star`, ["heroes", "power"]);
+}
+
+/** Універсальні осколки — в осколки відкритого героя 1:1. */
+export function useConvertUniversalShards(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // Ідемпотентність: повтор після обриву мережі не має списати золото двічі
     mutationFn: (input: { heroKey: string; count: number }) =>
-      api<void>(`/api/heroes/${playerId}/shards/buy`, { method: "POST", body: input, idempotent: true }),
-    // Уламки коштують золота зі складу села
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "village"]),
+      api<void>(`/api/heroes/${playerId}/shards/convert`, { method: "POST", body: input, idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "inventory"]),
+  });
+}
+
+/** Обмін універсальних на рідкість вищу: 100 звичайних → 1 рідкісний, 300 рідкісних → 1 унікальний. */
+export function useUpgradeUniversalShards(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { from: "Common" | "Rare"; count: number }) =>
+      api<void>(`/api/heroes/${playerId}/shards/upgrade`, { method: "POST", body: input, idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory"]),
   });
 }

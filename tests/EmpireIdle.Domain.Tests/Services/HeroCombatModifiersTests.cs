@@ -14,14 +14,14 @@ namespace EmpireIdle.Domain.Tests.Services
         private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 
         private static readonly HeroPassiveConfig Shieldwall =
-            TestKit.Passives.Defence(percent: 6, target: "infantry", perConstellation: 2);
+            TestKit.Passives.Defence(percent: 6, target: "infantry", perStar: 2);
 
         private static readonly HeroPassiveConfig HoldTheLine =
             TestKit.Passives.Defence(percent: 4, target: HeroCombatModifiers.AllUnits,
-                unlockConstellation: 3, perConstellation: 1.5);
+                unlockStars: 3, perStar: 1.5);
 
-        private static StackBuff Buff(int constellation = 0)
-            => TestKit.Passives.Buff(constellation, Shieldwall, HoldTheLine);
+        private static StackBuff Buff(int stars = 0)
+            => TestKit.Passives.Buff(stars, Shieldwall, HoldTheLine);
 
         [Fact]
         public void For_ShouldApplyAnUnlockedPassive()
@@ -35,7 +35,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldIgnoreALockedPassive()
         {
-            var buff = Buff(constellation: 2);
+            var buff = Buff(stars: 2);
 
             // shieldwall: 6 + 2×2 = 10; hold_the_line ще закрита
             Assert.Equal(1.10, buff.Defense("infantry"), 3);
@@ -49,7 +49,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldSumTheAllTargetWithTheSpecificOne()
         {
-            var buff = Buff(constellation: 3);
+            var buff = Buff(stars: 3);
 
             Assert.Equal(1.16, buff.Defense("infantry"), 3);
             Assert.Equal(1.04, buff.Defense("archer"), 3);
@@ -57,7 +57,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
         [Fact]
         public void For_ShouldNotTouchTheOtherStat()
-            => Assert.Equal(1.0, Buff(constellation: 3).Attack("infantry"), 3);
+            => Assert.Equal(1.0, Buff(stars: 3).Attack("infantry"), 3);
 
         /// <summary>Невідомий тип юніта не валить формулу.</summary>
         [Fact]
@@ -72,7 +72,7 @@ namespace EmpireIdle.Domain.Tests.Services
                 .WithUnits()
                 .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
                 .Build();
-            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, constellation: 3);
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, stars: 3);
             hero.Wound(Now);
 
             var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
@@ -108,7 +108,7 @@ namespace EmpireIdle.Domain.Tests.Services
                 .WithUnits()
                 .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
                 .Build();
-            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, constellation: 3);
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, stars: 3);
             hero.Deploy(Now);
 
             var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
@@ -123,7 +123,7 @@ namespace EmpireIdle.Domain.Tests.Services
                 .WithUnits()
                 .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
                 .Build();
-            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, constellation: 3);
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, stars: 3);
             hero.Deploy(Now);
             hero.Wound(Now);
 

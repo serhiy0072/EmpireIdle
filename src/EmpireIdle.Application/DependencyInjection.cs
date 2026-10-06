@@ -4,6 +4,7 @@ using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
@@ -59,6 +60,7 @@ namespace EmpireIdle.Application
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
             services.AddScoped<HeroGranter>();
+            services.AddScoped<HeroShardBank>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<ClanSuccession>();
             services.AddScoped<ClanDisbander>();
@@ -93,6 +95,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IRewardGranter, HeroRewardGranter>();
             services.AddScoped<IRewardGranter, EquipmentRewardGranter>();
             services.AddScoped<IRewardGranter, HeroExperienceRewardGranter>();
+            services.AddScoped<IRewardGranter, HeroShardsRewardGranter>();
             services.AddScoped<RewardDispatcher>();
             services.AddScoped<DungeonTeamFactory>();
             services.AddScoped<DungeonRewarder>();

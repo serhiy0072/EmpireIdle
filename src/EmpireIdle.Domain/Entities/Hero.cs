@@ -41,10 +41,10 @@ namespace EmpireIdle.Domain.Entities
         public int Level { get; private set; }
 
         /// <summary>
-        /// Сузір'я 0–6, набирається дублікатами. Дає пасивні перки
-        /// стратегічного бою й рівні активних умінь для міні-гри.
+        /// Заповнені частинки зірок (GDD §6.1): 6 зірок × 6 частинок, кожна — за осколки цього героя.
+        /// Кожна частинка додає бойової міці, повні зірки відкривають пасивки.
         /// </summary>
-        public int Constellation { get; private set; }
+        public int StarParts { get; private set; }
 
         public HeroState State { get; private set; }
 
@@ -95,7 +95,7 @@ namespace EmpireIdle.Domain.Entities
             Tier = nativeTier;
             NativeTier = nativeTier;
             Level = 1;
-            Constellation = 0;
+            StarParts = 0;
             State = HeroState.Idle;
             StationedGarrisonId = garrisonId;
             IsLeader = asLeader;
@@ -279,19 +279,17 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Зараховує дублікат у сузір'я. Понад стелю дублікат не втрачається
-        /// мовчки: повертає false, і викликач конвертує його за правилами гача.
+        /// Заповнює одну частинку зірки. Осколки списує викликач: їхній лічильник — окремий агрегат.
         /// </summary>
-        public bool TryAddConstellation(int maxConstellation, DateTime utcNow)
+        public void FillStarPart(int maxStarParts, DateTime utcNow)
         {
-            if (Constellation >= maxConstellation)
-                return false;
+            if (StarParts >= maxStarParts)
+                throw new RequirementNotMetException(RefusalReasons.HeroMaxStars,
+                    $"Hero {Id} already has every star.", maxStarParts);
 
-            Constellation++;
+            StarParts++;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
-
-            return true;
         }
 
         /// <summary>

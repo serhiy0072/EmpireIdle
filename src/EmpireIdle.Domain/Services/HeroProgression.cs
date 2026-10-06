@@ -21,6 +21,27 @@ namespace EmpireIdle.Domain.Services
             _config = config;
         }
 
+        /// <summary>
+        /// Множник бойової міці від зірок (GDD §6.1): кожна частинка — StarPartBonus до всіх статів.
+        /// Множиться з тіром, тож розрив між рідним і піднятим героєм росте разом із зірками.
+        /// </summary>
+        public double StarMultiplier(int starParts) => 1 + _config.StarPartBonus * Math.Max(0, starParts);
+
+        /// <summary>Скільки повних зірок дають заповнені частинки.</summary>
+        public int Stars(int starParts) => _config.PartsPerStar < 1 ? 0 : starParts / _config.PartsPerStar;
+
+        /// <summary>Ціна наступної частинки в осколках; null — усі зірки вже заповнені.</summary>
+        public int? NextStarPartCost(int starParts)
+        {
+            if (starParts >= _config.MaxStarParts)
+                return null;
+
+            var star = starParts / _config.PartsPerStar;
+            var part = starParts % _config.PartsPerStar;
+
+            return _config.StarPartCosts[star][part];
+        }
+
         /// <summary>Стеля рівня героя — одна для всіх (GDD §6.1).</summary>
         public int MaxLevel => _config.MaxLevel;
 
@@ -63,12 +84,12 @@ namespace EmpireIdle.Domain.Services
         /// на множник тіру. Порядок саме такий — множник діє і на приріст,
         /// інакше високий тір знецінювався б з кожним рівнем.
         /// </summary>
-        public double StatValue(HeroConfig hero, string statKey, int level, int tier, int nativeTier)
+        public double StatValue(HeroConfig hero, string statKey, int level, int tier, int nativeTier, int starParts)
         {
             var basis = hero.BaseStats.GetValueOrDefault(statKey, 0.0);
             var growth = hero.StatGrowth.GetValueOrDefault(statKey, 0.0);
 
-            return (basis + growth * (level - 1)) * TierMultiplier(tier, nativeTier);
+            return (basis + growth * (level - 1)) * TierMultiplier(tier, nativeTier) * StarMultiplier(starParts);
         }
 
         /// <summary>

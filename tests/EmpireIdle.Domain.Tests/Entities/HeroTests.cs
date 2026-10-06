@@ -39,7 +39,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
             hero.ClearDomainEvents();
 
-            Assert.True(hero.TryAddConstellation(maxConstellation: 6, Now));
+            hero.FillStarPart(maxStarParts: 36, Now);
             Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
         }
 
@@ -51,7 +51,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(HeroState.Idle, hero.State);
             Assert.Equal(1, hero.Tier);
             Assert.Equal(1, hero.Level);
-            Assert.Equal(0, hero.Constellation);
+            Assert.Equal(0, hero.StarParts);
             Assert.True(hero.IsAvailable);
         }
 
@@ -256,31 +256,30 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(3, hero.Level);
         }
 
-        // ---------- Сузір'я ----------
+        // ---------- Зірки ----------
 
         [Fact]
-        public void TryAddConstellation_ShouldAbsorbDuplicateBelowTheCap()
+        public void FillStarPart_ShouldAddOnePart()
         {
             var hero = CreateHero();
 
-            Assert.True(hero.TryAddConstellation(maxConstellation: 6, Now));
-            Assert.Equal(1, hero.Constellation);
+            hero.FillStarPart(maxStarParts: 36, Now);
+
+            Assert.Equal(1, hero.StarParts);
         }
 
-        /// <summary>
-        /// Понад стелю дублікат не зникає мовчки: false — сигнал викликачу
-        /// конвертувати його за правилами гача.
-        /// </summary>
+        /// <summary>Усі зірки заповнені — відмова; надлишок осколків банк робить універсальними, а не тут.</summary>
         [Fact]
-        public void TryAddConstellation_ShouldRefuseAtTheCap()
+        public void FillStarPart_ShouldRefuseWhenEveryStarIsFull()
         {
             var hero = CreateHero();
 
-            for (var i = 0; i < 6; i++)
-                hero.TryAddConstellation(maxConstellation: 6, Now);
+            for (var i = 0; i < 36; i++)
+                hero.FillStarPart(maxStarParts: 36, Now);
 
-            Assert.False(hero.TryAddConstellation(maxConstellation: 6, Now));
-            Assert.Equal(6, hero.Constellation);
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.FillStarPart(maxStarParts: 36, Now));
+            Assert.Equal(RefusalReasons.HeroMaxStars.Key, refusal.Reason);
+            Assert.Equal(36, hero.StarParts);
         }
 
         // ---------- Токен паралелізму ----------

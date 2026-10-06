@@ -55,6 +55,7 @@ internal static class HeroTestConfig
         ],
         Items =
         [
+            .. TestKit.UniversalShards.All(),
             new ItemConfig { Key = "hero_essence_t2" },
             new ItemConfig { Key = "hero_essence_t3" },
 
@@ -140,11 +141,11 @@ internal static class HeroTestConfig
             BuildingKey = Hall,
             HealBuildingKey = "hospital",
             MaxMarches = 8,
-            MaxConstellation = 6,
+            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]],
+            UniversalShardUpgrade = new Dictionary<string, int> { ["Common"] = 100, ["Rare"] = 300 },
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
             TierGrowth = 1.35,
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-            OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
             Classes = ["warrior", "mage"]
         },
         Heroes =
@@ -154,8 +155,6 @@ internal static class HeroTestConfig
                 Key = CommonHero,
                 Class = "warrior",
                 Rank = Rarity.Common,
-                SummonShards = SummonShards,
-                ShardPriceGold = ShardPriceGold,
                 BaseStats = new Dictionary<string, double> { ["Attack"] = 40 },
                 StatGrowth = new Dictionary<string, double> { ["Attack"] = 4 },
 },

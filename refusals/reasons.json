@@ -144,6 +144,9 @@
     "hero",
     "ceiling"
   ],
+  "hero.maxStars": [
+    "parts"
+  ],
   "hero.maxTier": [
     "tier"
   ],
@@ -152,8 +155,14 @@
     "need",
     "have"
   ],
+  "hero.notOwned": [
+    "hero"
+  ],
   "hero.onMarket": [],
   "hero.onTheMove": [],
+  "hero.shardUpgradeLocked": [
+    "rarity"
+  ],
   "hero.tierLocked": [
     "tier"
   ],

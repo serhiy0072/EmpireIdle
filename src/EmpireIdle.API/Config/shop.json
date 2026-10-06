@@ -97,6 +97,21 @@
           "MaxPerPurchase": 5
         },
         {
+          "ItemKey": "universal_shard_common",
+          "PriceGems": 5,
+          "MaxPerPurchase": 100
+        },
+        {
+          "ItemKey": "universal_shard_rare",
+          "PriceGems": 20,
+          "MaxPerPurchase": 100
+        },
+        {
+          "ItemKey": "universal_shard_unique",
+          "PriceGems": 80,
+          "MaxPerPurchase": 100
+        },
+        {
           "ItemKey": "beast_feed",
           "PriceGems": 1,
           "MaxPerPurchase": 100

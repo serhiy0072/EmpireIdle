@@ -7,9 +7,13 @@ interface Props {
   hero: HeroSummary;
   /** Пул досвіду гравця (GDD §6.1): з нього качається будь-який герой. */
   experience: number;
+  /** Універсальні осколки рідкості цього героя в інвентарі. */
+  universalShards: number;
   busy: boolean;
   onLevelUp: () => void;
   onResetLevel: () => void;
+  onAdvanceStar: () => void;
+  onConvertShards: (count: number) => void;
   onEvolve: () => void;
   onAppointLeader: () => void;
   onHeal: () => void;
@@ -18,9 +22,12 @@ interface Props {
 export default function HeroDetails({
   hero,
   experience,
+  universalShards,
   busy,
   onLevelUp,
   onResetLevel,
+  onAdvanceStar,
+  onConvertShards,
   onEvolve,
   onAppointLeader,
   onHeal,
@@ -30,6 +37,9 @@ export default function HeroDetails({
   const [confirmingReset, setConfirmingReset] = useState(false);
 
   const atLevelCap = hero.level >= hero.maxLevel;
+  const stars = Math.floor(hero.starParts / catalog.partsPerStar);
+  const starCost = hero.nextStarPartCost ?? null;
+  const shardsMissing = starCost === null ? 0 : Math.max(0, starCost - hero.shards);
   const affordable = experience >= hero.experienceToNext;
   const atTierCap = hero.tier >= catalog.maxTier;
   const stationed = hero.stationedGarrisonId !== null && hero.stationedGarrisonId !== undefined;
@@ -54,8 +64,9 @@ export default function HeroDetails({
         </div>
 
         <p className="mt-2 text-sm text-slate-500">
-          Тір {hero.tier} з {catalog.maxTier} · рівень {hero.level} з {hero.maxLevel} · сузір'я {hero.constellation}/
-          {catalog.maxConstellation}
+          Тір {hero.tier} з {catalog.maxTier} · рівень {hero.level} з {hero.maxLevel} · зірки {stars}/{catalog.maxStars}
+          {hero.starParts % catalog.partsPerStar > 0 && ` (+${hero.starParts % catalog.partsPerStar}/${catalog.partsPerStar})`} ·
+          осколків {hero.shards}
         </p>
         <p className="mt-1 text-sm text-slate-600">{heroState(hero.state)}</p>
 
@@ -77,14 +88,14 @@ export default function HeroDetails({
           <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Вміння</h3>
           <ul className="mt-2 space-y-2">
             {config.passives.map((passive) => {
-              const percent = passivePercent(passive, hero.constellation);
+              const percent = passivePercent(passive, stars);
 
               return (
                 <li key={passive.key} className="text-sm">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className={percent === null ? "text-slate-400" : "text-slate-800"}>{passive.displayName}</span>
                     <span className={percent === null ? "text-xs text-slate-400" : "text-xs text-emerald-700"}>
-                      {percent === null ? `з сузір'я ${passive.unlockConstellation}` : `+${percent.toFixed(1)}%`}
+                      {percent === null ? `з ${passive.unlockStars} зірки` : `+${percent.toFixed(1)}%`}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">
@@ -112,6 +123,26 @@ export default function HeroDetails({
           <p className="text-xs text-slate-500">
             Бракує {(hero.experienceToNext - experience).toLocaleString("uk-UA")} досвіду — його дають баночки досвіду.
           </p>
+        )}
+
+        {/* Зірки за осколки героя (GDD §6.1): кожна частинка — +5% бойової міці */}
+        <button
+          type="button"
+          onClick={onAdvanceStar}
+          disabled={busy || starCost === null || shardsMissing > 0}
+          className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+        >
+          {starCost === null ? "Усі зірки заповнені" : `Заповнити частинку зірки · ${starCost} осколків`}
+        </button>
+        {shardsMissing > 0 && universalShards > 0 && (
+          <button
+            type="button"
+            onClick={() => onConvertShards(Math.min(shardsMissing, universalShards))}
+            disabled={busy}
+            className="w-full rounded-lg border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            Добрати {Math.min(shardsMissing, universalShards)} з універсальних осколків (є {universalShards})
+          </button>
         )}
 
         {/* Скидання не скасувати — тож другий клік; досвід повертається в пул мінус 1% */}

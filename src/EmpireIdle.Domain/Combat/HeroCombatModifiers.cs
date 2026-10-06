@@ -35,16 +35,16 @@ namespace EmpireIdle.Domain.Combat
             if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Passives.Count == 0)
                 return StackBuff.None;
 
+            var stars = hero.StarParts / Math.Max(1, _catalog.Config.HeroSettings.PartsPerStar);
             var attack = new Dictionary<string, double>();
             var defense = new Dictionary<string, double>();
 
             foreach (var passive in config.Passives)
             {
-                if (hero.Constellation < passive.UnlockConstellation)
+                if (stars < passive.UnlockStars)
                     continue;
 
-                var percent = passive.BasePercent
-                    + passive.PercentPerConstellation * (hero.Constellation - passive.UnlockConstellation);
+                var percent = passive.BasePercent + passive.PercentPerStar * (stars - passive.UnlockStars);
 
                 var target = string.IsNullOrWhiteSpace(passive.Target) ? AllUnits : passive.Target;
 
