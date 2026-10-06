@@ -208,7 +208,8 @@
         "DisplayName": "Жарний посох",
         "Slot": "Weapon",
         "WeaponClasses": [
-          "mage"
+          "archer",
+          "knight"
         ],
         "BaseStats": {
           "Attack": 16
@@ -267,7 +268,8 @@
         "DisplayName": "Дубовий посох",
         "Slot": "Weapon",
         "WeaponClasses": [
-          "mage"
+          "archer",
+          "knight"
         ],
         "BaseStats": {
           "Attack": 26,
