@@ -18,6 +18,7 @@ using EmpireIdle.Application.Quests.Tracking.Mappers;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Granters;
 using EmpireIdle.Application.Scouting.Services;
+using EmpireIdle.Application.Speedups.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Events;
 using FluentValidation;
@@ -57,6 +58,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IItemEffect, HeroExperienceItemEffect>();
 
             services.AddScoped<ItemEffectDispatcher>();
+            services.AddScoped<SpeedUpTargets>();
             services.AddScoped<EffectResolver>();
             services.AddScoped<ItemGranter>();
             services.AddScoped<HeroGranter>();

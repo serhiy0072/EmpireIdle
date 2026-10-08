@@ -3,6 +3,7 @@ using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
+using EmpireIdle.Application.Speedups.Commands;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -68,6 +69,23 @@ namespace EmpireIdle.API.Controllers
         {
             await _mediator.Send(new UseItemCommand(
                 playerId, request.ItemKey, request.Count, request.TargetX, request.TargetY), cancellationToken);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Прискорити таймер предметами-прискореннями (будівництво, тренування, рівень військ, марш).
+        /// Ідемпотентна операція — потрібен заголовок Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/speedups")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SpeedUpWithItems(Guid playerId, [FromBody] SpeedUpWithItemsRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new SpeedUpWithItemsCommand(playerId, request.Timer, request.TargetId, request.Items),
+                cancellationToken);
 
             return NoContent();
         }

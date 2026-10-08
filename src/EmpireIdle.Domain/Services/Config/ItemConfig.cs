@@ -95,5 +95,8 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Для баночки досвіду (Type = "heroxp"): скільки досвіду вона додає в пул гравця (GDD §6.1).</summary>
         public long HeroExperience { get; set; }
+
+        /// <summary>Для прискорення (Type = "speedup"): скільки хвилин зрізає з будь-якого таймера (рішення 08.10.2026).</summary>
+        public int SpeedUpMinutes { get; set; }
     }
 }

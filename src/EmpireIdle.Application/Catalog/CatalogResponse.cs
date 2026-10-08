@@ -121,6 +121,7 @@
     /// <param name="Tradeable">Стаковий предмет можна виставити на ринок; спорядження торгується завжди.</param>
     /// <param name="TeleportScope">Для телепорта — Exact, Nearby, ClanTerritory, Random або ClanLeader (GDD §8.9); null для решти.</param>
     /// <param name="TeleportRange">Радіус ближнього телепорта в клітинах (Чебишев); null для решти.</param>
+    /// <param name="SpeedUpMinutes">Для прискорення — скільки хвилин зрізає з таймера; null для решти.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -136,7 +137,8 @@
         bool Tradeable,
         bool Giftable,
         string? TeleportScope,
-        int? TeleportRange);
+        int? TeleportRange,
+        int? SpeedUpMinutes);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);

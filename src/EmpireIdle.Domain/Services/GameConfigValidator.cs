@@ -37,6 +37,7 @@ namespace EmpireIdle.Domain.Services
             ValidateMarket(config);
             ValidateBeasts(config);
             ValidateTeleports(config);
+            ValidateSpeedUpItems(config);
             ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
@@ -436,6 +437,18 @@ namespace EmpireIdle.Domain.Services
 
             if (!config.Buildings.Any(b => b.BeastCapacityPerLevel > 0))
                 throw new InvalidOperationException("Beasts are configured, but no building gives beast slots.");
+        }
+
+        /// <summary>Прискорення без хвилин нічого б не зрізало — предмет-пустушка в рюкзаку.</summary>
+        private static void ValidateSpeedUpItems(GameConfig config)
+        {
+            var broken = config.Items
+                .Where(i => i.Type == "speedup" && i.SpeedUpMinutes <= 0)
+                .Select(i => i.Key)
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException($"Speed-up items need positive SpeedUpMinutes: {string.Join(", ", broken)}.");
         }
 
         /// <summary>Телепорт ближнього переїзду без радіусу не переносив би нікуди (GDD §8.9).</summary>

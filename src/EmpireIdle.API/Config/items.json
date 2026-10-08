@@ -205,6 +205,62 @@
         "HeroExperience": 50000
       },
       {
+        "Key": "speedup_1m",
+        "DisplayName": "Прискорення 1 хв",
+        "Description": "Зрізає 1 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "common",
+        "Type": "speedup",
+        "SpeedUpMinutes": 1
+      },
+      {
+        "Key": "speedup_5m",
+        "DisplayName": "Прискорення 5 хв",
+        "Description": "Зрізає 5 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "common",
+        "Type": "speedup",
+        "SpeedUpMinutes": 5
+      },
+      {
+        "Key": "speedup_10m",
+        "DisplayName": "Прискорення 10 хв",
+        "Description": "Зрізає 10 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "common",
+        "Type": "speedup",
+        "SpeedUpMinutes": 10
+      },
+      {
+        "Key": "speedup_1h",
+        "DisplayName": "Прискорення 1 год",
+        "Description": "Зрізає 1 год з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "rare",
+        "Type": "speedup",
+        "SpeedUpMinutes": 60
+      },
+      {
+        "Key": "speedup_5h",
+        "DisplayName": "Прискорення 5 год",
+        "Description": "Зрізає 5 год з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "rare",
+        "Type": "speedup",
+        "SpeedUpMinutes": 300
+      },
+      {
+        "Key": "speedup_8h",
+        "DisplayName": "Прискорення 8 год",
+        "Description": "Зрізає 8 год з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "unique",
+        "Type": "speedup",
+        "SpeedUpMinutes": 480
+      },
+      {
+        "Key": "speedup_12h",
+        "DisplayName": "Прискорення 12 год",
+        "Description": "Зрізає 12 год з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "unique",
+        "Type": "speedup",
+        "SpeedUpMinutes": 720
+      },
+      {
         "Key": "sword_iron",
         "Type": "equipment",
         "Rarity": "common",
