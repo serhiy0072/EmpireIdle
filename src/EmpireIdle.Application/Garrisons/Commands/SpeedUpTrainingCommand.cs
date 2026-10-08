@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
@@ -55,9 +56,9 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var order = garrison.TrainingOrders.FirstOrDefault(o => o.Id == request.OrderId)
                 ?? throw new EntityNotFoundException($"Training order", request.OrderId);
 
-            // Останню хвилину прискорення не зрізає — партію завершить сканер
-            var cut = _calculator.RequireCut(order.CompletesAt, now);
-            var cost = _calculator.GetCost(order.CompletesAt, now);
+            // Межа тренування нульова (рішення 08.10.2026): прискорення доводить партію до кінця
+            var cut = _calculator.RequireCut(SpeedUpTimer.Training, order.CompletesAt, now);
+            var cost = _calculator.GetCost(SpeedUpTimer.Training, order.CompletesAt, now);
 
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
@@ -68,6 +69,9 @@ namespace EmpireIdle.Application.Garrisons.Commands
             wallet.SpendGems(new GemAmount(cost), $"Speed up training of {order.UnitType}", request.PlayerId, now);
 
             garrison.ReduceTrainingTime(order.Id, cut, now);
+
+            // Дозріле завершуємо одразу, а не чекаємо сканера: гравець заплатив за «зараз»
+            garrison.CompleteDueTraining(now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

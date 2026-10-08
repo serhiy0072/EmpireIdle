@@ -3,7 +3,12 @@
     "Monetization": {
       "SpeedUpFactor": 6.0,
       "SpeedUpExponent": 0.85,
-      "SpeedUpFloorSeconds": 60,
+      "SpeedUpFloorSeconds": {
+        "Construction": 0,
+        "Training": 0,
+        "UnitLevelUp": 0,
+        "March": 30
+      },
       "HealGemsPerUnit": 3
     }
   }

@@ -26,7 +26,7 @@ public class SpeedUpLevelUpCommandTests
 
     private static MonetizationConfig Monetization() => new()
     {
-        SpeedUpFloorSeconds = 60,
+        SpeedUpFloorSeconds = Enum.GetValues<EmpireIdle.Domain.Enums.SpeedUpTimer>().ToDictionary(timer => timer, _ => 60),
         SpeedUpFactor = 1.2,
         SpeedUpExponent = 0.75
     };
@@ -89,7 +89,7 @@ public class SpeedUpLevelUpCommandTests
     {
         var (_, wallet, orderId) = GivenLevellingUp(minutesLeft: 120, gems: 5000);
 
-        var expected = Calculator().GetCost(Now.AddMinutes(120), Now);
+        var expected = Calculator().GetCost(EmpireIdle.Domain.Enums.SpeedUpTimer.UnitLevelUp, Now.AddMinutes(120), Now);
 
         await Handler().Handle(new SpeedUpLevelUpCommand(PlayerId, orderId), CancellationToken.None);
 

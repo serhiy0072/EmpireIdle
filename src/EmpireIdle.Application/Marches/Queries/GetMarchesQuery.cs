@@ -91,7 +91,7 @@ namespace EmpireIdle.Application.Marches.Queries
                     march.LegStartedAt,
                     march.ArrivesAt,
                     march.Units.Select(u => new MarchUnitView(u.UnitType, u.Level, u.Count)).ToList(),
-                    _calculator.GetCost(march.ArrivesAt, now)));
+                    _calculator.GetCost(SpeedUpTimer.March, march.ArrivesAt, now)));
             }
 
             return views;

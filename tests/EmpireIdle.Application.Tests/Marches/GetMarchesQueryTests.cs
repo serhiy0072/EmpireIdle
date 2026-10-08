@@ -61,7 +61,7 @@ public class GetMarchesQueryTests
         ],
         Monetization = new MonetizationConfig
         {
-            SpeedUpFloorSeconds = 60,
+            SpeedUpFloorSeconds = Enum.GetValues<EmpireIdle.Domain.Enums.SpeedUpTimer>().ToDictionary(timer => timer, _ => 60),
             SpeedUpFactor = 2.0,
             SpeedUpExponent = 0.75
         }
@@ -181,7 +181,7 @@ public class GetMarchesQueryTests
         Assert.Equal("Neighbour", views[0].TargetName);
         Assert.Null(views[0].TargetLevel);
         Assert.Equal(0, views[0].SpeedUpCostGems);
-        Assert.Equal(Calculator().GetCost(late.ArrivesAt, Now), views[1].SpeedUpCostGems);
+        Assert.Equal(Calculator().GetCost(EmpireIdle.Domain.Enums.SpeedUpTimer.March, late.ArrivesAt, Now), views[1].SpeedUpCostGems);
         Assert.True(views[1].SpeedUpCostGems > 0, "120 хвилин мають коштувати gems, інакше тест нічого не перевіряє.");
     }
 

@@ -1,13 +1,15 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>Параметри монетизації.</summary>
     public class MonetizationConfig
     {
         /// <summary>
-        /// Скільки секунд таймера прискорення за gems не зрізає: після покупки
-        /// все одно треба дочекатись цієї межі. Безкоштовного фінішу немає.
+        /// Скільки секунд кожного таймера прискорення не зрізає (рішення 08.10.2026):
+        /// будівництво й тренування — 0, марш — 30. Таймера немає в списку — межа нуль.
         /// </summary>
-        public int SpeedUpFloorSeconds { get; set; } = 60;
+        public Dictionary<SpeedUpTimer, int> SpeedUpFloorSeconds { get; set; } = new();
 
         /// <summary>Скільки gems коштує вилікувати одного пораненого.</summary>
         public int HealGemsPerUnit { get; set; } = 1;

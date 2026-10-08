@@ -11,6 +11,9 @@ export type CatalogHero = components["schemas"]["CatalogHero"];
 export type CatalogItem = components["schemas"]["CatalogItem"];
 export type CatalogResource = components["schemas"]["CatalogResource"];
 export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
+
+/** Таймер прискорення — ключ межі в каталозі (SpeedUpTimer на сервері). */
+export type SpeedUpTimer = "Construction" | "Training" | "UnitLevelUp" | "March";
 export type CatalogSkill = components["schemas"]["CatalogSkill"];
 export type CatalogUnit = components["schemas"]["CatalogUnit"];
 export type CatalogBeast = components["schemas"]["CatalogBeast"];
@@ -74,10 +77,10 @@ export interface Catalog {
   setOfItem: (itemKey: string) => CatalogArtifactSet | null;
   /**
    * Ціна прискорення таймера на момент `now` — та сама формула, що в SpeedUpCalculator:
-   * платиться все понад межу (floorSeconds), щонайменше 1 gem. 0 — лишилась межа,
-   * прискорювати нічого, кнопку не показуємо. Поки каталог не приїхав — ціна із запиту.
+   * платиться все понад межу свого таймера (floorSeconds[timer], немає — нуль), щонайменше 1 gem.
+   * 0 — лишилась межа, прискорювати нічого, кнопку не показуємо. Поки каталог не приїхав — ціна із запиту.
    */
-  speedUpCost: (completesAt: string, now: number, serverCost: number) => number;
+  speedUpCost: (timer: SpeedUpTimer, completesAt: string, now: number, serverCost: number) => number;
 }
 
 /**
@@ -161,11 +164,12 @@ export function useCatalog(): Catalog {
         const setKey = items.get(itemKey)?.setKey;
         return setKey == null ? null : (familyBySetKey.get(setKey) ?? null);
       },
-      speedUpCost: (completesAt, now, serverCost) => {
+      speedUpCost: (timer, completesAt, now, serverCost) => {
         if (data === undefined) return serverCost;
 
         const { floorSeconds, factor, exponent } = data.speedUp;
-        const minutes = (new Date(completesAt).getTime() - now - floorSeconds * 1_000) / 60_000;
+        const floor = floorSeconds[timer] ?? 0;
+        const minutes = (new Date(completesAt).getTime() - now - floor * 1_000) / 60_000;
 
         return minutes <= 0 ? 0 : Math.max(1, Math.ceil(factor * Math.pow(minutes, exponent)));
       },

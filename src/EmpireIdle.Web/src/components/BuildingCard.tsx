@@ -35,7 +35,7 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
   const speedUpCost =
     building.constructionCompletesAt == null || building.speedUpCostGems == null
       ? null
-      : catalog.speedUpCost(building.constructionCompletesAt, now, building.speedUpCostGems);
+      : catalog.speedUpCost("Construction", building.constructionCompletesAt, now, building.speedUpCostGems);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">

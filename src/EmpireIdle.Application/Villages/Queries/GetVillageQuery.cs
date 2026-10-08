@@ -2,6 +2,7 @@ using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Villages.ReadModels;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
@@ -67,7 +68,7 @@ namespace EmpireIdle.Application.Villages.Queries
                 // Тип без конфіга означає битий конфіг, але падати на GET села зайве:
                 // гравець побачить будівлю з нульовим буфером, решта відповіді ціла
                 int? speedUpCost = b.IsUnderConstruction
-                    ? _calculator.GetCost(b.ConstructionCompletesAt!.Value, now)
+                    ? _calculator.GetCost(SpeedUpTimer.Construction, b.ConstructionCompletesAt!.Value, now)
                     : null;
 
                 if (!_catalog.Buildings.TryGetValue(b.Type, out var config))

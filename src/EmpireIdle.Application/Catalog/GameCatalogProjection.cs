@@ -159,7 +159,7 @@ namespace EmpireIdle.Application.Catalog
                 config.Equipment.RepairGemsBase,
                 config.Equipment.RepairGemsPerLevel,
                 new CatalogSpeedUp(
-                    config.Monetization.SpeedUpFloorSeconds,
+                    config.Monetization.SpeedUpFloorSeconds.ToDictionary(pair => pair.Key.ToString(), pair => pair.Value),
                     config.Monetization.SpeedUpFactor,
                     config.Monetization.SpeedUpExponent),
                 config.Map.Width,

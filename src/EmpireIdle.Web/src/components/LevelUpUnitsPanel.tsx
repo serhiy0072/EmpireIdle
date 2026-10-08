@@ -125,14 +125,14 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
                 {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.fromLevel}→{order.toLevel}) —{" "}
                 {formatRemaining(order.completesAt, now)}
               </span>
-              {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
+              {catalog.speedUpCost("UnitLevelUp", order.completesAt, now, order.speedUpCostGems) > 0 && (
                 <button
                   type="button"
                   onClick={() => speedUp.mutate(order.id)}
                   disabled={speedUp.isPending}
                   className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
+                  {speedUpLabel(catalog.speedUpCost("UnitLevelUp", order.completesAt, now, order.speedUpCostGems))}
                 </button>
               )}
             </div>

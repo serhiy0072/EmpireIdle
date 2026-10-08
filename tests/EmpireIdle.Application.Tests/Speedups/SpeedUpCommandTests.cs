@@ -53,7 +53,7 @@ public class SpeedUpCommandTests
         Units = [new UnitConfig { Key = "infantry", Cost = [new ResourceCost { Resource = "food", Amount = 40 }] }],
         Monetization = new MonetizationConfig
         {
-            SpeedUpFloorSeconds = 60,
+            SpeedUpFloorSeconds = Enum.GetValues<EmpireIdle.Domain.Enums.SpeedUpTimer>().ToDictionary(timer => timer, _ => 60),
             SpeedUpFactor = 1.2,
             SpeedUpExponent = 0.75
         }
@@ -93,7 +93,7 @@ public class SpeedUpCommandTests
 
     private SpeedUpConstructionCommandHandler ConstructionHandler() => new(
         _villages, _wallets, _currentPlayer, _unitOfWork,
-        Calculator(), new FakeTimeProvider(Now),
+        Calculator(), new GameCatalog(Config()), new FakeTimeProvider(Now),
         NullLogger<SpeedUpConstructionCommandHandler>.Instance);
 
     /// <summary>
@@ -132,6 +132,29 @@ public class SpeedUpCommandTests
         Assert.Equal(1, building.Level.Value);
     }
 
+    /// <summary>
+    /// Нульова межа будівництва (рішення 08.10.2026): прискорення доводить будівлю до кінця
+    /// одразу, не чекаючи сканера, — рівень уже піднятий.
+    /// </summary>
+    [Fact]
+    public async Task SpeedUpConstruction_ShouldCompleteTheUpgrade_WhenTheFloorIsZero()
+    {
+        var village = GivenVillageWithConstruction(minutesLeft: 60);
+        GivenWallet();
+        var building = village.Buildings.Single(b => b.Type == "farm");
+        var monetization = Config().Monetization;
+        monetization.SpeedUpFloorSeconds[EmpireIdle.Domain.Enums.SpeedUpTimer.Construction] = 0;
+
+        var handler = new SpeedUpConstructionCommandHandler(_villages, _wallets, _currentPlayer, _unitOfWork,
+            new SpeedUpCalculator(monetization), new GameCatalog(Config()), new FakeTimeProvider(Now),
+            NullLogger<SpeedUpConstructionCommandHandler>.Instance);
+
+        await handler.Handle(new SpeedUpConstructionCommand(PlayerId, building.Id), CancellationToken.None);
+
+        Assert.False(building.IsUnderConstruction);
+        Assert.Equal(2, building.Level.Value);
+    }
+
     /// <summary>На межі прискорювати нічого: відмова з причиною, gems і таймер на місці.</summary>
     [Fact]
     public async Task SpeedUpConstruction_ShouldRefuse_AtTheFloor()
@@ -166,7 +189,7 @@ public class SpeedUpCommandTests
         var wallet = GivenWallet();
         var building = village.Buildings.Single(b => b.Type == "farm");
 
-        var expected = Calculator().GetCost(building.ConstructionCompletesAt!.Value, Now);
+        var expected = Calculator().GetCost(EmpireIdle.Domain.Enums.SpeedUpTimer.Construction, building.ConstructionCompletesAt!.Value, Now);
 
         await ConstructionHandler().Handle(
             new SpeedUpConstructionCommand(PlayerId, building.Id), CancellationToken.None);
