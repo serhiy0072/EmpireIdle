@@ -24,7 +24,7 @@ public class EquipHeroItemCommandTests
 
     private EquipHeroItemCommandHandler Handler() => new(
         _heroes, _inventory, _unitOfWork, new FakeTimeProvider(Now),
-        HeroTestConfig.Catalog(), NullLogger<EquipHeroItemCommandHandler>.Instance);
+        HeroTestConfig.Catalog(), new EquipmentFit(HeroTestConfig.Catalog()), NullLogger<EquipHeroItemCommandHandler>.Instance);
 
     private Hero GivenHero(string heroKey = "warrior_bran")
     {

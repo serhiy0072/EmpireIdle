@@ -183,6 +183,15 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>«Швидке використання»: найкраще вільне спорядження в кожен слот героя.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/equipment/best")]
+        [ProducesResponseType(typeof(EquipBestResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<EquipBestResponse>> EquipBest(Guid playerId, Guid heroId,
+            CancellationToken cancellationToken)
+            => Ok(new EquipBestResponse(
+                await _mediator.Send(new EquipBestHeroGearCommand(playerId, heroId), cancellationToken)));
+
         /// <summary>Зняти спорядження в інвентар.</summary>
         [HttpDelete("{playerId:guid}/equipment/{equipmentId:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
