@@ -177,7 +177,7 @@ public class CompleteMarchCommandTests
 
         var logistics = new MarchLogistics(
             _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
-            NullLogger<MarchLogistics>.Instance);
+            new HeroStats(new HeroProgression(config.HeroSettings), catalog), NullLogger<MarchLogistics>.Instance);
 
         var territory = new ClanTerritoryRules(catalog);
         var territoryBonus = new TerritoryBonus(_clans, _structures, territory);

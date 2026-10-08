@@ -22,6 +22,7 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly IMarchRepository _marchRepository;
         private readonly IMonsterRepository _monsterRepository;
         private readonly IHeroRepository _heroRepository;
+        private readonly HeroStats _heroStats;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly SpeedUpCalculator _calculator;
@@ -32,6 +33,7 @@ namespace EmpireIdle.Application.Marches.Queries
             IMarchRepository marchRepository,
             IMonsterRepository monsterRepository,
             IHeroRepository heroRepository,
+            HeroStats heroStats,
             GameCatalog catalog,
             TimeProvider timeProvider,
             SpeedUpCalculator calculator)
@@ -41,6 +43,7 @@ namespace EmpireIdle.Application.Marches.Queries
             _marchRepository = marchRepository;
             _monsterRepository = monsterRepository;
             _heroRepository = heroRepository;
+            _heroStats = heroStats;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _calculator = calculator;
@@ -83,7 +86,7 @@ namespace EmpireIdle.Application.Marches.Queries
                     march.TargetY,
                     march.Intent,
                     march.State,
-                    heroes[march.Id].Select(h => h.Id).ToList(),
+                    _heroStats.StrongestFirst(heroes[march.Id]).Select(h => h.Id).ToList(),
                     march.DepartedAt,
                     march.LegStartedAt,
                     march.ArrivesAt,

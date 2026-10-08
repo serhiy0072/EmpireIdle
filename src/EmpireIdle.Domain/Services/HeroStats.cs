@@ -53,6 +53,18 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
+        /// Герої від найсильнішого (GDD §6.1): перший — обличчя маршу у звітах і на карті й першим
+        /// бере вільний слот лідера, коли марш прибуває. За рівної сили — хто прийшов раніше,
+        /// щоб порядок не стрибав. Герой, якого вже немає в довіднику, — найслабший.
+        /// </summary>
+        public List<Hero> StrongestFirst(IEnumerable<Hero> heroes)
+            => heroes
+                .OrderByDescending(h => _catalog.FindHero(h.HeroKey) is { } config ? Power(h, config) : 0)
+                .ThenBy(h => h.AcquiredAt)
+                .ThenBy(h => h.Id)
+                .ToList();
+
+        /// <summary>
         /// Сила героя без спорядження: сума власних статів від рівня й тіру.
         /// Окремо від Compute, бо і рейтинг, і ринок оцінюють героя без того,
         /// що на ньому вдягнено, — екіп живе своїм життям і продається окремо.

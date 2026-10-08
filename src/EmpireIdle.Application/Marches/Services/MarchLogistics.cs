@@ -20,6 +20,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly GameCatalog _catalog;
         private readonly MarchCalculator _calculator;
         private readonly HeroProgression _progression;
+        private readonly HeroStats _heroStats;
         private readonly ILogger<MarchLogistics> _logger;
 
         public MarchLogistics(
@@ -28,6 +29,7 @@ namespace EmpireIdle.Application.Marches.Services
             GameCatalog catalog,
             MarchCalculator calculator,
             HeroProgression progression,
+            HeroStats heroStats,
             ILogger<MarchLogistics> logger)
         {
             _villageRepository = villageRepository;
@@ -35,8 +37,16 @@ namespace EmpireIdle.Application.Marches.Services
             _catalog = catalog;
             _calculator = calculator;
             _progression = progression;
+            _heroStats = heroStats;
             _logger = logger;
         }
+
+        /// <summary>
+        /// Герої, що йдуть із маршем, від найсильнішого (GDD §6.1): на прибутті вільний слот лідера
+        /// бере перший, тож порядок тут — правило гри, а не випадковість запиту.
+        /// </summary>
+        public async Task<List<Hero>> HeroesOnMarchAsync(March march, CancellationToken cancellationToken)
+            => _heroStats.StrongestFirst(await _heroRepository.GetByMarchAsync(march.Id, cancellationToken));
 
         /// <summary>
         /// Розвертає похід додому — або завершує, якщо повертатись нікому.

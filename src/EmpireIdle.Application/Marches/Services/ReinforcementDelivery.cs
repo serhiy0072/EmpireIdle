@@ -96,7 +96,8 @@ namespace EmpireIdle.Application.Marches.Services
             // займають слота посольства, і саме вони тримають бонус над своїми конвоями
             var leaderTaken = false;
 
-            foreach (var hero in await _heroRepository.GetByMarchAsync(march.Id, cancellationToken))
+            // Найсильніший — першим: вільний слот лідера дістається йому
+            foreach (var hero in await _logistics.HeroesOnMarchAsync(march, cancellationToken))
             {
                 // Лідерство рахується в межах власника: у господаря свій
                 // лідер, у кожного союзника свій над своїм стеком

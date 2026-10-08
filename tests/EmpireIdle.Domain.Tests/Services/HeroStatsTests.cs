@@ -39,6 +39,22 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Power_ShouldSumTheHerosOwnStats()
             => Assert.Equal(140, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig()), 3);
 
+        /// <summary>
+        /// Найсильніший — першим (GDD §6.1): він обличчя маршу й бере слот лідера на прибутті.
+        /// Невідомий довіднику герой — у кінці, а не виняток.
+        /// </summary>
+        [Fact]
+        public void StrongestFirst_ShouldPutTheStrongestHeroFirst()
+        {
+            var weak = TestKit.Entities.Hero(TestKeys.CommonHero, level: 1);
+            var strong = TestKit.Entities.Hero(TestKeys.CommonHero, level: 5);
+            var unknown = TestKit.Entities.Hero("retired_hero", level: 10);
+
+            var ordered = Stats().StrongestFirst([unknown, weak, strong]);
+
+            Assert.Equal([strong, weak, unknown], ordered);
+        }
+
         /// <summary>Сила росте з рівнем так само, як стати: (100 + 10 × 4) + (40 + 4 × 4).</summary>
         [Fact]
         public void Power_ShouldGrowWithTheHerosLevel()

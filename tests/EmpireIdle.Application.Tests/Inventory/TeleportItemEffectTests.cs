@@ -70,7 +70,7 @@ public class TeleportItemEffectTests
         _garrisons.GetHoldingReinforcementsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Garrison>());
 
         var logistics = new MarchLogistics(_villages, _heroes, catalog, calculator,
-            new HeroProgression(config.HeroSettings), NullLogger<MarchLogistics>.Instance);
+            new HeroProgression(config.HeroSettings), new HeroStats(new HeroProgression(config.HeroSettings), catalog), NullLogger<MarchLogistics>.Instance);
         var returner = new ReinforcementReturner(_garrisons, _villages, _structures, _marches, _heroes,
             calculator, catalog, new HeroProgression(config.HeroSettings), TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
         var relocator = new VillageRelocator(_map, _marches, _garrisons, _heroes, _servers, catalog, geometry,

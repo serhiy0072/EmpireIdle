@@ -78,7 +78,8 @@ namespace EmpireIdle.Application.Territory.Services
                 return;
             }
 
-            var heroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
+            // Найсильніший — першим: вільний слот лідера дістається йому
+            var heroes = await _logistics.HeroesOnMarchAsync(march, cancellationToken);
 
             // Сила маршу, а не кількість маршів: один сильний прискорює більше за кілька слабких
             var power = _combat.CalculatePower(units, _terrain.GetTerrainType(march.ServerId, structure.X, structure.Y),

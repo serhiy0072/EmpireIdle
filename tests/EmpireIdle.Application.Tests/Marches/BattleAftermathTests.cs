@@ -53,7 +53,7 @@ public class BattleAftermathTests
         var calculator = new MarchCalculator(new TerrainGenerator(config.Map), catalog);
         var logistics = new MarchLogistics(
             _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
-            NullLogger<MarchLogistics>.Instance);
+            new HeroStats(new HeroProgression(config.HeroSettings), catalog), NullLogger<MarchLogistics>.Instance);
 
         var returner = new ReinforcementReturner(
             _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes, calculator, catalog,

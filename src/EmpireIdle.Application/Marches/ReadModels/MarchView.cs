@@ -5,7 +5,7 @@ namespace EmpireIdle.Application.Marches.ReadModels
     /// <summary>
     /// Активний похід очима гравця. TargetName може бути null: монстра
     /// вже могли вбити, а село — покинути; марш при цьому ще повертається.
-    /// TargetLevel — рівень монстра; у села й зниклої цілі null.
+    /// TargetLevel — рівень монстра; у села й зниклої цілі null. HeroIds — від найсильнішого.
     /// </summary>
     public record MarchView(
         Guid Id,
