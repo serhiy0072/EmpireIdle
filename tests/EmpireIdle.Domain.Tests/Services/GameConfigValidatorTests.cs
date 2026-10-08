@@ -246,7 +246,7 @@ namespace EmpireIdle.Domain.Tests.Services
             {
                 MaxMarches = 8,
                 TierGrowth = 1.10,
-                StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]],
+                StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]],
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
                 BuildingKey = "heroeshall",
                 HealBuildingKey = "hospital",
@@ -341,7 +341,7 @@ namespace EmpireIdle.Domain.Tests.Services
         /// <summary>Зірка з неповним списком цін упала б на першій же частинці без ціни (GDD §6.1).</summary>
         [Fact]
         public void Validate_ShouldRejectAStarWithoutEveryPartCost()
-            => RejectsHero(c => c.HeroSettings.StarPartCosts[5] = [100, 100]);
+            => RejectsHero(c => c.HeroSettings.StarPartCosts[4] = [40, 40]);
 
         /// <summary>Безкоштовна частинка — зірки задарма.</summary>
         [Fact]

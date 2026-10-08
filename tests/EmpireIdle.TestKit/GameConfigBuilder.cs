@@ -133,7 +133,7 @@
                 HealBuildingKey = TestKeys.Hospital,
 
                 MaxMarches = 8,
-                StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]],
+                StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]],
                 DefaultMarchSpeed = 6,
                 HealCostPerLevel = [new ResourceCost { Resource = TestKeys.Food, Amount = 40 }],
                 TierGrowth = 1.5,

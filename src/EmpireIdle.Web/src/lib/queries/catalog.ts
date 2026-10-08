@@ -129,7 +129,7 @@ export function useCatalog(): Catalog {
       trainingBuildingKeys: [
         ...new Set((data?.units ?? []).flatMap((unit) => (unit.requiresBuilding == null ? [] : [unit.requiresBuilding]))),
       ],
-      maxStars: data?.maxStars ?? 6,
+      maxStars: data?.maxStars ?? 5,
       partsPerStar: data?.partsPerStar ?? 6,
       summonShards: data?.summonShards ?? 10,
       maxTier: data?.maxTier ?? 3,

@@ -32,7 +32,7 @@ namespace EmpireIdle.Domain.Tests.Services
             TierGrowth = 1.10,
             EvolutionPenalty = 0.95,
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]],
+            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]],
             MaxMarches = 8,
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
 };

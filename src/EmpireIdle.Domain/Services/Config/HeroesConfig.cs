@@ -42,14 +42,14 @@ namespace EmpireIdle.Domain.Services.Config
         public int SummonShards { get; set; } = 10;
 
         /// <summary>Скільки зірок має герой.</summary>
-        public int MaxStars { get; set; } = 6;
+        public int MaxStars { get; set; } = 5;
 
         /// <summary>Скільки частинок у зірці.</summary>
         public int PartsPerStar { get; set; } = 6;
 
         /// <summary>
         /// Ціна кожної частинки в осколках: зовнішній список — зірки, внутрішній — частинки.
-        /// Перша зірка дешева (10 разом), частинка шостої — 100. Заглушки до Режисера.
+        /// Перша зірка дешева (10 разом), частинка п'ятої — 40. Заглушки до Режисера.
         /// </summary>
         public List<List<int>> StarPartCosts { get; set; } = new();
 

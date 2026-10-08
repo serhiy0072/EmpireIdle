@@ -141,7 +141,7 @@ internal static class HeroTestConfig
             BuildingKey = Hall,
             HealBuildingKey = "hospital",
             MaxMarches = 8,
-            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40], [100, 100, 100, 100, 100, 100]],
+            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]],
             UniversalShardUpgrade = new Dictionary<string, int> { ["Common"] = 100, ["Rare"] = 300 },
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
             TierGrowth = 1.35,

@@ -41,7 +41,7 @@ namespace EmpireIdle.Domain.Entities
         public int Level { get; private set; }
 
         /// <summary>
-        /// Заповнені частинки зірок (GDD §6.1): 6 зірок × 6 частинок, кожна — за осколки цього героя.
+        /// Заповнені частинки зірок (GDD §6.1): 5 зірок × 6 частинок, кожна — за осколки цього героя.
         /// Кожна частинка додає бойової міці, повні зірки відкривають пасивки.
         /// </summary>
         public int StarParts { get; private set; }

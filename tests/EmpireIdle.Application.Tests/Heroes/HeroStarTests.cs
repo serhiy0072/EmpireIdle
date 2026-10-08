@@ -95,24 +95,24 @@ public class HeroStarTests
         Assert.Equal(4, _shards["warrior_bran"].Count);
     }
 
-    /// <summary>Шоста зірка — по 100 за частинку: 99 осколків не вистачить, і нічого не списується.</summary>
+    /// <summary>П'ята зірка — по 40 за частинку: 39 осколків не вистачить, і нічого не списується.</summary>
     [Fact]
     public async Task Advance_ShouldRefuse_WithoutEnoughShards()
     {
-        var hero = GivenHero(stars: 5);
-        GivenShards("warrior_bran", 99);
+        var hero = GivenHero(stars: 4);
+        GivenShards("warrior_bran", 39);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Advance(hero));
 
         Assert.Equal(RefusalReasons.HeroNotEnoughShards.Key, refusal.Reason);
-        Assert.Equal(30, hero.StarParts);
-        Assert.Equal(99, _shards["warrior_bran"].Count);
+        Assert.Equal(24, hero.StarParts);
+        Assert.Equal(39, _shards["warrior_bran"].Count);
     }
 
     [Fact]
     public async Task Advance_ShouldRefuse_WhenEveryStarIsFull()
     {
-        var hero = GivenHero(stars: 6);
+        var hero = GivenHero(stars: 5);
         GivenShards("warrior_bran", 1000);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Advance(hero));
@@ -163,7 +163,7 @@ public class HeroStarTests
     [Fact]
     public async Task Upgrade_ShouldRefuse_UntilEveryHeroOfTheRarityIsMaxed()
     {
-        GivenHero("warrior_bran", stars: 5);
+        GivenHero("warrior_bran", stars: 4);
         GivenItems(TestKit.UniversalShards.Common, 500);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Upgrade(Rarity.Common, 1));
@@ -177,7 +177,7 @@ public class HeroStarTests
     public async Task Upgrade_ShouldTradeAHundredCommonsForARare_OnceEveryCommonHeroIsMaxed()
     {
         foreach (var hero in _catalog.Config.Heroes.Where(h => h.Rank == Rarity.Common))
-            GivenHero(hero.Key, stars: 6);
+            GivenHero(hero.Key, stars: 5);
 
         GivenItems(TestKit.UniversalShards.Common, 250);
 
