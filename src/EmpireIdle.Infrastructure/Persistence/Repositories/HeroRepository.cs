@@ -50,6 +50,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<Hero>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .Where(h => ids.Contains(h.Id))
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         /// <remarks>
         /// Фільтр повторюється в пам'яті: герой, що зійшов із маршу в цій же одиниці роботи
         /// (часткова доставка підкріплення), у базі ще числиться за маршем, а відстежений

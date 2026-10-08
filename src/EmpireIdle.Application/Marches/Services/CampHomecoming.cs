@@ -30,11 +30,11 @@ namespace EmpireIdle.Application.Marches.Services
         public async Task<TimeSpan> SendHomeAsync(March camp, Village home, DateTime utcNow,
             CancellationToken cancellationToken)
         {
-            var hero = (await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken)).SingleOrDefault();
+            var heroes = await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken);
 
             var duration = _calculator.CalculateDuration(
                 camp.ServerId, camp.TargetX, camp.TargetY, home.X, home.Y, camp.GetUnits(),
-                hero is null ? null : _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey))) / camp.SpeedMultiplier;
+                _progression.MarchSpeed(heroes.Select(h => _catalog.FindHero(h.HeroKey)))) / camp.SpeedMultiplier;
 
             camp.BreakCamp(home.X, home.Y, duration, utcNow);
 

@@ -101,11 +101,11 @@ namespace EmpireIdle.Application.Marches.Services
 
             var defence = DefenceStacks.FromArmy(camp.GetUnits());
 
-            var campHero = (await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken)).SingleOrDefault();
+            var campHeroes = await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken);
 
-            var defenceBuffs = new DefenceBuffs(_heroModifiers.For(campHero), new Dictionary<Guid, StackBuff>());
+            var defenceBuffs = new DefenceBuffs(_heroModifiers.ForMarch(campHeroes), new Dictionary<Guid, StackBuff>());
 
-            var attackerHero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
+            var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                     attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
@@ -119,7 +119,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
                 attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.For(attackerHero), defenceBuffs);
+                _heroModifiers.ForMarch(attackerHeroes), defenceBuffs);
 
             var result = outcome.Battle;
 
@@ -140,7 +140,7 @@ namespace EmpireIdle.Application.Marches.Services
                 terrain, seed, utcNow, cancellationToken);
 
             if (result.AttackerWon)
-                await RoutAsync(camp, campHome, campHero, utcNow, cancellationToken);
+                await RoutAsync(camp, campHome, campHeroes, utcNow, cancellationToken);
 
             await _logistics.TurnMarchBackAsync(march, march.GetUnits(), utcNow, cancellationToken);
 
@@ -152,10 +152,10 @@ namespace EmpireIdle.Application.Marches.Services
         /// Програний табір знімається: уцілілі й герой відступають додому маршем.
         /// Не лишилось нікого — похід просто завершується.
         /// </summary>
-        private async Task RoutAsync(March camp, Village campHome, Hero? campHero, DateTime utcNow,
+        private async Task RoutAsync(March camp, Village campHome, IReadOnlyCollection<Hero> campHeroes, DateTime utcNow,
             CancellationToken cancellationToken)
         {
-            if (camp.GetUnits().Count == 0 && campHero is null)
+            if (camp.GetUnits().Count == 0 && campHeroes.Count == 0)
             {
                 camp.BreakCamp(campHome.X, campHome.Y, TimeSpan.Zero, utcNow);
                 camp.Complete(utcNow);

@@ -51,9 +51,9 @@ namespace EmpireIdle.Application.Marches.Services
             DateTime utcNow, CancellationToken cancellationToken)
         {
             // Герой, що вже став у чужий гарнізон, з маршу знятий (Arrive) — додому з колоною не йде
-            var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
+            var onTheMove = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
-            if (hero is null && (survivors.Count == 0 || survivors.Values.All(c => c <= 0)))
+            if (onTheMove.Count == 0 && (survivors.Count == 0 || survivors.Values.All(c => c <= 0)))
             {
                 // Нікого не лишилось — повертатись нікому
                 march.TurnBack(TimeSpan.Zero, utcNow);
@@ -64,7 +64,7 @@ namespace EmpireIdle.Application.Marches.Services
             // Швидкість від пасивки звіра зафіксована на марші при виході — і назад іде так само
             var backDuration = _calculator.CalculateDuration(
                 march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors,
-                hero is null ? null : _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey))) / march.SpeedMultiplier;
+                _progression.MarchSpeed(onTheMove.Select(h => _catalog.FindHero(h.HeroKey)))) / march.SpeedMultiplier;
 
             march.TurnBack(backDuration, utcNow);
         }

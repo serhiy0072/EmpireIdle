@@ -92,25 +92,26 @@ namespace EmpireIdle.Application.Marches.Services
             if (accepted.Count > 0)
                 targetGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, accepted, capacity, utcNow);
 
-            // Герой лишається завжди, навіть коли не влізло нічого: він не
-            // займає слота посольства, і саме він тримає бонус над стеком
-            var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
+            // Герої лишаються завжди, навіть коли не влізло нічого: вони не
+            // займають слота посольства, і саме вони тримають бонус над своїми конвоями
+            var leaderTaken = false;
 
-            if (hero is not null)
+            foreach (var hero in await _heroRepository.GetByMarchAsync(march.Id, cancellationToken))
             {
                 // Лідерство рахується в межах власника: у господаря свій
                 // лідер, у кожного союзника свій над своїм стеком
-                var leader = await _heroRepository.GetLeaderAsync(
-                    targetGarrison.Id, hero.PlayerId, cancellationToken);
+                var leaderFree = !leaderTaken
+                    && await _heroRepository.GetLeaderAsync(targetGarrison.Id, hero.PlayerId, cancellationToken) is null;
 
-                hero.Arrive(targetGarrison.Id, leaderSlotFree: leader is null, utcNow);
+                hero.Arrive(targetGarrison.Id, leaderSlotFree: leaderFree, utcNow);
+                leaderTaken |= leaderFree;
             }
 
             if (rejected.Count > 0)
             {
                 // Прийняте списується з колони як втрати: механіка та сама,
-                // юніти покидають марш. Герой уже зійшов (Arrive знімає
-                // з нього марш), тож додому залишок їде без нього
+                // юніти покидають марш. Герої вже зійшли (Arrive знімає
+                // з них марш), тож додому залишок їде без них
                 march.ApplyLosses(accepted, utcNow);
 
                 await _logistics.TurnMarchBackAsync(march, rejected, utcNow, cancellationToken);

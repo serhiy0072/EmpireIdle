@@ -94,7 +94,7 @@ public class GetBattlePreviewQueryTests
     }
 
     private Task<BattlePreviewResult> Preview(Guid monsterId, Guid heroId) => Handler().Handle(
-        new GetBattlePreviewQuery(PlayerId, MarchTargetType.Monster, monsterId, heroId,
+        new GetBattlePreviewQuery(PlayerId, MarchTargetType.Monster, monsterId, [heroId],
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }),
         CancellationToken.None);
 

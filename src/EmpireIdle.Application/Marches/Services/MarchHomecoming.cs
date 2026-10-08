@@ -41,16 +41,15 @@ namespace EmpireIdle.Application.Marches.Services
         {
             var tookTheLead = false;
 
-            var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
-
-            if (hero is not null)
+            foreach (var hero in await _heroRepository.GetByMarchAsync(march.Id, cancellationToken))
             {
-                // Слот могли зайняти, поки герой ішов: тоді він стає рядовим
-                var slotFree = leaderSlotFree
-                    ?? await _heroRepository.GetLeaderAsync(garrison.Id, hero.PlayerId, cancellationToken) is null;
+                // Слот могли зайняти, поки герой ішов: тоді він стає рядовим.
+                // Лідер у гарнізоні один — вільний слот бере перший герой маршу
+                var slotFree = !tookTheLead && (leaderSlotFree
+                    ?? await _heroRepository.GetLeaderAsync(garrison.Id, hero.PlayerId, cancellationToken) is null);
 
                 hero.Arrive(garrison.Id, slotFree, utcNow);
-                tookTheLead = slotFree;
+                tookTheLead |= slotFree;
             }
 
             var survivors = march.GetUnits();

@@ -114,11 +114,11 @@ namespace EmpireIdle.Application.Marches.Services
 
             var woundedCapacity = _logistics.CalculateWoundedCapacity(village, garrison);
 
-            var attackerHero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
+            var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
             // Монстр ні стін, ні героїв не має, тому бік захисту йде без бонусів
             var outcome = _resolver.Resolve(attackerArmy, DefenceStacks.FromArmy(defenderArmy), terrain, seed,
-                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.For(attackerHero));
+                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.ForMarch(attackerHeroes));
 
             var result = outcome.Battle;
             var split = outcome.AttackerCasualties;

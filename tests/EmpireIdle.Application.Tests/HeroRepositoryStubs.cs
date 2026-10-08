@@ -6,13 +6,16 @@ namespace EmpireIdle.Application.Tests;
 
 /// <summary>
 /// Підміна репозиторію героїв, що відповідає на пакетні запити тим самим, що вже налаштовано
-/// для одиночного GetByIdAsync, а героїв маршу шукає за MarchId (GDD §6.1): тестам досить
-/// сказати, який герой за яким id, — як і раніше. Маршу без OnMarch героїв не дістається.
+/// для одиночного GetByIdAsync. Марш веде кількох героїв і читає їх пакетом (GDD §6.1), а тестам
+/// досить сказати, який герой за яким id, — як і раніше. Маршу без OnMarch героїв не дістається.
 /// </summary>
 public static class HeroRepositoryStubs
 {
     public static IHeroRepository ForwardHeroLookups(this IHeroRepository heroes)
     {
+        heroes.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(call => Lookup(heroes, call.Arg<IReadOnlyCollection<Guid>>()));
+
         heroes.GetByIdsReadOnlyAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(call => Lookup(heroes, call.Arg<IReadOnlyCollection<Guid>>()));
 

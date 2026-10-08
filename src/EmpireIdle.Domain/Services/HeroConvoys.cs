@@ -34,33 +34,64 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скільки юнітів герой може повести: рівень — з табором, як і для статів.</summary>
         public int Capacity(Hero hero) => ConvoysAt(hero.EffectiveLevel) * _config.ConvoySize;
 
+        /// <summary>Скільки героїв може вести один марш (GDD §6.1, рішення 08.10.2026): по одному на роль.</summary>
+        public const int MaxHeroesPerMarch = 3;
+
         /// <summary>
-        /// Чи може герой повести саме цих юнітів: лише своєї ролі й не більше за свої конвої.
-        /// Без ролей чи кривої в конфігу відповідне обмеження не діє.
+        /// Чи можуть ці герої повести саме цих юнітів (GDD §6.1, рішення 08.10.2026): героїв різних ролей,
+        /// кожен тип юнітів — під героєм своєї ролі й не більше за його конвої.
+        /// Без ролей у конфігу перевіряється лише сума проти всіх конвоїв, без кривої — нічого.
         /// </summary>
-        public void EnsureCanLead(Hero hero, HeroConfig? config, IReadOnlyDictionary<UnitStackKey, int> units)
+        public void EnsureCanLead(IReadOnlyCollection<(Hero Hero, HeroConfig? Config)> leaders,
+            IReadOnlyDictionary<UnitStackKey, int> units)
         {
-            var name = config?.DisplayName ?? hero.HeroKey;
+            if (leaders.Count > MaxHeroesPerMarch)
+                throw new RequirementNotMetException(RefusalReasons.MarchTooManyHeroes,
+                    $"A march takes at most {MaxHeroesPerMarch} heroes.", MaxHeroesPerMarch);
 
-            if (_config.RoleUnits.Count > 0)
+            var sent = units.Where(u => u.Value > 0).GroupBy(u => u.Key.UnitType).ToDictionary(g => g.Key, g => g.Sum(u => u.Value));
+            var limited = _config.ConvoysByLevel.Count > 0;
+
+            if (_config.RoleUnits.Count == 0)
             {
-                var own = UnitOf(config);
-                var foreign = units.Where(u => u.Value > 0 && u.Key.UnitType != own).Select(u => u.Key.UnitType).FirstOrDefault();
+                var total = sent.Values.Sum();
+                var capacity = leaders.Sum(l => Capacity(l.Hero));
 
-                if (foreign is not null)
-                    throw new RequirementNotMetException(RefusalReasons.MarchWrongUnits,
-                        $"Hero '{hero.HeroKey}' leads only '{own}', not '{foreign}'.", foreign, name);
+                if (limited && total > capacity)
+                    throw new RequirementNotMetException(RefusalReasons.MarchOverCapacity,
+                        $"The heroes lead up to {capacity} units, {total} were sent.", capacity, total, Names(leaders));
+
+                return;
             }
 
-            if (_config.ConvoysByLevel.Count == 0)
-                return;
+            // Двоє героїв однієї ролі поділили б одні й ті самі конвої — у марші по одному на роль
+            var twin = leaders.GroupBy(l => l.Config?.Class).FirstOrDefault(g => g.Count() > 1);
 
-            var capacity = Capacity(hero);
-            var sent = units.Values.Sum();
+            if (twin is not null)
+                throw new RequirementNotMetException(RefusalReasons.MarchSameRole,
+                    $"Two heroes of class '{twin.Key}' in one march.", string.Join(", ", twin.Select(l => Name(l))));
 
-            if (sent > capacity)
-                throw new RequirementNotMetException(RefusalReasons.MarchOverCapacity,
-                    $"Hero '{hero.HeroKey}' leads up to {capacity} units, {sent} were sent.", capacity, sent);
+            foreach (var (unit, count) in sent)
+            {
+                var leader = leaders.FirstOrDefault(l => UnitOf(l.Config) == unit);
+
+                if (leader.Hero is null)
+                    throw new RequirementNotMetException(RefusalReasons.MarchWrongUnits,
+                        $"No hero in the march leads '{unit}'.", unit, Names(leaders));
+
+                if (!limited)
+                    continue;
+
+                var capacity = Capacity(leader.Hero);
+
+                if (count > capacity)
+                    throw new RequirementNotMetException(RefusalReasons.MarchOverCapacity,
+                        $"Hero '{leader.Hero.HeroKey}' leads up to {capacity} units, {count} were sent.", capacity, count, Name(leader));
+            }
         }
+
+        private static string Name((Hero Hero, HeroConfig? Config) leader) => leader.Config?.DisplayName ?? leader.Hero.HeroKey;
+
+        private static string Names(IEnumerable<(Hero Hero, HeroConfig? Config)> leaders) => string.Join(", ", leaders.Select(Name));
     }
 }

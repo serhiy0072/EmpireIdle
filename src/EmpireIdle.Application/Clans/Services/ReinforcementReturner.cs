@@ -191,45 +191,28 @@ namespace EmpireIdle.Application.Clans.Services
 
             var marchId = Guid.NewGuid();
 
-            if (heroes.Count > 0)
-                heroes[0].SendHome(marchId, utcNow);
+            // Герої йдуть разом зі своїми конвоями одним маршем (GDD §6.1: до трьох героїв у марші)
+            foreach (var hero in heroes)
+                hero.SendHome(marchId, utcNow);
 
-            // Пасивка швидкості власника (GDD §5.10) діє й на дорогу додому: це теж його марш.
-            // Фіксуємо на марші, як і при відправці, — щоб час не плив, коли пасивка скінчиться
-            var speed = await _effects.GetMultiplierAsync(ownerPlayerId, EffectTarget.MarchSpeed, utcNow, cancellationToken);
+            var leaders = heroes.Select(h => (Hero: h, Config: _catalog.FindHero(h.HeroKey))).ToList();
 
-            // Колона йде за найповільнішим, і герой у цьому рахунку нарівні
-            // з юнітами: важкий супровід гальмує відхід так само, як облога
+            // Пасивка швидкості власника (GDD §5.10) і небойові вміння героїв діють і на дорогу додому:
+            // це теж його марш. Фіксуємо на марші, як і при відправці, — щоб час не плив, коли пасивка скінчиться
+            var speed = await _effects.GetMultiplierAsync(ownerPlayerId, EffectTarget.MarchSpeed, utcNow, cancellationToken)
+                * _progression.MarchSpeedMultiplier(leaders);
+
+            // Колона йде за найповільнішим, і герої в цьому рахунку нарівні з юнітами
             var duration = _calculator.CalculateDuration(
                 host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y, units,
-                heroes.Count > 0
-                    ? _progression.MarchSpeed(_catalog.FindHero(heroes[0].HeroKey))
-                    : null) / LedBy(heroes.FirstOrDefault(), speed);
+                _progression.MarchSpeed(leaders.Select(l => l.Config))) / speed;
 
             var march = March.ReturningHome(
                 marchId, host.ServerId, ownerGarrison!.Id,
                 ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
-                units, duration, utcNow, from.Value.Type, LedBy(heroes.FirstOrDefault(), speed));
+                units, duration, utcNow, from.Value.Type, speed);
 
             await _marchRepository.AddAsync(march, cancellationToken);
-
-            // Решта героїв іде окремо: у марші місце рівно на одного,
-            // і кожен рахує власний час — без юнітів його ніщо не тримає
-            foreach (var extra in heroes.Skip(1))
-            {
-                var soloId = Guid.NewGuid();
-                extra.SendHome(soloId, utcNow);
-
-                var soloDuration = _calculator.CalculateDuration(
-                    host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y,
-                    new Dictionary<UnitStackKey, int>(),
-                    _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey))) / LedBy(extra, speed);
-
-                await _marchRepository.AddAsync(March.ReturningHome(
-                    soloId, host.ServerId, ownerGarrison.Id,
-                    ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
-                    new Dictionary<UnitStackKey, int>(), soloDuration, utcNow, from.Value.Type, LedBy(extra, speed)), cancellationToken);
-            }
 
             _logger.LogInformation(
                 "Reinforcements of {OwnerId} left {HostType} {HostId}: {Count} units, {Heroes} heroes, {Minutes:F1} min home",
@@ -309,9 +292,5 @@ namespace EmpireIdle.Application.Clans.Services
                 ? null
                 : await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken);
         }
-
-        /// <summary>Множник швидкості колони: пасивка звіра й небойове вміння героя, що її веде (GDD §6.1).</summary>
-        private double LedBy(Hero? hero, double speed)
-            => hero is null ? speed : speed * _progression.MarchSpeedMultiplier(hero, _catalog.FindHero(hero.HeroKey));
     }
 }

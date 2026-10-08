@@ -114,6 +114,21 @@ namespace EmpireIdle.Domain.Services
             => 1 + _skills.UtilityPercent(hero, config, SkillUtilityConfig.MarchSpeed) / 100;
 
         /// <summary>
+        /// Множник швидкості маршу кількох героїв: небойові вміння діють на весь марш (GDD §6.1),
+        /// тож відсотки героїв складаються.
+        /// </summary>
+        public double MarchSpeedMultiplier(IEnumerable<(Hero Hero, HeroConfig? Config)> heroes)
+            => 1 + heroes.Sum(h => _skills.UtilityPercent(h.Hero, h.Config, SkillUtilityConfig.MarchSpeed)) / 100;
+
+        /// <summary>Колона йде за найповільнішим героєм; null — героїв немає, швидкість дають юніти.</summary>
+        public double? MarchSpeed(IEnumerable<HeroConfig?> heroes)
+        {
+            var speeds = heroes.Select(MarchSpeed).ToList();
+
+            return speeds.Count == 0 ? null : speeds.Min();
+        }
+
+        /// <summary>
         /// Чи можна підняти тір. Тір прив'язаний до рівня світу: перехід
         /// у другий тір відкривається на сервері 2, у третій — на сервері 3.
         /// Контент відкривається для всіх одночасно (§1.2), не для найшвидших.

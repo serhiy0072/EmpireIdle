@@ -115,14 +115,11 @@ namespace EmpireIdle.Application.Marches.Services
                 garrison.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-            // Провалена атака кладе героя в госпіталь. Ранить лише його:
-            // марш веде рівно один герой, а вдома ростер бою не бачив
+            // Провалена атака кладе героїв маршу в госпіталь. Ранить лише їх:
+            // вдома ростер бою не бачив
             if (!result.AttackerWon)
-            {
-                var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
-
-                hero?.Wound(utcNow);
-            }
+                foreach (var hero in await _heroRepository.GetByMarchAsync(march.Id, cancellationToken))
+                    hero.Wound(utcNow);
 
             march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, targetName, utcNow);
 
@@ -356,11 +353,8 @@ namespace EmpireIdle.Application.Marches.Services
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
             if (result.AttackerWon)
-            {
-                var hero = (await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken)).SingleOrDefault();
-
-                hero?.Wound(utcNow);
-            }
+                foreach (var hero in await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken))
+                    hero.Wound(utcNow);
 
             report.AnnounceDefence(utcNow);
         }

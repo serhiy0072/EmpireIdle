@@ -152,5 +152,45 @@ namespace EmpireIdle.Domain.Tests.Services
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
+
+        // ---------- Марш (GDD §6.1: бойові вміння — лише на власні конвої) ----------
+
+        private static HeroCombatModifiers MarchModifiers(params HeroSkillConfig[] skills)
+            => new(new GameCatalog(new GameConfigBuilder().WithUnits()
+                .WithHeroes(h => h.RoleUnits = new Dictionary<string, string>
+                {
+                    ["warrior"] = TestKeys.Infantry, ["knight"] = "cavalry", ["archer"] = TestKeys.Archer, ["mage"] = TestKeys.Archer,
+                }, passives: skills)
+                .Build()));
+
+        /// <summary>Бонус «усьому війську» в марші діє лише на конвої героя — піхоту воїна.</summary>
+        [Fact]
+        public void ForMarch_ShouldTurnAnAllTargetIntoTheHerosOwnConvoys()
+        {
+            var buff = MarchModifiers(HoldTheLine).ForMarch([TestKit.Entities.Hero(TestKeys.CommonHero, level: 20)]);
+
+            Assert.Equal(1.04, buff.Defense(TestKeys.Infantry), 3);
+            Assert.Equal(1.0, buff.Defense("archer"), 3);
+        }
+
+        /// <summary>Вміння на чужий тип юнітів у марші нічого не дає: цих юнітів веде інший герой.</summary>
+        [Fact]
+        public void ForMarch_ShouldDropABonusForAnotherRolesUnits()
+        {
+            var archers = TestKit.Passives.Defence(percent: 7, target: "archer");
+
+            var buff = MarchModifiers(archers).ForMarch([TestKit.Entities.Hero(TestKeys.CommonHero)]);
+
+            Assert.Equal(1.0, buff.Defense("archer"), 3);
+        }
+
+        /// <summary>Лідер гарнізону, на відміну від маршу, підсилює всю оборону — For лишає ціль як є.</summary>
+        [Fact]
+        public void For_ShouldKeepTheAllTarget_ForAGarrisonLeader()
+        {
+            var buff = MarchModifiers(HoldTheLine).For(TestKit.Entities.Hero(TestKeys.CommonHero, level: 20));
+
+            Assert.Equal(1.04, buff.Defense("archer"), 3);
+        }
     }
 }

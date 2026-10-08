@@ -11916,6 +11916,7 @@
         "required": [
           "arrivesAt",
           "departedAt",
+          "heroIds",
           "id",
           "intent",
           "legStartedAt",
@@ -11963,10 +11964,12 @@
           "state": {
             "$ref": "#/components/schemas/MarchState"
           },
-          "heroId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
+          "heroIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
           "departedAt": {
             "type": "string",
@@ -12870,7 +12873,7 @@
       },
       "SendMarchRequest": {
         "required": [
-          "heroId",
+          "heroIds",
           "intent",
           "targetId",
           "targetType",
@@ -12892,9 +12895,12 @@
               "format": "int32"
             }
           },
-          "heroId": {
-            "type": "string",
-            "format": "uuid"
+          "heroIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
           "intent": {
             "$ref": "#/components/schemas/MarchIntent"

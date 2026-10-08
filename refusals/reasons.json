@@ -231,15 +231,22 @@
   "march.notCamping": [],
   "march.overCapacity": [
     "capacity",
-    "sent"
+    "sent",
+    "hero"
   ],
   "march.ownCamp": [],
   "march.ownShield": [
     "level"
   ],
   "march.ownVillage": [],
+  "march.sameRole": [
+    "heroes"
+  ],
   "march.targetFallShield": [],
   "march.targetShielded": [],
+  "march.tooManyHeroes": [
+    "max"
+  ],
   "march.wrongUnits": [
     "unit",
     "hero"

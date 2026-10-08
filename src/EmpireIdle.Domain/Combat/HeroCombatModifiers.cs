@@ -19,26 +19,73 @@ namespace EmpireIdle.Domain.Combat
 
         private readonly GameCatalog _catalog;
         private readonly HeroSkills _skills;
+        private readonly HeroConvoys _convoys;
 
         public HeroCombatModifiers(GameCatalog catalog)
         {
             _catalog = catalog;
             _skills = new HeroSkills(catalog.Config.HeroSettings);
+            _convoys = new HeroConvoys(catalog.Config.HeroSettings);
         }
 
-        /// <summary>Бонуси, які цей герой дає своєму стеку.</summary>
+        /// <summary>
+        /// Бонуси, які цей герой дає своєму стеку. Так діє лідер гарнізону: його бонус —
+        /// на всю оборону, з ціллю кожного вміння як є.
+        /// </summary>
         public StackBuff For(Hero? hero)
         {
-            // Бонус гасить поранення й ринок. Deployed — звичайний стан героя, що веде марш,
-            // і саме в ньому він б'ється; IsAvailable тут хибний критерій
-            if (hero is null || hero.State == HeroState.Wounded)
-                return StackBuff.None;
+            var (attack, defense) = Percents(hero);
 
-            if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Skills.Count == 0)
-                return StackBuff.None;
+            return attack.Count == 0 && defense.Count == 0 ? StackBuff.None : new StackBuff(attack, defense);
+        }
 
+        /// <summary>
+        /// Бонуси героїв маршу (GDD §6.1, рішення 08.10.2026): кожен герой веде конвої своєї ролі,
+        /// і його бойові вміння діють лише на них — ціль «усе військо» стає «мої конвої»,
+        /// а ціль чужого типу юнітів у марші нічого не дає. Без ролей у конфігу — як For для кожного.
+        /// </summary>
+        public StackBuff ForMarch(IEnumerable<Hero?> heroes)
+        {
             var attack = new Dictionary<string, double>();
             var defense = new Dictionary<string, double>();
+
+            foreach (var hero in heroes)
+            {
+                var (heroAttack, heroDefense) = Percents(hero);
+                var own = hero is null ? null : _convoys.UnitOf(_catalog.FindHero(hero.HeroKey));
+
+                Merge(attack, heroAttack, own);
+                Merge(defense, heroDefense, own);
+            }
+
+            return attack.Count == 0 && defense.Count == 0 ? StackBuff.None : new StackBuff(attack, defense);
+        }
+
+        private static void Merge(Dictionary<string, double> into, Dictionary<string, double> from, string? ownUnit)
+        {
+            foreach (var (target, percent) in from)
+            {
+                // Роль не задана — бонус як є; задана — лише на власні конвої
+                var key = ownUnit is null ? target : target == AllUnits || target == ownUnit ? ownUnit : null;
+
+                if (key is not null)
+                    into[key] = into.GetValueOrDefault(key, 0.0) + percent;
+            }
+        }
+
+        /// <summary>Сирі відсотки відкритих бойових вмінь героя за ціллю.</summary>
+        private (Dictionary<string, double> Attack, Dictionary<string, double> Defense) Percents(Hero? hero)
+        {
+            var attack = new Dictionary<string, double>();
+            var defense = new Dictionary<string, double>();
+
+            // Бонус гасить поранення. Deployed — звичайний стан героя, що веде марш,
+            // і саме в ньому він б'ється; IsAvailable тут хибний критерій
+            if (hero is null || hero.State == HeroState.Wounded)
+                return (attack, defense);
+
+            if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Skills.Count == 0)
+                return (attack, defense);
 
             // Бонус війську дає кожне відкрите бойове вміння — і пасивка, і активне з періодичним:
             // ті в данжі б'ють самі, а в армійському бою черги ходів немає (GDD §6.1)
@@ -63,7 +110,7 @@ namespace EmpireIdle.Domain.Combat
                 bucket[target] = bucket.GetValueOrDefault(target, 0.0) + percent;
             }
 
-            return new StackBuff(attack, defense);
+            return (attack, defense);
         }
     }
 }

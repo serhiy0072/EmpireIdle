@@ -108,9 +108,9 @@ namespace EmpireIdle.Application.Territory.Services
 
             var defenceBuffs = new DefenceBuffs(
                 StackBuff.None,
-                stationed.Where(h => h.IsLeader).ToDictionary(h => h.PlayerId, h => _heroModifiers.For(h)));
+                stationed.GroupBy(h => h.PlayerId).ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g)));
 
-            var attackerHero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
+            var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                     attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
@@ -123,7 +123,7 @@ namespace EmpireIdle.Application.Territory.Services
 
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
                 attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.For(attackerHero), defenceBuffs);
+                _heroModifiers.ForMarch(attackerHeroes), defenceBuffs);
 
             var result = outcome.Battle;
 

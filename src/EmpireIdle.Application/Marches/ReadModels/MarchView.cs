@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Marches.ReadModels
         int TargetY,
         MarchIntent Intent,
         MarchState State,
-        Guid? HeroId,
+        IReadOnlyList<Guid> HeroIds,
         DateTime DepartedAt,
         DateTime LegStartedAt,
         DateTime ArrivesAt,

@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Services;
 using FluentValidation;
 
 namespace EmpireIdle.Application.Marches.Validators
@@ -12,6 +13,12 @@ namespace EmpireIdle.Application.Marches.Validators
             RuleFor(x => x.TargetType).IsInEnum();
             RuleFor(x => x.TargetId).NotEmpty();
             RuleFor(x => x.Units).NotNull();
+
+            // До трьох героїв різних ролей (GDD §6.1): роль сервер звіряє з конфігом, тут — лише форма
+            RuleFor(x => x.HeroIds).NotEmpty()
+                .Must(ids => ids.Count <= HeroConvoys.MaxHeroesPerMarch).WithMessage($"A march takes at most {HeroConvoys.MaxHeroesPerMarch} heroes.")
+                .Must(ids => ids.Distinct().Count() == ids.Count).WithMessage("A hero cannot lead the same march twice.");
+            RuleForEach(x => x.HeroIds).NotEmpty();
             RuleFor(x => x.Intent).IsInEnum();
 
             // Підкріплення може складатись із самого героя — хендлер і доставка це підтримують.

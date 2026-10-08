@@ -301,11 +301,17 @@
         /// <summary>Вміння вже на найвищому рівні; level — стеля рівня вмінь.</summary>
         public static readonly RefusalReason HeroSkillMaxed = new("hero.skillMaxed", "level");
 
-        /// <summary>Герой веде лише юнітів своєї ролі (GDD §6.1); unit — тип, якого він не веде, hero — ім'я героя.</summary>
+        /// <summary>Жоден герой маршу не веде цей тип юнітів (GDD §6.1); unit — тип, hero — імена героїв маршу.</summary>
         public static readonly RefusalReason MarchWrongUnits = new("march.wrongUnits", "unit", "hero");
 
-        /// <summary>Юнітів більше, ніж конвоїв у героя; capacity — скільки він веде, sent — скільки відправлено.</summary>
-        public static readonly RefusalReason MarchOverCapacity = new("march.overCapacity", "capacity", "sent");
+        /// <summary>Юнітів більше, ніж конвоїв у героя; capacity — скільки він веде, sent — скільки відправлено, hero — хто.</summary>
+        public static readonly RefusalReason MarchOverCapacity = new("march.overCapacity", "capacity", "sent", "hero");
+
+        /// <summary>Двоє героїв однієї ролі в марші (GDD §6.1); heroes — хто саме.</summary>
+        public static readonly RefusalReason MarchSameRole = new("march.sameRole", "heroes");
+
+        /// <summary>Героїв більше, ніж бере марш; max — скільки можна.</summary>
+        public static readonly RefusalReason MarchTooManyHeroes = new("march.tooManyHeroes", "max");
 
         /// <summary>Табір доступний, коли поза ним щонайменше need героїв (GDD §6.1); have — скільки зараз.</summary>
         public static readonly RefusalReason CampUnavailable = new("camp.unavailable", "need", "have");

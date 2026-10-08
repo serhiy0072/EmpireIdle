@@ -78,11 +78,11 @@ namespace EmpireIdle.Application.Territory.Services
                 return;
             }
 
-            var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
+            var heroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
             // Сила маршу, а не кількість маршів: один сильний прискорює більше за кілька слабких
             var power = _combat.CalculatePower(units, _terrain.GetTerrainType(march.ServerId, structure.X, structure.Y),
-                isAttacker: true, _heroModifiers.For(hero));
+                isAttacker: true, _heroModifiers.ForMarch(heroes));
 
             var accelerated = structure.Accelerate(_rules.BuildShareFor(power), _rules.MaxBuildShare, utcNow);
 
@@ -93,12 +93,16 @@ namespace EmpireIdle.Application.Territory.Services
                 structureGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, accepted,
                     _rules.GarrisonCapacity, utcNow);
 
-            // Герой лишається завжди: слота гарнізону він не займає, а бонус тримає над своїм стеком
-            if (hero is not null)
-            {
-                var leader = await _heroRepository.GetLeaderAsync(structureGarrison.Id, hero.PlayerId, cancellationToken);
+            // Герої лишаються завжди: слота гарнізону вони не займають, а бонус тримають над своїми конвоями
+            var leaderTaken = false;
 
-                hero.Arrive(structureGarrison.Id, leaderSlotFree: leader is null, utcNow);
+            foreach (var hero in heroes)
+            {
+                var leaderFree = !leaderTaken
+                    && await _heroRepository.GetLeaderAsync(structureGarrison.Id, hero.PlayerId, cancellationToken) is null;
+
+                hero.Arrive(structureGarrison.Id, leaderSlotFree: leaderFree, utcNow);
+                leaderTaken |= leaderFree;
             }
 
             if (rejected.Count > 0)

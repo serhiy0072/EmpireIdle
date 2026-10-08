@@ -83,7 +83,7 @@ namespace EmpireIdle.Application.Marches.Queries
                     march.TargetY,
                     march.Intent,
                     march.State,
-                    heroes[march.Id].SingleOrDefault()?.Id,
+                    heroes[march.Id].Select(h => h.Id).ToList(),
                     march.DepartedAt,
                     march.LegStartedAt,
                     march.ArrivesAt,

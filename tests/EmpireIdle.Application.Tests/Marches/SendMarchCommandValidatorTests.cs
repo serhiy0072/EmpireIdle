@@ -11,7 +11,7 @@ public class SendMarchCommandValidatorTests
     private static readonly SendMarchCommandValidator Validator = new();
 
     private static SendMarchCommand Command(MarchIntent intent, Dictionary<UnitStackKey, int> units) =>
-        new(Guid.NewGuid(), MarchTargetType.Village, Guid.NewGuid(), units, Guid.NewGuid(), intent);
+        new(Guid.NewGuid(), MarchTargetType.Village, Guid.NewGuid(), units, [Guid.NewGuid()], intent);
 
     [Fact]
     public void Validate_ShouldAccept_AHeroOnlyReinforcement()

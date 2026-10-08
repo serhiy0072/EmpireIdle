@@ -22,9 +22,12 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Кілька героїв одним запитом — для вітрини ринку, лише читання.</summary>
         Task<List<Hero>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
 
+        /// <summary>Герої за id з трекінгом — для відправки маршу, що веде кількох героїв і змінює їхній стан.</summary>
+        Task<List<Hero>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Герої, що йдуть із цим маршем (GDD §6.1), з трекінгом: бій, прибуття й поранення
-        /// змінюють їхній стан. Порожньо — колона без героя (залишок підкріплення додому).
+        /// змінюють їхній стан. Порожньо — колона без героїв (залишок підкріплення додому).
         /// </summary>
         Task<List<Hero>> GetByMarchAsync(Guid marchId, CancellationToken cancellationToken = default);
 

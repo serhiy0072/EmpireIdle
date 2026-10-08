@@ -204,16 +204,16 @@ namespace EmpireIdle.Application.Marches.Services
                     if (campHome is null)
                         throw new EntityNotFoundException("Camp", targetId);
 
-                    var campHero = (await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken)).SingleOrDefault();
+                    var campHeroes = await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken);
 
                     return new MarchTarget(
                         camp.TargetX, camp.TargetY,
                         campHome.Name,
                         _status.MainBuildingLevel(campHome),
                         Village: null,
-                        // Армія табору — одного власника; його герой веде її й у обороні
+                        // Армія табору — одного власника; його герої ведуть свої конвої й у обороні
                         DefenceStacks.FromArmy(camp.GetUnits()),
-                        new DefenceBuffs(_heroModifiers.For(campHero), new Dictionary<Guid, StackBuff>()),
+                        new DefenceBuffs(_heroModifiers.ForMarch(campHeroes), new Dictionary<Guid, StackBuff>()),
                         // Стін у полі немає (§2.5); територія — за клітинкою табору
                         await _territoryBonus.DefenceMultiplierAtAsync(
                             campHome.PlayerId, camp.TargetX, camp.TargetY, utcNow, cancellationToken),
@@ -236,9 +236,11 @@ namespace EmpireIdle.Application.Marches.Services
 
             return new DefenceBuffs(
                 _heroModifiers.For(stationed.FirstOrDefault(h => h.IsLeader && h.PlayerId == hostPlayerId)),
+                // Союзник прийшов із кількома героями — кожен підсилює власні конвої (GDD §6.1)
                 stationed
-                    .Where(h => h.IsLeader && h.PlayerId != hostPlayerId)
-                    .ToDictionary(h => h.PlayerId, h => _heroModifiers.For(h)));
+                    .Where(h => h.PlayerId != hostPlayerId)
+                    .GroupBy(h => h.PlayerId)
+                    .ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g)));
         }
 
         /// <summary>

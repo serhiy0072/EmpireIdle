@@ -20,7 +20,7 @@ namespace EmpireIdle.Application.Marches.Queries
         Guid PlayerId,
         MarchTargetType TargetType,
         Guid TargetId,
-        Guid HeroId,
+        IReadOnlyList<Guid> HeroIds,
         Dictionary<UnitStackKey, int> Units) : IRequest<BattlePreviewResult>, IPlayerScopedRequest;
 
     public sealed class GetBattlePreviewQueryHandler : IRequestHandler<GetBattlePreviewQuery, BattlePreviewResult>
@@ -102,27 +102,27 @@ namespace EmpireIdle.Application.Marches.Queries
             // Чужий або неіснуючий герой рахується як відсутній: прев'ю нічого
             // не міняє, відмовить SendMarchCommand. Але й підставити чужого героя
             // не можна — інакше прев'ю розкривало б його пасивки й швидкість
-            var hero = await _heroRepository.GetByIdAsync(request.HeroId, cancellationToken);
-            var attackerHero = hero?.PlayerId == request.PlayerId ? hero : null;
+            var attackerHeroes = (await _heroRepository.GetByIdsReadOnlyAsync(request.HeroIds.Distinct().ToList(), cancellationToken))
+                .Where(h => h.PlayerId == request.PlayerId)
+                .ToList();
+            var leaders = attackerHeroes.Select(h => (Hero: h, Config: _catalog.FindHero(h.HeroKey))).ToList();
 
             // Та сама формула, що й у бою — інакше прев'ю розійдеться з результатом.
-            // Герой теж той самий, якого гравець збирається відправити: без його
-            // пасивок прев'ю занижувало б силу рівно на їхню величину
+            // Герої теж ті самі, яких гравець збирається відправити: без їхніх
+            // вмінь прев'ю занижувало б силу рівно на їхню величину
             var attackerPower = _combat.CalculatePower(attackerArmy, terrain, isAttacker: true,
-                _heroModifiers.For(attackerHero)) * attackerBonus;
+                _heroModifiers.ForMarch(attackerHeroes)) * attackerBonus;
 
             var defenderPower = _combat.CalculateDefencePower(target.Defence, terrain, target.DefenceBuffs)
                 * target.DefenceMultiplier;
 
-            // Час у дорозі теж із героєм: повільний герой гальмує колону,
+            // Час у дорозі теж із героями: повільний герой гальмує колону,
             // і прев'ю мусить показувати той самий час, що потім і буде
             var travelTime = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, attackerArmy,
-                attackerHero is null
-                    ? null
-                    : _progression.MarchSpeed(_catalog.FindHero(attackerHero.HeroKey)))
+                _progression.MarchSpeed(leaders.Select(l => l.Config)))
                 / await _effectResolver.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
-                / (attackerHero is null ? 1 : _progression.MarchSpeedMultiplier(attackerHero, _catalog.FindHero(attackerHero.HeroKey)));
+                / _progression.MarchSpeedMultiplier(leaders);
 
             return new BattlePreviewResult(
                 _combat.EstimateOdds(attackerPower, defenderPower),

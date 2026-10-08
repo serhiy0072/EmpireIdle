@@ -3,14 +3,14 @@ using EmpireIdle.Domain.Enums;
 namespace EmpireIdle.API.DTOs;
 
 /// <summary>
-/// Запит на відправлення армії: тип цілі, її id, склад військ і намір.
+/// Запит на відправлення армії: тип цілі, її id, склад військ, до трьох героїв різних ролей і намір.
 /// Намір за замовчуванням — атака: старі клієнти його не надсилають.
 /// </summary>
 public record SendMarchRequest(
     MarchTargetType TargetType,
     Guid TargetId,
     Dictionary<string, int> Units,
-    Guid HeroId,
+    List<Guid> HeroIds,
     MarchIntent Intent = MarchIntent.Attack);
 
 /// <summary>
@@ -28,7 +28,7 @@ public record MarchResponse(
     int TargetY,
     MarchIntent Intent,
     MarchState State,
-    Guid? HeroId,
+    IReadOnlyList<Guid> HeroIds,
     DateTime DepartedAt,
     DateTime LegStartedAt,
     DateTime ArrivesAt,
