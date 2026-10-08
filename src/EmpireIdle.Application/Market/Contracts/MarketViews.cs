@@ -4,7 +4,7 @@ namespace EmpireIdle.Application.Market.Contracts
     /// Лот у поданні для клієнта. Назви товарів клієнт бере з каталогу за ItemKey;
     /// деталі екземпляра — лише для свого виду.
     /// </summary>
-    /// <param name="Kind">"Equipment", "Hero" або "Item".</param>
+    /// <param name="Kind">"Equipment" або "Item".</param>
     /// <param name="State">"Active", "Sold", "Cancelled" або "Expired".</param>
     /// <param name="Units">Одиниці ціни: Power або кількість штук.</param>
     public record MarketListingView(
@@ -19,13 +19,10 @@ namespace EmpireIdle.Application.Market.Contracts
         DateTime ExpiresAt,
         string State,
         bool IsOwn,
-        MarketEquipmentView? Equipment,
-        MarketHeroView? Hero);
+        MarketEquipmentView? Equipment);
 
     /// <param name="Slot">"Weapon" або "Artifact".</param>
     public record MarketEquipmentView(string Slot, string Rarity, int EnhancementLevel, IReadOnlyDictionary<string, double> Stats);
-
-    public record MarketHeroView(int Level, int Tier, int StarParts);
 
     /// <summary>Сторінка вітрини.</summary>
     public record MarketPageView(IReadOnlyList<MarketListingView> Listings, int Total, int Page, int PageSize);

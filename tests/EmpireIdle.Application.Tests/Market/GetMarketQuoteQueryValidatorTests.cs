@@ -12,7 +12,7 @@ public class GetMarketQuoteQueryValidatorTests
     [Fact]
     public void Validate_ShouldReject_UnknownKind()
     {
-        var result = Validator.Validate(new GetMarketQuoteQuery(Guid.NewGuid(), (MarketListingKind)99, null, null, null, 1));
+        var result = Validator.Validate(new GetMarketQuoteQuery(Guid.NewGuid(), (MarketListingKind)99, null, null, 1));
 
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(GetMarketQuoteQuery.Kind));
     }
@@ -20,7 +20,7 @@ public class GetMarketQuoteQueryValidatorTests
     [Fact]
     public void Validate_ShouldReject_BatchAboveTheListingCap()
     {
-        var result = Validator.Validate(new GetMarketQuoteQuery(Guid.NewGuid(), MarketListingKind.Item, null, null, "potion",
+        var result = Validator.Validate(new GetMarketQuoteQuery(Guid.NewGuid(), MarketListingKind.Item, null, "potion",
             ListOnMarketCommandValidator.MaxQuantity + 1));
 
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(GetMarketQuoteQuery.Quantity));
@@ -29,7 +29,7 @@ public class GetMarketQuoteQueryValidatorTests
     [Fact]
     public void Validate_ShouldAccept_AnUnfinishedItemForm()
     {
-        var result = Validator.Validate(new GetMarketQuoteQuery(Guid.NewGuid(), MarketListingKind.Item, null, null, "potion", 0));
+        var result = Validator.Validate(new GetMarketQuoteQuery(Guid.NewGuid(), MarketListingKind.Item, null, "potion", 0));
 
         Assert.True(result.IsValid);
     }

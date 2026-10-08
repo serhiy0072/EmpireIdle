@@ -34,11 +34,10 @@ public class MarketPricingTests
     }
 
     [Fact]
-    public void CategoryOf_ShouldSeparateWeaponsArtifactsHeroRanksAndItems()
+    public void CategoryOf_ShouldSeparateWeaponsArtifactsAndItems()
     {
         Assert.Equal("weapon", MarketPricing.CategoryOf(EquipmentSlot.Weapon));
         Assert.Equal("artifact", MarketPricing.CategoryOf(EquipmentSlot.Artifact));
-        Assert.Equal("hero.Unique", MarketPricing.CategoryOf(Rarity.Unique));
         Assert.Equal("item.boost", MarketPricing.CategoryOfItem("boost"));
     }
 

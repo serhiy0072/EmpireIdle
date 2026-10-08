@@ -478,7 +478,6 @@ namespace EmpireIdle.Domain.Services
                 .Concat(config.Items
                     .Where(i => i.Slot is not null)
                     .Select(i => MarketPricing.CategoryOf(i.Slot!.Value)))
-                .Concat(config.Heroes.Select(h => MarketPricing.CategoryOf(h.Rank)))
                 .Distinct()
                 .ToList();
 

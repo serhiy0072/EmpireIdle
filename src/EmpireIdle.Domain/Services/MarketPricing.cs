@@ -18,10 +18,10 @@ namespace EmpireIdle.Domain.Services
 
     /// <summary>
     /// Ціни ринку (GDD §8.8): категорія товару, якір, медіана продажів
-    /// і коридор навколо неї. Категорії пишуться через крапку («hero.Rare»,
+    /// і коридор навколо неї. Категорії пишуться через крапку («weapon»,
     /// «item.teleport»): двокрапка в ключі конфіга .NET означає вкладеність.
     ///
-    /// Одиниця ціни — Power для спорядження й героїв і штука для стакових
+    /// Одиниця ціни — Power для спорядження і штука для стакових
     /// предметів. Інакше меч +15 і меч +0 мусили б продаватись у тому
     /// самому коридорі, а коридор втратив би сенс.
     ///
@@ -43,9 +43,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Категорія спорядження: зброя й артефакти мають різну ціну сили.</summary>
         public static string CategoryOf(EquipmentSlot slot)
             => slot == EquipmentSlot.Weapon ? "weapon" : "artifact";
-
-        /// <summary>Категорія героя: унікальний герой тієї самої сили цінніший за звичайного.</summary>
-        public static string CategoryOf(Rarity heroRank) => $"hero.{heroRank}";
 
         /// <summary>Стаковий предмет — сам собі категорія.</summary>
         public static string CategoryOfItem(string itemKey) => $"item.{itemKey}";

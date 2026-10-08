@@ -15,10 +15,7 @@
       "GoldPerGem": 100,
       "GoldPerPower": {
         "weapon": 10,
-        "artifact": 10,
-        "hero.Common": 10,
-        "hero.Rare": 20,
-        "hero.Unique": 40
+        "artifact": 10
       }
     }
   }

@@ -263,9 +263,6 @@
 
         public static readonly RefusalReason HeroOnTheMove = new("hero.onTheMove");
 
-        /// <summary>Герой виставлений на ринок: спершу зніміть лот.</summary>
-        public static readonly RefusalReason HeroOnMarket = new("hero.onMarket");
-
         public static readonly RefusalReason HeroLevelCeiling = new("hero.levelCeiling", "hero", "ceiling");
 
 
@@ -330,13 +327,6 @@
         public static readonly RefusalReason MarketNotEnoughItems = new("market.notEnoughItems", "item", "need", "have");
 
         public static readonly RefusalReason MarketResaleCooldown = new("market.resaleCooldown", "until");
-
-        /// <summary>Герой не вдома, у поході, пораненій чи на ринку.</summary>
-        public static readonly RefusalReason MarketHeroBusy = new("market.heroBusy");
-
-
-        /// <summary>Такий герой у покупця вже є — купівля обійшла б сузір'я.</summary>
-        public static readonly RefusalReason MarketHeroAlreadyOwned = new("market.heroAlreadyOwned", "hero");
 
         /// <summary>Предмет у заставі ринку.</summary>
         public static readonly RefusalReason MarketItemListed = new("market.itemListed");

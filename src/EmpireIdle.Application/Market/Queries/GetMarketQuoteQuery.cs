@@ -9,7 +9,7 @@ using MediatR;
 namespace EmpireIdle.Application.Market.Queries
 {
     /// <summary>Котирування для форми виставлення: діапазон ціни для конкретного товару.</summary>
-    public record GetMarketQuoteQuery(Guid PlayerId, MarketListingKind Kind, Guid? EquipmentId, Guid? HeroId,
+    public record GetMarketQuoteQuery(Guid PlayerId, MarketListingKind Kind, Guid? EquipmentId,
         string? ItemKey, int Quantity) : IRequest<MarketQuoteView>, IPlayerScopedRequest;
 
     public sealed class GetMarketQuoteQueryHandler : IRequestHandler<GetMarketQuoteQuery, MarketQuoteView>
@@ -29,7 +29,7 @@ namespace EmpireIdle.Application.Market.Queries
         {
             // Та сама оцінка, що й при виставленні: форма не може показати діапазон,
             // якого команда потім не прийме
-            var goods = await _goods.AppraiseAsync(request.PlayerId, request.Kind, request.EquipmentId, request.HeroId,
+            var goods = await _goods.AppraiseAsync(request.PlayerId, request.Kind, request.EquipmentId,
                 request.ItemKey, Math.Max(1, request.Quantity), cancellationToken);
 
             var corridor = await _desk.CorridorAsync(goods.PricingKey, cancellationToken);

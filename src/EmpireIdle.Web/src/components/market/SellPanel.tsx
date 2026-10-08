@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useCatalog } from "../../lib/queries/catalog";
-import { useHeroes } from "../../lib/queries/heroes";
 import { useInventory } from "../../lib/queries/inventory";
 import { MARKET_KIND, useListOnMarket, useMarketQuote, type MarketGoods } from "../../lib/queries/market";
 import ErrorBanner from "../ErrorBanner";
@@ -28,7 +27,6 @@ interface Option {
 export default function SellPanel({ playerId, canList, onListed }: Props) {
   const catalog = useCatalog();
   const inventory = useInventory(playerId);
-  const heroes = useHeroes(playerId);
   const list = useListOnMarket(playerId);
 
   const [selectedId, setSelectedId] = useState("");
@@ -44,14 +42,6 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
         goods: { kind: MARKET_KIND.Equipment, equipmentId: item.id, quantity: 1 },
       }));
 
-    const heroOptions = (heroes.data?.heroes ?? [])
-      .filter((hero) => hero.state === "Idle" && hero.stationedGarrisonId != null)
-      .map((hero) => ({
-        id: `h:${hero.id}`,
-        label: `${catalog.heroName(hero.heroKey)} · рів. ${hero.level}`,
-        goods: { kind: MARKET_KIND.Hero, heroId: hero.id, quantity: 1 },
-      }));
-
     const stacks = (inventory.data?.items ?? [])
       .filter((item) => item.count > 0 && catalog.item(item.itemKey)?.tradeable === true)
       .map((item) => ({
@@ -61,8 +51,8 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
         available: item.count,
       }));
 
-    return [...equipment, ...heroOptions, ...stacks];
-  }, [inventory.data, heroes.data, catalog]);
+    return [...equipment, ...stacks];
+  }, [inventory.data, catalog]);
 
   const selected = options.find((option) => option.id === selectedId) ?? null;
   const safeQuantity = selected?.available !== undefined ? Math.min(selected.available, Math.max(1, quantity)) : 1;
@@ -145,7 +135,6 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
 
           <p className="text-xs text-slate-500">
             Податок за виставлення — {tax.toLocaleString("uk-UA")} 🪙, не повертається навіть якщо зняти лот.
-            {selected?.goods.kind === MARKET_KIND.Hero && " Спорядження героя лишиться у вас."}
           </p>
 
           <button

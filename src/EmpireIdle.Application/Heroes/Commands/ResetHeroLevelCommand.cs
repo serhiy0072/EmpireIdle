@@ -56,9 +56,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (hero.State == HeroState.Deployed)
                 throw new InvalidStateException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on a march and cannot be reset.");
 
-            if (hero.State == HeroState.OnMarket)
-                throw new InvalidStateException(RefusalReasons.HeroOnMarket, $"Hero {hero.Id} is on the market and cannot be reset.");
-
             // Скидати нічого — тихо нічого й не робимо: повтор кліку не має бути помилкою
             if (hero.Level <= 1)
                 return;

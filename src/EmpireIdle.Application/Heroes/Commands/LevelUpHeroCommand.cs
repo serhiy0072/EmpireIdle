@@ -50,10 +50,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (hero.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
-            // Лот продається за силу на момент виставлення — прокачаний на ринку герой обдурив би покупця
-            if (hero.State == HeroState.OnMarket)
-                throw new InvalidStateException(RefusalReasons.HeroOnMarket, $"Hero {hero.Id} is on the market and cannot be levelled.");
-
             var target = hero.Level + request.Levels;
 
             if (target > _progression.MaxLevel)

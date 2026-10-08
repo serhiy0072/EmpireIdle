@@ -55,12 +55,7 @@ internal sealed class MarketTestBed
         {
             BuildingKey = Market,
             GoldPerGem = 100,
-            GoldPerPower = config.Heroes
-                .Select(h => MarketPricing.CategoryOf(h.Rank))
-                .Append("weapon")
-                .Append("artifact")
-                .Distinct()
-                .ToDictionary(key => key, _ => 10.0)
+            GoldPerPower = new Dictionary<string, double> { ["weapon"] = 10.0, ["artifact"] = 10.0 }
         };
 
         Catalog = new GameCatalog(config);
@@ -78,11 +73,11 @@ internal sealed class MarketTestBed
 
     public MarketDesk Desk => new(MarketRepository, Pricing, new VillageStatus(Catalog), Catalog);
 
-    public MarketGoods Goods => new(Inventory, Heroes, Villages, Garrisons,
+    public MarketGoods Goods => new(Inventory,
         new ItemGranter(Inventory, ServerContext, Substitute.For<IRandomSource>(), new ArtifactRoller(Catalog.Config.Equipment)),
         HeroStats, Catalog);
 
-    public MarketListingProjection Projection => new(Inventory, Heroes, Catalog);
+    public MarketListingProjection Projection => new(Inventory, Catalog);
 
     public long Gold(Village village) => village.Resources.Single(r => r.ResourceType == TestKeys.Gold).Amount;
 
@@ -115,10 +110,10 @@ internal sealed class MarketTestBed
     }
 
     /// <summary>Активний лот, як його лишило б виставлення.</summary>
-    public MarketListing GivenListing(MarketListingKind kind, Guid? equipmentId = null, Guid? heroId = null,
+    public MarketListing GivenListing(MarketListingKind kind, Guid? equipmentId = null,
         string itemKey = TestKeys.Weapon, int quantity = 1, double units = 10, int price = 100)
     {
-        var listing = new MarketListing(Guid.NewGuid(), 1, Seller, kind, equipmentId, heroId, itemKey, quantity, units,
+        var listing = new MarketListing(Guid.NewGuid(), 1, Seller, kind, equipmentId, itemKey, quantity, units,
             "weapon", price, taxGold: 5, Now, TimeSpan.FromHours(48));
 
         MarketRepository.GetByIdAsync(listing.Id, Arg.Any<CancellationToken>()).Returns(listing);

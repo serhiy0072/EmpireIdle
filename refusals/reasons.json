@@ -158,7 +158,6 @@
   "hero.notOwned": [
     "hero"
   ],
-  "hero.onMarket": [],
   "hero.onTheMove": [],
   "hero.shardUpgradeLocked": [
     "rarity"
@@ -215,10 +214,6 @@
   "march.ownVillage": [],
   "march.targetFallShield": [],
   "march.targetShielded": [],
-  "market.heroAlreadyOwned": [
-    "hero"
-  ],
-  "market.heroBusy": [],
   "market.itemListed": [],
   "market.listingClosed": [],
   "market.listingLimit": [

@@ -21,7 +21,7 @@ public class ListOnMarketCommandTests
         _bed.UnitOfWork, new FakeTimeProvider(MarketTestBed.Now), NullLogger<ListOnMarketCommandHandler>.Instance);
 
     private Task<Guid> ListSword(Guid swordId, int price)
-        => Handler().Handle(new ListOnMarketCommand(_bed.Seller, MarketListingKind.Equipment, swordId, null, null, 1, price),
+        => Handler().Handle(new ListOnMarketCommand(_bed.Seller, MarketListingKind.Equipment, swordId, null, 1, price),
             CancellationToken.None);
 
     [Fact]
@@ -53,7 +53,7 @@ public class ListOnMarketCommandTests
             bed.ServerContext, bed.UnitOfWork, new FakeTimeProvider(MarketTestBed.Now), NullLogger<ListOnMarketCommandHandler>.Instance);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => handler.Handle(
-            new ListOnMarketCommand(bed.Seller, MarketListingKind.Equipment, sword.Id, null, null, 1, 100), CancellationToken.None));
+            new ListOnMarketCommand(bed.Seller, MarketListingKind.Equipment, sword.Id, null, 1, 100), CancellationToken.None));
 
         Assert.Equal(RefusalReasons.MarketLocked.Key, refusal.Reason);
         Assert.Equal(MarketTestBed.MarketOpensAt, refusal.Args["level"]);
@@ -106,7 +106,7 @@ public class ListOnMarketCommandTests
         var stack = _bed.GivenTonics(_bed.Seller, count: 10);
 
         // Якір: 5 gems × 100 = 500 за штуку, коридор на 4 штуки — 1400–2600
-        await Handler().Handle(new ListOnMarketCommand(_bed.Seller, MarketListingKind.Item, null, null, MarketTestBed.Tonic, 4, 2000),
+        await Handler().Handle(new ListOnMarketCommand(_bed.Seller, MarketListingKind.Item, null, MarketTestBed.Tonic, 4, 2000),
             CancellationToken.None);
 
         Assert.Equal(6, stack.Count);
@@ -121,7 +121,7 @@ public class ListOnMarketCommandTests
         _bed.GivenTonics(_bed.Seller, count: 2);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Handler().Handle(
-            new ListOnMarketCommand(_bed.Seller, MarketListingKind.Item, null, null, MarketTestBed.Tonic, 4, 2000),
+            new ListOnMarketCommand(_bed.Seller, MarketListingKind.Item, null, MarketTestBed.Tonic, 4, 2000),
             CancellationToken.None));
 
         Assert.Equal(RefusalReasons.MarketNotEnoughItems.Key, refusal.Reason);
@@ -134,24 +134,9 @@ public class ListOnMarketCommandTests
         var essence = _bed.Catalog.Config.Items.First(i => i.Type == "evolution");
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Handler().Handle(
-            new ListOnMarketCommand(_bed.Seller, MarketListingKind.Item, null, null, essence.Key, 1, 100),
+            new ListOnMarketCommand(_bed.Seller, MarketListingKind.Item, null, essence.Key, 1, 100),
             CancellationToken.None));
 
         Assert.Equal(RefusalReasons.MarketNotTradeable.Key, refusal.Reason);
-    }
-
-    /// <summary>Герой іде на ринок без гарнізону й лідерства; одиниця ціни — його Power.</summary>
-    [Fact]
-    public async Task Handle_ShouldListAHeroAtItsPower()
-    {
-        var hero = _bed.GivenHero(_bed.Seller);
-        var power = _bed.HeroStats.Power(hero, _bed.Catalog.Hero(hero.HeroKey));
-        var price = (int)(power * 10);
-
-        await Handler().Handle(new ListOnMarketCommand(_bed.Seller, MarketListingKind.Hero, null, hero.Id, null, 1, price),
-            CancellationToken.None);
-
-        Assert.Equal(HeroState.OnMarket, hero.State);
-        Assert.Equal(power, Assert.Single(_bed.Added).Units, 3);
     }
 }

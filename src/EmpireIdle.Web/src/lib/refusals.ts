@@ -158,7 +158,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
 
   // ---------- Герої ----------
   "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
-  "hero.onMarket": () => "Герой виставлений на ринок — спершу зніміть лот",
   "hero.levelCeiling": ({ hero, ceiling }) => `${hero} уже на найвищому рівні — ${ceiling}`,
   "hero.worldLevelRequired": ({ required, current }) =>
     `Наступний тір відкриється на рівні світу ${required} (зараз ${current})`,
@@ -187,8 +186,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "market.notTradeable": ({ item }) => `«${item}» не продається на ринку`,
   "market.notEnoughItems": ({ item, need, have }) => `Не вистачає «${item}»: потрібно ${need}, є ${have}`,
   "market.resaleCooldown": ({ until }) => `Щойно куплене можна перепродати після ${localTime(until)}`,
-  "market.heroBusy": () => "Виставити можна лише героя, що вдома й вільний",
-  "market.heroAlreadyOwned": ({ hero }) => `${hero} уже у вашому загоні — другого такого купити не можна`,
   "market.itemListed": () => "Предмет виставлений на ринок — спершу зніміть лот",
   "market.listingClosed": () => "Лот уже продано або знято",
   "market.ownListing": () => "Це ваш власний лот",

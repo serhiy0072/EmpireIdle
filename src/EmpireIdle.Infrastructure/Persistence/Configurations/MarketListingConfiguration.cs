@@ -23,10 +23,9 @@ public class MarketListingConfiguration : IEntityTypeConfiguration<MarketListing
 
         var active = $"\"State\" = {(int)MarketListingState.Active}";
 
-        // Один активний лот на екземпляр і на героя. Арбітр — індекс: два
+        // Один активний лот на екземпляр. Арбітр — індекс: два
         // паралельні виставлення інакше продали б той самий меч двічі
         builder.HasIndex(l => l.EquipmentId).IsUnique().HasFilter($"\"EquipmentId\" IS NOT NULL AND {active}");
-        builder.HasIndex(l => l.HeroId).IsUnique().HasFilter($"\"HeroId\" IS NOT NULL AND {active}");
 
         // Сканер строків дивиться лише на активні
         builder.HasIndex(l => l.ExpiresAt).HasFilter(active);

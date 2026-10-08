@@ -5,7 +5,6 @@ import type { MarketListingView } from "../../lib/queries/market";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { statLabel } from "../../lib/statNames";
 import { formatRemaining } from "../../lib/time";
-import HeroPortrait from "../heroes/HeroPortrait";
 import ItemIcon from "../inventory/ItemIcon";
 
 interface Props {
@@ -25,18 +24,13 @@ export default function ListingCard({ listing, action }: Props) {
   const catalog = useCatalog();
   const now = useNow();
 
-  const hero = listing.kind === "Hero" ? catalog.hero(listing.itemKey) : null;
-  const name = hero !== null ? catalog.heroName(listing.itemKey) : catalog.itemName(listing.itemKey);
-  const rarity = listing.equipment?.rarity ?? hero?.rank ?? catalog.item(listing.itemKey)?.rarity;
+  const name = catalog.itemName(listing.itemKey);
+  const rarity = listing.equipment?.rarity ?? catalog.item(listing.itemKey)?.rarity;
   const unit = listing.kind === "Item" ? "шт." : "одиницю сили";
 
   return (
     <div className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3">
-      {listing.kind === "Hero" ? (
-        <HeroPortrait heroKey={listing.itemKey} heroClass={hero?.class} rank={hero?.rank} tier={listing.hero?.tier ?? 1} size={48} />
-      ) : (
-        <ItemIcon itemKey={listing.itemKey} type={listing.kind === "Item" ? (catalog.item(listing.itemKey)?.type ?? "item") : "equipment"} rarity={rarity} size={48} />
-      )}
+      <ItemIcon itemKey={listing.itemKey} type={listing.kind === "Item" ? (catalog.item(listing.itemKey)?.type ?? "item") : "equipment"} rarity={rarity} size={48} />
 
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -52,11 +46,6 @@ export default function ListingCard({ listing, action }: Props) {
 
         <div className="flex flex-wrap items-center gap-1 text-xs">
           {rarity !== undefined && <span className={`rounded px-2 py-0.5 ${rarityStyle(rarity)}`}>{rarityLabel(rarity)}</span>}
-          {listing.hero != null && (
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
-              рів. {listing.hero.level} · тір {listing.hero.tier} · зірки {Math.floor(listing.hero.starParts / 6)}
-            </span>
-          )}
           {listing.equipment != null &&
             Object.entries(listing.equipment.stats).map(([stat, value]) => (
               <span key={stat} className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">

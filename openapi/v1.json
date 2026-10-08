@@ -11232,11 +11232,6 @@
             "format": "uuid",
             "nullable": true
           },
-          "heroId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
           "itemKey": {
             "type": "string",
             "nullable": true
@@ -11794,39 +11789,11 @@
             "format": "uuid",
             "nullable": true
           },
-          "heroId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
           "itemKey": {
             "type": "string",
             "nullable": true
           },
           "quantity": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "MarketHeroView": {
-        "required": [
-          "level",
-          "starParts",
-          "tier"
-        ],
-        "type": "object",
-        "properties": {
-          "level": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tier": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "starParts": {
             "type": "integer",
             "format": "int32"
           }
@@ -11849,7 +11816,6 @@
       "MarketListingKind": {
         "enum": [
           1,
-          2,
           3
         ],
         "type": "integer",
@@ -11913,9 +11879,6 @@
           },
           "equipment": {
             "$ref": "#/components/schemas/MarketEquipmentView"
-          },
-          "hero": {
-            "$ref": "#/components/schemas/MarketHeroView"
           }
         },
         "additionalProperties": false

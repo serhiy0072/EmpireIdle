@@ -14,7 +14,6 @@ namespace EmpireIdle.Application.Market.Services
     public sealed record MarketGoodsInfo(
         MarketListingKind Kind,
         Guid? EquipmentId,
-        Guid? HeroId,
         string ItemKey,
         int Quantity,
         double Units,
@@ -22,32 +21,23 @@ namespace EmpireIdle.Application.Market.Services
 
     /// <summary>
     /// Товар ринку в чотирьох станах: оцінка, застава, повернення продавцю
-    /// й передача покупцю. Три види товару поводяться по-різному, і без
+    /// й передача покупцю. Два види товару поводяться по-різному, і без
     /// цього сервісу кожна команда ринку тримала б власну копію розгалуження.
     /// </summary>
     public class MarketGoods
     {
         private readonly IInventoryRepository _inventory;
-        private readonly IHeroRepository _heroes;
-        private readonly IVillageRepository _villages;
-        private readonly IGarrisonRepository _garrisons;
         private readonly ItemGranter _granter;
         private readonly HeroStats _heroStats;
         private readonly GameCatalog _catalog;
 
         public MarketGoods(
             IInventoryRepository inventory,
-            IHeroRepository heroes,
-            IVillageRepository villages,
-            IGarrisonRepository garrisons,
             ItemGranter granter,
             HeroStats heroStats,
             GameCatalog catalog)
         {
             _inventory = inventory;
-            _heroes = heroes;
-            _villages = villages;
-            _garrisons = garrisons;
             _granter = granter;
             _heroStats = heroStats;
             _catalog = catalog;
@@ -58,7 +48,7 @@ namespace EmpireIdle.Application.Market.Services
         /// кількість одиниць. Чуже й неіснуюче не розрізняються — 404.
         /// </summary>
         public async Task<MarketGoodsInfo> AppraiseAsync(Guid playerId, MarketListingKind kind, Guid? equipmentId,
-            Guid? heroId, string? itemKey, int quantity, CancellationToken cancellationToken)
+            string? itemKey, int quantity, CancellationToken cancellationToken)
         {
             switch (kind)
             {
@@ -70,18 +60,8 @@ namespace EmpireIdle.Application.Market.Services
                     if (item.IsBroken)
                         throw new InvalidStateException(RefusalReasons.EquipmentBroken, $"Equipment {item.Id} is broken.");
 
-                    return new MarketGoodsInfo(kind, item.Id, null, item.ItemKey, 1,
+                    return new MarketGoodsInfo(kind, item.Id, item.ItemKey, 1,
                         _heroStats.Power(item), MarketPricing.CategoryOf(item.Slot));
-                }
-
-                case MarketListingKind.Hero:
-                {
-                    var hero = await OwnHeroAsync(playerId, heroId, cancellationToken);
-                    var config = _catalog.FindHero(hero.HeroKey)
-                        ?? throw new EntityNotFoundException("Hero config", hero.HeroKey);
-
-                    return new MarketGoodsInfo(kind, null, hero.Id, hero.HeroKey, 1,
-                        _heroStats.Power(hero, config), MarketPricing.CategoryOf(config.Rank));
                 }
 
                 case MarketListingKind.Item:
@@ -93,7 +73,7 @@ namespace EmpireIdle.Application.Market.Services
                         throw new RequirementNotMetException(RefusalReasons.MarketNotTradeable,
                             $"Item '{key}' is not tradeable.", config.DisplayName);
 
-                    return new MarketGoodsInfo(kind, null, null, key, quantity, quantity, MarketPricing.CategoryOfItem(key));
+                    return new MarketGoodsInfo(kind, null, key, quantity, quantity, MarketPricing.CategoryOfItem(key));
                 }
 
                 default:
@@ -110,14 +90,6 @@ namespace EmpireIdle.Application.Market.Services
                 case MarketListingKind.Equipment:
                     (await OwnEquipmentAsync(playerId, goods.EquipmentId, cancellationToken)).PutOnMarket(utcNow);
                     break;
-
-                case MarketListingKind.Hero:
-                {
-                    var hero = await OwnHeroAsync(playerId, goods.HeroId, cancellationToken);
-
-                    hero.PutOnMarket(utcNow);
-                    break;
-                }
 
                 case MarketListingKind.Item:
                 {
@@ -144,25 +116,13 @@ namespace EmpireIdle.Application.Market.Services
                     (await ListedEquipmentAsync(listing, cancellationToken)).TakeOffMarket(utcNow);
                     break;
 
-                case MarketListingKind.Hero:
-                {
-                    var hero = await ListedHeroAsync(listing, cancellationToken);
-                    var (garrisonId, leaderSlotFree) = await HomeAsync(listing.SellerId, cancellationToken);
-
-                    hero.TakeOffMarket(garrisonId, leaderSlotFree, utcNow);
-                    break;
-                }
-
                 case MarketListingKind.Item:
                     await _granter.GrantAsync(listing.SellerId, listing.ItemKey, listing.Quantity, cancellationToken);
                     break;
             }
         }
 
-        /// <summary>
-        /// Продаж: товар переходить покупцю. Героя, який у покупця вже є,
-        /// купити не можна — інакше це обхід сузір'я.
-        /// </summary>
+        /// <summary>Продаж: товар переходить покупцю.</summary>
         public async Task HandOverAsync(MarketListing listing, Guid buyerId, DateTime utcNow,
             TimeSpan resaleCooldown, CancellationToken cancellationToken)
         {
@@ -173,21 +133,6 @@ namespace EmpireIdle.Application.Market.Services
                 case MarketListingKind.Equipment:
                     (await ListedEquipmentAsync(listing, cancellationToken)).SellTo(buyerId, lockedUntil, utcNow);
                     break;
-
-                case MarketListingKind.Hero:
-                {
-                    var hero = await ListedHeroAsync(listing, cancellationToken);
-
-                    if (await _heroes.GetByKeyAsync(buyerId, hero.HeroKey, cancellationToken) is not null)
-                        throw new RequirementNotMetException(RefusalReasons.MarketHeroAlreadyOwned,
-                            $"Player {buyerId} already has hero '{hero.HeroKey}'.",
-                            _catalog.FindHero(hero.HeroKey)?.DisplayName ?? hero.HeroKey);
-
-                    var (garrisonId, leaderSlotFree) = await HomeAsync(buyerId, cancellationToken);
-
-                    hero.SellTo(buyerId, garrisonId, leaderSlotFree, lockedUntil, utcNow);
-                    break;
-                }
 
                 case MarketListingKind.Item:
                     await _granter.GrantAsync(buyerId, listing.ItemKey, listing.Quantity, cancellationToken);
@@ -206,38 +151,9 @@ namespace EmpireIdle.Application.Market.Services
                 : throw new EntityNotFoundException("Equipment", id.ToString());
         }
 
-        private async Task<Hero> OwnHeroAsync(Guid playerId, Guid? heroId, CancellationToken cancellationToken)
-        {
-            var id = heroId ?? throw new EntityNotFoundException("Hero", "(none)");
-
-            var hero = await _heroes.GetByIdAsync(id, cancellationToken);
-
-            return hero is not null && hero.PlayerId == playerId
-                ? hero
-                : throw new EntityNotFoundException("Hero", id.ToString());
-        }
-
         /// <summary>Товар активного лота зник — це поломка даних, а не дія гравця.</summary>
         private async Task<EquipmentItem> ListedEquipmentAsync(MarketListing listing, CancellationToken cancellationToken)
             => await _inventory.GetEquipmentByIdAsync(listing.EquipmentId!.Value, cancellationToken)
                 ?? throw new InvalidOperationException($"Listing {listing.Id} lost its equipment {listing.EquipmentId}.");
-
-        private async Task<Hero> ListedHeroAsync(MarketListing listing, CancellationToken cancellationToken)
-            => await _heroes.GetByIdAsync(listing.HeroId!.Value, cancellationToken)
-                ?? throw new InvalidOperationException($"Listing {listing.Id} lost its hero {listing.HeroId}.");
-
-        /// <summary>Гарнізон рідного села гравця і чи вільне в ньому місце лідера.</summary>
-        private async Task<(Guid GarrisonId, bool LeaderSlotFree)> HomeAsync(Guid playerId, CancellationToken cancellationToken)
-        {
-            var village = await _villages.GetByPlayerIdAsync(playerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {playerId}.");
-
-            var garrison = await _garrisons.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
-
-            var leader = await _heroes.GetLeaderAsync(garrison.Id, playerId, cancellationToken);
-
-            return (garrison.Id, leader is null);
-        }
     }
 }

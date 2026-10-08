@@ -7,21 +7,19 @@ using EmpireIdle.Domain.Services;
 namespace EmpireIdle.Application.Market.Services
 {
     /// <summary>
-    /// Лоти у view для клієнта. Деталі екземплярів (стати предмета, рівень
-    /// героя) тягнуться двома запитами на сторінку, а не одним на лот.
+    /// Лоти у view для клієнта. Деталі екземплярів (стати предмета) тягнуться
+    /// одним запитом на сторінку, а не одним на лот.
     /// Стати — із заточкою, як в інвентарі: покупець має бачити ті самі
     /// числа, з якими предмет піде в бій.
     /// </summary>
     public class MarketListingProjection
     {
         private readonly IInventoryRepository _inventory;
-        private readonly IHeroRepository _heroes;
         private readonly GameCatalog _catalog;
 
-        public MarketListingProjection(IInventoryRepository inventory, IHeroRepository heroes, GameCatalog catalog)
+        public MarketListingProjection(IInventoryRepository inventory, GameCatalog catalog)
         {
             _inventory = inventory;
-            _heroes = heroes;
             _catalog = catalog;
         }
 
@@ -29,15 +27,10 @@ namespace EmpireIdle.Application.Market.Services
             CancellationToken cancellationToken)
         {
             var equipmentIds = listings.Where(l => l.EquipmentId is not null).Select(l => l.EquipmentId!.Value).ToList();
-            var heroIds = listings.Where(l => l.HeroId is not null).Select(l => l.HeroId!.Value).ToList();
 
             var equipment = equipmentIds.Count == 0
                 ? new Dictionary<Guid, EquipmentItem>()
                 : (await _inventory.GetEquipmentByIdsReadOnlyAsync(equipmentIds, cancellationToken)).ToDictionary(e => e.Id);
-
-            var heroes = heroIds.Count == 0
-                ? new Dictionary<Guid, Hero>()
-                : (await _heroes.GetByIdsReadOnlyAsync(heroIds, cancellationToken)).ToDictionary(h => h.Id);
 
             return listings
                 .Select(listing => new MarketListingView(
@@ -57,10 +50,6 @@ namespace EmpireIdle.Application.Market.Services
                         ? new MarketEquipmentView(item.Slot.ToString(), item.Rarity.ToString(), item.EnhancementLevel,
                             item.Stats.ToDictionary(s => s.StatKey,
                                 s => item.GetStatValue(s.StatKey, _catalog.Config.Equipment.EnhancementBonusPerLevel)))
-                        : null,
-                    listing.Kind == MarketListingKind.Hero
-                        && heroes.TryGetValue(listing.HeroId!.Value, out var hero)
-                        ? new MarketHeroView(hero.Level, hero.Tier, hero.StarParts)
                         : null))
                 .ToList();
         }

@@ -59,7 +59,7 @@ public class MarketPricesAndQueriesTests
         var handler = new GetMarketQuoteQueryHandler(_bed.Goods, _bed.Desk, _bed.Catalog);
 
         var quote = await handler.Handle(
-            new GetMarketQuoteQuery(_bed.Seller, MarketListingKind.Equipment, sword.Id, null, null, 1), CancellationToken.None);
+            new GetMarketQuoteQuery(_bed.Seller, MarketListingKind.Equipment, sword.Id, null, 1), CancellationToken.None);
 
         Assert.Equal(70, quote.MinPrice);
         Assert.Equal(130, quote.MaxPrice);

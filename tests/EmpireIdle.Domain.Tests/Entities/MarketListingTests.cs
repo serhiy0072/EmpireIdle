@@ -14,7 +14,7 @@ public class MarketListingTests
     private static readonly Guid Seller = Guid.NewGuid();
 
     private static MarketListing Listing(int price = 1000, double units = 50)
-        => new(Guid.NewGuid(), 1, Seller, MarketListingKind.Item, null, null, "boost", 5, units,
+        => new(Guid.NewGuid(), 1, Seller, MarketListingKind.Item, null, "boost", 5, units,
             "item.boost", price, taxGold: 50, Now, TimeSpan.FromHours(48));
 
     [Fact]

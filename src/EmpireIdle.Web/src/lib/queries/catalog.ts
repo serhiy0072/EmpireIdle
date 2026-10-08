@@ -197,7 +197,6 @@ const STATES: Record<string, string> = {
   Idle: "Вдома",
   Deployed: "У поході",
   Wounded: "Поранений",
-  OnMarket: "На ринку",
   LevelingUp: "Качається",
 };
 

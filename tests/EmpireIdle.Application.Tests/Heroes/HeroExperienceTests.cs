@@ -117,19 +117,6 @@ public class HeroExperienceTests
         Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
     }
 
-    /// <summary>Герой на ринку продається за силу на момент виставлення — качати його не можна.</summary>
-    [Fact]
-    public async Task LevelUp_ShouldRefuse_AHeroOnTheMarket()
-    {
-        var hero = GivenHero();
-        hero.PutOnMarket(Now);
-        GivenExperience(1_000_000);
-
-        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() => LevelUp(hero, levels: 1));
-
-        Assert.Equal(RefusalReasons.HeroOnMarket.Key, refusal.Reason);
-    }
-
     // ---------- Скидання ----------
 
     /// <summary>Скидання — на перший рівень, у пул повертається все вкладене.</summary>

@@ -87,39 +87,6 @@ public class MarketTradeCommandTests
         Assert.Equal(RefusalReasons.MarketOwnListing.Key, refusal.Reason);
     }
 
-    /// <summary>Героя, який уже є в покупця, купити не можна — інакше це обхід сузір'я.</summary>
-    [Fact]
-    public async Task Buy_ShouldRefuse_AHeroTheBuyerAlreadyHas()
-    {
-        var hero = _bed.GivenHero(_bed.Seller);
-        hero.PutOnMarket(MarketTestBed.Now);
-        _bed.GivenHero(_bed.Buyer);
-        var listing = _bed.GivenListing(MarketListingKind.Hero, heroId: hero.Id, itemKey: hero.HeroKey);
-
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Buy().Handle(new BuyMarketListingCommand(_bed.Buyer, listing.Id), CancellationToken.None));
-
-        Assert.Equal(RefusalReasons.MarketHeroAlreadyOwned.Key, refusal.Reason);
-        await _bed.UnitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
-    }
-
-    /// <summary>Куплений герой стає в гарнізон покупця й отримує кулдаун перепродажу.</summary>
-    [Fact]
-    public async Task Buy_ShouldStationTheHeroInTheBuyersGarrison()
-    {
-        var hero = _bed.GivenHero(_bed.Seller);
-        hero.PutOnMarket(MarketTestBed.Now);
-        _bed.Heroes.GetByKeyAsync(_bed.Buyer, hero.HeroKey, Arg.Any<CancellationToken>()).Returns((Hero?)null);
-        var listing = _bed.GivenListing(MarketListingKind.Hero, heroId: hero.Id, itemKey: hero.HeroKey);
-
-        await Buy().Handle(new BuyMarketListingCommand(_bed.Buyer, listing.Id), CancellationToken.None);
-
-        Assert.Equal(_bed.Buyer, hero.PlayerId);
-        Assert.Equal(_bed.BuyerGarrison.Id, hero.StationedGarrisonId);
-        Assert.True(hero.IsLeader);
-        Assert.Equal(MarketTestBed.Now.AddHours(1 + _bed.Catalog.Config.Market.ResaleCooldownHours), hero.ResaleLockedUntil);
-    }
-
     /// <summary>Пачка переходить у стек покупця.</summary>
     [Fact]
     public async Task Buy_ShouldGrantTheStackToTheBuyer()
@@ -155,20 +122,6 @@ public class MarketTradeCommandTests
             Cancel().Handle(new CancelMarketListingCommand(_bed.Buyer, listing.Id), CancellationToken.None));
 
         Assert.Equal(MarketListingState.Active, listing.State);
-    }
-
-    /// <summary>Герой повертається в гарнізон продавця; без лідера — стає лідером.</summary>
-    [Fact]
-    public async Task Cancel_ShouldReturnTheHeroHome()
-    {
-        var hero = _bed.GivenHero(_bed.Seller);
-        hero.PutOnMarket(MarketTestBed.Now);
-        var listing = _bed.GivenListing(MarketListingKind.Hero, heroId: hero.Id, itemKey: hero.HeroKey);
-
-        await Cancel().Handle(new CancelMarketListingCommand(_bed.Seller, listing.Id), CancellationToken.None);
-
-        Assert.Equal(HeroState.Idle, hero.State);
-        Assert.Equal(_bed.SellerGarrison.Id, hero.StationedGarrisonId);
     }
 
     [Fact]

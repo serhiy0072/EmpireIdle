@@ -28,12 +28,7 @@ public class MarketConfigValidationTests
         config.Market = new MarketConfig
         {
             BuildingKey = Market,
-            GoldPerPower = config.Heroes
-                .Select(h => MarketPricing.CategoryOf(h.Rank))
-                .Append("weapon")
-                .Append("artifact")
-                .Distinct()
-                .ToDictionary(key => key, _ => 10.0)
+            GoldPerPower = new Dictionary<string, double> { ["weapon"] = 10.0, ["artifact"] = 10.0 }
         };
 
         return config;

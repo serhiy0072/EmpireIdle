@@ -31,7 +31,7 @@ namespace EmpireIdle.Domain.Combat
         {
             // Бонус гасить поранення й ринок. Deployed — звичайний стан героя, що веде марш,
             // і саме в ньому він б'ється; IsAvailable тут хибний критерій
-            if (hero is null || hero.State is HeroState.Wounded or HeroState.OnMarket)
+            if (hero is null || hero.State == HeroState.Wounded)
                 return StackBuff.None;
 
             if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Skills.Count == 0)
