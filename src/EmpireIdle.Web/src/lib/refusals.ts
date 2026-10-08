@@ -172,6 +172,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.maxStars": () => "Усі зірки героя вже заповнені",
   "hero.weaponMaxed": ({ max }) => `Зброя героя вже на найвищому рівні (+${max})`,
   "hero.weaponShards": ({ need, have }) => `Бракує шматків зброї: потрібно ${need}, є ${have}`,
+  "hero.weaponNotInChest": ({ hero }) => `Ця скриня не дає шматків зброї героя ${hero}`,
+  "hero.weaponNotSold": ({ hero }) => `Шматки зброї героя ${hero} не продаються — лише зі скринь зброї`,
   "march.wrongUnits": ({ unit, hero }) => `Жоден герой маршу (${hero}) не веде «${unit}» — кожен веде лише юнітів своєї ролі`,
   "march.overCapacity": ({ capacity, sent, hero }) => `${hero} веде до ${capacity} юнітів, а відправлено ${sent}`,
   "march.sameRole": ({ heroes }) => `У марші не може бути двох героїв однієї ролі: ${heroes}`,

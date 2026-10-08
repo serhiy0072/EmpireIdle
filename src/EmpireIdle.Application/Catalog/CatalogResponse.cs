@@ -65,6 +65,7 @@
     /// <param name="Lore">Історія героя для кодексу й картки; коротший підсумок — у Description.</param>
     /// <param name="WeaponName">Назва унікальної зброї героя (GDD §6.4); null — ще не названа.</param>
     /// <param name="WeaponBonusPercents">Бонус зброї до статів героя у % на +1…+5 — за його рідкістю.</param>
+    /// <param name="WeaponShardPriceGems">Ціна шматка зброї в магазині; null — не продається (унікальні).</param>
     public record CatalogHero(
         string Key,
         string DisplayName,
@@ -78,7 +79,8 @@
         IReadOnlyDictionary<string, double> StatGrowth,
         IReadOnlyList<CatalogSkill> Skills,
         string? WeaponName,
-        IReadOnlyList<double> WeaponBonusPercents);
+        IReadOnlyList<double> WeaponBonusPercents,
+        int? WeaponShardPriceGems);
 
     /// <summary>Вміння героя (GDD §6.1): рівень героя відкриває, зірки стелять рівень.</summary>
     /// <param name="Half">"Attack" або "Defense" — яка книга його піднімає.</param>
@@ -127,6 +129,8 @@
     /// <param name="TeleportScope">Для телепорта — Exact, Nearby, ClanTerritory, Random або ClanLeader (GDD §8.9); null для решти.</param>
     /// <param name="TeleportRange">Радіус ближнього телепорта в клітинах (Чебишев); null для решти.</param>
     /// <param name="SpeedUpMinutes">Для прискорення — скільки хвилин зрізає з таймера; null для решти.</param>
+    /// <param name="WeaponHeroes">Для скрині зброї — чию зброю вона качає (поточна трійка); порожньо для решти.</param>
+    /// <param name="WeaponShards">Для скрині зброї — шматків за одну скриню; null для решти.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -143,7 +147,9 @@
         bool Giftable,
         string? TeleportScope,
         int? TeleportRange,
-        int? SpeedUpMinutes);
+        int? SpeedUpMinutes,
+        IReadOnlyList<string> WeaponHeroes,
+        int? WeaponShards);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);

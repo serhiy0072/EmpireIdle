@@ -281,6 +281,12 @@
         /// <summary>Бракує шматків зброї героя на наступний рівень; need — скільки треба, have — скільки є.</summary>
         public static readonly RefusalReason HeroWeaponShards = new("hero.weaponShards", "need", "have");
 
+        /// <summary>Скриня зброї не дає шматків зброї цього героя — він не з поточної трійки; hero — ім'я.</summary>
+        public static readonly RefusalReason HeroWeaponNotInChest = new("hero.weaponNotInChest", "hero");
+
+        /// <summary>Шматки зброї цього героя не продаються — унікальні лише зі скринь; hero — ім'я.</summary>
+        public static readonly RefusalReason HeroWeaponNotSold = new("hero.weaponNotSold", "hero");
+
         /// <summary>Універсальні осколки йдуть лише в уже відкритого героя (GDD §6.1).</summary>
         public static readonly RefusalReason HeroNotOwned = new("hero.notOwned", "hero");
 

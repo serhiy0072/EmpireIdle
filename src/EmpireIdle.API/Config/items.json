@@ -205,6 +205,15 @@
         "HeroExperience": 50000
       },
       {
+        "Key": "weapon_chest",
+        "DisplayName": "Скриня зброї",
+        "Description": "Шматок унікальної зброї героя поточного банера на ваш вибір: Гуннар, Елоуен або Кестрел. Відкривається з картки героя",
+        "Rarity": "unique",
+        "Type": "weaponchest",
+        "WeaponHeroes": ["warrior_gunnar", "knight_elowen", "archer_kestrel"],
+        "WeaponShards": 1
+      },
+      {
         "Key": "speedup_1m",
         "DisplayName": "Прискорення 1 хв",
         "Description": "Зрізає 1 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",

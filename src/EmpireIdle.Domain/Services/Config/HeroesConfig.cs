@@ -72,6 +72,12 @@ namespace EmpireIdle.Domain.Services.Config
         public int MaxWeaponLevel => WeaponShardCosts.Count;
 
         /// <summary>
+        /// Ціна шматка зброї в магазині за gems за рідкістю героя (GDD §9.12). Рідкості без ціни
+        /// (унікальні) не продаються — їхні шматки лише зі скринь зброї.
+        /// </summary>
+        public Dictionary<Rarity, int> WeaponShardPriceGems { get; set; } = new();
+
+        /// <summary>
         /// Стеля рівня вміння (GDD §6.1): 6. Зірки відкривають рівні по одному —
         /// без зірок вміння лише першого рівня, на п'ятій зірці доступний шостий.
         /// </summary>

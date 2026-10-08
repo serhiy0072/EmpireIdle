@@ -3816,6 +3816,86 @@
         }
       }
     },
+    "/api/heroes/{playerId}/{heroId}/weapon/chests": {
+      "post": {
+        "tags": [
+          "Heroes"
+        ],
+        "operationId": "Heroes_OpenWeaponChests",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "heroId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenWeaponChestsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenWeaponChestsRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenWeaponChestsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/heroes/{playerId}/{heroId}/skills/{skillKey}/upgrade": {
       "post": {
         "tags": [
@@ -7513,6 +7593,118 @@
         }
       }
     },
+    "/api/shop/{playerId}/heroes/{heroId}/weapon-shards": {
+      "post": {
+        "tags": [
+          "Shop"
+        ],
+        "operationId": "Shop_BuyWeaponShards",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "heroId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/territory/{playerId}": {
       "get": {
         "tags": [
@@ -9332,6 +9524,11 @@
               "type": "number",
               "format": "double"
             }
+          },
+          "weaponShardPriceGems": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -9347,7 +9544,8 @@
           "rarity",
           "tradeable",
           "type",
-          "weaponClasses"
+          "weaponClasses",
+          "weaponHeroes"
         ],
         "type": "object",
         "properties": {
@@ -9411,6 +9609,17 @@
             "nullable": true
           },
           "speedUpMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "weaponHeroes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "weaponShards": {
             "type": "integer",
             "format": "int32",
             "nullable": true
@@ -12645,6 +12854,23 @@
             "items": {
               "$ref": "#/components/schemas/MarketListingView"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpenWeaponChestsRequest": {
+        "required": [
+          "count",
+          "itemKey"
+        ],
+        "type": "object",
+        "properties": {
+          "itemKey": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

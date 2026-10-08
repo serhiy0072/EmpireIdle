@@ -111,6 +111,17 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Відкрити скрині зброї з рюкзака: шматки йдуть на зброю цього героя (GDD §6.4).</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/weapon/chests")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> OpenWeaponChests(Guid playerId, Guid heroId, [FromBody] OpenWeaponChestsRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new OpenWeaponChestsCommand(playerId, heroId, request.ItemKey, request.Count), cancellationToken);
+            return NoContent();
+        }
+
         /// <summary>Підняти вміння героя на рівень за книгу його ролі, рідкості й половини (GDD §6.1).</summary>
         [HttpPost("{playerId:guid}/{heroId:guid}/skills/{skillKey}/upgrade")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

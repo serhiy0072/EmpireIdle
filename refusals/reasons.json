@@ -203,6 +203,12 @@
   "hero.weaponMaxed": [
     "max"
   ],
+  "hero.weaponNotInChest": [
+    "hero"
+  ],
+  "hero.weaponNotSold": [
+    "hero"
+  ],
   "hero.weaponShards": [
     "need",
     "have"

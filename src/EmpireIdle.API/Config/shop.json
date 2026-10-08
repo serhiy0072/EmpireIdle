@@ -47,6 +47,11 @@
           "WindowDays": 14
         },
         {
+          "ItemKey": "weapon_chest",
+          "PriceGems": 2000,
+          "MaxPerPurchase": 20
+        },
+        {
           "ItemKey": "crate_mixed_large",
           "PriceGems": 80,
           "MaxPerPurchase": 10

@@ -38,6 +38,7 @@ namespace EmpireIdle.Domain.Services
             ValidateBeasts(config);
             ValidateTeleports(config);
             ValidateSpeedUpItems(config);
+            ValidateWeaponChests(config);
             ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
@@ -437,6 +438,21 @@ namespace EmpireIdle.Domain.Services
 
             if (!config.Buildings.Any(b => b.BeastCapacityPerLevel > 0))
                 throw new InvalidOperationException("Beasts are configured, but no building gives beast slots.");
+        }
+
+        /// <summary>Скриня зброї без героїв чи без шматків нічого б не відкривала (GDD §6.4).</summary>
+        private static void ValidateWeaponChests(GameConfig config)
+        {
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+
+            foreach (var chest in config.Items.Where(i => i.Type == "weaponchest"))
+            {
+                if (chest.WeaponShards < 1)
+                    throw new InvalidOperationException($"Weapon chest '{chest.Key}' needs positive WeaponShards.");
+
+                if (chest.WeaponHeroes.Count == 0 || chest.WeaponHeroes.Any(key => !heroKeys.Contains(key)))
+                    throw new InvalidOperationException($"Weapon chest '{chest.Key}' needs known WeaponHeroes.");
+            }
         }
 
         /// <summary>Прискорення без хвилин нічого б не зрізало — предмет-пустушка в рюкзаку.</summary>

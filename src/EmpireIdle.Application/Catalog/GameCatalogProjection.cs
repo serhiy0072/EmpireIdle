@@ -82,7 +82,8 @@ namespace EmpireIdle.Application.Catalog
                                 : null))
                         .ToList(),
                     hero.WeaponName,
-                    config.HeroSettings.WeaponBonusPercents.GetValueOrDefault(hero.Rank) ?? []))
+                    config.HeroSettings.WeaponBonusPercents.GetValueOrDefault(hero.Rank) ?? [],
+                    config.HeroSettings.WeaponShardPriceGems.TryGetValue(hero.Rank, out var shardPrice) ? shardPrice : null))
                 .ToList();
 
             var items = config.Items
@@ -102,7 +103,9 @@ namespace EmpireIdle.Application.Catalog
                     item.Giftable,
                     item.Type == "teleport" ? item.TeleportScope.ToString() : null,
                     item.Type == "teleport" && item.TeleportScope == TeleportScope.Nearby ? item.TeleportRange : null,
-                    item.Type == "speedup" ? item.SpeedUpMinutes : null))
+                    item.Type == "speedup" ? item.SpeedUpMinutes : null,
+                    item.WeaponHeroes,
+                    item.Type == "weaponchest" ? item.WeaponShards : null))
                 .ToList();
 
             var resources = config.Resources

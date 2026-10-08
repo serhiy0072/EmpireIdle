@@ -34,5 +34,17 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<int>> BuyItem(
             Guid playerId, string itemKey, [FromQuery][Range(1, 100)] int count = 1, CancellationToken cancellationToken = default)
             => Ok(await _mediator.Send(new BuyShopItemCommand(playerId, itemKey, count), cancellationToken));
+
+        /// <summary>
+        /// Купити шматки зброї звичайного чи рідкісного героя за gems (GDD §6.4). Повертає залишок gems.
+        /// Ідемпотентна за заголовком Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/heroes/{heroId:guid}/weapon-shards")]
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<int>> BuyWeaponShards(
+            Guid playerId, Guid heroId, [FromQuery][Range(1, 100)] int count = 1, CancellationToken cancellationToken = default)
+            => Ok(await _mediator.Send(new BuyHeroWeaponShardsCommand(playerId, heroId, count), cancellationToken));
     }
 }
