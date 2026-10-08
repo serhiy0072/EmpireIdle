@@ -48,7 +48,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
         title={catalog.heroName(hero.heroKey)}
         corner={<RoleBadge role={config?.class} size={16} />}
         top={<span className="pl-4">Ур. {level}</span>}
-        bottomLeft={<StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={11} />}
+        bottom={<StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={11} />}
       >
         <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={64} />
       </Tile>

@@ -111,9 +111,13 @@ export default function HeroesPage() {
                       tutorial={index === 0 ? "hero-card" : undefined}
                       dimmed={hero.state === "Wounded"}
                       corner={<RoleBadge role={config?.class} size={18} />}
-                      top={<span className="pl-4">Ур. {hero.effectiveLevel}</span>}
-                      bottomLeft={<StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={11} />}
-                      bottomRight={hero.state === "Deployed" ? "⚑" : hero.state === "Wounded" ? "✚" : hero.campSlot != null ? "⛺" : undefined}
+                      top={
+                        <span className="pl-4">
+                          Ур. {hero.effectiveLevel}
+                          {hero.state === "Deployed" ? " ⚑" : hero.state === "Wounded" ? " ✚" : hero.campSlot != null ? " ⛺" : ""}
+                        </span>
+                      }
+                      bottom={<StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={11} />}
                     >
                       <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={76} />
                     </Tile>

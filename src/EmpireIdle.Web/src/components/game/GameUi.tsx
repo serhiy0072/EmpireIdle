@@ -81,6 +81,8 @@ interface TileProps {
   top?: ReactNode;
   /** Значок у лівому верхньому куті (роль). */
   corner?: ReactNode;
+  /** Низ по центру (зірки героя). */
+  bottom?: ReactNode;
   /** Лівий нижній кут (міні-портрет носія). */
   bottomLeft?: ReactNode;
   /** Правий нижній кут замість кількості (рівень). */
@@ -94,7 +96,7 @@ interface TileProps {
 }
 
 /** Квадратна плитка предмета чи героя з рамкою кольору рідкості. */
-export function Tile({ rarity, children, count, top, corner, bottomLeft, bottomRight, selected, dimmed, onClick, title, tutorial }: TileProps) {
+export function Tile({ rarity, children, count, top, corner, bottom, bottomLeft, bottomRight, selected, dimmed, onClick, title, tutorial }: TileProps) {
   const frame = TILE_FRAMES[rarityKey(rarity)] ?? TILE_FRAMES.Common;
 
   return (
@@ -114,6 +116,7 @@ export function Tile({ rarity, children, count, top, corner, bottomLeft, bottomR
         </span>
       )}
       {corner !== undefined && <span className="absolute left-0.5 top-0.5">{corner}</span>}
+      {bottom !== undefined && <span className="absolute inset-x-0 bottom-0.5 flex justify-center">{bottom}</span>}
       {bottomLeft !== undefined && <span className="absolute bottom-0.5 left-0.5">{bottomLeft}</span>}
       {(bottomRight !== undefined || count !== undefined) && (
         <span className="absolute bottom-0.5 right-1 text-xs font-bold text-white [text-shadow:0_1px_2px_#000]">
