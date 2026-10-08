@@ -21,7 +21,7 @@ public class RecalculatePowerCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IPlayerPowerRepository _powers = Substitute.For<IPlayerPowerRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
@@ -147,7 +147,7 @@ public class RecalculatePowerCommandTests
         var garrison = GivenGarrison(garrisonInfantry: 10);
 
         var march = new March(
-            Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 0, 0, 5, 5,
+            Guid.NewGuid(), 1, garrison.Id, 0, 0, 5, 5,
             MarchTargetType.Monster, Guid.NewGuid(),
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 },
             Now.AddHours(1), Now);

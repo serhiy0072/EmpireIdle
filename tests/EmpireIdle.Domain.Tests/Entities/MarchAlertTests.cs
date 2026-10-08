@@ -16,7 +16,7 @@ public class MarchAlertTests
     private static readonly Dictionary<UnitStackKey, int> Army = new() { [new UnitStackKey("infantry", 1)] = 10 };
 
     private static March Send(MarchTargetType targetType, MarchIntent intent, Guid targetId)
-        => new(Guid.NewGuid(), 1, Guid.NewGuid(), Guid.NewGuid(), 0, 0, 5, 5,
+        => new(Guid.NewGuid(), 1, Guid.NewGuid(), 0, 0, 5, 5,
             targetType, targetId, Army, Now.AddMinutes(20), Now, intent);
 
     [Theory]
@@ -56,7 +56,7 @@ public class MarchAlertTests
     [Fact]
     public void ReturningHome_ShouldRaiseNothing()
     {
-        var march = March.ReturningHome(Guid.NewGuid(), 1, Guid.NewGuid(), null, 0, 0, 5, 5, Guid.NewGuid(),
+        var march = March.ReturningHome(Guid.NewGuid(), 1, Guid.NewGuid(), 0, 0, 5, 5, Guid.NewGuid(),
             Army, TimeSpan.FromMinutes(10), Now);
 
         Assert.Empty(march.DomainEvents);

@@ -110,9 +110,7 @@ namespace EmpireIdle.Application.Territory.Services
                 StackBuff.None,
                 stationed.Where(h => h.IsLeader).ToDictionary(h => h.PlayerId, h => _heroModifiers.For(h)));
 
-            var attackerHero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
+            var attackerHero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                     attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)

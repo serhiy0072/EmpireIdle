@@ -75,7 +75,7 @@ public class IncomingAttackAlertTests
         var owner = Guid.NewGuid();
         var village = GivenVillage(owner, clanId: null);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
-        var camp = new March(Guid.NewGuid(), 1, garrison.Id, heroId: null, 10, 10, 30, 30,
+        var camp = new March(Guid.NewGuid(), 1, garrison.Id, 10, 10, 30, 30,
             MarchTargetType.Village, Guid.NewGuid(),
             new Dictionary<EmpireIdle.Domain.ValueObjects.UnitStackKey, int> { [new("infantry", 1)] = 5 },
             Now.AddMinutes(-5), Now.AddMinutes(-20));

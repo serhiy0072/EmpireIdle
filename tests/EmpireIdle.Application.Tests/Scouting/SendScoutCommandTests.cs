@@ -35,7 +35,7 @@ public class SendScoutCommandTests
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly GameCatalog _catalog;
     private readonly MarchCalculator _calculator;
 
@@ -93,7 +93,6 @@ public class SendScoutCommandTests
 
         Assert.NotNull(sent);
         Assert.Equal(MarchIntent.Scout, sent.Intent);
-        Assert.Null(sent.HeroId);
         Assert.Empty(sent.Units);
 
         var cavalry = _calculator.CalculateDuration(1, home.X, home.Y, target.X, target.Y,

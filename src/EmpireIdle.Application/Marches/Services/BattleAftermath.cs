@@ -117,9 +117,9 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Провалена атака кладе героя в госпіталь. Ранить лише його:
             // марш веде рівно один герой, а вдома ростер бою не бачив
-            if (!result.AttackerWon && march.HeroId is Guid heroId)
+            if (!result.AttackerWon)
             {
-                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
+                var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
 
                 hero?.Wound(utcNow);
             }
@@ -355,9 +355,9 @@ namespace EmpireIdle.Application.Marches.Services
                 homeGarrison?.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-            if (result.AttackerWon && camp.HeroId is Guid heroId)
+            if (result.AttackerWon)
             {
-                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
+                var hero = (await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken)).SingleOrDefault();
 
                 hero?.Wound(utcNow);
             }

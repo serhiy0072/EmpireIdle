@@ -94,28 +94,24 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Герой лишається завжди, навіть коли не влізло нічого: він не
             // займає слота посольства, і саме він тримає бонус над стеком
-            if (march.HeroId is Guid heroId)
+            var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
+
+            if (hero is not null)
             {
-                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
+                // Лідерство рахується в межах власника: у господаря свій
+                // лідер, у кожного союзника свій над своїм стеком
+                var leader = await _heroRepository.GetLeaderAsync(
+                    targetGarrison.Id, hero.PlayerId, cancellationToken);
 
-                if (hero is not null)
-                {
-                    // Лідерство рахується в межах власника: у господаря свій
-                    // лідер, у кожного союзника свій над своїм стеком
-                    var leader = await _heroRepository.GetLeaderAsync(
-                        targetGarrison.Id, hero.PlayerId, cancellationToken);
-
-                    hero.Arrive(targetGarrison.Id, leaderSlotFree: leader is null, utcNow);
-                }
+                hero.Arrive(targetGarrison.Id, leaderSlotFree: leader is null, utcNow);
             }
 
             if (rejected.Count > 0)
             {
                 // Прийняте списується з колони як втрати: механіка та сама,
-                // юніти покидають марш. Герой уже зійшов, тож додому
-                // залишок їде без нього
+                // юніти покидають марш. Герой уже зійшов (Arrive знімає
+                // з нього марш), тож додому залишок їде без нього
                 march.ApplyLosses(accepted, utcNow);
-                march.LeaveHeroBehind(utcNow);
 
                 await _logistics.TurnMarchBackAsync(march, rejected, utcNow, cancellationToken);
 

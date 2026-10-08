@@ -67,7 +67,7 @@ public class MarchRetentionTests : IAsyncLifetime
     }
 
     private static March Reinforce(Guid garrisonId, DateTime departedAt)
-        => new(Guid.NewGuid(), ServerId, garrisonId, heroId: null, 1, 1, 5, 5,
+        => new(Guid.NewGuid(), ServerId, garrisonId, 1, 1, 5, 5,
             MarchTargetType.Village, Guid.NewGuid(), Army, departedAt.AddMinutes(20), departedAt, MarchIntent.Reinforce);
 
     private AsyncServiceScope CreateScope(out IMarchRepository marches, out AppDbContext context)

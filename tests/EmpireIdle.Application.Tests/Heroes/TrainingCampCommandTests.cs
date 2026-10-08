@@ -21,7 +21,7 @@ public class TrainingCampCommandTests
     private static readonly DateTime Now = new(2026, 10, 8, 12, 0, 0, DateTimeKind.Utc);
     private static readonly Guid PlayerId = Guid.NewGuid();
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();

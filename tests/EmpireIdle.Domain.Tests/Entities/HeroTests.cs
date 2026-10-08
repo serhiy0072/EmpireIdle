@@ -62,7 +62,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var hero = CreateHero();
 
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
             Assert.Equal(HeroState.Deployed, hero.State);
             Assert.False(hero.IsAvailable);
@@ -76,9 +76,9 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void Deploy_ShouldRejectAlreadyDeployedHero()
         {
             var hero = CreateHero();
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
-            Assert.Throws<InvalidStateException>(() => hero.Deploy(Now));
+            Assert.Throws<InvalidStateException>(() => hero.Deploy(Guid.NewGuid(), Now));
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var hero = CreateHero();
             hero.Wound(Now);
 
-            Assert.Throws<InvalidStateException>(() => hero.Deploy(Now));
+            Assert.Throws<InvalidStateException>(() => hero.Deploy(Guid.NewGuid(), Now));
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var garrison = Guid.NewGuid();
             var hero = Stationed(garrison, asLeader: false);
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
             hero.Arrive(garrison, leaderSlotFree: false, Now.AddHours(2));
 
@@ -144,7 +144,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var garrison = Guid.NewGuid();
             var hero = Stationed(garrison, asLeader: false);
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
             hero.Wound(Now);
 
             hero.Arrive(garrison, leaderSlotFree: true, Now.AddHours(1));
@@ -159,11 +159,62 @@ namespace EmpireIdle.Domain.Tests.Entities
             var hero = Stationed(Guid.NewGuid(), asLeader: true);
             hero.Wound(Now);
 
-            hero.SendHome(Now);
+            hero.SendHome(Guid.NewGuid(), Now);
 
             Assert.Null(hero.StationedGarrisonId);
             Assert.False(hero.IsLeader);
             Assert.Equal(HeroState.Wounded, hero.State);
+        }
+
+        // ---------- Марш (GDD §6.1: зв'язок тримає герой) ----------
+
+        /// <summary>Герой або стоїть, або йде з маршем: Deploy і SendHome прив'язують, Arrive відв'язує.</summary>
+        [Fact]
+        public void MarchId_ShouldFollowTheHeroOnTheRoad()
+        {
+            var garrison = Guid.NewGuid();
+            var hero = Stationed(garrison, asLeader: false);
+            var outbound = Guid.NewGuid();
+            var homeward = Guid.NewGuid();
+
+            Assert.Null(hero.MarchId);
+
+            hero.Deploy(outbound, Now);
+            Assert.Equal(outbound, hero.MarchId);
+
+            hero.Arrive(Guid.NewGuid(), leaderSlotFree: false, Now.AddHours(1));
+            Assert.Null(hero.MarchId);
+
+            hero.SendHome(homeward, Now.AddHours(2));
+            Assert.Equal(homeward, hero.MarchId);
+
+            hero.Arrive(garrison, leaderSlotFree: true, Now.AddHours(3));
+            Assert.Null(hero.MarchId);
+        }
+
+        /// <summary>Переїзд села збирає героя додому одразу: без маршу, зі збереженим пораненням.</summary>
+        [Fact]
+        public void Relocate_ShouldStationTheHeroAtHome_WithoutAMarch()
+        {
+            var home = Guid.NewGuid();
+            var hero = Stationed(Guid.NewGuid(), asLeader: true);
+            hero.Wound(Now);
+
+            hero.Relocate(home, leaderSlotFree: false, Now.AddHours(1));
+
+            Assert.Equal(home, hero.StationedGarrisonId);
+            Assert.Null(hero.MarchId);
+            Assert.False(hero.IsLeader);
+            Assert.Equal(HeroState.Wounded, hero.State);
+        }
+
+        [Fact]
+        public void Relocate_ShouldRejectHeroOnTheMove()
+        {
+            var hero = Stationed(Guid.NewGuid(), asLeader: false);
+            hero.Deploy(Guid.NewGuid(), Now);
+
+            Assert.Throws<InvalidStateException>(() => hero.Relocate(Guid.NewGuid(), leaderSlotFree: true, Now));
         }
 
         [Fact]
@@ -171,7 +222,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var hero = Stationed(Guid.NewGuid(), asLeader: false);
             hero.Wound(Now);
-            hero.SendHome(Now);
+            hero.SendHome(Guid.NewGuid(), Now);
 
             Assert.Throws<InvalidStateException>(() => hero.Heal(Now));
         }
@@ -340,7 +391,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var hero = CreateHero();
             var before = hero.UpdatedAt;
 
-            hero.Deploy(Now.AddMinutes(5));
+            hero.Deploy(Guid.NewGuid(), Now.AddMinutes(5));
 
             Assert.True(hero.UpdatedAt > before);
         }

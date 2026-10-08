@@ -43,6 +43,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(h => h.StationedGarrisonId);
 
+            // Марш, з яким герой у дорозі. SetNull — страховка: прибирання завершених маршів
+            // не має валити героя, хоча прибулий герой MarchId уже не тримає
+            builder.HasOne<March>()
+                .WithMany()
+                .HasForeignKey(h => h.MarchId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Один герой на слот табору. Індекс, а не перевірка в хендлері: дві вкладки,
             // що одночасно ставлять героїв, інакше поставили б обох в один слот
             builder.HasIndex(h => new { h.PlayerId, h.CampSlot })

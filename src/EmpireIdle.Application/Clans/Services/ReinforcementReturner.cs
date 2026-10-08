@@ -95,8 +95,7 @@ namespace EmpireIdle.Application.Clans.Services
 
                 foreach (var hero in stationed.Where(h => h.PlayerId == ownerPlayerId))
                 {
-                    hero.SendHome(utcNow);
-                    hero.Arrive(home.Id, leaderSlotFree, utcNow);
+                    hero.Relocate(home.Id, leaderSlotFree, utcNow);
                     leaderSlotFree = false;
                 }
             }
@@ -190,13 +189,10 @@ namespace EmpireIdle.Application.Clans.Services
             if (units.Count == 0 && heroes.Count == 0)
                 return false;
 
-            Guid? escort = null;
+            var marchId = Guid.NewGuid();
 
             if (heroes.Count > 0)
-            {
-                heroes[0].SendHome(utcNow);
-                escort = heroes[0].Id;
-            }
+                heroes[0].SendHome(marchId, utcNow);
 
             // Пасивка швидкості власника (GDD §5.10) діє й на дорогу додому: це теж його марш.
             // Фіксуємо на марші, як і при відправці, — щоб час не плив, коли пасивка скінчиться
@@ -211,7 +207,7 @@ namespace EmpireIdle.Application.Clans.Services
                     : null) / LedBy(heroes.FirstOrDefault(), speed);
 
             var march = March.ReturningHome(
-                Guid.NewGuid(), host.ServerId, ownerGarrison!.Id, escort,
+                marchId, host.ServerId, ownerGarrison!.Id,
                 ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
                 units, duration, utcNow, from.Value.Type, LedBy(heroes.FirstOrDefault(), speed));
 
@@ -221,7 +217,8 @@ namespace EmpireIdle.Application.Clans.Services
             // і кожен рахує власний час — без юнітів його ніщо не тримає
             foreach (var extra in heroes.Skip(1))
             {
-                extra.SendHome(utcNow);
+                var soloId = Guid.NewGuid();
+                extra.SendHome(soloId, utcNow);
 
                 var soloDuration = _calculator.CalculateDuration(
                     host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y,
@@ -229,7 +226,7 @@ namespace EmpireIdle.Application.Clans.Services
                     _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey))) / LedBy(extra, speed);
 
                 await _marchRepository.AddAsync(March.ReturningHome(
-                    Guid.NewGuid(), host.ServerId, ownerGarrison.Id, extra.Id,
+                    soloId, host.ServerId, ownerGarrison.Id,
                     ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
                     new Dictionary<UnitStackKey, int>(), soloDuration, utcNow, from.Value.Type, LedBy(extra, speed)), cancellationToken);
             }

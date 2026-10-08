@@ -23,7 +23,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             // Фільтр дослівно повторює умову GetDueAsync — інакше планувальник індекс не візьме
             builder.HasIndex(m => new { m.ServerId, m.ArrivesAt })
                 .HasFilter($"\"State\" <> {(int)MarchState.Completed} AND \"State\" <> {(int)MarchState.Camping}");
-            builder.HasIndex(m => m.HeroId);
 
             builder.HasMany(m => m.Units)
                 .WithOne()

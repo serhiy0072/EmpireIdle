@@ -24,7 +24,7 @@ public class HeroExperienceTests
     private static readonly DateTime Now = new(2026, 10, 6, 12, 0, 0, DateTimeKind.Utc);
     private static readonly Guid PlayerId = Guid.NewGuid();
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly HeroProgression _progression = HeroTestConfig.Progression();
@@ -156,7 +156,7 @@ public class HeroExperienceTests
     public async Task Reset_ShouldRefuse_AHeroOnAMarch()
     {
         var hero = GivenHero(level: 10);
-        hero.Deploy(Now);
+        hero.Deploy(Guid.NewGuid(), Now);
 
         await Assert.ThrowsAsync<InvalidStateException>(() => Reset(hero));
 

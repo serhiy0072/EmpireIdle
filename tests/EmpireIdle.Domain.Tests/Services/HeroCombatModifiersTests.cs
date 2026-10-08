@@ -134,7 +134,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void For_ShouldApplySkills_WhenTheHeroLeadsAMarch()
         {
             var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 20);
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
             var buff = Modifiers(Shieldwall, HoldTheLine).For(hero);
 
@@ -145,7 +145,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void For_ShouldReturnNothing_WhenTheHeroIsWoundedOnTheMove()
         {
             var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 20);
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
             hero.Wound(Now);
 
             var buff = Modifiers(Shieldwall, HoldTheLine).For(hero);

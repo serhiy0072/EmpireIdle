@@ -23,6 +23,7 @@ public class GetMarchesQueryTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IMonsterRepository _monsters = Substitute.For<IMonsterRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
 
     private static GameConfig Config() => new()
     {
@@ -47,7 +48,7 @@ public class GetMarchesQueryTests
     private static SpeedUpCalculator Calculator() => new(Config().Monetization);
 
     private GetMarchesQueryHandler Handler() => new(
-        _villages, _garrisons, _marches, _monsters, new GameCatalog(Config()), new FakeTimeProvider(Now), Calculator());
+        _villages, _garrisons, _marches, _monsters, _heroes, new GameCatalog(Config()), new FakeTimeProvider(Now), Calculator());
 
     private Garrison GivenGarrison()
     {
@@ -66,7 +67,7 @@ public class GetMarchesQueryTests
     }
 
     private static March MarchTo(Garrison garrison, MarchTargetType targetType, Guid targetId, DateTime arrivesAt) => new(
-        Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 55, 55, targetType, targetId,
+        Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55, targetType, targetId,
         new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 },
         arrivesAt, Now.AddMinutes(-10));
 

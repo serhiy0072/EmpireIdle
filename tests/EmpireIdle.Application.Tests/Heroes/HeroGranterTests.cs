@@ -17,7 +17,7 @@ public class HeroGranterTests
     private static readonly Guid PlayerId = Guid.NewGuid();
     private const int ServerId = 1;
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();

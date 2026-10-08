@@ -26,7 +26,7 @@ public class GetBattlePreviewQueryTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IMonsterRepository _monsters = Substitute.For<IMonsterRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
 
     // Герой без власної швидкості ходить зі швидкістю за замовчуванням —

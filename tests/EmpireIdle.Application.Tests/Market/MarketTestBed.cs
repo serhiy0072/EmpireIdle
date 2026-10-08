@@ -28,7 +28,7 @@ internal sealed class MarketTestBed
     public readonly IVillageRepository Villages = Substitute.For<IVillageRepository>();
     public readonly IMarketRepository MarketRepository = Substitute.For<IMarketRepository>();
     public readonly IInventoryRepository Inventory = Substitute.For<IInventoryRepository>();
-    public readonly IHeroRepository Heroes = Substitute.For<IHeroRepository>();
+    public readonly IHeroRepository Heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     public readonly IGarrisonRepository Garrisons = Substitute.For<IGarrisonRepository>();
     public readonly IUnitOfWork UnitOfWork = Substitute.For<IUnitOfWork>();
     public readonly IServerContext ServerContext = Substitute.For<IServerContext>();

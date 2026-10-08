@@ -137,9 +137,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Героя маршу читаємо тут, до RecordAttackerAsync: саме там його ранить
             // поразка, і пасивки мусять бути зняті, поки він ще в строю
-            var attackerHero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
+            var attackerHero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
 
             var attackerBuff = _heroModifiers.For(attackerHero);
 

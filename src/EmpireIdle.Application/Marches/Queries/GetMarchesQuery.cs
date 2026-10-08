@@ -21,6 +21,7 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IMarchRepository _marchRepository;
         private readonly IMonsterRepository _monsterRepository;
+        private readonly IHeroRepository _heroRepository;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly SpeedUpCalculator _calculator;
@@ -30,6 +31,7 @@ namespace EmpireIdle.Application.Marches.Queries
             IGarrisonRepository garrisonRepository,
             IMarchRepository marchRepository,
             IMonsterRepository monsterRepository,
+            IHeroRepository heroRepository,
             GameCatalog catalog,
             TimeProvider timeProvider,
             SpeedUpCalculator calculator)
@@ -38,6 +40,7 @@ namespace EmpireIdle.Application.Marches.Queries
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
             _monsterRepository = monsterRepository;
+            _heroRepository = heroRepository;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _calculator = calculator;
@@ -62,6 +65,8 @@ namespace EmpireIdle.Application.Marches.Queries
                 .ToDictionary(m => m.Id);
             var villageNames = await _villageRepository.GetNamesAsync(
                 TargetIds(marches, MarchTargetType.Village), cancellationToken);
+            var heroes = await _heroRepository.GetByMarchesReadOnlyAsync(
+                marches.Select(m => m.Id).ToList(), cancellationToken);
 
             // Найближче прибуття — першим: за ним гравець і стежить
             foreach (var march in marches.OrderBy(m => m.ArrivesAt))
@@ -78,7 +83,7 @@ namespace EmpireIdle.Application.Marches.Queries
                     march.TargetY,
                     march.Intent,
                     march.State,
-                    march.HeroId,
+                    heroes[march.Id].SingleOrDefault()?.Id,
                     march.DepartedAt,
                     march.LegStartedAt,
                     march.ArrivesAt,

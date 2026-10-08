@@ -171,7 +171,9 @@ namespace EmpireIdle.Application.Marches.Commands
             else
                 garrison.SendHeroAlone(now);
 
-            hero.Deploy(now);
+            var marchId = Guid.NewGuid();
+
+            hero.Deploy(marchId, now);
 
             // Колона йде за найповільнішим учасником, і герой тут нарівні
             // з юнітами: підкріплення з самого героя інакше плелося б
@@ -187,7 +189,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 _progression.MarchSpeed(heroConfig)) / speed;
 
             var march = new March(
-                Guid.NewGuid(), _serverContext.ServerId, garrison.Id, hero.Id,
+                marchId, _serverContext.ServerId, garrison.Id,
                 village.X, village.Y, target.X, target.Y,
                 request.TargetType, request.TargetId,
                 request.Units, now + duration, now,

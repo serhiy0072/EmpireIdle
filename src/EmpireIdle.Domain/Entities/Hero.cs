@@ -78,6 +78,14 @@ namespace EmpireIdle.Domain.Entities
         public Guid? StationedGarrisonId { get; private set; }
 
         /// <summary>
+        /// Марш, з яким герой у дорозі (GDD §6.1). Дзеркало
+        /// StationedGarrisonId: рівно одне з двох заповнене — герой або стоїть, або йде.
+        /// Зв'язок тримає герой, а не марш: герой веде щонайбільше один марш, тож це
+        /// один-до-багатьох із ключем на боці героя, і факт «у дорозі» записано один раз.
+        /// </summary>
+        public Guid? MarchId { get; private set; }
+
+        /// <summary>
         /// Лідер гарнізону. Лише він дає бонус своїм стекам і лише він
         /// потрапляє в госпіталь при поразці — інакше зібраний ростер
         /// множив би оборону, а одна програна битва клала б увесь зал.
@@ -140,13 +148,14 @@ namespace EmpireIdle.Domain.Entities
         /// Лідерство складається тут же. Гарнізон лишається без лідера,
         /// поки герой не повернеться або поки не призначать іншого.
         /// </summary>
-        public void Deploy(DateTime utcNow)
+        public void Deploy(Guid marchId, DateTime utcNow)
         {
             if (State != HeroState.Idle)
                 throw new InvalidStateException($"Hero {Id} is {State} and cannot be deployed.");
 
             State = HeroState.Deployed;
             StationedGarrisonId = null;
+            MarchId = marchId;
             IsLeader = false;
             Touch(utcNow);
         }
@@ -175,6 +184,7 @@ namespace EmpireIdle.Domain.Entities
                 State = HeroState.Idle;
 
             StationedGarrisonId = garrisonId;
+            MarchId = null;
             IsLeader = leaderSlotFree;
             Touch(utcNow);
         }
@@ -184,7 +194,7 @@ namespace EmpireIdle.Domain.Entities
         /// дозволений і пораненому: поранений лідер їде зі своїм загоном,
         /// а лікувати його можна лише у власному госпіталі.
         /// </summary>
-        public void SendHome(DateTime utcNow)
+        public void SendHome(Guid marchId, DateTime utcNow)
         {
             if (StationedGarrisonId is null)
                 throw new InvalidStateException($"Hero {Id} is already on the move.");
@@ -193,7 +203,24 @@ namespace EmpireIdle.Domain.Entities
                 State = HeroState.Deployed;
 
             StationedGarrisonId = null;
+            MarchId = marchId;
             IsLeader = false;
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Миттєво переводить героя з чужого гарнізону у свій — без маршу. Лише для переїзду села:
+        /// усе військо гравця збирається вдома одразу, і дороги, на якій героя можна було б
+        /// перехопити, немає. Стан (зокрема поранення) лишається як був.
+        /// </summary>
+        /// <param name="leaderSlotFree">Чи вільний слот лідера вдома — як в Arrive.</param>
+        public void Relocate(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
+        {
+            if (StationedGarrisonId is null)
+                throw new InvalidStateException($"Hero {Id} is on the move and cannot be relocated.");
+
+            StationedGarrisonId = garrisonId;
+            IsLeader = leaderSlotFree;
             Touch(utcNow);
         }
 

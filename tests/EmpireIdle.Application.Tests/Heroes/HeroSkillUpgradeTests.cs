@@ -23,7 +23,7 @@ public class HeroSkillUpgradeTests
     private const string AttackBook = "skill_book_warrior_common_attack";
     private const string DefenseBook = "skill_book_warrior_common_defense";
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly GameCatalog _catalog;

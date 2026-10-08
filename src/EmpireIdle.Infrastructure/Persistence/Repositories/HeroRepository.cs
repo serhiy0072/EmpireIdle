@@ -50,6 +50,26 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// Фільтр повторюється в пам'яті: герой, що зійшов із маршу в цій же одиниці роботи
+        /// (часткова доставка підкріплення), у базі ще числиться за маршем, а відстежений
+        /// екземпляр уже ні — і додому з колоною він не їде.
+        /// </remarks>
+        public async Task<List<Hero>> GetByMarchAsync(Guid marchId, CancellationToken cancellationToken = default)
+            => (await _context.Heroes.Where(h => h.MarchId == marchId).ToListAsync(cancellationToken))
+                .Where(h => h.MarchId == marchId)
+                .ToList();
+
+        /// <inheritdoc/>
+        public async Task<ILookup<Guid, Hero>> GetByMarchesReadOnlyAsync(IReadOnlyCollection<Guid> marchIds,
+            CancellationToken cancellationToken = default)
+            => (await _context.Heroes
+                .AsNoTracking()
+                .Where(h => h.MarchId != null && marchIds.Contains(h.MarchId.Value))
+                .ToListAsync(cancellationToken))
+            .ToLookup(h => h.MarchId!.Value);
+
+        /// <inheritdoc/>
         public Task<int> CountAvailableAsync(Guid playerId, Guid garrisonId,
             CancellationToken cancellationToken = default)
             => _context.Heroes

@@ -18,7 +18,7 @@ public class EquipHeroItemCommandTests
     private static readonly Guid GarrisonId = Guid.NewGuid();
     private const int ServerId = 1;
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
@@ -131,7 +131,7 @@ public class EquipHeroItemCommandTests
     public async Task Handle_ShouldRejectAHeroOnTheMove()
     {
         var hero = GivenHero();
-        hero.Deploy(Now);
+        hero.Deploy(Guid.NewGuid(), Now);
 
         var sword = GivenItem("sword_iron", EquipmentSlot.Weapon);
 

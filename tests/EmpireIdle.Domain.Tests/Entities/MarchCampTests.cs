@@ -17,7 +17,7 @@ public class MarchCampTests
     private static readonly Dictionary<UnitStackKey, int> Army = new() { [new UnitStackKey("infantry", 1)] = 10 };
 
     private static March Send(MarchIntent intent = MarchIntent.Attack, MarchTargetType targetType = MarchTargetType.Village)
-        => new(Guid.NewGuid(), 1, Guid.NewGuid(), Guid.NewGuid(), 0, 0, 5, 6,
+        => new(Guid.NewGuid(), 1, Guid.NewGuid(), 0, 0, 5, 6,
             targetType, Guid.NewGuid(), Army, Now.AddMinutes(20), Now, intent);
 
     /// <summary>Захисникам знято тривогу, власнику — де стоїть табір.</summary>

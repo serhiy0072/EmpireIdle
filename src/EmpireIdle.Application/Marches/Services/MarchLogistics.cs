@@ -50,15 +50,10 @@ namespace EmpireIdle.Application.Marches.Services
         public async Task TurnMarchBackAsync(March march, IReadOnlyDictionary<UnitStackKey, int> survivors,
             DateTime utcNow, CancellationToken cancellationToken)
         {
-            var hero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
+            // Герой, що вже став у чужий гарнізон, з маршу знятий (Arrive) — додому з колоною не йде
+            var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
 
-            // Герой, що вже став у чужий гарнізон, додому з маршем не йде — LeaveHeroBehind
-            // зазвичай знімає його з маршу, це страховка від розсинхрону
-            var heroOnTheMove = hero is not null && hero.StationedGarrisonId is null;
-
-            if (!heroOnTheMove && (survivors.Count == 0 || survivors.Values.All(c => c <= 0)))
+            if (hero is null && (survivors.Count == 0 || survivors.Values.All(c => c <= 0)))
             {
                 // Нікого не лишилось — повертатись нікому
                 march.TurnBack(TimeSpan.Zero, utcNow);
@@ -69,7 +64,7 @@ namespace EmpireIdle.Application.Marches.Services
             // Швидкість від пасивки звіра зафіксована на марші при виході — і назад іде так само
             var backDuration = _calculator.CalculateDuration(
                 march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors,
-                heroOnTheMove ? _progression.MarchSpeed(_catalog.FindHero(hero!.HeroKey)) : null) / march.SpeedMultiplier;
+                hero is null ? null : _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey))) / march.SpeedMultiplier;
 
             march.TurnBack(backDuration, utcNow);
         }

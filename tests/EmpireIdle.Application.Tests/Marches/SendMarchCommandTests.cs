@@ -34,7 +34,7 @@ public class SendMarchCommandTests
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
     private readonly IBeastPenRepository _pens = Substitute.For<IBeastPenRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
@@ -162,7 +162,7 @@ public class SendMarchCommandTests
 
         var existing = Enumerable.Range(0, activeMarches)
             .Select(_ => new March(
-                Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 60, 60,
+                Guid.NewGuid(), 1, garrison.Id, 50, 50, 60, 60,
                 MarchTargetType.Monster, Guid.NewGuid(),
                 new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 1 },
                 Now.AddHours(1), Now))
@@ -392,7 +392,7 @@ public class SendMarchCommandTests
     public async Task Handle_ShouldReject_WhenNoHeroIsFree()
     {
         var (_, monster, hero) = GivenState(activeMarches: 1, availableHeroes: 0);
-        hero.Deploy(Now);
+        hero.Deploy(Guid.NewGuid(), Now);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
@@ -521,7 +521,7 @@ public class SendMarchCommandTests
         Assert.Equal(HeroState.Deployed, hero.State);
 
         await _marches.Received(1).AddAsync(
-            Arg.Is<March>(m => m.Intent == MarchIntent.Reinforce && m.HeroId == hero.Id && m.GetUnits().Count == 0),
+            Arg.Is<March>(m => m.Intent == MarchIntent.Reinforce && hero.MarchId == m.Id && m.GetUnits().Count == 0),
             Arg.Any<CancellationToken>());
     }
 

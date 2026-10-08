@@ -43,7 +43,7 @@ public class CompleteMarchCommandTests
     private readonly IRandomSource _random = Substitute.For<IRandomSource>();
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
     private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
     private readonly IScoutReportRepository _scoutReports = Substitute.For<IScoutReportRepository>();
@@ -293,7 +293,7 @@ public class CompleteMarchCommandTests
         var monster = new Monster(Guid.NewGuid(), 1, "wolves", monsterLevel, 55, 55, Now);
 
         var march = new March(
-            Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
+            Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55,
             MarchTargetType.Monster, monster.Id,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = attackerInfantry },
             Now, Now.AddMinutes(-30), intent);
@@ -327,7 +327,7 @@ public class CompleteMarchCommandTests
             defenderGarrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = defenderInfantry }, Now);
 
         var march = new March(
-            Guid.NewGuid(), 1, attackerGarrison.Id, Guid.NewGuid(), 50, 50, 55, 55,
+            Guid.NewGuid(), 1, attackerGarrison.Id, 50, 50, 55, 55,
             MarchTargetType.Village, defender.Id,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = attackerInfantry },
             Now, Now.AddMinutes(-30));
@@ -494,7 +494,7 @@ public class CompleteMarchCommandTests
     {
         var (_, _, attackerGarrison, defender, defenderGarrison) = GivenVillageBattle();
         var reinforcement = new March(
-            Guid.NewGuid(), 1, attackerGarrison.Id, heroId: null, 50, 50, 55, 55,
+            Guid.NewGuid(), 1, attackerGarrison.Id, 50, 50, 55, 55,
             MarchTargetType.Village, defender.Id,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 20 },
             Now, Now.AddMinutes(-30), MarchIntent.Reinforce);
@@ -637,13 +637,14 @@ public class CompleteMarchCommandTests
         Assert.Equal(MarchState.Completed, march.State);
     }
 
-    /// <summary>Герой, що вийшов із гарнізону в похід: у дорозі, без гарнізону.</summary>
-    private Hero GivenHeroOnTheMarch(Guid garrisonId)
+    /// <summary>Герой, що вийшов із гарнізону в цей похід: у дорозі, без гарнізону.</summary>
+    private Hero GivenHeroOnTheMarch(Guid garrisonId, Guid marchId)
     {
         var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrisonId, asLeader: true, Now.AddHours(-1));
-        hero.Deploy(Now.AddMinutes(-30));
+        hero.Deploy(marchId, Now.AddMinutes(-30));
 
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
+        _heroes.OnMarch(marchId, hero);
 
         return hero;
     }
@@ -657,13 +658,12 @@ public class CompleteMarchCommandTests
     public async Task Handle_ShouldBringTheHeroHome_WhenTheWholeArmyDies()
     {
         var (_, _, garrison, monster) = GivenBattle(attackerInfantry: 1, monsterLevel: 10);
-        var hero = GivenHeroOnTheMarch(garrison.Id);
-
-        var march = new March(Guid.NewGuid(), 1, garrison.Id, hero.Id, 50, 50, 55, 55,
+        var march = new March(Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55,
             MarchTargetType.Monster, monster.Id,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 1 },
             Now, Now.AddMinutes(-30));
         _marches.GetByIdAsync(march.Id, Arg.Any<CancellationToken>()).Returns(march);
+        var hero = GivenHeroOnTheMarch(garrison.Id, march.Id);
 
         await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
 
@@ -687,18 +687,17 @@ public class CompleteMarchCommandTests
     public async Task Handle_ShouldTurnAHeroOnlyReinforcementBack_WithTheHero()
     {
         var (_, _, attackerGarrison, defender, _) = GivenVillageBattle();
-        var hero = GivenHeroOnTheMarch(attackerGarrison.Id);
-
-        var reinforcement = new March(Guid.NewGuid(), 1, attackerGarrison.Id, hero.Id, 50, 50, 55, 55,
+        var reinforcement = new March(Guid.NewGuid(), 1, attackerGarrison.Id, 50, 50, 55, 55,
             MarchTargetType.Village, defender.Id, new Dictionary<UnitStackKey, int>(),
             Now, Now.AddMinutes(-30), MarchIntent.Reinforce);
         _marches.GetByIdAsync(reinforcement.Id, Arg.Any<CancellationToken>()).Returns(reinforcement);
+        var hero = GivenHeroOnTheMarch(attackerGarrison.Id, reinforcement.Id);
         defender.RelocateTo(70, 70, Now.AddMinutes(-10));
 
         await Handler().Handle(new CompleteMarchCommand(reinforcement.Id), CancellationToken.None);
 
         Assert.Equal(MarchState.Returning, reinforcement.State);
-        Assert.Equal(hero.Id, reinforcement.HeroId);
+        Assert.Equal(reinforcement.Id, hero.MarchId);
         Assert.True(reinforcement.ArrivesAt > Now);
     }
 
@@ -843,7 +842,7 @@ public class CompleteMarchCommandTests
             TimeSpan.FromHours(10), Now.AddHours(-1));
 
         var march = new March(
-            Guid.NewGuid(), 1, garrison.Id, heroId: null, 50, 50, 55, 55,
+            Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55,
             MarchTargetType.ClanStructure, structure.Id,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry },
             Now, Now.AddMinutes(-30), intent);
@@ -969,7 +968,7 @@ public class CompleteMarchCommandTests
         var targetGarrison = new Garrison(Guid.NewGuid(), target.Id, 1);
         targetGarrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, Now);
 
-        var march = new March(Guid.NewGuid(), 1, scouterGarrison.Id, heroId: null, 50, 50, atX, atY,
+        var march = new March(Guid.NewGuid(), 1, scouterGarrison.Id, 50, 50, atX, atY,
             MarchTargetType.Village, target.Id, new Dictionary<UnitStackKey, int>(), Now, Now.AddMinutes(-5),
             MarchIntent.Scout);
 
@@ -1054,7 +1053,7 @@ public class CompleteMarchCommandTests
         structureGarrison.AddReinforcements(Guid.NewGuid(), Guid.NewGuid(),
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, StructureGarrisonCapacity, Now);
 
-        var scouts = new March(Guid.NewGuid(), 1, march.GarrisonId, heroId: null, 50, 50, structure.X, structure.Y,
+        var scouts = new March(Guid.NewGuid(), 1, march.GarrisonId, 50, 50, structure.X, structure.Y,
             MarchTargetType.ClanStructure, structure.Id, new Dictionary<UnitStackKey, int>(), Now, Now.AddMinutes(-5),
             MarchIntent.Scout);
         _marches.GetByIdAsync(scouts.Id, Arg.Any<CancellationToken>()).Returns(scouts);
@@ -1097,13 +1096,13 @@ public class CompleteMarchCommandTests
     {
         var (_, _, attackerGarrison, owner, ownerGarrison) = GivenVillageBattle(defenderInfantry: 0);
 
-        var camp = new March(Guid.NewGuid(), 1, ownerGarrison.Id, heroId: null, 55, 55, 80, 80,
+        var camp = new March(Guid.NewGuid(), 1, ownerGarrison.Id, 55, 55, 80, 80,
             MarchTargetType.Village, Guid.NewGuid(),
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = campInfantry },
             Now.AddHours(-1), Now.AddHours(-2));
         camp.Camp(Now.AddHours(-1));
 
-        var attack = new March(Guid.NewGuid(), 1, attackerGarrison.Id, Guid.NewGuid(), 50, 50, 80, 80,
+        var attack = new March(Guid.NewGuid(), 1, attackerGarrison.Id, 50, 50, 80, 80,
             MarchTargetType.Camp, camp.Id,
             intent == MarchIntent.Scout
                 ? new Dictionary<UnitStackKey, int>()

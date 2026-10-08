@@ -23,6 +23,16 @@ namespace EmpireIdle.Application.Interfaces
         Task<List<Hero>> GetByIdsReadOnlyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Герої, що йдуть із цим маршем (GDD §6.1), з трекінгом: бій, прибуття й поранення
+        /// змінюють їхній стан. Порожньо — колона без героя (залишок підкріплення додому).
+        /// </summary>
+        Task<List<Hero>> GetByMarchAsync(Guid marchId, CancellationToken cancellationToken = default);
+
+        /// <summary>Герої кількох маршів одним запитом, лише читання — для списку походів.</summary>
+        Task<ILookup<Guid, Hero>> GetByMarchesReadOnlyAsync(IReadOnlyCollection<Guid> marchIds,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Скільки героїв гравця стоять у цьому гарнізоні й готові виступити.
         /// Гарнізон у ключі навмисно: герой, що стоїть підкріпленням
         /// у союзника, вести похід із дому не може.

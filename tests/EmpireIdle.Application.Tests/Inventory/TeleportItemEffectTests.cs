@@ -27,7 +27,7 @@ public class TeleportItemEffectTests
     private readonly IMapRepository _map = Substitute.For<IMapRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();

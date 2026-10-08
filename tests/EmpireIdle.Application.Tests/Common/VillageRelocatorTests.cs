@@ -26,7 +26,7 @@ public class VillageRelocatorTests
     private readonly IMapRepository _map = Substitute.For<IMapRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
@@ -93,10 +93,20 @@ public class VillageRelocatorTests
         return (village, garrison);
     }
 
-    private static March Attack(Guid garrisonId, MarchTargetType targetType, Guid? heroId = null, int infantry = 10)
-        => new(Guid.NewGuid(), 1, garrisonId, heroId, 10, 10, 40, 40, targetType, Guid.NewGuid(),
+    private March Attack(Guid garrisonId, MarchTargetType targetType, Hero? hero = null, int infantry = 10)
+    {
+        var march = new March(Guid.NewGuid(), 1, garrisonId, 10, 10, 40, 40, targetType, Guid.NewGuid(),
             new Dictionary<UnitStackKey, int> { [Infantry] = infantry }, Now.AddMinutes(30), Now.AddMinutes(-10),
             MarchIntent.Attack);
+
+        if (hero is not null)
+        {
+            hero.Deploy(march.Id, Now.AddMinutes(-10));
+            _heroes.OnMarch(march.Id, hero);
+        }
+
+        return march;
+    }
 
     /// <summary>Армія в дорозі до цілі — одразу вдома, бою не буде, тривогу знято.</summary>
     [Fact]
@@ -143,19 +153,15 @@ public class VillageRelocatorTests
 
         var first = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrison.Id, asLeader: false, Now.AddHours(-1));
         var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer", garrison.Id, asLeader: false, Now.AddHours(-1));
-        first.Deploy(Now.AddMinutes(-10));
-        second.Deploy(Now.AddMinutes(-10));
-
-        _heroes.GetByIdAsync(first.Id, Arg.Any<CancellationToken>()).Returns(first);
-        _heroes.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(second);
-
         var relocator = Relocator();
 
-        _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(
+        // Марші — до Returns: Attack сам налаштовує підміну героїв, а вкладене налаштування NSubstitute не терпить
+        List<March> marches =
         [
-            Attack(garrison.Id, MarchTargetType.Monster, first.Id),
-            Attack(garrison.Id, MarchTargetType.Monster, second.Id)
-        ]);
+            Attack(garrison.Id, MarchTargetType.Monster, first),
+            Attack(garrison.Id, MarchTargetType.Monster, second)
+        ];
+        _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns(marches);
 
         await relocator.RelocateAsync(village, 70, 70, Now, CancellationToken.None);
 

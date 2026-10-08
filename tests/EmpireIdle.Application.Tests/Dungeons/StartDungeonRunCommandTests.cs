@@ -26,7 +26,7 @@ public class StartDungeonRunCommandTests
     private readonly GameConfig _config = new GameConfigBuilder().WithDungeons().Build();
     private readonly IDungeonRepository _dungeons = Substitute.For<IDungeonRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
 
     private StartDungeonRunCommandHandler Handler(Village village, int clearedLevel = 0)

@@ -22,7 +22,7 @@ public class RecallCampCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
     private static GameConfig Config() => new()
@@ -56,7 +56,7 @@ public class RecallCampCommandTests
         var village = new Village(Guid.NewGuid(), PlayerId, "Home", ["food"], 10, 10);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
-        var march = new March(Guid.NewGuid(), 1, garrison.Id, heroId: null, 10, 10, 40, 40,
+        var march = new March(Guid.NewGuid(), 1, garrison.Id, 10, 10, 40, 40,
             MarchTargetType.Village, Guid.NewGuid(),
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 },
             Now.AddHours(-1), Now.AddHours(-2));

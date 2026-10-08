@@ -78,9 +78,7 @@ namespace EmpireIdle.Application.Territory.Services
                 return;
             }
 
-            var hero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
+            var hero = (await _heroRepository.GetByMarchAsync(march.Id, cancellationToken)).SingleOrDefault();
 
             // Сила маршу, а не кількість маршів: один сильний прискорює більше за кілька слабких
             var power = _combat.CalculatePower(units, _terrain.GetTerrainType(march.ServerId, structure.X, structure.Y),
@@ -106,7 +104,6 @@ namespace EmpireIdle.Application.Territory.Services
             if (rejected.Count > 0)
             {
                 march.ApplyLosses(accepted, utcNow);
-                march.LeaveHeroBehind(utcNow);
 
                 await _logistics.TurnMarchBackAsync(march, rejected, utcNow, cancellationToken);
             }

@@ -204,9 +204,7 @@ namespace EmpireIdle.Application.Marches.Services
                     if (campHome is null)
                         throw new EntityNotFoundException("Camp", targetId);
 
-                    var campHero = camp.HeroId is Guid campHeroId
-                        ? await _heroRepository.GetByIdAsync(campHeroId, cancellationToken)
-                        : null;
+                    var campHero = (await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken)).SingleOrDefault();
 
                     return new MarchTarget(
                         camp.TargetX, camp.TargetY,
