@@ -15,6 +15,8 @@ namespace EmpireIdle.Application.Heroes.Contracts
     /// <param name="SkillLevels">Рівень кожного вміння з конфіга героя, що діє зараз; 0 — ще закрите рівнем героя (GDD §6.1).</param>
     /// <param name="UnitType">Тип юнітів, яких веде герой своєї ролі (GDD §6.1); null — роль без юнітів у конфігу.</param>
     /// <param name="ConvoyCapacity">Скільки юнітів герой веде в марш: конвої за рівнем × розмір конвою.</param>
+    /// <param name="Convoys">Скільки конвоїв герой веде на своєму рівні (GDD §6.1).</param>
+    /// <param name="Power">Сила героя разом із вдягненим спорядженням — та, що на екрані героя.</param>
     /// <param name="SkillLevelCap">До якого рівня можна підняти вміння з поточними зірками: зірки + 1.</param>
     public record HeroSummary(
         Guid Id,
@@ -34,5 +36,7 @@ namespace EmpireIdle.Application.Heroes.Contracts
         IReadOnlyDictionary<string, int> SkillLevels,
         int SkillLevelCap,
         string? UnitType,
-        int ConvoyCapacity);
+        int ConvoyCapacity,
+        int Convoys,
+        double Power);
 }

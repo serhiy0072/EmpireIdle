@@ -14,6 +14,8 @@ namespace EmpireIdle.Application.Heroes.Queries
     internal sealed class GetHeroesOverviewQueryHandler : IRequestHandler<GetHeroesOverviewQuery, HeroesOverview>
     {
         private readonly IHeroRepository _heroRepository;
+        private readonly IInventoryRepository _inventory;
+        private readonly HeroStats _heroStats;
         private readonly HeroProgression _progression;
         private readonly HeroSkills _skills;
         private readonly HeroConvoys _convoys;
@@ -25,6 +27,8 @@ namespace EmpireIdle.Application.Heroes.Queries
 
         public GetHeroesOverviewQueryHandler(
             IHeroRepository heroRepository,
+            IInventoryRepository inventory,
+            HeroStats heroStats,
             HeroProgression progression,
             HeroSkills skills,
             HeroConvoys convoys,
@@ -35,6 +39,8 @@ namespace EmpireIdle.Application.Heroes.Queries
             TimeProvider timeProvider)
         {
             _heroRepository = heroRepository;
+            _inventory = inventory;
+            _heroStats = heroStats;
             _progression = progression;
             _skills = skills;
             _convoys = convoys;
@@ -52,6 +58,10 @@ namespace EmpireIdle.Application.Heroes.Queries
             var shards = await _heroRepository.GetAllShardsAsync(request.PlayerId, cancellationToken);
             var shardCounts = shards.ToDictionary(s => s.HeroKey, s => s.Count);
             var owned = heroes.Select(h => h.HeroKey).ToHashSet();
+
+            // Спорядження всього ростера одним запитом, а не по героєві
+            var equipped = (await _inventory.GetEquippedByHeroesAsync(heroes.Select(h => h.Id).ToList(), cancellationToken))
+                .ToLookup(e => e.EquippedByHeroId!.Value);
 
             var summaries = heroes
                 .Select(h => new HeroSummary(
@@ -75,7 +85,9 @@ namespace EmpireIdle.Application.Heroes.Queries
                         .ToDictionary(s => s.Key, s => _skills.LevelOf(h, s)),
                     _skills.LevelCap(h),
                     _convoys.UnitOf(_catalog.FindHero(h.HeroKey)),
-                    _convoys.Capacity(h)))
+                    _convoys.Capacity(h),
+                    _convoys.ConvoysAt(h.EffectiveLevel),
+                    Power(h, equipped[h.Id].ToList())))
                 .ToList();
 
             // Осколки ще не призваних героїв — до призову; осколки відкритих ідуть у зірки й стоять у картці героя
@@ -94,6 +106,12 @@ namespace EmpireIdle.Application.Heroes.Queries
                 _progression.MarchCapacity(heroes.Count(h => h.IsAvailable)),
                 await CampAsync(request.PlayerId, heroes, cancellationToken));
         }
+
+        /// <summary>Сила героя з вдягненим (як у рейтингу повної сили); герой поза довідником — нуль.</summary>
+        private double Power(Domain.Entities.Hero hero, IReadOnlyCollection<Domain.Entities.EquipmentItem> equipped)
+            => _catalog.FindHero(hero.HeroKey) is { } config
+                ? _heroStats.Compute(hero, config, equipped).Values.Sum()
+                : 0;
 
         /// <summary>Табір очима гравця: рівень, відкриті слоти, хто де стоїть і що перезаряджається.</summary>
         private async Task<TrainingCampView> CampAsync(Guid playerId, IReadOnlyCollection<Domain.Entities.Hero> heroes,

@@ -11141,6 +11141,7 @@
       "HeroSummary": {
         "required": [
           "convoyCapacity",
+          "convoys",
           "effectiveLevel",
           "experienceToNext",
           "heroKey",
@@ -11148,6 +11149,7 @@
           "isLeader",
           "level",
           "maxLevel",
+          "power",
           "shards",
           "skillLevelCap",
           "skillLevels",
@@ -11231,6 +11233,14 @@
           "convoyCapacity": {
             "type": "integer",
             "format": "int32"
+          },
+          "convoys": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "power": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
