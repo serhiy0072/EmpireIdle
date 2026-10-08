@@ -11,8 +11,8 @@ namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
     /// Безкоштовне скидання рівня (GDD §6.1): герой повертається на перший рівень,
-    /// весь вкладений досвід — у пул гравця мінус ResetPenalty. Помилку прокачки можна виправити,
-    /// а штраф не дає перекидати досвід між героями задарма.
+    /// весь вкладений досвід — у пул гравця без втрат. Помилку прокачки можна виправити,
+    /// а досвід — перекинути на іншого героя.
     /// </summary>
     public record ResetHeroLevelCommand(Guid PlayerId, Guid HeroId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;

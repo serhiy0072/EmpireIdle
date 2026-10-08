@@ -4,7 +4,6 @@
       "MaxLevel": 80,
       "ExperienceBase": 8,
       "ExperienceExponent": 2.6,
-      "ResetPenalty": 0.01,
       "TierGrowth": 1.1,
       "EvolutionPenalty": 0.95,
       "EvolutionItemKeys": [

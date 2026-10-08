@@ -75,14 +75,14 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Equal(0, progression.ExperienceBetween(4, 4));
         }
 
-        /// <summary>Скидання повертає все вкладене мінус штраф; округлення вниз — штраф не зникає на малих сумах.</summary>
+        /// <summary>Скидання повертає все вкладене до одиниці — досвід не згорає.</summary>
         [Fact]
-        public void ResetRefund_ShouldReturnTheInvestedExperienceMinusThePenalty()
+        public void ResetRefund_ShouldReturnAllTheInvestedExperience()
         {
-            var progression = Progression(new HeroesConfig { ExperienceBase = 10, ExperienceExponent = 2, ResetPenalty = 0.01 });
+            var progression = Progression(new HeroesConfig { ExperienceBase = 10, ExperienceExponent = 2 });
 
-            // Вкладено 140 → повертається 138.6 → 138
-            Assert.Equal(138, progression.ResetRefund(level: 4));
+            // 10×1² + 10×2² + 10×3² = 140
+            Assert.Equal(140, progression.ResetRefund(level: 4));
             Assert.Equal(0, progression.ResetRefund(level: 1));
         }
 

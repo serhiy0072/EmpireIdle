@@ -373,11 +373,6 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectANonPositiveExperienceCurve()
             => RejectsHero(c => c.HeroSettings.ExperienceExponent = 0);
 
-        /// <summary>Штраф 100% спалив би весь досвід — скидання стало б покаранням, а не виправленням.</summary>
-        [Fact]
-        public void Validate_ShouldRejectAResetPenaltyOfOne()
-            => RejectsHero(c => c.HeroSettings.ResetPenalty = 1.0);
-
         [Fact]
         public void Validate_ShouldRejectAMaxLevelBelowOne()
             => RejectsHero(c => c.HeroSettings.MaxLevel = 0);

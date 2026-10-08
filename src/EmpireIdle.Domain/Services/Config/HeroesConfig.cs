@@ -18,9 +18,6 @@ namespace EmpireIdle.Domain.Services.Config
         /// <inheritdoc cref="ExperienceBase"/>
         public double ExperienceExponent { get; set; } = 2.6;
 
-        /// <summary>Частка досвіду, що згорає при безкоштовному скиданні рівня (GDD §6.1): 0.01 — 1%.</summary>
-        public double ResetPenalty { get; set; } = 0.01;
-
         /// <summary>
         /// Ріст статів за тір, складним відсотком (GDD §6.1): рідний T(n) = TierGrowth^(n−1).
         /// Формула, а не список: тіри відкриваються з рівнем світу, і список довелося б дописувати щоразу.

@@ -145,11 +145,11 @@ export default function HeroDetails({
           </button>
         )}
 
-        {/* Скидання не скасувати — тож другий клік; досвід повертається в пул мінус 1% */}
+        {/* Скидання не скасувати — тож другий клік; досвід повертається в пул повністю */}
         {hero.level > 1 &&
           (confirmingReset ? (
             <div className="flex items-center gap-2 text-sm">
-              <span className="flex-1 text-slate-600">Скинути на 1 рівень? Досвід повернеться мінус 1%.</span>
+              <span className="flex-1 text-slate-600">Скинути на 1 рівень? Увесь досвід повернеться в пул.</span>
               <button
                 type="button"
                 onClick={() => {

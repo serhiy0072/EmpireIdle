@@ -855,10 +855,6 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     "HeroSettings.ExperienceBase and ExperienceExponent must be positive — levels would cost nothing.");
 
-            if (settings.ResetPenalty is < 0 or >= 1)
-                throw new InvalidOperationException(
-                    "HeroSettings.ResetPenalty must be in [0, 1) — a reset would mint experience or burn all of it.");
-
             if (settings.MaxMarches < 1)
                 throw new InvalidOperationException(
                     "HeroSettings.MaxMarches must be at least 1 — otherwise a player with heroes still has no marches.");

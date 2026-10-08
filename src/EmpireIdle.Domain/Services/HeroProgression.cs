@@ -62,10 +62,9 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>
         /// Скільки досвіду повертає скидання героя з рівня <paramref name="level"/> на перший:
-        /// усе вкладене мінус ResetPenalty (GDD §6.1). Округлення вниз — штраф не стає нулем на малих сумах.
+        /// усе вкладене, без втрат (GDD §6.1) — досвід вільно переходить між героями.
         /// </summary>
-        public long ResetRefund(int level)
-            => (long)Math.Floor(ExperienceBetween(1, level) * (1 - _config.ResetPenalty));
+        public long ResetRefund(int level) => ExperienceBetween(1, level);
 
         /// <summary>
         /// Множник статів за тіром (GDD §6.1): TierGrowth^(тір−1) × EvolutionPenalty^(тір − рідний тір).

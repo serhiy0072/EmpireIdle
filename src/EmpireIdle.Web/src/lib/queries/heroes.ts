@@ -36,7 +36,7 @@ export function useLevelUpHero(playerId: string) {
   });
 }
 
-/** Скидання на перший рівень: досвід повертається в пул мінус 1%. */
+/** Скидання на перший рівень: весь досвід повертається в пул. */
 export function useResetHeroLevel(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/reset-level`, ["heroes", "power"]);
 }

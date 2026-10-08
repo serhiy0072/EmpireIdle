@@ -132,9 +132,9 @@ public class HeroExperienceTests
 
     // ---------- Скидання ----------
 
-    /// <summary>Скидання — на перший рівень, у пул повертається вкладене мінус 1%.</summary>
+    /// <summary>Скидання — на перший рівень, у пул повертається все вкладене.</summary>
     [Fact]
-    public async Task Reset_ShouldReturnTheHeroToLevelOne_AndRefundMinusThePenalty()
+    public async Task Reset_ShouldReturnTheHeroToLevelOne_AndRefundAllTheExperience()
     {
         var hero = GivenHero(level: 20);
         GivenExperience(0);
@@ -142,8 +142,7 @@ public class HeroExperienceTests
         await Reset(hero);
 
         Assert.Equal(1, hero.Level);
-        Assert.Equal(_progression.ResetRefund(20), _pool!.Amount);
-        Assert.True(_pool.Amount < _progression.ExperienceBetween(1, 20));
+        Assert.Equal(_progression.ExperienceBetween(1, 20), _pool!.Amount);
     }
 
     /// <summary>Пулу ще не було — скидання його створює, а не губить досвід.</summary>
