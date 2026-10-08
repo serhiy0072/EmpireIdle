@@ -54,6 +54,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<ClanRequest> ClanRequests => Set<ClanRequest>();
         public DbSet<Hero> Heroes => Set<Hero>();
         public DbSet<HeroExperiencePool> HeroExperience => Set<HeroExperiencePool>();
+        public DbSet<TrainingCamp> TrainingCamps => Set<TrainingCamp>();
         public DbSet<HeroShardProgress> HeroShards => Set<HeroShardProgress>();
         public DbSet<BannerPityProgress> BannerPity => Set<BannerPityProgress>();
 
@@ -104,6 +105,7 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<ClanRequest>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<Hero>().HasQueryFilter(h => h.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<HeroExperiencePool>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<TrainingCamp>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<HeroShardProgress>().HasQueryFilter(s => s.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<EquipmentItem>().HasQueryFilter(e => e.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<MarketListing>().HasQueryFilter(l => l.ServerId == _serverContext.ServerId);

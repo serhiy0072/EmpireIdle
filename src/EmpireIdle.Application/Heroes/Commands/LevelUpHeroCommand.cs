@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -21,6 +22,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly HeroProgression _progression;
         private readonly GameCatalog _catalog;
+        private readonly TrainingCampService _camps;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<LevelUpHeroCommandHandler> _logger;
 
@@ -29,6 +31,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             IUnitOfWork unitOfWork,
             HeroProgression progression,
             GameCatalog catalog,
+            TrainingCampService camps,
             TimeProvider timeProvider,
             ILogger<LevelUpHeroCommandHandler> logger)
         {
@@ -36,6 +39,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             _unitOfWork = unitOfWork;
             _progression = progression;
             _catalog = catalog;
+            _camps = camps;
             _timeProvider = timeProvider;
             _logger = logger;
         }
@@ -65,6 +69,9 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             pool.Spend(cost);
             hero.GainLevels(request.Levels, _progression.MaxLevel, now);
+
+            // Герой із п'ятірки підріс — табір може підтягнути героїв у слотах (GDD §6.1)
+            await _camps.SyncAsync(request.PlayerId, now, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

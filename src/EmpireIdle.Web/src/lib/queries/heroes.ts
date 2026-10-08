@@ -50,6 +50,34 @@ export function useUpgradeHeroSkill(playerId: string) {
   });
 }
 
+/** Навчальний табір (GDD §6.1): герой отримує рівень найслабшого з п'ятірки найсильніших поза табором. */
+export function usePlaceInCamp(playerId: string) {
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/camp`, ["heroes", "power"]);
+}
+
+export function useRemoveFromCamp(playerId: string) {
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/camp/leave`, ["heroes", "power"]);
+}
+
+export function useSkipCampCooldown(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (slot: number) =>
+      api<void>(`/api/heroes/${playerId}/camp/slots/${slot}/skip-cooldown`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "wallet"]),
+  });
+}
+
+export function useBuyCampSlot(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api<void>(`/api/heroes/${playerId}/camp/slots`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "wallet"]),
+  });
+}
+
 /** Скидання на перший рівень: весь досвід повертається в пул. */
 export function useResetHeroLevel(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/reset-level`, ["heroes", "power"]);

@@ -976,6 +976,25 @@ namespace EmpireIdle.Domain.Services
                     "HeroSettings.SkillLayouts needs a known rarity, at least the active skill in Attack "
                     + $"and no more utility skills than Defense holds: {string.Join(", ", badLayouts)}.");
 
+            // Навчальний табір (GDD §6.1): опорна п'ятірка має бути, слоти — відкриватися по порядку
+            var camp = settings.TrainingCamp;
+
+            if (camp.ReferenceSize < 1)
+                throw new InvalidOperationException("HeroSettings.TrainingCamp.ReferenceSize must be at least 1.");
+
+            if (camp.FreeSlotTownHallLevels.Any(level => level < 1)
+                || camp.FreeSlotTownHallLevels.Zip(camp.FreeSlotTownHallLevels.Skip(1)).Any(pair => pair.Second < pair.First))
+                throw new InvalidOperationException(
+                    "HeroSettings.TrainingCamp.FreeSlotTownHallLevels must be town hall levels from 1 up, never decreasing — "
+                    + "a later slot cannot open before an earlier one.");
+
+            if (camp.ExtraSlotPricesGems.Any(price => price < 1))
+                throw new InvalidOperationException("HeroSettings.TrainingCamp.ExtraSlotPricesGems must all be positive.");
+
+            if (camp.SlotCooldownHours < 0 || camp.SkipCooldownGems < 1)
+                throw new InvalidOperationException(
+                    "HeroSettings.TrainingCamp needs a non-negative SlotCooldownHours and a positive SkipCooldownGems.");
+
             foreach (var hero in config.Heroes)
             {
                 if (hero.Speed is <= 0)

@@ -9,6 +9,9 @@ namespace EmpireIdle.Application.Heroes.Contracts
     /// Довідникових полів із heroes.json тут немає навмисно — вони однакові
     /// для всіх гравців і возити їх у кожній відповіді немає сенсу.
     /// </summary>
+    /// <param name="Level">Власний рівень героя — за досвід із пулу.</param>
+    /// <param name="EffectiveLevel">Рівень, з яким герой воює: у таборі — більший із власного й табірного (GDD §6.1).</param>
+    /// <param name="CampSlot">Слот навчального табору від 0; null — поза табором.</param>
     /// <param name="SkillLevels">Рівень кожного вміння з конфіга героя, що діє зараз; 0 — ще закрите рівнем героя (GDD §6.1).</param>
     /// <param name="SkillLevelCap">До якого рівня можна підняти вміння з поточними зірками: зірки + 1.</param>
     public record HeroSummary(
@@ -16,6 +19,8 @@ namespace EmpireIdle.Application.Heroes.Contracts
         string HeroKey,
         int Tier,
         int Level,
+        int EffectiveLevel,
+        int? CampSlot,
         int MaxLevel,
         long ExperienceToNext,
         int StarParts,

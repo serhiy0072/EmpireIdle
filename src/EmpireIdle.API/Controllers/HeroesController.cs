@@ -51,6 +51,46 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Поставити героя в навчальний табір: він отримує рівень опорної п'ятірки (GDD §6.1).</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/camp")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PlaceInCamp(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new PlaceHeroInCampCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Вийняти героя з табору: власний рівень повертається, слот перезаряджається.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/camp/leave")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RemoveFromCamp(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RemoveHeroFromCampCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Зняти перезарядку слота табору за gems.</summary>
+        [HttpPost("{playerId:guid}/camp/slots/{slot:int}/skip-cooldown")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SkipCampCooldown(Guid playerId, int slot, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new SkipCampCooldownCommand(playerId, slot), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Докупити слот табору за gems.</summary>
+        [HttpPost("{playerId:guid}/camp/slots")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> BuyCampSlot(Guid playerId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new BuyCampSlotCommand(playerId), cancellationToken);
+            return NoContent();
+        }
+
         /// <summary>Заповнити наступну частинку зірки героя за його осколки.</summary>
         [HttpPost("{playerId:guid}/{heroId:guid}/star")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

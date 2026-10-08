@@ -136,5 +136,17 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         {
             await _context.HeroExperience.AddAsync(pool, cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public async Task<TrainingCamp?> GetCampAsync(Guid playerId, CancellationToken cancellationToken = default)
+            // Спершу трекер — з тієї ж причини, що й пул досвіду: створений у цій транзакції табір у базі ще не видно
+            => _context.TrainingCamps.Local.FirstOrDefault(c => c.PlayerId == playerId)
+               ?? await _context.TrainingCamps.FirstOrDefaultAsync(c => c.PlayerId == playerId, cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task AddCampAsync(TrainingCamp camp, CancellationToken cancellationToken = default)
+        {
+            await _context.TrainingCamps.AddAsync(camp, cancellationToken);
+        }
     }
 }

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import HeroCard from "../components/HeroCard";
 import HeroDetails from "../components/HeroDetails";
+import TrainingCampPanel from "../components/heroes/TrainingCampPanel";
 import ShardsPanel from "../components/ShardsPanel";
 import { useSession } from "../hooks/useSession";
 import { useCatalog } from "../lib/queries/catalog";
@@ -17,6 +18,10 @@ import {
   useLevelUpHero,
   useResetHeroLevel,
   useUpgradeHeroSkill,
+  usePlaceInCamp,
+  useRemoveFromCamp,
+  useSkipCampCooldown,
+  useBuyCampSlot,
   useSummonHero,
   useUpgradeUniversalShards,
 } from "../lib/queries/heroes";
@@ -38,6 +43,10 @@ export default function HeroesPage() {
   const catalog = useCatalog();
   const resetLevel = useResetHeroLevel(playerId);
   const upgradeSkill = useUpgradeHeroSkill(playerId);
+  const placeInCamp = usePlaceInCamp(playerId);
+  const removeFromCamp = useRemoveFromCamp(playerId);
+  const skipCampCooldown = useSkipCampCooldown(playerId);
+  const buyCampSlot = useBuyCampSlot(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -59,7 +68,11 @@ export default function HeroesPage() {
     convertShards.isPending ||
     upgradeShards.isPending ||
     resetLevel.isPending ||
-    upgradeSkill.isPending;
+    upgradeSkill.isPending ||
+    placeInCamp.isPending ||
+    removeFromCamp.isPending ||
+    skipCampCooldown.isPending ||
+    buyCampSlot.isPending;
 
   const failure =
     levelUp.error ??
@@ -71,7 +84,11 @@ export default function HeroesPage() {
     convertShards.error ??
     upgradeShards.error ??
     resetLevel.error ??
-    upgradeSkill.error;
+    upgradeSkill.error ??
+    placeInCamp.error ??
+    removeFromCamp.error ??
+    skipCampCooldown.error ??
+    buyCampSlot.error;
 
   const selected = heroes.data.heroes.find((hero) => hero.id === selectedId) ?? heroes.data.heroes[0] ?? null;
   const free = heroes.data.heroes.filter((hero) => hero.state === "Idle").length;
@@ -113,6 +130,15 @@ export default function HeroesPage() {
               ))}
             </div>
           )}
+
+          <TrainingCampPanel
+            camp={heroes.data.camp}
+            heroes={heroes.data.heroes}
+            busy={busy}
+            onRemove={(heroId) => removeFromCamp.mutate(heroId)}
+            onSkipCooldown={(slot) => skipCampCooldown.mutate(slot)}
+            onBuySlot={() => buyCampSlot.mutate()}
+          />
 
           <section className="space-y-2">
             <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Уламки</h2>
@@ -159,6 +185,10 @@ export default function HeroesPage() {
               return book === null ? 0 : (inventory.data?.items.find((item) => item.itemKey === book)?.count ?? 0);
             }}
             onUpgradeSkill={(skillKey) => upgradeSkill.mutate({ heroId: selected.id, skillKey })}
+            campAvailable={heroes.data.camp.available}
+            onToggleCamp={() =>
+              selected.campSlot == null ? placeInCamp.mutate(selected.id) : removeFromCamp.mutate(selected.id)
+            }
             busy={busy}
             onAdvanceStar={() => advanceStar.mutate(selected.id)}
             onConvertShards={(count) => convertShards.mutate({ heroKey: selected.heroKey, count })}

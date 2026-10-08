@@ -301,6 +301,22 @@
         /// <summary>Вміння вже на найвищому рівні; level — стеля рівня вмінь.</summary>
         public static readonly RefusalReason HeroSkillMaxed = new("hero.skillMaxed", "level");
 
+        /// <summary>Табір доступний, коли поза ним щонайменше need героїв (GDD §6.1); have — скільки зараз.</summary>
+        public static readonly RefusalReason CampUnavailable = new("camp.unavailable", "need", "have");
+
+        /// <summary>Усі відкриті слоти табору зайняті або перезаряджаються.</summary>
+        public static readonly RefusalReason CampNoFreeSlot = new("camp.noFreeSlot");
+
+        public static readonly RefusalReason CampHeroAlreadyIn = new("camp.heroAlreadyIn");
+
+        public static readonly RefusalReason CampHeroNotIn = new("camp.heroNotIn");
+
+        /// <summary>Усі слоти за gems уже куплені; count — скільки їх.</summary>
+        public static readonly RefusalReason CampAllSlotsBought = new("camp.allSlotsBought", "count");
+
+        /// <summary>Слот не перезаряджається — пропускати нічого; slot — його номер від 1.</summary>
+        public static readonly RefusalReason CampSlotReady = new("camp.slotReady", "slot");
+
         /// <summary>Немає книги для цього вміння (GDD §6.1); book — назва потрібної книги.</summary>
         public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book");
 

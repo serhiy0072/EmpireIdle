@@ -48,7 +48,7 @@ export default function HeroCard({ hero, selected, onSelect }: Props) {
 
           <div className="mt-1 flex items-center justify-between">
             <span className="text-sm text-slate-600">
-              рів. {hero.level}
+              рів. {hero.effectiveLevel}{hero.campSlot != null && " ⛺"}
               <span className="text-slate-400"> / {hero.maxLevel}</span>
             </span>
             <Stars parts={hero.starParts} max={catalog.maxStars} perStar={catalog.partsPerStar} />

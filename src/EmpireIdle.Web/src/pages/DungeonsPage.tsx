@@ -212,7 +212,7 @@ export default function DungeonsPage() {
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-sm font-medium text-slate-800">{catalog.heroName(hero.heroKey)}</div>
                           <div className="text-xs text-slate-500">
-                            рів. {hero.level} · {config?.class ?? "—"}
+                            рів. {hero.effectiveLevel} · {config?.class ?? "—"}
                           </div>
                         </div>
                         {picked && <span className="text-xs font-medium text-emerald-700">#{order}</span>}

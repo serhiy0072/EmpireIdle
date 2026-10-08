@@ -53,6 +53,16 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public IReadOnlyDictionary<string, int> SkillLevels { get; private set; } = new Dictionary<string, int>();
 
+        /// <summary>Слот навчального табору (GDD §6.1), у якому стоїть герой; null — поза табором.</summary>
+        public int? CampSlot { get; private set; }
+
+        /// <summary>
+        /// Рівень, який дає табір: найменший в опорній п'ятірці. Знімок, а не обчислення на льоту, —
+        /// інакше кожен показ стату тягнув би весь ростер гравця. Оновлює TrainingCampSync,
+        /// коли змінюються рівні героїв поза табором чи склад табору.
+        /// </summary>
+        public int? CampLevel { get; private set; }
+
         public HeroState State { get; private set; }
 
         public DateTime AcquiredAt { get; private set; }
@@ -110,6 +120,13 @@ namespace EmpireIdle.Domain.Entities
         }
 
         protected Hero() { } // Для EF Core
+
+        /// <summary>
+        /// Рівень, з яким герой воює й рахує стати: власний або табірний — більший із двох.
+        /// Табір лише підтягує героя й ніколи не знижує: рівень табору може впасти вже після
+        /// того, як героя поклали в слот.
+        /// </summary>
+        public int EffectiveLevel => CampSlot is null ? Level : Math.Max(Level, CampLevel ?? Level);
 
         /// <summary>Чи можна відправити героя в марш просто зараз.</summary>
         public bool IsAvailable => State == HeroState.Idle;
@@ -317,6 +334,46 @@ namespace EmpireIdle.Domain.Entities
                     $"Hero {Id} needs {current} stars to raise skill '{skillKey}' above level {current}.", current);
 
             SkillLevels = new Dictionary<string, int>(SkillLevels) { [skillKey] = current + 1 };
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>
+        /// Ставить героя в слот табору. Що слот вільний і табір доступний, перевіряє викликач:
+        /// для цього потрібні інші герої й сам табір.
+        /// </summary>
+        public void EnterCamp(int slot, int campLevel, DateTime utcNow)
+        {
+            if (CampSlot is not null)
+                throw new RequirementNotMetException(RefusalReasons.CampHeroAlreadyIn, $"Hero {Id} is already in the camp.");
+
+            CampSlot = slot;
+            CampLevel = campLevel;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Виймає героя з табору: він повертається до власного рівня. Повертає звільнений слот.</summary>
+        public int LeaveCamp(DateTime utcNow)
+        {
+            var slot = CampSlot
+                ?? throw new RequirementNotMetException(RefusalReasons.CampHeroNotIn, $"Hero {Id} is not in the camp.");
+
+            CampSlot = null;
+            CampLevel = null;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+
+            return slot;
+        }
+
+        /// <summary>Новий рівень табору для героя в слоті. Без змін — нічого не пише й не сповіщає.</summary>
+        public void SyncCampLevel(int campLevel, DateTime utcNow)
+        {
+            if (CampSlot is null || CampLevel == campLevel)
+                return;
+
+            CampLevel = campLevel;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }

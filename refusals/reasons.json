@@ -47,6 +47,19 @@
     "level",
     "buildings"
   ],
+  "camp.allSlotsBought": [
+    "count"
+  ],
+  "camp.heroAlreadyIn": [],
+  "camp.heroNotIn": [],
+  "camp.noFreeSlot": [],
+  "camp.slotReady": [
+    "slot"
+  ],
+  "camp.unavailable": [
+    "need",
+    "have"
+  ],
   "chat.noClan": [],
   "chat.toSelf": [],
   "chat.tooFast": [

@@ -43,6 +43,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(h => h.StationedGarrisonId);
 
+            // Один герой на слот табору. Індекс, а не перевірка в хендлері: дві вкладки,
+            // що одночасно ставлять героїв, інакше поставили б обох в один слот
+            builder.HasIndex(h => new { h.PlayerId, h.CampSlot })
+                .IsUnique()
+                .HasFilter("\"CampSlot\" IS NOT NULL");
+
             // Один лідер на гравця в гарнізоні. Ключ включає PlayerId, бо в
             // чужому селі стоять підкріплення кількох союзників, і в кожного
             // свій лідер над своїм стеком.

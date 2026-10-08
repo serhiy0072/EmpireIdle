@@ -23,6 +23,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IServerContext _serverContext;
         private readonly IUnitOfWork _unitOfWork;
         private readonly HeroProgression _progression;
+        private readonly TrainingCampService _camps;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<ResetHeroLevelCommandHandler> _logger;
 
@@ -31,6 +32,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             IServerContext serverContext,
             IUnitOfWork unitOfWork,
             HeroProgression progression,
+            TrainingCampService camps,
             TimeProvider timeProvider,
             ILogger<ResetHeroLevelCommandHandler> logger)
         {
@@ -38,6 +40,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             _serverContext = serverContext;
             _unitOfWork = unitOfWork;
             _progression = progression;
+            _camps = camps;
             _timeProvider = timeProvider;
             _logger = logger;
         }
@@ -68,6 +71,9 @@ namespace EmpireIdle.Application.Heroes.Commands
                 var pool = await _heroRepository.GetOrCreateExperienceAsync(request.PlayerId, _serverContext.ServerId, cancellationToken);
                 pool.Add(refund);
             }
+
+            // Скинутий герой із п'ятірки опускає рівень табору; табір лише не знижує героїв нижче власного рівня
+            await _camps.SyncAsync(request.PlayerId, now, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -64,5 +64,10 @@ namespace EmpireIdle.Application.Interfaces
         Task<HeroExperiencePool?> GetExperienceAsync(Guid playerId, CancellationToken cancellationToken = default);
 
         Task AddExperienceAsync(HeroExperiencePool pool, CancellationToken cancellationToken = default);
+
+        /// <summary>Навчальний табір гравця; null — ще не створений. З трекінгом: його змінюють.</summary>
+        Task<TrainingCamp?> GetCampAsync(Guid playerId, CancellationToken cancellationToken = default);
+
+        Task AddCampAsync(TrainingCamp camp, CancellationToken cancellationToken = default);
     }
 }

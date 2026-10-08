@@ -205,7 +205,41 @@
           "Rarity": "Unique",
           "Half": "Defense"
         }
-      ]
+      ],
+      "TrainingCamp": {
+        "ReferenceSize": 5,
+        "FreeSlotTownHallLevels": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20,
+          22,
+          24,
+          26,
+          28,
+          30,
+          30
+        ],
+        "ExtraSlotPricesGems": [
+          100,
+          200,
+          300,
+          400,
+          500
+        ],
+        "SlotCooldownHours": 24,
+        "SkipCooldownGems": 50
+      }
     },
     "Heroes": [
       {

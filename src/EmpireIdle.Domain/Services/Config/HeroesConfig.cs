@@ -74,6 +74,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public List<SkillBookConfig> SkillBooks { get; set; } = new();
 
+        /// <summary>Навчальний табір (GDD §6.1).</summary>
+        public TrainingCampConfig TrainingCamp { get; set; } = new();
+
         /// <summary>Скільки частинок має повністю прокачаний герой.</summary>
         public int MaxStarParts => MaxStars * PartsPerStar;
 

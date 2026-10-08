@@ -119,7 +119,7 @@ export default function HeroCodexPage() {
                   <div className="flex flex-wrap gap-1 text-xs">
                     <span className={`rounded px-1.5 ${rankStyle(hero.rank)}`}>{rankLabel(hero.rank)}</span>
                     <span className="text-slate-500">{CLASS_LABELS[hero.class] ?? hero.class}</span>
-                    {mine !== undefined && <span className="text-emerald-700">рів. {mine.level}</span>}
+                    {mine !== undefined && <span className="text-emerald-700">рів. {mine.effectiveLevel}</span>}
                   </div>
                 </div>
               </button>
