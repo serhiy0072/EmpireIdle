@@ -474,6 +474,51 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Contains("Unique", error.Message);
         }
 
+        /// <summary>
+        /// Банер героїв із лотом на <paramref name="shards"/> осколків, позначеним як лот категорії або як філер.
+        /// Повний лот на 10 осколків лишається завжди — інакше гарантії не було б чим платити.
+        /// </summary>
+        private static GameConfig WithHeroBanner(int shards, BannerKind? kind, Rarity rarity)
+        {
+            var config = new GameConfigBuilder().WithResources().WithBuildings().WithHeroes().Build();
+
+            BannerDropConfig Shards(string key, int amount, BannerKind? dropKind, Rarity dropRarity) => new()
+            {
+                Key = key, DisplayName = key, Rarity = dropRarity, Kind = dropKind, Weight = 1,
+                Rewards = [new RewardConfig { Type = "HeroShards", Key = TestKeys.UniqueHero, Amount = amount }]
+            };
+
+            config.Shop.Banners =
+            [
+                new BannerConfig
+                {
+                    Key = "dawn", DisplayName = "Dawn", Kind = BannerKind.Hero, PityGroup = "hero", PriceGems = 100,
+                    RarePity = 10, UniquePity = 50,
+                    Drops =
+                    [
+                        Shards("whole", config.HeroSettings.SummonShards, BannerKind.Hero, Rarity.Unique),
+                        Shards("bundle", shards, kind, rarity)
+                    ]
+                }
+            ];
+
+            return config;
+        }
+
+        /// <summary>Пачка осколків менша за призов — звичайний лут: гарантія не може заплатити одним осколком.</summary>
+        [Fact]
+        public void Validate_ShouldAcceptAPartialShardBundle_AsFiller()
+            => GameConfigValidator.Validate(WithHeroBanner(shards: 2, kind: null, rarity: Rarity.Common));
+
+        [Fact]
+        public void Validate_ShouldRejectAPartialShardBundle_InTheHeroCategory()
+        {
+            var error = Assert.Throws<InvalidOperationException>(() =>
+                GameConfigValidator.Validate(WithHeroBanner(shards: 5, kind: BannerKind.Hero, rarity: Rarity.Unique)));
+
+            Assert.Contains("bundle", error.Message);
+        }
+
         [Fact]
         public void Validate_ShouldRejectAShopItem_ThatIsNotAnItem()
         {

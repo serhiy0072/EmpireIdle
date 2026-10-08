@@ -1385,6 +1385,19 @@ namespace EmpireIdle.Domain.Services
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a hero drop but grants no hero.");
 
+                    // Лот категорії — це те, чим платить гарантія й 50/50, тож він мусить давати цілого героя.
+                    // Пачки осколків менші за призов — звичайний лут (GDD §6.1, рішення 08.10.2026)
+                    var partial = drop.Rewards
+                        .Where(r => string.Equals(r.Type, "HeroShards", StringComparison.OrdinalIgnoreCase)
+                            && r.Amount < config.HeroSettings.SummonShards)
+                        .ToList();
+
+                    if (drop.Kind == BannerKind.Hero && partial.Count > 0)
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' is a hero drop with fewer than "
+                            + $"{config.HeroSettings.SummonShards} shards — a pity payout must be a whole hero; "
+                            + "smaller bundles go in as filler (no Kind).");
+
                     if (drop.Kind == BannerKind.Weapon
                         && !drop.Rewards.Any(r => string.Equals(r.Type, "Equipment", StringComparison.OrdinalIgnoreCase)
                             && r.Key is not null
