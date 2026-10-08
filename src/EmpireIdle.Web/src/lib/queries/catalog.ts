@@ -81,6 +81,8 @@ export interface Catalog {
    * 0 — лишилась межа, прискорювати нічого, кнопку не показуємо. Поки каталог не приїхав — ціна із запиту.
    */
   speedUpCost: (timer: SpeedUpTimer, completesAt: string, now: number, serverCost: number) => number;
+  /** Межа таймера, нижче якої прискорення не зрізає (будівництво й тренування — 0, марш — 30 с). */
+  speedUpFloorSeconds: (timer: SpeedUpTimer) => number;
 }
 
 /**
@@ -164,6 +166,7 @@ export function useCatalog(): Catalog {
         const setKey = items.get(itemKey)?.setKey;
         return setKey == null ? null : (familyBySetKey.get(setKey) ?? null);
       },
+      speedUpFloorSeconds: (timer) => data?.speedUp.floorSeconds[timer] ?? 0,
       speedUpCost: (timer, completesAt, now, serverCost) => {
         if (data === undefined) return serverCost;
 

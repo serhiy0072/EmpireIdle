@@ -5,6 +5,7 @@ import { MARCH_INTENT, MARCH_STATE, MARCH_TARGET, useRecallCamp, useSpeedUpMarch
 import { speedUpLabel } from "../../lib/speedUp";
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
+import SpeedUpItemsButton from "../SpeedUpItemsButton";
 
 interface Props {
   playerId: string;
@@ -69,16 +70,19 @@ export default function MarchList({ playerId, marches }: Props) {
             ) : (
               <div className="flex items-center gap-2">
                 <span className="font-mono text-slate-700">{formatRemaining(march.arrivesAt, now)}</span>
-                {catalog.speedUpCost("March", march.arrivesAt, now, march.speedUpCostGems) > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => speedUp.mutate(march.id)}
-                    disabled={speedUp.isPending}
-                    className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-white disabled:opacity-50"
-                  >
-                    {speedUpLabel(catalog.speedUpCost("March", march.arrivesAt, now, march.speedUpCostGems))}
-                  </button>
-                )}
+                <span className="flex items-center gap-2">
+                  <SpeedUpItemsButton timer="March" targetId={march.id} completesAt={march.arrivesAt} />
+                  {catalog.speedUpCost("March", march.arrivesAt, now, march.speedUpCostGems) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => speedUp.mutate(march.id)}
+                      disabled={speedUp.isPending}
+                      className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-white disabled:opacity-50"
+                    >
+                      {speedUpLabel(catalog.speedUpCost("March", march.arrivesAt, now, march.speedUpCostGems))}
+                    </button>
+                  )}
+                </span>
               </div>
             )}
           </div>

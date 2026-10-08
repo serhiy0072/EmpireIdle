@@ -7,6 +7,7 @@ import { speedUpLabel } from "../lib/speedUp";
 import { formatRemaining } from "../lib/time";
 import HospitalPanel from "./HospitalPanel";
 import LevelUpUnitsPanel from "./LevelUpUnitsPanel";
+import SpeedUpItemsButton from "./SpeedUpItemsButton";
 import TrainUnitsPanel from "./TrainUnitsPanel";
 
 interface Props {
@@ -81,16 +82,19 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
       {building.isUnderConstruction && building.constructionCompletesAt !== null && building.constructionCompletesAt !== undefined ? (
         <div className="flex items-center justify-between">
           <span className="text-sm text-slate-600">Будується: {formatRemaining(building.constructionCompletesAt, now)}</span>
-          {speedUpCost !== 0 && (
-            <button
-              type="button"
-              onClick={onSpeedUp}
-              disabled={busy}
-              className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-            >
-              {speedUpLabel(speedUpCost)}
-            </button>
-          )}
+          <span className="flex items-center gap-2">
+            <SpeedUpItemsButton timer="Construction" targetId={building.id} completesAt={building.constructionCompletesAt} />
+            {speedUpCost !== 0 && (
+              <button
+                type="button"
+                onClick={onSpeedUp}
+                disabled={busy}
+                className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                {speedUpLabel(speedUpCost)}
+              </button>
+            )}
+          </span>
         </div>
       ) : (
         <div className="flex gap-2">
