@@ -1,5 +1,6 @@
 
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
@@ -86,13 +87,30 @@ namespace EmpireIdle.Domain.Services
         /// на множник тіру. Порядок саме такий — множник діє і на приріст,
         /// інакше високий тір знецінювався б з кожним рівнем.
         /// </summary>
-        public double StatValue(HeroConfig hero, string statKey, int level, int tier, int nativeTier, int starParts)
+        public double StatValue(HeroConfig hero, string statKey, int level, int tier, int nativeTier, int starParts, int weaponLevel)
         {
             var basis = hero.BaseStats.GetValueOrDefault(statKey, 0.0);
             var growth = hero.StatGrowth.GetValueOrDefault(statKey, 0.0);
 
-            return (basis + growth * (level - 1)) * TierMultiplier(tier, nativeTier) * StarMultiplier(starParts);
+            return (basis + growth * (level - 1)) * TierMultiplier(tier, nativeTier) * StarMultiplier(starParts)
+                * WeaponMultiplier(hero.Rank, weaponLevel);
         }
+
+        /// <summary>
+        /// Множник унікальної зброї (GDD §6.4): відсоток за рідкістю героя на його рівні зброї,
+        /// сумарний, не накопичувальний. Не відкрита (0) — 1. Діє на власні стати, не на спорядження.
+        /// </summary>
+        public double WeaponMultiplier(Rarity rank, int weaponLevel)
+        {
+            if (weaponLevel < 1 || !_config.WeaponBonusPercents.TryGetValue(rank, out var percents) || percents.Count == 0)
+                return 1;
+
+            return 1 + percents[Math.Min(weaponLevel, percents.Count) - 1] / 100;
+        }
+
+        /// <summary>Шматки на наступний рівень зброї; null — зброя на стелі.</summary>
+        public int? NextWeaponCost(int weaponLevel)
+            => weaponLevel < _config.WeaponShardCosts.Count ? _config.WeaponShardCosts[weaponLevel] : null;
 
         /// <summary>
         /// Швидкість героя в дорозі. Окремо від StatValue, бо тір її не

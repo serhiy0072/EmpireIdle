@@ -135,7 +135,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var progression = Create(tierGrowth: 2.0);
 
             // (40 + 4 × 4) × 2.0
-            Assert.Equal(112.0, progression.StatValue(Hero(), "Attack", level: 5, tier: 2, nativeTier: 2, starParts: 0), 6);
+            Assert.Equal(112.0, progression.StatValue(Hero(), "Attack", level: 5, tier: 2, nativeTier: 2, starParts: 0, weaponLevel: 0), 6);
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var progression = Create(tierGrowth: 2.0);
 
-            Assert.Equal(40.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 0), 6);
+            Assert.Equal(40.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 0, weaponLevel: 0), 6);
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var progression = Create();
 
-            Assert.Equal(0.0, progression.StatValue(Hero(), "Mana", level: 5, tier: 1, nativeTier: 1, starParts: 0));
+            Assert.Equal(0.0, progression.StatValue(Hero(), "Mana", level: 5, tier: 1, nativeTier: 1, starParts: 0, weaponLevel: 0));
         }
 
         /// <summary>Кожна частинка зірки — +5% до всіх статів (GDD §6.1); множиться з тіром.</summary>
@@ -165,7 +165,49 @@ namespace EmpireIdle.Domain.Tests.Services
             var progression = Create(tierGrowth: 2.0);
 
             // 40 × 1.0 (тір 1) × (1 + 0.05 × 6)
-            Assert.Equal(52.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 6), 6);
+            Assert.Equal(52.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 6, weaponLevel: 0), 6);
+        }
+
+        private static HeroesConfig WeaponSettings()
+        {
+            var settings = Settings();
+            settings.WeaponShardCosts = [5, 5, 10, 20, 40];
+            settings.WeaponBonusPercents = new()
+            {
+                [EmpireIdle.Domain.Enums.Rarity.Common] = [3, 5, 8, 12, 16],
+                [EmpireIdle.Domain.Enums.Rarity.Unique] = [5, 9, 14, 20, 28]
+            };
+            return settings;
+        }
+
+        /// <summary>
+        /// Зброя героя (GDD §6.4) множить власні стати на відсоток за його рідкістю —
+        /// сумарний на рівні, а не накопичувальний; не відкрита зброя нічого не дає.
+        /// </summary>
+        [Fact]
+        public void StatValue_ShouldApplyTheWeaponBonusOfTheHeroRarity()
+        {
+            var progression = Progression(WeaponSettings());
+            var unique = Hero();
+            unique.Rank = EmpireIdle.Domain.Enums.Rarity.Unique;
+
+            Assert.Equal(40.0, progression.StatValue(unique, "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 0, weaponLevel: 0), 6);
+            // 40 × (1 + 0.14) на +3
+            Assert.Equal(45.6, progression.StatValue(unique, "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 0, weaponLevel: 3), 6);
+            // Рідкість без бонусів у конфігу — множник 1
+            var rare = Hero();
+            rare.Rank = EmpireIdle.Domain.Enums.Rarity.Rare;
+            Assert.Equal(40.0, progression.StatValue(rare, "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 0, weaponLevel: 5), 6);
+        }
+
+        /// <summary>Ціна рівня зброї йде за списком — від відкриття до стелі, далі null.</summary>
+        [Fact]
+        public void NextWeaponCost_ShouldWalkTheLevelsAndStopAtTheCap()
+        {
+            var progression = Progression(WeaponSettings());
+
+            Assert.Equal([5, 5, 10, 20, 40], Enumerable.Range(0, 5).Select(level => progression.NextWeaponCost(level)!.Value));
+            Assert.Null(progression.NextWeaponCost(5));
         }
 
         [Fact]

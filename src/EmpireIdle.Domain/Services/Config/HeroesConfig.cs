@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>
@@ -55,6 +57,19 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Скільки бойової міці дає кожна частинка зірки: 0.05 — +5% до всіх статів.</summary>
         public double StarPartBonus { get; set; } = 0.05;
+
+        /// <summary>
+        /// Шматки зброї на кожен рівень (GDD §6.4, §9.12): перший — відкриття (+1). Довжина списку — стеля зброї.
+        /// </summary>
+        public List<int> WeaponShardCosts { get; set; } = new();
+
+        /// <summary>
+        /// Бонус зброї до власних статів героя у відсотках за рідкістю героя: значення на +1…+5,
+        /// сумарне, не накопичувальне. Довжина кожного списку — як у WeaponShardCosts.
+        /// </summary>
+        public Dictionary<Rarity, List<double>> WeaponBonusPercents { get; set; } = new();
+
+        public int MaxWeaponLevel => WeaponShardCosts.Count;
 
         /// <summary>
         /// Стеля рівня вміння (GDD §6.1): 6. Зірки відкривають рівні по одному —

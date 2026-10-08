@@ -47,6 +47,15 @@ namespace EmpireIdle.Domain.Entities
         public int StarParts { get; private set; }
 
         /// <summary>
+        /// Рівень унікальної зброї героя (GDD §6.4, рішення 08.10.2026): 0 — ще не відкрита, далі +1…+5.
+        /// Зброя — частина героя, а не предмет: її не вдягають і не продають, лише відкривають і качають.
+        /// </summary>
+        public int WeaponLevel { get; private set; }
+
+        /// <summary>Шматки зброї цього героя, ще не вкладені в рівень (зі скринь зброї й магазину).</summary>
+        public int WeaponShards { get; private set; }
+
+        /// <summary>
         /// Рівні вмінь, підняті книгами (GDD §6.1): ключ вміння → рівень. Вміння без запису —
         /// першого рівня. Знімок стану, а не довідник: перейменування вміння в конфігу
         /// лише повертає його на перший рівень, а не валить героя.
@@ -336,6 +345,36 @@ namespace EmpireIdle.Domain.Entities
                     $"Hero {Id} already has every star.", maxStarParts);
 
             StarParts++;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Додає шматки зброї героя (скриня зброї, магазин). Рівень не піднімає — це рішення гравця.</summary>
+        public void AddWeaponShards(int count, DateTime utcNow)
+        {
+            if (count < 1)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "Weapon shards come in positive amounts.");
+
+            WeaponShards += count;
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Відкриває зброю (0 → +1) або піднімає її рівень за шматки. Ціну рівня й стелю знає конфіг,
+        /// тож їх передає викликач; шматки списуються тут же, разом із рівнем.
+        /// </summary>
+        public void UpgradeWeapon(int cost, int maxLevel, DateTime utcNow)
+        {
+            if (WeaponLevel >= maxLevel)
+                throw new RequirementNotMetException(RefusalReasons.HeroWeaponMaxed,
+                    $"Hero {Id} weapon is already +{WeaponLevel}.", maxLevel);
+
+            if (WeaponShards < cost)
+                throw new RequirementNotMetException(RefusalReasons.HeroWeaponShards,
+                    $"Hero {Id} weapon needs {cost} shards, has {WeaponShards}.", cost, WeaponShards);
+
+            WeaponShards -= cost;
+            WeaponLevel++;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }

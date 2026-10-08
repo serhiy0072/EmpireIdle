@@ -353,6 +353,46 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(RefusalReasons.HeroSkillMaxed.Key, refusal.Reason);
         }
 
+        // ---------- Зброя героя (GDD §6.4) ----------
+
+        /// <summary>Шматки копляться на герої; відкриття й рівні списують їх за ціною рівня.</summary>
+        [Fact]
+        public void UpgradeWeapon_ShouldSpendShardsAndRaiseTheLevel()
+        {
+            var hero = CreateHero();
+            hero.AddWeaponShards(7, Now);
+
+            hero.UpgradeWeapon(cost: 5, maxLevel: 5, Now);
+
+            Assert.Equal(1, hero.WeaponLevel);
+            Assert.Equal(2, hero.WeaponShards);
+        }
+
+        [Fact]
+        public void UpgradeWeapon_ShouldRefuse_WithoutEnoughShards()
+        {
+            var hero = CreateHero();
+            hero.AddWeaponShards(4, Now);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.UpgradeWeapon(cost: 5, maxLevel: 5, Now));
+
+            Assert.Equal(RefusalReasons.HeroWeaponShards.Key, refusal.Reason);
+            Assert.Equal(0, hero.WeaponLevel);
+            Assert.Equal(4, hero.WeaponShards);
+        }
+
+        [Fact]
+        public void UpgradeWeapon_ShouldRefuse_AtTheCap()
+        {
+            var hero = CreateHero();
+            hero.AddWeaponShards(10, Now);
+            hero.UpgradeWeapon(cost: 5, maxLevel: 1, Now);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.UpgradeWeapon(cost: 5, maxLevel: 1, Now));
+
+            Assert.Equal(RefusalReasons.HeroWeaponMaxed.Key, refusal.Reason);
+        }
+
         // ---------- Зірки ----------
 
         [Fact]

@@ -31,6 +31,7 @@
         IReadOnlyList<string> HeroClasses,
         int MaxStars,
         int PartsPerStar,
+        IReadOnlyList<int> WeaponShardCosts,
         int MaxSkillLevel,
         IReadOnlyList<CatalogSkillBook> SkillBooks,
         double StarPartBonus,
@@ -62,6 +63,8 @@
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
     /// <param name="NativeTier">Рідний тір: герой приходить у ньому й з'являється лише зі світу цього рівня (GDD §6.1).</param>
     /// <param name="Lore">Історія героя для кодексу й картки; коротший підсумок — у Description.</param>
+    /// <param name="WeaponName">Назва унікальної зброї героя (GDD §6.4); null — ще не названа.</param>
+    /// <param name="WeaponBonusPercents">Бонус зброї до статів героя у % на +1…+5 — за його рідкістю.</param>
     public record CatalogHero(
         string Key,
         string DisplayName,
@@ -73,7 +76,9 @@
         double Speed,
         IReadOnlyDictionary<string, double> BaseStats,
         IReadOnlyDictionary<string, double> StatGrowth,
-        IReadOnlyList<CatalogSkill> Skills);
+        IReadOnlyList<CatalogSkill> Skills,
+        string? WeaponName,
+        IReadOnlyList<double> WeaponBonusPercents);
 
     /// <summary>Вміння героя (GDD §6.1): рівень героя відкриває, зірки стелять рівень.</summary>
     /// <param name="Half">"Attack" або "Defense" — яка книга його піднімає.</param>

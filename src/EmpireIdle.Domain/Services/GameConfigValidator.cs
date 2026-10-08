@@ -921,6 +921,17 @@ namespace EmpireIdle.Domain.Services
             if (settings.StarPartBonus < 0)
                 throw new InvalidOperationException("HeroSettings.StarPartBonus cannot be negative — a star never weakens a hero.");
 
+            // Зброя героя (GDD §6.4): бонус на кожен рівень і не спадає — інакше прокачка послаблювала б героя
+            if (settings.WeaponShardCosts.Any(cost => cost < 1))
+                throw new InvalidOperationException("HeroSettings.WeaponShardCosts must be positive — a weapon level would be free.");
+
+            foreach (var (rank, percents) in settings.WeaponBonusPercents)
+                if (percents.Count != settings.WeaponShardCosts.Count
+                    || percents.Any(p => p < 0)
+                    || percents.Zip(percents.Skip(1)).Any(pair => pair.Second < pair.First))
+                    throw new InvalidOperationException(
+                        $"HeroSettings.WeaponBonusPercents[{rank}] needs {settings.WeaponShardCosts.Count} non-decreasing, non-negative values.");
+
             var rankNames = Enum.GetNames<Rarity>().ToHashSet();
 
             // Обмін на вищу рідкість: з найвищої міняти нікуди

@@ -170,6 +170,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.tierLocked": ({ tier }) => `Герой ${tier} тіру з'явиться на рівні світу ${tier}`,
   "hero.notEnoughShards": ({ hero, need, have }) => `«${hero}»: потрібно ${need} осколків, зібрано ${have}`,
   "hero.maxStars": () => "Усі зірки героя вже заповнені",
+  "hero.weaponMaxed": ({ max }) => `Зброя героя вже на найвищому рівні (+${max})`,
+  "hero.weaponShards": ({ need, have }) => `Бракує шматків зброї: потрібно ${need}, є ${have}`,
   "march.wrongUnits": ({ unit, hero }) => `Жоден герой маршу (${hero}) не веде «${unit}» — кожен веде лише юнітів своєї ролі`,
   "march.overCapacity": ({ capacity, sent, hero }) => `${hero} веде до ${capacity} юнітів, а відправлено ${sent}`,
   "march.sameRole": ({ heroes }) => `У марші не може бути двох героїв однієї ролі: ${heroes}`,

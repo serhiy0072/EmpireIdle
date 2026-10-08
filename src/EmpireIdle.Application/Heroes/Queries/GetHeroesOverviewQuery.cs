@@ -87,7 +87,10 @@ namespace EmpireIdle.Application.Heroes.Queries
                     _convoys.UnitOf(_catalog.FindHero(h.HeroKey)),
                     _convoys.Capacity(h),
                     _convoys.ConvoysAt(h.EffectiveLevel),
-                    Power(h, equipped[h.Id].ToList())))
+                    Power(h, equipped[h.Id].ToList()),
+                    h.WeaponLevel,
+                    h.WeaponShards,
+                    _progression.NextWeaponCost(h.WeaponLevel)))
                 .ToList();
 
             // Осколки ще не призваних героїв — до призову; осколки відкритих ідуть у зірки й стоять у картці героя

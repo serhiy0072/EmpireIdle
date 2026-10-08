@@ -80,7 +80,9 @@ namespace EmpireIdle.Application.Catalog
                                     battle.HealPercent, battle.ShieldPercent, battle.Status?.ToString(), battle.IgnoresLine,
                                     battle.LevelScale)
                                 : null))
-                        .ToList()))
+                        .ToList(),
+                    hero.WeaponName,
+                    config.HeroSettings.WeaponBonusPercents.GetValueOrDefault(hero.Rank) ?? []))
                 .ToList();
 
             var items = config.Items
@@ -144,6 +146,7 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxStars,
                 config.HeroSettings.PartsPerStar,
+                config.HeroSettings.WeaponShardCosts,
                 config.HeroSettings.MaxSkillLevel,
                 config.HeroSettings.SkillBooks
                     .Select(book => new CatalogSkillBook(book.ItemKey, book.Class, book.Rarity.ToString(), book.Half.ToString()))

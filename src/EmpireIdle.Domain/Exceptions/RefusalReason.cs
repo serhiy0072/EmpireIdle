@@ -275,6 +275,12 @@
         /// <summary>Усі зірки героя вже заповнені (GDD §6.1); parts — скільки частинок усього.</summary>
         public static readonly RefusalReason HeroMaxStars = new("hero.maxStars", "parts");
 
+        /// <summary>Зброя героя вже на стелі (GDD §6.4); max — найвищий рівень.</summary>
+        public static readonly RefusalReason HeroWeaponMaxed = new("hero.weaponMaxed", "max");
+
+        /// <summary>Бракує шматків зброї героя на наступний рівень; need — скільки треба, have — скільки є.</summary>
+        public static readonly RefusalReason HeroWeaponShards = new("hero.weaponShards", "need", "have");
+
         /// <summary>Універсальні осколки йдуть лише в уже відкритого героя (GDD §6.1).</summary>
         public static readonly RefusalReason HeroNotOwned = new("hero.notOwned", "hero");
 

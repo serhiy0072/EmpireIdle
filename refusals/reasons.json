@@ -200,6 +200,13 @@
   "hero.tierLocked": [
     "tier"
   ],
+  "hero.weaponMaxed": [
+    "max"
+  ],
+  "hero.weaponShards": [
+    "need",
+    "have"
+  ],
   "hero.worldLevelRequired": [
     "required",
     "current"

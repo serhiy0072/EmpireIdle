@@ -101,6 +101,16 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Відкрити унікальну зброю героя або підняти її рівень за шматки (GDD §6.4).</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/weapon")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpgradeWeapon(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new UpgradeHeroWeaponCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
+
         /// <summary>Підняти вміння героя на рівень за книгу його ролі, рідкості й половини (GDD §6.1).</summary>
         [HttpPost("{playerId:guid}/{heroId:guid}/skills/{skillKey}/upgrade")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

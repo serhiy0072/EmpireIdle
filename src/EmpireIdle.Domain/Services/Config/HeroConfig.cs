@@ -53,6 +53,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Приріст стата за рівень, у тих самих ключах, що й BaseStats.</summary>
         public Dictionary<string, double> StatGrowth { get; set; } = new();
 
+        /// <summary>Назва унікальної зброї героя (GDD §6.4) — текст для гравця.</summary>
+        public string? WeaponName { get; set; }
+
         /// <summary>
         /// Вміння (GDD §6.1, рішення 08.10.2026). Саме вони, а не стати героя, впливають
         /// на армійський бій: стати вирішують силу самого героя, вміння — силу його війська.

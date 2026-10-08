@@ -16,7 +16,10 @@ namespace EmpireIdle.Application.Heroes.Contracts
     /// <param name="UnitType">Тип юнітів, яких веде герой своєї ролі (GDD §6.1); null — роль без юнітів у конфігу.</param>
     /// <param name="ConvoyCapacity">Скільки юнітів герой веде в марш: конвої за рівнем × розмір конвою.</param>
     /// <param name="Convoys">Скільки конвоїв герой веде на своєму рівні (GDD §6.1).</param>
-    /// <param name="Power">Сила героя разом із вдягненим спорядженням — та, що на екрані героя.</param>
+    /// <param name="Power">Сила героя разом із вдягненим спорядженням і зброєю — та, що на екрані героя.</param>
+    /// <param name="WeaponLevel">Рівень унікальної зброї (GDD §6.4): 0 — не відкрита, далі +1…+5.</param>
+    /// <param name="WeaponShards">Шматки зброї, ще не вкладені в рівень.</param>
+    /// <param name="NextWeaponCost">Шматків на наступний рівень; null — зброя на стелі.</param>
     /// <param name="SkillLevelCap">До якого рівня можна підняти вміння з поточними зірками: зірки + 1.</param>
     public record HeroSummary(
         Guid Id,
@@ -38,5 +41,8 @@ namespace EmpireIdle.Application.Heroes.Contracts
         string? UnitType,
         int ConvoyCapacity,
         int Convoys,
-        double Power);
+        double Power,
+        int WeaponLevel,
+        int WeaponShards,
+        int? NextWeaponCost);
 }

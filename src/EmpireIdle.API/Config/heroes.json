@@ -56,6 +56,12 @@
         ]
       ],
       "StarPartBonus": 0.05,
+      "WeaponShardCosts": [5, 5, 10, 20, 40],
+      "WeaponBonusPercents": {
+        "Common": [3, 5, 8, 12, 16],
+        "Rare": [4, 7, 11, 16, 22],
+        "Unique": [5, 9, 14, 20, 28]
+      },
       "UniversalShardUpgrade": {
         "Common": 100,
         "Rare": 300
@@ -304,6 +310,7 @@
           "Defense": 7,
           "Health": 35
         },
+        "WeaponName": "Ковальський молот Брана",
         "Skills": [
           {
             "Key": "warrior_bran_smash",
@@ -437,6 +444,7 @@
           "Defense": 3,
           "Health": 24
         },
+        "WeaponName": "Лук Далекозорої",
         "Skills": [
           {
             "Key": "archer_lyra_venom",
@@ -568,6 +576,7 @@
           "Defense": 8,
           "Health": 42
         },
+        "WeaponName": "Спис Непохитного",
         "Skills": [
           {
             "Key": "knight_ordwin_lance",
@@ -716,6 +725,7 @@
           "Defense": 4,
           "Health": 28
         },
+        "WeaponName": "Лук Дев'ятого Полум'я",
         "Skills": [
           {
             "Key": "mage_iselle_storm",
@@ -887,6 +897,7 @@
           "Defense": 10,
           "Health": 46
         },
+        "WeaponName": "Сокира Щитоносиці",
         "Skills": [
           {
             "Key": "warrior_hedda_smash",
@@ -1041,6 +1052,7 @@
           "Defense": 10,
           "Health": 46
         },
+        "WeaponName": "Незламний клинок",
         "Skills": [
           {
             "Key": "warrior_torvald_smash",
@@ -1195,6 +1207,7 @@
           "Defense": 10,
           "Health": 46
         },
+        "WeaponName": "Сокира Марен",
         "Skills": [
           {
             "Key": "warrior_maren_smash",
@@ -1349,6 +1362,7 @@
           "Defense": 8,
           "Health": 42
         },
+        "WeaponName": "Довгий спис Альдріка",
         "Skills": [
           {
             "Key": "knight_aldric_lance",
@@ -1497,6 +1511,7 @@
           "Defense": 8,
           "Health": 42
         },
+        "WeaponName": "Вартовий спис Сери",
         "Skills": [
           {
             "Key": "knight_serah_lance",
@@ -1645,6 +1660,7 @@
           "Defense": 4,
           "Health": 32
         },
+        "WeaponName": "Далекоокий лук",
         "Skills": [
           {
             "Key": "archer_finn_venom",
@@ -1797,6 +1813,7 @@
           "Defense": 4,
           "Health": 32
         },
+        "WeaponName": "Тихострунний лук",
         "Skills": [
           {
             "Key": "archer_ysolde_venom",
@@ -1949,6 +1966,7 @@
           "Defense": 4,
           "Health": 32
         },
+        "WeaponName": "Строкатий арбалет",
         "Skills": [
           {
             "Key": "archer_rook_venom",
@@ -2101,6 +2119,7 @@
           "Defense": 4,
           "Health": 27
         },
+        "WeaponName": "Громовий спис",
         "Skills": [
           {
             "Key": "mage_calder_bolt",
@@ -2250,6 +2269,7 @@
           "Defense": 4,
           "Health": 27
         },
+        "WeaponName": "Дзеркальний лук",
         "Skills": [
           {
             "Key": "mage_nerys_bolt",
@@ -2399,6 +2419,7 @@
           "Defense": 10,
           "Health": 60
         },
+        "WeaponName": "Скельний молот",
         "Skills": [
           {
             "Key": "warrior_gunnar_quake",
@@ -2573,6 +2594,7 @@
           "Defense": 8,
           "Health": 55
         },
+        "WeaponName": "Світанковий спис",
         "Skills": [
           {
             "Key": "knight_elowen_banner",
@@ -2743,6 +2765,7 @@
           "Defense": 4,
           "Health": 42
         },
+        "WeaponName": "Соколиний лук",
         "Skills": [
           {
             "Key": "archer_kestrel_rain",
@@ -2912,6 +2935,7 @@
           "Defense": 4,
           "Health": 35
         },
+        "WeaponName": "Безмовний спис",
         "Skills": [
           {
             "Key": "mage_vael_storm",
@@ -3083,6 +3107,7 @@
           "Defense": 4,
           "Health": 35
         },
+        "WeaponName": "Морозний клинок",
         "Skills": [
           {
             "Key": "mage_sabine_storm",
