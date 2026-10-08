@@ -25,15 +25,23 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public int? CampLevel(IEnumerable<Hero> heroes)
         {
-            var reference = heroes
+            var reference = ReferenceHeroes(heroes);
+
+            return reference.Count < _config.ReferenceSize ? null : reference.Min(h => h.Level);
+        }
+
+        /// <summary>
+        /// Опорна п'ятірка: найсильніші герої поза табором. За рівного рівня — хто прийшов раніше:
+        /// сталий порядок, щоб п'ятірка на екрані не перескакувала між однаковими героями.
+        /// </summary>
+        public List<Hero> ReferenceHeroes(IEnumerable<Hero> heroes)
+            => heroes
                 .Where(h => h.CampSlot is null)
-                .Select(h => h.Level)
-                .OrderByDescending(level => level)
+                .OrderByDescending(h => h.Level)
+                .ThenBy(h => h.AcquiredAt)
+                .ThenBy(h => h.Id)
                 .Take(_config.ReferenceSize)
                 .ToList();
-
-            return reference.Count < _config.ReferenceSize ? null : reference.Min();
-        }
 
         /// <summary>Скільки безкоштовних слотів відкриває ратуша цього рівня.</summary>
         public int FreeSlots(int townHallLevel) => _config.FreeSlotTownHallLevels.Count(level => level <= townHallLevel);

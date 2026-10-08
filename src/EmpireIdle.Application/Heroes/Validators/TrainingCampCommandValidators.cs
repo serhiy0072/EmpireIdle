@@ -9,6 +9,7 @@ namespace EmpireIdle.Application.Heroes.Validators
         {
             RuleFor(c => c.PlayerId).NotEmpty();
             RuleFor(c => c.HeroId).NotEmpty();
+            RuleFor(c => c.Slot).InclusiveBetween(0, 99);
         }
     }
 

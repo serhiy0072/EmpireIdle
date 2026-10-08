@@ -52,8 +52,17 @@
   ],
   "camp.heroAlreadyIn": [],
   "camp.heroNotIn": [],
-  "camp.noFreeSlot": [],
+  "camp.slotCooling": [
+    "slot",
+    "until"
+  ],
+  "camp.slotLocked": [
+    "slot"
+  ],
   "camp.slotReady": [
+    "slot"
+  ],
+  "camp.slotTaken": [
     "slot"
   ],
   "camp.unavailable": [

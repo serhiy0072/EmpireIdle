@@ -20,9 +20,6 @@ interface Props {
   /** Скільки книг вмінь цієї половини («Attack» / «Defense») для цього героя в інвентарі. */
   skillBooks: (half: string) => number;
   onUpgradeSkill: (skillKey: string) => void;
-  /** Табір доступний: поза ним є опорна п'ятірка (GDD §6.1). */
-  campAvailable: boolean;
-  onToggleCamp: () => void;
   busy: boolean;
   onLevelUp: () => void;
   onResetLevel: () => void;
@@ -39,8 +36,6 @@ export default function HeroDetails({
   universalShards,
   skillBooks,
   onUpgradeSkill,
-  campAvailable,
-  onToggleCamp,
   busy,
   onLevelUp,
   onResetLevel,
@@ -199,16 +194,6 @@ export default function HeroDetails({
             Добрати {Math.min(shardsMissing, universalShards)} з універсальних осколків (є {universalShards})
           </button>
         )}
-
-        {/* У табір героя ставлять звідси; вийняти можна й з панелі табору */}
-        <button
-          type="button"
-          onClick={onToggleCamp}
-          disabled={busy || (hero.campSlot == null && !campAvailable)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-        >
-          {hero.campSlot == null ? "У навчальний табір" : "Вийняти з табору"}
-        </button>
 
         {/* Скидання не скасувати — тож другий клік; досвід повертається в пул повністю */}
         {hero.level > 1 &&

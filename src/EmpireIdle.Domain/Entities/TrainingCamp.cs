@@ -36,16 +36,21 @@ namespace EmpireIdle.Domain.Entities
             => SlotCooldowns.TryGetValue(slot, out var until) && until > utcNow;
 
         /// <summary>
-        /// Перший слот, у який можна поставити героя: у межах відкритих, не зайнятий і не на перезарядці.
-        /// null — вільного немає.
+        /// Гравець обрав слот — він має бути відкритим, вільним і не на перезарядці.
+        /// Хто стоїть у слотах, знає ростер, тож зайняті передає викликач.
         /// </summary>
-        public int? FirstFreeSlot(int totalSlots, IReadOnlySet<int> occupied, DateTime utcNow)
+        public void EnsureSlotFree(int slot, int totalSlots, IReadOnlySet<int> occupied, DateTime utcNow)
         {
-            for (var slot = 0; slot < totalSlots; slot++)
-                if (!occupied.Contains(slot) && !IsCoolingDown(slot, utcNow))
-                    return slot;
+            if (slot < 0 || slot >= totalSlots)
+                throw new RequirementNotMetException(RefusalReasons.CampSlotLocked,
+                    $"Camp slot {slot} is not open — the player has {totalSlots}.", slot + 1);
 
-            return null;
+            if (occupied.Contains(slot))
+                throw new RequirementNotMetException(RefusalReasons.CampSlotTaken, $"Camp slot {slot} is taken.", slot + 1);
+
+            if (IsCoolingDown(slot, utcNow))
+                throw new RequirementNotMetException(RefusalReasons.CampSlotCooling,
+                    $"Camp slot {slot} is cooling down.", slot + 1, SlotCooldowns[slot]);
         }
 
         /// <summary>Героя вийняли — слот перезаряджається, щоб табір не став безкоштовною ротацією героїв.</summary>

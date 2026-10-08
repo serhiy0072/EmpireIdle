@@ -68,14 +68,37 @@ public class TrainingCampTests
         Assert.Null(Rules().NextSlotPrice(2));
     }
 
-    [Fact]
-    public void FirstFreeSlot_ShouldSkipTakenAndCoolingSlots()
+    /// <summary>Гравець обирає слот сам — закритий, зайнятий і той, що перезаряджається, відхиляються.</summary>
+    [Theory]
+    [InlineData(0, "camp.slotTaken")]
+    [InlineData(1, "camp.slotCooling")]
+    [InlineData(3, "camp.slotLocked")]
+    public void EnsureSlotFree_ShouldRefuse_AnUnusableSlot(int slot, string reason)
     {
         var camp = new TrainingCamp(Guid.NewGuid(), Guid.NewGuid(), 1, Now);
         camp.StartCooldown(1, TimeSpan.FromHours(24), Now);
 
-        Assert.Equal(2, camp.FirstFreeSlot(totalSlots: 3, occupied: new HashSet<int> { 0 }, Now));
-        Assert.Null(camp.FirstFreeSlot(totalSlots: 2, occupied: new HashSet<int> { 0 }, Now));
+        var refusal = Assert.Throws<RequirementNotMetException>(() =>
+            camp.EnsureSlotFree(slot, totalSlots: 3, occupied: new HashSet<int> { 0 }, Now));
+
+        Assert.Equal(reason, refusal.Reason);
+    }
+
+    [Fact]
+    public void EnsureSlotFree_ShouldAccept_AnOpenFreeSlot()
+        => new TrainingCamp(Guid.NewGuid(), Guid.NewGuid(), 1, Now)
+            .EnsureSlotFree(2, totalSlots: 3, occupied: new HashSet<int> { 0 }, Now);
+
+    /// <summary>П'ятірка — найсильніші поза табором; герой у таборі туди не входить.</summary>
+    [Fact]
+    public void ReferenceHeroes_ShouldBeTheStrongestOutsideTheCamp()
+    {
+        var roster = Roster(10, 60, 50, 40, 30, 20);
+        roster[1].EnterCamp(0, campLevel: 20, Now);
+
+        var reference = Rules().ReferenceHeroes(roster);
+
+        Assert.Equal([50, 40, 30, 20, 10], reference.Select(h => h.Level));
     }
 
     [Fact]

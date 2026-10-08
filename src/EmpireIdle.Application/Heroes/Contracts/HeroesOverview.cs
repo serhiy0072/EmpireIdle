@@ -16,6 +16,7 @@ namespace EmpireIdle.Application.Heroes.Contracts
     /// <summary>Навчальний табір (GDD §6.1, рішення 07.10.2026).</summary>
     /// <param name="Available">Поза табором щонайменше ReferenceSize героїв — опорна п'ятірка є.</param>
     /// <param name="Level">Рівень, який дає табір: найменший у п'ятірці; null — табір недоступний.</param>
+    /// <param name="ReferenceHeroIds">Опорна п'ятірка — найсильніші поза табором, від найсильнішого; може бути коротшою, якщо героїв мало.</param>
     /// <param name="TotalSlots">Відкриті слоти: безкоштовні за ратушею плюс куплені.</param>
     /// <param name="NextSlotPriceGems">Ціна наступного слота за gems; null — усі куплені.</param>
     /// <param name="Slots">Кожен відкритий слот: хто в ньому й до коли перезаряджається.</param>
@@ -23,6 +24,7 @@ namespace EmpireIdle.Application.Heroes.Contracts
         bool Available,
         int? Level,
         int ReferenceSize,
+        IReadOnlyList<Guid> ReferenceHeroIds,
         int TotalSlots,
         int FreeSlots,
         int PurchasedSlots,

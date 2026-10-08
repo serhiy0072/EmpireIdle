@@ -52,7 +52,13 @@ export function useUpgradeHeroSkill(playerId: string) {
 
 /** Навчальний табір (GDD §6.1): герой отримує рівень найслабшого з п'ятірки найсильніших поза табором. */
 export function usePlaceInCamp(playerId: string) {
-  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/camp`, ["heroes", "power"]);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ heroId, slot }: { heroId: string; slot: number }) =>
+      api<void>(`/api/heroes/${playerId}/camp/slots/${slot}/heroes/${heroId}`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "power"]),
+  });
 }
 
 export function useRemoveFromCamp(playerId: string) {

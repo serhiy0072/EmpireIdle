@@ -3450,7 +3450,7 @@
         }
       }
     },
-    "/api/heroes/{playerId}/{heroId}/camp": {
+    "/api/heroes/{playerId}/camp/slots/{slot}/heroes/{heroId}": {
       "post": {
         "tags": [
           "Heroes"
@@ -3464,6 +3464,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "slot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           },
           {
@@ -13129,6 +13138,7 @@
           "freeSlots",
           "maxPurchasableSlots",
           "purchasedSlots",
+          "referenceHeroIds",
           "referenceSize",
           "skipCooldownGems",
           "slots",
@@ -13147,6 +13157,13 @@
           "referenceSize": {
             "type": "integer",
             "format": "int32"
+          },
+          "referenceHeroIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
           "totalSlots": {
             "type": "integer",

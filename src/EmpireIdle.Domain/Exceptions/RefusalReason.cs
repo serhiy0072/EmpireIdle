@@ -304,8 +304,14 @@
         /// <summary>Табір доступний, коли поза ним щонайменше need героїв (GDD §6.1); have — скільки зараз.</summary>
         public static readonly RefusalReason CampUnavailable = new("camp.unavailable", "need", "have");
 
-        /// <summary>Усі відкриті слоти табору зайняті або перезаряджаються.</summary>
-        public static readonly RefusalReason CampNoFreeSlot = new("camp.noFreeSlot");
+        /// <summary>Слот ще не відкрито ратушею чи купівлею; slot — його номер від 1.</summary>
+        public static readonly RefusalReason CampSlotLocked = new("camp.slotLocked", "slot");
+
+        /// <summary>У слоті вже стоїть герой — найчастіше його поставили з іншої вкладки.</summary>
+        public static readonly RefusalReason CampSlotTaken = new("camp.slotTaken", "slot");
+
+        /// <summary>Слот перезаряджається після звільнення; until — до коли.</summary>
+        public static readonly RefusalReason CampSlotCooling = new("camp.slotCooling", "slot", "until");
 
         public static readonly RefusalReason CampHeroAlreadyIn = new("camp.heroAlreadyIn");
 

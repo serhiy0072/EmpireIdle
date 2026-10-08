@@ -51,13 +51,13 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
-        /// <summary>Поставити героя в навчальний табір: він отримує рівень опорної п'ятірки (GDD §6.1).</summary>
-        [HttpPost("{playerId:guid}/{heroId:guid}/camp")]
+        /// <summary>Поставити героя в обраний слот навчального табору: він отримує рівень опорної п'ятірки (GDD §6.1).</summary>
+        [HttpPost("{playerId:guid}/camp/slots/{slot:int}/heroes/{heroId:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> PlaceInCamp(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        public async Task<IActionResult> PlaceInCamp(Guid playerId, int slot, Guid heroId, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new PlaceHeroInCampCommand(playerId, heroId), cancellationToken);
+            await _mediator.Send(new PlaceHeroInCampCommand(playerId, heroId, slot), cancellationToken);
             return NoContent();
         }
 

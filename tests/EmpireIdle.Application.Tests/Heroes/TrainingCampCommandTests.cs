@@ -72,10 +72,10 @@ public class TrainingCampCommandTests
 
     private TrainingCampService Camps() => new(_heroes, _players, _wallets, _serverContext, _rules);
 
-    private Task Place(Hero hero)
+    private Task Place(Hero hero, int slot = 0)
         => new PlaceHeroInCampCommandHandler(_heroes, _villages, new VillageStatus(_catalog), _rules, Camps(), _unitOfWork,
                 new FakeTimeProvider(Now), NullLogger<PlaceHeroInCampCommandHandler>.Instance)
-            .Handle(new PlaceHeroInCampCommand(PlayerId, hero.Id), CancellationToken.None);
+            .Handle(new PlaceHeroInCampCommand(PlayerId, hero.Id, slot), CancellationToken.None);
 
     private Task Remove(Hero hero)
         => new RemoveHeroFromCampCommandHandler(_heroes, _rules, Camps(), _unitOfWork, new FakeTimeProvider(Now),
@@ -124,17 +124,42 @@ public class TrainingCampCommandTests
         Assert.Null(fifth.CampSlot);
     }
 
+    /// <summary>Слот обирає гравець: зайнятий — відмова, навіть якщо інший вільний.</summary>
     [Fact]
-    public async Task Place_ShouldRefuse_WhenEverySlotIsTaken()
+    public async Task Place_ShouldRefuse_ATakenSlot()
     {
         GivenFive();
-        var heroes = new[] { GivenHero(1), GivenHero(1), GivenHero(1) };
+        var first = GivenHero(1);
+        var second = GivenHero(1);
+
+        await Place(first, slot: 0);
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Place(second, slot: 0));
+
+        Assert.Equal(RefusalReasons.CampSlotTaken.Key, refusal.Reason);
+        Assert.Null(second.CampSlot);
+    }
+
+    [Fact]
+    public async Task Place_ShouldRefuse_ASlotNotYetOpen()
+    {
+        GivenFive();
+        var rookie = GivenHero(1);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Place(rookie, slot: 2));
+
+        Assert.Equal(RefusalReasons.CampSlotLocked.Key, refusal.Reason);
+    }
+
+    /// <summary>Усі першого рівня: будь-кого з п'ятірки можна поставити — його місце займе шостий.</summary>
+    [Fact]
+    public async Task Place_ShouldAcceptAHeroFromTheFive_WhenASixthCanReplaceIt()
+    {
+        var heroes = Enumerable.Range(0, 6).Select(_ => GivenHero(1)).ToList();
 
         await Place(heroes[0]);
-        await Place(heroes[1]);
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Place(heroes[2]));
 
-        Assert.Equal(RefusalReasons.CampNoFreeSlot.Key, refusal.Reason);
+        Assert.Equal(0, heroes[0].CampSlot);
+        Assert.Equal(1, heroes[0].EffectiveLevel);
     }
 
     /// <summary>Сильного поставили в табір — п'ятірка перерахувалась, і рівень інших у слотах упав.</summary>
@@ -147,7 +172,7 @@ public class TrainingCampCommandTests
         await Place(rookie);
 
         var strongest = _roster[0];
-        await Place(strongest);
+        await Place(strongest, slot: 1);
 
         // Тепер п'ятірка: 45, 40, 35, 30, 20
         Assert.Equal(20, rookie.EffectiveLevel);
@@ -172,7 +197,7 @@ public class TrainingCampCommandTests
     }
 
     [Fact]
-    public async Task Place_ShouldSkipACoolingSlot()
+    public async Task Place_ShouldRefuse_ACoolingSlot()
     {
         GivenFive();
         var first = GivenHero(level: 1);
@@ -180,9 +205,9 @@ public class TrainingCampCommandTests
         await Place(first);
         await Remove(first);
 
-        await Place(second);
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Place(second, slot: 0));
 
-        Assert.Equal(1, second.CampSlot);
+        Assert.Equal(RefusalReasons.CampSlotCooling.Key, refusal.Reason);
     }
 
     // ---------- Синхронізація ----------

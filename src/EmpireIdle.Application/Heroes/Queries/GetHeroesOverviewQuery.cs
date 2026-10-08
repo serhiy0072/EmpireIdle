@@ -114,6 +114,7 @@ namespace EmpireIdle.Application.Heroes.Queries
                 level is not null,
                 level,
                 _campRules.ReferenceSize,
+                _campRules.ReferenceHeroes(heroes).Select(h => h.Id).ToList(),
                 total,
                 free,
                 purchased,
