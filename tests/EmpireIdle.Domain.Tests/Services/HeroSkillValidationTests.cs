@@ -207,6 +207,60 @@ public class HeroSkillValidationTests
     public void MoreUtilitiesThanTheDefenseHalfHolds_ShouldFail()
         => Fails(WithLayout(new SkillLayoutConfig { Attack = 1, Defense = 1, Utility = 2 }, Active()));
 
+    // ---------- Книги ----------
+
+    /// <summary>Звичайний воїн з активним (атака) і пасивкою захисту — і книги для обох половин.</summary>
+    private static GameConfig WithBooks(params (string Key, SkillHalf Half, string Type, Rarity Rarity, string Class)[] books)
+    {
+        var config = With(Active(), Passive("guard", SkillHalf.Defense));
+
+        // Інші герої фікстури теж мусять мати книги — прибираємо їм вміння, щоб тест дивився лише на одного
+        foreach (var other in config.Heroes.Where(h => h.Key != TestKeys.CommonHero))
+            other.Skills.Clear();
+
+        foreach (var book in books)
+        {
+            config.Items.Add(new ItemConfig { Key = book.Key, DisplayName = book.Key, Type = book.Type, Rarity = book.Rarity });
+            config.HeroSettings.SkillBooks.Add(new SkillBookConfig
+            {
+                ItemKey = book.Key, Class = book.Class, Rarity = Rarity.Common, Half = book.Half,
+            });
+        }
+
+        return config;
+    }
+
+    private static readonly (string, SkillHalf, string, Rarity, string) AttackBook =
+        ("book_attack", SkillHalf.Attack, "skillbook", Rarity.Common, "warrior");
+
+    private static readonly (string, SkillHalf, string, Rarity, string) DefenseBook =
+        ("book_defense", SkillHalf.Defense, "skillbook", Rarity.Common, "warrior");
+
+    [Fact]
+    public void BooksForBothHalves_ShouldPass()
+        => GameConfigValidator.Validate(WithBooks(AttackBook, DefenseBook));
+
+    /// <summary>Без книги захисту захисні вміння героя застрягли б на першому рівні.</summary>
+    [Fact]
+    public void AHeroWithoutABookForItsHalf_ShouldFail()
+        => Fails(WithBooks(AttackBook));
+
+    [Fact]
+    public void ABookThatIsNotASkillbookItem_ShouldFail()
+        => Fails(WithBooks(AttackBook, ("book_defense", SkillHalf.Defense, "resources", Rarity.Common, "warrior")));
+
+    [Fact]
+    public void ABookOfAnotherRarityItem_ShouldFail()
+        => Fails(WithBooks(AttackBook, ("book_defense", SkillHalf.Defense, "skillbook", Rarity.Rare, "warrior")));
+
+    [Fact]
+    public void ABookForAnUnknownClass_ShouldFail()
+        => Fails(WithBooks(AttackBook, DefenseBook, ("book_paladin", SkillHalf.Defense, "skillbook", Rarity.Common, "paladin")));
+
+    [Fact]
+    public void TwoBooksForTheSameSlot_ShouldFail()
+        => Fails(WithBooks(AttackBook, DefenseBook, ("book_defense_2", SkillHalf.Defense, "skillbook", Rarity.Common, "warrior")));
+
     private static HeroSkillConfig Tweak(HeroSkillConfig skill, Action<HeroSkillConfig> tune)
     {
         tune(skill);

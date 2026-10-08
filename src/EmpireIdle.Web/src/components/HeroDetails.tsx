@@ -6,7 +6,6 @@ import {
   skillEffect,
   skillHalfLabel,
   skillKindLabel,
-  skillLevel,
   useCatalog,
 } from "../lib/queries/catalog";
 import type { HeroSummary } from "../lib/queries/heroes";
@@ -18,6 +17,9 @@ interface Props {
   experience: number;
   /** Універсальні осколки рідкості цього героя в інвентарі. */
   universalShards: number;
+  /** Скільки книг вмінь цієї половини («Attack» / «Defense») для цього героя в інвентарі. */
+  skillBooks: (half: string) => number;
+  onUpgradeSkill: (skillKey: string) => void;
   busy: boolean;
   onLevelUp: () => void;
   onResetLevel: () => void;
@@ -32,6 +34,8 @@ export default function HeroDetails({
   hero,
   experience,
   universalShards,
+  skillBooks,
+  onUpgradeSkill,
   busy,
   onLevelUp,
   onResetLevel,
@@ -96,16 +100,21 @@ export default function HeroDetails({
       {config !== null && config.skills.length > 0 && (
         <section>
           <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Вміння · рівень до {Math.min(catalog.maxSkillLevel, stars + 1)} з {catalog.maxSkillLevel}
+            Вміння · рівень до {hero.skillLevelCap} з {catalog.maxSkillLevel}
           </h3>
           {["Attack", "Defense"].map((half) => (
             <div key={half} className="mt-2">
-              <p className="text-xs text-slate-400">{skillHalfLabel(half)}</p>
+              <p className="text-xs text-slate-400">
+                {skillHalfLabel(half)} · книг: {skillBooks(half)}
+              </p>
               <ul className="mt-1 space-y-2">
                 {config.skills
                   .filter((skill) => skill.half === half)
                   .map((skill) => {
-                    const level = skillLevel(skill, hero.level);
+                    // Рівень рахує сервер: відкриття за рівнем героя й стелю зірок клієнт не дублює
+                    const level = hero.skillLevels[skill.key] ?? 0;
+                    const canRaise =
+                      level > 0 && level < hero.skillLevelCap && level < catalog.maxSkillLevel && skillBooks(half) > 0;
 
                     return (
                       <li key={skill.key} className="text-sm">
@@ -114,8 +123,27 @@ export default function HeroDetails({
                             {skill.displayName}
                             <span className="ml-1 text-xs text-slate-400">{skillKindLabel(skill.kind)}</span>
                           </span>
-                          <span className={level === 0 ? "text-xs text-slate-400" : "text-xs text-emerald-700"}>
-                            {level === 0 ? `з ${skill.unlockLevel} рівня` : `рів. ${level}`}
+                          <span className="flex items-baseline gap-2">
+                            <span className={level === 0 ? "text-xs text-slate-400" : "text-xs text-emerald-700"}>
+                              {level === 0 ? `з ${skill.unlockLevel} рівня` : `рів. ${level}`}
+                            </span>
+                            {level > 0 && level < catalog.maxSkillLevel && (
+                              <button
+                                type="button"
+                                onClick={() => onUpgradeSkill(skill.key)}
+                                disabled={busy || !canRaise}
+                                title={
+                                  level >= hero.skillLevelCap
+                                    ? `Наступний рівень — на ${level} зірці`
+                                    : skillBooks(half) === 0
+                                      ? "Немає книги"
+                                      : "Підняти рівень за книгу"
+                                }
+                                className="rounded border border-emerald-300 px-1.5 text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"
+                              >
+                                +1
+                              </button>
+                            )}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500">{skillEffect(skill, level)}</p>

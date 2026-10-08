@@ -115,6 +115,96 @@
           "ItemKey": "beast_feed",
           "PriceGems": 1,
           "MaxPerPurchase": 100
+        },
+        {
+          "ItemKey": "skill_book_warrior_common_attack",
+          "PriceGems": 10,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_warrior_common_defense",
+          "PriceGems": 10,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_warrior_rare_attack",
+          "PriceGems": 40,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_warrior_rare_defense",
+          "PriceGems": 40,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_warrior_unique_attack",
+          "PriceGems": 150,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_warrior_unique_defense",
+          "PriceGems": 150,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_knight_common_attack",
+          "PriceGems": 10,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_knight_common_defense",
+          "PriceGems": 10,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_knight_rare_attack",
+          "PriceGems": 40,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_knight_rare_defense",
+          "PriceGems": 40,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_knight_unique_attack",
+          "PriceGems": 150,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_knight_unique_defense",
+          "PriceGems": 150,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_archer_common_attack",
+          "PriceGems": 10,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_archer_common_defense",
+          "PriceGems": 10,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_archer_rare_attack",
+          "PriceGems": 40,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_archer_rare_defense",
+          "PriceGems": 40,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_archer_unique_attack",
+          "PriceGems": 150,
+          "MaxPerPurchase": 20
+        },
+        {
+          "ItemKey": "skill_book_archer_unique_defense",
+          "PriceGems": 150,
+          "MaxPerPurchase": 20
         }
       ],
       "Banners": [

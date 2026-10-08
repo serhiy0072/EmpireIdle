@@ -7,6 +7,7 @@
     /// клієнт або вигадує назви з ключів, або тримає власну копію JSON,
     /// яка відстане від сервера на першій же правці балансу.
     /// </summary>
+    /// <param name="SkillBooks">Яка книга (предмет) піднімає вміння героя якої ролі, рідкості й половини.</param>
     /// <param name="MaxSkillLevel">Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1).</param>
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
     /// <param name="MaxEnhancement">Стеля заточки — після неї кнопка «Заточити» зникає.</param>
@@ -31,6 +32,7 @@
         int MaxStars,
         int PartsPerStar,
         int MaxSkillLevel,
+        IReadOnlyList<CatalogSkillBook> SkillBooks,
         double StarPartBonus,
         int SummonShards,
         int MaxTier,
@@ -88,6 +90,11 @@
         CatalogSkillTroops? Troops,
         CatalogSkillUtility? Utility,
         CatalogSkillBattle? Battle);
+
+    /// <summary>Книга вмінь (GDD §6.1): предмет, що піднімає вміння своєї половини в героя цієї ролі й рідкості.</summary>
+    /// <param name="Rarity">"Common", "Rare" або "Unique".</param>
+    /// <param name="Half">"Attack" або "Defense".</param>
+    public record CatalogSkillBook(string ItemKey, string Class, string Rarity, string Half);
 
     /// <param name="Target">Ключ типу юніта або "all".</param>
     /// <param name="Percents">Бонус у відсотках на кожному рівні вміння, від першого.</param>

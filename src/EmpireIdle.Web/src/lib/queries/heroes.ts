@@ -36,6 +36,20 @@ export function useLevelUpHero(playerId: string) {
   });
 }
 
+/** Вміння героя на рівень за книгу його ролі, рідкості й половини (GDD §6.1). */
+export function useUpgradeHeroSkill(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ heroId, skillKey }: { heroId: string; skillKey: string }) =>
+      api<void>(`/api/heroes/${playerId}/${heroId}/skills/${encodeURIComponent(skillKey)}/upgrade`, {
+        method: "POST",
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "inventory", "power"]),
+  });
+}
+
 /** Скидання на перший рівень: весь досвід повертається в пул. */
 export function useResetHeroLevel(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/reset-level`, ["heroes", "power"]);

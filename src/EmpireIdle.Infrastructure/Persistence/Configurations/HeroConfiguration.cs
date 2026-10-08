@@ -1,5 +1,7 @@
+using System.Text.Json;
 using EmpireIdle.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 
@@ -15,6 +17,19 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(h => h.HeroKey).IsRequired().HasMaxLength(50);
             builder.Property(h => h.State).HasConversion<int>();
+
+            // Рівні вмінь — непрозорий для БД JSON: жоден запит не фільтрує за ними (GDD §6.1)
+            builder.Property(h => h.SkillLevels)
+                .HasColumnType("jsonb")
+                .HasDefaultValueSql("'{}'::jsonb")
+                .HasConversion(
+                    levels => JsonSerializer.Serialize(levels, (JsonSerializerOptions?)null),
+                    json => JsonSerializer.Deserialize<Dictionary<string, int>>(json, (JsonSerializerOptions?)null)
+                        ?? new Dictionary<string, int>(),
+                    new ValueComparer<IReadOnlyDictionary<string, int>>(
+                        (a, b) => a!.Count == b!.Count && !a.Except(b).Any(),
+                        levels => levels.Aggregate(0, (hash, pair) => HashCode.Combine(hash, pair.Key, pair.Value)),
+                        levels => new Dictionary<string, int>(levels)));
 
             // xmin — той самий токен паралелізму, що й у решті агрегатів
             builder.Property(h => h.Version).IsRowVersion();

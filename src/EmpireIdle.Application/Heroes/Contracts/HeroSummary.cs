@@ -9,6 +9,8 @@ namespace EmpireIdle.Application.Heroes.Contracts
     /// Довідникових полів із heroes.json тут немає навмисно — вони однакові
     /// для всіх гравців і возити їх у кожній відповіді немає сенсу.
     /// </summary>
+    /// <param name="SkillLevels">Рівень кожного вміння з конфіга героя, що діє зараз; 0 — ще закрите рівнем героя (GDD §6.1).</param>
+    /// <param name="SkillLevelCap">До якого рівня можна підняти вміння з поточними зірками: зірки + 1.</param>
     public record HeroSummary(
         Guid Id,
         string HeroKey,
@@ -21,5 +23,7 @@ namespace EmpireIdle.Application.Heroes.Contracts
         int Shards,
         string State,
         Guid? StationedGarrisonId,
-        bool IsLeader);
+        bool IsLeader,
+        IReadOnlyDictionary<string, int> SkillLevels,
+        int SkillLevelCap);
 }

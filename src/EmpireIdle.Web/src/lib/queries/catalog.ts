@@ -44,6 +44,8 @@ export interface Catalog {
   partsPerStar: number;
   /** Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1). */
   maxSkillLevel: number;
+  /** Ключ предмета-книги для вмінь цієї половини в героя такої ролі й рідкості; null — книги немає. */
+  skillBook: (heroClass: string, rarity: string, half: string) => string | null;
   /** Скільки осколків коштує призов будь-якого героя. */
   summonShards: number;
   maxTier: number;
@@ -134,6 +136,11 @@ export function useCatalog(): Catalog {
       maxStars: data?.maxStars ?? 5,
       partsPerStar: data?.partsPerStar ?? 6,
       maxSkillLevel: data?.maxSkillLevel ?? 6,
+      skillBook: (heroClass, rarity, half) =>
+        (data?.skillBooks ?? []).find(
+          (book) =>
+            book.class === heroClass && book.rarity.toLowerCase() === rarity.toLowerCase() && book.half === half,
+        )?.itemKey ?? null,
       summonShards: data?.summonShards ?? 10,
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
@@ -213,14 +220,6 @@ export function skillKindLabel(kind: string): string {
 /** Половина вмінь (GDD §6.1): її книга й піднімає вміння. */
 export function skillHalfLabel(half: string): string {
   return half === "Attack" ? "Атака" : half === "Defense" ? "Захист" : half;
-}
-
-/**
- * Рівень вміння, що діє зараз (GDD §6.1): 0 — ще закрите рівнем героя.
- * Поки книг немає, відкрите вміння — першого рівня, як і на сервері (HeroSkills.LevelOf).
- */
-export function skillLevel(skill: CatalogSkill, heroLevel: number): number {
-  return heroLevel >= skill.unlockLevel ? 1 : 0;
 }
 
 /** Значення з пер-рівневого списку — та сама формула, що HeroSkills.At на сервері. */

@@ -21,5 +21,15 @@ namespace EmpireIdle.Application.Heroes.Validators
             RuleFor(c => c.From).IsInEnum();
             RuleFor(c => c.Count).InclusiveBetween(1, 1_000);
         }
+
+    public sealed class UpgradeHeroSkillCommandValidator : AbstractValidator<UpgradeHeroSkillCommand>
+    {
+        public UpgradeHeroSkillCommandValidator()
+        {
+            RuleFor(c => c.PlayerId).NotEmpty();
+            RuleFor(c => c.HeroId).NotEmpty();
+            RuleFor(c => c.SkillKey).NotEmpty().MaximumLength(80);
+        }
+    }
     }
 }

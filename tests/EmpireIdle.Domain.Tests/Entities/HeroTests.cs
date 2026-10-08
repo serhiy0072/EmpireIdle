@@ -256,6 +256,52 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(3, hero.Level);
         }
 
+        // ---------- Вміння ----------
+
+        [Fact]
+        public void SkillLevel_ShouldStartAtOne_WithoutBooks()
+            => Assert.Equal(1, TestKit.Entities.Hero().SkillLevel("fury"));
+
+        [Fact]
+        public void RaiseSkill_ShouldAddOneLevel_AndRaiseAChange()
+        {
+            var hero = TestKit.Entities.Hero();
+            hero.ClearDomainEvents();
+
+            hero.RaiseSkill("fury", levelCap: 3, maxSkillLevel: 6, Now);
+
+            Assert.Equal(2, hero.SkillLevel("fury"));
+            Assert.Equal(1, hero.SkillLevel("wall"));
+            Assert.Contains(hero.DomainEvents, e => e is HeroChanged);
+        }
+
+        /// <summary>Наступний рівень відкриває зірка: з двома зірками вміння доходить до третього рівня й не далі.</summary>
+        [Fact]
+        public void RaiseSkill_ShouldStopAtTheStarCap()
+        {
+            var hero = TestKit.Entities.Hero();
+            hero.RaiseSkill("fury", levelCap: 3, maxSkillLevel: 6, Now);
+            hero.RaiseSkill("fury", levelCap: 3, maxSkillLevel: 6, Now);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.RaiseSkill("fury", levelCap: 3, maxSkillLevel: 6, Now));
+
+            Assert.Equal(RefusalReasons.HeroSkillStarCapped.Key, refusal.Reason);
+            Assert.Equal(3, hero.SkillLevel("fury"));
+        }
+
+        [Fact]
+        public void RaiseSkill_ShouldStopAtTheTopLevel()
+        {
+            var hero = TestKit.Entities.Hero();
+
+            for (var i = 0; i < 5; i++)
+                hero.RaiseSkill("fury", levelCap: 6, maxSkillLevel: 6, Now);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.RaiseSkill("fury", levelCap: 6, maxSkillLevel: 6, Now));
+
+            Assert.Equal(RefusalReasons.HeroSkillMaxed.Key, refusal.Reason);
+        }
+
         // ---------- Зірки ----------
 
         [Fact]

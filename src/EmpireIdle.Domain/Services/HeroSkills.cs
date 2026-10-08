@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
@@ -19,8 +20,16 @@ namespace EmpireIdle.Domain.Services
 
         public static bool IsUnlocked(Hero hero, HeroSkillConfig skill) => hero.Level >= skill.UnlockLevel;
 
-        /// <summary>Рівень вміння, що діє зараз; 0 — вміння ще закрите рівнем героя.</summary>
-        public int LevelOf(Hero hero, HeroSkillConfig skill) => IsUnlocked(hero, skill) ? 1 : 0;
+        /// <summary>
+        /// Рівень вміння, що діє зараз; 0 — вміння ще закрите рівнем героя. Піднятий книгами рівень
+        /// не губиться при скиданні рівня героя: вміння знову відкриється вже з ним.
+        /// </summary>
+        public int LevelOf(Hero hero, HeroSkillConfig skill)
+            => IsUnlocked(hero, skill) ? Math.Min(hero.SkillLevel(skill.Key), _config.MaxSkillLevel) : 0;
+
+        /// <summary>Книга, що піднімає вміння цієї половини в героя такої ролі й рідкості; null — книги немає.</summary>
+        public SkillBookConfig? BookFor(HeroConfig hero, SkillHalf half)
+            => _config.SkillBooks.FirstOrDefault(b => b.Class == hero.Class && b.Rarity == hero.Rank && b.Half == half);
 
         /// <summary>
         /// До якого рівня вміння можна дійти з поточними зірками: зірки + 1, але не вище MaxSkillLevel.

@@ -95,7 +95,117 @@
           "Defense": 3,
           "Utility": 0
         }
-      }
+      },
+      "SkillBooks": [
+        {
+          "ItemKey": "skill_book_warrior_common_attack",
+          "Class": "warrior",
+          "Rarity": "Common",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_warrior_common_defense",
+          "Class": "warrior",
+          "Rarity": "Common",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_warrior_rare_attack",
+          "Class": "warrior",
+          "Rarity": "Rare",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_warrior_rare_defense",
+          "Class": "warrior",
+          "Rarity": "Rare",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_warrior_unique_attack",
+          "Class": "warrior",
+          "Rarity": "Unique",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_warrior_unique_defense",
+          "Class": "warrior",
+          "Rarity": "Unique",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_knight_common_attack",
+          "Class": "knight",
+          "Rarity": "Common",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_knight_common_defense",
+          "Class": "knight",
+          "Rarity": "Common",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_knight_rare_attack",
+          "Class": "knight",
+          "Rarity": "Rare",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_knight_rare_defense",
+          "Class": "knight",
+          "Rarity": "Rare",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_knight_unique_attack",
+          "Class": "knight",
+          "Rarity": "Unique",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_knight_unique_defense",
+          "Class": "knight",
+          "Rarity": "Unique",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_archer_common_attack",
+          "Class": "archer",
+          "Rarity": "Common",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_archer_common_defense",
+          "Class": "archer",
+          "Rarity": "Common",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_archer_rare_attack",
+          "Class": "archer",
+          "Rarity": "Rare",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_archer_rare_defense",
+          "Class": "archer",
+          "Rarity": "Rare",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_archer_unique_attack",
+          "Class": "archer",
+          "Rarity": "Unique",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_archer_unique_defense",
+          "Class": "archer",
+          "Rarity": "Unique",
+          "Half": "Defense"
+        }
+      ]
     },
     "Heroes": [
       {

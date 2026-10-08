@@ -16,6 +16,7 @@ import {
   useHeroes,
   useLevelUpHero,
   useResetHeroLevel,
+  useUpgradeHeroSkill,
   useSummonHero,
   useUpgradeUniversalShards,
 } from "../lib/queries/heroes";
@@ -36,6 +37,7 @@ export default function HeroesPage() {
   const inventory = useInventory(playerId);
   const catalog = useCatalog();
   const resetLevel = useResetHeroLevel(playerId);
+  const upgradeSkill = useUpgradeHeroSkill(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -56,7 +58,8 @@ export default function HeroesPage() {
     advanceStar.isPending ||
     convertShards.isPending ||
     upgradeShards.isPending ||
-    resetLevel.isPending;
+    resetLevel.isPending ||
+    upgradeSkill.isPending;
 
   const failure =
     levelUp.error ??
@@ -67,7 +70,8 @@ export default function HeroesPage() {
     advanceStar.error ??
     convertShards.error ??
     upgradeShards.error ??
-    resetLevel.error;
+    resetLevel.error ??
+    upgradeSkill.error;
 
   const selected = heroes.data.heroes.find((hero) => hero.id === selectedId) ?? heroes.data.heroes[0] ?? null;
   const free = heroes.data.heroes.filter((hero) => hero.state === "Idle").length;
@@ -148,6 +152,13 @@ export default function HeroesPage() {
             hero={selected}
             experience={heroes.data.experience}
             universalShards={universal(catalog.hero(selected.heroKey)?.rank ?? "")}
+            skillBooks={(half) => {
+              const config = catalog.hero(selected.heroKey);
+              const book = config === null ? null : catalog.skillBook(config.class, config.rank, half);
+
+              return book === null ? 0 : (inventory.data?.items.find((item) => item.itemKey === book)?.count ?? 0);
+            }}
+            onUpgradeSkill={(skillKey) => upgradeSkill.mutate({ heroId: selected.id, skillKey })}
             busy={busy}
             onAdvanceStar={() => advanceStar.mutate(selected.id)}
             onConvertShards={(count) => convertShards.mutate({ heroKey: selected.heroKey, count })}

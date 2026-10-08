@@ -68,6 +68,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public Dictionary<string, SkillLayoutConfig> SkillLayouts { get; set; } = new();
 
+        /// <summary>
+        /// Книги вмінь: яка книга до якої ролі, рідкості й половини. Порожньо — книг у грі немає
+        /// (мінімальні фікстури); інакше кожен герой мусить мати книги для своїх половин.
+        /// </summary>
+        public List<SkillBookConfig> SkillBooks { get; set; } = new();
+
         /// <summary>Скільки частинок має повністю прокачаний герой.</summary>
         public int MaxStarParts => MaxStars * PartsPerStar;
 

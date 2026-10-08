@@ -15,15 +15,18 @@ namespace EmpireIdle.Application.Heroes.Queries
     {
         private readonly IHeroRepository _heroRepository;
         private readonly HeroProgression _progression;
+        private readonly HeroSkills _skills;
         private readonly GameCatalog _catalog;
 
         public GetHeroesOverviewQueryHandler(
             IHeroRepository heroRepository,
             HeroProgression progression,
+            HeroSkills skills,
             GameCatalog catalog)
         {
             _heroRepository = heroRepository;
             _progression = progression;
+            _skills = skills;
             _catalog = catalog;
         }
 
@@ -49,7 +52,11 @@ namespace EmpireIdle.Application.Heroes.Queries
                     // Ім'я enum як є: клієнт розгалужується за "Idle", а не за "idle"
                     h.State.ToString(),
                     h.StationedGarrisonId,
-                    h.IsLeader))
+                    h.IsLeader,
+                    // Рівні рахує сервер: відкриття за рівнем героя й стелю зірок клієнт не дублює
+                    (_catalog.FindHero(h.HeroKey)?.Skills ?? [])
+                        .ToDictionary(s => s.Key, s => _skills.LevelOf(h, s)),
+                    _skills.LevelCap(h)))
                 .ToList();
 
             // Осколки ще не призваних героїв — до призову; осколки відкритих ідуть у зірки й стоять у картці героя

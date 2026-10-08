@@ -984,6 +984,56 @@ namespace EmpireIdle.Domain.Services
 
                 ValidateHeroSkills(hero, settings, unitKeys, statKeys);
             }
+
+            ValidateSkillBooks(config);
+        }
+
+        /// <summary>
+        /// Книги вмінь (GDD §6.1): кожна — предмет-книга своєї рідкості для відомої ролі, по одній
+        /// на роль × рідкість × половину, і кожен герой має книги для обох своїх половин —
+        /// інакше його вміння застрягли б на першому рівні.
+        /// </summary>
+        private static void ValidateSkillBooks(GameConfig config)
+        {
+            var books = config.HeroSettings.SkillBooks;
+
+            // Книги не описані — мінімальні фікстури; у грі без книг вміння просто не качаються
+            if (books.Count == 0)
+                return;
+
+            var items = config.Items.ToDictionary(i => i.Key);
+            var classes = config.HeroSettings.Classes.ToHashSet();
+
+            var broken = books
+                .Where(b => !items.TryGetValue(b.ItemKey ?? string.Empty, out var item)
+                    || item.Type != "skillbook" || item.Rarity != b.Rarity || !classes.Contains(b.Class))
+                .Select(b => b.ItemKey)
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.SkillBooks must point at skillbook items of the same rarity for a known class: "
+                    + $"{string.Join(", ", broken)}.");
+
+            var duplicates = books
+                .GroupBy(b => (b.Class, b.Rarity, b.Half))
+                .Where(g => g.Count() > 1)
+                .Select(g => $"{g.Key.Class}/{g.Key.Rarity}/{g.Key.Half}")
+                .ToList();
+
+            if (duplicates.Count > 0)
+                throw new InvalidOperationException(
+                    $"HeroSettings.SkillBooks has more than one book for: {string.Join(", ", duplicates)}.");
+
+            var missing = config.Heroes
+                .SelectMany(h => h.Skills.Select(s => s.Half).Distinct().Select(half => (Hero: h, Half: half)))
+                .Where(x => !books.Any(b => b.Class == x.Hero.Class && b.Rarity == x.Hero.Rank && b.Half == x.Half))
+                .Select(x => $"{x.Hero.Key} ({x.Half})")
+                .ToList();
+
+            if (missing.Count > 0)
+                throw new InvalidOperationException(
+                    $"Heroes without a skill book for their skill half: {string.Join(", ", missing)}.");
         }
 
         /// <summary>

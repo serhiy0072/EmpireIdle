@@ -295,6 +295,18 @@
 
         public static readonly RefusalReason HeroNotEnoughShards = new("hero.notEnoughShards", "hero", "need", "have");
 
+        /// <summary>Вміння ще закрите рівнем героя (GDD §6.1); level — з якого рівня героя воно відкривається.</summary>
+        public static readonly RefusalReason HeroSkillLocked = new("hero.skillLocked", "skill", "level");
+
+        /// <summary>Наступний рівень вміння відкриє наступна зірка (GDD §6.1); stars — скільки зірок для нього треба.</summary>
+        public static readonly RefusalReason HeroSkillStarCapped = new("hero.skillStarCapped", "stars");
+
+        /// <summary>Вміння вже на найвищому рівні; level — стеля рівня вмінь.</summary>
+        public static readonly RefusalReason HeroSkillMaxed = new("hero.skillMaxed", "level");
+
+        /// <summary>Немає книги для цього вміння (GDD §6.1); book — назва потрібної книги.</summary>
+        public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book");
+
         // ---------- Спорядження ----------
 
         public static readonly RefusalReason EquipmentMaxEnhancement = new("equipment.maxEnhancement", "max");

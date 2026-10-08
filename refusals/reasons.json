@@ -163,6 +163,19 @@
   "hero.shardUpgradeLocked": [
     "rarity"
   ],
+  "hero.skillLocked": [
+    "skill",
+    "level"
+  ],
+  "hero.skillMaxed": [
+    "level"
+  ],
+  "hero.skillNoBook": [
+    "book"
+  ],
+  "hero.skillStarCapped": [
+    "stars"
+  ],
   "hero.tierLocked": [
     "tier"
   ],

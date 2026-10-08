@@ -61,6 +61,16 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Підняти вміння героя на рівень за книгу його ролі, рідкості й половини (GDD §6.1).</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/skills/{skillKey}/upgrade")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpgradeSkill(Guid playerId, Guid heroId, string skillKey, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new UpgradeHeroSkillCommand(playerId, heroId, skillKey), cancellationToken);
+            return NoContent();
+        }
+
         /// <summary>Призвати героя за накопичені уламки.</summary>
         [HttpPost("{playerId:guid}/summon")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

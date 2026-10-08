@@ -144,6 +144,9 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.MaxStars,
                 config.HeroSettings.PartsPerStar,
                 config.HeroSettings.MaxSkillLevel,
+                config.HeroSettings.SkillBooks
+                    .Select(book => new CatalogSkillBook(book.ItemKey, book.Class, book.Rarity.ToString(), book.Half.ToString()))
+                    .ToList(),
                 config.HeroSettings.StarPartBonus,
                 config.HeroSettings.SummonShards,
                 config.HeroSettings.MaxTier,

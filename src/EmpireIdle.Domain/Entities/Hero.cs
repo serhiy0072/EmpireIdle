@@ -42,9 +42,16 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Заповнені частинки зірок (GDD §6.1): 5 зірок × 6 частинок, кожна — за осколки цього героя.
-        /// Кожна частинка додає бойової міці, повні зірки відкривають пасивки.
+        /// Кожна частинка додає бойової міці, кожна повна зірка відкриває ще один рівень вмінь.
         /// </summary>
         public int StarParts { get; private set; }
+
+        /// <summary>
+        /// Рівні вмінь, підняті книгами (GDD §6.1): ключ вміння → рівень. Вміння без запису —
+        /// першого рівня. Знімок стану, а не довідник: перейменування вміння в конфігу
+        /// лише повертає його на перший рівень, а не валить героя.
+        /// </summary>
+        public IReadOnlyDictionary<string, int> SkillLevels { get; private set; } = new Dictionary<string, int>();
 
         public HeroState State { get; private set; }
 
@@ -288,6 +295,31 @@ namespace EmpireIdle.Domain.Entities
                     $"Hero {Id} already has every star.", maxStarParts);
 
             StarParts++;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Рівень вміння за книгами; без запису — перший.</summary>
+        public int SkillLevel(string skillKey) => SkillLevels.GetValueOrDefault(skillKey, 1);
+
+        /// <summary>
+        /// Піднімає вміння на рівень. Книгу списує викликач, він же перевіряє, що вміння відкрите
+        /// рівнем героя: інвентар і конфіг — поза агрегатом. Стелю від зірок рахує HeroSkills.
+        /// </summary>
+        public void RaiseSkill(string skillKey, int levelCap, int maxSkillLevel, DateTime utcNow)
+        {
+            var current = SkillLevel(skillKey);
+
+            if (current >= maxSkillLevel)
+                throw new RequirementNotMetException(RefusalReasons.HeroSkillMaxed,
+                    $"Hero {Id} skill '{skillKey}' is already at the top level {maxSkillLevel}.", maxSkillLevel);
+
+            // Наступний рівень відкриває наступна зірка: на N зірках доступний рівень N + 1
+            if (current >= levelCap)
+                throw new RequirementNotMetException(RefusalReasons.HeroSkillStarCapped,
+                    $"Hero {Id} needs {current} stars to raise skill '{skillKey}' above level {current}.", current);
+
+            SkillLevels = new Dictionary<string, int>(SkillLevels) { [skillKey] = current + 1 };
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }

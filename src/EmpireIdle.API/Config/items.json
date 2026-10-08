@@ -1481,6 +1481,132 @@
         "SetKey": "obsidian_unique",
         "UniqueStat": "DamageReduction",
         "UniqueStatValue": 0.18
+      },
+      {
+        "Key": "skill_book_warrior_common_attack",
+        "DisplayName": "Книга атаки воїна (звичайна)",
+        "Description": "Піднімає на рівень атакувальне вміння звичайного воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_common_defense",
+        "DisplayName": "Книга захисту воїна (звичайна)",
+        "Description": "Піднімає на рівень захисне вміння звичайного воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_rare_attack",
+        "DisplayName": "Книга атаки воїна (рідкісна)",
+        "Description": "Піднімає на рівень атакувальне вміння рідкісного воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_rare_defense",
+        "DisplayName": "Книга захисту воїна (рідкісна)",
+        "Description": "Піднімає на рівень захисне вміння рідкісного воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_unique_attack",
+        "DisplayName": "Книга атаки воїна (унікальна)",
+        "Description": "Піднімає на рівень атакувальне вміння унікального воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_unique_defense",
+        "DisplayName": "Книга захисту воїна (унікальна)",
+        "Description": "Піднімає на рівень захисне вміння унікального воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_common_attack",
+        "DisplayName": "Книга атаки лицаря (звичайна)",
+        "Description": "Піднімає на рівень атакувальне вміння звичайного лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_common_defense",
+        "DisplayName": "Книга захисту лицаря (звичайна)",
+        "Description": "Піднімає на рівень захисне вміння звичайного лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_rare_attack",
+        "DisplayName": "Книга атаки лицаря (рідкісна)",
+        "Description": "Піднімає на рівень атакувальне вміння рідкісного лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_rare_defense",
+        "DisplayName": "Книга захисту лицаря (рідкісна)",
+        "Description": "Піднімає на рівень захисне вміння рідкісного лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_unique_attack",
+        "DisplayName": "Книга атаки лицаря (унікальна)",
+        "Description": "Піднімає на рівень атакувальне вміння унікального лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_unique_defense",
+        "DisplayName": "Книга захисту лицаря (унікальна)",
+        "Description": "Піднімає на рівень захисне вміння унікального лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_common_attack",
+        "DisplayName": "Книга атаки лучника (звичайна)",
+        "Description": "Піднімає на рівень атакувальне вміння звичайного лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_common_defense",
+        "DisplayName": "Книга захисту лучника (звичайна)",
+        "Description": "Піднімає на рівень захисне вміння звичайного лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_rare_attack",
+        "DisplayName": "Книга атаки лучника (рідкісна)",
+        "Description": "Піднімає на рівень атакувальне вміння рідкісного лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_rare_defense",
+        "DisplayName": "Книга захисту лучника (рідкісна)",
+        "Description": "Піднімає на рівень захисне вміння рідкісного лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_unique_attack",
+        "DisplayName": "Книга атаки лучника (унікальна)",
+        "Description": "Піднімає на рівень атакувальне вміння унікального лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_unique_defense",
+        "DisplayName": "Книга захисту лучника (унікальна)",
+        "Description": "Піднімає на рівень захисне вміння унікального лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
       }
     ],
     "Equipment": {

@@ -167,6 +167,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.tierLocked": ({ tier }) => `Герой ${tier} тіру з'явиться на рівні світу ${tier}`,
   "hero.notEnoughShards": ({ hero, need, have }) => `«${hero}»: потрібно ${need} осколків, зібрано ${have}`,
   "hero.maxStars": () => "Усі зірки героя вже заповнені",
+  "hero.skillLocked": ({ skill, level }) => `«${skill}» відкриється з ${level} рівня героя`,
+  "hero.skillStarCapped": ({ stars }) => `Наступний рівень вміння відкриється на ${stars} зірці героя`,
+  "hero.skillMaxed": ({ level }) => `Вміння вже на найвищому, ${level} рівні`,
+  "hero.skillNoBook": ({ book }) => `Потрібна «${book}»`,
   "hero.notOwned": ({ hero }) => `Універсальні осколки йдуть лише у відкритого героя, а «${hero}» ще не призваний`,
   "hero.shardUpgradeLocked": () => "Обмін відкриється, коли всі герої цієї рідкості матимуть усі зірки",
 

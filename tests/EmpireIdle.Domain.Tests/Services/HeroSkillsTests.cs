@@ -11,6 +11,8 @@ namespace EmpireIdle.Domain.Tests.Services;
 /// </summary>
 public class HeroSkillsTests
 {
+    private static readonly DateTime Now = new(2026, 10, 8, 12, 0, 0, DateTimeKind.Utc);
+
     private static readonly HeroesConfig Settings = new() { MaxSkillLevel = 6, PartsPerStar = 6 };
 
     private static HeroSkills Skills() => new(Settings);
@@ -87,5 +89,42 @@ public class HeroSkillsTests
 
         Assert.Equal(1.05, progression.MarchSpeedMultiplier(TestKit.Entities.Hero(), HeroWith(Swift())), 6);
         Assert.Equal(1.0, progression.MarchSpeedMultiplier(TestKit.Entities.Hero(), HeroWith()), 6);
+    }
+
+    // ---------- Рівні від книг ----------
+
+    [Fact]
+    public void LevelOf_ShouldFollowTheBooks_OnceUnlocked()
+    {
+        var hero = TestKit.Entities.Hero(level: 20, stars: 2);
+        hero.RaiseSkill("swift", levelCap: 3, maxSkillLevel: 6, Now);
+
+        Assert.Equal(2, Skills().LevelOf(hero, Swift(unlockLevel: 20)));
+    }
+
+    /// <summary>Скидання рівня героя закриває вміння, але не губить піднятий книгами рівень.</summary>
+    [Fact]
+    public void LevelOf_ShouldKeepTheBookLevel_ThroughALevelReset()
+    {
+        var hero = TestKit.Entities.Hero(level: 20, stars: 2);
+        hero.RaiseSkill("swift", levelCap: 3, maxSkillLevel: 6, Now);
+
+        hero.ResetLevel(Now);
+        Assert.Equal(0, Skills().LevelOf(hero, Swift(unlockLevel: 20)));
+
+        hero.GainLevels(19, 20, Now);
+        Assert.Equal(2, Skills().LevelOf(hero, Swift(unlockLevel: 20)));
+    }
+
+    [Fact]
+    public void BookFor_ShouldMatchTheClassRarityAndHalf()
+    {
+        var book = new SkillBookConfig { ItemKey = "book", Class = "warrior", Rarity = Rarity.Common, Half = SkillHalf.Defense };
+        var skills = new HeroSkills(new HeroesConfig { SkillBooks = [book] });
+        var hero = HeroWith();
+
+        Assert.Same(book, skills.BookFor(hero, SkillHalf.Defense));
+        Assert.Null(skills.BookFor(hero, SkillHalf.Attack));
+        Assert.Null(skills.BookFor(new HeroConfig { Key = "x", DisplayName = "x", Class = "warrior", Rank = Rarity.Rare }, SkillHalf.Defense));
     }
 }
