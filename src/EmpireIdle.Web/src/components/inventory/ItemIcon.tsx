@@ -12,6 +12,8 @@ interface Props {
   rarity: string | number | undefined;
   size?: number;
   className?: string;
+  /** Без власного тла й рамки — коли рамку рідкості малює плитка навколо. */
+  bare?: boolean;
 }
 
 const FRAME: Record<string, { stroke: string; back: string }> = {
@@ -101,6 +103,16 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
+    // Прискорення — подвійний шеврон, як у грі: тривалість пише плитка, а не іконка
+    test: /speedup/,
+    draw: () => (
+      <g>
+        <path d="M22 26 L46 50 L22 74 L34 74 L58 50 L34 26 Z" fill="#e0f2fe" stroke="#0369a1" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M46 26 L70 50 L46 74 L58 74 L82 50 L58 26 Z" fill="#bae6fd" stroke="#0369a1" strokeWidth={2.5} strokeLinejoin="round" />
+      </g>
+    ),
+  },
+  {
     test: /essence/,
     draw: () => (
       <g>
@@ -186,16 +198,16 @@ const BY_TYPE: Record<string, RegExp> = {
   scoutveil: /veil/,
 };
 
-export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "" }: Props): ReactElement {
+export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false }: Props): ReactElement {
   const frame = FRAME[rarityKey(rarity)] ?? (FRAME.Common as { stroke: string; back: string });
   const key = itemKey.toLowerCase();
   const shape = SHAPES.find((candidate) => candidate.test.test(key)) ?? SHAPES.find((candidate) => candidate.test.test(BY_TYPE[type]?.source ?? ""));
 
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} className={`shrink-0 rounded-lg ${className}`} aria-hidden>
-      <rect width={100} height={100} rx={12} fill={frame.back} />
+      {!bare && <rect width={100} height={100} rx={12} fill={frame.back} />}
       {shape?.draw()}
-      <rect x={2} y={2} width={96} height={96} rx={11} fill="none" stroke={frame.stroke} strokeWidth={3} />
+      {!bare && <rect x={2} y={2} width={96} height={96} rx={11} fill="none" stroke={frame.stroke} strokeWidth={3} />}
     </svg>
   );
 }
