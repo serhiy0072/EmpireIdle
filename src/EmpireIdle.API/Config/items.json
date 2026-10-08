@@ -750,8 +750,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
         "SetKey": "tide_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 10
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "tide_ring_unique",
@@ -761,8 +761,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
         "SetKey": "tide_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 10
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "tide_crown_unique",
@@ -772,8 +772,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
         "SetKey": "tide_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 10
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "tide_belt_unique",
@@ -783,8 +783,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
         "SetKey": "tide_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 10
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "storm_necklace_common",
@@ -1214,8 +1214,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
         "SetKey": "hollow_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 12
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "hollow_ring_unique",
@@ -1225,8 +1225,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
         "SetKey": "hollow_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 12
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "hollow_crown_unique",
@@ -1236,8 +1236,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
         "SetKey": "hollow_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 12
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "hollow_belt_unique",
@@ -1247,8 +1247,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
         "SetKey": "hollow_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 12
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "gale_necklace_common",

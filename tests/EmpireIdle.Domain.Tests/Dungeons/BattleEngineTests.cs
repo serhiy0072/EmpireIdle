@@ -6,16 +6,13 @@ using EmpireIdle.Domain.Services.Config;
 namespace EmpireIdle.Domain.Tests.Dungeons;
 
 /// <summary>
-/// Покроковий бій данжів: черга ходів, лінії, енергія, стани.
+/// Покроковий бій данжів: черга ходів, лінії, перезарядки вмінь, стани.
 /// Кожен тест ламає рівно одне правило — інакше падіння не показує, яке саме.
 /// </summary>
 public class BattleEngineTests
 {
     private static DungeonsConfig Config() => new()
     {
-        MaxEnergy = 100,
-        EnergyPerAttack = 25,
-        EnergyPerHitTaken = 10,
         DefenseSoftening = 120,
         MinDamageShare = 0.1,
         BaseCritChance = 0,
@@ -25,7 +22,8 @@ public class BattleEngineTests
     private static BattleEngine Engine(DungeonsConfig? config = null) => new(config ?? Config());
 
     private static Combatant Hero(int index, BattleLine line = BattleLine.Front, double speed = 10,
-        double health = 500, double attack = 100, int energy = 0, Dictionary<DungeonStat, double>? unique = null) => new()
+        double health = 500, double attack = 100, Dictionary<DungeonStat, double>? unique = null,
+        params CombatSkill[] skills) => new()
     {
         Index = index,
         Side = BattleSide.Heroes,
@@ -37,9 +35,9 @@ public class BattleEngineTests
         MaxHealth = health,
         Health = health,
         Speed = speed,
-        Energy = energy,
         Statuses = [],
         UniqueStats = unique ?? [],
+        Skills = [.. skills],
     };
 
     private static Combatant Enemy(int index, BattleLine line = BattleLine.Front, double speed = 5,
@@ -54,7 +52,6 @@ public class BattleEngineTests
         MaxHealth = health,
         Health = health,
         Speed = speed,
-        Energy = 0,
         Statuses = [],
         UniqueStats = [],
     };
@@ -70,16 +67,45 @@ public class BattleEngineTests
             TurnNumber = 0,
         });
 
-    private static HeroAbilityConfig Strike(string key = "strike", int cost = 50, double multiplier = 1.8,
-        AbilityTarget target = AbilityTarget.SingleEnemy, bool ignoresLine = false) => new()
+    /// <summary>Удар по цілі; за замовчуванням активний і готовий просто зараз.</summary>
+    private static CombatSkill Strike(string key = "strike", double multiplier = 1.8, int cooldown = 3, int left = 0,
+        AbilityTarget target = AbilityTarget.SingleEnemy, bool ignoresLine = false, SkillKind kind = SkillKind.Active) => new()
     {
         Key = key,
-        DisplayName = key,
-        EnergyCost = cost,
+        Kind = kind,
         Target = target,
+        Cooldown = cooldown,
+        CooldownLeft = left,
         DamageMultiplier = multiplier,
         IgnoresLine = ignoresLine,
     };
+
+    private static CombatSkill Heal(string key = "mend", SkillKind kind = SkillKind.Active, int left = 0) => new()
+    {
+        Key = key,
+        Kind = kind,
+        Target = AbilityTarget.SingleAlly,
+        Cooldown = 3,
+        CooldownLeft = left,
+        HealPercent = 0.3,
+    };
+
+    /// <summary>Вміння «Захист»: щит на себе + провокація, як warrior_*_guard у конфігу.</summary>
+    private static CombatSkill Guard(int shieldTurns = 2) => new()
+    {
+        Key = "guard",
+        Kind = SkillKind.Active,
+        Target = AbilityTarget.Self,
+        Cooldown = 3,
+        CooldownLeft = 0,
+        ShieldPercent = 0.25,
+        ShieldTurns = shieldTurns,
+        Status = BattleStatusKind.Taunt,
+        StatusTurns = 2,
+    };
+
+    private static CombatSkill SkillOf(BattleState state, int index, string key)
+        => state.Combatants[index].Skills.Single(s => s.Key == key);
 
     // ---------- Черга ходів ----------
 
@@ -160,79 +186,211 @@ public class BattleEngineTests
         var state = State(Hero(0), Enemy(1, BattleLine.Front), Enemy(2, BattleLine.Back));
 
         var refusal = Assert.Throws<RequirementNotMetException>(() =>
-            Engine().Execute(state, 0, new BattleAction(null, 2), ability: null));
+            Engine().Execute(state, 0, new BattleAction(null, 2)));
 
         Assert.Equal(RefusalReasons.DungeonTargetUnreachable.Key, refusal.Reason);
     }
 
     [Fact]
-    public void Execute_ShouldRefuse_AnAbilityWithoutEnoughEnergy()
+    public void Execute_ShouldRefuse_ASkillOnCooldown()
         => Assert.Throws<RequirementNotMetException>(() =>
-            Engine().Execute(State(Hero(0, energy: 40), Enemy(1)), 0, new BattleAction("strike", 1), Strike(cost: 50)));
+            Engine().Execute(State(Hero(0, skills: Strike(left: 1)), Enemy(1)), 0, new BattleAction("strike", 1)));
+
+    /// <summary>Чуже чи періодичне вміння не можна назвати дією — лише своє активне.</summary>
+    [Theory]
+    [InlineData("missing")]
+    [InlineData("pulse")]
+    public void Execute_ShouldRefuse_ASkillThatIsNotTheActorsActive(string key)
+    {
+        var hero = Hero(0, skills: [Strike(), Strike("pulse", kind: SkillKind.Periodic)]);
+
+        Assert.Throws<RequirementNotMetException>(() =>
+            Engine().Execute(State(hero, Enemy(1)), 0, new BattleAction(key, 1)));
+    }
 
     [Fact]
     public void Execute_ShouldRefuse_ASingleTargetActionWithoutATarget()
         => Assert.Throws<RequirementNotMetException>(() =>
-            Engine().Execute(State(Hero(0), Enemy(1)), 0, new BattleAction(null, null), ability: null));
+            Engine().Execute(State(Hero(0), Enemy(1)), 0, new BattleAction(null, null)));
 
     /// <summary>Автобій іде тим самим шляхом: його вибір завжди законний.</summary>
     [Fact]
     public void Execute_ShouldAcceptTheAutoChoice()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1, BattleLine.Front), Enemy(2, BattleLine.Back));
+        var state = State(Hero(0, skills: Strike()), Enemy(1, BattleLine.Front), Enemy(2, BattleLine.Back));
         var engine = Engine();
-        var abilities = new[] { Strike(cost: 100) };
 
-        var action = engine.ChooseAuto(state, 0, abilities);
-        var result = engine.Execute(state, 0, action, abilities.Single(a => a.Key == action.AbilityKey));
+        var action = engine.ChooseAuto(state, 0);
+        var result = engine.Execute(state, 0, action);
 
+        Assert.Equal("strike", result.Log.AbilityKey);
         Assert.Equal(1, result.State.TurnNumber);
     }
 
-    // ---------- Удари й енергія ----------
+    // ---------- Удари й перезарядка ----------
 
     [Fact]
-    public void Execute_BasicAttack_ShouldDealDamageAndChargeBothSides()
+    public void Execute_BasicAttack_ShouldDealDamage()
     {
         var state = State(Hero(0), Enemy(1));
 
-        var result = Engine().Execute(state, 0, new BattleAction(null, 1), ability: null);
+        var result = Engine().Execute(state, 0, new BattleAction(null, 1));
 
         var enemy = result.State.Combatants[1];
         Assert.True(enemy.Health < enemy.MaxHealth);
-        Assert.Equal(25, result.State.Combatants[0].Energy);
-        Assert.Equal(10, enemy.Energy);
         Assert.Equal(1, result.State.TurnNumber);
     }
 
     [Fact]
-    public void Execute_Ability_ShouldSpendEnergyAndHitHarder()
+    public void Execute_Skill_ShouldHitHarderThanABasicAttack()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1));
+        var state = State(Hero(0, skills: Strike(multiplier: 2.0)), Enemy(1));
         var engine = Engine();
 
-        var basic = engine.Execute(state, 0, new BattleAction(null, 1), null);
-        var ability = engine.Execute(state, 0, new BattleAction("strike", 1), Strike(cost: 100, multiplier: 2.0));
+        var basic = engine.Execute(state, 0, new BattleAction(null, 1));
+        var skill = engine.Execute(state, 0, new BattleAction("strike", 1));
 
-        var afterBasic = basic.State.Combatants[1].Health;
-        var afterAbility = ability.State.Combatants[1].Health;
+        Assert.True(skill.State.Combatants[1].Health < basic.State.Combatants[1].Health);
+    }
 
-        Assert.True(afterAbility < afterBasic);
-        Assert.Equal(0, ability.State.Combatants[0].Energy);
+    /// <summary>
+    /// Перезарядка 3 — «раз на три ходи героя»: після удару вміння чекає ще два ходи
+    /// й готове на третьому.
+    /// </summary>
+    [Fact]
+    public void Execute_UsedSkill_ShouldGoOnItsFullCooldown()
+    {
+        var state = State(Hero(0, skills: Strike(cooldown: 3)), Enemy(1, health: 5000));
+
+        var result = Engine().Execute(state, 0, new BattleAction("strike", 1));
+
+        Assert.Equal(2, SkillOf(result.State, 0, "strike").CooldownLeft);
+    }
+
+    [Fact]
+    public void Execute_UnusedSkill_ShouldTickDownByOneTurn()
+    {
+        var state = State(Hero(0, skills: Strike(left: 2)), Enemy(1));
+
+        var result = Engine().Execute(state, 0, new BattleAction(null, 1));
+
+        Assert.Equal(1, SkillOf(result.State, 0, "strike").CooldownLeft);
+    }
+
+    /// <summary>Оглушення забирає хід, а не час: перезарядка йде й тоді.</summary>
+    [Fact]
+    public void Execute_Stunned_ShouldStillTickTheCooldown()
+    {
+        var stunned = Hero(0, skills: Strike(left: 2)) with
+        {
+            Statuses = [new BattleStatus { Kind = BattleStatusKind.Stun, Magnitude = 0, TurnsLeft = 1 }],
+        };
+
+        var result = Engine().Execute(State(stunned, Enemy(1)), 0, new BattleAction(null, 1));
+
+        Assert.Equal(1, SkillOf(result.State, 0, "strike").CooldownLeft);
+    }
+
+    /// <summary>Артефакт на перезарядку скорочує її після удару, але не нижче «щоходу».</summary>
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(5, 0)]
+    public void Execute_CooldownReduction_ShouldShortenTheRecharge(double reduction, int expected)
+    {
+        var hero = Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.CooldownReduction] = reduction },
+            skills: Strike(cooldown: 3));
+
+        var result = Engine().Execute(State(hero, Enemy(1, health: 5000)), 0, new BattleAction("strike", 1));
+
+        Assert.Equal(expected, SkillOf(result.State, 0, "strike").CooldownLeft);
     }
 
     /// <summary>Вміння по площі б'є всіх живих ворогів, правило ліній на нього не діє.</summary>
     [Fact]
-    public void Execute_AreaAbility_ShouldHitEveryEnemy()
+    public void Execute_AreaSkill_ShouldHitEveryEnemy()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1, BattleLine.Front), Enemy(2, BattleLine.Back));
-        var area = Strike("storm", cost: 100, multiplier: 1.2, target: AbilityTarget.AllEnemies);
+        var area = Strike("storm", multiplier: 1.2, target: AbilityTarget.AllEnemies);
+        var state = State(Hero(0, skills: area), Enemy(1, BattleLine.Front), Enemy(2, BattleLine.Back));
 
-        var result = Engine().Execute(state, 0, new BattleAction("storm", null), area);
+        var result = Engine().Execute(state, 0, new BattleAction("storm", null));
 
         Assert.True(result.State.Combatants[1].Health < result.State.Combatants[1].MaxHealth);
         Assert.True(result.State.Combatants[2].Health < result.State.Combatants[2].MaxHealth);
         Assert.Equal(2, result.Log.Effects.Count);
+    }
+
+    // ---------- Періодичні вміння ----------
+
+    /// <summary>Періодичне спрацьовує саме наприкінці ходу героя, і його наслідки підписані ключем.</summary>
+    [Fact]
+    public void Execute_ReadyPeriodic_ShouldFireOnItsOwnAndRecharge()
+    {
+        var pulse = Strike("pulse", multiplier: 1.5, cooldown: 4, kind: SkillKind.Periodic);
+        var state = State(Hero(0, skills: pulse), Enemy(1, health: 5000));
+
+        var result = Engine().Execute(state, 0, new BattleAction(null, 1));
+
+        Assert.Null(result.Log.AbilityKey);
+        Assert.Equal(2, result.Log.Effects.Count(e => e.TargetIndex == 1));
+        Assert.Single(result.Log.Effects, e => e.SkillKey == "pulse");
+        Assert.Equal(3, SkillOf(result.State, 0, "pulse").CooldownLeft);
+    }
+
+    [Fact]
+    public void Execute_PeriodicOnCooldown_ShouldOnlyTickDown()
+    {
+        var pulse = Strike("pulse", cooldown: 4, left: 2, kind: SkillKind.Periodic);
+        var state = State(Hero(0, skills: pulse), Enemy(1));
+
+        var result = Engine().Execute(state, 0, new BattleAction(null, 1));
+
+        Assert.DoesNotContain(result.Log.Effects, e => e.SkillKey == "pulse");
+        Assert.Equal(1, SkillOf(result.State, 0, "pulse").CooldownLeft);
+    }
+
+    /// <summary>Оглушений не діє, тож і періодичне чекає — готовим — до наступного його ходу.</summary>
+    [Fact]
+    public void Execute_StunnedHero_ShouldKeepAReadyPeriodic()
+    {
+        var stunned = Hero(0, skills: Strike("pulse", kind: SkillKind.Periodic)) with
+        {
+            Statuses = [new BattleStatus { Kind = BattleStatusKind.Stun, Magnitude = 0, TurnsLeft = 1 }],
+        };
+
+        var result = Engine().Execute(State(stunned, Enemy(1)), 0, new BattleAction(null, 1));
+
+        Assert.Empty(result.Log.Effects);
+        Assert.True(SkillOf(result.State, 0, "pulse").Ready);
+    }
+
+    /// <summary>Періодичне лікування саме шукає найпораненішого союзника.</summary>
+    [Fact]
+    public void Execute_PeriodicHeal_ShouldPickTheMostHurtAlly()
+    {
+        var hurt = Hero(1) with { Health = 100 };
+        var state = State(Hero(0, skills: Heal(kind: SkillKind.Periodic)), hurt, Enemy(2));
+
+        var result = Engine().Execute(state, 0, new BattleAction(null, 2));
+
+        Assert.Equal(250, result.State.Combatants[1].Health);
+    }
+
+    // ---------- Підготовка вміння ----------
+
+    /// <summary>Рівень вшивається в множники, а відлік повний: перезарядка 3 — перший удар на третьому ході.</summary>
+    [Fact]
+    public void Prepare_ShouldScaleByLevel_AndStartOnCooldown()
+    {
+        var battle = new SkillBattleConfig
+        {
+            Target = AbilityTarget.SingleEnemy, Cooldown = 3, DamageMultiplier = 1.5, HealPercent = 0.2,
+        };
+
+        var skill = CombatSkill.Prepare("smash", SkillKind.Active, battle, levelScale: 2.0);
+
+        Assert.Equal(3.0, skill.DamageMultiplier, 6);
+        Assert.Equal(0.4, skill.HealPercent, 6);
+        Assert.Equal(2, skill.CooldownLeft);
     }
 
     // ---------- Підтримка ----------
@@ -241,18 +399,11 @@ public class BattleEngineTests
     public void Execute_Heal_ShouldRestoreHealthWithoutExceedingTheMaximum()
     {
         var hurt = Hero(0) with { Health = 100 };
-        var state = State(hurt, Hero(1, energy: 100), Enemy(2));
-        var heal = new HeroAbilityConfig
-        {
-            Key = "mend", DisplayName = "mend", EnergyCost = 50,
-            Target = AbilityTarget.SingleAlly, HealPercent = 0.3,
-        };
+        var state = State(hurt, Hero(1, skills: Heal()), Enemy(2));
 
-        var result = Engine().Execute(state, 1, new BattleAction("mend", 0), heal);
+        var result = Engine().Execute(state, 1, new BattleAction("mend", 0));
 
         Assert.Equal(250, result.State.Combatants[0].Health);
-        // Підтримка не б'є, тож приросту енергії за удар немає: лишається 100 − 50
-        Assert.Equal(50, result.State.Combatants[1].Energy);
     }
 
     /// <summary>Щит поглинає шкоду до свого запасу, а решта йде у здоров'я.</summary>
@@ -266,21 +417,13 @@ public class BattleEngineTests
         };
         var state = State(shielded, Enemy(1));
 
-        var result = Engine().Execute(state, 1, new BattleAction(null, 0), null);
+        var result = Engine().Execute(state, 1, new BattleAction(null, 0));
 
         var hero = result.State.Combatants[0];
         Assert.Equal(hero.MaxHealth, hero.Health);
         Assert.True(hero.ShieldPoints < 1000);
         Assert.True(result.Log.Effects[0].ShieldAbsorbed > 0);
     }
-
-    /// <summary>Вміння «Захист»: щит на себе + провокація, як warrior_*_guard у конфігу.</summary>
-    private static HeroAbilityConfig Guard(int shieldTurns = 2) => new()
-    {
-        Key = "guard", DisplayName = "guard", EnergyCost = 50, Target = AbilityTarget.Self,
-        ShieldPercent = 0.25, ShieldTurns = shieldTurns,
-        Status = BattleStatusKind.Taunt, StatusTurns = 2,
-    };
 
     /// <summary>
     /// Щит на себе переживає власний хід: стан тікає наприкінці ходу носія, і без
@@ -289,15 +432,15 @@ public class BattleEngineTests
     [Fact]
     public void Execute_ShieldOnSelf_ShouldSurviveTheOwnTurnAndAbsorbTheNextHit()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1));
+        var state = State(Hero(0, skills: Guard()), Enemy(1));
 
-        var guarded = Engine().Execute(state, 0, new BattleAction("guard", 0), Guard());
+        var guarded = Engine().Execute(state, 0, new BattleAction("guard", 0));
         var hero = guarded.State.Combatants[0];
 
         Assert.Equal(125, hero.ShieldPoints);
         Assert.Contains(hero.Statuses, st => st.Kind == BattleStatusKind.Shield);
 
-        var hit = Engine().Execute(guarded.State, 1, new BattleAction(null, 0), null);
+        var hit = Engine().Execute(guarded.State, 1, new BattleAction(null, 0));
 
         Assert.True(hit.Log.Effects[0].ShieldAbsorbed > 0);
     }
@@ -306,10 +449,10 @@ public class BattleEngineTests
     [Fact]
     public void Execute_Shield_ShouldFadeAfterItsTurns()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1));
+        var state = State(Hero(0, skills: Guard(shieldTurns: 2)), Enemy(1));
 
-        var afterGuard = Engine().Execute(state, 0, new BattleAction("guard", 0), Guard(shieldTurns: 2)).State;
-        var afterNextTurn = Engine().Execute(afterGuard, 0, new BattleAction(null, 1), null).State;
+        var afterGuard = Engine().Execute(state, 0, new BattleAction("guard", 0)).State;
+        var afterNextTurn = Engine().Execute(afterGuard, 0, new BattleAction(null, 1)).State;
 
         Assert.Equal(0, afterNextTurn.Combatants[0].ShieldPoints);
     }
@@ -318,11 +461,11 @@ public class BattleEngineTests
     [Fact]
     public void Execute_Shield_ShouldNotStackOnRecast()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1));
+        var state = State(Hero(0, skills: Guard()), Enemy(1));
 
-        var once = Engine().Execute(state, 0, new BattleAction("guard", 0), Guard()).State;
-        var recharged = once with { Combatants = [once.Combatants[0] with { Energy = 100 }, once.Combatants[1]] };
-        var twice = Engine().Execute(recharged, 0, new BattleAction("guard", 0), Guard()).State;
+        var once = Engine().Execute(state, 0, new BattleAction("guard", 0)).State;
+        var recharged = once with { Combatants = [once.Combatants[0] with { Skills = [Guard()] }, once.Combatants[1]] };
+        var twice = Engine().Execute(recharged, 0, new BattleAction("guard", 0)).State;
 
         Assert.Equal(125, twice.Combatants[0].ShieldPoints);
     }
@@ -338,7 +481,7 @@ public class BattleEngineTests
         };
         var state = State(stunned, Enemy(1));
 
-        var result = Engine().Execute(state, 0, new BattleAction(null, 1), null);
+        var result = Engine().Execute(state, 0, new BattleAction(null, 1));
 
         Assert.True(result.Log.Stunned);
         Assert.Equal(result.State.Combatants[1].MaxHealth, result.State.Combatants[1].Health);
@@ -355,7 +498,7 @@ public class BattleEngineTests
         };
         var state = State(poisoned, Enemy(1));
 
-        var result = Engine().Execute(state, 0, new BattleAction(null, 1), null);
+        var result = Engine().Execute(state, 0, new BattleAction(null, 1));
 
         Assert.Equal(460, result.State.Combatants[0].Health);
         Assert.Empty(result.State.Combatants[0].Statuses);
@@ -365,16 +508,16 @@ public class BattleEngineTests
     [Fact]
     public void Execute_ShouldRefreshAStatus_InsteadOfStacking()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1));
-        var venom = new HeroAbilityConfig
+        var venom = Strike("venom", multiplier: 1.0) with
         {
-            Key = "venom", DisplayName = "venom", EnergyCost = 50, Target = AbilityTarget.SingleEnemy,
-            DamageMultiplier = 1.0, Status = BattleStatusKind.Poison, StatusMagnitude = 30, StatusTurns = 3,
+            Status = BattleStatusKind.Poison, StatusMagnitude = 30, StatusTurns = 3,
         };
+        var state = State(Hero(0, skills: venom), Enemy(1, health: 5000));
         var engine = Engine();
 
-        var first = engine.Execute(state, 0, new BattleAction("venom", 1), venom);
-        var second = engine.Execute(first.State with { Combatants = first.State.Combatants }, 0, new BattleAction("venom", 1), venom);
+        var first = engine.Execute(state, 0, new BattleAction("venom", 1)).State;
+        var recharged = first with { Combatants = [first.Combatants[0] with { Skills = [venom] }, first.Combatants[1]] };
+        var second = engine.Execute(recharged, 0, new BattleAction("venom", 1));
 
         var poison = second.State.Combatants[1].Statuses.Where(s => s.Kind == BattleStatusKind.Poison).ToList();
         Assert.Single(poison);
@@ -389,7 +532,7 @@ public class BattleEngineTests
         var vampire = Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.Lifesteal] = 0.5 }) with { Health = 200 };
         var state = State(vampire, Enemy(1));
 
-        var result = Engine().Execute(state, 0, new BattleAction(null, 1), null);
+        var result = Engine().Execute(state, 0, new BattleAction(null, 1));
 
         Assert.True(result.State.Combatants[0].Health > 200);
     }
@@ -401,8 +544,8 @@ public class BattleEngineTests
         var tough = State(Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.DamageReduction] = 0.5 }), Enemy(1));
         var engine = Engine();
 
-        var hitPlain = engine.Execute(plain, 1, new BattleAction(null, 0), null).State.Combatants[0].Health;
-        var hitTough = engine.Execute(tough, 1, new BattleAction(null, 0), null).State.Combatants[0].Health;
+        var hitPlain = engine.Execute(plain, 1, new BattleAction(null, 0)).State.Combatants[0].Health;
+        var hitTough = engine.Execute(tough, 1, new BattleAction(null, 0)).State.Combatants[0].Health;
 
         Assert.True(hitTough > hitPlain);
     }
@@ -418,8 +561,8 @@ public class BattleEngineTests
 
         var state = State(Hero(0), Enemy(1));
 
-        var first = new BattleEngine(config).Execute(state, 0, new BattleAction(null, 1), null);
-        var second = new BattleEngine(config).Execute(state, 0, new BattleAction(null, 1), null);
+        var first = new BattleEngine(config).Execute(state, 0, new BattleAction(null, 1));
+        var second = new BattleEngine(config).Execute(state, 0, new BattleAction(null, 1));
 
         Assert.Equal(first.State.Combatants[1].Health, second.State.Combatants[1].Health);
         Assert.Equal(first.Log.Effects[0].Critical, second.Log.Effects[0].Critical);
@@ -428,38 +571,33 @@ public class BattleEngineTests
     // ---------- Автобій ----------
 
     [Fact]
-    public void ChooseAuto_ShouldPreferTheStrongerAbility_WhenTheGaugeIsFull()
+    public void ChooseAuto_ShouldUseTheActiveSkill_WhenItIsReady()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1));
-        var abilities = new List<HeroAbilityConfig> { Strike("weak", 50, 1.4), Strike("strong", 100, 2.4) };
+        var state = State(Hero(0, skills: Strike()), Enemy(1));
 
-        var action = Engine().ChooseAuto(state, 0, abilities);
+        var action = Engine().ChooseAuto(state, 0);
 
-        Assert.Equal("strong", action.AbilityKey);
+        Assert.Equal("strike", action.AbilityKey);
     }
 
     [Fact]
-    public void ChooseAuto_ShouldFallBackToABasicAttack_WhenTheGaugeIsShort()
+    public void ChooseAuto_ShouldFallBackToABasicAttack_WhileTheSkillRecharges()
     {
-        var state = State(Hero(0, energy: 20), Enemy(1));
+        var state = State(Hero(0, skills: Strike(left: 1)), Enemy(1));
 
-        var action = Engine().ChooseAuto(state, 0, [Strike("weak", 50, 1.4)]);
+        var action = Engine().ChooseAuto(state, 0);
 
         Assert.Null(action.AbilityKey);
         Assert.Equal(1, action.TargetIndex);
     }
 
-    /// <summary>Лікування в повну команду — змарнована енергія, тож автобій його не бере.</summary>
+    /// <summary>Лікування в повну команду — змарнована перезарядка, тож автобій його не бере.</summary>
     [Fact]
     public void ChooseAuto_ShouldNotHeal_AHealthyTeam()
     {
-        var state = State(Hero(0, energy: 100), Enemy(1));
-        var heal = new HeroAbilityConfig
-        {
-            Key = "mend", DisplayName = "mend", EnergyCost = 100, Target = AbilityTarget.SingleAlly, HealPercent = 0.3,
-        };
+        var state = State(Hero(0, skills: Heal()), Enemy(1));
 
-        Assert.Null(Engine().ChooseAuto(state, 0, [heal]).AbilityKey);
+        Assert.Null(Engine().ChooseAuto(state, 0).AbilityKey);
     }
 
     [Fact]
@@ -467,7 +605,7 @@ public class BattleEngineTests
     {
         var state = State(Hero(0), Enemy(1, health: 300), Enemy(2, health: 80));
 
-        var action = Engine().ChooseAuto(state, 0, []);
+        var action = Engine().ChooseAuto(state, 0);
 
         Assert.Equal(2, action.TargetIndex);
     }

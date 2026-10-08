@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { AbilityView, CombatantView, DungeonRunView, TurnLog } from "../../lib/apiTypes";
+import type { CombatantView, CombatSkillView, DungeonRunView, TurnLog } from "../../lib/apiTypes";
 import { isApiError } from "../../lib/api";
 import { fetchDungeonRun, useAbandonDungeonRun, useDungeonTurn } from "../../lib/queries/dungeons";
 import ErrorBanner from "../ErrorBanner";
@@ -73,7 +73,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
     (entries: TurnLog[], people: CombatantView[]) => {
       // Хід несе лише ключ вміння — назву знають самі бійці
       const abilityNames = new Map(
-        people.flatMap((person) => person.abilities.map((ability) => [ability.key, ability.displayName] as const)),
+        people.flatMap((person) => person.skills.map((skill) => [skill.key, skill.displayName] as const)),
       );
 
       return entries.map((entry) => {
@@ -85,7 +85,12 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
             : (abilityNames.get(entry.abilityKey) ?? entry.abilityKey);
         const effects = entry.effects
           .map((effect) => {
-            const name = people[effect.targetIndex]?.displayName ?? "?";
+            // Періодичне вміння спрацьовує саме — підписуємо, звідки взялась шкода
+            const source =
+              effect.skillKey === null || effect.skillKey === undefined
+                ? ""
+                : `${abilityNames.get(effect.skillKey) ?? effect.skillKey}: `;
+            const name = `${source}${people[effect.targetIndex]?.displayName ?? "?"}`;
             if ((effect.healed ?? 0) > 0) return `${name} +${Math.round(effect.healed ?? 0)}`;
             if ((effect.shieldGained ?? 0) > 0) return `${name} щит ${Math.round(effect.shieldGained ?? 0)}`;
             return `${name} −${Math.round(effect.damage ?? 0)}${effect.critical === true ? "!" : ""}${effect.died === true ? " †" : ""}`;
@@ -213,8 +218,11 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
 
   const target = targetIndex === null ? null : (combatants[targetIndex] ?? null);
 
+  /** Активне вміння героя, що ходить; періодичні гравець не наводить — вони б'ють самі. */
+  const actives = (actor?.skills ?? []).filter((skill) => skill.kind === "Active");
+
   /** Вміння, які саме зараз можуть чекати на ціль того чи того боку. */
-  const readyAbilities = (actor?.abilities ?? []).filter((ability) => ability.ready);
+  const readyAbilities = actives.filter((ability) => ability.ready);
 
   const canTarget = (combatant: CombatantView) => {
     if (auto || !heroTurn || finished !== null || combatant.health <= 0) return false;
@@ -230,7 +238,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
   };
 
   /** Чи можна застосувати вміння до вже обраної цілі. */
-  const canUse = (ability: AbilityView) => {
+  const canUse = (ability: CombatSkillView) => {
     if (!ability.ready) return false;
 
     if (ability.target === "SingleAlly") return target !== null && target.side === "Heroes" && target.health > 0;
@@ -350,7 +358,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
             >
               Удар
             </button>
-            {actor.abilities.map((ability) => (
+            {actives.map((ability) => (
               <button
                 key={ability.key}
                 type="button"
@@ -359,7 +367,8 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
                 disabled={turn.isPending || !canUse(ability)}
                 className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
               >
-                {ability.displayName} · {ability.energyCost}⚡
+                {ability.displayName}
+                {!ability.ready && ` · ${ability.cooldownLeft} ход.`}
               </button>
             ))}
           </div>

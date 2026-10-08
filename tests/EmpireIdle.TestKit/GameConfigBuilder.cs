@@ -116,11 +116,12 @@
         }
 
         /// <summary>
-        /// Ростер: звичайний воїн, унікальний маг і третій без пасивок —
-        /// для перевірок «бонусу немає».
+        /// Ростер: звичайний воїн, унікальний маг і третій без вмінь —
+        /// для перевірок «бонусу немає». Склад вмінь за рідкістю не задано, тож валідатор
+        /// його не перевіряє: героям досить тих вмінь, які потрібні тесту.
         /// </summary>
         public GameConfigBuilder WithHeroes(Action<HeroesConfig>? tune = null,
-            params HeroPassiveConfig[] passives)
+            params HeroSkillConfig[] passives)
         {
             EnsureResources();
             EnsureBuildings(TestKeys.Hall, TestKeys.Hospital);
@@ -239,17 +240,24 @@
             if (_config.Equipment.SetBonuses.Count == 0)
                 WithEquipment();
 
-            _config.Heroes.First(h => h.Key == TestKeys.CommonHero).Abilities =
-            [
-                new HeroAbilityConfig
+            var common = _config.Heroes.First(h => h.Key == TestKeys.CommonHero);
+
+            common.Skills.RemoveAll(s => s.Kind == SkillKind.Active);
+            common.Skills.Add(new HeroSkillConfig
+            {
+                Key = TestKeys.DungeonAbility,
+                DisplayName = "Розтин",
+                Half = SkillHalf.Attack,
+                Kind = SkillKind.Active,
+                Troops = new SkillTroopBonusConfig { Stat = "Attack", Percents = [0, 0, 0, 0, 0, 0] },
+                Battle = new SkillBattleConfig
                 {
-                    Key = TestKeys.DungeonAbility,
-                    DisplayName = "Розтин",
-                    EnergyCost = 50,
                     Target = AbilityTarget.SingleEnemy,
-                    DamageMultiplier = 1.8
+                    Cooldown = 2,
+                    DamageMultiplier = 1.8,
+                    LevelScale = [1, 1.2, 1.4, 1.6, 1.8, 2]
                 }
-            ];
+            });
 
             foreach (var rarity in Enum.GetNames<Rarity>())
             {
@@ -392,7 +400,7 @@
         };
 
         private static HeroConfig Hero(string key, string heroClass, Rarity rank, double attack,
-            HeroPassiveConfig[]? passives = null) => new()
+            HeroSkillConfig[]? passives = null) => new()
             {
                 Key = key,
                 Class = heroClass,
@@ -407,7 +415,7 @@
                 // Швидкість — окреме поле: у BaseStats вона множилась би тіром і йшла в Power
                 Speed = 4,
                 StatGrowth = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 4 },
-                Passives = [.. passives ?? []]
+                Skills = [.. passives ?? []]
             };
 
         private static ItemConfig WeaponItem(string key, double attack, int price) => new()

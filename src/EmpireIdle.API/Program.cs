@@ -158,6 +158,7 @@ builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<Te
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));
 builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
 builder.Services.AddSingleton(sp => new HeroProgression(gameConfig.HeroSettings));
+builder.Services.AddSingleton(sp => new HeroSkills(gameConfig.HeroSettings));
 builder.Services.AddSingleton(sp => new HeroCombatModifiers(sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));

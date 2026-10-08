@@ -1,4 +1,5 @@
 
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
@@ -15,10 +16,12 @@ namespace EmpireIdle.Domain.Services
     public class HeroProgression
     {
         private readonly HeroesConfig _config;
+        private readonly HeroSkills _skills;
 
         public HeroProgression(HeroesConfig config)
         {
             _config = config;
+            _skills = new HeroSkills(config);
         }
 
         /// <summary>
@@ -101,6 +104,14 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public double MarchSpeed(HeroConfig? config)
             => config?.Speed ?? _config.DefaultMarchSpeed;
+
+        /// <summary>
+        /// Множник швидкості всього маршу від небойового вміння героя (GDD §6.1). Діє на колону,
+        /// а не на самого героя: колона йде за найповільнішим, і прудкіший герой інакше нічого б не дав.
+        /// Як і пасивка звіра, фіксується на марші при виході й діє на зворотній дорозі.
+        /// </summary>
+        public double MarchSpeedMultiplier(Hero hero, HeroConfig? config)
+            => 1 + _skills.UtilityPercent(hero, config, SkillUtilityConfig.MarchSpeed) / 100;
 
         /// <summary>
         /// Чи можна підняти тір. Тір прив'язаний до рівня світу: перехід

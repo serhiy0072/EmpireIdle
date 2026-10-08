@@ -61,15 +61,25 @@ namespace EmpireIdle.Application.Catalog
                     hero.Speed ?? config.HeroSettings.DefaultMarchSpeed,
                     hero.BaseStats,
                     hero.StatGrowth,
-                    hero.Passives
-                        .Select(passive => new CatalogPassive(
-                            passive.Key,
-                            passive.DisplayName,
-                            passive.UnlockStars,
-                            passive.Target,
-                            passive.Stat,
-                            passive.BasePercent,
-                            passive.PercentPerStar))
+                    hero.Skills
+                        .Select(skill => new CatalogSkill(
+                            skill.Key,
+                            skill.DisplayName,
+                            skill.Description,
+                            skill.Half.ToString(),
+                            skill.Kind.ToString(),
+                            skill.UnlockLevel,
+                            skill.Troops is { } troops
+                                ? new CatalogSkillTroops(troops.Target, troops.Stat, troops.Percents)
+                                : null,
+                            skill.Utility is { } utility
+                                ? new CatalogSkillUtility(utility.Effect, utility.Percents)
+                                : null,
+                            skill.Battle is { } battle
+                                ? new CatalogSkillBattle(battle.Target.ToString(), battle.Cooldown, battle.DamageMultiplier,
+                                    battle.HealPercent, battle.ShieldPercent, battle.Status?.ToString(), battle.IgnoresLine,
+                                    battle.LevelScale)
+                                : null))
                         .ToList()))
                 .ToList();
 
@@ -133,6 +143,7 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxStars,
                 config.HeroSettings.PartsPerStar,
+                config.HeroSettings.MaxSkillLevel,
                 config.HeroSettings.StarPartBonus,
                 config.HeroSettings.SummonShards,
                 config.HeroSettings.MaxTier,

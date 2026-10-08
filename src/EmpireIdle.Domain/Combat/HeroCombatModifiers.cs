@@ -18,10 +18,12 @@ namespace EmpireIdle.Domain.Combat
         public const string AllUnits = "all";
 
         private readonly GameCatalog _catalog;
+        private readonly HeroSkills _skills;
 
         public HeroCombatModifiers(GameCatalog catalog)
         {
             _catalog = catalog;
+            _skills = new HeroSkills(catalog.Config.HeroSettings);
         }
 
         /// <summary>Бонуси, які цей герой дає своєму стеку.</summary>
@@ -32,23 +34,29 @@ namespace EmpireIdle.Domain.Combat
             if (hero is null || hero.State is HeroState.Wounded or HeroState.OnMarket)
                 return StackBuff.None;
 
-            if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Passives.Count == 0)
+            if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Skills.Count == 0)
                 return StackBuff.None;
 
-            var stars = hero.StarParts / Math.Max(1, _catalog.Config.HeroSettings.PartsPerStar);
             var attack = new Dictionary<string, double>();
             var defense = new Dictionary<string, double>();
 
-            foreach (var passive in config.Passives)
+            // Бонус війську дає кожне відкрите бойове вміння — і пасивка, і активне з періодичним:
+            // ті в данжі б'ють самі, а в армійському бою черги ходів немає (GDD §6.1)
+            foreach (var skill in config.Skills)
             {
-                if (stars < passive.UnlockStars)
+                if (skill.Troops is not { } troops)
                     continue;
 
-                var percent = passive.BasePercent + passive.PercentPerStar * (stars - passive.UnlockStars);
+                var level = _skills.LevelOf(hero, skill);
 
-                var target = string.IsNullOrWhiteSpace(passive.Target) ? AllUnits : passive.Target;
+                if (level == 0)
+                    continue;
 
-                var bucket = string.Equals(passive.Stat, "Attack", StringComparison.OrdinalIgnoreCase)
+                var percent = HeroSkills.At(troops.Percents, level);
+
+                var target = string.IsNullOrWhiteSpace(troops.Target) ? AllUnits : troops.Target;
+
+                var bucket = string.Equals(troops.Stat, "Attack", StringComparison.OrdinalIgnoreCase)
                     ? attack
                     : defense;
 

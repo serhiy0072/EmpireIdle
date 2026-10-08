@@ -4,11 +4,8 @@ using EmpireIdle.TestKit;
 
 namespace EmpireIdle.Domain.Tests.Services;
 
-/// <summary>
-/// Склад і нагорода монстра посилаються на юніти й ресурси каталогу; вміння героя
-/// мусить уміщатись у шкалу енергії бійця данжу.
-/// </summary>
-public class MonsterAndAbilityValidationTests
+/// <summary>Склад і нагорода монстра посилаються на юніти й ресурси каталогу.</summary>
+public class MonsterValidationTests
 {
     private static GameConfig WithMonster(List<UnitStack> units, List<ResourceCost> rewards)
     {
@@ -51,26 +48,4 @@ public class MonsterAndAbilityValidationTests
         => Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(WithMonster(
             [new UnitStack { UnitType = "infantry", Count = 10 }],
             [new ResourceCost { Resource = "food", Amount = 0 }])));
-
-    private static GameConfig WithAbilityCost(int energyCost)
-    {
-        var config = new GameConfigBuilder().WithBuildings().WithHeroes().Build();
-
-        config.Heroes.First().Abilities.Add(new HeroAbilityConfig
-        {
-            Key = "test_strike", DisplayName = "Strike", EnergyCost = energyCost, DamageMultiplier = 1.5
-        });
-
-        return config;
-    }
-
-    [Fact]
-    public void AbilityAtFullEnergy_ShouldPass()
-        => GameConfigValidator.Validate(WithAbilityCost(new DungeonsConfig().MaxEnergy));
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(101)]
-    public void AbilityOutsideTheEnergyScale_ShouldFail(int energyCost)
-        => Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(WithAbilityCost(energyCost)));
 }

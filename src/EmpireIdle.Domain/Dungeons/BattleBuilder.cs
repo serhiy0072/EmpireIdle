@@ -3,7 +3,10 @@ using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Dungeons
 {
-    /// <summary>Герой, уже порахований застосунком: стати з рівня, тіру й спорядження.</summary>
+    /// <summary>
+    /// Герой, уже порахований застосунком: стати з рівня, тіру й спорядження,
+    /// вміння — під їхній рівень (лише відкриті й ті, що діють у данжі).
+    /// </summary>
     public record DungeonHero(
         Guid HeroId,
         string HeroKey,
@@ -12,7 +15,8 @@ namespace EmpireIdle.Domain.Dungeons
         double Defense,
         double Health,
         double Speed,
-        IReadOnlyDictionary<DungeonStat, double> UniqueStats);
+        IReadOnlyDictionary<DungeonStat, double> UniqueStats,
+        IReadOnlyList<CombatSkill> Skills);
 
     /// <summary>
     /// Складає бій: ставить героїв у лінії за класом і вирощує ворогів хвилі
@@ -47,14 +51,14 @@ namespace EmpireIdle.Domain.Dungeons
             => _config.FrontLineClasses.Contains(heroClass) ? BattleLine.Front : BattleLine.Back;
 
         /// <summary>
-        /// Перша хвиля забігу: герої на повному здоров'ї з порожньою шкалою.
+        /// Перша хвиля забігу: герої на повному здоров'ї, вміння на повній перезарядці.
         /// </summary>
         public BattleState Start(IReadOnlyList<DungeonHero> team, DungeonConfig dungeon, int level, int seed)
             => BuildWave(team.Select(ToCombatant).ToList(), dungeon, level, wave: 1, seed, turnNumber: 0);
 
         /// <summary>
-        /// Наступна хвиля: здоров'я, енергія й стани команди переносяться як є —
-        /// саме тому тримати сильне вміння до боса є сенсом.
+        /// Наступна хвиля: здоров'я, перезарядки й стани команди переносяться як є —
+        /// саме тому тримати готове вміння до боса є сенсом.
         /// </summary>
         public BattleState NextWave(BattleState state, DungeonConfig dungeon, int level)
         {
@@ -90,7 +94,6 @@ namespace EmpireIdle.Domain.Dungeons
                     MaxHealth = Math.Round(enemy.Health * multiplier, 1),
                     Health = Math.Round(enemy.Health * multiplier, 1),
                     Speed = enemy.Speed,
-                    Energy = 0,
                     Statuses = [],
                     UniqueStats = [],
                 })
@@ -121,9 +124,9 @@ namespace EmpireIdle.Domain.Dungeons
             MaxHealth = Math.Round(hero.Health, 1),
             Health = Math.Round(hero.Health, 1),
             Speed = hero.Speed,
-            Energy = 0,
             Statuses = [],
             UniqueStats = hero.UniqueStats.ToDictionary(p => p.Key, p => p.Value),
+            Skills = hero.Skills.ToList(),
         };
     }
 }

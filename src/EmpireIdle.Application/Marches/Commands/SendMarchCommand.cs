@@ -170,12 +170,15 @@ namespace EmpireIdle.Application.Marches.Commands
             // Колона йде за найповільнішим учасником, і герой тут нарівні
             // з юнітами: підкріплення з самого героя інакше плелося б
             // базовою швидкістю замість власної
-            // Пасивка звіра пришвидшує марш; множник фіксується на марші й діє на зворотній дорозі
-            var speed = await _effects.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken);
+            // Пасивка звіра й небойове вміння героя пришвидшують марш; множник фіксується
+            // на марші й діє на зворотній дорозі
+            var heroConfig = _catalog.FindHero(hero.HeroKey);
+            var speed = await _effects.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
+                * _progression.MarchSpeedMultiplier(hero, heroConfig);
 
             var duration = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, request.Units,
-                _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey))) / speed;
+                _progression.MarchSpeed(heroConfig)) / speed;
 
             var march = new March(
                 Guid.NewGuid(), _serverContext.ServerId, garrison.Id, hero.Id,

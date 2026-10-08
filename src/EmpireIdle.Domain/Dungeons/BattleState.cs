@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Dungeons
 {
@@ -71,8 +72,11 @@ namespace EmpireIdle.Domain.Dungeons
 
         public required double Speed { get; init; }
 
-        /// <summary>Шкала вмінь, 0..100.</summary>
-        public required int Energy { get; init; }
+        /// <summary>
+        /// Вміння героя для бою — активне й періодичні, вже пораховані під їхній рівень.
+        /// У ворогів порожньо. Не required: забіги, збережені до вмінь, читаються як «без вмінь».
+        /// </summary>
+        public List<CombatSkill> Skills { get; init; } = [];
 
         /// <summary>Скільки шкоди ще поглине щит.</summary>
         public double ShieldPoints { get; init; }
@@ -94,5 +98,65 @@ namespace EmpireIdle.Domain.Dungeons
         public required double Magnitude { get; init; }
 
         public required int TurnsLeft { get; init; }
+    }
+
+    /// <summary>
+    /// Вміння бійця, зняте на старті забігу (GDD §6.5): рівень уже вшитий у множники,
+    /// тож прокачка посеред забігу бій не змінює — так само, як і стати.
+    /// </summary>
+    public record CombatSkill
+    {
+        /// <summary>Ключ вміння з конфіга героя — для назв на клієнті й вибору активного.</summary>
+        public required string Key { get; init; }
+
+        /// <summary>Active — гравець або автобій вирішує, коли; Periodic — спрацьовує саме.</summary>
+        public required SkillKind Kind { get; init; }
+
+        public required AbilityTarget Target { get; init; }
+
+        /// <summary>Раз на скільки власних ходів героя вміння готове.</summary>
+        public required int Cooldown { get; init; }
+
+        /// <summary>Скільки власних ходів ще чекати; 0 — готове просто зараз.</summary>
+        public required int CooldownLeft { get; init; }
+
+        public double DamageMultiplier { get; init; }
+
+        public double HealPercent { get; init; }
+
+        public double ShieldPercent { get; init; }
+
+        public int ShieldTurns { get; init; }
+
+        public BattleStatusKind? Status { get; init; }
+
+        public double StatusMagnitude { get; init; }
+
+        public int StatusTurns { get; init; }
+
+        public bool IgnoresLine { get; init; }
+
+        public bool Ready => CooldownLeft <= 0;
+
+        /// <summary>
+        /// Вміння на старті бою: множник рівня вшивається в шкоду, лікування й щит, а відлік
+        /// перезарядки повний — уміння з перезарядкою N уперше готове на N-му ході героя.
+        /// </summary>
+        public static CombatSkill Prepare(string key, SkillKind kind, SkillBattleConfig battle, double levelScale) => new()
+        {
+            Key = key,
+            Kind = kind,
+            Target = battle.Target,
+            Cooldown = battle.Cooldown,
+            CooldownLeft = Math.Max(0, battle.Cooldown - 1),
+            DamageMultiplier = battle.DamageMultiplier * levelScale,
+            HealPercent = battle.HealPercent * levelScale,
+            ShieldPercent = battle.ShieldPercent * levelScale,
+            ShieldTurns = battle.ShieldTurns,
+            Status = battle.Status,
+            StatusMagnitude = battle.StatusMagnitude,
+            StatusTurns = battle.StatusTurns,
+            IgnoresLine = battle.IgnoresLine,
+        };
     }
 }

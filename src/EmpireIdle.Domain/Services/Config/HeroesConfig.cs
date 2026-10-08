@@ -56,6 +56,18 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки бойової міці дає кожна частинка зірки: 0.05 — +5% до всіх статів.</summary>
         public double StarPartBonus { get; set; } = 0.05;
 
+        /// <summary>
+        /// Стеля рівня вміння (GDD §6.1): 6. Зірки відкривають рівні по одному —
+        /// без зірок вміння лише першого рівня, на п'ятій зірці доступний шостий.
+        /// </summary>
+        public int MaxSkillLevel { get; set; } = 6;
+
+        /// <summary>
+        /// Склад вмінь за рідкістю героя (ключ — ім'я Rarity). Рідкість без опису не перевіряється —
+        /// так тестові фікстури тримають героїв з одним-двома вміннями.
+        /// </summary>
+        public Dictionary<string, SkillLayoutConfig> SkillLayouts { get; set; } = new();
+
         /// <summary>Скільки частинок має повністю прокачаний герой.</summary>
         public int MaxStarParts => MaxStars * PartsPerStar;
 

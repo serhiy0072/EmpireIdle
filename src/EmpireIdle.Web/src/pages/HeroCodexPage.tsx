@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import HeroPortrait from "../components/heroes/HeroPortrait";
 import { useSession } from "../hooks/useSession";
-import { rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
+import { rankLabel, rankStyle, skillEffect, skillHalfLabel, skillKindLabel, useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
 
 const RANK_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
@@ -16,14 +16,6 @@ const CLASS_LABELS: Record<string, string> = {
 };
 
 const STAT_LABELS: Record<string, string> = { Attack: "Атака", Defense: "Захист", Health: "Здоров'я" };
-
-const TARGET_LABELS: Record<string, string> = {
-  all: "усе військо",
-  infantry: "піхота",
-  archer: "лучники",
-  cavalry: "кіннота",
-  siege: "облогові",
-};
 
 /** Звідки береться герой (GDD §6.1): усі — з осколків, що падають із банерів і скриньок. */
 function source(summonShards: number): string {
@@ -184,20 +176,20 @@ export default function HeroCodexPage() {
 
             <section className="space-y-1">
               <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Вміння</h3>
+              {/* Кодекс показує перший рівень вміння й поріг відкриття — без прив'язки до власного героя */}
               <ul className="space-y-1 text-sm">
-                {selected.passives.map((passive) => (
-                  <li key={passive.key} className="flex items-baseline justify-between gap-2">
-                    <span className="text-slate-800">
-                      {passive.displayName}
-                      <span className="ml-1 text-xs text-slate-500">
-                        {STAT_LABELS[passive.stat] ?? passive.stat} · {TARGET_LABELS[passive.target] ?? passive.target}
+                {selected.skills.map((skill) => (
+                  <li key={skill.key}>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-slate-800">
+                        {skill.displayName}
+                        <span className="ml-1 text-xs text-slate-500">
+                          {skillHalfLabel(skill.half)} · {skillKindLabel(skill.kind)}
+                        </span>
                       </span>
-                    </span>
-                    <span className="whitespace-nowrap text-xs text-slate-500">
-                      +{passive.basePercent}%
-                      {passive.percentPerStar > 0 && ` (+${passive.percentPerStar}% за зірку)`}
-                      {passive.unlockStars > 0 && ` · з ${passive.unlockStars} зірки`}
-                    </span>
+                      <span className="whitespace-nowrap text-xs text-slate-500">з {skill.unlockLevel} рівня</span>
+                    </div>
+                    <p className="text-xs text-slate-500">{skillEffect(skill, 1)}</p>
                   </li>
                 ))}
               </ul>

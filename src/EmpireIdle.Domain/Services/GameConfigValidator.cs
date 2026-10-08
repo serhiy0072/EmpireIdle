@@ -813,37 +813,13 @@ namespace EmpireIdle.Domain.Services
                     "Combat.DefenderLossLosses.Min must not be below DefenderWinLosses.Max: losing would cost less than winning.");
         }
 
-        /// <summary>Ростер героїв: класи, тіри, вартість прокачки, лікування, пасивки.</summary>
+        /// <summary>Ростер героїв: класи, тіри, вартість прокачки, лікування, вміння.</summary>
         private static void ValidateHeroes(GameConfig config)
         {
             // Порожній ростер — конфіг героїв не описує (мінімальні фікстури в тестах).
             // Перевіряємо лише те, що задано.
             if (config.Heroes.Count == 0)
                 return;
-
-            // Щит без тривалості згасає в тому ж ході, в якому його наклали: стан тікає
-            // наприкінці ходу носія, тож на себе потрібно щонайменше 2
-            var shortShields = config.Heroes
-                .SelectMany(h => h.Abilities)
-                .Where(a => a.ShieldPercent > 0 && a.ShieldTurns < (a.Target == AbilityTarget.Self ? 2 : 1))
-                .Select(a => a.Key)
-                .ToList();
-
-            if (shortShields.Count > 0)
-                throw new InvalidOperationException(
-                    $"Shield abilities vanish before they can absorb anything — raise ShieldTurns: {string.Join(", ", shortShields)}.");
-
-            // Шкала енергії бійця в данжі впирається в Dungeons.MaxEnergy: дорожче вміння не настане ніколи
-            var unaffordable = config.Heroes
-                .SelectMany(h => h.Abilities)
-                .Where(a => a.EnergyCost <= 0 || a.EnergyCost > config.Dungeons.MaxEnergy)
-                .Select(a => $"{a.Key} ({a.EnergyCost})")
-                .ToList();
-
-            if (unaffordable.Count > 0)
-                throw new InvalidOperationException(
-                    $"Hero abilities must cost between 1 and Dungeons.MaxEnergy ({config.Dungeons.MaxEnergy}) energy: "
-                    + $"{string.Join(", ", unaffordable)}.");
 
             var settings = config.HeroSettings;
 
@@ -985,37 +961,135 @@ namespace EmpireIdle.Domain.Services
             if (settings.DefaultMarchSpeed <= 0)
                 throw new InvalidOperationException("HeroSettings.DefaultMarchSpeed must be above zero.");
 
+            // Вміння (GDD §6.1, рішення 08.10.2026): стеля рівня й склад за рідкістю
+            if (settings.MaxSkillLevel < 1)
+                throw new InvalidOperationException("HeroSettings.MaxSkillLevel must be at least 1.");
+
+            var badLayouts = settings.SkillLayouts
+                .Where(l => !rankNames.Contains(l.Key)
+                    || l.Value.Attack < 1 || l.Value.Defense < 0
+                    || l.Value.Utility < 0 || l.Value.Utility > l.Value.Defense)
+                .Select(l => l.Key)
+                .ToList();
+
+            if (badLayouts.Count > 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.SkillLayouts needs a known rarity, at least the active skill in Attack "
+                    + $"and no more utility skills than Defense holds: {string.Join(", ", badLayouts)}.");
+
             foreach (var hero in config.Heroes)
             {
                 if (hero.Speed is <= 0)
                     throw new InvalidOperationException($"Hero '{hero.Key}' has non-positive Speed — its marches would never arrive.");
 
-                // Пасивки: саме вони, а не стати героя, рухають бойову формулу,
-                // тож описка в цілі або статі мовчки знеструмила б героя
-                RequireUniqueKeys(hero.Passives.Select(p => p.Key).ToList(), $"Heroes['{hero.Key}'].Passives");
+                ValidateHeroSkills(hero, settings, unitKeys, statKeys);
+            }
+        }
 
-                foreach (var passive in hero.Passives)
+        /// <summary>
+        /// Вміння одного героя. Саме вони, а не стати, рухають армійську формулу й бій у данжі,
+        /// тож описка в цілі, статі чи довжині списку мовчки знеструмила б героя.
+        /// </summary>
+        private static void ValidateHeroSkills(HeroConfig hero, HeroesConfig settings,
+            IReadOnlySet<string> unitKeys, IReadOnlySet<string> statKeys)
+        {
+            RequireUniqueKeys(hero.Skills.Select(s => s.Key).ToList(), $"Heroes['{hero.Key}'].Skills");
+
+            foreach (var skill in hero.Skills)
+            {
+                var name = $"Hero '{hero.Key}' skill '{skill.Key}'";
+
+                if (skill.UnlockLevel < 1 || skill.UnlockLevel > settings.MaxLevel)
+                    throw new InvalidOperationException(
+                        $"{name} unlocks at hero level {skill.UnlockLevel}, outside 1..{settings.MaxLevel}.");
+
+                // Кожен вид має рівно свої частини: бойове без бонусу війську нічого не дало б у марші,
+                // небойове з ним стало б бойовим
+                var parts = skill.Kind switch
                 {
-                    if (passive.Target != HeroCombatModifiers.AllUnits && !unitKeys.Contains(passive.Target))
-                        throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' targets unknown unit '{passive.Target}'.");
+                    SkillKind.Active or SkillKind.Periodic => skill.Troops is not null && skill.Battle is not null && skill.Utility is null,
+                    SkillKind.Passive => skill.Troops is not null && skill.Battle is null && skill.Utility is null,
+                    SkillKind.Utility => skill.Utility is not null && skill.Troops is null && skill.Battle is null,
+                    _ => false,
+                };
 
-                    if (!statKeys.Contains(passive.Stat ?? string.Empty))
-                        throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' affects unknown stat '{passive.Stat}' — "
-                            + "combat knows Attack and Defense.");
+                if (!parts)
+                    throw new InvalidOperationException(
+                        $"{name} ({skill.Kind}) has the wrong parts: Active and Periodic need Troops and Battle, "
+                        + "Passive only Troops, Utility only Utility.");
 
-                    if (passive.UnlockStars < 0 || passive.UnlockStars > settings.MaxStars)
-                        throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' unlocks at star "
-                            + $"{passive.UnlockStars}, outside 0..{settings.MaxStars}.");
+                // Без активного з першого рівня новий герой у данжі б'є лише звичайним ударом
+                if (skill.Kind == SkillKind.Active && (skill.Half != SkillHalf.Attack || skill.UnlockLevel != 1))
+                    throw new InvalidOperationException($"{name} is active — it belongs to the Attack half and unlocks at level 1.");
 
-                    if (passive.BasePercent < 0 || passive.PercentPerStar < 0)
+                if (skill.Kind == SkillKind.Utility && skill.Half != SkillHalf.Defense)
+                    throw new InvalidOperationException($"{name} is a utility skill — it belongs to the Defense half.");
+
+                if (skill.Troops is { } troops)
+                {
+                    if (troops.Target != HeroCombatModifiers.AllUnits && !unitKeys.Contains(troops.Target))
+                        throw new InvalidOperationException($"{name} targets unknown unit '{troops.Target}'.");
+
+                    if (!statKeys.Contains(troops.Stat ?? string.Empty))
                         throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' has negative percentages — "
-                            + "a passive never weakens its own army.");
+                            $"{name} affects unknown stat '{troops.Stat}' — combat knows Attack and Defense.");
+
+                    RequireLevels(troops.Percents, settings, $"{name} Troops.Percents", allowZero: true);
+                }
+
+                if (skill.Utility is { } utility)
+                {
+                    if (!SkillUtilityConfig.KnownEffects.Contains(utility.Effect ?? string.Empty))
+                        throw new InvalidOperationException(
+                            $"{name} has unknown utility effect '{utility.Effect}' — known: "
+                            + $"{string.Join(", ", SkillUtilityConfig.KnownEffects)}.");
+
+                    RequireLevels(utility.Percents, settings, $"{name} Utility.Percents", allowZero: true);
+                }
+
+                if (skill.Battle is { } battle)
+                {
+                    if (battle.Cooldown < 1)
+                        throw new InvalidOperationException($"{name} has Cooldown {battle.Cooldown} — it needs at least one turn.");
+
+                    if (battle.DamageMultiplier <= 0 && battle.HealPercent <= 0 && battle.ShieldPercent <= 0 && battle.Status is null)
+                        throw new InvalidOperationException($"{name} does nothing in battle — no damage, heal, shield or status.");
+
+                    // Щит без тривалості згасає в тому ж ході, в якому його наклали: стан тікає
+                    // наприкінці ходу носія, тож на себе потрібно щонайменше 2
+                    if (battle.ShieldPercent > 0 && battle.ShieldTurns < (battle.Target == AbilityTarget.Self ? 2 : 1))
+                        throw new InvalidOperationException($"{name} shield vanishes before it can absorb anything — raise ShieldTurns.");
+
+                    RequireLevels(battle.LevelScale, settings, $"{name} Battle.LevelScale", allowZero: false);
                 }
             }
+
+            if (hero.Skills.Count(s => s.Kind == SkillKind.Active) > 1)
+                throw new InvalidOperationException($"Hero '{hero.Key}' has more than one active skill.");
+
+            // Склад за рідкістю перевіряється, лише якщо рідкість описана — так фікстури тримають
+            // героїв з одним-двома вміннями
+            if (!settings.SkillLayouts.TryGetValue(hero.Rank.ToString(), out var layout))
+                return;
+
+            var attack = hero.Skills.Count(s => s.Half == SkillHalf.Attack);
+            var defense = hero.Skills.Count(s => s.Half == SkillHalf.Defense);
+            var utilities = hero.Skills.Count(s => s.Kind == SkillKind.Utility);
+            var actives = hero.Skills.Count(s => s.Kind == SkillKind.Active);
+
+            if (attack != layout.Attack || defense != layout.Defense || utilities != layout.Utility || actives != 1)
+                throw new InvalidOperationException(
+                    $"Hero '{hero.Key}' ({hero.Rank}) needs {layout.Attack} attack skills with one active, "
+                    + $"{layout.Defense} defense skills of which {layout.Utility} utility — has {attack} attack "
+                    + $"({actives} active) and {defense} defense ({utilities} utility).");
+        }
+
+        /// <summary>Пер-рівневий список: рівно MaxSkillLevel значень, жодне не від'ємне (і не нульове, якщо так сказано).</summary>
+        private static void RequireLevels(IReadOnlyList<double> values, HeroesConfig settings, string name, bool allowZero)
+        {
+            if (values.Count != settings.MaxSkillLevel || values.Any(v => v < 0 || (!allowZero && v == 0)))
+                throw new InvalidOperationException(
+                    $"{name} needs {settings.MaxSkillLevel} {(allowZero ? "non-negative" : "positive")} values, one per skill level.");
         }
 
         /// <summary>Спорядження: слоти, класи зброї, набори, ціни.</summary>

@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.TestKit;
@@ -13,15 +14,18 @@ namespace EmpireIdle.Domain.Tests.Services
     {
         private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 
-        private static readonly HeroPassiveConfig Shieldwall =
-            TestKit.Passives.Defence(percent: 6, target: "infantry", perStar: 2);
+        private static readonly HeroSkillConfig Shieldwall =
+            TestKit.Passives.Defence(percent: 6, target: "infantry");
 
-        private static readonly HeroPassiveConfig HoldTheLine =
-            TestKit.Passives.Defence(percent: 4, target: HeroCombatModifiers.AllUnits,
-                unlockStars: 3, perStar: 1.5);
+        /// <summary>Відкривається лише з 20 рівня героя — як друге вміння половини в конфігу гри.</summary>
+        private static readonly HeroSkillConfig HoldTheLine =
+            TestKit.Passives.Defence(percent: 4, target: HeroCombatModifiers.AllUnits, unlockLevel: 20);
 
-        private static StackBuff Buff(int stars = 0)
-            => TestKit.Passives.Buff(stars, Shieldwall, HoldTheLine);
+        private static StackBuff Buff(int heroLevel = 1)
+            => TestKit.Passives.Buff(heroLevel, Shieldwall, HoldTheLine);
+
+        private static HeroCombatModifiers Modifiers(params HeroSkillConfig[] skills)
+            => new(new GameCatalog(new GameConfigBuilder().WithUnits().WithHeroes(passives: skills).Build()));
 
         [Fact]
         public void For_ShouldApplyAnUnlockedPassive()
@@ -32,50 +36,78 @@ namespace EmpireIdle.Domain.Tests.Services
         public void For_ShouldNotLeakToOtherUnits()
             => Assert.Equal(1.0, Buff().Defense("archer"), 3);
 
+        /// <summary>Вміння, яке рівень героя ще не відкрив, не дає нічого.</summary>
         [Fact]
-        public void For_ShouldIgnoreALockedPassive()
+        public void For_ShouldIgnoreASkillLockedByHeroLevel()
         {
-            var buff = Buff(stars: 2);
+            var buff = Buff(heroLevel: 19);
 
-            // shieldwall: 6 + 2×2 = 10; hold_the_line ще закрита
-            Assert.Equal(1.10, buff.Defense("infantry"), 3);
+            Assert.Equal(1.06, buff.Defense("infantry"), 3);
             Assert.Equal(1.0, buff.Defense("archer"), 3);
         }
 
         /// <summary>
         /// Бонус на все військо й бонус на тип складаються, а не множаться:
-        /// 6+2×3 на піхоту плюс 4 на всіх дає 16%.
+        /// 6 на піхоту плюс 4 на всіх дає 10%.
         /// </summary>
         [Fact]
         public void For_ShouldSumTheAllTargetWithTheSpecificOne()
         {
-            var buff = Buff(stars: 3);
+            var buff = Buff(heroLevel: 20);
 
-            Assert.Equal(1.16, buff.Defense("infantry"), 3);
+            Assert.Equal(1.10, buff.Defense("infantry"), 3);
             Assert.Equal(1.04, buff.Defense("archer"), 3);
         }
 
         [Fact]
         public void For_ShouldNotTouchTheOtherStat()
-            => Assert.Equal(1.0, Buff(stars: 3).Attack("infantry"), 3);
+            => Assert.Equal(1.0, Buff(heroLevel: 20).Attack("infantry"), 3);
 
         /// <summary>Невідомий тип юніта не валить формулу.</summary>
         [Fact]
         public void For_ShouldReturnOne_ForAnUnknownUnitType()
             => Assert.Equal(1.0, Buff().Defense("siege_ram"), 3);
 
+        /// <summary>Активне в марші не б'є саме, а дає бонус війську — як і пасивка (GDD §6.1).</summary>
+        [Fact]
+        public void For_ShouldApplyTheTroopBonusOfAnActiveSkill()
+        {
+            var active = new HeroSkillConfig
+            {
+                Key = "smash", DisplayName = "Smash", Half = SkillHalf.Attack, Kind = SkillKind.Active,
+                Troops = new SkillTroopBonusConfig { Target = HeroCombatModifiers.AllUnits, Stat = "Attack", Percents = [5, 10, 15, 20, 25, 30] },
+                Battle = new SkillBattleConfig { Cooldown = 3, DamageMultiplier = 2, LevelScale = [1, 1, 1, 1, 1, 1] },
+            };
+
+            var buff = Modifiers(active).For(TestKit.Entities.Hero(TestKeys.CommonHero));
+
+            Assert.Equal(1.05, buff.Attack("infantry"), 3);
+        }
+
+        /// <summary>Небойове вміння бою не підсилює — воно про логістику.</summary>
+        [Fact]
+        public void For_ShouldIgnoreAUtilitySkill()
+        {
+            var swift = new HeroSkillConfig
+            {
+                Key = "swift", DisplayName = "Swift", Half = SkillHalf.Defense, Kind = SkillKind.Utility,
+                Utility = new SkillUtilityConfig { Effect = SkillUtilityConfig.MarchSpeed, Percents = [5, 10, 15, 20, 25, 30] },
+            };
+
+            var buff = Modifiers(swift).For(TestKit.Entities.Hero(TestKeys.CommonHero));
+
+            Assert.Equal(1.0, buff.Attack("infantry"), 3);
+            Assert.Equal(1.0, buff.Defense("infantry"), 3);
+        }
+
         /// <summary>Поранений не дає нічого: у цьому й ціна поразки.</summary>
         [Fact]
         public void For_ShouldReturnNothing_WhenTheHeroIsWounded()
         {
-            var config = new GameConfigBuilder()
-                .WithUnits()
-                .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
-                .Build();
-            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, stars: 3);
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 20);
             hero.Wound(Now);
 
-            var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
+            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero);
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
@@ -83,51 +115,40 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldReturnNothing_WhenThereIsNoHero()
         {
-            var buff = new HeroCombatModifiers(new GameCatalog(new GameConfigBuilder().WithUnits().WithHeroes(passives: Shieldwall).Build())).For(null);
+            var buff = Modifiers(Shieldwall).For(null);
 
             Assert.Equal(1.0, buff.Attack("infantry"), 3);
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
 
         [Fact]
-        public void For_ShouldReturnNothing_WhenTheHeroHasNoPassives()
+        public void For_ShouldReturnNothing_WhenTheHeroHasNoSkills()
         {
-            var config = new GameConfigBuilder().WithUnits().WithHeroes(passives: Shieldwall).Build();
-            var hero = TestKit.Entities.Hero(TestKeys.PlainHero);
-
-            var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
+            var buff = Modifiers(Shieldwall).For(TestKit.Entities.Hero(TestKeys.PlainHero));
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
 
         /// <summary>Лідер маршу в стані Deployed — і саме в ньому б'ється. Регресія: IsAvailable гасив йому бонус.</summary>
         [Fact]
-        public void For_ShouldApplyPassives_WhenTheHeroLeadsAMarch()
+        public void For_ShouldApplySkills_WhenTheHeroLeadsAMarch()
         {
-            var config = new GameConfigBuilder()
-                .WithUnits()
-                .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
-                .Build();
-            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, stars: 3);
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 20);
             hero.Deploy(Now);
 
-            var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
+            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero);
 
-            Assert.Equal(1.16, buff.Defense("infantry"), 3);
+            Assert.Equal(1.10, buff.Defense("infantry"), 3);
         }
 
         [Fact]
         public void For_ShouldReturnNothing_WhenTheHeroIsWoundedOnTheMove()
         {
-            var config = new GameConfigBuilder()
-                .WithUnits()
-                .WithHeroes(passives: new[] { Shieldwall, HoldTheLine })
-                .Build();
-            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, stars: 3);
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 20);
             hero.Deploy(Now);
             hero.Wound(Now);
 
-            var buff = new HeroCombatModifiers(new GameCatalog(config)).For(hero);
+            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero);
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }

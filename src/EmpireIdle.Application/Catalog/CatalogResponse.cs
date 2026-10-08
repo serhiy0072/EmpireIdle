@@ -7,6 +7,7 @@
     /// клієнт або вигадує назви з ключів, або тримає власну копію JSON,
     /// яка відстане від сервера на першій же правці балансу.
     /// </summary>
+    /// <param name="MaxSkillLevel">Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1).</param>
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
     /// <param name="MaxEnhancement">Стеля заточки — після неї кнопка «Заточити» зникає.</param>
     /// <param name="RepairGemsBase">Ремонт зброї в gems: база плюс RepairGemsPerLevel за кожен рівень заточки.</param>
@@ -29,6 +30,7 @@
         IReadOnlyList<string> HeroClasses,
         int MaxStars,
         int PartsPerStar,
+        int MaxSkillLevel,
         double StarPartBonus,
         int SummonShards,
         int MaxTier,
@@ -68,16 +70,43 @@
         double Speed,
         IReadOnlyDictionary<string, double> BaseStats,
         IReadOnlyDictionary<string, double> StatGrowth,
-        IReadOnlyList<CatalogPassive> Passives);
+        IReadOnlyList<CatalogSkill> Skills);
 
-    public record CatalogPassive(
+    /// <summary>Вміння героя (GDD §6.1): рівень героя відкриває, зірки стелять рівень.</summary>
+    /// <param name="Half">"Attack" або "Defense" — яка книга його піднімає.</param>
+    /// <param name="Kind">"Active", "Passive", "Periodic" або "Utility".</param>
+    /// <param name="Troops">Бонус війську в маршах і обороні; null у небойових.</param>
+    /// <param name="Utility">Небойовий бонус; null у бойових.</param>
+    /// <param name="Battle">Ефект у данжі; null у пасивок і небойових.</param>
+    public record CatalogSkill(
         string Key,
         string DisplayName,
-        int UnlockStars,
+        string Description,
+        string Half,
+        string Kind,
+        int UnlockLevel,
+        CatalogSkillTroops? Troops,
+        CatalogSkillUtility? Utility,
+        CatalogSkillBattle? Battle);
+
+    /// <param name="Target">Ключ типу юніта або "all".</param>
+    /// <param name="Percents">Бонус у відсотках на кожному рівні вміння, від першого.</param>
+    public record CatalogSkillTroops(string Target, string Stat, IReadOnlyList<double> Percents);
+
+    /// <param name="Effect">Ефект рядком: "MarchSpeed".</param>
+    public record CatalogSkillUtility(string Effect, IReadOnlyList<double> Percents);
+
+    /// <param name="Cooldown">Раз на скільки власних ходів героя вміння готове.</param>
+    /// <param name="LevelScale">Множник шкоди, лікування й щита на кожному рівні вміння.</param>
+    public record CatalogSkillBattle(
         string Target,
-        string Stat,
-        double BasePercent,
-        double PercentPerStar);
+        int Cooldown,
+        double DamageMultiplier,
+        double HealPercent,
+        double ShieldPercent,
+        string? Status,
+        bool IgnoresLine,
+        IReadOnlyList<double> LevelScale);
 
     /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
     /// <param name="ArtifactSlot">Тип слота артефакта (ключ з ArtifactSlots); null — не артефакт.</param>

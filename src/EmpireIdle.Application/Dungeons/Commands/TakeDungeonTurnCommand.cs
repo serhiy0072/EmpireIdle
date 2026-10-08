@@ -113,16 +113,12 @@ namespace EmpireIdle.Application.Dungeons.Commands
 
                 if (!manual || hasPlayerAction)
                 {
-                    var abilities = actor.Side == BattleSide.Heroes ? AbilitiesOf(actor.Key) : [];
-
                     var action = manual
                         ? new BattleAction(request.AbilityKey, request.TargetIndex)
-                        : _engine.ChooseAuto(state, actorIndex, abilities);
+                        : _engine.ChooseAuto(state, actorIndex);
 
-                    var ability = Resolve(abilities, action.AbilityKey, actor, manual);
-
-                    // Енергію, ціль і лінії перевіряє рушій — для ручного ходу й для автобою однаково
-                    var result = _engine.Execute(state, actorIndex, action, ability);
+                    // Вміння, перезарядку, ціль і лінії перевіряє рушій — для ручного ходу й для автобою однаково
+                    var result = _engine.Execute(state, actorIndex, action);
 
                     state = result.State;
                     turns.Add(result.Log);
@@ -209,22 +205,5 @@ namespace EmpireIdle.Application.Dungeons.Commands
         /// <summary>Порожня черга означає кінець раунду — шикуємо новий.</summary>
         private static BattleState EnsureRound(BattleState state)
             => state.Queue.Any(i => state.Combatants[i].IsAlive) ? state : BattleEngine.NextRound(state);
-
-        private IReadOnlyList<Domain.Services.Config.HeroAbilityConfig> AbilitiesOf(string heroKey)
-            => _catalog.FindHero(heroKey)?.Abilities ?? [];
-
-        private static Domain.Services.Config.HeroAbilityConfig? Resolve(
-            IReadOnlyList<Domain.Services.Config.HeroAbilityConfig> abilities, string? key, Combatant actor, bool manual)
-        {
-            if (key is null)
-                return null;
-
-            var ability = abilities.FirstOrDefault(a => a.Key == key);
-
-            if (ability is null && manual)
-                throw new EntityNotFoundException("Hero ability", key);
-
-            return ability;
-        }
     }
 }

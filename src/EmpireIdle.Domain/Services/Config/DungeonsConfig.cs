@@ -1,7 +1,7 @@
 namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>
-    /// Правила данжів: енергія, склад команди, економіка бою й шкала рівнів.
+    /// Правила данжів: енергія гравця, склад команди, економіка бою й шкала рівнів.
     /// Числа тут, а не в коді: баланс правиться конфігом без перезбирання.
     /// </summary>
     public class DungeonsConfig
@@ -32,12 +32,6 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Множник ресурсної нагороди за рівень забігу.</summary>
         public List<double> LevelRewardMultipliers { get; set; } = [1.0, 2.0, 3.5];
-
-        /// <summary>Скільки енергії дає звичайний удар.</summary>
-        public int EnergyPerAttack { get; set; } = 25;
-
-        /// <summary>Скільки енергії додає отриманий удар — бита команда теж накопичує.</summary>
-        public int EnergyPerHitTaken { get; set; } = 10;
 
         /// <summary>
         /// Пом'якшення захисту у формулі шкоди: damage = attack × K / (K + defense).

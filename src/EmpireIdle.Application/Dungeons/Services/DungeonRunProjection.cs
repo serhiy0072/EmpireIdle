@@ -24,9 +24,15 @@ namespace EmpireIdle.Application.Dungeons.Services
                 {
                     var hero = c.HeroId is null ? null : catalog.FindHero(c.Key);
 
-                    var abilities = (hero?.Abilities ?? [])
-                        .Select(a => new AbilityView(a.Key, a.DisplayName, a.Description, a.EnergyCost,
-                            a.Target.ToString(), c.Energy >= a.EnergyCost, a.IgnoresLine))
+                    // Назви — з конфіга героя, а стан перезарядки — з бою: вміння зняте на старті забігу
+                    var skills = c.Skills
+                        .Select(s =>
+                        {
+                            var config = hero?.Skills.FirstOrDefault(x => x.Key == s.Key);
+
+                            return new CombatSkillView(s.Key, config?.DisplayName ?? s.Key, config?.Description ?? string.Empty,
+                                s.Kind.ToString(), s.Target.ToString(), s.Cooldown, s.CooldownLeft, s.Ready, s.IgnoresLine);
+                        })
                         .ToList();
 
                     var enemyName = dungeon?.Waves.Concat(dungeon.Boss).FirstOrDefault(e => e.Key == c.Key)?.DisplayName;
@@ -44,9 +50,8 @@ namespace EmpireIdle.Application.Dungeons.Services
                         c.MaxHealth,
                         c.ShieldPoints,
                         c.Speed,
-                        c.Energy,
                         c.Statuses.Select(s => new StatusView(s.Kind.ToString(), s.Magnitude, s.TurnsLeft)).ToList(),
-                        abilities);
+                        skills);
                 })
                 .ToList();
 

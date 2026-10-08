@@ -51,7 +51,7 @@ namespace EmpireIdle.Application.Dungeons.Contracts
         IReadOnlyList<TurnLog> Turns,
         DungeonRewardView? Reward);
 
-    /// <param name="Abilities">Вміння героя; у ворогів порожньо.</param>
+    /// <param name="Skills">Бойові вміння героя — активне й періодичні; у ворогів порожньо.</param>
     public record CombatantView(
         int Index,
         string Side,
@@ -65,20 +65,23 @@ namespace EmpireIdle.Application.Dungeons.Contracts
         double MaxHealth,
         double Shield,
         double Speed,
-        int Energy,
         IReadOnlyList<StatusView> Statuses,
-        IReadOnlyList<AbilityView> Abilities);
+        IReadOnlyList<CombatSkillView> Skills);
 
     public record StatusView(string Kind, double Magnitude, int TurnsLeft);
 
-    /// <param name="Ready">Енергії вистачає просто зараз.</param>
+    /// <param name="Kind">"Active" — гравець вирішує, коли бити; "Periodic" — спрацьовує саме.</param>
+    /// <param name="Cooldown">Раз на скільки власних ходів героя вміння готове.</param>
+    /// <param name="CooldownLeft">Скільки ходів героя ще чекати; 0 — готове просто зараз.</param>
     /// <param name="IgnoresLine">Дістає задню лінію попри живу передню — клієнт не пропонує недосяжних цілей.</param>
-    public record AbilityView(
+    public record CombatSkillView(
         string Key,
         string DisplayName,
         string Description,
-        int EnergyCost,
+        string Kind,
         string Target,
+        int Cooldown,
+        int CooldownLeft,
         bool Ready,
         bool IgnoresLine);
 

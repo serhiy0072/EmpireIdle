@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { heroState, passivePercent, rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
+import {
+  heroState,
+  rankLabel,
+  rankStyle,
+  skillEffect,
+  skillHalfLabel,
+  skillKindLabel,
+  skillLevel,
+  useCatalog,
+} from "../lib/queries/catalog";
 import type { HeroSummary } from "../lib/queries/heroes";
 import HeroPortrait from "./heroes/HeroPortrait";
 
@@ -83,28 +92,39 @@ export default function HeroDetails({
         )}
       </div>
 
-      {config !== null && config.passives.length > 0 && (
+      {/* Вміння (GDD §6.1): рівень героя відкриває, зірки стелять рівень — до зірки + 1 */}
+      {config !== null && config.skills.length > 0 && (
         <section>
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Вміння</h3>
-          <ul className="mt-2 space-y-2">
-            {config.passives.map((passive) => {
-              const percent = passivePercent(passive, stars);
+          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Вміння · рівень до {Math.min(catalog.maxSkillLevel, stars + 1)} з {catalog.maxSkillLevel}
+          </h3>
+          {["Attack", "Defense"].map((half) => (
+            <div key={half} className="mt-2">
+              <p className="text-xs text-slate-400">{skillHalfLabel(half)}</p>
+              <ul className="mt-1 space-y-2">
+                {config.skills
+                  .filter((skill) => skill.half === half)
+                  .map((skill) => {
+                    const level = skillLevel(skill, hero.level);
 
-              return (
-                <li key={passive.key} className="text-sm">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className={percent === null ? "text-slate-400" : "text-slate-800"}>{passive.displayName}</span>
-                    <span className={percent === null ? "text-xs text-slate-400" : "text-xs text-emerald-700"}>
-                      {percent === null ? `з ${passive.unlockStars} зірки` : `+${percent.toFixed(1)}%`}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    {passive.stat} · {passive.target === "all" ? "усе військо" : passive.target}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
+                    return (
+                      <li key={skill.key} className="text-sm">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className={level === 0 ? "text-slate-400" : "text-slate-800"}>
+                            {skill.displayName}
+                            <span className="ml-1 text-xs text-slate-400">{skillKindLabel(skill.kind)}</span>
+                          </span>
+                          <span className={level === 0 ? "text-xs text-slate-400" : "text-xs text-emerald-700"}>
+                            {level === 0 ? `з ${skill.unlockLevel} рівня` : `рів. ${level}`}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500">{skillEffect(skill, level)}</p>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+          ))}
         </section>
       )}
 

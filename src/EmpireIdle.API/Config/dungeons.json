@@ -21,8 +21,6 @@
         2.0,
         3.5
       ],
-      "EnergyPerAttack": 25,
-      "EnergyPerHitTaken": 10,
       "DefenseSoftening": 120,
       "MinDamageShare": 0.1,
       "MaxRoundsPerWave": 30,

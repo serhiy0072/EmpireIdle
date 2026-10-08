@@ -7843,43 +7843,6 @@
   },
   "components": {
     "schemas": {
-      "AbilityView": {
-        "required": [
-          "description",
-          "displayName",
-          "energyCost",
-          "ignoresLine",
-          "key",
-          "ready",
-          "target"
-        ],
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "energyCost": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "target": {
-            "type": "string"
-          },
-          "ready": {
-            "type": "boolean"
-          },
-          "ignoresLine": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
       "ActiveEffectResponse": {
         "required": [
           "expiresAt",
@@ -8737,8 +8700,8 @@
           "displayName",
           "key",
           "nativeTier",
-          "passives",
           "rank",
+          "skills",
           "speed",
           "statGrowth"
         ],
@@ -8786,10 +8749,10 @@
               "format": "double"
             }
           },
-          "passives": {
+          "skills": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CatalogPassive"
+              "$ref": "#/components/schemas/CatalogSkill"
             }
           }
         },
@@ -8872,45 +8835,6 @@
         },
         "additionalProperties": false
       },
-      "CatalogPassive": {
-        "required": [
-          "basePercent",
-          "displayName",
-          "key",
-          "percentPerStar",
-          "stat",
-          "target",
-          "unlockStars"
-        ],
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "unlockStars": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "target": {
-            "type": "string"
-          },
-          "stat": {
-            "type": "string"
-          },
-          "basePercent": {
-            "type": "number",
-            "format": "double"
-          },
-          "percentPerStar": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "additionalProperties": false
-      },
       "CatalogPosition": {
         "required": [
           "x",
@@ -8963,6 +8887,7 @@
           "mainBuildingKey",
           "mapSize",
           "maxEnhancement",
+          "maxSkillLevel",
           "maxStars",
           "maxTier",
           "maxUnitLevel",
@@ -9031,6 +8956,10 @@
             "format": "int32"
           },
           "partsPerStar": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxSkillLevel": {
             "type": "integer",
             "format": "int32"
           },
@@ -9144,6 +9073,140 @@
           "requiresMainBuildingLevel": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogSkill": {
+        "required": [
+          "description",
+          "displayName",
+          "half",
+          "key",
+          "kind",
+          "unlockLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "half": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "unlockLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "troops": {
+            "$ref": "#/components/schemas/CatalogSkillTroops"
+          },
+          "utility": {
+            "$ref": "#/components/schemas/CatalogSkillUtility"
+          },
+          "battle": {
+            "$ref": "#/components/schemas/CatalogSkillBattle"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogSkillBattle": {
+        "required": [
+          "cooldown",
+          "damageMultiplier",
+          "healPercent",
+          "ignoresLine",
+          "levelScale",
+          "shieldPercent",
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "cooldown": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "damageMultiplier": {
+            "type": "number",
+            "format": "double"
+          },
+          "healPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "shieldPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "ignoresLine": {
+            "type": "boolean"
+          },
+          "levelScale": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogSkillTroops": {
+        "required": [
+          "percents",
+          "stat",
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "stat": {
+            "type": "string"
+          },
+          "percents": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogSkillUtility": {
+        "required": [
+          "effect",
+          "percents"
+        ],
+        "type": "object",
+        "properties": {
+          "effect": {
+            "type": "string"
+          },
+          "percents": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
           }
         },
         "additionalProperties": false
@@ -10082,13 +10145,57 @@
         },
         "additionalProperties": false
       },
+      "CombatSkillView": {
+        "required": [
+          "cooldown",
+          "cooldownLeft",
+          "description",
+          "displayName",
+          "ignoresLine",
+          "key",
+          "kind",
+          "ready",
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "cooldown": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cooldownLeft": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ready": {
+            "type": "boolean"
+          },
+          "ignoresLine": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "CombatantView": {
         "required": [
-          "abilities",
           "attack",
           "defense",
           "displayName",
-          "energy",
           "health",
           "index",
           "key",
@@ -10096,6 +10203,7 @@
           "maxHealth",
           "shield",
           "side",
+          "skills",
           "speed",
           "statuses"
         ],
@@ -10146,20 +10254,16 @@
             "type": "number",
             "format": "double"
           },
-          "energy": {
-            "type": "integer",
-            "format": "int32"
-          },
           "statuses": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/StatusView"
             }
           },
-          "abilities": {
+          "skills": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AbilityView"
+              "$ref": "#/components/schemas/CombatSkillView"
             }
           }
         },
@@ -12748,6 +12852,10 @@
           },
           "died": {
             "type": "boolean"
+          },
+          "skillKey": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
