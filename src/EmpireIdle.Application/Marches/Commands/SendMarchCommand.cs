@@ -43,6 +43,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly ReinforcementRules _reinforcementRules;
         private readonly StructureMarchRules _structureMarches;
         private readonly HeroProgression _progression;
+        private readonly HeroConvoys _convoys;
         private readonly GameCatalog _catalog;
         private readonly BeastTamer _tamer;
         private readonly EffectResolver _effects;
@@ -61,6 +62,7 @@ namespace EmpireIdle.Application.Marches.Commands
             ReinforcementRules reinforcementRules,
             StructureMarchRules structureMarches,
             HeroProgression progression,
+            HeroConvoys convoys,
             GameCatalog catalog,
             BeastTamer tamer,
             EffectResolver effects,
@@ -78,6 +80,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _reinforcementRules = reinforcementRules;
             _structureMarches = structureMarches;
             _progression = progression;
+            _convoys = convoys;
             _catalog = catalog;
             _tamer = tamer;
             _effects = effects;
@@ -126,6 +129,9 @@ namespace EmpireIdle.Application.Marches.Commands
             if (active.Count >= capacity)
                 throw new RequirementNotMetException(RefusalReasons.MarchCapacity,
                     $"Cannot send more than {capacity} marches at once.", capacity);
+
+            // Герой веде лише юнітів своєї ролі й не більше, ніж мають його конвої (GDD §6.1)
+            _convoys.EnsureCanLead(hero, _catalog.FindHero(hero.HeroKey), request.Units);
 
             // Ціль читається один раз: далі її перевіряють і щит, і підкріплення
             var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, now, cancellationToken);

@@ -13,6 +13,8 @@ namespace EmpireIdle.Application.Heroes.Contracts
     /// <param name="EffectiveLevel">Рівень, з яким герой воює: у таборі — більший із власного й табірного (GDD §6.1).</param>
     /// <param name="CampSlot">Слот навчального табору від 0; null — поза табором.</param>
     /// <param name="SkillLevels">Рівень кожного вміння з конфіга героя, що діє зараз; 0 — ще закрите рівнем героя (GDD §6.1).</param>
+    /// <param name="UnitType">Тип юнітів, яких веде герой своєї ролі (GDD §6.1); null — роль без юнітів у конфігу.</param>
+    /// <param name="ConvoyCapacity">Скільки юнітів герой веде в марш: конвої за рівнем × розмір конвою.</param>
     /// <param name="SkillLevelCap">До якого рівня можна підняти вміння з поточними зірками: зірки + 1.</param>
     public record HeroSummary(
         Guid Id,
@@ -30,5 +32,7 @@ namespace EmpireIdle.Application.Heroes.Contracts
         Guid? StationedGarrisonId,
         bool IsLeader,
         IReadOnlyDictionary<string, int> SkillLevels,
-        int SkillLevelCap);
+        int SkillLevelCap,
+        string? UnitType,
+        int ConvoyCapacity);
 }

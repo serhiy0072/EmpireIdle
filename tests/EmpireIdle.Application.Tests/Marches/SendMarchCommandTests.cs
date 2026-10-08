@@ -107,9 +107,10 @@ public class SendMarchCommandTests
         }
     };
 
-    private SendMarchCommandHandler Handler()
+    private SendMarchCommandHandler Handler(Action<HeroesConfig>? tune = null)
     {
         var config = Config();
+        tune?.Invoke(config.HeroSettings);
         var catalog = new GameCatalog(config);
         var terrain = new TerrainGenerator(config.Map);
 
@@ -131,6 +132,7 @@ public class SendMarchCommandTests
             new MarchCalculator(terrain, catalog),
             targets, reinforcementRules, new StructureMarchRules(_clans),
             new HeroProgression(config.HeroSettings),
+            new HeroConvoys(config.HeroSettings),
             catalog,
             new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog),
             Effects(catalog),
@@ -550,5 +552,37 @@ public class SendMarchCommandTests
         Assert.Equal(plain.TotalSeconds / 1.25, fast.TotalSeconds, precision: 3);
         Assert.Equal(1.25, marches[1].SpeedMultiplier, precision: 10);
         Assert.Equal(1.0, marches[0].SpeedMultiplier, precision: 10);
+    }
+
+    // ---------- Конвої (GDD §6.1) ----------
+
+    /// <summary>Герой першого рівня веде 2 конвої по 50 — сотня піхоти в марш уже не влізе.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_MoreUnitsThanTheHerosConvoysCarry()
+    {
+        var (garrison, monster, hero) = GivenState(infantry: 200);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler(ConvoysOfFifty).Handle(Send(monster.Id, hero.Id, infantry: 101), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.MarchOverCapacity.Key, refusal.Reason);
+        Assert.Equal(100, refusal.Args["capacity"]);
+        Assert.Equal(200, garrison.Units.Sum(u => u.Count));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSend_UnitsWithinTheConvoys()
+    {
+        var (_, monster, hero) = GivenState(infantry: 200);
+
+        await Handler(ConvoysOfFifty).Handle(Send(monster.Id, hero.Id, infantry: 100), CancellationToken.None);
+
+        Assert.Equal(HeroState.Deployed, hero.State);
+    }
+
+    private static void ConvoysOfFifty(HeroesConfig settings)
+    {
+        settings.ConvoySize = 50;
+        settings.ConvoysByLevel = [new ConvoyStepConfig { Level = 1, Convoys = 2 }];
     }
 }

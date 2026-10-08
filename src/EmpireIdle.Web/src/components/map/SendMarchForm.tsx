@@ -41,18 +41,28 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [heroId, setHeroId] = useState<string>("");
 
-  const stacks = (garrison.data?.units ?? []).filter((stack) => stack.count > 0);
   const idleHeroes = (heroes.data?.heroes ?? []).filter((hero) => hero.state === "Idle");
   const chosenHero = heroId !== "" ? heroId : (idleHeroes[0]?.id ?? "");
+  const leader = idleHeroes.find((hero) => hero.id === chosenHero) ?? null;
+
+  // Герой веде лише юнітів своєї ролі й не більше за свої конвої (GDD §6.1)
+  const stacks = (garrison.data?.units ?? []).filter(
+    (stack) => stack.count > 0 && (leader?.unitType == null || stack.unitType === leader.unitType),
+  );
+  const capacity = leader?.convoyCapacity ?? Number.POSITIVE_INFINITY;
 
   const units: Record<string, number> = {};
+  let room = capacity;
 
   for (const stack of stacks) {
     const key = `${stack.unitType}@${stack.level}`;
-    const count = Math.min(Math.max(counts[key] ?? 0, 0), stack.count);
+    const count = Math.min(Math.max(counts[key] ?? 0, 0), stack.count, room);
 
     if (count > 0) units[key] = count;
+    room -= count;
   }
+
+  const sent = Object.values(units).reduce((sum, count) => sum + count, 0);
 
   const ready = Object.keys(units).length > 0 && chosenHero !== "";
 
@@ -99,13 +109,19 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
       )}
 
       {stacks.length === 0 ? (
-        <p className="text-sm text-slate-500">У гарнізоні нікого: спершу навчіть юнітів у казармах.</p>
+        <p className="text-sm text-slate-500">
+          {leader?.unitType != null
+            ? `У гарнізоні немає: ${catalog.unitName(leader.unitType)} — цей герой веде лише їх.`
+            : "У гарнізоні нікого: спершу навчіть юнітів у казармах."}
+        </p>
       ) : (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-slate-500">Хто йде</p>
+          <p className="text-xs font-medium text-slate-500">
+            Хто йде{leader !== null && ` · ${sent} з ${leader.convoyCapacity} (конвої героя)`}
+          </p>
           {stacks.map((stack) => {
             const key = `${stack.unitType}@${stack.level}`;
-            const value = Math.min(Math.max(counts[key] ?? 0, 0), stack.count);
+            const value = units[key] ?? 0;
 
             return (
               <div key={key} className="flex items-center justify-between gap-2 text-sm">
@@ -123,7 +139,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                   />
                   <button
                     type="button"
-                    onClick={() => setCounts((prev) => ({ ...prev, [key]: stack.count }))}
+                    onClick={() => setCounts((prev) => ({ ...prev, [key]: Math.min(stack.count, value + room) }))}
                     className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
                   >
                     усі
@@ -150,7 +166,8 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
           >
             {idleHeroes.map((hero) => (
               <option key={hero.id} value={hero.id}>
-                {catalog.heroName(hero.heroKey)} · рів. {hero.level}
+                {catalog.heroName(hero.heroKey)} · рів. {hero.effectiveLevel}
+                {hero.unitType != null && ` · ${catalog.unitName(hero.unitType)} до ${hero.convoyCapacity}`}
                 {hero.isLeader ? " · лідер" : ""}
               </option>
             ))}

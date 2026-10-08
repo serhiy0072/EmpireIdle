@@ -74,6 +74,21 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public List<SkillBookConfig> SkillBooks { get; set; } = new();
 
+        /// <summary>
+        /// Який тип юніта веде герой кожної ролі (GDD §6.1): ключ — клас героя, значення — ключ юніта.
+        /// Порожньо — марш не обмежує тип юнітів (мінімальні фікстури).
+        /// </summary>
+        public Dictionary<string, string> RoleUnits { get; set; } = new();
+
+        /// <summary>Скільки юнітів у конвої. Заглушка до Режисера.</summary>
+        public int ConvoySize { get; set; } = 100;
+
+        /// <summary>
+        /// Скільки конвоїв веде герой за рівнем (GDD §6.1: 2 на 1 рівні, 10 на 70). Порожньо — марш
+        /// не обмежує кількість юнітів (мінімальні фікстури).
+        /// </summary>
+        public List<ConvoyStepConfig> ConvoysByLevel { get; set; } = new();
+
         /// <summary>Навчальний табір (GDD §6.1).</summary>
         public TrainingCampConfig TrainingCamp { get; set; } = new();
 

@@ -166,6 +166,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.tierLocked": ({ tier }) => `Герой ${tier} тіру з'явиться на рівні світу ${tier}`,
   "hero.notEnoughShards": ({ hero, need, have }) => `«${hero}»: потрібно ${need} осколків, зібрано ${have}`,
   "hero.maxStars": () => "Усі зірки героя вже заповнені",
+  "march.wrongUnits": ({ unit, hero }) => `${hero} веде лише юнітів своєї ролі, а не «${unit}»`,
+  "march.overCapacity": ({ capacity, sent }) => `Герой веде до ${capacity} юнітів, а відправлено ${sent}`,
   "camp.unavailable": ({ need, have }) => `Табір відкриється, коли поза ним буде ${need} героїв — зараз ${have}`,
   "camp.slotLocked": ({ slot }) => `Слот ${slot} ще не відкрито — підніміть ратушу або купіть слот`,
   "camp.slotTaken": ({ slot }) => `У слоті ${slot} уже стоїть герой`,

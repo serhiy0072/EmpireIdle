@@ -16,6 +16,7 @@ namespace EmpireIdle.Application.Heroes.Queries
         private readonly IHeroRepository _heroRepository;
         private readonly HeroProgression _progression;
         private readonly HeroSkills _skills;
+        private readonly HeroConvoys _convoys;
         private readonly TrainingCampRules _campRules;
         private readonly IVillageRepository _villages;
         private readonly VillageStatus _status;
@@ -26,6 +27,7 @@ namespace EmpireIdle.Application.Heroes.Queries
             IHeroRepository heroRepository,
             HeroProgression progression,
             HeroSkills skills,
+            HeroConvoys convoys,
             TrainingCampRules campRules,
             IVillageRepository villages,
             VillageStatus status,
@@ -35,6 +37,7 @@ namespace EmpireIdle.Application.Heroes.Queries
             _heroRepository = heroRepository;
             _progression = progression;
             _skills = skills;
+            _convoys = convoys;
             _campRules = campRules;
             _villages = villages;
             _status = status;
@@ -70,7 +73,9 @@ namespace EmpireIdle.Application.Heroes.Queries
                     // Рівні рахує сервер: відкриття за рівнем героя й стелю зірок клієнт не дублює
                     (_catalog.FindHero(h.HeroKey)?.Skills ?? [])
                         .ToDictionary(s => s.Key, s => _skills.LevelOf(h, s)),
-                    _skills.LevelCap(h)))
+                    _skills.LevelCap(h),
+                    _convoys.UnitOf(_catalog.FindHero(h.HeroKey)),
+                    _convoys.Capacity(h)))
                 .ToList();
 
             // Осколки ще не призваних героїв — до призову; осколки відкритих ідуть у зірки й стоять у картці героя

@@ -301,6 +301,12 @@
         /// <summary>Вміння вже на найвищому рівні; level — стеля рівня вмінь.</summary>
         public static readonly RefusalReason HeroSkillMaxed = new("hero.skillMaxed", "level");
 
+        /// <summary>Герой веде лише юнітів своєї ролі (GDD §6.1); unit — тип, якого він не веде, hero — ім'я героя.</summary>
+        public static readonly RefusalReason MarchWrongUnits = new("march.wrongUnits", "unit", "hero");
+
+        /// <summary>Юнітів більше, ніж конвоїв у героя; capacity — скільки він веде, sent — скільки відправлено.</summary>
+        public static readonly RefusalReason MarchOverCapacity = new("march.overCapacity", "capacity", "sent");
+
         /// <summary>Табір доступний, коли поза ним щонайменше need героїв (GDD §6.1); have — скільки зараз.</summary>
         public static readonly RefusalReason CampUnavailable = new("camp.unavailable", "need", "have");
 

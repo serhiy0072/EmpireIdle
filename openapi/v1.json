@@ -11140,6 +11140,7 @@
       },
       "HeroSummary": {
         "required": [
+          "convoyCapacity",
           "effectiveLevel",
           "experienceToNext",
           "heroKey",
@@ -11220,6 +11221,14 @@
             }
           },
           "skillLevelCap": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unitType": {
+            "type": "string",
+            "nullable": true
+          },
+          "convoyCapacity": {
             "type": "integer",
             "format": "int32"
           }

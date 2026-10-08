@@ -229,6 +229,10 @@
     "state"
   ],
   "march.notCamping": [],
+  "march.overCapacity": [
+    "capacity",
+    "sent"
+  ],
   "march.ownCamp": [],
   "march.ownShield": [
     "level"
@@ -236,6 +240,10 @@
   "march.ownVillage": [],
   "march.targetFallShield": [],
   "march.targetShielded": [],
+  "march.wrongUnits": [
+    "unit",
+    "hero"
+  ],
   "market.itemListed": [],
   "market.listingClosed": [],
   "market.listingLimit": [

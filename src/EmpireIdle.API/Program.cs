@@ -159,6 +159,7 @@ builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<T
 builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
 builder.Services.AddSingleton(sp => new HeroProgression(gameConfig.HeroSettings));
 builder.Services.AddSingleton(sp => new HeroSkills(gameConfig.HeroSettings));
+builder.Services.AddSingleton(sp => new HeroConvoys(gameConfig.HeroSettings));
 builder.Services.AddSingleton(sp => new TrainingCampRules(gameConfig.HeroSettings.TrainingCamp));
 builder.Services.AddSingleton(sp => new HeroCombatModifiers(sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));

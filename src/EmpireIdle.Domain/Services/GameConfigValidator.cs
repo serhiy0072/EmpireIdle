@@ -976,6 +976,33 @@ namespace EmpireIdle.Domain.Services
                     "HeroSettings.SkillLayouts needs a known rarity, at least the active skill in Attack "
                     + $"and no more utility skills than Defense holds: {string.Join(", ", badLayouts)}.");
 
+            // Конвої (GDD §6.1): кожна роль веде відомий тип юнітів, крива росте від першого рівня героя
+            var badRoles = settings.RoleUnits
+                .Where(r => !settings.Classes.Contains(r.Key) || !unitKeys.Contains(r.Value))
+                .Select(r => $"{r.Key} → {r.Value}")
+                .ToList();
+
+            if (badRoles.Count > 0)
+                throw new InvalidOperationException(
+                    $"HeroSettings.RoleUnits must map known classes to known units: {string.Join(", ", badRoles)}.");
+
+            if (settings.RoleUnits.Count > 0 && settings.Classes.Any(c => !settings.RoleUnits.ContainsKey(c)))
+                throw new InvalidOperationException(
+                    "HeroSettings.RoleUnits must cover every hero class — a hero without a unit type could lead nobody.");
+
+            if (settings.ConvoySize < 1)
+                throw new InvalidOperationException("HeroSettings.ConvoySize must be at least 1.");
+
+            var steps = settings.ConvoysByLevel;
+
+            if (steps.Count > 0
+                && (steps[0].Level != 1
+                    || steps.Any(s => s.Convoys < 1 || s.Level > settings.MaxLevel)
+                    || steps.Zip(steps.Skip(1)).Any(p => p.Second.Level <= p.First.Level || p.Second.Convoys < p.First.Convoys)))
+                throw new InvalidOperationException(
+                    "HeroSettings.ConvoysByLevel must start at hero level 1, rise in level up to MaxLevel "
+                    + "and never lose convoys — a hero cannot lead fewer troops as he grows.");
+
             // Навчальний табір (GDD §6.1): опорна п'ятірка має бути, слоти — відкриватися по порядку
             var camp = settings.TrainingCamp;
 

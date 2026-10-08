@@ -239,7 +239,51 @@
         ],
         "SlotCooldownHours": 24,
         "SkipCooldownGems": 50
-      }
+      },
+      "RoleUnits": {
+        "warrior": "infantry",
+        "knight": "cavalry",
+        "archer": "archer"
+      },
+      "ConvoySize": 100,
+      "ConvoysByLevel": [
+        {
+          "Level": 1,
+          "Convoys": 2
+        },
+        {
+          "Level": 10,
+          "Convoys": 3
+        },
+        {
+          "Level": 20,
+          "Convoys": 4
+        },
+        {
+          "Level": 30,
+          "Convoys": 5
+        },
+        {
+          "Level": 40,
+          "Convoys": 6
+        },
+        {
+          "Level": 50,
+          "Convoys": 7
+        },
+        {
+          "Level": 55,
+          "Convoys": 8
+        },
+        {
+          "Level": 60,
+          "Convoys": 9
+        },
+        {
+          "Level": 70,
+          "Convoys": 10
+        }
+      ]
     },
     "Heroes": [
       {
