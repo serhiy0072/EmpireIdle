@@ -19,7 +19,7 @@
           "CarryCapacity": 40
         },
         "RequiresBuilding": "barracks",
-        "RequiresBuildingLevel" :  1
+        "RequiresBuildingLevel": 1
       },
       {
         "Key": "archer",
@@ -72,30 +72,6 @@
         },
         "RequiresBuilding": "stable",
         "RequiresBuildingLevel": 1
-      },
-      {
-        "Key": "siege",
-        "DisplayName": "Облогові машини",
-        "RecoverCostGems": 1,
-        "Cost": [
-          {
-            "Resource": "wood",
-            "Amount": 100
-          },
-          {
-            "Resource": "iron",
-            "Amount": 50
-          }
-        ],
-        "BaseTrainMinutes": 15,
-        "Stats": {
-          "Attack": 40,
-          "Defense": 5,
-          "Speed": 1,
-          "CarryCapacity": 15
-        },
-        "RequiresBuilding": "barracks",
-        "RequiresBuildingLevel": 6
       }
     ]
   }

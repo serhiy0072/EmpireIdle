@@ -235,7 +235,6 @@ const SKILL_TARGETS: Record<string, string> = {
   infantry: "піхоті",
   archer: "лучникам",
   cavalry: "кінноті",
-  siege: "облоговим",
 };
 
 /** Що вміння робить на рівні level; закрите (0) показується першим рівнем — «що відкриється». */

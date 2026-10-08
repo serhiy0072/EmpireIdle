@@ -63,7 +63,6 @@
           "unit.infantry": "Infantry",
           "unit.archer": "Archer",
           "unit.cavalry": "Cavalry",
-          "unit.siege": "Siege Engine",
           "item.skill_book_warrior_common_attack": "Warrior Attack Book (Common)",
           "item.skill_book_warrior_common_defense": "Warrior Defense Book (Common)",
           "item.skill_book_warrior_rare_attack": "Warrior Attack Book (Rare)",

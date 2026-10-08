@@ -2323,7 +2323,7 @@
             "Kind": "Passive",
             "UnlockLevel": 20,
             "Troops": {
-              "Target": "siege",
+              "Target": "archer",
               "Stat": "Defense",
               "Percents": [
                 5,
