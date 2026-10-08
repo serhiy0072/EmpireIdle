@@ -166,30 +166,51 @@ export function RoleBadge({ role, size = 20 }: { role: string | undefined; size?
   );
 }
 
-/** П'ять зірок героя (GDD §6.1): заповнені — бірюзові, неповна показує частинки. */
+/** Точка на колі навколо центру зірки (12, 12); кут від верху за годинниковою стрілкою. */
+function polar(radius: number, degrees: number): string {
+  const radians = ((degrees - 90) * Math.PI) / 180;
+  return `${(12 + radius * Math.cos(radians)).toFixed(2)} ${(12 + radius * Math.sin(radians)).toFixed(2)}`;
+}
+
+/**
+ * Шестипроменева зірка, де кожен промінь — частинка (GDD §6.1: зірка з шести частинок).
+ * Промені заповнюються за годинниковою стрілкою від верхнього; кількість променів — partsPerStar.
+ */
+function HeroStar({ filled, parts, size }: { filled: number; parts: number; size: number }) {
+  const step = 360 / parts;
+  const ray = (index: number) => {
+    const angle = index * step;
+    return `M12 12 L${polar(4.6, angle - step / 2)} L${polar(11, angle)} L${polar(4.6, angle + step / 2)} Z`;
+  };
+
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden className="drop-shadow">
+      {Array.from({ length: parts }, (_, index) => (
+        <path
+          key={index}
+          d={ray(index)}
+          fill={index < filled ? "#5eead4" : "#1e293b"}
+          stroke={filled > 0 ? "#ccfbf1" : "#64748b"}
+          strokeWidth={0.8}
+          strokeLinejoin="round"
+        />
+      ))}
+    </svg>
+  );
+}
+
+/** П'ять зірок героя (GDD §6.1): заповнені промені — бірюзові, неповна зірка показує частинки. */
 export function StarRow({ starParts, partsPerStar, maxStars, size = 28 }: { starParts: number; partsPerStar: number; maxStars: number; size?: number }) {
   return (
-    <div className="flex items-center gap-1.5">
-      {Array.from({ length: maxStars }, (_, index) => {
-        const filled = Math.min(partsPerStar, Math.max(0, starParts - index * partsPerStar)) / partsPerStar;
-
-        return (
-          <svg key={index} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-            <defs>
-              <linearGradient id={`star-${index}-${filled}`} x1="0" x2="1" y1="0" y2="0">
-                <stop offset={`${filled * 100}%`} stopColor="#5eead4" />
-                <stop offset={`${filled * 100}%`} stopColor="#1e293b" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M12 2 L14.6 8.6 L21.5 9.2 L16.2 13.8 L17.9 20.7 L12 17 L6.1 20.7 L7.8 13.8 L2.5 9.2 L9.4 8.6 Z"
-              fill={`url(#star-${index}-${filled})`}
-              stroke={filled > 0 ? "#99f6e4" : "#475569"}
-              strokeWidth={1.2}
-            />
-          </svg>
-        );
-      })}
+    <div className={`flex items-center ${size < 16 ? "gap-px" : "gap-1.5"}`} title={`Зірки: ${Math.floor(starParts / partsPerStar)} з ${maxStars}`}>
+      {Array.from({ length: maxStars }, (_, index) => (
+        <HeroStar
+          key={index}
+          filled={Math.min(partsPerStar, Math.max(0, starParts - index * partsPerStar))}
+          parts={partsPerStar}
+          size={size}
+        />
+      ))}
     </div>
   );
 }

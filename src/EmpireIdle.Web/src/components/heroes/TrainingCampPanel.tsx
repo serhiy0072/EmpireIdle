@@ -3,7 +3,7 @@ import { useNow } from "../../hooks/useNow";
 import { useCatalog } from "../../lib/queries/catalog";
 import type { HeroesOverview, HeroSummary } from "../../lib/queries/heroes";
 import { formatRemaining } from "../../lib/time";
-import { GameButton, RoleBadge, Tile, TileGrid } from "../game/GameUi";
+import { GameButton, RoleBadge, StarRow, Tile, TileGrid } from "../game/GameUi";
 import HeroPortrait from "./HeroPortrait";
 
 interface Props {
@@ -37,8 +37,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
 
   const heroTile = (hero: HeroSummary, onClick: () => void, selected: boolean, level = hero.effectiveLevel) => {
     const config = catalog.hero(hero.heroKey);
-    const stars = Math.floor(hero.starParts / catalog.partsPerStar);
-
+  
     return (
       <Tile
         key={hero.id}
@@ -49,7 +48,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
         title={catalog.heroName(hero.heroKey)}
         corner={<RoleBadge role={config?.class} size={16} />}
         top={<span className="pl-4">Ур. {level}</span>}
-        bottomLeft={<span className="text-xs text-teal-200 [text-shadow:0_1px_2px_#000]">{"★".repeat(stars)}</span>}
+        bottomLeft={<StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={11} />}
       >
         <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={64} />
       </Tile>

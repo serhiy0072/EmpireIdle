@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
-import { GamePanel, GameScreen, GameTabs, RoleBadge, Tile, TileGrid, type GameTab } from "../components/game/GameUi";
+import { GamePanel, GameScreen, GameTabs, RoleBadge, StarRow, Tile, TileGrid, type GameTab } from "../components/game/GameUi";
 import HeroPortrait from "../components/heroes/HeroPortrait";
 import TrainingCampPanel from "../components/heroes/TrainingCampPanel";
 import ShardsPanel from "../components/ShardsPanel";
@@ -101,7 +101,6 @@ export default function HeroesPage() {
               <TileGrid>
                 {roster.map((hero, index) => {
                   const config = catalog.hero(hero.heroKey);
-                  const stars = Math.floor(hero.starParts / catalog.partsPerStar);
 
                   return (
                     <Tile
@@ -113,7 +112,7 @@ export default function HeroesPage() {
                       dimmed={hero.state === "Wounded"}
                       corner={<RoleBadge role={config?.class} size={18} />}
                       top={<span className="pl-4">Ур. {hero.effectiveLevel}</span>}
-                      bottomLeft={<span className="text-xs text-teal-200 [text-shadow:0_1px_2px_#000]">{"★".repeat(stars)}</span>}
+                      bottomLeft={<StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={11} />}
                       bottomRight={hero.state === "Deployed" ? "⚑" : hero.state === "Wounded" ? "✚" : hero.campSlot != null ? "⛺" : undefined}
                     >
                       <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={76} />
