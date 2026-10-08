@@ -106,27 +106,6 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
-        /// <summary>Заточити зброю. Ідемпотентна операція — потрібен заголовок Idempotency-Key.</summary>
-        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/enhance")]
-        [ProducesResponseType(typeof(EnhancementResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Enhance(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
-        {
-            var outcome = await _mediator.Send(new EnhanceWeaponCommand(playerId, equipmentId), cancellationToken);
-
-            return Ok(new EnhancementResponse(outcome.ToString().ToLowerInvariant()));
-        }
-
-        /// <summary>Полагодити зламану зброю.</summary>
-        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/repair")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Repair(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
-        {
-            await _mediator.Send(new RepairWeaponCommand(playerId, equipmentId), cancellationToken);
-            return NoContent();
-        }
-
         /// <summary>
         /// Прокачати артефакт. Ідемпотентна операція — потрібен заголовок
         /// Idempotency-Key, інакше повтор запиту дав би другий ролл.
@@ -137,16 +116,6 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> Upgrade(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
         {
             await _mediator.Send(new EnhanceArtifactCommand(playerId, equipmentId), cancellationToken);
-            return NoContent();
-        }
-
-        /// <summary>Купити зброю в кузні. Ідемпотентна операція.</summary>
-        [HttpPost("{playerId:guid}/weapons/{itemKey}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> BuyWeapon(Guid playerId, string itemKey, CancellationToken cancellationToken)
-        {
-            await _mediator.Send(new BuyWeaponCommand(playerId, itemKey), cancellationToken);
             return NoContent();
         }
     }

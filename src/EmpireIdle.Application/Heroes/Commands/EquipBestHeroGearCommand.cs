@@ -26,7 +26,6 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
-        private readonly GameCatalog _catalog;
         private readonly EquipmentFit _fit;
         private readonly ILogger<EquipBestHeroGearCommandHandler> _logger;
 
@@ -35,7 +34,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             IInventoryRepository inventoryRepository,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
-            GameCatalog catalog,
             EquipmentFit fit,
             ILogger<EquipBestHeroGearCommandHandler> logger)
         {
@@ -43,7 +41,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             _inventoryRepository = inventoryRepository;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
-            _catalog = catalog;
             _fit = fit;
             _logger = logger;
         }
@@ -64,13 +61,13 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new RequirementNotMetException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on the move.");
 
             var owned = await _inventoryRepository.GetEquipmentAsync(request.PlayerId, cancellationToken);
-            var best = _fit.BestFree(_catalog.FindHero(hero.HeroKey)?.Class, owned);
+            var best = _fit.BestFree(owned);
             var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
             var changed = 0;
 
-            foreach (var ((slot, index), candidate) in best)
+            foreach (var (index, candidate) in best)
             {
-                var occupant = equipped.FirstOrDefault(e => e.Slot == slot && e.SlotIndex == index);
+                var occupant = equipped.FirstOrDefault(e => e.SlotIndex == index);
 
                 if (!EquipmentFit.IsBetter(candidate, occupant))
                     continue;

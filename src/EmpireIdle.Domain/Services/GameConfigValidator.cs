@@ -1331,22 +1331,10 @@ namespace EmpireIdle.Domain.Services
                     $"Equipment artifact levels outside 1..{config.Equipment.MaxEnhancement}: "
                     + string.Join(", ", unreachable));
 
-            var classes = config.HeroSettings.Classes.ToHashSet();
-
             foreach (var item in equipment)
             {
                 if (item.Slot is null)
                     throw new InvalidOperationException($"Item '{item.Key}' is equipment but has no Slot.");
-
-                var unknownClasses = item.WeaponClasses.Where(c => !classes.Contains(c)).ToList();
-
-                if (unknownClasses.Count > 0)
-                    throw new InvalidOperationException(
-                        $"Item '{item.Key}' fits unknown hero classes: {string.Join(", ", unknownClasses)}.");
-
-                // Зброя купується в кузні, артефакти падають у данжах
-                if (item.Slot == EquipmentSlot.Weapon && item.PriceGold < 1)
-                    throw new InvalidOperationException($"Weapon '{item.Key}' needs a positive PriceGold.");
 
                 if (item.Slot == EquipmentSlot.Artifact && item.BaseStats.Count > 0)
                     throw new InvalidOperationException(
@@ -1482,13 +1470,6 @@ namespace EmpireIdle.Domain.Services
                             $"Banner '{banner.Key}' drop '{drop.Key}' is a hero drop with fewer than "
                             + $"{config.HeroSettings.SummonShards} shards — a pity payout must be a whole hero; "
                             + "smaller bundles go in as filler (no Kind).");
-
-                    if (drop.Kind == BannerKind.Weapon
-                        && !drop.Rewards.Any(r => string.Equals(r.Type, "Equipment", StringComparison.OrdinalIgnoreCase)
-                            && r.Key is not null
-                            && items.GetValueOrDefault(r.Key) is { Slot: EquipmentSlot.Weapon }))
-                        throw new InvalidOperationException(
-                            $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a weapon drop but grants no weapon.");
 
                     // Рідкість лота — обіцянка гравцю; предмет в інвентарі несе рідкість зі свого конфіга.
                     // Розбіжність означала б «унікальний» на вітрині і «звичайний» у руках

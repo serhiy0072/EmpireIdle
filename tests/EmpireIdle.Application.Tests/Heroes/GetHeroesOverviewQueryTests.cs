@@ -55,7 +55,7 @@ public class GetHeroesOverviewQueryTests
             catalog, new FakeTimeProvider(Now));
     }
 
-    /// <summary>Вдягнена зброя додає свої стати до сили героя — так само, як у повній силі рейтингу.</summary>
+    /// <summary>Вдягнений артефакт додає свої стати до сили героя — так само, як у повній силі рейтингу.</summary>
     [Fact]
     public async Task Handle_ShouldCountEquippedGear_InTheHeroPower()
     {
@@ -64,10 +64,10 @@ public class GetHeroesOverviewQueryTests
 
         var bareView = Assert.Single((await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None)).Heroes);
 
-        var sword = TestKit.Entities.Equipment(HeroTestConfig.WarriorWeapon, EquipmentSlot.Weapon, PlayerId,
-            stats: ("Attack", 10.0));
-        sword.EquipTo(bare.Id, 0, Now);
-        _equipped.Add(sword);
+        var necklace = TestKit.Entities.Equipment(HeroTestConfig.Artifact, EquipmentSlot.Artifact, PlayerId,
+            stats: [("Attack", 10.0)]);
+        necklace.EquipTo(bare.Id, HeroTestConfig.NecklaceSlot, Now);
+        _equipped.Add(necklace);
 
         var armedView = Assert.Single((await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None)).Heroes);
 

@@ -92,7 +92,7 @@ public class MarketConcurrencyTests : IAsyncLifetime
         await using var context = CreateContext();
 
         var listing = new MarketListing(Guid.NewGuid(), 1, Guid.NewGuid(), MarketListingKind.Equipment, equipmentId,
-            "sword_iron", 1, 10, "weapon", 100, 5, DateTime.UtcNow, TimeSpan.FromHours(48));
+            "dawn_necklace", 1, 10, "artifact", 100, 5, DateTime.UtcNow, TimeSpan.FromHours(48));
 
         context.MarketListings.Add(listing);
         await context.SaveChangesAsync();

@@ -37,7 +37,7 @@ public class EquipmentRewardGranterTests
     // Зброя: ролер не задіяний, тест перевіряє лише кількість екземплярів
     private static RewardContext Context(int amount) => new(
         Guid.NewGuid(),
-        new RewardConfig { Type = "Equipment", Key = TestKeys.Weapon, Amount = amount },
+        new RewardConfig { Type = "Equipment", Key = TestKeys.Artifact, Amount = amount },
         "test_quest",
         TestKit.Entities.Now);
 

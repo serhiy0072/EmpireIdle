@@ -21,7 +21,7 @@ namespace EmpireIdle.Application.Market.Contracts
         bool IsOwn,
         MarketEquipmentView? Equipment);
 
-    /// <param name="Slot">"Weapon" або "Artifact".</param>
+    /// <param name="Slot">"Artifact" — єдиний вид спорядження (GDD §6.4).</param>
     public record MarketEquipmentView(string Slot, string Rarity, int EnhancementLevel, IReadOnlyDictionary<string, double> Stats);
 
     /// <summary>Сторінка вітрини.</summary>

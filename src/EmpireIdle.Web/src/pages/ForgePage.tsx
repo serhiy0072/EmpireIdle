@@ -1,20 +1,12 @@
 import { useMemo, useState } from "react";
 import ErrorBanner from "../components/ErrorBanner";
 import ItemIcon from "../components/inventory/ItemIcon";
-import WeaponShop from "../components/inventory/WeaponShop";
 import { useSession } from "../hooks/useSession";
 import type { EquipmentResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
-import { useBuyWeapon, useEnhance, useInventory, useRepair, useUpgradeArtifact } from "../lib/queries/inventory";
-import { useWallet } from "../lib/queries/wallet";
+import { useInventory, useUpgradeArtifact } from "../lib/queries/inventory";
 import { rarityKey, rarityLabel, rarityStyle } from "../lib/rarity";
-
-const OUTCOME_LABELS: Record<string, string> = {
-  success: "Заточка вдалася",
-  failure: "Заточка не вдалася — рівень не змінився",
-  broken: "Зброя зламалася — полагодьте її за самоцвіти",
-};
 
 const RARITY_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
 
@@ -28,13 +20,12 @@ interface RowProps {
   equipment: EquipmentResponse;
   wearer: string | null;
   maxEnhancement: number;
-  repairGems: number;
   busy: boolean;
   selected: boolean;
   onSelect: () => void;
 }
 
-function EquipmentRow({ equipment, wearer, maxEnhancement, repairGems, busy, selected, onSelect }: RowProps) {
+function EquipmentRow({ equipment, wearer, maxEnhancement, busy, selected, onSelect }: RowProps) {
   const catalog = useCatalog();
   const atCap = equipment.enhancementLevel >= maxEnhancement;
 
@@ -44,10 +35,10 @@ function EquipmentRow({ equipment, wearer, maxEnhancement, repairGems, busy, sel
       onClick={onSelect}
       disabled={busy}
       className={`flex w-full items-center gap-3 rounded-xl border p-2 text-left transition ${
-        selected ? "border-emerald-500 bg-emerald-50" : equipment.isBroken ? "border-red-200 bg-white" : "border-slate-200 bg-white hover:border-slate-300"
+        selected ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"
       }`}
     >
-      <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} size={40} className={equipment.isBroken ? "grayscale" : ""} />
+      <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} size={40} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium text-slate-800">
           {catalog.itemName(equipment.itemKey)}
@@ -56,7 +47,6 @@ function EquipmentRow({ equipment, wearer, maxEnhancement, repairGems, busy, sel
         <div className="flex flex-wrap gap-1 text-xs">
           <span className={`rounded px-1.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
           {wearer !== null && <span className="text-slate-500">{wearer}</span>}
-          {equipment.isBroken && <span className="text-red-700">зламано · ремонт {repairGems} 💎</span>}
           {atCap && <span className="text-slate-500">максимум</span>}
         </div>
       </div>
@@ -65,9 +55,8 @@ function EquipmentRow({ equipment, wearer, maxEnhancement, repairGems, busy, sel
 }
 
 /**
- * Кузня: заточка зброї (з ризиком зламати), ремонт за самоцвіти, прокачка
- * артефактів і купівля зброї за золото. Одягання лишається в інвентарі —
- * тут працюють із самим предметом, а не з героєм.
+ * Кузня: прокачка артефактів. Зброя — частина героя й качається на його екрані (GDD §6.4);
+ * одягання лишається в рюкзаку й на екрані героя — тут працюють із самим предметом.
  */
 export default function ForgePage() {
   const session = useSession();
@@ -76,22 +65,16 @@ export default function ForgePage() {
 
   const inventory = useInventory(playerId);
   const heroes = useHeroes(playerId);
-  const wallet = useWallet(playerId);
 
-  const enhance = useEnhance(playerId);
-  const repair = useRepair(playerId);
   const upgrade = useUpgradeArtifact(playerId);
-  const buy = useBuyWeapon(playerId);
 
-  const [tab, setTab] = useState<"work" | "shop">("work");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Зламане й унікальне — вгорі: саме з ними приходять до кузні
+  // Унікальне й прокачане — вгорі: саме з ним приходять до кузні
   const equipment = useMemo(
     () =>
       [...(inventory.data?.equipment ?? [])].sort(
         (a, b) =>
-          Number(b.isBroken) - Number(a.isBroken) ||
           (RARITY_ORDER[rarityKey(a.rarity)] ?? 9) - (RARITY_ORDER[rarityKey(b.rarity)] ?? 9) ||
           b.enhancementLevel - a.enhancementLevel,
       ),
@@ -106,10 +89,8 @@ export default function ForgePage() {
     return <ErrorBanner error={inventory.error} />;
   }
 
-  const busy = enhance.isPending || repair.isPending || upgrade.isPending || buy.isPending;
-  const failure = enhance.error ?? repair.error ?? upgrade.error ?? buy.error;
-  const outcome = enhance.data?.outcome ?? null;
-  const gems = wallet.data?.gemBalance ?? 0;
+  const busy = upgrade.isPending;
+  const failure = upgrade.error;
 
   const selected = equipment.find((item) => item.id === selectedId) ?? equipment[0] ?? null;
   const heroName = (heroId: string | null | undefined) => {
@@ -117,50 +98,16 @@ export default function ForgePage() {
     return hero === undefined ? null : catalog.heroName(hero.heroKey);
   };
 
-  // Ремонт: база плюс надбавка за рівень — та сама формула, що й на сервері
-  const repairGems = (level: number) => catalog.repairGemsBase + catalog.repairGemsPerLevel * level;
-
-  const tabs = [
-    { key: "work", label: `Верстак · ${equipment.length}` },
-    { key: "shop", label: "Купити зброю" },
-  ] as const;
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Кузня</h1>
-        <p className="text-sm text-slate-500">💎 {gems.toLocaleString("uk-UA")}</p>
       </div>
 
       <ErrorBanner error={failure} />
 
-      {outcome !== null && !enhance.isPending && (
-        <div
-          role="status"
-          className={`rounded-lg px-3 py-2 text-sm ${outcome === "success" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900"}`}
-        >
-          {OUTCOME_LABELS[outcome] ?? outcome}
-        </div>
-      )}
-
-      <nav className="flex gap-1">
-        {tabs.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            onClick={() => setTab(item.key)}
-            className={`rounded-lg px-3 py-1 text-sm ${tab === item.key ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"}`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
-
-      {tab === "shop" && <WeaponShop busy={busy} onBuy={(itemKey) => buy.mutate(itemKey)} />}
-
-      {tab === "work" &&
-        (equipment.length === 0 ? (
-          <p className="text-sm text-slate-500">Нічого точити — купіть зброю або крутіть банери.</p>
+      {equipment.length === 0 ? (
+          <p className="text-sm text-slate-500">Артефактів ще немає — вони падають у данжах.</p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
             <div className="max-h-[560px] space-y-2 overflow-y-auto pr-1">
@@ -170,7 +117,6 @@ export default function ForgePage() {
                   equipment={item}
                   wearer={heroName(item.equippedByHeroId)}
                   maxEnhancement={catalog.maxEnhancement}
-                  repairGems={repairGems(item.enhancementLevel)}
                   busy={busy}
                   selected={selected?.id === item.id}
                   onSelect={() => setSelectedId(item.id)}
@@ -181,7 +127,7 @@ export default function ForgePage() {
             {selected !== null && (
               <aside className="h-fit space-y-4 rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex gap-3">
-                  <ItemIcon itemKey={selected.itemKey} type="equipment" rarity={selected.rarity} size={72} className={selected.isBroken ? "grayscale" : ""} />
+                  <ItemIcon itemKey={selected.itemKey} type="equipment" rarity={selected.rarity} size={72} />
                   <div className="min-w-0">
                     <h2 className="text-lg font-medium text-slate-800">
                       {catalog.itemName(selected.itemKey)}
@@ -189,8 +135,7 @@ export default function ForgePage() {
                     </h2>
                     <div className="mt-1 flex flex-wrap gap-1 text-xs">
                       <span className={`rounded px-2 py-0.5 ${rarityStyle(selected.rarity)}`}>{rarityLabel(selected.rarity)}</span>
-                      <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{selected.slot === "Weapon" ? "Зброя" : "Артефакт"}</span>
-                      {selected.isBroken && <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Зламано</span>}
+                      <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{catalog.artifactSlotName(selected.itemKey) ?? "Артефакт"}</span>
                     </div>
                   </div>
                 </div>
@@ -206,33 +151,11 @@ export default function ForgePage() {
 
                 <p className="text-xs text-slate-500">
                   Рівень {selected.enhancementLevel} з {catalog.maxEnhancement}
-                  {selected.slot === "Weapon"
-                    ? " · заточка коштує золота села; понад безпечний рівень може не вдатись або зламати зброю"
-                    : " · прокачка коштує золота села й завжди вдається"}
+                  {" · прокачка коштує золота села й завжди вдається"}
                 </p>
 
                 <div className="flex flex-wrap gap-2">
-                  {selected.slot === "Weapon" && selected.isBroken && (
-                    <button
-                      type="button"
-                      onClick={() => repair.mutate(selected.id)}
-                      disabled={busy || gems < repairGems(selected.enhancementLevel)}
-                      className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
-                    >
-                      Полагодити за {repairGems(selected.enhancementLevel)} 💎
-                    </button>
-                  )}
-                  {selected.slot === "Weapon" && !selected.isBroken && selected.enhancementLevel < catalog.maxEnhancement && (
-                    <button
-                      type="button"
-                      onClick={() => enhance.mutate(selected.id)}
-                      disabled={busy}
-                      className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
-                    >
-                      Заточити до +{selected.enhancementLevel + 1}
-                    </button>
-                  )}
-                  {selected.slot !== "Weapon" && selected.enhancementLevel < catalog.maxEnhancement && (
+                  {selected.enhancementLevel < catalog.maxEnhancement && (
                     <button
                       type="button"
                       onClick={() => upgrade.mutate(selected.id)}
@@ -246,7 +169,7 @@ export default function ForgePage() {
               </aside>
             )}
           </div>
-        ))}
+        )}
     </div>
   );
 }

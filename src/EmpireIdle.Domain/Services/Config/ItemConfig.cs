@@ -36,15 +36,8 @@ namespace EmpireIdle.Domain.Services.Config
 
         // --- equipment ---
 
-        /// <summary>equipment: зброя чи артефакт.</summary>
+        /// <summary>equipment: вид спорядження — артефакт (зброя — частина героя, GDD §6.4).</summary>
         public EquipmentSlot? Slot { get; set; }
-
-        /// <summary>
-        /// equipment: класи героїв, яким зброя підходить. Порожньо — підходить усім.
-        /// Пара одноручних рахується одним предметом і заточується разом:
-        /// це свідоме спрощення, окремого слота для лівої руки немає.
-        /// </summary>
-        public List<string> WeaponClasses { get; set; } = new();
 
         /// <summary>
         /// equipment, лише артефакт: тип слота (ключ з Equipment.ArtifactSlots).
@@ -70,9 +63,6 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>equipment: ключ набору, за повний комплект якого дається бонус.</summary>
         public string? SetKey { get; set; }
-
-        /// <summary>equipment: ціна зброї в золоті; артефакти не продаються.</summary>
-        public int PriceGold { get; set; }
 
         /// <summary>
         /// Стаковий предмет можна виставити на ринок гравців. Спорядження

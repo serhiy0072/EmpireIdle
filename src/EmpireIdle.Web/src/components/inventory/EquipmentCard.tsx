@@ -24,7 +24,6 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
   const [picking, setPicking] = useState(false);
   const [heroId, setHeroId] = useState("");
 
-  const isWeapon = equipment.slot === "Weapon";
   const set = catalog.setOfItem(equipment.itemKey);
   // Артефакт сам визначає слот — показуємо його тип замість номера
   const slotName = catalog.artifactSlotName(equipment.itemKey);
@@ -46,7 +45,7 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
               {catalog.itemName(equipment.itemKey)}
               {equipment.enhancementLevel > 0 && <span className="ml-1 text-amber-600">+{equipment.enhancementLevel}</span>}
             </span>
-            <span className="text-xs text-slate-500">{isWeapon ? "Зброя" : (slotName ?? "Артефакт")}</span>
+            <span className="text-xs text-slate-500">{slotName ?? "Артефакт"}</span>
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
@@ -118,7 +117,7 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
             ))}
           </select>
 
-          {!isWeapon && slotName !== null && (
+          {slotName !== null && (
             <span className="text-xs text-slate-500">замінить те, що в слоті «{slotName.toLowerCase()}»</span>
           )}
 

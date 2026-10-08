@@ -56,17 +56,12 @@ export interface Catalog {
   maxUnitLevel: number;
   /** Ціна лікування пораненого юніта в gems — та сама для будь-якого типу. */
   healGemsPerUnit: number;
-  /** Зброя з ціною в золоті — те, що продає кузня. */
-  weaponsForSale: CatalogItem[];
   /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
   artifactSlots: CatalogArtifactSlot[];
   /** Назва слота, у який вдягається артефакт; null — не артефакт. */
   artifactSlotName: (itemKey: string) => string | null;
   /** Стеля заточки й прокачки спорядження. */
   maxEnhancement: number;
-  /** Ремонт зброї в gems: база плюс надбавка за рівень заточки. */
-  repairGemsBase: number;
-  repairGemsPerLevel: number;
   /** Сторона світової мапи в клітинах. */
   mapSize: number;
   /** Ключ головної будівлі — її рівень показуємо як рівень гравця. */
@@ -150,15 +145,12 @@ export function useCatalog(): Catalog {
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
-      weaponsForSale: (data?.items ?? []).filter((item) => item.slot === "Weapon" && item.priceGold > 0),
       artifactSlots: data?.artifactSlots ?? [],
       artifactSlotName: (itemKey) => {
         const slot = items.get(itemKey)?.artifactSlot;
         return slot == null ? null : (data?.artifactSlots.find((s) => s.key === slot)?.displayName ?? slot);
       },
       maxEnhancement: data?.maxEnhancement ?? 20,
-      repairGemsBase: data?.repairGemsBase ?? 20,
-      repairGemsPerLevel: data?.repairGemsPerLevel ?? 8,
       mapSize: data?.mapSize ?? 500,
       mainBuildingKey: data?.mainBuildingKey ?? "townhall",
       artifactSets: data?.artifactSets ?? [],

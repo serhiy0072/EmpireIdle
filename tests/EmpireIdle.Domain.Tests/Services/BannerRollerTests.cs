@@ -203,7 +203,7 @@ public class BannerRollerTests
     public void Roll_ShouldPayThePityInTheBannerKind(int seed)
     {
         var banner = Banner();
-        banner.Drops.Add(Drop("filler_weapon", Rarity.Common, weight: 50, BannerKind.Weapon));
+        banner.Drops.Add(Drop("filler_item", Rarity.Common, weight: 50));
 
         var result = Roll(banner, new PityState(RareSince: 9, UniqueSince: 0, FeaturedGuaranteed: false), seed);
 
@@ -221,24 +221,24 @@ public class BannerRollerTests
         Drops =
         [
             Drop("unique_hero", Rarity.Unique, weight: 1, BannerKind.Hero),
-            Drop("unique_weapon", Rarity.Unique, weight: 1, BannerKind.Weapon),
+            Drop("unique_hero_2", Rarity.Unique, weight: 1, BannerKind.Hero),
             Drop("rare_hero", Rarity.Rare, weight: 5, BannerKind.Hero),
-            Drop("rare_weapon", Rarity.Rare, weight: 5, BannerKind.Weapon),
+            Drop("rare_hero_2", Rarity.Rare, weight: 5, BannerKind.Hero),
             Drop("junk", Rarity.Common, weight: 88)
         ]
     };
 
-    /// <summary>На стандартному банері і герой, і зброя — «свої»: обидва рухають гарантії.</summary>
+    /// <summary>На стандартному банері «свої» — герої: лише вони рухають гарантії.</summary>
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
-    public void Roll_ShouldPayTheRarePity_WithAHeroOrAWeapon_OnAStandardBanner(int seed)
+    public void Roll_ShouldPayTheRarePity_WithAHero_OnAStandardBanner(int seed)
     {
         var result = Roll(StandardBanner(), new PityState(RareSince: 9, UniqueSince: 0, FeaturedGuaranteed: false), seed);
 
-        Assert.True(result.Drop.Kind is BannerKind.Hero or BannerKind.Weapon);
+        Assert.Equal(BannerKind.Hero, result.Drop.Kind);
         Assert.True(result.Drop.Rarity >= Rarity.Rare);
         Assert.Equal(0, result.State.RareSince);
     }

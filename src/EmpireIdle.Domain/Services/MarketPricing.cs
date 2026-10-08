@@ -40,9 +40,13 @@ namespace EmpireIdle.Domain.Services
                 .ToDictionary(g => g.Key, g => g.Min(offer => offer.PriceGems));
         }
 
-        /// <summary>Категорія спорядження: зброя й артефакти мають різну ціну сили.</summary>
+        /// <summary>Категорія спорядження для ціни сили; артефакт — єдиний вид спорядження (GDD §6.4).</summary>
         public static string CategoryOf(EquipmentSlot slot)
-            => slot == EquipmentSlot.Weapon ? "weapon" : "artifact";
+            => slot switch
+            {
+                EquipmentSlot.Artifact => "artifact",
+                _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, "Unknown equipment slot.")
+            };
 
         /// <summary>Стаковий предмет — сам собі категорія.</summary>
         public static string CategoryOfItem(string itemKey) => $"item.{itemKey}";

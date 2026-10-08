@@ -28,7 +28,7 @@ public class MarketConfigValidationTests
         config.Market = new MarketConfig
         {
             BuildingKey = Market,
-            GoldPerPower = new Dictionary<string, double> { ["weapon"] = 10.0, ["artifact"] = 10.0 }
+            GoldPerPower = new Dictionary<string, double> { ["artifact"] = 10.0 }
         };
 
         return config;
@@ -66,11 +66,11 @@ public class MarketConfigValidationTests
 
     [Fact]
     public void Validate_ShouldRejectAnEquipmentCategoryWithoutAPowerPrice()
-        => Assert.Contains("weapon", Rejects(c => c.Market.GoldPerPower.Remove("weapon")).Message);
+        => Assert.Contains("artifact", Rejects(c => c.Market.GoldPerPower.Remove("artifact")).Message);
 
     /// <summary>Спорядження торгується завжди; позначка на ньому — плутанина в конфігу.</summary>
     [Fact]
     public void Validate_ShouldRejectTheTradeableFlagOnEquipment()
-        => Assert.Contains(TestKeys.Weapon,
-            Rejects(c => c.Items.Single(i => i.Key == TestKeys.Weapon).Tradeable = true).Message);
+        => Assert.Contains(TestKeys.Artifact,
+            Rejects(c => c.Items.Single(i => i.Key == TestKeys.Artifact).Tradeable = true).Message);
 }

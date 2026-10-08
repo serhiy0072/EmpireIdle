@@ -18,7 +18,7 @@ public class MarketCustodyTests
     [Fact]
     public void PutOnMarket_ShouldUnequipAWornItem()
     {
-        var item = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon);
+        var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact);
         item.EquipTo(Guid.NewGuid(), 0, Now);
 
         item.PutOnMarket(Now);
@@ -30,7 +30,7 @@ public class MarketCustodyTests
     [Fact]
     public void PutOnMarket_ShouldRefuse_ABrokenItem()
     {
-        var item = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon);
+        var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact);
         item.Break(Now);
 
         var refusal = Assert.Throws<InvalidStateException>(() => item.PutOnMarket(Now));
@@ -42,7 +42,7 @@ public class MarketCustodyTests
     [Fact]
     public void AnItemOnTheMarket_ShouldRefuseToBeUsed()
     {
-        var item = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon);
+        var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact);
         item.PutOnMarket(Now);
 
         Assert.Equal(RefusalReasons.MarketItemListed.Key,
@@ -56,7 +56,7 @@ public class MarketCustodyTests
     [Fact]
     public void SellTo_ShouldHandTheItemToTheBuyerWithACooldown()
     {
-        var item = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon);
+        var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact);
         var buyer = Guid.NewGuid();
         item.PutOnMarket(Now);
 
@@ -71,7 +71,7 @@ public class MarketCustodyTests
     [Fact]
     public void TakeOffMarket_ShouldFreeTheItem()
     {
-        var item = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon);
+        var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact);
         item.PutOnMarket(Now);
 
         item.TakeOffMarket(Now);

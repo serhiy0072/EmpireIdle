@@ -35,6 +35,3 @@ public record GiftItemRequest(Guid RecipientId, string ItemKey, int Count);
 
 /// <summary>Прискорити таймер предметами: ключ предмета-прискорення → скільки штук.</summary>
 public record SpeedUpWithItemsRequest(EmpireIdle.Domain.Enums.SpeedUpTimer Timer, Guid TargetId, Dictionary<string, int> Items);
-
-/// <summary>Результат спроби заточки: success, failure або broken.</summary>
-public record EnhancementResponse(string Outcome);

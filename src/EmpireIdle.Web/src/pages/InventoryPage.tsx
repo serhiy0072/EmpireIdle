@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
-import { GamePanel, GameScreen, GameTabs, RoleBadge, Tile, TileGrid, type GameTab } from "../components/game/GameUi";
+import { GamePanel, GameScreen, GameTabs, Tile, TileGrid, type GameTab } from "../components/game/GameUi";
 import HeroPortrait from "../components/heroes/HeroPortrait";
 import ActiveEffects from "../components/inventory/ActiveEffects";
 import EquipmentCard from "../components/inventory/EquipmentCard";
@@ -134,7 +134,6 @@ export default function InventoryPage() {
             ) : (
               <TileGrid>
                 {equipment.map((piece) => {
-                  const config = catalog.item(piece.itemKey);
                   const wearer = roster.find((hero) => hero.id === piece.equippedByHeroId);
                   const wearerConfig = wearer === undefined ? null : catalog.hero(wearer.heroKey);
 
@@ -146,7 +145,6 @@ export default function InventoryPage() {
                       dimmed={piece.isBroken}
                       onClick={() => select({ item: piece.id })}
                       title={catalog.itemName(piece.itemKey)}
-                      corner={<RoleBadge role={config?.weaponClasses[0]} size={18} />}
                       top={piece.enhancementLevel > 0 ? `+${piece.enhancementLevel}` : undefined}
                       bottomLeft={
                         wearer === undefined ? undefined : (

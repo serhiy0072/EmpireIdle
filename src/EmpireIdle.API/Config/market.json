@@ -14,7 +14,6 @@
       "MedianMaxAnchorShare": 2.0,
       "GoldPerGem": 100,
       "GoldPerPower": {
-        "weapon": 10,
         "artifact": 10
       }
     }

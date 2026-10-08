@@ -64,11 +64,11 @@ public class GetInventoryQueryTests
     [Fact]
     public async Task Handle_ShouldReportEnhancedStats_AndZeroForABrokenItem()
     {
-        var sword = Entities.Equipment("iron_sword", EquipmentSlot.Weapon, PlayerId, stats: ("Attack", 100.0));
+        var sword = Entities.Equipment("iron_sword", EquipmentSlot.Artifact, PlayerId, stats: ("Attack", 100.0));
         sword.Enhance(Now);
         sword.Enhance(Now);
 
-        var broken = Entities.Equipment("old_sword", EquipmentSlot.Weapon, PlayerId, stats: ("Attack", 100.0));
+        var broken = Entities.Equipment("old_sword", EquipmentSlot.Artifact, PlayerId, stats: ("Attack", 100.0));
         broken.Break(Now);
 
         _inventory.GetEquipmentAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([sword, broken]);

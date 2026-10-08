@@ -10,7 +10,7 @@ using NSubstitute;
 
 namespace EmpireIdle.Application.Tests.Heroes;
 
-/// <summary>Вдягання спорядження: слоти, клас зброї, заміна зайнятого.</summary>
+/// <summary>Вдягання артефактів: слот за типом, заміна зайнятого, відмови.</summary>
 public class EquipHeroItemCommandTests
 {
     private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
@@ -48,16 +48,16 @@ public class EquipHeroItemCommandTests
         => _inventory.GetEquippedAsync(heroId, Arg.Any<CancellationToken>()).Returns(items.ToList());
 
     [Fact]
-    public async Task Handle_ShouldEquipTheWeapon()
+    public async Task Handle_ShouldEquipTheArtifact()
     {
         var hero = GivenHero();
-        var sword = GivenItem("sword_iron", EquipmentSlot.Weapon);
+        var piece = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
         GivenEquipped(hero.Id);
 
-        await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None);
+        await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, piece.Id), CancellationToken.None);
 
-        Assert.Equal(hero.Id, sword.EquippedByHeroId);
-        Assert.Equal(0, sword.SlotIndex);
+        Assert.Equal(hero.Id, piece.EquippedByHeroId);
+        Assert.Equal(0, piece.SlotIndex);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -66,10 +66,10 @@ public class EquipHeroItemCommandTests
     public async Task Handle_ShouldReplaceTheOccupant()
     {
         var hero = GivenHero();
-        var old = GivenItem("sword_iron", EquipmentSlot.Weapon);
+        var old = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
         old.EquipTo(hero.Id, 0, Now);
 
-        var fresh = GivenItem("sword_steel", EquipmentSlot.Weapon);
+        var fresh = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
         GivenEquipped(hero.Id, old);
 
         await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, fresh.Id), CancellationToken.None);
@@ -116,40 +116,28 @@ public class EquipHeroItemCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldRejectAWeaponOfTheWrongClass()
-    {
-        var hero = GivenHero("mage_iselle");
-        var sword = GivenItem("sword_iron", EquipmentSlot.Weapon);
-        GivenEquipped(hero.Id);
-
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None));
-        Assert.Equal(RefusalReasons.EquipmentClassMismatch.Key, refusal.Reason);
-    }
-
-    [Fact]
     public async Task Handle_ShouldRejectAHeroOnTheMove()
     {
         var hero = GivenHero();
         hero.Deploy(Guid.NewGuid(), Now);
 
-        var sword = GivenItem("sword_iron", EquipmentSlot.Weapon);
+        var piece = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None));
+            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, piece.Id), CancellationToken.None));
         Assert.Equal(RefusalReasons.HeroOnTheMove.Key, refusal.Reason);
     }
 
     [Fact]
-    public async Task Handle_ShouldRejectABrokenWeapon()
+    public async Task Handle_ShouldRejectABrokenArtifact()
     {
         var hero = GivenHero();
-        var sword = GivenItem("sword_iron", EquipmentSlot.Weapon);
-        sword.Break(Now);
+        var piece = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
+        piece.Break(Now);
         GivenEquipped(hero.Id);
 
         var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
-            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None));
+            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, piece.Id), CancellationToken.None));
         Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
     }
 
@@ -157,10 +145,10 @@ public class EquipHeroItemCommandTests
     public async Task Handle_ShouldThrow_WhenTheItemBelongsToAnotherPlayer()
     {
         var hero = GivenHero();
-        var sword = GivenItem("sword_iron", EquipmentSlot.Weapon, owner: Guid.NewGuid());
+        var piece = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact, owner: Guid.NewGuid());
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
-            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None));
+            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, piece.Id), CancellationToken.None));
     }
 
     /// <summary>Повторне вдягання в той самий слот нічого не міняє.</summary>
@@ -168,13 +156,13 @@ public class EquipHeroItemCommandTests
     public async Task Handle_ShouldBeIdempotent()
     {
         var hero = GivenHero();
-        var sword = GivenItem("sword_iron", EquipmentSlot.Weapon);
-        sword.EquipTo(hero.Id, 0, Now);
-        GivenEquipped(hero.Id, sword);
+        var piece = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
+        piece.EquipTo(hero.Id, 0, Now);
+        GivenEquipped(hero.Id, piece);
 
-        await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, sword.Id), CancellationToken.None);
+        await Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, piece.Id), CancellationToken.None);
 
-        Assert.Equal(hero.Id, sword.EquippedByHeroId);
+        Assert.Equal(hero.Id, piece.EquippedByHeroId);
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

@@ -22,7 +22,7 @@ public class MarketPricesAndQueriesTests
     public async Task Recalculate_ShouldStoreTheMedianOfRecentSales()
     {
         _bed.MarketRepository.GetSalesSinceAsync(Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
-            .Returns([("weapon", 10.0), ("weapon", 11.0), ("weapon", 12.0), ("weapon", 13.0), ("weapon", 14.0)]);
+            .Returns([("artifact", 10.0), ("artifact", 11.0), ("artifact", 12.0), ("artifact", 13.0), ("artifact", 14.0)]);
         _bed.MarketRepository.GetSnapshotsAsync(Arg.Any<CancellationToken>()).Returns([]);
 
         MarketPriceSnapshot? added = null;
@@ -31,7 +31,7 @@ public class MarketPricesAndQueriesTests
         await Recalculate().Handle(new RecalculateMarketPricesCommand(1), CancellationToken.None);
 
         Assert.NotNull(added);
-        Assert.Equal("weapon", added.PricingKey);
+        Assert.Equal("artifact", added.PricingKey);
         Assert.Equal(12, added.MedianPerUnit);
         Assert.Equal(5, added.Sales);
     }
@@ -40,7 +40,7 @@ public class MarketPricesAndQueriesTests
     [Fact]
     public async Task Recalculate_ShouldForgetAStaleMedian()
     {
-        var stale = new MarketPriceSnapshot(1, "weapon", 20, 9, MarketTestBed.Now.AddDays(-5));
+        var stale = new MarketPriceSnapshot(1, "artifact", 20, 9, MarketTestBed.Now.AddDays(-5));
 
         _bed.MarketRepository.GetSalesSinceAsync(Arg.Any<DateTime>(), Arg.Any<CancellationToken>()).Returns([]);
         _bed.MarketRepository.GetSnapshotsAsync(Arg.Any<CancellationToken>()).Returns([stale]);

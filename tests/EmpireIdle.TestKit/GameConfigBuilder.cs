@@ -211,8 +211,6 @@
 
             _config.Items.AddRange(
             [
-                WeaponItem(TestKeys.Weapon, attack: 12, price: 500),
-                WeaponItem(TestKeys.BetterWeapon, attack: 18, price: 1000),
                 ArtifactItem(TestKeys.Artifact, TestKeys.SetKey, "necklace"),
                 ArtifactItem(TestKeys.SecondArtifact, TestKeys.SetKey, "ring"),
                 ArtifactItem(TestKeys.ThirdArtifact, TestKeys.SetKey, "crown"),
@@ -417,18 +415,6 @@
                 StatGrowth = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 4 },
                 Skills = [.. passives ?? []]
             };
-
-        private static ItemConfig WeaponItem(string key, double attack, int price) => new()
-        {
-            Key = key,
-            Type = "equipment",
-            Slot = EquipmentSlot.Weapon,
-            WeaponClasses = ["warrior"],
-            DisplayName = $"Item {key}",
-            Description = $"Test item {key}",
-            BaseStats = new Dictionary<string, double> { ["Attack"] = attack },
-            PriceGold = price
-        };
 
         /// <summary>Набір данжу має рівно стільки частин, скільки вимагає бонус набору.</summary>
         /// <summary>Частини набору данжу — по одній на кожен тип слота.</summary>

@@ -55,7 +55,7 @@ internal sealed class MarketTestBed
         {
             BuildingKey = Market,
             GoldPerGem = 100,
-            GoldPerPower = new Dictionary<string, double> { ["weapon"] = 10.0, ["artifact"] = 10.0 }
+            GoldPerPower = new Dictionary<string, double> { ["artifact"] = 10.0 }
         };
 
         Catalog = new GameCatalog(config);
@@ -84,7 +84,7 @@ internal sealed class MarketTestBed
     /// <summary>Меч продавця з 10 атаки — Power 10, коридор 70–130 золота.</summary>
     public EquipmentItem GivenSword(Guid? owner = null)
     {
-        var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, owner ?? Seller, stats: [("Attack", 10.0)]);
+        var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, owner ?? Seller, stats: [("Attack", 10.0)]);
         Inventory.GetEquipmentByIdAsync(sword.Id, Arg.Any<CancellationToken>()).Returns(sword);
 
         return sword;
@@ -111,10 +111,10 @@ internal sealed class MarketTestBed
 
     /// <summary>Активний лот, як його лишило б виставлення.</summary>
     public MarketListing GivenListing(MarketListingKind kind, Guid? equipmentId = null,
-        string itemKey = TestKeys.Weapon, int quantity = 1, double units = 10, int price = 100)
+        string itemKey = TestKeys.Artifact, int quantity = 1, double units = 10, int price = 100)
     {
         var listing = new MarketListing(Guid.NewGuid(), 1, Seller, kind, equipmentId, itemKey, quantity, units,
-            "weapon", price, taxGold: 5, Now, TimeSpan.FromHours(48));
+            "artifact", price, taxGold: 5, Now, TimeSpan.FromHours(48));
 
         MarketRepository.GetByIdAsync(listing.Id, Arg.Any<CancellationToken>()).Returns(listing);
 

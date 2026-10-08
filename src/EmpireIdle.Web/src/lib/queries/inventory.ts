@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api, isApiError } from "../api";
-import type { EnhancementResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
+import type { GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -57,45 +57,13 @@ export function useGiftItem(playerId: string) {
   });
 }
 
-/** Заточка коштує золота села; результат — success, failure або broken. */
-export function useEnhance(playerId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (equipmentId: string) =>
-      api<EnhancementResponse>(`/api/inventory/${playerId}/equipment/${equipmentId}/enhance`, {
-        method: "POST",
-        idempotent: true,
-      }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village"]),
-  });
-}
-
-function useEquipmentAction(playerId: string, action: "repair" | "upgrade") {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (equipmentId: string) =>
-      api<void>(`/api/inventory/${playerId}/equipment/${equipmentId}/${action}`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village"]),
-  });
-}
-
-export function useRepair(playerId: string) {
-  return useEquipmentAction(playerId, "repair");
-}
-
+/** Прокачка артефакта коштує золота села; результат видно в інвентарі. */
 export function useUpgradeArtifact(playerId: string) {
-  return useEquipmentAction(playerId, "upgrade");
-}
-
-/** Зброя з каталогу за золото села. */
-export function useBuyWeapon(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (itemKey: string) =>
-      api<void>(`/api/inventory/${playerId}/weapons/${itemKey}`, { method: "POST", idempotent: true }),
+    mutationFn: (equipmentId: string) =>
+      api<void>(`/api/inventory/${playerId}/equipment/${equipmentId}/upgrade`, { method: "POST", idempotent: true }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village"]),
   });
 }

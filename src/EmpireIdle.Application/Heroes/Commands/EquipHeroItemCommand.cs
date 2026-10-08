@@ -8,8 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
-    /// Вдягнути спорядження на героя. Слот визначає сам предмет: зброя —
-    /// єдиний слот зброї, артефакт — слот свого типу (намисто, корона…).
+    /// Вдягнути артефакт на героя. Слот визначає сам предмет — слот свого типу
+    /// (намисто, корона…). Зброя — частина героя, її не вдягають (GDD §6.4).
     /// </summary>
     public record EquipHeroItemCommand(Guid PlayerId, Guid HeroId, Guid EquipmentId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
@@ -73,13 +73,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             var itemConfig = _catalog.Items.GetValueOrDefault(item.ItemKey)
                 ?? throw new EntityNotFoundException("Item", item.ItemKey);
 
-            var slotIndex = _fit.SlotIndexOf(item.Slot, itemConfig);
-
-            var heroClass = _catalog.FindHero(hero.HeroKey)?.Class;
-
-            if (!_fit.Fits(heroClass, item.Slot, itemConfig))
-                throw new RequirementNotMetException(RefusalReasons.EquipmentClassMismatch,
-                    $"Weapon '{itemConfig.Key}' does not fit a {heroClass ?? "unknown"} hero.", itemConfig.DisplayName);
+            var slotIndex = _fit.SlotIndexOf(itemConfig);
 
             var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
 
@@ -90,7 +84,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             // Той, хто стоїть у цільовому слоті, зараз буде знятий. Окремої заборони
             // дублікатів не треба: однаковий ключ — однаковий тип слота, тож другий
             // такий самий артефакт просто замінює першого
-            var occupant = equipped.FirstOrDefault(e => e.Slot == item.Slot && e.SlotIndex == slotIndex);
+            var occupant = equipped.FirstOrDefault(e => e.SlotIndex == slotIndex);
 
             // Знімаємо з попереднього носія або зі старого слота
             if (item.EquippedByHeroId is not null)

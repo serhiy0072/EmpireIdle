@@ -3,7 +3,7 @@ import type { EquipmentResponse } from "../../../lib/apiTypes";
 import { useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
 import { statLabel } from "../../../lib/statNames";
-import { GameButton, RoleBadge, Tile } from "../../game/GameUi";
+import { GameButton, Tile } from "../../game/GameUi";
 import ItemIcon from "../../inventory/ItemIcon";
 import HeroPortrait from "../HeroPortrait";
 
@@ -19,17 +19,15 @@ interface Props {
   onEquipBest: () => void;
 }
 
-/** Слот героя: зброя (index 0) або артефакт свого типу. */
+/** Слот артефакта героя за типом (намисто, корона…). */
 interface Slot {
-  kind: "Weapon" | "Artifact";
   index: number;
-  /** Ключ типу артефакта (necklace…); для зброї null. */
-  artifactKey: string | null;
+  artifactKey: string;
   label: string;
 }
 
 /**
- * Вкладка «Спорядження» (рішення 08.10.2026): чотири артефакти навколо героя, зброя внизу.
+ * Вкладка «Спорядження» (рішення 08.10.2026): чотири артефакти навколо героя.
  * Порожній слот показує вільне, що туди підходить; «Швидке використання» вдягає найкраще вільне.
  */
 export default function HeroGearTab({ hero, config, equipment, busy, onEquip, onUnequip, onUnequipAll, onEquipBest }: Props) {
@@ -39,34 +37,21 @@ export default function HeroGearTab({ hero, config, equipment, busy, onEquip, on
   const atHome = hero.stationedGarrisonId != null;
   const worn = equipment.filter((piece) => piece.equippedByHeroId === hero.id);
 
-  const slots: Slot[] = [
-    ...catalog.artifactSlots.map((slot, index) => ({
-      kind: "Artifact" as const,
-      index,
-      artifactKey: slot.key,
-      label: slot.displayName,
-    })),
-    { kind: "Weapon", index: 0, artifactKey: null, label: "Зброя" },
-  ];
+  const slots: Slot[] = catalog.artifactSlots.map((slot, index) => ({ index, artifactKey: slot.key, label: slot.displayName }));
 
-  const slotId = (slot: Slot) => `${slot.kind}:${slot.index}`;
-  const wornIn = (slot: Slot) => worn.find((piece) => piece.slot === slot.kind && piece.slotIndex === slot.index) ?? null;
+  const slotId = (slot: Slot) => String(slot.index);
+  const wornIn = (slot: Slot) => worn.find((piece) => piece.slotIndex === slot.index) ?? null;
 
   // Те саме правило, що EquipmentFit на сервері: вільне, ціле, не на ринку й придатне для слота
   const candidatesFor = (slot: Slot) =>
     equipment
-      .filter((piece) => piece.equippedByHeroId == null && !piece.isBroken && !piece.isOnMarket && piece.slot === slot.kind)
-      .filter((piece) => {
-        const item = catalog.item(piece.itemKey);
-        if (slot.kind === "Artifact") return item?.artifactSlot === slot.artifactKey;
-        return (item?.weaponClasses.length ?? 0) === 0 || (item?.weaponClasses.includes(config.class) ?? false);
-      });
+      .filter((piece) => piece.equippedByHeroId == null && !piece.isBroken && !piece.isOnMarket)
+      .filter((piece) => catalog.item(piece.itemKey)?.artifactSlot === slot.artifactKey);
 
   const pickedSlot = slots.find((slot) => slotId(slot) === picked) ?? null;
 
   const slotTile = (slot: Slot) => {
     const piece = wornIn(slot);
-    const item = piece === null ? null : catalog.item(piece.itemKey);
 
     return piece === null ? (
       <button
@@ -87,7 +72,6 @@ export default function HeroGearTab({ hero, config, equipment, busy, onEquip, on
         dimmed={piece.isBroken}
         onClick={() => setPicked(slotId(slot))}
         title={catalog.itemName(piece.itemKey)}
-        corner={<RoleBadge role={item?.weaponClasses[0]} size={18} />}
         top={piece.enhancementLevel > 0 ? `+${piece.enhancementLevel}` : undefined}
       >
         <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
@@ -95,7 +79,7 @@ export default function HeroGearTab({ hero, config, equipment, busy, onEquip, on
     );
   };
 
-  const [left1, left2, right1, right2, weapon] = slots;
+  const [left1, left2, right1, right2] = slots;
 
   return (
     <div className="space-y-4">
@@ -111,14 +95,6 @@ export default function HeroGearTab({ hero, config, equipment, busy, onEquip, on
           {right1 !== undefined && slotTile(right1)}
           {right2 !== undefined && slotTile(right2)}
         </div>
-        {weapon !== undefined && (
-          <div className="col-start-2 mx-auto w-20 text-center">
-            {slotTile(weapon)}
-            <p className="mt-1 truncate text-xs text-amber-200">
-              {wornIn(weapon) === null ? "Зброя" : catalog.itemName(wornIn(weapon)?.itemKey ?? "")}
-            </p>
-          </div>
-        )}
       </div>
 
       {!atHome && <p className="text-center text-sm text-amber-200">Герой у поході — переодягнути його можна вдома.</p>}

@@ -356,8 +356,6 @@
 
         public static readonly RefusalReason EquipmentBroken = new("equipment.broken");
 
-        public static readonly RefusalReason EquipmentClassMismatch = new("equipment.classMismatch", "weapon");
-
         // ---------- Ринок ----------
 
         /// <summary>Ринок ще під туманом; level — рівень ратуші, з якого він відкриється.</summary>

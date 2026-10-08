@@ -123,7 +123,7 @@
         bool IgnoresLine,
         IReadOnlyList<double> LevelScale);
 
-    /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
+    /// <param name="Slot">"Artifact" для спорядження або null для стакового предмета.</param>
     /// <param name="ArtifactSlot">Тип слота артефакта (ключ з ArtifactSlots); null — не артефакт.</param>
     /// <param name="Tradeable">Стаковий предмет можна виставити на ринок; спорядження торгується завжди.</param>
     /// <param name="TeleportScope">Для телепорта — Exact, Nearby, ClanTerritory, Random або ClanLeader (GDD §8.9); null для решти.</param>
@@ -138,11 +138,9 @@
         string Rarity,
         string Type,
         string? Slot,
-        IReadOnlyList<string> WeaponClasses,
         IReadOnlyDictionary<string, double> BaseStats,
         string? SetKey,
         string? ArtifactSlot,
-        int PriceGold,
         bool Tradeable,
         bool Giftable,
         string? TeleportScope,

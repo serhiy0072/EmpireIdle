@@ -231,7 +231,7 @@ public class RecalculatePowerCommandTests
         var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroKey, Guid.NewGuid(), asLeader: true, Now);
         _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([hero]);
 
-        var sword = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, "sword", EquipmentSlot.Weapon,
+        var sword = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, "sword", EquipmentSlot.Artifact,
             Rarity.Common, [("Attack", 12.0)], Now);
 
         sword.EquipTo(hero.Id, slotIndex: 0, Now);

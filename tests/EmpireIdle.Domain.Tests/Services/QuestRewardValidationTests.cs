@@ -30,7 +30,6 @@ public class QuestRewardValidationTests
 
     [Theory]
     [InlineData("Equipment", TestKeys.Artifact)]
-    [InlineData("Equipment", TestKeys.Weapon)]
     [InlineData("equipment", TestKeys.Artifact)]
     [InlineData("Item", TestKeys.EssenceT2)]
     public void Validate_ShouldAccept_RewardOfTheRightKind(string type, string key)
@@ -42,7 +41,7 @@ public class QuestRewardValidationTests
 
     [Theory]
     [InlineData("Item", TestKeys.Artifact)]
-    [InlineData("item", TestKeys.Weapon)]
+    [InlineData("item", TestKeys.Artifact)]
     [InlineData("Equipment", TestKeys.EssenceT2)]
     [InlineData("Equipment", "no_such_item")]
     public void Validate_ShouldReject_RewardOfTheWrongKind(string type, string key)

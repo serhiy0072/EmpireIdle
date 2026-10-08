@@ -445,7 +445,7 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Contains("DefenderLossLosses", error.Message);
         }
 
-        /// <summary>Вітрина обіцяє унікальний посох, а в Items він звичайний — гравець отримав би не те, що бачив.</summary>
+        /// <summary>Вітрина обіцяє унікальний артефакт, а в Items він звичайний — гравець отримав би не те, що бачив.</summary>
         [Fact]
         public void Validate_ShouldRejectABannerDrop_WhoseRarityDiffersFromTheItem()
         {
@@ -455,14 +455,19 @@ namespace EmpireIdle.Domain.Tests.Services
             [
                 new BannerConfig
                 {
-                    Key = "forge", DisplayName = "Forge", Kind = BannerKind.Weapon, PityGroup = "weapon", PriceGems = 100,
+                    Key = "standard", DisplayName = "Standard", Kind = BannerKind.Standard, PityGroup = "standard", PriceGems = 100,
                     RarePity = 10, UniquePity = 50,
                     Drops =
                     [
                         new BannerDropConfig
                         {
-                            Key = TestKeys.Weapon, DisplayName = "Weapon", Rarity = Rarity.Unique, Kind = BannerKind.Weapon, Weight = 1,
-                            Rewards = [new RewardConfig { Type = "Equipment", Key = TestKeys.Weapon, Amount = 1 }]
+                            Key = "whole", DisplayName = "whole", Rarity = Rarity.Unique, Kind = BannerKind.Hero, Weight = 1,
+                            Rewards = [new RewardConfig { Type = "HeroShards", Key = TestKeys.UniqueHero, Amount = config.HeroSettings.SummonShards }]
+                        },
+                        new BannerDropConfig
+                        {
+                            Key = TestKeys.Artifact, DisplayName = "Artifact", Rarity = Rarity.Unique, Weight = 1,
+                            Rewards = [new RewardConfig { Type = "Equipment", Key = TestKeys.Artifact, Amount = 1 }]
                         }
                     ]
                 }
@@ -470,7 +475,7 @@ namespace EmpireIdle.Domain.Tests.Services
 
             var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
 
-            Assert.Contains(TestKeys.Weapon, error.Message);
+            Assert.Contains(TestKeys.Artifact, error.Message);
             Assert.Contains("Unique", error.Message);
         }
 
@@ -533,7 +538,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var error = Rejects(c =>
             {
-                c.Items = [new ItemConfig { Key = "sword_iron", DisplayName = "Sword", Description = "", Type = "equipment", Slot = EquipmentSlot.Weapon }];
+                c.Items = [new ItemConfig { Key = "sword_iron", DisplayName = "Sword", Description = "", Type = "equipment", Slot = EquipmentSlot.Artifact }];
                 c.Shop.Items = [new ShopItemConfig { ItemKey = "sword_iron", PriceGems = 100 }];
             });
 

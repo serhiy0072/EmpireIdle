@@ -11,7 +11,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 
         private static EquipmentItem Weapon(params (string Stat, double Value)[] stats)
-            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "sword_iron", EquipmentSlot.Weapon,
+            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "sword_iron", EquipmentSlot.Artifact,
                 Rarity.Common, stats.Length > 0 ? stats : [("Attack", 10.0)], Now);
 
         private static EquipmentItem Artifact()

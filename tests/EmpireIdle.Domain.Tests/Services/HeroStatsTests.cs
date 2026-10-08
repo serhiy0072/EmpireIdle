@@ -125,7 +125,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldAddEquipmentStats()
         {
-            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 12.0)]);
+            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 12.0)]);
 
             var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), [sword]);
 
@@ -145,7 +145,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var bareTier1 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 1), config, [])["Attack"];
             var bareTier3 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 3), config, [])["Attack"];
 
-            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 12.0)]);
+            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 12.0)]);
 
             var withTier1 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 1), config, [sword])["Attack"];
             var withTier3 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 3), config, [sword])["Attack"];
@@ -157,7 +157,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldCountEnhancementInEquipmentStats()
         {
-            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 10.0)]);
+            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 10.0)]);
             sword.Enhance(TestKit.Entities.Now);
             sword.Enhance(TestKit.Entities.Now);
 
@@ -171,7 +171,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldIgnoreBrokenEquipment()
         {
-            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 12.0)]);
+            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 12.0)]);
             sword.Break(TestKit.Entities.Now);
 
             var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword]);
@@ -193,7 +193,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void Compute_ShouldSumSeveralItems()
         {
-            var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, stats: [("Attack", 12.0)]);
+            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 12.0)]);
             var charm = TestKit.Entities.Equipment(TestKeys.LooseArtifact, EquipmentSlot.Artifact, stats: [("Attack", 6.0)]);
 
             var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword, charm]);

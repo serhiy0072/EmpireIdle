@@ -19,14 +19,11 @@ internal static class HeroTestConfig
     public const string CommonHero = "warrior_bran";
     public const string UniqueHero = "mage_iselle";
 
-    public const string WarriorWeapon = "sword_iron";
-    public const string BetterWarriorWeapon = "sword_steel";
     public const string Artifact = "necklace_dawn";
     public const string SecondArtifact = "ring_ember";
 
     public const int ShardPriceGold = 100;
     public const int SummonShards = 10;
-    public const int WeaponPriceGold = 500;
     /// <summary>Номери слотів за типом — позиції в Equipment.ArtifactSlots.</summary>
     public const int NecklaceSlot = 0;
     public const int RingSlot = 2;
@@ -58,27 +55,6 @@ internal static class HeroTestConfig
             .. TestKit.UniversalShards.All(),
             new ItemConfig { Key = "hero_essence_t2" },
             new ItemConfig { Key = "hero_essence_t3" },
-
-            // Зброя воїна: клас звужений навмисно, на ньому тримається
-            // перевірка придатності
-            new ItemConfig
-            {
-                Key = WarriorWeapon,
-                Type = "equipment",
-                Slot = EquipmentSlot.Weapon,
-                WeaponClasses = ["warrior"],
-                BaseStats = new Dictionary<string, double> { ["Attack"] = 10 },
-                PriceGold = WeaponPriceGold
-            },
-            new ItemConfig
-            {
-                Key = BetterWarriorWeapon,
-                Type = "equipment",
-                Slot = EquipmentSlot.Weapon,
-                WeaponClasses = ["warrior"],
-                BaseStats = new Dictionary<string, double> { ["Attack"] = 18 },
-                PriceGold = WeaponPriceGold * 2
-            },
 
             // Артефакти без базових статів: їхні стати випадкові й лежать
             // на екземплярі. Обидва з одного набору — на них перевіряється
