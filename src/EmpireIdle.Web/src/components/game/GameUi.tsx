@@ -89,10 +89,12 @@ interface TileProps {
   dimmed?: boolean;
   onClick?: () => void;
   title?: string;
+  /** Якір навчання (data-tutorial): туторіал підсвічує саме цю плитку. */
+  tutorial?: string;
 }
 
 /** Квадратна плитка предмета чи героя з рамкою кольору рідкості. */
-export function Tile({ rarity, children, count, top, corner, bottomLeft, bottomRight, selected, dimmed, onClick, title }: TileProps) {
+export function Tile({ rarity, children, count, top, corner, bottomLeft, bottomRight, selected, dimmed, onClick, title, tutorial }: TileProps) {
   const frame = TILE_FRAMES[rarityKey(rarity)] ?? TILE_FRAMES.Common;
 
   return (
@@ -100,6 +102,7 @@ export function Tile({ rarity, children, count, top, corner, bottomLeft, bottomR
       type="button"
       onClick={onClick}
       title={title}
+      data-tutorial={tutorial}
       className={`relative aspect-square w-full overflow-hidden rounded-xl bg-gradient-to-b p-1 ring-2 transition ${frame} ${
         selected === true ? "outline outline-3 outline-offset-2 outline-yellow-300" : ""
       } ${dimmed === true ? "opacity-50" : "hover:brightness-110"}`}

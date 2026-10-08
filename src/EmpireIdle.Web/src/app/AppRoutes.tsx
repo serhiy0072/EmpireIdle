@@ -11,6 +11,7 @@ import DungeonsPage from "../pages/DungeonsPage";
 import ForgePage from "../pages/ForgePage";
 import HeroCodexPage from "../pages/HeroCodexPage";
 import HeroesPage from "../pages/HeroesPage";
+import HeroPage from "../pages/HeroPage";
 import InventoryPage from "../pages/InventoryPage";
 import LoginPage from "../pages/LoginPage";
 import MailPage from "../pages/MailPage";
@@ -44,6 +45,7 @@ export default function AppRoutes() {
             <Route path="/army" element={<ArmyPage />} />
             <Route path="/heroes" element={<HeroesPage />} />
             <Route path="/heroes/codex" element={<HeroCodexPage />} />
+            <Route path="/heroes/:heroId" element={<HeroPage />} />
             <Route path="/dungeons" element={<DungeonsPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/inventory/sets" element={<ArtifactSetsPage />} />

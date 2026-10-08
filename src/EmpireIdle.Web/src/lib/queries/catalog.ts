@@ -272,3 +272,44 @@ export function skillEffect(skill: CatalogSkill, level: number): string {
 
   return parts.join(" · ");
 }
+/** Рядок перегляду вміння за рівнями: що росте і значення на кожному рівні (рівень 1 — перше). */
+export interface SkillPreviewRow {
+  label: string;
+  values: string[];
+}
+
+/**
+ * Перегляд покращення, як у грі: «+2%/4%/6%…» по рівнях. Ті самі числа, що skillEffect,
+ * лише всі рівні разом — гравець бачить, що дасть наступна книга.
+ */
+export function skillPreview(skill: CatalogSkill, maxLevel: number): SkillPreviewRow[] {
+  const levels = Array.from({ length: maxLevel }, (_, index) => index + 1);
+  const rows: SkillPreviewRow[] = [];
+
+  if (skill.troops !== null && skill.troops !== undefined) {
+    const troops = skill.troops;
+    const stat = SKILL_STATS[troops.stat] ?? troops.stat;
+    rows.push({
+      label: `${stat} ${SKILL_TARGETS[troops.target] ?? troops.target}`,
+      values: levels.map((level) => `${skillValue(troops.percents, level)}%`),
+    });
+  }
+
+  if (skill.utility !== null && skill.utility !== undefined) {
+    const utility = skill.utility;
+    rows.push({
+      label: utility.effect === "MarchSpeed" ? "швидкість маршу" : utility.effect,
+      values: levels.map((level) => `${skillValue(utility.percents, level)}%`),
+    });
+  }
+
+  if (skill.battle !== null && skill.battle !== undefined && skill.battle.damageMultiplier > 0) {
+    const battle = skill.battle;
+    rows.push({
+      label: "шкода в данжі",
+      values: levels.map((level) => `×${(battle.damageMultiplier * skillValue(battle.levelScale, level)).toFixed(1)}`),
+    });
+  }
+
+  return rows;
+}

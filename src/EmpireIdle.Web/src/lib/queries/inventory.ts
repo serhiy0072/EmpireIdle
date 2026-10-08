@@ -124,3 +124,28 @@ export function useUnequip(playerId: string) {
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
   });
 }
+
+/** «Швидке використання»: сервер вдягає найкраще вільне в кожен слот; відповідь — скільки вдягнуто. */
+export function useEquipBest(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (heroId: string) =>
+      api<{ equipped: number }>(`/api/heroes/${playerId}/${heroId}/equipment/best`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
+  });
+}
+
+/** «Зняти все»: по одному запиту на предмет — слотів п'ять, окрема серверна команда не варта того. */
+export function useUnequipAll(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (equipmentIds: string[]) => {
+      for (const id of equipmentIds)
+        await api<void>(`/api/heroes/${playerId}/equipment/${id}`, { method: "DELETE", idempotent: true });
+    },
+    // І після часткової невдачі: те, що встигли зняти, уже зняте
+    onSettled: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
+  });
+}
