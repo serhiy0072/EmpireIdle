@@ -11,6 +11,7 @@ import {
   useHeroes,
   usePlaceInCamp,
   useRemoveFromCamp,
+  useResetHeroLevel,
   useSkipCampCooldown,
   useSummonHero,
   useUpgradeUniversalShards,
@@ -38,6 +39,7 @@ export default function HeroesPage() {
   const removeFromCamp = useRemoveFromCamp(playerId);
   const skipCampCooldown = useSkipCampCooldown(playerId);
   const buyCampSlot = useBuyCampSlot(playerId);
+  const resetLevel = useResetHeroLevel(playerId);
 
   const [params, setParams] = useSearchParams();
   const tab: Tab = params.get("tab") === "camp" ? "camp" : "heroes";
@@ -56,9 +58,10 @@ export default function HeroesPage() {
     placeInCamp.isPending ||
     removeFromCamp.isPending ||
     skipCampCooldown.isPending ||
-    buyCampSlot.isPending;
+    buyCampSlot.isPending ||
+    resetLevel.isPending;
   const failure =
-    summon.error ?? upgradeShards.error ?? placeInCamp.error ?? removeFromCamp.error ?? skipCampCooldown.error ?? buyCampSlot.error;
+    summon.error ?? upgradeShards.error ?? placeInCamp.error ?? removeFromCamp.error ?? skipCampCooldown.error ?? buyCampSlot.error ?? resetLevel.error;
 
   const roster = sortRoster(heroes.data.heroes, (key) => catalog.hero(key)?.rank);
   const free = roster.filter((hero) => hero.state === "Idle").length;
@@ -129,6 +132,7 @@ export default function HeroesPage() {
               onRemove={(heroId) => removeFromCamp.mutate(heroId)}
               onSkipCooldown={(slot) => skipCampCooldown.mutate(slot)}
               onBuySlot={() => buyCampSlot.mutate()}
+              onResetLevel={(heroId) => resetLevel.mutate(heroId)}
             />
           )}
         </GamePanel>
