@@ -40,7 +40,7 @@ namespace EmpireIdle.Domain.Services
             {
                 foreach (var stat in item.Stats)
                 {
-                    var value = item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.EnhancementBonusPerLevel);
+                    var value = item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.LevelBonusPerLevel, _catalog.Config.Equipment.MasteryBonusPerLevel);
 
                     result[stat.StatKey] = result.GetValueOrDefault(stat.StatKey) + value;
                 }
@@ -73,15 +73,13 @@ namespace EmpireIdle.Domain.Services
             => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel));
 
         /// <summary>
-        /// Сила предмета: сума його статів із заточкою. Зламаний дає нуль —
-        /// так само, як на герої, де він не додає нічого.
+        /// Сила предмета: сума його статів із рівнем і майстерністю.
         /// </summary>
         public double Power(EquipmentItem item)
-            => item.Stats.Sum(stat => item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.EnhancementBonusPerLevel));
+            => item.Stats.Sum(stat => item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.LevelBonusPerLevel, _catalog.Config.Equipment.MasteryBonusPerLevel));
 
         /// <summary>
-        /// Бонуси за повні набори. Зламане не рахується: воно не дає й
-        /// власних статів, тож і комплект ним не закривається.
+        /// Бонуси за повні набори з вдягненого.
         /// </summary>
         public IReadOnlyDictionary<string, double> SetBonus(IReadOnlyCollection<EquipmentItem> equipped)
         {
@@ -92,7 +90,6 @@ namespace EmpireIdle.Domain.Services
                 return result;
 
             var worn = equipped
-                .Where(e => !e.IsBroken)
                 .Select(e => e.ItemKey)
                 .ToList();
 

@@ -89,6 +89,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Для прискорення (Type = "speedup"): скільки хвилин зрізає з будь-якого таймера (рішення 08.10.2026).</summary>
         public int SpeedUpMinutes { get; set; }
 
+        /// <summary>Для гаєчки (Type = "wrench", GDD §6.4): скільки досвіду рівня дає артефакту.</summary>
+        public int ArtifactExperience { get; set; }
+
         /// <summary>
         /// Для скрині зброї (Type = "weaponchest", GDD §6.4): чию зброю можна з неї качати — трійка
         /// поточного подієвого банера. Скриня відкривається для трійки, актуальної в момент відкриття.

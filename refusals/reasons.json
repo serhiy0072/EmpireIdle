@@ -135,9 +135,15 @@
     "dungeon",
     "level"
   ],
-  "equipment.broken": [],
-  "equipment.maxEnhancement": [
+  "equipment.foodEquipped": [],
+  "equipment.maxLevel": [
     "max"
+  ],
+  "equipment.maxMastery": [
+    "max"
+  ],
+  "equipment.uniqueFood": [
+    "item"
   ],
   "garrison.armyCapacity": [
     "occupied",

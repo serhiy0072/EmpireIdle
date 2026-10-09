@@ -16,10 +16,12 @@ namespace EmpireIdle.Application.Inventory.Queries
         private readonly IActiveEffectRepository _effectRepository;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly ArtifactProgression _progression;
 
         public GetInventoryQueryHandler(IInventoryRepository repository, IActiveEffectRepository effectRepository,
-            GameCatalog catalog, TimeProvider timeProvider)
+            GameCatalog catalog, TimeProvider timeProvider, ArtifactProgression progression)
         {
+            _progression = progression;
             _repository = repository;
             _effectRepository = effectRepository;
             _catalog = catalog;
@@ -37,15 +39,16 @@ namespace EmpireIdle.Application.Inventory.Queries
                 .Where(e => e.IsActive(now))
                 .ToList();
 
-            // Приріст заточки — з конфіга: криву балансують, і вона не властивість предмета
-            var enhancementBonus = _catalog.Config.Equipment.EnhancementBonusPerLevel;
+            // Прирости рівня й майстерності — з конфіга: криву балансують, і вона не властивість предмета
+            var levelBonus = _catalog.Config.Equipment.LevelBonusPerLevel;
+            var masteryBonus = _catalog.Config.Equipment.MasteryBonusPerLevel;
 
             return new InventoryView(
                 items.Select(ItemView).ToList(),
                 equipment
-                    .Select(e => new EquipmentView(e.Id, e.ItemKey, e.Slot, e.Rarity, e.EnhancementLevel, e.EquippedByHeroId,
-                        e.SlotIndex, e.IsBroken,
-                        e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey, enhancementBonus)),
+                    .Select(e => new EquipmentView(e.Id, e.ItemKey, e.Slot, e.Rarity, e.Level, e.Experience,
+                        _progression.ExperienceToNext(e), _progression.FeedValue(e), e.Mastery, e.EquippedByHeroId, e.SlotIndex,
+                        e.Stats.ToDictionary(s => s.StatKey, s => e.GetStatValue(s.StatKey, levelBonus, masteryBonus)),
                         e.IsOnMarket, e.ResaleLockedUntil))
                     .ToList(),
                 effects.Select(e => new ActiveEffectView(e.Target, e.Multiplier, e.ExpiresAt, e.SourceItemKey)).ToList());

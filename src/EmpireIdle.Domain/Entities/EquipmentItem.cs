@@ -5,8 +5,8 @@ using EmpireIdle.Domain.Exceptions;
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
-    /// Унікальний екземпляр спорядження. На відміну від стакових предметів,
-    /// кожен меч — окремий запис із власними статами й заточкою.
+    /// Унікальний екземпляр артефакта. На відміну від стакових предметів,
+    /// кожен — окремий запис із власними статами, рівнем і майстерністю (GDD §6.4).
     ///
     /// Прив'язаний до світу, як і герой: спорядження носить герой, а герої
     /// живуть у своєму сервері окремо.
@@ -24,14 +24,14 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public int ServerId { get; private set; }
 
-        /// <summary>Ключ базового типу з конфіга (наприклад "sword_iron").</summary>
+        /// <summary>Ключ базового типу з конфіга (наприклад "dawn_necklace").</summary>
         public string ItemKey { get; private set; } = null!;
 
-        /// <summary>Зброя чи артефакт.</summary>
+        /// <summary>Вид спорядження — артефакт (зброя — частина героя, GDD §6.4).</summary>
         public EquipmentSlot Slot { get; private set; }
 
         /// <summary>
-        /// Номер слота в межах типу: 0 для зброї, 0–3 для артефактів.
+        /// Номер слота артефакта: 0–3 за типом (намисто, корона…).
         /// Проставляється вдяганням, бо це властивість місця, а не предмета:
         /// той самий артефакт можна перевісити в інший слот.
         /// </summary>
@@ -40,15 +40,20 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Рідкість екземпляра — впливає на силу статів.</summary>
         public Rarity Rarity { get; private set; }
 
-        /// <summary>Рівень заточки (0 — не заточене).</summary>
-        public int EnhancementLevel { get; private set; }
+        /// <summary>
+        /// Рівень артефакта (GDD §6.4): росте від досвіду згодованого спорядження й гаєчок.
+        /// На ньому — ролли нових статів; кожен рівень додає частку до статів.
+        /// </summary>
+        public int Level { get; private set; }
 
         /// <summary>
-        /// Зламана зброя. Заточка може провалитись і зіпсувати предмет:
-        /// він лишається в інвентарі, але не вдягається, поки не полагоджений.
-        /// Артефакти не ламаються — вони й здобуваються інакше.
+        /// Увесь досвід, вкладений в артефакт, накопичено. Згодований артефакт передає його
+        /// повністю — заміна на кращий не карає за вкладене.
         /// </summary>
-        public bool IsBroken { get; private set; }
+        public long Experience { get; private set; }
+
+        /// <summary>Майстерність коваля — заточка за золото з шансом, без поломки (GDD §6.4).</summary>
+        public int Mastery { get; private set; }
 
         /// <summary>Герой, на якому вдягнене; null — лежить в інвентарі.</summary>
         public Guid? EquippedByHeroId { get; private set; }
@@ -72,8 +77,8 @@ namespace EmpireIdle.Domain.Entities
         public uint Version { get; private set; }
 
         /// <summary>
-        /// Предмет у заставі ринку: його не можна вдягнути, заточити,
-        /// полагодити чи виставити вдруге, доки лот не закриється.
+        /// Предмет у заставі ринку: його не можна вдягнути, прокачати
+        /// чи виставити вдруге, доки лот не закриється.
         /// </summary>
         public bool IsOnMarket { get; private set; }
 
@@ -88,7 +93,7 @@ namespace EmpireIdle.Domain.Entities
             ItemKey = itemKey;
             Slot = slot;
             Rarity = rarity;
-            EnhancementLevel = 0;
+            Level = 0;
             AcquiredAt = utcNow;
             UpdatedAt = utcNow;
 
@@ -112,9 +117,6 @@ namespace EmpireIdle.Domain.Entities
             if (EquippedByHeroId is not null)
                 throw new InvalidStateException($"Equipment {Id} is already equipped.");
 
-            if (IsBroken)
-                throw new InvalidStateException(RefusalReasons.EquipmentBroken, $"Equipment {Id} is broken and must be repaired first.");
-
             EquippedByHeroId = heroId;
             SlotIndex = slotIndex;
             Touch(utcNow);
@@ -131,63 +133,55 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Підвищує рівень заточки. Стелю перевіряє викликач: вона залежить
-        /// від конфіга, про який предмет не знає.
+        /// Додає досвід згодованого спорядження й гаєчок і ставить рівень, який він дає.
+        /// Криву й стелю знає конфіг, тож рівень рахує викликач; ролли нових рівнів — теж він.
         /// </summary>
-        public void Enhance(DateTime utcNow)
+        public void GainExperience(long amount, int newLevel, DateTime utcNow)
         {
             EnsureNotOnMarket();
 
-            if (IsBroken)
-                throw new InvalidStateException($"Equipment {Id} is broken.");
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), amount, "Experience only grows.");
 
-            EnhancementLevel++;
+            if (newLevel < Level)
+                throw new ArgumentOutOfRangeException(nameof(newLevel), newLevel, "An artifact never loses levels.");
+
+            Experience += amount;
+            Level = newLevel;
             Touch(utcNow);
 
-            // Сила рахується лише з вдягнутого: заточка на складі її не рухає
+            // Сила рахується лише з вдягнутого: прокачка на складі її не рухає
+            if (EquippedByHeroId is not null)
+                RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Підвищує майстерність. Стелю й кидок шансу знає викликач.</summary>
+        public void RaiseMastery(DateTime utcNow)
+        {
+            EnsureNotOnMarket();
+
+            Mastery++;
+            Touch(utcNow);
+
             if (EquippedByHeroId is not null)
                 RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
-        /// Предмет зіпсовано. Рівень при цьому не падає: гравець утратив
-        /// спробу, а не прогрес.
-        ///
-        /// Слот тут не перевіряється: те, що артефакти не ламаються, —
-        /// правило заточки, і живе воно в EnhanceArtifactCommand, який
-        /// просто ніколи цього не кличе.
+        /// Чи можна згодувати цей предмет: не вдягнутий і не в заставі ринку.
+        /// Рідкість (унікальні не годуються) — правило конфіга, його перевіряє викликач.
         /// </summary>
-        public void Break(DateTime utcNow)
-        {
-            // Виставлений лот ламати не можна: покупець заплатив би за зламану зброю
-            EnsureNotOnMarket();
-
-            var wasEquipped = EquippedByHeroId is not null;
-
-            IsBroken = true;
-            EquippedByHeroId = null;
-            SlotIndex = 0;
-            Touch(utcNow);
-
-            if (wasEquipped)
-                RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
-        }
-
-        /// <summary>Лагодить зброю. Ціну списує викликач.</summary>
-        public void Repair(DateTime utcNow)
+        public void EnsureCanBeFed()
         {
             EnsureNotOnMarket();
 
-            if (!IsBroken)
-                throw new InvalidStateException($"Equipment {Id} is not broken.");
-
-            // Зламане завжди зняте, тож ремонт сили не міняє — події немає
-            IsBroken = false;
-            Touch(utcNow);
+            if (EquippedByHeroId is not null)
+                throw new InvalidStateException(RefusalReasons.EquipmentFoodEquipped,
+                    $"Equipment {Id} is worn by a hero and cannot be fed.");
         }
 
         /// <summary>
-        /// Додає новий стат. Артефакти набирають їх на 4 і 8 рівнях заточки:
+        /// Додає новий стат. Артефакти набирають їх на 4 і 8 рівнях:
         /// які саме — вирішує ролер, предмет лише зберігає результат.
         /// </summary>
         public void AddStat(string statKey, double value, DateTime utcNow)
@@ -218,34 +212,29 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Значення стата з урахуванням заточки.
+        /// Значення стата з рівнем і майстерністю (GDD §9.12): база × (1 + бонус рівня + бонус майстерності).
+        /// Бонуси складаються, а не множаться — разом вони дають ту саму стелю, що й стара заточка.
         /// </summary>
-        /// <param name="enhancementBonus">
-        /// Приріст за рівень заточки, часткою. Береться з конфіга, а не
-        /// зашитий: криву заточки балансують, і вона не властивість предмета.
-        /// </param>
-        public double GetStatValue(string statKey, double enhancementBonus)
+        /// <param name="levelBonus">Приріст за рівень артефакта, часткою; з конфіга — криву балансують.</param>
+        /// <param name="masteryBonus">Приріст за рівень майстерності, часткою.</param>
+        public double GetStatValue(string statKey, double levelBonus, double masteryBonus)
         {
             var stat = _stats.FirstOrDefault(s => s.StatKey == statKey);
 
-            if (stat is null || IsBroken)
+            if (stat is null)
                 return 0;
 
-            return stat.Value * (1 + EnhancementLevel * enhancementBonus);
+            return stat.Value * (1 + Level * levelBonus + Mastery * masteryBonus);
         }
+
         /// <summary>
         /// Виставляє предмет на ринок. Вдягнений знімається тут же: продаж
         /// не має тримати героя з порожнім слотом у невизначеному стані.
-        /// Зламаний не виставляється — його Power нуль, і ціна за силу
-        /// втратила б сенс; спершу ремонт.
         /// </summary>
         public void PutOnMarket(DateTime utcNow)
         {
             if (IsOnMarket)
                 throw new InvalidStateException(RefusalReasons.MarketItemListed, $"Equipment {Id} is already on the market.");
-
-            if (IsBroken)
-                throw new InvalidStateException(RefusalReasons.EquipmentBroken, $"Equipment {Id} is broken and must be repaired first.");
 
             if (ResaleLockedUntil is { } until && until > utcNow)
                 throw new RequirementNotMetException(RefusalReasons.MarketResaleCooldown,
@@ -286,7 +275,7 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Предмет у заставі ринку: будь-яка дія з ним — відмова. Публічний, бо заточка
+        /// Предмет у заставі ринку: будь-яка дія з ним — відмова. Публічний, бо майстерність
         /// мусить перевірити це до списання золота, а не після кидка.
         /// </summary>
         public void EnsureNotOnMarket()

@@ -103,7 +103,8 @@ namespace EmpireIdle.Application.Catalog
                     item.Type == "teleport" && item.TeleportScope == TeleportScope.Nearby ? item.TeleportRange : null,
                     item.Type == "speedup" ? item.SpeedUpMinutes : null,
                     item.WeaponHeroes,
-                    item.Type == "weaponchest" ? item.WeaponShards : null))
+                    item.Type == "weaponchest" ? item.WeaponShards : null,
+                    item.Type == "wrench" ? item.ArtifactExperience : null))
                 .ToList();
 
             var resources = config.Resources
@@ -160,9 +161,8 @@ namespace EmpireIdle.Application.Catalog
                 config.Equipment.ArtifactSlots
                     .Select(slot => new CatalogArtifactSlot(slot.Key, Name("artifactSlot", slot.Key, slot.DisplayName)))
                     .ToList(),
-                config.Equipment.MaxEnhancement,
-                config.Equipment.RepairGemsBase,
-                config.Equipment.RepairGemsPerLevel,
+                config.Equipment.MaxLevel,
+                config.Equipment.MaxMastery,
                 new CatalogSpeedUp(
                     config.Monetization.SpeedUpFloorSeconds.ToDictionary(pair => pair.Key.ToString(), pair => pair.Value),
                     config.Monetization.SpeedUpFactor,

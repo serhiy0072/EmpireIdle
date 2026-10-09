@@ -47,12 +47,12 @@ public class EquipBestHeroGearCommandTests
         return hero;
     }
 
-    private EquipmentItem GivenItem(string itemKey, Rarity rarity = Rarity.Common, int enhancement = 0)
+    private EquipmentItem GivenItem(string itemKey, Rarity rarity = Rarity.Common, int level = 0)
     {
         var item = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, itemKey, EquipmentSlot.Artifact, rarity, [("Attack", 10.0)], Now);
 
-        for (var i = 0; i < enhancement; i++)
-            item.Enhance(Now);
+        if (level > 0)
+            item.GainExperience(100 * level, level, Now);
 
         _owned.Add(item);
         _inventory.GetEquipmentByIdAsync(item.Id, Arg.Any<CancellationToken>()).Returns(item);
@@ -84,9 +84,9 @@ public class EquipBestHeroGearCommandTests
     public async Task Handle_ShouldPreferRarity_ThenEnhancement()
     {
         var hero = GivenHero();
-        GivenItem(HeroTestConfig.Artifact, Rarity.Common, enhancement: 3);
-        GivenItem(HeroTestConfig.Artifact, Rarity.Rare, enhancement: 0);
-        var best = GivenItem(HeroTestConfig.Artifact, Rarity.Rare, enhancement: 2);
+        GivenItem(HeroTestConfig.Artifact, Rarity.Common, level: 3);
+        GivenItem(HeroTestConfig.Artifact, Rarity.Rare, level: 0);
+        var best = GivenItem(HeroTestConfig.Artifact, Rarity.Rare, level: 2);
 
         await QuickEquip(hero);
 
@@ -94,7 +94,7 @@ public class EquipBestHeroGearCommandTests
         Assert.Single(_owned, e => e.EquippedByHeroId == hero.Id);
     }
 
-    /// <summary>Вдягнене на іншого героя, зламане й виставлене на ринок — не вільне.</summary>
+    /// <summary>Вдягнене на іншого героя й виставлене на ринок — не вільне.</summary>
     [Fact]
     public async Task Handle_ShouldTakeOnlyFreeItems()
     {
@@ -104,9 +104,6 @@ public class EquipBestHeroGearCommandTests
         var worn = GivenItem(HeroTestConfig.Artifact, Rarity.Unique);
         worn.EquipTo(other.Id, HeroTestConfig.NecklaceSlot, Now);
 
-        var broken = GivenItem(HeroTestConfig.Artifact, Rarity.Unique);
-        broken.Break(Now);
-
         var listed = GivenItem(HeroTestConfig.Artifact, Rarity.Unique);
         listed.PutOnMarket(Now);
 
@@ -115,7 +112,6 @@ public class EquipBestHeroGearCommandTests
         await QuickEquip(hero);
 
         Assert.Equal(other.Id, worn.EquippedByHeroId);
-        Assert.Null(broken.EquippedByHeroId);
         Assert.Null(listed.EquippedByHeroId);
         Assert.Equal(hero.Id, plain.EquippedByHeroId);
     }

@@ -40,5 +40,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Прибрати порожній стек.</summary>
         void RemoveItem(PlayerItem item);
+
+        /// <summary>Прибрати згодований екземпляр спорядження.</summary>
+        void RemoveEquipment(EquipmentItem equipment);
     }
 }

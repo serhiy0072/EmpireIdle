@@ -103,7 +103,7 @@ namespace EmpireIdle.Application.Dungeons.Services
         {
             var result = new Dictionary<DungeonStat, double>();
 
-            foreach (var item in equipped.Where(i => !i.IsBroken))
+            foreach (var item in equipped)
             {
                 var config = _catalog.FindItem(item.ItemKey);
 

@@ -37,8 +37,8 @@ export default function ListingCard({ listing, action }: Props) {
           <span className="truncate font-medium text-slate-800">
             {name}
             {listing.quantity > 1 && <span className="ml-1 text-slate-500">×{listing.quantity}</span>}
-            {(listing.equipment?.enhancementLevel ?? 0) > 0 && (
-              <span className="ml-1 text-amber-600">+{listing.equipment?.enhancementLevel}</span>
+            {(listing.equipment?.level ?? 0) > 0 && (
+              <span className="ml-1 text-amber-600">рів. {listing.equipment?.level}</span>
             )}
           </span>
           <span className="font-medium text-amber-700">{listing.priceGold.toLocaleString("uk-UA")} 🪙</span>

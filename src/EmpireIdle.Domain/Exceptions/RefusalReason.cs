@@ -352,9 +352,17 @@
 
         // ---------- Спорядження ----------
 
-        public static readonly RefusalReason EquipmentMaxEnhancement = new("equipment.maxEnhancement", "max");
+        /// <summary>Артефакт уже на стелі рівня (GDD §6.4); max — стеля.</summary>
+        public static readonly RefusalReason EquipmentMaxLevel = new("equipment.maxLevel", "max");
 
-        public static readonly RefusalReason EquipmentBroken = new("equipment.broken");
+        /// <summary>Майстерність коваля вже на стелі; max — стеля.</summary>
+        public static readonly RefusalReason EquipmentMaxMastery = new("equipment.maxMastery", "max");
+
+        /// <summary>Унікальне спорядження не згодовують (рішення 08.10.2026); item — назва.</summary>
+        public static readonly RefusalReason EquipmentUniqueFood = new("equipment.uniqueFood", "item");
+
+        /// <summary>Згодувати вдягнене не можна — спершу зняти з героя.</summary>
+        public static readonly RefusalReason EquipmentFoodEquipped = new("equipment.foodEquipped");
 
         // ---------- Ринок ----------
 

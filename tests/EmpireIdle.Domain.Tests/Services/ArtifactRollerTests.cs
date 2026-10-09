@@ -16,7 +16,7 @@ namespace EmpireIdle.Domain.Tests.Services
     {
         private static EquipmentConfig Config() => new()
         {
-            MaxEnhancement = 20,
+            MaxLevel = 20,
             ArtifactBaseStats = 2,
             ArtifactStatLevels = [4, 8],
             ArtifactUpgradeLevels = [12, 16, 20],

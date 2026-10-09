@@ -22,7 +22,7 @@ namespace EmpireIdle.Application.Market.Contracts
         MarketEquipmentView? Equipment);
 
     /// <param name="Slot">"Artifact" — єдиний вид спорядження (GDD §6.4).</param>
-    public record MarketEquipmentView(string Slot, string Rarity, int EnhancementLevel, IReadOnlyDictionary<string, double> Stats);
+    public record MarketEquipmentView(string Slot, string Rarity, int Level, int Mastery, IReadOnlyDictionary<string, double> Stats);
 
     /// <summary>Сторінка вітрини.</summary>
     public record MarketPageView(IReadOnlyList<MarketListingView> Listings, int Total, int Page, int PageSize);

@@ -1252,12 +1252,19 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Artifacts without a known ArtifactSlot: {string.Join(", ", slotless)}.");
 
-            if (config.Equipment.MaxEnhancement < 1)
-                throw new InvalidOperationException("Equipment.MaxEnhancement must be at least 1.");
+            if (config.Equipment.MaxLevel < 1 || config.Equipment.MaxMastery < 0)
+                throw new InvalidOperationException("Equipment.MaxLevel must be at least 1 and MaxMastery non-negative.");
 
-            if (config.Equipment.EnhancementBonusPerLevel <= 0)
+            if (config.Equipment.LevelBonusPerLevel <= 0 || config.Equipment.MasteryBonusPerLevel < 0)
                 throw new InvalidOperationException(
-                    "Equipment.EnhancementBonusPerLevel must be above zero — otherwise enhancing changes nothing.");
+                    "Equipment.LevelBonusPerLevel must be above zero — otherwise a level changes nothing.");
+
+            if (config.Equipment.LevelExperienceBase <= 0 || config.Equipment.LevelExperienceExponent <= 0)
+                throw new InvalidOperationException("Equipment level experience curve must be positive.");
+
+            // Рівень качається згодовуванням (GDD §6.4): без досвіду за рідкість артефакт не вирости
+            if (config.Equipment.FeedExperience.Count == 0 || config.Equipment.FeedExperience.Values.Any(xp => xp < 1))
+                throw new InvalidOperationException("Equipment.FeedExperience needs positive experience for fed rarities.");
 
             if (!config.Buildings.Select(b => b.Key).Contains(config.Equipment.ForgeBuildingKey))
                 throw new InvalidOperationException(
@@ -1323,12 +1330,12 @@ namespace EmpireIdle.Domain.Services
             // Рівні поза стелею означають правило, яке ніколи не спрацює
             var unreachable = config.Equipment.ArtifactStatLevels
                 .Concat(config.Equipment.ArtifactUpgradeLevels)
-                .Where(l => l < 1 || l > config.Equipment.MaxEnhancement)
+                .Where(l => l < 1 || l > config.Equipment.MaxLevel)
                 .ToList();
 
             if (unreachable.Count > 0)
                 throw new InvalidOperationException(
-                    $"Equipment artifact levels outside 1..{config.Equipment.MaxEnhancement}: "
+                    $"Equipment artifact levels outside 1..{config.Equipment.MaxLevel}: "
                     + string.Join(", ", unreachable));
 
             foreach (var item in equipment)

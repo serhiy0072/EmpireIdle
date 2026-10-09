@@ -56,10 +56,6 @@ namespace EmpireIdle.Application.Market.Services
                 {
                     var item = await OwnEquipmentAsync(playerId, equipmentId, cancellationToken);
 
-                    // Зламаний не має сили — ціна за силу втратила б сенс
-                    if (item.IsBroken)
-                        throw new InvalidStateException(RefusalReasons.EquipmentBroken, $"Equipment {item.Id} is broken.");
-
                     return new MarketGoodsInfo(kind, item.Id, item.ItemKey, 1,
                         _heroStats.Power(item), MarketPricing.CategoryOf(item.Slot));
                 }

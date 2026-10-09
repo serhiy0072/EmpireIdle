@@ -10,8 +10,8 @@
     /// <param name="SkillBooks">Яка книга (предмет) піднімає вміння героя якої ролі, рідкості й половини.</param>
     /// <param name="MaxSkillLevel">Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1).</param>
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
-    /// <param name="MaxEnhancement">Стеля заточки — після неї кнопка «Заточити» зникає.</param>
-    /// <param name="RepairGemsBase">Ремонт зброї в gems: база плюс RepairGemsPerLevel за кожен рівень заточки.</param>
+    /// <param name="MaxArtifactLevel">Стеля рівня артефакта — після неї «Посилити» зникає.</param>
+    /// <param name="MaxMastery">Стеля майстерності коваля.</param>
     /// <param name="SpeedUp">
     /// Ціна прискорення таймерів. Клієнт перераховує її щосекунди разом із відліком —
     /// знімок із запиту застарівав і показував більше, ніж спише сервер.
@@ -40,9 +40,8 @@
         int MaxUnitLevel,
         int HealGemsPerUnit,
         IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
-        int MaxEnhancement,
-        int RepairGemsBase,
-        int RepairGemsPerLevel,
+        int MaxArtifactLevel,
+        int MaxMastery,
         CatalogSpeedUp SpeedUp,
         int MapSize,
         string MainBuildingKey,
@@ -131,6 +130,7 @@
     /// <param name="SpeedUpMinutes">Для прискорення — скільки хвилин зрізає з таймера; null для решти.</param>
     /// <param name="WeaponHeroes">Для скрині зброї — чию зброю вона качає (поточна трійка); порожньо для решти.</param>
     /// <param name="WeaponShards">Для скрині зброї — шматків за одну скриню; null для решти.</param>
+    /// <param name="ArtifactExperience">Для гаєчки — скільки досвіду рівня дає артефакту; null для решти.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -147,7 +147,8 @@
         int? TeleportRange,
         int? SpeedUpMinutes,
         IReadOnlyList<string> WeaponHeroes,
-        int? WeaponShards);
+        int? WeaponShards,
+        int? ArtifactExperience);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);

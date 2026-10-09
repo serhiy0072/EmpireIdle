@@ -194,8 +194,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.shardUpgradeLocked": () => "Обмін відкриється, коли всі герої цієї рідкості матимуть усі зірки",
 
   // ---------- Спорядження ----------
-  "equipment.maxEnhancement": ({ max }) => `Уже максимальне посилення +${max}`,
-  "equipment.broken": () => "Спершу відремонтуйте предмет у кузні",
+  "equipment.maxLevel": ({ max }) => `Артефакт уже на найвищому, ${max} рівні`,
+  "equipment.maxMastery": ({ max }) => `Майстерність коваля вже найвища — ${max}`,
+  "equipment.uniqueFood": ({ item }) => `«${item}» унікальний — унікальне спорядження не згодовується`,
+  "equipment.foodEquipped": () => "Спершу зніміть предмет із героя — вдягнене не згодовується",
 
   // ---------- Ринок ----------
   "market.locked": ({ level }) => `Ринок відкриється з ратушею ${level} рівня`,

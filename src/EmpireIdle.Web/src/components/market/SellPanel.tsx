@@ -35,10 +35,10 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
 
   const options = useMemo<Option[]>(() => {
     const equipment = (inventory.data?.equipment ?? [])
-      .filter((item) => !item.isOnMarket && !item.isBroken)
+      .filter((item) => !item.isOnMarket)
       .map((item) => ({
         id: `e:${item.id}`,
-        label: `${catalog.itemName(item.itemKey)}${item.enhancementLevel > 0 ? ` +${item.enhancementLevel}` : ""}${item.equippedByHeroId != null ? " (вдягнено)" : ""}`,
+        label: `${catalog.itemName(item.itemKey)}${item.level > 0 ? ` · рів. ${item.level}` : ""}${item.equippedByHeroId != null ? " (вдягнено)" : ""}`,
         goods: { kind: MARKET_KIND.Equipment, equipmentId: item.id, quantity: 1 },
       }));
 

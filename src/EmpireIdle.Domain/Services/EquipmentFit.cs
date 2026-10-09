@@ -27,21 +27,23 @@ namespace EmpireIdle.Domain.Services
                    $"Artifact '{itemConfig.Key}' has no known ArtifactSlot '{itemConfig.ArtifactSlot}'.");
 
         /// <summary>
-        /// Чи кращий кандидат за те, що вже стоїть: вища рідкість, за рівної — більша заточка.
+        /// Чи кращий кандидат за те, що вже стоїть: вища рідкість, далі вищий рівень, далі майстерність.
         /// Рівний не кращий — автоекіп не міняє шило на швайку.
         /// </summary>
         public static bool IsBetter(EquipmentItem candidate, EquipmentItem? current)
             => current is null
                || candidate.Rarity > current.Rarity
-               || (candidate.Rarity == current.Rarity && candidate.EnhancementLevel > current.EnhancementLevel);
+               || (candidate.Rarity == current.Rarity
+                   && (candidate.Level > current.Level
+                       || (candidate.Level == current.Level && candidate.Mastery > current.Mastery)));
 
         /// <summary>
-        /// Найкраще вільне для кожного слота героя: не вдягнене, не зламане й не виставлене на ринок.
+        /// Найкраще вільне для кожного слота героя: не вдягнене й не виставлене на ринок.
         /// Ключ — номер слота артефакта.
         /// </summary>
         public Dictionary<int, EquipmentItem> BestFree(IEnumerable<EquipmentItem> owned)
             => owned
-                .Where(e => e.EquippedByHeroId is null && !e.IsBroken && !e.IsOnMarket)
+                .Where(e => e.EquippedByHeroId is null && !e.IsOnMarket)
                 .Select(e => (Item: e, Config: _catalog.FindItem(e.ItemKey)))
                 .Where(pair => pair.Config is not null)
                 .GroupBy(pair => SlotIndexOf(pair.Config!))
@@ -50,7 +52,8 @@ namespace EmpireIdle.Domain.Services
                     group => group
                         .Select(pair => pair.Item)
                         .OrderByDescending(e => e.Rarity)
-                        .ThenByDescending(e => e.EnhancementLevel)
+                        .ThenByDescending(e => e.Level)
+                        .ThenByDescending(e => e.Mastery)
                         .ThenBy(e => e.Id)
                         .First());
     }

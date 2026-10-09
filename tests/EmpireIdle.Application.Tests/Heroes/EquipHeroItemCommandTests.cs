@@ -129,19 +129,6 @@ public class EquipHeroItemCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldRejectABrokenArtifact()
-    {
-        var hero = GivenHero();
-        var piece = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
-        piece.Break(Now);
-        GivenEquipped(hero.Id);
-
-        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
-            Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, piece.Id), CancellationToken.None));
-        Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
-    }
-
-    [Fact]
     public async Task Handle_ShouldThrow_WhenTheItemBelongsToAnotherPlayer()
     {
         var hero = GivenHero();

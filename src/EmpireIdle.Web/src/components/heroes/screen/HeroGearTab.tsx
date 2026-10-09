@@ -45,7 +45,7 @@ export default function HeroGearTab({ hero, config, equipment, busy, onEquip, on
   // Те саме правило, що EquipmentFit на сервері: вільне, ціле, не на ринку й придатне для слота
   const candidatesFor = (slot: Slot) =>
     equipment
-      .filter((piece) => piece.equippedByHeroId == null && !piece.isBroken && !piece.isOnMarket)
+      .filter((piece) => piece.equippedByHeroId == null && !piece.isOnMarket)
       .filter((piece) => catalog.item(piece.itemKey)?.artifactSlot === slot.artifactKey);
 
   const pickedSlot = slots.find((slot) => slotId(slot) === picked) ?? null;
@@ -69,10 +69,9 @@ export default function HeroGearTab({ hero, config, equipment, busy, onEquip, on
       <Tile
         rarity={piece.rarity}
         selected={picked === slotId(slot)}
-        dimmed={piece.isBroken}
         onClick={() => setPicked(slotId(slot))}
         title={catalog.itemName(piece.itemKey)}
-        top={piece.enhancementLevel > 0 ? `+${piece.enhancementLevel}` : undefined}
+        top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
       >
         <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
       </Tile>
@@ -146,13 +145,13 @@ function SlotDetails({
           <div>
             <p className="font-semibold">
               {catalog.itemName(worn.itemKey)}
-              {worn.enhancementLevel > 0 && <span className="text-amber-200"> +{worn.enhancementLevel}</span>}
+              {worn.level > 0 && <span className="text-amber-200"> · рів. {worn.level}</span>}
+              {worn.mastery > 0 && <span className="text-sky-200"> · майст. {worn.mastery}</span>}
             </p>
             <p className="text-sm text-sky-100/90">
               {Object.entries(worn.stats)
                 .map(([stat, value]) => `${statLabel(stat)} +${Math.round(value)}`)
                 .join(" · ")}
-              {worn.isBroken && <span className="text-rose-300"> · зламано — полагодьте в кузні</span>}
             </p>
           </div>
           <GameButton onClick={() => onUnequip(worn.id)} disabled={disabled} variant="secondary">
@@ -173,7 +172,7 @@ function SlotDetails({
               onClick={() => onEquip(piece.id)}
               dimmed={disabled}
               title={`Вдягнути: ${catalog.itemName(piece.itemKey)}`}
-              top={piece.enhancementLevel > 0 ? `+${piece.enhancementLevel}` : undefined}
+              top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
             >
               <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={44} bare />
             </Tile>

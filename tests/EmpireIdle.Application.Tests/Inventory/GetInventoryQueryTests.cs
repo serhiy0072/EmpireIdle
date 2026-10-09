@@ -11,7 +11,7 @@ using NSubstitute;
 namespace EmpireIdle.Application.Tests.Inventory;
 
 /// <summary>
-/// Інвентар для показу збирає запит, а не контролер: описи з каталогу, стати із заточкою
+/// Інвентар для показу збирає запит, а не контролер: описи з каталогу, стати з рівнем і майстерністю
 /// за кривою з конфіга й лише діючі бусти.
 /// </summary>
 public class GetInventoryQueryTests
@@ -32,13 +32,16 @@ public class GetInventoryQueryTests
     private GetInventoryQueryHandler Handler()
     {
         var config = new GameConfigBuilder().WithBuildings().Build();
-        config.Equipment.EnhancementBonusPerLevel = 0.1;
+        config.Equipment.LevelBonusPerLevel = 0.05;
+        config.Equipment.MasteryBonusPerLevel = 0.1;
+        config.Equipment.FeedExperience = new Dictionary<Rarity, int> { [Rarity.Common] = 100 };
         config.Items.Add(new ItemConfig
         {
             Key = "wood_crate", DisplayName = "Ящик дерева", Description = "+500 дерева", Rarity = Rarity.Rare, Type = "resource"
         });
 
-        return new GetInventoryQueryHandler(_inventory, _effects, new GameCatalog(config), new FakeTimeProvider(Now));
+        return new GetInventoryQueryHandler(_inventory, _effects, new GameCatalog(config), new FakeTimeProvider(Now),
+            new ArtifactProgression(config.Equipment));
     }
 
     [Fact]
@@ -60,24 +63,30 @@ public class GetInventoryQueryTests
         Assert.Equal(("retired_item", Rarity.Common, "unknown"), (retired.DisplayName, retired.Rarity, retired.Type));
     }
 
-    /// <summary>Стати — ті самі, з якими предмет піде в бій: з заточкою, а зламаний — нулі.</summary>
+    /// <summary>
+    /// Стати — ті самі, з якими предмет піде в бій: рівень і майстерність із конфіга.
+    /// Поруч — скільки бракує до рівня й скільки предмет дасть, якщо його згодувати.
+    /// </summary>
     [Fact]
-    public async Task Handle_ShouldReportEnhancedStats_AndZeroForABrokenItem()
+    public async Task Handle_ShouldReportLevelledStats_AndFeedingNumbers()
     {
-        var sword = Entities.Equipment("iron_sword", EquipmentSlot.Artifact, PlayerId, stats: ("Attack", 100.0));
-        sword.Enhance(Now);
-        sword.Enhance(Now);
+        var amulet = Entities.Equipment("amulet", EquipmentSlot.Artifact, PlayerId, stats: ("Attack", 100.0));
+        // Крок до 1-го рівня — 40, до 2-го — 110: 150 досвіду дають рівень 2 рівно
+        amulet.GainExperience(150, 2, Now);
+        amulet.RaiseMastery(Now);
 
-        var broken = Entities.Equipment("old_sword", EquipmentSlot.Artifact, PlayerId, stats: ("Attack", 100.0));
-        broken.Break(Now);
-
-        _inventory.GetEquipmentAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([sword, broken]);
+        _inventory.GetEquipmentAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([amulet]);
 
         var view = await Handler().Handle(new GetInventoryQuery(PlayerId), CancellationToken.None);
 
-        // Дві заточки по 10% із конфіга
-        Assert.Equal(120.0, view.Equipment.Single(e => e.Id == sword.Id).Stats["Attack"], precision: 6);
-        Assert.Equal(0.0, view.Equipment.Single(e => e.Id == broken.Id).Stats["Attack"]);
+        var shown = Assert.Single(view.Equipment);
+        // 100 × (1 + 2·0.05 + 1·0.1)
+        Assert.Equal(120.0, shown.Stats["Attack"], precision: 6);
+        Assert.Equal((2, 150L, 1), (shown.Level, shown.Experience, shown.Mastery));
+        // До 3-го рівня — крок 190
+        Assert.Equal(190L, shown.ExperienceToNext);
+        // Звичайний: 100 за рідкість плюс увесь вкладений
+        Assert.Equal(250L, shown.FeedValue);
     }
 
     [Fact]

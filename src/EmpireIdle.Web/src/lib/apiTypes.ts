@@ -42,6 +42,7 @@ export type TutorialProgressResponse = components["schemas"]["TutorialProgressRe
 export type InventoryResponse = components["schemas"]["InventoryResponse"];
 export type InventoryItemResponse = components["schemas"]["InventoryItemResponse"];
 export type EquipmentResponse = components["schemas"]["EquipmentResponse"];
+export type ArtifactMasteryResponse = components["schemas"]["ArtifactMasteryResponse"];
 export type ActiveEffectResponse = components["schemas"]["ActiveEffectResponse"];
 export type UseItemRequest = components["schemas"]["UseItemRequest"];
 export type GiftItemRequest = components["schemas"]["GiftItemRequest"];

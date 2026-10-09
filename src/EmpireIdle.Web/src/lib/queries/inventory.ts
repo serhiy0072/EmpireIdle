@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api, isApiError } from "../api";
-import type { GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
+import type { ArtifactMasteryResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -57,14 +57,32 @@ export function useGiftItem(playerId: string) {
   });
 }
 
-/** Прокачка артефакта коштує золота села; результат видно в інвентарі. */
-export function useUpgradeArtifact(playerId: string) {
+/** Посилення артефакта: згодоване спорядження й гаєчки зникають, досвід лягає в ціль. */
+export function useFeedArtifact(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { equipmentId: string; foodIds: string[]; wrenches: Record<string, number> }) =>
+      api<void>(`/api/inventory/${playerId}/equipment/${input.equipmentId}/feed`, {
+        method: "POST",
+        body: { foodIds: input.foodIds, wrenches: input.wrenches },
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes"]),
+  });
+}
+
+/** Майстерність коваля: спроба за золото села; невдача лише з'їдає золото. */
+export function useRaiseMastery(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (equipmentId: string) =>
-      api<void>(`/api/inventory/${playerId}/equipment/${equipmentId}/upgrade`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village"]),
+      api<ArtifactMasteryResponse>(`/api/inventory/${playerId}/equipment/${equipmentId}/mastery`, {
+        method: "POST",
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes"]),
   });
 }
 

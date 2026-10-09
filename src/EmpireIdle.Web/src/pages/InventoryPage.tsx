@@ -39,7 +39,8 @@ function sortEquipment(items: EquipmentResponse[]): EquipmentResponse[] {
     (a, b) =>
       Number(b.equippedByHeroId != null) - Number(a.equippedByHeroId != null) ||
       byRarity(a, b) ||
-      b.enhancementLevel - a.enhancementLevel ||
+      b.level - a.level ||
+      b.mastery - a.mastery ||
       a.itemKey.localeCompare(b.itemKey),
   );
 }
@@ -142,10 +143,9 @@ export default function InventoryPage() {
                       key={piece.id}
                       rarity={piece.rarity}
                       selected={piece.id === selected}
-                      dimmed={piece.isBroken}
                       onClick={() => select({ item: piece.id })}
                       title={catalog.itemName(piece.itemKey)}
-                      top={piece.enhancementLevel > 0 ? `+${piece.enhancementLevel}` : undefined}
+                      top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
                       bottomLeft={
                         wearer === undefined ? undefined : (
                           <HeroPortrait
@@ -158,7 +158,6 @@ export default function InventoryPage() {
                           />
                         )
                       }
-                      bottomRight={piece.isBroken ? "зламано" : undefined}
                     >
                       <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
                     </Tile>

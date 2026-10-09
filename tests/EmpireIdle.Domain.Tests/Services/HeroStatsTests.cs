@@ -60,26 +60,16 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Power_ShouldGrowWithTheHerosLevel()
             => Assert.Equal(196, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 5), HeroConfig()), 3);
 
-        /// <summary>Сила предмета — сума статів із заточкою: (5 + 3) × (1 + 2 × 0.1).</summary>
+        /// <summary>Сила предмета — сума статів із рівнем і майстерністю: (5 + 3) × (1 + 2 × 0.05 + 1 × 0.1).</summary>
         [Fact]
-        public void Power_ShouldSumAnItemsStatsWithEnhancement()
+        public void Power_ShouldSumAnItemsStatsWithLevelAndMastery()
         {
             var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact,
                 stats: [("Attack", 5.0), ("Defense", 3.0)]);
-            item.Enhance(TestKit.Entities.Now);
-            item.Enhance(TestKit.Entities.Now);
+            item.GainExperience(150, 2, TestKit.Entities.Now);
+            item.RaiseMastery(TestKit.Entities.Now);
 
             Assert.Equal(9.6, Stats().Power(item), 3);
-        }
-
-        /// <summary>Зламаний предмет нічого не дає — і сили в нього немає.</summary>
-        [Fact]
-        public void Power_ShouldBeZero_ForABrokenItem()
-        {
-            var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 5.0)]);
-            item.Break(TestKit.Entities.Now);
-
-            Assert.Equal(0, Stats().Power(item), 3);
         }
 
         // ---------- Власні стати ----------
@@ -155,28 +145,16 @@ namespace EmpireIdle.Domain.Tests.Services
         }
 
         [Fact]
-        public void Compute_ShouldCountEnhancementInEquipmentStats()
+        public void Compute_ShouldCountLevelAndMasteryInEquipmentStats()
         {
             var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 10.0)]);
-            sword.Enhance(TestKit.Entities.Now);
-            sword.Enhance(TestKit.Entities.Now);
+            sword.GainExperience(150, 2, TestKit.Entities.Now);
+            sword.RaiseMastery(TestKit.Entities.Now);
 
             var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword]);
 
-            // 10 × (1 + 2 × 0.1)
+            // 10 × (1 + 2 × 0.05 + 1 × 0.1)
             Assert.Equal(112, result["Attack"], 3);
-        }
-
-        /// <summary>Зламане не дає нічого — так само, як і в бою.</summary>
-        [Fact]
-        public void Compute_ShouldIgnoreBrokenEquipment()
-        {
-            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 12.0)]);
-            sword.Break(TestKit.Entities.Now);
-
-            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword]);
-
-            Assert.Equal(100, result["Attack"], 3);
         }
 
         /// <summary>Стат, якого немає в героя, приходить зі спорядження цілим.</summary>
@@ -236,24 +214,6 @@ namespace EmpireIdle.Domain.Tests.Services
             ]);
 
             Assert.Equal(25, bonus["Attack"], 3);
-        }
-
-        /// <summary>Зламаний артефакт комплект не закриває.</summary>
-        [Fact]
-        public void SetBonus_ShouldNotCountBrokenPieces()
-        {
-            var broken = SetPiece(TestKeys.FourthArtifact);
-            broken.Break(TestKit.Entities.Now);
-
-            var bonus = Stats().SetBonus(
-            [
-                SetPiece(TestKeys.Artifact),
-                SetPiece(TestKeys.SecondArtifact),
-                SetPiece(TestKeys.ThirdArtifact),
-                broken
-            ]);
-
-            Assert.Empty(bonus);
         }
 
         /// <summary>Артефакт поза набором комплект не добирає.</summary>

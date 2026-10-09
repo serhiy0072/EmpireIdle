@@ -47,9 +47,10 @@ namespace EmpireIdle.Application.Market.Services
                     listing.SellerId == viewerId,
                     listing.Kind == MarketListingKind.Equipment
                         && equipment.TryGetValue(listing.EquipmentId!.Value, out var item)
-                        ? new MarketEquipmentView(item.Slot.ToString(), item.Rarity.ToString(), item.EnhancementLevel,
+                        ? new MarketEquipmentView(item.Slot.ToString(), item.Rarity.ToString(), item.Level, item.Mastery,
                             item.Stats.ToDictionary(s => s.StatKey,
-                                s => item.GetStatValue(s.StatKey, _catalog.Config.Equipment.EnhancementBonusPerLevel)))
+                                s => item.GetStatValue(s.StatKey, _catalog.Config.Equipment.LevelBonusPerLevel,
+                                    _catalog.Config.Equipment.MasteryBonusPerLevel)))
                         : null))
                 .ToList();
         }

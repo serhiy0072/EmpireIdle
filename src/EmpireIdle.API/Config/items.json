@@ -214,6 +214,22 @@
         "WeaponShards": 1
       },
       {
+        "Key": "wrench_common",
+        "DisplayName": "Гайковий ключ",
+        "Description": "Дає артефакту 100 досвіду рівня — стільки ж, скільки згодований звичайний артефакт",
+        "Rarity": "common",
+        "Type": "wrench",
+        "ArtifactExperience": 100
+      },
+      {
+        "Key": "wrench_rare",
+        "DisplayName": "Майстерський ключ",
+        "Description": "Дає артефакту 300 досвіду рівня — стільки ж, скільки згодований рідкісний артефакт",
+        "Rarity": "rare",
+        "Type": "wrench",
+        "ArtifactExperience": 300
+      },
+      {
         "Key": "speedup_1m",
         "DisplayName": "Прискорення 1 хв",
         "Description": "Зрізає 1 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
@@ -1563,17 +1579,22 @@
         { "Key": "ring", "DisplayName": "Кільце" },
         { "Key": "belt", "DisplayName": "Пояс" }
       ],
-      "MaxEnhancement": 20,
-      "EnhancementBonusPerLevel": 0.1,
+      "MaxLevel": 20,
+      "LevelBonusPerLevel": 0.05,
+      "LevelExperienceBase": 40,
+      "LevelExperienceExponent": 1.4,
+      "FeedExperience": {
+        "Common": 100,
+        "Rare": 300
+      },
+      "MaxMastery": 10,
+      "MasteryBonusPerLevel": 0.1,
       "ForgeBuildingKey": "forge",
-      "EnhanceBaseGold": 200,
-      "EnhanceCostGrowth": 1.35,
-      "SafeEnhancementLevel": 5,
-      "SuccessDropPerLevel": 0.05,
-      "MinSuccessChance": 0.25,
-      "BreakChanceOnFailure": 0.2,
-      "RepairGemsBase": 20,
-      "RepairGemsPerLevel": 8,
+      "MasteryBaseGold": 500,
+      "MasteryCostGrowth": 1.7,
+      "SafeMasteryLevel": 3,
+      "SuccessDropPerLevel": 0.1,
+      "MinSuccessChance": 0.3,
       "ArtifactBaseStats": 2,
       "ArtifactStatLevels": [
         4,

@@ -27,18 +27,7 @@ public class MarketCustodyTests
         Assert.Null(item.EquippedByHeroId);
     }
 
-    [Fact]
-    public void PutOnMarket_ShouldRefuse_ABrokenItem()
-    {
-        var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact);
-        item.Break(Now);
-
-        var refusal = Assert.Throws<InvalidStateException>(() => item.PutOnMarket(Now));
-
-        Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
-    }
-
-    /// <summary>Предмет у заставі не вдягається, не заточується й не виставляється вдруге.</summary>
+    /// <summary>Предмет у заставі не вдягається, не прокачується й не виставляється вдруге.</summary>
     [Fact]
     public void AnItemOnTheMarket_ShouldRefuseToBeUsed()
     {
@@ -48,7 +37,9 @@ public class MarketCustodyTests
         Assert.Equal(RefusalReasons.MarketItemListed.Key,
             Assert.Throws<InvalidStateException>(() => item.EquipTo(Guid.NewGuid(), 0, Now)).Reason);
         Assert.Equal(RefusalReasons.MarketItemListed.Key,
-            Assert.Throws<InvalidStateException>(() => item.Enhance(Now)).Reason);
+            Assert.Throws<InvalidStateException>(() => item.GainExperience(40, 1, Now)).Reason);
+        Assert.Equal(RefusalReasons.MarketItemListed.Key,
+            Assert.Throws<InvalidStateException>(() => item.RaiseMastery(Now)).Reason);
         Assert.Equal(RefusalReasons.MarketItemListed.Key,
             Assert.Throws<InvalidStateException>(() => item.PutOnMarket(Now)).Reason);
     }

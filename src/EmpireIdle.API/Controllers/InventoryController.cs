@@ -41,7 +41,7 @@ namespace EmpireIdle.API.Controllers
             var equipment = inventory.Equipment
                 .Select(e => new EquipmentResponse(
                     e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
-                    e.EnhancementLevel, e.EquippedByHeroId, e.SlotIndex, e.IsBroken, e.Stats,
+                    e.Level, e.Experience, e.ExperienceToNext, e.FeedValue, e.Mastery, e.EquippedByHeroId, e.SlotIndex, e.Stats,
                     e.IsOnMarket, e.ResaleLockedUntil))
                 .ToList();
 
@@ -107,16 +107,31 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Прокачати артефакт. Ідемпотентна операція — потрібен заголовок
-        /// Idempotency-Key, інакше повтор запиту дав би другий ролл.
+        /// Посилити артефакт: згодувати йому спорядження й гаєчки. Ідемпотентна операція — потрібен
+        /// заголовок Idempotency-Key, інакше повтор запиту згодував би ще раз.
         /// </summary>
-        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/upgrade")]
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/feed")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Upgrade(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> Feed(Guid playerId, Guid equipmentId, [FromBody] FeedArtifactRequest request,
+            CancellationToken cancellationToken)
         {
-            await _mediator.Send(new EnhanceArtifactCommand(playerId, equipmentId), cancellationToken);
+            await _mediator.Send(new FeedArtifactCommand(playerId, equipmentId, request.FoodIds, request.Wrenches),
+                cancellationToken);
             return NoContent();
+        }
+
+        /// <summary>
+        /// Майстерність коваля: спроба за золото. Ідемпотентна операція — потрібен заголовок Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/mastery")]
+        [ProducesResponseType(typeof(ArtifactMasteryResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ArtifactMasteryResponse>> RaiseMastery(Guid playerId, Guid equipmentId,
+            CancellationToken cancellationToken)
+        {
+            var success = await _mediator.Send(new RaiseArtifactMasteryCommand(playerId, equipmentId), cancellationToken);
+            return Ok(new ArtifactMasteryResponse(success));
         }
     }
 }

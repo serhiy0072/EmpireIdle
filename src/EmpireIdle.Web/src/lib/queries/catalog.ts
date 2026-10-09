@@ -60,8 +60,10 @@ export interface Catalog {
   artifactSlots: CatalogArtifactSlot[];
   /** Назва слота, у який вдягається артефакт; null — не артефакт. */
   artifactSlotName: (itemKey: string) => string | null;
-  /** Стеля заточки й прокачки спорядження. */
-  maxEnhancement: number;
+  /** Стеля рівня артефакта (згодовування). */
+  maxArtifactLevel: number;
+  /** Стеля майстерності коваля. */
+  maxMastery: number;
   /** Сторона світової мапи в клітинах. */
   mapSize: number;
   /** Ключ головної будівлі — її рівень показуємо як рівень гравця. */
@@ -150,7 +152,8 @@ export function useCatalog(): Catalog {
         const slot = items.get(itemKey)?.artifactSlot;
         return slot == null ? null : (data?.artifactSlots.find((s) => s.key === slot)?.displayName ?? slot);
       },
-      maxEnhancement: data?.maxEnhancement ?? 20,
+      maxArtifactLevel: data?.maxArtifactLevel ?? 20,
+      maxMastery: data?.maxMastery ?? 10,
       mapSize: data?.mapSize ?? 500,
       mainBuildingKey: data?.mainBuildingKey ?? "townhall",
       artifactSets: data?.artifactSets ?? [],

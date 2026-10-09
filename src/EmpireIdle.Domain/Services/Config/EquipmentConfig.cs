@@ -1,6 +1,8 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services.Config
 {
-    /// <summary>Спільні правила спорядження: слоти, заточка, набори.</summary>
+    /// <summary>Спільні правила артефактів: слоти, рівень, майстерність, набори.</summary>
     public class EquipmentConfig
     {
         /// <summary>
@@ -17,47 +19,52 @@ namespace EmpireIdle.Domain.Services.Config
             return index < 0 ? null : index;
         }
 
-        /// <summary>Стеля заточки, однакова для зброї й артефактів.</summary>
-        public int MaxEnhancement { get; set; } = 20;
+        /// <summary>
+        /// Стеля рівня артефакта (GDD §6.4, §9.12): рівень качається згодовуванням іншого
+        /// спорядження й гаєчок; на ньому ж — ролли нових статів (ArtifactStatLevels, ArtifactUpgradeLevels).
+        /// </summary>
+        public int MaxLevel { get; set; } = 20;
 
-        /// <summary>Приріст стата за рівень заточки, часткою.</summary>
-        public double EnhancementBonusPerLevel { get; set; } = 0.1;
+        /// <summary>Приріст статів за рівень артефакта, часткою: 0.05 — +5% за рівень.</summary>
+        public double LevelBonusPerLevel { get; set; } = 0.05;
 
-        /// <summary>Будівля, де кують і лагодять зброю.</summary>
+        /// <summary>Досвід до рівня n: round10(LevelExperienceBase · n^LevelExperienceExponent).</summary>
+        public double LevelExperienceBase { get; set; } = 40;
+
+        public double LevelExperienceExponent { get; set; } = 1.4;
+
+        /// <summary>
+        /// Базовий досвід, який дає згодований артефакт за рідкістю, плюс увесь вкладений у нього.
+        /// Рідкості без значення (унікальні) згодувати не можна.
+        /// </summary>
+        public Dictionary<Rarity, int> FeedExperience { get; set; } = new();
+
+        /// <summary>Стеля майстерності коваля — заточки артефакта за золото з шансом.</summary>
+        public int MaxMastery { get; set; } = 10;
+
+        /// <summary>Приріст статів за рівень майстерності, часткою; складається з бонусом рівня.</summary>
+        public double MasteryBonusPerLevel { get; set; } = 0.10;
+
+        /// <summary>Будівля, де кують — без неї майстерність недоступна.</summary>
         public string ForgeBuildingKey { get; set; } = "forge";
 
-        /// <summary>Вартість першого рівня заточки в золоті.</summary>
-        public int EnhanceBaseGold { get; set; } = 200;
+        /// <summary>Ціна першого рівня майстерності в золоті.</summary>
+        public int MasteryBaseGold { get; set; } = 500;
 
-        /// <summary>Множник вартості за кожен наступний рівень.</summary>
-        public double EnhanceCostGrowth { get; set; } = 1.35;
-
-        /// <summary>
-        /// До цього рівня заточка не провалюється. Перші кроки мають бути
-        /// передбачувані: гравець спершу вчиться механіці, потім ризикує.
-        /// </summary>
-        public int SafeEnhancementLevel { get; set; } = 5;
+        /// <summary>Множник ціни за кожен наступний рівень майстерності.</summary>
+        public double MasteryCostGrowth { get; set; } = 1.7;
 
         /// <summary>
-        /// Падіння шансу успіху за рівень понад безпечний, часткою.
-        /// На двадцятому рівні шанс не опускається нижче за MinSuccessChance.
+        /// До цього рівня майстерність не провалюється: перші кроки передбачувані,
+        /// гравець спершу вчиться механіці, потім ризикує.
         /// </summary>
-        public double SuccessDropPerLevel { get; set; } = 0.05;
+        public int SafeMasteryLevel { get; set; } = 3;
 
-        /// <summary>Нижня межа шансу успіху.</summary>
-        public double MinSuccessChance { get; set; } = 0.25;
+        /// <summary>Падіння шансу успіху за рівень понад безпечний, часткою; не нижче за MinSuccessChance.</summary>
+        public double SuccessDropPerLevel { get; set; } = 0.10;
 
-        /// <summary>
-        /// Шанс зламати зброю при невдалій спробі. Невдача сама по собі
-        /// не ламає: здебільшого гравець просто втрачає золото.
-        /// </summary>
-        public double BreakChanceOnFailure { get; set; } = 0.2;
-
-        /// <summary>Вартість ремонту як частка від вартості поточного рівня заточки.</summary>
-        /// <summary>Ремонт зламаної зброї — за gems: база плюс надбавка за кожен рівень заточки.</summary>
-        public int RepairGemsBase { get; set; } = 20;
-
-        public int RepairGemsPerLevel { get; set; } = 8;
+        /// <summary>Нижня межа шансу успіху. Поломки немає — невдача лише з'їдає золото.</summary>
+        public double MinSuccessChance { get; set; } = 0.30;
 
         /// <summary>Скільки статів артефакт має одразу.</summary>
         public int ArtifactBaseStats { get; set; } = 2;

@@ -25,27 +25,21 @@ namespace EmpireIdle.Domain.Tests.Entities
             var item = Weapon();
             var hero = Guid.NewGuid();
 
-            // На складі: заточка й поломка сили не рухають
-            item.Enhance(Now);
-            item.Break(Now);
-            item.Repair(Now);
+            // На складі: рівень і майстерність сили не рухають
+            item.GainExperience(40, 1, Now);
+            item.RaiseMastery(Now);
             Assert.Empty(item.DomainEvents.OfType<EquipmentChanged>());
 
             item.EquipTo(hero, 0, Now);
             Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
             item.ClearDomainEvents();
 
-            item.Enhance(Now);
+            item.GainExperience(110, 2, Now);
             Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
             item.ClearDomainEvents();
 
-            // Поломка знімає з героя — це зміна сили
-            item.Break(Now);
+            item.RaiseMastery(Now);
             Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
-            item.ClearDomainEvents();
-
-            item.Repair(Now);
-            item.EquipTo(hero, 0, Now);
             item.ClearDomainEvents();
 
             item.Unequip(Now);
@@ -85,71 +79,68 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(0, item.SlotIndex);
         }
 
-        /// <summary>
-        /// Поломка знімає зброю з героя: інакше герой бився б предметом,
-        /// який нічого не дає, і втрату помітив би не одразу.
-        /// </summary>
         [Fact]
-        public void Break_ShouldUnequipTheWeapon()
+        public void GainExperience_ShouldAccumulate_AndSetTheLevel()
         {
-            var item = Weapon();
+            var item = Artifact();
+
+            item.GainExperience(40, 1, Now);
+            item.GainExperience(110, 2, Now);
+
+            Assert.Equal((2, 150L), (item.Level, item.Experience));
+        }
+
+        /// <summary>Рівень артефакта не падає: досвід лише додається.</summary>
+        [Fact]
+        public void GainExperience_ShouldRejectALowerLevel_OrNegativeExperience()
+        {
+            var item = Artifact();
+            item.GainExperience(150, 2, Now);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => item.GainExperience(10, 1, Now));
+            Assert.Throws<ArgumentOutOfRangeException>(() => item.GainExperience(-1, 2, Now));
+        }
+
+        /// <summary>Виставлений лот у заставі: його не прокачують ні рівнем, ні майстерністю.</summary>
+        [Fact]
+        public void Progress_ShouldBeRefused_WhileOnTheMarket()
+        {
+            var item = Artifact();
+            item.PutOnMarket(Now);
+
+            Assert.Throws<InvalidStateException>(() => item.GainExperience(40, 1, Now));
+            Assert.Throws<InvalidStateException>(() => item.RaiseMastery(Now));
+        }
+
+        /// <summary>Вдягнене не згодовується: гравець не має випадково роздягти героя.</summary>
+        [Fact]
+        public void EnsureCanBeFed_ShouldRefuseAnEquippedItem()
+        {
+            var item = Artifact();
             item.EquipTo(Guid.NewGuid(), 0, Now);
-            item.Enhance(Now);
 
-            item.Break(Now);
-
-            Assert.True(item.IsBroken);
-            Assert.Null(item.EquippedByHeroId);
-
-            // Рівень лишається: гравець утратив спробу, а не прогрес
-            Assert.Equal(1, item.EnhancementLevel);
+            var refusal = Assert.Throws<InvalidStateException>(item.EnsureCanBeFed);
+            Assert.Equal(RefusalReasons.EquipmentFoodEquipped.Key, refusal.Reason);
         }
 
         [Fact]
-        public void EquipTo_ShouldRejectABrokenWeapon()
-        {
-            var item = Weapon();
-            item.Break(Now);
+        public void EnsureCanBeFed_ShouldAllowAFreeItem()
+            => Artifact().EnsureCanBeFed();
 
-            var refusal = Assert.Throws<InvalidStateException>(() => item.EquipTo(Guid.NewGuid(), 0, Now));
-            Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
-        }
-
+        /// <summary>Бонуси рівня й майстерності складаються: 10 × (1 + 2·0.05 + 1·0.1).</summary>
         [Fact]
-        public void Repair_ShouldMakeTheWeaponWearableAgain()
-        {
-            var item = Weapon();
-            item.Break(Now);
-
-            item.Repair(Now);
-
-            Assert.False(item.IsBroken);
-            Assert.Null(item.EquippedByHeroId);
-        }
-
-        [Fact]
-        public void GetStatValue_ShouldScaleWithEnhancement()
+        public void GetStatValue_ShouldAddLevelAndMasteryBonuses()
         {
             var item = Weapon(("Attack", 10.0));
-            item.Enhance(Now);
-            item.Enhance(Now);
+            item.GainExperience(150, 2, Now);
+            item.RaiseMastery(Now);
 
-            Assert.Equal(12.0, item.GetStatValue("Attack", enhancementBonus: 0.1), 3);
-        }
-
-        /// <summary>Зламане не дає нічого — інакше поломку легко проґавити.</summary>
-        [Fact]
-        public void GetStatValue_ShouldReturnZero_WhenBroken()
-        {
-            var item = Weapon(("Attack", 10.0));
-            item.Break(Now);
-
-            Assert.Equal(0, item.GetStatValue("Attack", 0.1), 3);
+            Assert.Equal(12.0, item.GetStatValue("Attack", levelBonus: 0.05, masteryBonus: 0.1), 3);
         }
 
         [Fact]
         public void GetStatValue_ShouldReturnZero_ForAnUnknownStat()
-            => Assert.Equal(0, Weapon().GetStatValue("Defense", 0.1), 3);
+            => Assert.Equal(0, Weapon().GetStatValue("Defense", 0.05, 0.1), 3);
 
         [Fact]
         public void AddStat_ShouldRejectADuplicate()
@@ -166,7 +157,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             item.RaiseStat("Attack", 2.5, Now);
 
-            Assert.Equal(7.5, item.GetStatValue("Attack", enhancementBonus: 0), 3);
+            Assert.Equal(7.5, item.GetStatValue("Attack", levelBonus: 0, masteryBonus: 0), 3);
         }
 
         [Fact]
