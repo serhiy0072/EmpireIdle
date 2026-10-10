@@ -34,7 +34,7 @@ public class ListOnMarketCommandTests
 
         var listing = Assert.Single(_bed.Added);
         Assert.Equal(id, listing.Id);
-        Assert.Equal(10, listing.Units, 3);
+        Assert.Equal(40, listing.Units, 3);
         Assert.Equal("artifact", listing.PricingKey);
         Assert.True(sword.IsOnMarket);
 

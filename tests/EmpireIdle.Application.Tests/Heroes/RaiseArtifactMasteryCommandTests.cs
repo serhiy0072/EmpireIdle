@@ -13,8 +13,8 @@ using NSubstitute;
 namespace EmpireIdle.Application.Tests.Heroes;
 
 /// <summary>
-/// Майстерність коваля (GDD §6.4): спроба за золото в кузні. Невдача з'їдає золото,
-/// але предмет не ламається й майстерність не падає.
+/// Заточка коваля (GDD §9.12): спроба за золото в кузні. Успіх додає ранг бонусу з журналом
+/// сіду; невдача з'їдає золото, а заточка не падає.
 /// </summary>
 public class RaiseArtifactMasteryCommandTests
 {
@@ -42,10 +42,15 @@ public class RaiseArtifactMasteryCommandTests
     private EquipmentItem GivenItem(int mastery = 0, Guid? owner = null)
     {
         var item = new EquipmentItem(Guid.NewGuid(), owner ?? PlayerId, 1, HeroTestConfig.Artifact,
-            EquipmentSlot.Artifact, Rarity.Rare, [("Attack", 10.0)], Now);
+            EquipmentSlot.Artifact, Rarity.Rare, Now);
+        var roller = new ArtifactRoller(_config.Equipment);
 
+        // Заточка — тими самими рангами, що й у грі: позиції бонусів мають іти по колу
         for (var i = 0; i < mastery; i++)
-            item.RaiseMastery(Now);
+        {
+            var rank = roller.RollRank("necklace", item.Mastery, item.Stats, seed: i);
+            item.ApplyMasteryRank(rank.Position, rank.Stat, rank.Value, Now);
+        }
 
         _inventory.GetEquipmentByIdAsync(item.Id, Arg.Any<CancellationToken>()).Returns(item);
         return item;
@@ -53,7 +58,7 @@ public class RaiseArtifactMasteryCommandTests
 
     private Task<bool> Raise(EquipmentItem item)
         => new RaiseArtifactMasteryCommandHandler(_inventory, _villages, _unitOfWork, new FakeTimeProvider(Now),
-                new MasteryRules(_config.Equipment), _random, new GameCatalog(_config),
+                new MasteryRules(_config.Equipment), _random, new ArtifactRoller(_config.Equipment), new GameCatalog(_config),
                 NullLogger<RaiseArtifactMasteryCommandHandler>.Instance)
             .Handle(new RaiseArtifactMasteryCommand(PlayerId, item.Id), CancellationToken.None);
 
@@ -68,11 +73,58 @@ public class RaiseArtifactMasteryCommandTests
 
         var success = await Raise(item);
 
-        // Нижче безпечного рівня спроба певна, навіть із найгіршим кидком
+        // Перші п'ять спроб певні, навіть із найгіршим кидком
         Assert.True(success);
         Assert.Equal(1, item.Mastery);
-        Assert.Equal(100_000 - 500, Gold(village));
+        Assert.Equal(100_000 - 400, Gold(village));
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Перший ранг — перший сталий бонус намиста, а сід лягає в журнал під новою заточкою.</summary>
+    [Fact]
+    public async Task Handle_ShouldAddTheRankBonus_AndRecordItsSeed()
+    {
+        GivenVillage();
+        var item = GivenItem();
+        _random.NextDouble().Returns(0.0);
+        _random.Next(Arg.Any<int>()).Returns(4242);
+
+        await Raise(item);
+
+        var bonus = Assert.Single(item.Stats);
+        Assert.Equal(("Attack", 0), (bonus.StatKey, bonus.Position));
+        Assert.Contains(bonus.Value, _config.Equipment.FindArtifactBonus("Attack")!.Steps);
+        var roll = Assert.Single(item.Rolls);
+        Assert.Equal((1, 4242), (roll.Mastery, roll.Seed));
+    }
+
+    /// <summary>Третій ранг відкриває випадковий бонус — із пулу намиста.</summary>
+    [Fact]
+    public async Task Handle_ShouldOpenARandomBonus_OnTheThirdRank()
+    {
+        GivenVillage();
+        var item = GivenItem(mastery: 2);
+        _random.NextDouble().Returns(0.0);
+
+        await Raise(item);
+
+        var pool = _config.Equipment.FindArtifactSlot("necklace")!.RandomBonuses.Select(e => e.Stat);
+        Assert.Contains(Assert.Single(item.Stats, s => s.Position == 2).StatKey, pool);
+    }
+
+    /// <summary>Невдача не додає ні рангу, ні запису в журнал.</summary>
+    [Fact]
+    public async Task Handle_ShouldNotRollABonus_OnFailure()
+    {
+        GivenVillage();
+        var item = GivenItem(mastery: 5);
+        var before = item.Stats.Sum(s => s.Value);
+        _random.NextDouble().Returns(0.99);
+
+        await Raise(item);
+
+        Assert.Equal(before, item.Stats.Sum(s => s.Value), 3);
+        Assert.Empty(item.Rolls);
     }
 
     /// <summary>Невдача: золото списане й збережене, майстерність та сама, предмет цілий.</summary>

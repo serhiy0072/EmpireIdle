@@ -91,9 +91,4 @@ public class DungeonConfigValidationTests
             c.Equipment.ArtifactTierMultipliers = [1.0, 1.5];
             c.Equipment.ArtifactSets.Single().Tier = tier;
         });
-
-    /// <summary>Характер у стат, якого немає в пулі, тихо нічого б не робив.</summary>
-    [Fact]
-    public void Validate_ShouldRejectAFocusStatOutsideThePool()
-        => Assert.Contains("Luck", Rejects(c => c.Equipment.ArtifactSets.Single().FocusStats = ["Luck"]).Message);
 }

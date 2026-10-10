@@ -1,24 +1,25 @@
 using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
 {
-    /// <summary>Що саме змінилось на артефакті за один ролл.</summary>
-    /// <param name="Added">Нові стати з їхніми значеннями.</param>
-    /// <param name="Raised">Приріст до наявних статів.</param>
-    public record ArtifactRoll(
-        IReadOnlyDictionary<string, double> Added,
-        IReadOnlyDictionary<string, double> Raised);
+    /// <summary>Що дав один ранг заточки.</summary>
+    /// <param name="Position">Позиція бонусу на предметі, 0–3.</param>
+    /// <param name="Stat">Ключ стату бонусу.</param>
+    /// <param name="Step">Ступінь 1–4, що випав.</param>
+    /// <param name="Value">Значення ступеня у відсотках — додається до бонусу.</param>
+    public record ArtifactRank(int Position, string Stat, int Step, double Value);
 
     /// <summary>
-    /// Розігрує стати артефактів.
+    /// Розігрує ранги заточки артефактів (GDD §9.12).
     ///
-    /// Увесь випадок бере з сіда через DeterministicRandom, а не з
-    /// IRandomSource напряму: сід зберігається поруч із предметом, і будь-який
-    /// ролл можна переграти. Скарга «прокачав тричі й усе в сміттєвий стат»
-    /// інакше не має відповіді, а рандом у прогресії предмета — рівно той
-    /// випадок, коли такі скарги будуть.
+    /// Ранги йдуть по колу: +1 → бонус 1, +2 → бонус 2, +3 → бонус 3, +4 → бонус 4, +5 — знову
+    /// бонус 1. Перші два — сталі для типу слота, третій і четвертий випадають із пулу слота
+    /// без повтору. Кожен ранг кидає ступінь 1–4 за BonusStepChances.
+    ///
+    /// Увесь випадок бере з сіда через DeterministicRandom, а не з IRandomSource напряму:
+    /// сід лягає в журнал предмета, і будь-який ранг можна переграти. Скарга «точив тричі —
+    /// і все одиниці» інакше не має відповіді.
     /// </summary>
     public class ArtifactRoller
     {
@@ -29,125 +30,71 @@ namespace EmpireIdle.Domain.Services
             _config = config;
         }
 
-        /// <summary>Стартовий набір: два випадкові стати з пулу.</summary>
-        /// <param name="setKey">SetKey предмета: задає рівень і характер набору; null — без них.</param>
-        public IReadOnlyDictionary<string, double> RollInitial(Rarity rarity, string? setKey, int seed)
+        /// <summary>Ранг, який дає заточка з <paramref name="currentMastery"/> на наступну.</summary>
+        /// <param name="slotKey">Тип слота предмета: задає сталі бонуси й пул випадкових.</param>
+        /// <param name="current">Бонуси, які вже є на предметі.</param>
+        /// <exception cref="InvalidOperationException">Тип слота чи стат поза конфігом — битий конфіг.</exception>
+        public ArtifactRank RollRank(string? slotKey, int currentMastery, IReadOnlyCollection<EquipmentStat> current, int seed)
         {
             var random = new DeterministicRandom(seed);
-            var set = _config.FindArtifactSet(setKey);
-            var pool = _config.ArtifactStats.OrderBy(s => s.Stat, StringComparer.Ordinal).ToList();
-            var result = new Dictionary<string, double>();
 
-            for (var i = 0; i < _config.ArtifactBaseStats && pool.Count > 0; i++)
-            {
-                var pick = Pick(pool, set, random);
-                pool.Remove(pick);
+            var slot = _config.FindArtifactSlot(slotKey)
+                ?? throw new InvalidOperationException($"Artifact slot '{slotKey}' is not configured.");
 
-                result[pick.Stat] = Value(pick.Min, pick.Max, rarity, set, random);
-            }
+            var position = currentMastery % 4;
 
-            return result;
+            // Стат позиції обирається лише раз — на першому її ранзі; далі той самий росте
+            var stat = current.FirstOrDefault(s => s.Position == position)?.StatKey
+                ?? (position < slot.FixedBonuses.Count
+                    ? slot.FixedBonuses[position]
+                    : PickRandom(slot, current, random));
+
+            var bonus = _config.FindArtifactBonus(stat)
+                ?? throw new InvalidOperationException($"Artifact bonus '{stat}' is not configured.");
+
+            var step = PickStep(random);
+
+            return new ArtifactRank(position, stat, step + 1, bonus.Steps[step]);
         }
 
-        /// <summary>
-        /// Що дає перехід на заданий рівень. Рівні, яких немає ні в
-        /// ArtifactStatLevels, ні в ArtifactUpgradeLevels, не дають нічого:
-        /// прокачка все одно коштує золота, але міняє лише число на предметі.
-        /// </summary>
-        public ArtifactRoll RollForLevel(int level, Rarity rarity, string? setKey,
-            IReadOnlyCollection<string> currentStats, int seed)
+        /// <summary>Випадковий бонус із пулу слота за вагами; той, що вже є, не повторюється.</summary>
+        private static string PickRandom(ArtifactSlotConfig slot, IReadOnlyCollection<EquipmentStat> current, DeterministicRandom random)
         {
-            var random = new DeterministicRandom(seed);
-            var set = _config.FindArtifactSet(setKey);
-            var added = new Dictionary<string, double>();
-            var raised = new Dictionary<string, double>();
-
-            if (_config.ArtifactStatLevels.Contains(level))
-            {
-                var pool = _config.ArtifactStats
-                    .Where(s => !currentStats.Contains(s.Stat))
-                    .OrderBy(s => s.Stat, StringComparer.Ordinal)
-                    .ToList();
-
-                // Пул вичерпано — новий стат не з'явиться; прокачка тоді
-                // просто не додає нічого, і це не помилка
-                if (pool.Count > 0)
-                {
-                    var pick = Pick(pool, set, random);
-                    added[pick.Stat] = Value(pick.Min, pick.Max, rarity, set, random);
-                }
-            }
-
-            if (_config.ArtifactUpgradeLevels.Contains(level) && currentStats.Count > 0)
-            {
-                // Скільки статів качаємо, вирішується першим кидком — до того,
-                // як обрано які саме: інакше шанс залежав би від порядку
-                var count = random.NextDouble() < _config.DoubleUpgradeChance ? 2 : 1;
-
-                var candidates = currentStats.OrderBy(s => s, StringComparer.Ordinal).ToList();
-
-                for (var i = 0; i < count && candidates.Count > 0; i++)
-                {
-                    var stat = candidates[random.Next(candidates.Count)];
-                    candidates.Remove(stat);
-
-                    var band = _config.ArtifactStats.FirstOrDefault(s => s.Stat == stat);
-
-                    if (band is null)
-                        continue;
-
-                    raised[stat] = Value(band.UpgradeMin, band.UpgradeMax, rarity, set, random);
-                }
-            }
-
-            return new ArtifactRoll(added, raised);
-        }
-
-        /// <summary>
-        /// Вибір стату з пулу. Без характеру — рівноймовірно й тим самим кидком,
-        /// що й до появи характерів: журнали ролів старих предметів відтворюються.
-        /// З характером — характерні стати важать ArtifactFocusWeight.
-        /// </summary>
-        private ArtifactStatConfig Pick(List<ArtifactStatConfig> pool, ArtifactSetConfig? set, DeterministicRandom random)
-        {
-            if (set is null || set.FocusStats.Count == 0)
-                return pool[random.Next(pool.Count)];
-
-            var weights = pool
-                .Select(s => set.FocusStats.Contains(s.Stat) ? _config.ArtifactFocusWeight : 1.0)
+            var pool = slot.RandomBonuses
+                .Where(entry => current.All(s => s.StatKey != entry.Stat))
                 .ToList();
 
-            var roll = random.NextDouble() * weights.Sum();
+            if (pool.Count == 0)
+                throw new InvalidOperationException($"Artifact slot '{slot.Key}' has no random bonus left to roll.");
 
-            for (var i = 0; i < pool.Count; i++)
+            var roll = random.NextDouble() * pool.Sum(entry => entry.Weight);
+
+            foreach (var entry in pool)
             {
-                roll -= weights[i];
+                roll -= entry.Weight;
 
                 if (roll < 0)
-                    return pool[i];
+                    return entry.Stat;
             }
 
             // Похибка double на останньому кроці — беремо останній
-            return pool[^1];
+            return pool[^1].Stat;
         }
 
-        private double Value(double min, double max, Rarity rarity, ArtifactSetConfig? set, DeterministicRandom random)
+        /// <summary>Індекс ступеня 0–3 за шансами.</summary>
+        private int PickStep(DeterministicRandom random)
         {
-            var multiplier = _config.ArtifactRarityMultipliers.GetValueOrDefault(rarity.ToString(), 1.0)
-                * TierMultiplier(set);
+            var roll = random.NextDouble();
 
-            return Math.Round((min + random.NextDouble() * (max - min)) * multiplier, 2);
-        }
+            for (var i = 0; i < _config.BonusStepChances.Count; i++)
+            {
+                roll -= _config.BonusStepChances[i];
 
-        /// <summary>Рівень поза списком множників бере останній відомий — як і тір героя.</summary>
-        private double TierMultiplier(ArtifactSetConfig? set)
-        {
-            var multipliers = _config.ArtifactTierMultipliers;
+                if (roll < 0)
+                    return i;
+            }
 
-            if (set is null || multipliers.Count == 0)
-                return 1.0;
-
-            return multipliers[Math.Clamp(set.Tier - 1, 0, multipliers.Count - 1)];
+            return _config.BonusStepChances.Count - 1;
         }
     }
 }

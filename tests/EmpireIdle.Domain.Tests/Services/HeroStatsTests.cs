@@ -10,9 +10,12 @@ namespace EmpireIdle.Domain.Tests.Services
     /// Підсумкові стати героя.
     ///
     /// Головне тут — порядок: рівень і тір дають стат героя, і вже до
-    /// готового числа додається спорядження. Множник тіру на екіп не діє,
-    /// інакше той самий меч на третьому тірі коштував би вдвічі більше,
+    /// готового числа додається спорядження. Множник тіру героя на екіп не діє,
+    /// інакше той самий артефакт на третьому тірі коштував би вдвічі більше,
     /// ніж на першому, і сенс шукати кращий зникав би.
+    ///
+    /// Звичайний артефакт рівня 0 у TestKit: атака й захист героя по 10, юнітів — по 40.
+    /// Воїн (TestKeys.CommonHero) має множник класу 1.0 атаки й 1.2 захисту.
     /// </summary>
     public class HeroStatsTests
     {
@@ -20,7 +23,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var config = new GameConfigBuilder()
                 .WithHeroes()
-                .WithEquipment()
+                .WithEquipment(e => e.ArtifactClassMultipliers["warrior"] = new ArtifactClassMultiplierConfig { Attack = 1.0, Defense = 1.2 })
                 .Build();
 
             return new HeroStats(new HeroProgression(config.HeroSettings), new GameCatalog(config));
@@ -30,7 +33,10 @@ namespace EmpireIdle.Domain.Tests.Services
             => new GameCatalog(new GameConfigBuilder().WithHeroes().WithEquipment().Build()).Hero(TestKeys.CommonHero);
 
         private static EquipmentItem SetPiece(string key)
-            => TestKit.Entities.Equipment(key, EquipmentSlot.Artifact, stats: [("Attack", 5.0)]);
+            => TestKit.Entities.Equipment(key, EquipmentSlot.Artifact);
+
+        private static EquipmentItem Necklace(int level = 0, params (int Position, string Stat, double Value)[] bonuses)
+            => TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, level: level, bonuses: bonuses);
 
         // ---------- Сила ----------
 
@@ -60,16 +66,40 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Power_ShouldGrowWithTheHerosLevel()
             => Assert.Equal(196, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 5), HeroConfig()), 3);
 
-        /// <summary>Сила предмета — сума статів із рівнем і майстерністю: (5 + 3) × (1 + 2 × 0.05 + 1 × 0.1).</summary>
+        /// <summary>Сила звичайного артефакта рівня 0: (10 + 10) × 1 + (40 + 40) × 0.25.</summary>
         [Fact]
-        public void Power_ShouldSumAnItemsStatsWithLevelAndMastery()
-        {
-            var item = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact,
-                stats: [("Attack", 5.0), ("Defense", 3.0)]);
-            item.GainExperience(150, 2, TestKit.Entities.Now);
-            item.RaiseMastery(TestKit.Entities.Now);
+        public void Power_ShouldWeighTheItemsFlatBase()
+            => Assert.Equal(40, Stats().Power(Necklace()), 3);
 
-            Assert.Equal(9.6, Stats().Power(item), 3);
+        /// <summary>
+        /// Рівень 2 і бонуси: атака 14 × 1.1, захист 14, атака юнітів 56 × 1.05, захист юнітів 56,
+        /// плюс 2% крита по 10 сили: 29.4 + 114.8 × 0.25 + 20.
+        /// </summary>
+        [Fact]
+        public void Power_ShouldCountTheLevelTheFixedBoostsAndTheRandomBonuses()
+        {
+            var item = Necklace(level: 2, (0, "Attack", 10), (1, "UnitAttack", 5), (2, "CritChance", 2));
+
+            Assert.Equal(78.1, Stats().Power(item), 3);
+        }
+
+        /// <summary>
+        /// Сила героя з вдягненим — власна плюс сила предмета з множником класу:
+        /// 140 + (10 + 12) + (40 + 48) × 0.25.
+        /// </summary>
+        [Fact]
+        public void Power_WithGear_ShouldAddTheItemPowerWithTheClassMultiplier()
+            => Assert.Equal(184, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), [Necklace()]), 3);
+
+        /// <summary>Відсотки крита складаються в силу за своєю вагою, а не з пласкою атакою.</summary>
+        [Fact]
+        public void Power_WithGear_ShouldNotSumPercentStatsAsFlatStats()
+        {
+            var plain = Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [Necklace()]);
+            var critical = Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(),
+                [Necklace(0, (2, "CritChance", 3))]);
+
+            Assert.Equal(30, critical - plain, 3);
         }
 
         // ---------- Власні стати ----------
@@ -112,19 +142,21 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Спорядження ----------
 
+        /// <summary>База предмета йде в стати з множником класу: воїн отримує 10 атаки й 12 захисту.</summary>
         [Fact]
-        public void Compute_ShouldAddEquipmentStats()
+        public void Compute_ShouldAddTheItemBase_WithTheClassMultiplier()
         {
-            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 12.0)]);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), [Necklace()]);
 
-            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), [sword]);
-
-            Assert.Equal(112, result["Attack"], 3);
+            Assert.Equal(110, result["Attack"], 3);
+            Assert.Equal(52, result["Defense"], 3);
+            Assert.Equal(40, result["UnitAttack"], 3);
+            Assert.Equal(48, result["UnitDefense"], 3);
         }
 
         /// <summary>
-        /// Той самий меч дає однаково на першому й третьому тірі. Це головна
-        /// перевірка порядку: якби екіп множився тіром, різниця була б удвічі.
+        /// Той самий артефакт дає однаково на першому й третьому тірі. Це головна
+        /// перевірка порядку: якби екіп множився тіром героя, різниця була б удвічі.
         /// </summary>
         [Fact]
         public void Compute_ShouldNotScaleEquipmentWithTier()
@@ -135,48 +167,52 @@ namespace EmpireIdle.Domain.Tests.Services
             var bareTier1 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 1), config, [])["Attack"];
             var bareTier3 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 3), config, [])["Attack"];
 
-            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 12.0)]);
+            var withTier1 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 1), config, [Necklace()])["Attack"];
+            var withTier3 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 3), config, [Necklace()])["Attack"];
 
-            var withTier1 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 1), config, [sword])["Attack"];
-            var withTier3 = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, tier: 3), config, [sword])["Attack"];
-
-            Assert.Equal(12, withTier1 - bareTier1, 3);
-            Assert.Equal(12, withTier3 - bareTier3, 3);
+            Assert.Equal(10, withTier1 - bareTier1, 3);
+            Assert.Equal(10, withTier3 - bareTier3, 3);
         }
 
+        /// <summary>Рівень 2 і сталий бонус +10% атаки: (10 + 2 × 2) × 1.1.</summary>
         [Fact]
-        public void Compute_ShouldCountLevelAndMasteryInEquipmentStats()
+        public void Compute_ShouldCountTheLevelAndTheFixedBoost()
         {
-            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 10.0)]);
-            sword.GainExperience(150, 2, TestKit.Entities.Now);
-            sword.RaiseMastery(TestKit.Entities.Now);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(),
+                [Necklace(level: 2, (0, "Attack", 10))]);
 
-            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword]);
-
-            // 10 × (1 + 2 × 0.05 + 1 × 0.1)
-            Assert.Equal(112, result["Attack"], 3);
+            Assert.Equal(115.4, result["Attack"], 3);
         }
 
-        /// <summary>Стат, якого немає в героя, приходить зі спорядження цілим.</summary>
+        /// <summary>Відсоток атаки героя множить усю атаку, а не лише ту, що дав предмет: (100 + 10) × 1.1.</summary>
         [Fact]
-        public void Compute_ShouldIntroduceStatsTheHeroLacks()
+        public void Compute_ShouldMultiplyTheWholeStat_ByAHeroPercentBonus()
         {
-            var charm = TestKit.Entities.Equipment(TestKeys.LooseArtifact, EquipmentSlot.Artifact, stats: [("Health", 50.0)]);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(),
+                [Necklace(0, (2, "AttackPercent", 10))]);
 
-            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [charm]);
+            Assert.Equal(121, result["Attack"], 3);
+        }
 
-            Assert.Equal(50, result["Health"], 3);
+        /// <summary>Бонус, якого бій ще не знає, приходить у стати своїм ключем — для сили й картки героя.</summary>
+        [Fact]
+        public void Compute_ShouldCarryRandomBonusesUnderTheirKeys()
+        {
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(),
+                [Necklace(0, (2, "CritChance", 3)), TestKit.Entities.Equipment(TestKeys.SecondArtifact, EquipmentSlot.Artifact,
+                    bonuses: [(2, "CritChance", 2)])]);
+
+            Assert.Equal(5, result["CritChance"], 3);
         }
 
         [Fact]
         public void Compute_ShouldSumSeveralItems()
         {
-            var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, stats: [("Attack", 12.0)]);
-            var charm = TestKit.Entities.Equipment(TestKeys.LooseArtifact, EquipmentSlot.Artifact, stats: [("Attack", 6.0)]);
+            var ring = TestKit.Entities.Equipment(TestKeys.LooseArtifact, EquipmentSlot.Artifact);
 
-            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [sword, charm]);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [Necklace(), ring]);
 
-            Assert.Equal(118, result["Attack"], 3);
+            Assert.Equal(120, result["Attack"], 3);
         }
 
         // ---------- Набір ----------
@@ -243,8 +279,8 @@ namespace EmpireIdle.Domain.Tests.Services
                 SetPiece(TestKeys.FourthArtifact)
             ]);
 
-            // 100 базових + 4 × 5 зі статів + 25 за комплект
-            Assert.Equal(145, result["Attack"], 3);
+            // 100 базових + 4 × 10 бази артефактів + 25 за комплект
+            Assert.Equal(165, result["Attack"], 3);
         }
     }
 }

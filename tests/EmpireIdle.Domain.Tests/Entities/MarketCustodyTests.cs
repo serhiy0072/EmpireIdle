@@ -39,7 +39,7 @@ public class MarketCustodyTests
         Assert.Equal(RefusalReasons.MarketItemListed.Key,
             Assert.Throws<InvalidStateException>(() => item.GainExperience(40, 1, Now)).Reason);
         Assert.Equal(RefusalReasons.MarketItemListed.Key,
-            Assert.Throws<InvalidStateException>(() => item.RaiseMastery(Now)).Reason);
+            Assert.Throws<InvalidStateException>(() => item.ApplyMasteryRank(0, "Attack", 5, Now)).Reason);
         Assert.Equal(RefusalReasons.MarketItemListed.Key,
             Assert.Throws<InvalidStateException>(() => item.PutOnMarket(Now)).Reason);
     }

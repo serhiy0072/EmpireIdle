@@ -32,9 +32,7 @@ public class GetInventoryQueryTests
     private GetInventoryQueryHandler Handler()
     {
         var config = new GameConfigBuilder().WithBuildings().Build();
-        config.Equipment.LevelBonusPerLevel = 0.05;
-        config.Equipment.MasteryBonusPerLevel = 0.1;
-        config.Equipment.FeedExperience = new Dictionary<Rarity, int> { [Rarity.Common] = 100 };
+        config.Equipment = GameConfigBuilder.DefaultEquipment(TestKeys.Forge);
         config.Items.Add(new ItemConfig
         {
             Key = "wood_crate", DisplayName = "Ящик дерева", Description = "+500 дерева", Rarity = Rarity.Rare, Type = "resource"
@@ -64,29 +62,32 @@ public class GetInventoryQueryTests
     }
 
     /// <summary>
-    /// Стати — ті самі, з якими предмет піде в бій: рівень і майстерність із конфіга.
-    /// Поруч — скільки бракує до рівня й скільки предмет дасть, якщо його згодувати.
+    /// Стати — база з рівнем і сталим бонусом плюс відсотки випадкових; без множника класу,
+    /// бо предмет ще не на герої. Поруч — скільки бракує до рівня й скільки предмет дасть,
+    /// якщо його згодувати.
     /// </summary>
     [Fact]
-    public async Task Handle_ShouldReportLevelledStats_AndFeedingNumbers()
+    public async Task Handle_ShouldReportTheItemsStats_AndFeedingNumbers()
     {
-        var amulet = Entities.Equipment("amulet", EquipmentSlot.Artifact, PlayerId, stats: ("Attack", 100.0));
-        // Крок до 1-го рівня — 40, до 2-го — 110: 150 досвіду дають рівень 2 рівно
-        amulet.GainExperience(150, 2, Now);
-        amulet.RaiseMastery(Now);
+        var amulet = Entities.Equipment("amulet", EquipmentSlot.Artifact, PlayerId, bonuses: [(0, "Attack", 10), (2, "CritChance", 2)]);
+        // Кроки до 1-го й 2-го рівня — по 100: 200 досвіду дають рівень 2 рівно
+        amulet.GainExperience(200, 2, Now);
 
         _inventory.GetEquipmentAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([amulet]);
 
         var view = await Handler().Handle(new GetInventoryQuery(PlayerId), CancellationToken.None);
 
         var shown = Assert.Single(view.Equipment);
-        // 100 × (1 + 2·0.05 + 1·0.1)
-        Assert.Equal(120.0, shown.Stats["Attack"], precision: 6);
-        Assert.Equal((2, 150L, 1), (shown.Level, shown.Experience, shown.Mastery));
-        // До 3-го рівня — крок 190
-        Assert.Equal(190L, shown.ExperienceToNext);
+        // (10 + 2 × 2) × 1.1; захист без бонусу; юнітів — 40 + 2 × 8
+        Assert.Equal(15.4, shown.Stats["Attack"], precision: 6);
+        Assert.Equal(14.0, shown.Stats["Defense"], precision: 6);
+        Assert.Equal(56.0, shown.Stats["UnitAttack"], precision: 6);
+        Assert.Equal(2.0, shown.Stats["CritChance"], precision: 6);
+        Assert.Equal((2, 200L, 2), (shown.Level, shown.Experience, shown.Mastery));
+        // До 3-го рівня — крок 110
+        Assert.Equal(110L, shown.ExperienceToNext);
         // Звичайний: 100 за рідкість плюс увесь вкладений
-        Assert.Equal(250L, shown.FeedValue);
+        Assert.Equal(300L, shown.FeedValue);
     }
 
     [Fact]

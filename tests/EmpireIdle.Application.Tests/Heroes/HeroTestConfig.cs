@@ -76,45 +76,7 @@ internal static class HeroTestConfig
                 SetKey = "dawn"
             }
         ],
-        Equipment = new EquipmentConfig
-        {
-            ArtifactSlots =
-            [
-                new ArtifactSlotConfig { Key = "necklace", DisplayName = "Намисто" },
-                new ArtifactSlotConfig { Key = "crown", DisplayName = "Корона" },
-                new ArtifactSlotConfig { Key = "ring", DisplayName = "Кільце" },
-                new ArtifactSlotConfig { Key = "belt", DisplayName = "Пояс" }
-            ],
-            MaxLevel = 20,
-            LevelBonusPerLevel = 0.05,
-            LevelExperienceBase = 40,
-            LevelExperienceExponent = 1.4,
-            FeedExperience = new Dictionary<Rarity, int> { [Rarity.Common] = 100, [Rarity.Rare] = 300 },
-            MaxMastery = 10,
-            MasteryBonusPerLevel = 0.1,
-            ForgeBuildingKey = Forge,
-            MasteryBaseGold = 500,
-            MasteryCostGrowth = 1.7,
-            SafeMasteryLevel = 3,
-            SuccessDropPerLevel = 0.1,
-            MinSuccessChance = 0.3,
-            ArtifactBaseStats = 2,
-            ArtifactStatLevels = [4, 8],
-            ArtifactUpgradeLevels = [12, 16, 20],
-            DoubleUpgradeChance = 0.1,
-            ArtifactStats =
-            [
-                new ArtifactStatConfig { Stat = "Attack", Min = 4, Max = 12, UpgradeMin = 1, UpgradeMax = 3 },
-                new ArtifactStatConfig { Stat = "Defense", Min = 5, Max = 14, UpgradeMin = 1, UpgradeMax = 4 },
-                new ArtifactStatConfig { Stat = "Health", Min = 20, Max = 60, UpgradeMin = 5, UpgradeMax = 15 }
-            ],
-            ArtifactRarityMultipliers = new Dictionary<string, double>
-            {
-                ["Common"] = 1.0,
-                ["Rare"] = 1.4,
-                ["Unique"] = 2.0
-            }
-        },
+        Equipment = TestKit.GameConfigBuilder.DefaultEquipment(Forge),
         HeroSettings = new HeroesConfig
         {
             BuildingKey = Hall,

@@ -366,16 +366,6 @@ namespace EmpireIdle.Domain.Services
             if (badTiers.Count > 0)
                 throw new InvalidOperationException(
                     $"Equipment.ArtifactSets have tiers outside 1–{tiers}: {string.Join(", ", badTiers)}.");
-
-            var pool = equipment.ArtifactStats.Select(s => s.Stat).ToHashSet();
-
-            var unknownFocus = equipment.ArtifactSets
-                .SelectMany(s => s.FocusStats.Where(stat => !pool.Contains(stat)).Select(stat => $"{s.Key}: {stat}"))
-                .ToList();
-
-            if (unknownFocus.Count > 0)
-                throw new InvalidOperationException(
-                    $"Equipment.ArtifactSets focus on stats outside ArtifactStats: {string.Join(", ", unknownFocus)}.");
         }
 
         /// <summary>
@@ -1255,12 +1245,6 @@ namespace EmpireIdle.Domain.Services
             if (config.Equipment.MaxLevel < 1 || config.Equipment.MaxMastery < 0)
                 throw new InvalidOperationException("Equipment.MaxLevel must be at least 1 and MaxMastery non-negative.");
 
-            if (config.Equipment.LevelBonusPerLevel <= 0 || config.Equipment.MasteryBonusPerLevel < 0)
-                throw new InvalidOperationException(
-                    "Equipment.LevelBonusPerLevel must be above zero — otherwise a level changes nothing.");
-
-            if (config.Equipment.LevelExperienceBase <= 0 || config.Equipment.LevelExperienceExponent <= 0)
-                throw new InvalidOperationException("Equipment level experience curve must be positive.");
 
             // Рівень качається згодовуванням (GDD §6.4): без досвіду за рідкість артефакт не вирости
             if (config.Equipment.FeedExperience.Count == 0 || config.Equipment.FeedExperience.Values.Any(xp => xp < 1))
@@ -1270,10 +1254,7 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Equipment.ForgeBuildingKey '{config.Equipment.ForgeBuildingKey}' is not a known building.");
 
-            if (config.Equipment.ArtifactStats.Count < config.Equipment.ArtifactBaseStats)
-                throw new InvalidOperationException(
-                    "Equipment.ArtifactStats has fewer entries than ArtifactBaseStats — "
-                    + "a new artifact could not be filled.");
+            ValidateArtifactStats(config, equipment);
 
             var setKeys = config.Items
                 .Where(i => !string.IsNullOrWhiteSpace(i.SetKey))
@@ -1313,31 +1294,6 @@ namespace EmpireIdle.Domain.Services
                     throw new InvalidOperationException($"Set bonus '{bonus.SetKey}' grants nothing.");
             }
 
-            var brokenBands = config.Equipment.ArtifactStats
-                .Where(s => s.Min > s.Max || s.UpgradeMin > s.UpgradeMax || s.Min < 0 || s.UpgradeMin < 0)
-                .Select(s => s.Stat)
-                .ToList();
-
-            if (brokenBands.Count > 0)
-                throw new InvalidOperationException(
-                    $"Equipment.ArtifactStats has invalid bands: {string.Join(", ", brokenBands)}.");
-
-            RequireUniqueKeys(config.Equipment.ArtifactStats.Select(s => s.Stat).ToList(), "Equipment.ArtifactStats");
-
-            if (config.Equipment.DoubleUpgradeChance is < 0 or > 1)
-                throw new InvalidOperationException("Equipment.DoubleUpgradeChance must be within 0..1.");
-
-            // Рівні поза стелею означають правило, яке ніколи не спрацює
-            var unreachable = config.Equipment.ArtifactStatLevels
-                .Concat(config.Equipment.ArtifactUpgradeLevels)
-                .Where(l => l < 1 || l > config.Equipment.MaxLevel)
-                .ToList();
-
-            if (unreachable.Count > 0)
-                throw new InvalidOperationException(
-                    $"Equipment artifact levels outside 1..{config.Equipment.MaxLevel}: "
-                    + string.Join(", ", unreachable));
-
             foreach (var item in equipment)
             {
                 if (item.Slot is null)
@@ -1345,8 +1301,90 @@ namespace EmpireIdle.Domain.Services
 
                 if (item.Slot == EquipmentSlot.Artifact && item.BaseStats.Count > 0)
                     throw new InvalidOperationException(
-                        $"Artifact '{item.Key}' has BaseStats — artifact stats are rolled per instance.");
+                        $"Artifact '{item.Key}' has BaseStats — artifact base comes from Equipment.ArtifactBase.");
             }
+        }
+
+        /// <summary>
+        /// Стати артефактів (GDD §9.12): база для кожної рідкості, що трапляється, сталі бонуси —
+        /// лише базові стати, пули — з відомих бонусів і не менше двох, ступенів стільки ж,
+        /// скільки шансів, і шанси заточки покривають усю стелю.
+        /// </summary>
+        private static void ValidateArtifactStats(GameConfig config, IReadOnlyCollection<ItemConfig> equipment)
+        {
+            var settings = config.Equipment;
+
+            var baseless = equipment
+                .Where(i => i.Slot == EquipmentSlot.Artifact && !settings.ArtifactBase.ContainsKey(i.Rarity))
+                .Select(i => i.Rarity)
+                .Distinct()
+                .ToList();
+
+            if (baseless.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactBase has no entry for rarities: {string.Join(", ", baseless)}.");
+
+            var unknownClasses = settings.ArtifactClassMultipliers.Keys
+                .Where(c => !config.HeroSettings.Classes.Contains(c))
+                .ToList();
+
+            if (unknownClasses.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactClassMultipliers name unknown hero classes: {string.Join(", ", unknownClasses)}.");
+
+            RequireUniqueKeys(settings.ArtifactBonuses.Select(b => b.Stat), "Equipment.ArtifactBonuses");
+
+            // Ступенів менше, ніж шансів, — і кидок вийде за межі списку
+            var badSteps = settings.ArtifactBonuses
+                .Where(b => b.Steps.Count != settings.BonusStepChances.Count
+                            || b.Steps.Any(v => v < 0)
+                            || b.Steps.Zip(b.Steps.Skip(1)).Any(pair => pair.Second < pair.First))
+                .Select(b => b.Stat)
+                .ToList();
+
+            if (badSteps.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactBonuses need {settings.BonusStepChances.Count} non-decreasing, non-negative steps: "
+                    + string.Join(", ", badSteps));
+
+            var bonuses = settings.ArtifactBonuses.Select(b => b.Stat).ToHashSet();
+
+            foreach (var slot in settings.ArtifactSlots)
+            {
+                if (slot.FixedBonuses.Count != 2 || slot.FixedBonuses.Distinct().Count() != 2)
+                    throw new InvalidOperationException($"Artifact slot '{slot.Key}' needs two distinct FixedBonuses.");
+
+                // Сталий бонус підсилює базу предмета — інший стат йому нема чого підсилювати
+                var badFixed = slot.FixedBonuses
+                    .Where(stat => !ArtifactStats.BaseStats.Contains(stat) || !bonuses.Contains(stat))
+                    .ToList();
+
+                if (badFixed.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Artifact slot '{slot.Key}' FixedBonuses must be configured base stats: {string.Join(", ", badFixed)}.");
+
+                var pool = slot.RandomBonuses.Select(e => e.Stat).ToList();
+
+                // Два випадкові бонуси без повтору — у пулі має бути з чого обрати другий
+                if (pool.Count < 2 || pool.Distinct().Count() != pool.Count)
+                    throw new InvalidOperationException(
+                        $"Artifact slot '{slot.Key}' needs at least two distinct RandomBonuses.");
+
+                var badPool = slot.RandomBonuses
+                    .Where(e => e.Weight <= 0 || !bonuses.Contains(e.Stat) || ArtifactStats.BaseStats.Contains(e.Stat))
+                    .Select(e => e.Stat)
+                    .ToList();
+
+                if (badPool.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Artifact slot '{slot.Key}' RandomBonuses must be configured hero bonuses with positive weight: "
+                        + string.Join(", ", badPool));
+            }
+
+            if (settings.MasterySuccessChances.Count < settings.MaxMastery)
+                throw new InvalidOperationException(
+                    $"Equipment.MasterySuccessChances lists {settings.MasterySuccessChances.Count} attempts, "
+                    + $"but MaxMastery is {settings.MaxMastery}.");
         }
 
         /// <summary>Чи посилається нагорода на неіснуючий ключ або на ключ не того виду.</summary>

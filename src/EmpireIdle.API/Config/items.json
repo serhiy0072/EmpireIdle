@@ -1574,38 +1574,78 @@
     ],
     "Equipment": {
       "ArtifactSlots": [
-        { "Key": "necklace", "DisplayName": "Намисто" },
-        { "Key": "crown", "DisplayName": "Корона" },
-        { "Key": "ring", "DisplayName": "Кільце" },
-        { "Key": "belt", "DisplayName": "Пояс" }
+        {
+          "Key": "necklace",
+          "DisplayName": "Намисто",
+          "FixedBonuses": [ "Attack", "UnitAttack" ],
+          "RandomBonuses": [ { "Stat": "CritChance", "Weight": 25 }, { "Stat": "AttackSpeed", "Weight": 35 }, { "Stat": "AttackPercent", "Weight": 40 } ]
+        },
+        {
+          "Key": "crown",
+          "DisplayName": "Корона",
+          "FixedBonuses": [ "Defense", "UnitDefense" ],
+          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "CooldownReduction", "Weight": 10 }, { "Stat": "SkillDamage", "Weight": 30 }, { "Stat": "Lifesteal", "Weight": 30 } ]
+        },
+        {
+          "Key": "ring",
+          "DisplayName": "Кільце",
+          "FixedBonuses": [ "Attack", "Defense" ],
+          "RandomBonuses": [ { "Stat": "CritChance", "Weight": 25 }, { "Stat": "BlockChance", "Weight": 22 }, { "Stat": "BlockPower", "Weight": 22 }, { "Stat": "DamageReduction", "Weight": 14 }, { "Stat": "DefensePercent", "Weight": 22 } ]
+        },
+        {
+          "Key": "belt",
+          "DisplayName": "Пояс",
+          "FixedBonuses": [ "UnitAttack", "UnitDefense" ],
+          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "UnitCritChance", "Weight": 25 }, { "Stat": "UnitHealthPercent", "Weight": 25 }, { "Stat": "HealthPercent", "Weight": 25 } ]
+        }
       ],
-      "MaxLevel": 20,
-      "LevelBonusPerLevel": 0.05,
-      "LevelExperienceBase": 40,
-      "LevelExperienceExponent": 1.4,
+      "MaxLevel": 80,
+      "LevelExperienceBase": 100,
+      "LevelExperienceCoefficient": 2.2,
+      "LevelExperienceExponent": 1.55,
       "FeedExperience": {
         "Common": 100,
-        "Rare": 300
+        "Rare": 300,
+        "Unique": 1000
       },
-      "MaxMastery": 10,
-      "MasteryBonusPerLevel": 0.1,
+      "ArtifactBase": {
+        "Common": { "Hero": 10, "HeroPerLevel": 2, "Unit": 40, "UnitPerLevel": 8 },
+        "Rare": { "Hero": 16, "HeroPerLevel": 3, "Unit": 64, "UnitPerLevel": 12 },
+        "Unique": { "Hero": 25, "HeroPerLevel": 4, "Unit": 100, "UnitPerLevel": 16 }
+      },
+      "ArtifactClassMultipliers": {
+        "warrior": { "Attack": 1.0, "Defense": 1.2 },
+        "knight": { "Attack": 1.2, "Defense": 1.0 },
+        "archer": { "Attack": 1.4, "Defense": 0.8 }
+      },
+      "HeroStatPower": 1.0,
+      "UnitStatPower": 0.25,
+      "ArtifactBonuses": [
+        { "Stat": "Attack", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
+        { "Stat": "Defense", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
+        { "Stat": "UnitAttack", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
+        { "Stat": "UnitDefense", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
+        { "Stat": "CritChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 10 },
+        { "Stat": "CritPower", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2.5 },
+        { "Stat": "SkillDamage", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3.5 },
+        { "Stat": "AttackSpeed", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 5 },
+        { "Stat": "CooldownReduction", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 9 },
+        { "Stat": "Lifesteal", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
+        { "Stat": "BlockChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
+        { "Stat": "BlockPower", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2 },
+        { "Stat": "DamageReduction", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 10 },
+        { "Stat": "AttackPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
+        { "Stat": "DefensePercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
+        { "Stat": "HealthPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
+        { "Stat": "UnitCritChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
+        { "Stat": "UnitHealthPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 }
+      ],
+      "BonusStepChances": [ 0.4, 0.3, 0.2, 0.1 ],
+      "MaxMastery": 20,
       "ForgeBuildingKey": "forge",
-      "MasteryBaseGold": 500,
-      "MasteryCostGrowth": 1.7,
-      "SafeMasteryLevel": 3,
-      "SuccessDropPerLevel": 0.1,
-      "MinSuccessChance": 0.3,
-      "ArtifactBaseStats": 2,
-      "ArtifactStatLevels": [
-        4,
-        8
-      ],
-      "ArtifactUpgradeLevels": [
-        12,
-        16,
-        20
-      ],
-      "DoubleUpgradeChance": 0.1,
+      "MasteryBaseGold": 400,
+      "MasteryCostGrowth": 1.33,
+      "MasterySuccessChances": [ 1, 1, 1, 1, 1, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.27, 0.25 ],
       "SetBonuses": [
         {
           "SetKey": "dawn_common",
@@ -1858,34 +1898,6 @@
           }
         }
       ],
-      "ArtifactStats": [
-        {
-          "Stat": "Attack",
-          "Min": 4,
-          "Max": 12,
-          "UpgradeMin": 1,
-          "UpgradeMax": 3
-        },
-        {
-          "Stat": "Defense",
-          "Min": 5,
-          "Max": 14,
-          "UpgradeMin": 1,
-          "UpgradeMax": 4
-        },
-        {
-          "Stat": "Health",
-          "Min": 20,
-          "Max": 60,
-          "UpgradeMin": 5,
-          "UpgradeMax": 15
-        }
-      ],
-      "ArtifactRarityMultipliers": {
-        "Common": 1.0,
-        "Rare": 1.4,
-        "Unique": 2.0
-      },
       "ArtifactTierMultipliers": [
         1.0,
         1.35,
@@ -1893,7 +1905,6 @@
         2.4,
         3.2
       ],
-      "ArtifactFocusWeight": 3.0,
       "ArtifactSets": [
         {
           "Key": "dawn",

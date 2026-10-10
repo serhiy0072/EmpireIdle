@@ -49,7 +49,7 @@ public class EquipBestHeroGearCommandTests
 
     private EquipmentItem GivenItem(string itemKey, Rarity rarity = Rarity.Common, int level = 0)
     {
-        var item = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, itemKey, EquipmentSlot.Artifact, rarity, [("Attack", 10.0)], Now);
+        var item = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, itemKey, EquipmentSlot.Artifact, rarity, Now);
 
         if (level > 0)
             item.GainExperience(100 * level, level, Now);

@@ -55,7 +55,10 @@ public class GetHeroesOverviewQueryTests
             catalog, new FakeTimeProvider(Now));
     }
 
-    /// <summary>Вдягнений артефакт додає свої стати до сили героя — так само, як у повній силі рейтингу.</summary>
+    /// <summary>
+    /// Вдягнений артефакт додає свою силу до сили героя — так само, як у повній силі рейтингу:
+    /// звичайний рівня 0 — (10 + 10) + (40 + 40) × 0.25.
+    /// </summary>
     [Fact]
     public async Task Handle_ShouldCountEquippedGear_InTheHeroPower()
     {
@@ -64,15 +67,14 @@ public class GetHeroesOverviewQueryTests
 
         var bareView = Assert.Single((await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None)).Heroes);
 
-        var necklace = TestKit.Entities.Equipment(HeroTestConfig.Artifact, EquipmentSlot.Artifact, PlayerId,
-            stats: [("Attack", 10.0)]);
+        var necklace = TestKit.Entities.Equipment(HeroTestConfig.Artifact, EquipmentSlot.Artifact, PlayerId);
         necklace.EquipTo(bare.Id, HeroTestConfig.NecklaceSlot, Now);
         _equipped.Add(necklace);
 
         var armedView = Assert.Single((await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None)).Heroes);
 
         Assert.True(bareView.Power > 0);
-        Assert.Equal(bareView.Power + 10, armedView.Power, 3);
+        Assert.Equal(bareView.Power + 40, armedView.Power, 3);
     }
 
     /// <summary>Конвої — за рівнем героя, місткість — конвої × розмір конвою.</summary>

@@ -9,8 +9,9 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
-    /// Майстерність коваля (GDD §6.4): заточка артефакта за золото з шансом. Невдача з'їдає золото,
-    /// але поломки немає. Повертає true, якщо майстерність піднялась.
+    /// Заточка коваля (GDD §9.12): спроба за золото з шансом. Успіх додає ранг бонусу — його стат
+    /// і ступінь розігрує ArtifactRoller із сідом у журналі предмета. Невдача з'їдає золото.
+    /// Повертає true, якщо заточка піднялась.
     /// </summary>
     public record RaiseArtifactMasteryCommand(Guid PlayerId, Guid EquipmentId)
         : IRequest<bool>, IPlayerScopedRequest, IIdempotentRequest;
@@ -23,6 +24,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly TimeProvider _timeProvider;
         private readonly MasteryRules _rules;
         private readonly IRandomSource _random;
+        private readonly ArtifactRoller _roller;
         private readonly GameCatalog _catalog;
         private readonly ILogger<RaiseArtifactMasteryCommandHandler> _logger;
 
@@ -33,6 +35,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             TimeProvider timeProvider,
             MasteryRules rules,
             IRandomSource random,
+            ArtifactRoller roller,
             GameCatalog catalog,
             ILogger<RaiseArtifactMasteryCommandHandler> logger)
         {
@@ -42,6 +45,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             _timeProvider = timeProvider;
             _rules = rules;
             _random = random;
+            _roller = roller;
             _catalog = catalog;
             _logger = logger;
         }
@@ -75,7 +79,13 @@ namespace EmpireIdle.Application.Heroes.Commands
             var success = _rules.Roll(item.Mastery, _random);
 
             if (success)
-                item.RaiseMastery(now);
+            {
+                var seed = _random.Next(int.MaxValue);
+                var rank = _roller.RollRank(_catalog.FindItem(item.ItemKey)?.ArtifactSlot, item.Mastery, item.Stats, seed);
+
+                item.ApplyMasteryRank(rank.Position, rank.Stat, rank.Value, now);
+                item.RecordRoll(item.Mastery, seed, now);
+            }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

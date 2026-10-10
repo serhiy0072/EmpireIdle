@@ -113,7 +113,7 @@ namespace EmpireIdle.Application.Heroes.Queries
         /// <summary>Сила героя з вдягненим (як у рейтингу повної сили); герой поза довідником — нуль.</summary>
         private double Power(Domain.Entities.Hero hero, IReadOnlyCollection<Domain.Entities.EquipmentItem> equipped)
             => _catalog.FindHero(hero.HeroKey) is { } config
-                ? _heroStats.Compute(hero, config, equipped).Values.Sum()
+                ? _heroStats.Power(hero, config, equipped)
                 : 0;
 
         /// <summary>Табір очима гравця: рівень, відкриті слоти, хто де стоїть і що перезаряджається.</summary>

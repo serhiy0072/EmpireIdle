@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
-    /// Посилення артефакта (GDD §6.4): згодувати йому інше спорядження, крім унікального, і гаєчки.
+    /// Посилення артефакта (GDD §9.12): згодувати йому інше спорядження й гаєчки.
     /// Згодований прокачаний артефакт передає весь вкладений досвід; попередження перед цим — у клієнті.
     /// </summary>
     /// <param name="FoodIds">Спорядження, яке згодовується, — воно зникає.</param>
@@ -18,8 +18,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         IReadOnlyDictionary<string, int> Wrenches) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
-    /// Обробник FeedArtifactCommand. Кожен пройдений рівень розігрує свій ролл статів (на 4/8 — новий стат,
-    /// на 12/16/20 — підсилення): сід лягає в журнал предмета, тож ролл відтворюваний.
+    /// Обробник FeedArtifactCommand. Рівень лише збільшує пласку базу предмета — роллів тут немає.
     /// Досвід понад стелю рівня згорає — як надлишок прискорення.
     /// </summary>
     public sealed class FeedArtifactCommandHandler : IRequestHandler<FeedArtifactCommand>
@@ -28,8 +27,6 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ArtifactProgression _progression;
-        private readonly ArtifactRoller _roller;
-        private readonly IRandomSource _random;
         private readonly GameCatalog _catalog;
         private readonly ILogger<FeedArtifactCommandHandler> _logger;
 
@@ -38,8 +35,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ArtifactProgression progression,
-            ArtifactRoller roller,
-            IRandomSource random,
             GameCatalog catalog,
             ILogger<FeedArtifactCommandHandler> logger)
         {
@@ -47,8 +42,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
             _progression = progression;
-            _roller = roller;
-            _random = random;
             _catalog = catalog;
             _logger = logger;
         }
@@ -107,22 +100,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             var after = _progression.LevelFor(item.Experience + gained);
 
             item.GainExperience(gained, after, now);
-
-            var setKey = _catalog.FindItem(item.ItemKey)?.SetKey;
-
-            for (var level = before + 1; level <= after; level++)
-            {
-                var seed = _random.Next(int.MaxValue);
-                var roll = _roller.RollForLevel(level, item.Rarity, setKey, item.Stats.Select(s => s.StatKey).ToList(), seed);
-
-                foreach (var (stat, value) in roll.Added)
-                    item.AddStat(stat, value, now);
-
-                foreach (var (stat, delta) in roll.Raised)
-                    item.RaiseStat(stat, delta, now);
-
-                item.RecordRoll(level, seed, now);
-            }
 
             foreach (var food in foods)
                 _inventoryRepository.RemoveEquipment(food);

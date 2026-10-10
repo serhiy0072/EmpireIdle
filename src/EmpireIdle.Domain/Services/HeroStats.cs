@@ -17,11 +17,13 @@ namespace EmpireIdle.Domain.Services
     {
         private readonly HeroProgression _progression;
         private readonly GameCatalog _catalog;
+        private readonly ArtifactStats _artifacts;
 
         public HeroStats(HeroProgression progression, GameCatalog catalog)
         {
             _progression = progression;
             _catalog = catalog;
+            _artifacts = new ArtifactStats(catalog);
         }
 
         /// <summary>
@@ -36,18 +38,23 @@ namespace EmpireIdle.Domain.Services
             foreach (var stat in config.BaseStats.Keys)
                 result[stat] = _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel);
 
+            var multiplier = _artifacts.ClassMultiplier(config.Class);
+
             foreach (var item in equipped)
             {
-                foreach (var stat in item.Stats)
-                {
-                    var value = item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.LevelBonusPerLevel, _catalog.Config.Equipment.MasteryBonusPerLevel);
-
-                    result[stat.StatKey] = result.GetValueOrDefault(stat.StatKey) + value;
-                }
+                foreach (var (stat, value) in _artifacts.Compute(item, multiplier))
+                    result[stat] = result.GetValueOrDefault(stat) + value;
             }
 
             foreach (var (stat, value) in SetBonus(equipped))
                 result[stat] = result.GetValueOrDefault(stat) + value;
+
+            // Відсотки героя — останніми: множать увесь стат, разом із наборами й базою предметів
+            foreach (var (percent, stat) in ArtifactStats.HeroPercentStats)
+            {
+                if (result.TryGetValue(percent, out var bonus) && result.ContainsKey(stat))
+                    result[stat] *= 1 + bonus / 100;
+            }
 
             return result;
         }
@@ -73,10 +80,21 @@ namespace EmpireIdle.Domain.Services
             => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel));
 
         /// <summary>
-        /// Сила предмета: сума його статів із рівнем і майстерністю.
+        /// Сила героя з вдягненим (GDD §9.12): власна плюс сила кожного артефакта з множником
+        /// класу героя плюс бонуси повних наборів. Сума статів із Compute тут не годиться:
+        /// відсотки крита чи кулдауну не можна складати з пласкою атакою.
         /// </summary>
-        public double Power(EquipmentItem item)
-            => item.Stats.Sum(stat => item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.LevelBonusPerLevel, _catalog.Config.Equipment.MasteryBonusPerLevel));
+        public double Power(Hero hero, HeroConfig config, IReadOnlyCollection<EquipmentItem> equipped)
+        {
+            var multiplier = _artifacts.ClassMultiplier(config.Class);
+
+            return Power(hero, config)
+                + equipped.Sum(item => _artifacts.Power(item, multiplier))
+                + SetBonus(equipped).Values.Sum();
+        }
+
+        /// <summary>Сила предмета самого по собі, без героя: так його оцінює ринок.</summary>
+        public double Power(EquipmentItem item) => _artifacts.Power(item);
 
         /// <summary>
         /// Бонуси за повні набори з вдягненого.

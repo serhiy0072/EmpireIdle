@@ -45,6 +45,7 @@ public class RecalculatePowerCommandTests
             }
         ],
         Combat = new CombatConfig(),
+        Equipment = TestKit.GameConfigBuilder.DefaultEquipment("forge"),
         HeroSettings = new HeroesConfig
         {
             MaxMarches = 3,
@@ -232,7 +233,7 @@ public class RecalculatePowerCommandTests
         _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([hero]);
 
         var sword = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, "sword", EquipmentSlot.Artifact,
-            Rarity.Common, [("Attack", 12.0)], Now);
+            Rarity.Common, Now);
 
         sword.EquipTo(hero.Id, slotIndex: 0, Now);
 
@@ -242,9 +243,10 @@ public class RecalculatePowerCommandTests
 
         await Handler().Handle(new RecalculatePowerCommand(garrison.Id), CancellationToken.None);
 
+        // Звичайний артефакт рівня 0: (10 + 10) + (40 + 40) × 0.25
         Assert.Equal(140, power.HeroPower, 3);
-        Assert.Equal(12, power.EquipmentPower, 3);
-        Assert.Equal(152, power.TotalPower, 3);
+        Assert.Equal(40, power.EquipmentPower, 3);
+        Assert.Equal(180, power.TotalPower, 3);
     }
 
     /// <summary>

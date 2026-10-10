@@ -35,7 +35,7 @@ public class FeedArtifactCommandTests
     private EquipmentItem GivenItem(Rarity rarity = Rarity.Common, Guid? owner = null)
     {
         var item = new EquipmentItem(Guid.NewGuid(), owner ?? PlayerId, 1, HeroTestConfig.Artifact,
-            EquipmentSlot.Artifact, rarity, [("Attack", 10.0)], Now);
+            EquipmentSlot.Artifact, rarity, Now);
         _inventory.GetEquipmentByIdAsync(item.Id, Arg.Any<CancellationToken>()).Returns(item);
         return item;
     }
@@ -49,11 +49,10 @@ public class FeedArtifactCommandTests
 
     private Task Feed(EquipmentItem target, IReadOnlyList<Guid> food, Dictionary<string, int>? wrenches = null)
         => new FeedArtifactCommandHandler(_inventory, _unitOfWork, new FakeTimeProvider(Now),
-                new ArtifactProgression(_config.Equipment), new ArtifactRoller(_config.Equipment),
-                new DeterministicRandom(7), new GameCatalog(_config), NullLogger<FeedArtifactCommandHandler>.Instance)
+                new ArtifactProgression(_config.Equipment), new GameCatalog(_config), NullLogger<FeedArtifactCommandHandler>.Instance)
             .Handle(new FeedArtifactCommand(PlayerId, target.Id, food, wrenches ?? []), CancellationToken.None);
 
-    /// <summary>Два звичайні артефакти — 200 досвіду: рівень 2 (до нього 150), обидва зникають.</summary>
+    /// <summary>Два звичайні артефакти — 200 досвіду: рівень 2 (до нього 200), обидва зникають.</summary>
     [Fact]
     public async Task Handle_ShouldAddTheFoodsExperience_AndRemoveTheFood()
     {
@@ -79,22 +78,22 @@ public class FeedArtifactCommandTests
 
         await Feed(target, [levelled.Id]);
 
-        // 300 за рідкісний + 340 вкладених = 640: рівень 4 (620)
-        Assert.Equal((4, 640L), (target.Level, target.Experience));
+        // 300 за рідкісний + 340 вкладених = 640: рівень 5 (540), до 6-го треба 670
+        Assert.Equal((5, 640L), (target.Level, target.Experience));
     }
 
-    /// <summary>Рівень 4 — новий стат: ролл розігрується на кожен пройдений рівень.</summary>
+    /// <summary>Рівень лише збільшує базу: бонусів і роллів згодовування не додає — вони від заточки.</summary>
     [Fact]
-    public async Task Handle_ShouldRollEveryCrossedLevel()
+    public async Task Handle_ShouldNotRollBonuses_OnCrossedLevels()
     {
         var target = GivenItem();
         GivenWrenches(7);
 
         await Feed(target, [], new Dictionary<string, int> { [Wrench] = 7 });
 
-        Assert.Equal(4, target.Level);
-        Assert.Equal(2, target.Stats.Count);
-        Assert.Equal([1, 2, 3, 4], target.Rolls.Select(r => r.Level).Order());
+        Assert.Equal(6, target.Level);
+        Assert.Empty(target.Stats);
+        Assert.Empty(target.Rolls);
     }
 
     [Fact]
@@ -110,7 +109,7 @@ public class FeedArtifactCommandTests
         _inventory.Received(1).RemoveItem(stack);
     }
 
-    /// <summary>Досвід понад стелю згорає: предмет на 20 рівні не носить невидимого запасу.</summary>
+    /// <summary>Досвід понад стелю згорає: предмет на стелі не носить невидимого запасу.</summary>
     [Fact]
     public async Task Handle_ShouldBurnExperienceAboveTheCeiling()
     {
@@ -130,7 +129,7 @@ public class FeedArtifactCommandTests
     {
         var progression = new ArtifactProgression(_config.Equipment);
         var target = GivenItem();
-        target.GainExperience(progression.ExperienceToReach(20), 20, Now);
+        target.GainExperience(progression.ExperienceToReach(_config.Equipment.MaxLevel), _config.Equipment.MaxLevel, Now);
         var food = GivenItem();
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Feed(target, [food.Id]));
@@ -139,9 +138,24 @@ public class FeedArtifactCommandTests
         _inventory.DidNotReceive().RemoveEquipment(Arg.Any<EquipmentItem>());
     }
 
+    /// <summary>Унікальний теж годується (GDD §9.12): 1 000 досвіду — рівень 8.</summary>
     [Fact]
-    public async Task Handle_ShouldRefuseUniqueFood_AndKeepEverything()
+    public async Task Handle_ShouldFeedUniqueGear()
     {
+        var target = GivenItem();
+        var unique = GivenItem(Rarity.Unique);
+
+        await Feed(target, [unique.Id]);
+
+        Assert.Equal(1000L, target.Experience);
+        _inventory.Received(1).RemoveEquipment(unique);
+    }
+
+    /// <summary>Рідкість без досвіду в конфігу не годується, і нічого не списується.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuseFoodOfARarityWithoutFeedExperience_AndKeepEverything()
+    {
+        _config.Equipment.FeedExperience.Remove(Rarity.Unique);
         var target = GivenItem();
         var plain = GivenItem();
         var unique = GivenItem(Rarity.Unique);

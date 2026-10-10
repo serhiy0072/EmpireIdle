@@ -1,7 +1,7 @@
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
-    /// Журнал роллів артефакта: рівень і сід.
+    /// Журнал роллів заточки артефакта: ранг і сід.
     ///
     /// Зберігається сід, а не результат: ролл відтворюється з нього повністю,
     /// і рядок лишається коротким. Той самий підхід, що й у BattleReport.
@@ -10,17 +10,17 @@ namespace EmpireIdle.Domain.Entities
     {
         public Guid EquipmentItemId { get; private set; }
 
-        /// <summary>Рівень, на який качали. Нуль — стартовий набір.</summary>
-        public int Level { get; private set; }
+        /// <summary>Заточка, на яку підняли: ранг +1…+20.</summary>
+        public int Mastery { get; private set; }
 
         public int Seed { get; private set; }
 
         public DateTime RolledAt { get; private set; }
 
-        public EquipmentRoll(Guid id, Guid equipmentItemId, int level, int seed, DateTime utcNow) : base(id)
+        public EquipmentRoll(Guid id, Guid equipmentItemId, int mastery, int seed, DateTime utcNow) : base(id)
         {
             EquipmentItemId = equipmentItemId;
-            Level = level;
+            Mastery = mastery;
             Seed = seed;
             RolledAt = utcNow;
         }

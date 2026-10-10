@@ -163,54 +163,16 @@
             EnsureResources();
             EnsureBuildings(TestKeys.Forge);
 
-            _config.Equipment = new EquipmentConfig
-            {
-                ArtifactSlots =
-                [
-                    new ArtifactSlotConfig { Key = "necklace", DisplayName = "Намисто" },
-                    new ArtifactSlotConfig { Key = "crown", DisplayName = "Корона" },
-                    new ArtifactSlotConfig { Key = "ring", DisplayName = "Кільце" },
-                    new ArtifactSlotConfig { Key = "belt", DisplayName = "Пояс" }
-                ],
-                MaxLevel = 20,
-                LevelBonusPerLevel = 0.05,
-                LevelExperienceBase = 40,
-                LevelExperienceExponent = 1.4,
-                FeedExperience = new Dictionary<Rarity, int> { [Rarity.Common] = 100, [Rarity.Rare] = 300 },
-                MaxMastery = 10,
-                MasteryBonusPerLevel = 0.1,
-                ForgeBuildingKey = TestKeys.Forge,
-                MasteryBaseGold = 500,
-                MasteryCostGrowth = 1.7,
-                SafeMasteryLevel = 3,
-                SuccessDropPerLevel = 0.1,
-                MinSuccessChance = 0.3,
-                ArtifactBaseStats = 2,
-                ArtifactStatLevels = [4, 8],
-                ArtifactUpgradeLevels = [12, 16, 20],
-                DoubleUpgradeChance = 0.1,
-                ArtifactStats =
-                [
-                    new ArtifactStatConfig { Stat = "Attack", Min = 4, Max = 12, UpgradeMin = 1, UpgradeMax = 3 },
-                    new ArtifactStatConfig { Stat = "Defense", Min = 5, Max = 14, UpgradeMin = 1, UpgradeMax = 4 },
-                    new ArtifactStatConfig { Stat = "Health", Min = 20, Max = 60, UpgradeMin = 5, UpgradeMax = 15 }
-                ],
-                ArtifactRarityMultipliers = new Dictionary<string, double>
+            _config.Equipment = DefaultEquipment(TestKeys.Forge);
+            _config.Equipment.SetBonuses =
+            [
+                new SetBonusConfig
                 {
-                    ["Common"] = 1.0,
-                    ["Rare"] = 1.4,
-                    ["Unique"] = 2.0
-                },
-                SetBonuses =
-                [
-                    new SetBonusConfig
-                    {
-                        SetKey = TestKeys.SetKey,
-                        RequiredPieces = 4,
-                        Stats = new Dictionary<string, double> { ["Attack"] = 25 }
-                    }
-                ]
-            };
+                    SetKey = TestKeys.SetKey,
+                    RequiredPieces = 4,
+                    Stats = new Dictionary<string, double> { ["Attack"] = 25 }
+                }
+            ];
 
             _config.Items.AddRange(
             [
@@ -225,6 +187,76 @@
 
             return this;
         }
+
+        /// <summary>
+        /// Правила артефактів із числами гри (GDD §9.12), без наборів: слоти з бонусами,
+        /// база, крива рівня, ступені й шанси заточки. Спільні для всіх тестових конфігів,
+        /// щоб таблиці не розходились між тестами.
+        /// </summary>
+        public static EquipmentConfig DefaultEquipment(string forgeKey)
+            => new()
+            {
+                ArtifactSlots =
+                [
+                    Slot("necklace", "Намисто", ["Attack", "UnitAttack"], ("CritChance", 25), ("AttackSpeed", 35), ("AttackPercent", 40)),
+                    Slot("crown", "Корона", ["Defense", "UnitDefense"], ("CritPower", 25), ("CooldownReduction", 10), ("SkillDamage", 30), ("Lifesteal", 30)),
+                    Slot("ring", "Кільце", ["Attack", "Defense"], ("CritChance", 25), ("BlockChance", 22), ("BlockPower", 22), ("DamageReduction", 14), ("DefensePercent", 22)),
+                    Slot("belt", "Пояс", ["UnitAttack", "UnitDefense"], ("CritPower", 25), ("UnitCritChance", 25), ("UnitHealthPercent", 25), ("HealthPercent", 25))
+                ],
+                MaxLevel = 80,
+                LevelExperienceBase = 100,
+                LevelExperienceCoefficient = 2.2,
+                LevelExperienceExponent = 1.55,
+                FeedExperience = new Dictionary<Rarity, int> { [Rarity.Common] = 100, [Rarity.Rare] = 300, [Rarity.Unique] = 1000 },
+                ArtifactBase = new Dictionary<Rarity, ArtifactBaseConfig>
+                {
+                    [Rarity.Common] = new() { Hero = 10, HeroPerLevel = 2, Unit = 40, UnitPerLevel = 8 },
+                    [Rarity.Rare] = new() { Hero = 16, HeroPerLevel = 3, Unit = 64, UnitPerLevel = 12 },
+                    [Rarity.Unique] = new() { Hero = 25, HeroPerLevel = 4, Unit = 100, UnitPerLevel = 16 }
+                },
+                HeroStatPower = 1.0,
+                UnitStatPower = 0.25,
+                ArtifactBonuses =
+                [
+                    Bonus("Attack", 0, 5, 10, 15, 20),
+                    Bonus("Defense", 0, 5, 10, 15, 20),
+                    Bonus("UnitAttack", 0, 5, 10, 15, 20),
+                    Bonus("UnitDefense", 0, 5, 10, 15, 20),
+                    Bonus("CritChance", 10, 1, 2, 3, 4),
+                    Bonus("CritPower", 2.5, 4, 8, 12, 16),
+                    Bonus("SkillDamage", 3.5, 3, 6, 9, 12),
+                    Bonus("AttackSpeed", 5, 2, 4, 6, 8),
+                    Bonus("CooldownReduction", 9, 2, 4, 6, 8),
+                    Bonus("Lifesteal", 8, 1, 2, 3, 4),
+                    Bonus("BlockChance", 8, 1, 2, 3, 4),
+                    Bonus("BlockPower", 2, 4, 8, 12, 16),
+                    Bonus("DamageReduction", 10, 1, 2, 3, 4),
+                    Bonus("AttackPercent", 3, 3, 6, 9, 12),
+                    Bonus("DefensePercent", 3, 3, 6, 9, 12),
+                    Bonus("HealthPercent", 3, 3, 6, 9, 12),
+                    Bonus("UnitCritChance", 8, 1, 2, 3, 4),
+                    Bonus("UnitHealthPercent", 3, 3, 6, 9, 12)
+                ],
+                BonusStepChances = [0.4, 0.3, 0.2, 0.1],
+                MaxMastery = 20,
+                ForgeBuildingKey = forgeKey,
+                MasteryBaseGold = 400,
+                MasteryCostGrowth = 1.33,
+                MasterySuccessChances = [1, 1, 1, 1, 1, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.27, 0.25]
+            };
+
+        private static ArtifactSlotConfig Slot(string key, string name, List<string> fixedBonuses,
+            params (string Stat, double Weight)[] pool)
+            => new()
+            {
+                Key = key,
+                DisplayName = name,
+                FixedBonuses = fixedBonuses,
+                RandomBonuses = pool.Select(e => new ArtifactPoolEntryConfig { Stat = e.Stat, Weight = e.Weight }).ToList()
+            };
+
+        private static ArtifactBonusConfig Bonus(string stat, double powerPerPercent, params double[] steps)
+            => new() { Stat = stat, Steps = steps.ToList(), PowerPerPercent = powerPerPercent };
 
         /// <summary>
         /// Данжі: один данж із хвилею й босом, набір артефактів на кожну

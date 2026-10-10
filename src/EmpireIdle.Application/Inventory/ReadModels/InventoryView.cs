@@ -12,8 +12,8 @@ namespace EmpireIdle.Application.Inventory.ReadModels
     public record InventoryItemView(string ItemKey, string DisplayName, string Description, Rarity Rarity, string Type, int Count);
 
     /// <summary>
-    /// Екземпляр спорядження. Stats — з урахуванням рівня й майстерності: гравець бачить ті самі числа,
-    /// з якими предмет піде в бій. ExperienceToNext — null на стелі; FeedValue — null, якщо не годується.
+    /// Екземпляр спорядження. Stats — пласка база з рівнем і сталими бонусами заточки плюс відсотки
+    /// випадкових бонусів, без множника класу: предмет сам по собі, ще не на герої. ExperienceToNext — null на стелі; FeedValue — null, якщо не годується.
     /// </summary>
     public record EquipmentView(Guid Id, string ItemKey, EquipmentSlot Slot, Rarity Rarity, int Level, long Experience,
         long? ExperienceToNext, long? FeedValue, int Mastery, Guid? EquippedByHeroId, int SlotIndex,

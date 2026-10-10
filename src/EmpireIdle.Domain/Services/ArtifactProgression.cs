@@ -4,9 +4,9 @@ using EmpireIdle.Domain.Services.Config;
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>
-    /// Рівень артефакта (GDD §6.4, §9.12): крива досвіду й скільки дає згодоване спорядження.
-    /// Рівень починається з 0; крок до рівня n — round10(база · n^показник), тож перший новий
-    /// стат (рівень 4) — це 620 досвіду, шість звичайних артефактів.
+    /// Рівень артефакта (GDD §9.12): крива досвіду й скільки дає згодоване спорядження.
+    /// Рівень починається з 0; крок до рівня n — round10(база + коефіцієнт · (n − 1)^показник),
+    /// тож перший рівень коштує один звичайний артефакт, а L80 — близько місяця прокачки.
     /// </summary>
     public class ArtifactProgression
     {
@@ -21,7 +21,10 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Досвід на крок до рівня <paramref name="level"/> (від попереднього).</summary>
         public long StepTo(int level)
-            => level < 1 ? 0 : (long)(Math.Round(_config.LevelExperienceBase * Math.Pow(level, _config.LevelExperienceExponent) / 10) * 10);
+            => level < 1
+                ? 0
+                : (long)(Math.Round((_config.LevelExperienceBase
+                    + _config.LevelExperienceCoefficient * Math.Pow(level - 1, _config.LevelExperienceExponent)) / 10) * 10);
 
         /// <summary>Накопичений досвід, з яким артефакт стає рівня <paramref name="level"/>.</summary>
         public long ExperienceToReach(int level)
@@ -51,7 +54,7 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>
         /// Досвід, який дає згодований предмет: базовий за рідкістю плюс увесь вкладений у нього.
-        /// null — рідкість не годується (унікальні).
+        /// null — рідкість не годується.
         /// </summary>
         public long? FeedValue(EquipmentItem food)
             => _config.FeedExperience.TryGetValue(food.Rarity, out var basis) ? basis + food.Experience : null;

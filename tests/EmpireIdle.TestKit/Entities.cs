@@ -122,9 +122,21 @@ public static class Entities
         return hero;
     }
 
-    /// <summary>Екземпляр спорядження із заданими статами.</summary>
+    /// <summary>
+    /// Екземпляр спорядження заданого рівня з бонусами заточки: кожен бонус — один ранг
+    /// на своїй позиції, тож заточка предмета дорівнює кількості переданих бонусів.
+    /// </summary>
     public static EquipmentItem Equipment(string itemKey, EquipmentSlot slot, Guid? playerId = null,
-        Rarity rarity = Rarity.Common, params (string Stat, double Value)[] stats)
-        => new(Guid.NewGuid(), playerId ?? Guid.NewGuid(), 1, itemKey, slot, rarity,
-            stats.Length > 0 ? stats : [("Attack", 10.0)], Now);
+        Rarity rarity = Rarity.Common, int level = 0, params (int Position, string Stat, double Value)[] bonuses)
+    {
+        var item = new EquipmentItem(Guid.NewGuid(), playerId ?? Guid.NewGuid(), 1, itemKey, slot, rarity, Now);
+
+        if (level > 0)
+            item.GainExperience(0, level, Now);
+
+        foreach (var (position, stat, value) in bonuses)
+            item.ApplyMasteryRank(position, stat, value, Now);
+
+        return item;
+    }
 }

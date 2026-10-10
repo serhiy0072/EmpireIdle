@@ -12,51 +12,57 @@ namespace EmpireIdle.Domain.Tests.Services
 
         private static ArtifactProgression Progression() => new(new EquipmentConfig
         {
-            MaxLevel = 20,
-            LevelExperienceBase = 40,
-            LevelExperienceExponent = 1.4,
+            MaxLevel = 80,
+            LevelExperienceBase = 100,
+            LevelExperienceCoefficient = 2.2,
+            LevelExperienceExponent = 1.55,
             FeedExperience = new Dictionary<Rarity, int> { [Rarity.Common] = 100, [Rarity.Rare] = 300 }
         });
 
         private static EquipmentItem Item(Rarity rarity)
-            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "amulet", EquipmentSlot.Artifact, rarity, [("Attack", 5.0)], Now);
+            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "amulet", EquipmentSlot.Artifact, rarity, Now);
 
-        /// <summary>Кроки кривої округлюються до десятків: 40, 110, 190, 280.</summary>
+        /// <summary>Кроки round10(100 + 2.2·(n − 1)^1.55): 100, 100, 110, 110, 120.</summary>
         [Theory]
         [InlineData(0, 0)]
-        [InlineData(1, 40)]
-        [InlineData(2, 110)]
-        [InlineData(3, 190)]
-        [InlineData(4, 280)]
+        [InlineData(1, 100)]
+        [InlineData(2, 100)]
+        [InlineData(3, 110)]
+        [InlineData(4, 110)]
+        [InlineData(5, 120)]
         public void StepTo_ShouldFollowTheRoundedCurve(int level, long expected)
             => Assert.Equal(expected, Progression().StepTo(level));
 
-        /// <summary>Перший новий стат (рівень 4) — 620 досвіду, шість звичайних артефактів.</summary>
         [Fact]
         public void ExperienceToReach_ShouldSumTheSteps()
-            => Assert.Equal(620, Progression().ExperienceToReach(4));
+            => Assert.Equal(420, Progression().ExperienceToReach(4));
+
+        /// <summary>Уся крива до L80 — 68 520 досвіду, як у таблиці Режисера.</summary>
+        [Fact]
+        public void ExperienceToReach_ShouldMatchTheDirectorsTotal_AtTheCeiling()
+            => Assert.Equal(68_520, Progression().ExperienceToReach(80));
 
         [Theory]
         [InlineData(0, 0)]
-        [InlineData(39, 0)]
-        [InlineData(40, 1)]
-        [InlineData(619, 3)]
-        [InlineData(620, 4)]
+        [InlineData(99, 0)]
+        [InlineData(100, 1)]
+        [InlineData(419, 3)]
+        [InlineData(420, 4)]
         public void LevelFor_ShouldPickTheHighestReachedLevel(long experience, int expected)
             => Assert.Equal(expected, Progression().LevelFor(experience));
 
         [Fact]
         public void LevelFor_ShouldStopAtTheCeiling()
-            => Assert.Equal(20, Progression().LevelFor(long.MaxValue / 2));
+            => Assert.Equal(80, Progression().LevelFor(long.MaxValue / 2));
 
         [Fact]
         public void ExperienceToNext_ShouldCountFromTheCurrentExperience()
         {
             var item = Item(Rarity.Common);
-            item.GainExperience(60, 1, Now);
+            item.GainExperience(160, 1, Now);
 
-            // До 2-го рівня треба 150 накопиченого
-            Assert.Equal(90, Progression().ExperienceToNext(item));
+            // До 2-го рівня треба 200 накопиченого
+            Assert.Equal(40, Progression().ExperienceToNext(item));
         }
 
         [Fact]
@@ -64,7 +70,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var progression = Progression();
             var item = Item(Rarity.Common);
-            item.GainExperience(progression.ExperienceToReach(20), 20, Now);
+            item.GainExperience(progression.ExperienceToReach(80), 80, Now);
 
             Assert.Null(progression.ExperienceToNext(item));
         }
@@ -74,13 +80,13 @@ namespace EmpireIdle.Domain.Tests.Services
         public void FeedValue_ShouldPassTheBasisAndAllInvestedExperience()
         {
             var item = Item(Rarity.Rare);
-            item.GainExperience(150, 2, Now);
+            item.GainExperience(200, 2, Now);
 
-            Assert.Equal(450, Progression().FeedValue(item));
+            Assert.Equal(500, Progression().FeedValue(item));
         }
 
         [Fact]
-        public void FeedValue_ShouldBeNull_ForUniqueGear()
+        public void FeedValue_ShouldBeNull_ForARarityWithoutFeedExperience()
             => Assert.Null(Progression().FeedValue(Item(Rarity.Unique)));
     }
 }

@@ -15,12 +15,12 @@ namespace EmpireIdle.Application.Market.Services
     public class MarketListingProjection
     {
         private readonly IInventoryRepository _inventory;
-        private readonly GameCatalog _catalog;
+        private readonly ArtifactStats _artifacts;
 
         public MarketListingProjection(IInventoryRepository inventory, GameCatalog catalog)
         {
             _inventory = inventory;
-            _catalog = catalog;
+            _artifacts = new ArtifactStats(catalog);
         }
 
         public async Task<List<MarketListingView>> ProjectAsync(IReadOnlyCollection<MarketListing> listings, Guid viewerId,
@@ -48,9 +48,7 @@ namespace EmpireIdle.Application.Market.Services
                     listing.Kind == MarketListingKind.Equipment
                         && equipment.TryGetValue(listing.EquipmentId!.Value, out var item)
                         ? new MarketEquipmentView(item.Slot.ToString(), item.Rarity.ToString(), item.Level, item.Mastery,
-                            item.Stats.ToDictionary(s => s.StatKey,
-                                s => item.GetStatValue(s.StatKey, _catalog.Config.Equipment.LevelBonusPerLevel,
-                                    _catalog.Config.Equipment.MasteryBonusPerLevel)))
+                            new Dictionary<string, double>(_artifacts.Compute(item)))
                         : null))
                 .ToList();
         }

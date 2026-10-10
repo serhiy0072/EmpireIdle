@@ -10,35 +10,40 @@ namespace EmpireIdle.Domain.Tests.Entities
     {
         private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 
-        private static EquipmentItem Weapon(params (string Stat, double Value)[] stats)
-            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "sword_iron", EquipmentSlot.Artifact,
-                Rarity.Common, stats.Length > 0 ? stats : [("Attack", 10.0)], Now);
-
         private static EquipmentItem Artifact()
-            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "amulet_dawn", EquipmentSlot.Artifact,
-                Rarity.Rare, [("Attack", 5.0)], Now);
+            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "amulet_dawn", EquipmentSlot.Artifact, Rarity.Rare, Now);
+
+        /// <summary>Новий артефакт — без бонусів: вони з'являються лише із заточкою.</summary>
+        [Fact]
+        public void NewArtifact_ShouldHaveNoBonuses()
+        {
+            var item = Artifact();
+
+            Assert.Empty(item.Stats);
+            Assert.Equal((0, 0), (item.Level, item.Mastery));
+        }
 
         /// <summary>Сила рахується лише з вдягнутого: подія перерахунку — тільки коли зміна торкається того, що на герої.</summary>
         [Fact]
         public void EquipmentChanges_ShouldRaiseEquipmentChanged_OnlyWhileEquipped()
         {
-            var item = Weapon();
+            var item = Artifact();
             var hero = Guid.NewGuid();
 
-            // На складі: рівень і майстерність сили не рухають
-            item.GainExperience(40, 1, Now);
-            item.RaiseMastery(Now);
+            // На складі: рівень і заточка сили не рухають
+            item.GainExperience(100, 1, Now);
+            item.ApplyMasteryRank(0, "Attack", 5, Now);
             Assert.Empty(item.DomainEvents.OfType<EquipmentChanged>());
 
             item.EquipTo(hero, 0, Now);
             Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
             item.ClearDomainEvents();
 
-            item.GainExperience(110, 2, Now);
+            item.GainExperience(100, 2, Now);
             Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
             item.ClearDomainEvents();
 
-            item.RaiseMastery(Now);
+            item.ApplyMasteryRank(1, "UnitAttack", 5, Now);
             Assert.Single(item.DomainEvents.OfType<EquipmentChanged>());
             item.ClearDomainEvents();
 
@@ -61,7 +66,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void EquipTo_ShouldRejectAnAlreadyEquippedItem()
         {
-            var item = Weapon();
+            var item = Artifact();
             item.EquipTo(Guid.NewGuid(), 0, Now);
 
             Assert.Throws<InvalidStateException>(() => item.EquipTo(Guid.NewGuid(), 0, Now));
@@ -84,10 +89,10 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var item = Artifact();
 
-            item.GainExperience(40, 1, Now);
+            item.GainExperience(100, 1, Now);
             item.GainExperience(110, 2, Now);
 
-            Assert.Equal((2, 150L), (item.Level, item.Experience));
+            Assert.Equal((2, 210L), (item.Level, item.Experience));
         }
 
         /// <summary>Рівень артефакта не падає: досвід лише додається.</summary>
@@ -95,21 +100,64 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void GainExperience_ShouldRejectALowerLevel_OrNegativeExperience()
         {
             var item = Artifact();
-            item.GainExperience(150, 2, Now);
+            item.GainExperience(210, 2, Now);
 
             Assert.Throws<ArgumentOutOfRangeException>(() => item.GainExperience(10, 1, Now));
             Assert.Throws<ArgumentOutOfRangeException>(() => item.GainExperience(-1, 2, Now));
         }
 
-        /// <summary>Виставлений лот у заставі: його не прокачують ні рівнем, ні майстерністю.</summary>
+        /// <summary>Перший ранг позиції створює бонус, наступний на тій самій позиції — підсилює його.</summary>
+        [Fact]
+        public void ApplyMasteryRank_ShouldCreateThenRaiseTheBonusOfAPosition()
+        {
+            var item = Artifact();
+
+            item.ApplyMasteryRank(0, "Attack", 5, Now);
+            item.ApplyMasteryRank(1, "UnitAttack", 10, Now);
+            item.ApplyMasteryRank(0, "Attack", 15, Now);
+
+            var attack = Assert.Single(item.Stats, s => s.Position == 0);
+            Assert.Equal(("Attack", 20.0), (attack.StatKey, attack.Value));
+            Assert.Equal(10.0, Assert.Single(item.Stats, s => s.Position == 1).Value, 3);
+            Assert.Equal(3, item.Mastery);
+        }
+
+        /// <summary>Позиція закріплена за статом: інший стат туди не ляже — це ознака зламаного ролера.</summary>
+        [Fact]
+        public void ApplyMasteryRank_ShouldRejectAnotherStatOnATakenPosition()
+        {
+            var item = Artifact();
+            item.ApplyMasteryRank(2, "CritChance", 1, Now);
+
+            Assert.Throws<InvalidStateException>(() => item.ApplyMasteryRank(2, "AttackSpeed", 2, Now));
+            Assert.Equal(1, item.Mastery);
+        }
+
+        /// <summary>Два випадкові бонуси без повтору: той самий стат на другій позиції — відмова.</summary>
+        [Fact]
+        public void ApplyMasteryRank_ShouldRejectTheSameStatOnAnotherPosition()
+        {
+            var item = Artifact();
+            item.ApplyMasteryRank(2, "CritChance", 1, Now);
+
+            Assert.Throws<AlreadyExistsException>(() => item.ApplyMasteryRank(3, "CritChance", 1, Now));
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(4)]
+        public void ApplyMasteryRank_ShouldRejectAPositionOutsideTheFour(int position)
+            => Assert.Throws<ArgumentOutOfRangeException>(() => Artifact().ApplyMasteryRank(position, "Attack", 5, Now));
+
+        /// <summary>Виставлений лот у заставі: його не прокачують ні рівнем, ні заточкою.</summary>
         [Fact]
         public void Progress_ShouldBeRefused_WhileOnTheMarket()
         {
             var item = Artifact();
             item.PutOnMarket(Now);
 
-            Assert.Throws<InvalidStateException>(() => item.GainExperience(40, 1, Now));
-            Assert.Throws<InvalidStateException>(() => item.RaiseMastery(Now));
+            Assert.Throws<InvalidStateException>(() => item.GainExperience(100, 1, Now));
+            Assert.Throws<InvalidStateException>(() => item.ApplyMasteryRank(0, "Attack", 5, Now));
         }
 
         /// <summary>Вдягнене не згодовується: гравець не має випадково роздягти героя.</summary>
@@ -126,42 +174,5 @@ namespace EmpireIdle.Domain.Tests.Entities
         [Fact]
         public void EnsureCanBeFed_ShouldAllowAFreeItem()
             => Artifact().EnsureCanBeFed();
-
-        /// <summary>Бонуси рівня й майстерності складаються: 10 × (1 + 2·0.05 + 1·0.1).</summary>
-        [Fact]
-        public void GetStatValue_ShouldAddLevelAndMasteryBonuses()
-        {
-            var item = Weapon(("Attack", 10.0));
-            item.GainExperience(150, 2, Now);
-            item.RaiseMastery(Now);
-
-            Assert.Equal(12.0, item.GetStatValue("Attack", levelBonus: 0.05, masteryBonus: 0.1), 3);
-        }
-
-        [Fact]
-        public void GetStatValue_ShouldReturnZero_ForAnUnknownStat()
-            => Assert.Equal(0, Weapon().GetStatValue("Defense", 0.05, 0.1), 3);
-
-        [Fact]
-        public void AddStat_ShouldRejectADuplicate()
-        {
-            var item = Artifact();
-
-            Assert.Throws<AlreadyExistsException>(() => item.AddStat("Attack", 3, Now));
-        }
-
-        [Fact]
-        public void RaiseStat_ShouldIncreaseTheValue()
-        {
-            var item = Artifact();
-
-            item.RaiseStat("Attack", 2.5, Now);
-
-            Assert.Equal(7.5, item.GetStatValue("Attack", levelBonus: 0, masteryBonus: 0), 3);
-        }
-
-        [Fact]
-        public void RaiseStat_ShouldThrow_ForAMissingStat()
-            => Assert.Throws<EntityNotFoundException>(() => Artifact().RaiseStat("Defense", 1, Now));
     }
 }

@@ -37,7 +37,7 @@ public class EquipHeroItemCommandTests
     private EquipmentItem GivenItem(string itemKey, EquipmentSlot slot, Guid? owner = null)
     {
         var item = new EquipmentItem(Guid.NewGuid(), owner ?? PlayerId, ServerId, itemKey, slot,
-            Rarity.Common, [("Attack", 10.0)], Now);
+            Rarity.Common, Now);
 
         _inventory.GetEquipmentByIdAsync(item.Id, Arg.Any<CancellationToken>()).Returns(item);
 

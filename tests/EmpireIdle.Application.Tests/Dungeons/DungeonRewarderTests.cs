@@ -34,8 +34,7 @@ public class DungeonRewarderTests
         var villages = Substitute.For<IVillageRepository>();
         villages.GetByPlayerIdAsync(village.PlayerId, Arg.Any<CancellationToken>()).Returns(village);
 
-        var granter = new ItemGranter(Substitute.For<IInventoryRepository>(), Substitute.For<IServerContext>(),
-            Substitute.For<IRandomSource>(), new ArtifactRoller(config.Equipment));
+        var granter = new ItemGranter(Substitute.For<IInventoryRepository>(), Substitute.For<IServerContext>());
 
         var rewarder = new DungeonRewarder(dungeons, villages, granter, builder, catalog, Substitute.For<IRandomSource>());
         var run = new DungeonRun(Guid.NewGuid(), village.PlayerId, 1, TestKeys.Dungeon, level, "{}", Entities.Now);

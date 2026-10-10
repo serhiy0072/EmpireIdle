@@ -51,7 +51,7 @@ public class MarketPricesAndQueriesTests
         Assert.Equal(0, stale.Sales);
     }
 
-    /// <summary>Котирування бачить той самий коридор, що й виставлення: меч Power 10 — 70–130.</summary>
+    /// <summary>Котирування бачить той самий коридор, що й виставлення: меч Power 40 — 70–130.</summary>
     [Fact]
     public async Task Quote_ShouldMatchTheListingCorridor()
     {

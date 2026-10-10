@@ -3,8 +3,8 @@ using EmpireIdle.Domain.Services.Config;
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>
-    /// Майстерність коваля (GDD §6.4, §9.12): ціна й шанс заточки артефакта. Поломки немає —
-    /// невдача лише з'їдає золото, бо в артефакт уже вкладено згодоване спорядження.
+    /// Заточка коваля (GDD §9.12): ціна й шанс спроби. Невдача з'їдає золото, а заточка
+    /// не падає.
     ///
     /// Чиста функція від конфіга; кидок винесений сюди, щоб крива шансів мала одне місце
     /// й один набір тестів, а не перевірялась у хендлері через моки.
@@ -18,25 +18,19 @@ namespace EmpireIdle.Domain.Services
             _config = config;
         }
 
-        /// <summary>Ціна переходу з поточної майстерності на наступну, у золоті.</summary>
+        /// <summary>Ціна спроби з поточної заточки на наступну, у золоті: round10(база · ріст^поточна).</summary>
         public int Cost(int currentMastery)
-            => (int)Math.Round(_config.MasteryBaseGold * Math.Pow(_config.MasteryCostGrowth, currentMastery));
+            => (int)(Math.Round(_config.MasteryBaseGold * Math.Pow(_config.MasteryCostGrowth, currentMastery) / 10) * 10);
 
-        /// <summary>
-        /// Шанс успіху на поточній майстерності. До безпечного рівня — одиниця,
-        /// далі спадає лінійно, але не нижче за мінімальний.
-        /// </summary>
+        /// <summary>Шанс успіху спроби з поточної заточки; поза списком — останній відомий.</summary>
         public double SuccessChance(int currentMastery)
         {
-            if (currentMastery < _config.SafeMasteryLevel)
-                return 1.0;
+            var chances = _config.MasterySuccessChances;
 
-            var risky = currentMastery - _config.SafeMasteryLevel + 1;
-
-            return Math.Max(_config.MinSuccessChance, 1.0 - risky * _config.SuccessDropPerLevel);
+            return chances.Count == 0 ? 1.0 : chances[Math.Clamp(currentMastery, 0, chances.Count - 1)];
         }
 
-        /// <summary>Розігрує спробу: true — майстерність піднялась.</summary>
+        /// <summary>Розігрує спробу: true — заточка піднялась.</summary>
         public bool Roll(int currentMastery, IRandomSource random)
             => random.NextDouble() < SuccessChance(currentMastery);
     }

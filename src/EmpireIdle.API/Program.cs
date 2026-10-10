@@ -106,7 +106,21 @@ builder.Services.AddOptions<GameConfig>()
         "GameConfig.Clan.Territory.MonsterLootCashbackShare must be a share within [0; 1].")
     .Validate(c => c.Heroes.Count > 0, "GameConfig.Heroes is empty — check Config/heroes.json.")
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
-    .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")
+    .Validate(c => c.Equipment.LevelExperienceBase > 0 && c.Equipment.LevelExperienceCoefficient >= 0 && c.Equipment.LevelExperienceExponent > 0,
+        "GameConfig.Equipment level experience curve must be positive — otherwise a level costs nothing.")
+    .Validate(c => c.Equipment.ArtifactBase.Values.All(b => b.Hero >= 0 && b.HeroPerLevel >= 0 && b.Unit >= 0 && b.UnitPerLevel >= 0),
+        "GameConfig.Equipment.ArtifactBase cannot be negative — a level would weaken the artifact.")
+    .Validate(c => c.Equipment.ArtifactClassMultipliers.Values.All(m => m.Attack > 0 && m.Defense > 0),
+        "GameConfig.Equipment.ArtifactClassMultipliers must be positive.")
+    .Validate(c => c.Equipment.HeroStatPower >= 0 && c.Equipment.UnitStatPower >= 0 && c.Equipment.ArtifactBonuses.All(b => b.PowerPerPercent >= 0),
+        "GameConfig.Equipment power weights cannot be negative.")
+    .Validate(c => c.Equipment.BonusStepChances.Count > 0 && c.Equipment.BonusStepChances.All(p => p is >= 0 and <= 1)
+                   && Math.Abs(c.Equipment.BonusStepChances.Sum() - 1) < 1e-6,
+        "GameConfig.Equipment.BonusStepChances must be shares within [0; 1] that sum to 1.")
+    .Validate(c => c.Equipment.MasteryBaseGold > 0 && c.Equipment.MasteryCostGrowth >= 1,
+        "GameConfig.Equipment mastery cost must be positive and must not fall with mastery.")
+    .Validate(c => c.Equipment.MasterySuccessChances.All(p => p is > 0 and <= 1),
+        "GameConfig.Equipment.MasterySuccessChances must be within (0; 1] — a zero chance is a wall nobody passes.")
     .Validate(c => c.Equipment.ArtifactTierMultipliers.All(m => m > 0), "GameConfig.Equipment.ArtifactTierMultipliers must be positive — otherwise higher-tier artifacts roll zero stats.")
     .Validate(c => c.Mail.LetterRetentionDays > 0 && c.Mail.AnnouncementRetentionDays > 0 && c.Mail.RewardRetentionDays > 0,
         "GameConfig.Mail retention must be positive.")
