@@ -35,9 +35,15 @@ namespace EmpireIdle.Domain.Services
         public MarketPricing(GameConfig config)
         {
             _market = config.Market;
-            _gemPrices = config.Shop.Items
+            var shop = config.Shop.Items
                 .GroupBy(offer => offer.ItemKey)
                 .ToDictionary(g => g.Key, g => g.Min(offer => offer.PriceGems));
+
+            // Предмет зі скрині не має ціни в крамниці — якорем стає його довідкова ціна
+            _gemPrices = config.Market.GemValues
+                .Where(value => !shop.ContainsKey(value.Key))
+                .Concat(shop)
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
         /// <summary>Категорія спорядження для ціни сили; артефакт — єдиний вид спорядження (GDD §6.4).</summary>
@@ -53,7 +59,7 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>
         /// Абсолютний якір ціни за одиницю. Для стакових — ціна в крамниці
-        /// в gems за курсом; для сили — ціна одиниці Power з конфіга.
+        /// (або довідкова ціна предмета зі скрині) в gems за курсом; для сили — ціна одиниці Power з конфіга.
         /// null — якоря немає, і товар торгуватись не може: коридор
         /// без якоря проганяється вошем з першого ж продажу.
         /// </summary>

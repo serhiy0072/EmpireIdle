@@ -575,6 +575,15 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Equipment is always tradeable; Tradeable is for stack items only: {string.Join(", ", equipmentInvalid)}.");
 
+            var badValues = market.GemValues
+                .Where(value => value.Value <= 0 || config.Items.All(i => i.Key != value.Key))
+                .Select(value => value.Key)
+                .ToList();
+
+            if (badValues.Count > 0)
+                throw new InvalidOperationException(
+                    $"Market.GemValues name unknown items or non-positive prices: {string.Join(", ", badValues)}.");
+
             var pricing = new MarketPricing(config);
 
             var categories = config.Items

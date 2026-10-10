@@ -64,6 +64,25 @@ public class MarketConfigValidationTests
     public void Validate_ShouldRejectATradeableItemWithoutAShopPrice()
         => Assert.Contains($"item.{Tonic}", Rejects(c => c.Shop.Items.Clear()).Message);
 
+    /// <summary>Предмет лише зі скрині тримає якір довідковою ціною (GDD §9.12).</summary>
+    [Fact]
+    public void Validate_ShouldAcceptAChestOnlyItem_WithAGemValue()
+    {
+        var config = Enabled();
+        config.Shop.Items.Clear();
+        config.Market.GemValues[Tonic] = 5;
+
+        Assert.Null(Record.Exception(() => GameConfigValidator.Validate(config)));
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectAGemValueOfAnUnknownItem()
+        => Assert.Contains("elixir", Rejects(c => c.Market.GemValues["elixir"] = 5).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectANonPositiveGemValue()
+        => Assert.Contains(Tonic, Rejects(c => c.Market.GemValues[Tonic] = 0).Message);
+
     [Fact]
     public void Validate_ShouldRejectAnEquipmentCategoryWithoutAPowerPrice()
         => Assert.Contains("artifact", Rejects(c => c.Market.GoldPerPower.Remove("artifact")).Message);

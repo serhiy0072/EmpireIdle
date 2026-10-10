@@ -45,6 +45,16 @@ public class MarketPricingTests
     public void AnchorPerUnit_ShouldConvertTheShopPriceInGems()
         => Assert.Equal(1000, Pricing().AnchorPerUnit("item.boost"));
 
+    /// <summary>Предмет лише зі скрині (GDD §9.12) тримає якір за довідковою ціною.</summary>
+    [Fact]
+    public void AnchorPerUnit_ShouldFallBackToTheGemValue_OfAChestOnlyItem()
+        => Assert.Equal(1200, Pricing(m => m.GemValues["veil"] = 12).AnchorPerUnit("item.veil"));
+
+    /// <summary>Ціна крамниці важить більше за довідкову: її бачить гравець.</summary>
+    [Fact]
+    public void AnchorPerUnit_ShouldPreferTheShopPrice_OverTheGemValue()
+        => Assert.Equal(1000, Pricing(m => m.GemValues["boost"] = 99).AnchorPerUnit("item.boost"));
+
     [Fact]
     public void AnchorPerUnit_ShouldTakeThePowerPriceOfTheCategory()
         => Assert.Equal(30, Pricing().AnchorPerUnit("hero.Rare"));
