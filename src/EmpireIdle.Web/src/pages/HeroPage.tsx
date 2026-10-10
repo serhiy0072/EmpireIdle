@@ -3,6 +3,7 @@ import ErrorBanner from "../components/ErrorBanner";
 import { GameButton, GamePanel, GameScreen, GameTabs, RoleBadge, StarRow, type GameTab } from "../components/game/GameUi";
 import HeroPortrait from "../components/heroes/HeroPortrait";
 import HeroGearTab from "../components/heroes/screen/HeroGearTab";
+import HeroLevelUp from "../components/heroes/screen/HeroLevelUp";
 import HeroSkillsTab from "../components/heroes/screen/HeroSkillsTab";
 import HeroStatsTab from "../components/heroes/screen/HeroStatsTab";
 import { useSession } from "../hooks/useSession";
@@ -95,7 +96,6 @@ export default function HeroPage() {
   };
 
   const atLevelCap = hero.level >= hero.maxLevel;
-  const affordable = heroes.data.experience >= hero.experienceToNext;
   const starCost = hero.nextStarPartCost ?? null;
   const shardsMissing = starCost === null ? 0 : Math.max(0, starCost - hero.shards);
 
@@ -191,16 +191,14 @@ export default function HeroPage() {
           {atLevelCap ? (
             <p className="text-sm text-sky-100/80">Максимальний рівень!</p>
           ) : (
-            <div className="flex flex-col items-center gap-1">
-              <GameButton onClick={() => levelUp.mutate({ heroId: hero.id, levels: 1 })} disabled={busy || !affordable} variant="accent">
-                Підняти рівень · {hero.experienceToNext.toLocaleString("uk-UA")} досвіду
-              </GameButton>
-              {!affordable && (
-                <p className="text-xs text-sky-100/70">
-                  Бракує {(hero.experienceToNext - heroes.data.experience).toLocaleString("uk-UA")} досвіду — його дають баночки досвіду.
-                </p>
-              )}
-            </div>
+            <HeroLevelUp
+              playerId={playerId}
+              hero={hero}
+              pool={heroes.data.experience}
+              items={items}
+              busy={busy}
+              onLevelUp={() => levelUp.mutate({ heroId: hero.id, levels: 1 })}
+            />
           )}
         </div>
 

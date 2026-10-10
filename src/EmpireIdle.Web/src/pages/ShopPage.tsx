@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ItemIcon from "../components/inventory/ItemIcon";
 import { LootboxDrops, LootboxOdds } from "../components/lootboxes/LootboxPanels";
@@ -39,7 +40,7 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
   const total = offer.priceGems * safeCount;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3">
+    <div id={offer.itemKey} className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-3 target:ring-2 target:ring-violet-400">
       <div className="flex gap-3">
         <ItemIcon itemKey={offer.itemKey} type={offer.type} rarity={offer.rarity} size={48} />
         <div className="min-w-0 flex-1">
@@ -112,6 +113,14 @@ export default function ShopPage() {
   const pity = useLootboxPity(playerId);
   const checkout = useCheckout(playerId);
   const [drops, setDrops] = useState<LootboxDrop[] | null>(null);
+  const location = useLocation();
+
+  // Посилання на конкретну пропозицію (/shop#chest_supply): вітрина малюється після запиту,
+  // тож браузер сам до якоря не докрутить
+  useEffect(() => {
+    if (shop.data === undefined || location.hash === "") return;
+    document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [shop.data, location.hash]);
 
   if (shop.isPending) {
     return <p className="text-slate-500">Завантаження крамниці…</p>;
