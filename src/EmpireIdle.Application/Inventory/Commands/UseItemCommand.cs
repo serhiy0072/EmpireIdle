@@ -14,7 +14,11 @@ namespace EmpireIdle.Application.Inventory.Commands
     /// Використати предмет з інвентаря. TargetX/TargetY — для предметів, що діють на клітину карти.
     /// </summary>
     public record UseItemCommand(Guid PlayerId, string ItemKey, int Count, int? TargetX = null, int? TargetY = null)
-        : IRequest, IPlayerScopedRequest, IIdempotentRequest;
+        : IRequest, IPlayerScopedRequest, IIdempotentRequest
+    {
+        /// <summary>Скільки штук за запит: досить, щоб вжити весь стек одним натисканням.</summary>
+        public const int MaxCount = 10_000;
+    }
 
     /// <summary>
     /// Обробник UseItemCommand: застосовує ефект предмета й списує його з інвентаря.

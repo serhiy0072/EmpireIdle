@@ -9,7 +9,8 @@ namespace EmpireIdle.Application.Inventory.Validators
         {
             RuleFor(x => x.PlayerId).NotEmpty();
             RuleFor(x => x.ItemKey).NotEmpty().MaximumLength(50);
-            RuleFor(x => x.Count).InclusiveBetween(1, 100);
+            // Увесь стек одним запитом; стеля — лише проти сміття в запиті
+            RuleFor(x => x.Count).InclusiveBetween(1, UseItemCommand.MaxCount);
 
 
             // Координати задаються парою: одна половина означає помилку клієнта,

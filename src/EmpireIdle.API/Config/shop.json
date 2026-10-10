@@ -54,37 +54,37 @@
         {
           "ItemKey": "chest_supply",
           "PriceGems": 1500,
-          "MaxPerPurchase": 10
+          "MaxPerPurchase": 100
         },
         {
           "ItemKey": "chest_treasure",
           "PriceGems": 1500,
-          "MaxPerPurchase": 10
+          "MaxPerPurchase": 100
         },
         {
           "ItemKey": "chest_traveler",
           "PriceGems": 2000,
-          "MaxPerPurchase": 10
+          "MaxPerPurchase": 100
         },
         {
           "ItemKey": "chest_boosts",
           "PriceGems": 600,
-          "MaxPerPurchase": 10
+          "MaxPerPurchase": 100
         },
         {
           "ItemKey": "chest_books_common",
           "PriceGems": 1500,
-          "MaxPerPurchase": 10
+          "MaxPerPurchase": 100
         },
         {
           "ItemKey": "chest_books_rare",
           "PriceGems": 1500,
-          "MaxPerPurchase": 10
+          "MaxPerPurchase": 100
         },
         {
           "ItemKey": "chest_books_unique",
           "PriceGems": 1500,
-          "MaxPerPurchase": 10
+          "MaxPerPurchase": 100
         },
         {
           "ItemKey": "beast_feed",

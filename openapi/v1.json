@@ -4751,7 +4751,7 @@
             "name": "count",
             "in": "query",
             "schema": {
-              "maximum": 10,
+              "maximum": 100,
               "minimum": 1,
               "type": "integer",
               "format": "int32",

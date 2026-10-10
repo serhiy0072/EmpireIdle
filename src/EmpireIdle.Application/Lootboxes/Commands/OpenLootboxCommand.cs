@@ -16,7 +16,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
     public record OpenLootboxCommand(Guid PlayerId, string ItemKey, int Count = 1)
         : IRequest<LootboxOpening>, IPlayerScopedRequest, IIdempotentRequest
     {
-        public const int MaxCount = 10;
+        public const int MaxCount = 100;
     }
 
     internal sealed class OpenLootboxCommandHandler : IRequestHandler<OpenLootboxCommand, LootboxOpening>
