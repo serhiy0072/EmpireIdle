@@ -1,8 +1,10 @@
 import { useState } from "react";
 import ErrorBanner from "../components/ErrorBanner";
 import ItemIcon from "../components/inventory/ItemIcon";
+import { LootboxDrops, LootboxOdds } from "../components/lootboxes/LootboxPanels";
 import { useSession } from "../hooks/useSession";
-import type { ShopItemView } from "../lib/apiTypes";
+import type { LootboxDrop, ShopItemView } from "../lib/apiTypes";
+import { useBuyLootbox, useLootboxPity } from "../lib/queries/lootboxes";
 import { useBuyShopItem, useCheckout, useShop } from "../lib/queries/shop";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
@@ -14,6 +16,8 @@ const TYPE_LABELS: Record<string, string> = {
   teleport: "Телепорт",
   scoutveil: "Захист від розвідки",
   feed: "Корм",
+  lootbox: "Скриня",
+  weaponchest: "Скриня зброї",
 };
 
 function price(cents: number, currency: string): string {
@@ -24,10 +28,12 @@ interface OfferProps {
   offer: ShopItemView;
   gems: number;
   busy: boolean;
+  /** Лічильник гарантії скрині; undefined — не скриня або ще не приїхав. */
+  pitySince?: number;
   onBuy: (count: number) => void;
 }
 
-function Offer({ offer, gems, busy, onBuy }: OfferProps) {
+function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
   const [count, setCount] = useState(1);
   const safeCount = Math.min(offer.maxPerPurchase, Math.max(1, count));
   const total = offer.priceGems * safeCount;
@@ -57,6 +63,8 @@ function Offer({ offer, gems, busy, onBuy }: OfferProps) {
 
       {offer.description !== "" && <p className="mt-2 text-sm text-slate-600">{offer.description}</p>}
 
+      {offer.type === "lootbox" && <LootboxOdds itemKey={offer.itemKey} since={pitySince} />}
+
       <div className="mt-3 flex items-center gap-2">
         {offer.maxPerPurchase > 1 && (
           <input
@@ -74,7 +82,9 @@ function Offer({ offer, gems, busy, onBuy }: OfferProps) {
           disabled={busy || gems < total}
           className="ml-auto rounded-lg bg-violet-600 px-3 py-1 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
         >
-          {gems < total ? "Не вистачає 💎" : `Купити за ${total.toLocaleString("uk-UA")} 💎`}
+          {gems < total
+            ? "Не вистачає 💎"
+            : `${offer.type === "lootbox" ? "Відкрити" : "Купити"} за ${total.toLocaleString("uk-UA")} 💎`}
         </button>
       </div>
     </div>
@@ -88,7 +98,10 @@ export default function ShopPage() {
   const shop = useShop();
   const wallet = useWallet(playerId);
   const buy = useBuyShopItem(playerId);
+  const buyLootbox = useBuyLootbox(playerId);
+  const pity = useLootboxPity(playerId);
   const checkout = useCheckout(playerId);
+  const [drops, setDrops] = useState<LootboxDrop[] | null>(null);
 
   if (shop.isPending) {
     return <p className="text-slate-500">Завантаження крамниці…</p>;
@@ -107,7 +120,9 @@ export default function ShopPage() {
         <p className="text-sm text-slate-500">💎 {gems.toLocaleString("uk-UA")}</p>
       </div>
 
-      <ErrorBanner error={buy.error ?? checkout.error} />
+      <ErrorBanner error={buy.error ?? buyLootbox.error ?? checkout.error} />
+
+      {drops !== null && <LootboxDrops drops={drops} onClose={() => setDrops(null)} />}
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">За самоцвіти</h2>
@@ -117,8 +132,14 @@ export default function ShopPage() {
               key={offer.itemKey}
               offer={offer}
               gems={gems}
-              busy={buy.isPending}
-              onBuy={(count) => buy.mutate({ itemKey: offer.itemKey, count })}
+              busy={buy.isPending || buyLootbox.isPending}
+              pitySince={pity.data?.find((p) => p.lootboxKey === offer.itemKey)?.since}
+              onBuy={(count) =>
+                // Скриня з крамниці відкривається одразу — показуємо, що випало
+                offer.type === "lootbox"
+                  ? buyLootbox.mutate({ itemKey: offer.itemKey, count }, { onSuccess: (result) => setDrops(result.drops) })
+                  : buy.mutate({ itemKey: offer.itemKey, count })
+              }
             />
           ))}
         </div>

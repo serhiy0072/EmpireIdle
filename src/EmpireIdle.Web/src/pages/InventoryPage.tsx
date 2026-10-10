@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import { GamePanel, GameScreen, GameTabs, Tile, TileGrid, type GameTab } from "../components/game/GameUi";
@@ -7,9 +7,11 @@ import ActiveEffects from "../components/inventory/ActiveEffects";
 import EquipmentCard from "../components/inventory/EquipmentCard";
 import ItemCard from "../components/inventory/ItemCard";
 import ItemIcon from "../components/inventory/ItemIcon";
+import LootboxCard from "../components/lootboxes/LootboxCard";
+import { LootboxDrops } from "../components/lootboxes/LootboxPanels";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
-import type { EquipmentResponse, InventoryItemResponse } from "../lib/apiTypes";
+import type { EquipmentResponse, InventoryItemResponse, LootboxDrop } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
 import { useEquip, useInventory, useUnequip, useUseItem } from "../lib/queries/inventory";
@@ -64,6 +66,7 @@ export default function InventoryPage() {
   const consume = useUseItem(playerId);
   const equip = useEquip(playerId);
   const unequip = useUnequip(playerId);
+  const [drops, setDrops] = useState<LootboxDrop[] | null>(null);
 
   const [params, setParams] = useSearchParams();
   const tab = (params.get("tab") as Tab | null) ?? "resources";
@@ -193,8 +196,14 @@ export default function InventoryPage() {
 
       <ErrorBanner error={failure} />
 
+      {drops !== null && <LootboxDrops drops={drops} onClose={() => setDrops(null)} />}
+
+      {pickedItem !== null && pickedItem.type === "lootbox" && (
+        <LootboxCard playerId={playerId} item={pickedItem} onOpened={setDrops} />
+      )}
+
       {/* Дії — у світлій картці під сіткою: ті самі, що були, без дублювання логіки */}
-      {pickedItem !== null && (
+      {pickedItem !== null && pickedItem.type !== "lootbox" && (
         <div className="space-y-1">
           <ItemCard
             playerId={playerId}

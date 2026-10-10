@@ -75,3 +75,7 @@ export type ShopView = components["schemas"]["ShopView"];
 export type CheckoutResponse = components["schemas"]["CheckoutResponse"];
 export type ShopItemView = components["schemas"]["ShopItemView"];
 export type GemPackView = components["schemas"]["GemPackView"];
+export type LootboxDrop = components["schemas"]["LootboxDrop"];
+export type LootboxOpening = components["schemas"]["LootboxOpening"];
+export type LootboxPurchase = components["schemas"]["LootboxPurchase"];
+export type LootboxPityView = components["schemas"]["LootboxPityView"];

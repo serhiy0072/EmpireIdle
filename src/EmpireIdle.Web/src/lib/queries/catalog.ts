@@ -20,6 +20,7 @@ export type CatalogBeast = components["schemas"]["CatalogBeast"];
 export type CatalogArtifactSet = components["schemas"]["CatalogArtifactSet"];
 export type CatalogSetRarity = components["schemas"]["CatalogSetRarity"];
 export type CatalogArtifactSlot = components["schemas"]["CatalogArtifactSlot"];
+export type CatalogLootbox = components["schemas"]["CatalogLootbox"];
 
 export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
@@ -72,6 +73,8 @@ export interface Catalog {
   artifactSets: CatalogArtifactSet[];
   /** Родина, до якої належить предмет; null — предмет поза наборами. */
   setOfItem: (itemKey: string) => CatalogArtifactSet | null;
+  /** Таблиця скрині з шансами й гарантією; null — предмет не скриня. */
+  lootbox: (itemKey: string) => CatalogLootbox | null;
   /**
    * Ціна прискорення таймера на момент `now` — та сама формула, що в SpeedUpCalculator:
    * платиться все понад межу свого таймера (floorSeconds[timer], немає — нуль), щонайменше 1 gem.
@@ -107,6 +110,7 @@ export function useCatalog(): Catalog {
     const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
     const units = new Map((data?.units ?? []).map((unit) => [unit.key, unit]));
     const beasts = new Map((data?.beasts ?? []).map((beast) => [beast.key, beast]));
+    const lootboxes = new Map((data?.lootboxes ?? []).map((box) => [box.key, box]));
     const beastsByMonster = new Map((data?.beasts ?? []).map((beast) => [beast.monsterKey, beast]));
     // SetKey предмета («dawn_rare») → родина («dawn»): так картка артефакту знає свій набір
     const familyBySetKey = new Map(
@@ -161,6 +165,7 @@ export function useCatalog(): Catalog {
         const setKey = items.get(itemKey)?.setKey;
         return setKey == null ? null : (familyBySetKey.get(setKey) ?? null);
       },
+      lootbox: (itemKey) => lootboxes.get(itemKey) ?? null,
       speedUpFloorSeconds: (timer) => data?.speedUp.floorSeconds[timer] ?? 0,
       speedUpCost: (timer, completesAt, now, serverCost) => {
         if (data === undefined) return serverCost;
