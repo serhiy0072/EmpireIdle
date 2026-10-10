@@ -52,6 +52,71 @@
           "MaxPerPurchase": 20
         },
         {
+          "ItemKey": "chest_supply",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_treasure",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_traveler",
+          "PriceGems": 2000,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_boosts",
+          "PriceGems": 600,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_warrior_common",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_warrior_rare",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_warrior_unique",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_knight_common",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_knight_rare",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_knight_unique",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_archer_common",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_archer_rare",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
+          "ItemKey": "chest_books_archer_unique",
+          "PriceGems": 1500,
+          "MaxPerPurchase": 10
+        },
+        {
           "ItemKey": "crate_mixed_large",
           "PriceGems": 80,
           "MaxPerPurchase": 10

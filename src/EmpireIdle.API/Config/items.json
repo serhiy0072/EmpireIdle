@@ -277,6 +277,97 @@
         "Type": "repairkit"
       },
       {
+        "Key": "chest_supply",
+        "DisplayName": "Скриня обозу",
+        "Description": "Досвід героїв, ресурси, прискорення й гаєчки — усе, що везе обоз",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_treasure",
+        "DisplayName": "Скриня скарбів",
+        "Description": "Артефакти, осколки героїв і ремкомплекти; унікальний артефакт — не пізніше 20-ї скрині",
+        "Rarity": "unique",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_traveler",
+        "DisplayName": "Скриня мандрівника",
+        "Description": "Один телепорт; повний телепорт — не пізніше 4-ї скрині",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_boosts",
+        "DisplayName": "Скриня підсилень",
+        "Description": "Бусти виробітку, атаки й захисту та завіса розвідника — не пізніше 5-ї скрині",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_warrior_common",
+        "DisplayName": "Скриня знань воїна (звичайна)",
+        "Description": "Книги вмінь воїна, звичайна рідкість — атаки й захисту",
+        "Rarity": "common",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_warrior_rare",
+        "DisplayName": "Скриня знань воїна (рідкісна)",
+        "Description": "Книги вмінь воїна, рідкісна рідкість — атаки й захисту",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_warrior_unique",
+        "DisplayName": "Скриня знань воїна (унікальна)",
+        "Description": "Книги вмінь воїна, унікальна рідкість — атаки й захисту",
+        "Rarity": "unique",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_knight_common",
+        "DisplayName": "Скриня знань лицаря (звичайна)",
+        "Description": "Книги вмінь лицаря, звичайна рідкість — атаки й захисту",
+        "Rarity": "common",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_knight_rare",
+        "DisplayName": "Скриня знань лицаря (рідкісна)",
+        "Description": "Книги вмінь лицаря, рідкісна рідкість — атаки й захисту",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_knight_unique",
+        "DisplayName": "Скриня знань лицаря (унікальна)",
+        "Description": "Книги вмінь лицаря, унікальна рідкість — атаки й захисту",
+        "Rarity": "unique",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_archer_common",
+        "DisplayName": "Скриня знань лучника (звичайна)",
+        "Description": "Книги вмінь лучника, звичайна рідкість — атаки й захисту",
+        "Rarity": "common",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_archer_rare",
+        "DisplayName": "Скриня знань лучника (рідкісна)",
+        "Description": "Книги вмінь лучника, рідкісна рідкість — атаки й захисту",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_archer_unique",
+        "DisplayName": "Скриня знань лучника (унікальна)",
+        "Description": "Книги вмінь лучника, унікальна рідкість — атаки й захисту",
+        "Rarity": "unique",
+        "Type": "lootbox"
+      },
+      {
         "Key": "speedup_1m",
         "DisplayName": "Прискорення 1 хв",
         "Description": "Зрізає 1 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
