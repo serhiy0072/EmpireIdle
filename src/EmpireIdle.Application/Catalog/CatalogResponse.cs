@@ -13,6 +13,7 @@
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
     /// <param name="MaxArtifactLevel">Стеля рівня артефакта — після неї «Посилити» зникає.</param>
     /// <param name="MaxMastery">Стеля майстерності коваля.</param>
+    /// <param name="ArtifactRepair">Ремонт зламаного заточкою артефакта й шанси поломки (GDD §9.12).</param>
     /// <param name="SpeedUp">
     /// Ціна прискорення таймерів. Клієнт перераховує її щосекунди разом із відліком —
     /// знімок із запиту застарівав і показував більше, ніж спише сервер.
@@ -44,6 +45,7 @@
         IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
         int MaxArtifactLevel,
         int MaxMastery,
+        CatalogArtifactRepair ArtifactRepair,
         CatalogSpeedUp SpeedUp,
         int MapSize,
         string MainBuildingKey,
@@ -162,6 +164,10 @@
     /// <param name="Chance">Базовий шанс у відсотках, без гарантії.</param>
     /// <param name="Pity">Позиція, яку віддає гарантія.</param>
     public record CatalogLootboxEntry(string Type, string? Key, int Amount, double Chance, bool Pity);
+
+    /// <summary>Ремонт артефакта: gems за рівень заточки або один ремкомплект.</summary>
+    /// <param name="BreakChances">Шанс поломки після невдалої спроби на кожну заточку, від спроби на +1.</param>
+    public record CatalogArtifactRepair(int GemsPerMastery, string KitItemKey, IReadOnlyList<double> BreakChances);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);

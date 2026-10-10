@@ -50,6 +50,19 @@ public class GameCatalogProjectionTests
             (beast.Key, beast.DisplayName, beast.MonsterKey, beast.Effect));
     }
 
+    /// <summary>Кузня показує ціну ремонту й попереджає про поломку тими самими числами, що й сервер.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheArtifactRepair()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+
+        var repair = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).ArtifactRepair;
+
+        Assert.Equal((config.Equipment.RepairGemsPerMastery, config.Equipment.RepairKitItemKey),
+            (repair.GemsPerMastery, repair.KitItemKey));
+        Assert.Equal(config.Equipment.MasteryBreakChances, repair.BreakChances);
+    }
+
     /// <summary>
     /// Скрині з шансами в порядку таблиці й гарантією (GDD §9.12): розкриття шансів обов'язкове,
     /// і клієнт показує саме те, з чим кидає сервер.

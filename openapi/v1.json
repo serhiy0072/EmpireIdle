@@ -9595,6 +9595,31 @@
         },
         "additionalProperties": false
       },
+      "CatalogArtifactRepair": {
+        "required": [
+          "breakChances",
+          "gemsPerMastery",
+          "kitItemKey"
+        ],
+        "type": "object",
+        "properties": {
+          "gemsPerMastery": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kitItemKey": {
+            "type": "string"
+          },
+          "breakChances": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogArtifactSet": {
         "required": [
           "displayName",
@@ -9973,6 +9998,7 @@
       },
       "CatalogResponse": {
         "required": [
+          "artifactRepair",
           "artifactSets",
           "artifactSlots",
           "beasts",
@@ -10115,6 +10141,9 @@
           "maxMastery": {
             "type": "integer",
             "format": "int32"
+          },
+          "artifactRepair": {
+            "$ref": "#/components/schemas/CatalogArtifactRepair"
           },
           "speedUp": {
             "$ref": "#/components/schemas/CatalogSpeedUp"

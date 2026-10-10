@@ -168,6 +168,8 @@ namespace EmpireIdle.Application.Catalog
                     .ToList(),
                 config.Equipment.MaxLevel,
                 config.Equipment.MaxMastery,
+                new CatalogArtifactRepair(config.Equipment.RepairGemsPerMastery, config.Equipment.RepairKitItemKey,
+                    config.Equipment.MasteryBreakChances),
                 new CatalogSpeedUp(
                     config.Monetization.SpeedUpFloorSeconds.ToDictionary(pair => pair.Key.ToString(), pair => pair.Value),
                     config.Monetization.SpeedUpFactor,
