@@ -50,6 +50,20 @@ public class GameCatalogProjectionTests
             (beast.Key, beast.DisplayName, beast.MonsterKey, beast.Effect));
     }
 
+    /// <summary>Крива рівня артефакта — та сама, за якою сервер рахує рівень: від нуля до стелі.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheArtifactLevelCurve()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        var progression = new ArtifactProgression(config.Equipment);
+
+        var curve = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).ArtifactLevelExperience;
+
+        Assert.Equal(config.Equipment.MaxLevel + 1, curve.Count);
+        Assert.Equal(0, curve[0]);
+        Assert.Equal(progression.ExperienceToReach(config.Equipment.MaxLevel), curve[^1]);
+    }
+
     /// <summary>Кузня показує ціну ремонту й попереджає про поломку тими самими числами, що й сервер.</summary>
     [Fact]
     public void Response_ShouldCarryTheArtifactRepair()

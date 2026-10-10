@@ -167,6 +167,9 @@ namespace EmpireIdle.Application.Catalog
                     .Select(slot => new CatalogArtifactSlot(slot.Key, Name("artifactSlot", slot.Key, slot.DisplayName)))
                     .ToList(),
                 config.Equipment.MaxLevel,
+                Enumerable.Range(0, config.Equipment.MaxLevel + 1)
+                    .Select(new ArtifactProgression(config.Equipment).ExperienceToReach)
+                    .ToList(),
                 config.Equipment.MaxMastery,
                 new CatalogArtifactRepair(config.Equipment.RepairGemsPerMastery, config.Equipment.RepairKitItemKey,
                     config.Equipment.MasteryBreakChances),

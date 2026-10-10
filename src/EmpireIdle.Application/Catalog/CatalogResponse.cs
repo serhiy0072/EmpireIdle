@@ -12,6 +12,10 @@
     /// <param name="Lootboxes">Таблиці скринь із шансами — розкриття обов'язкове за правилами сторів.</param>
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
     /// <param name="MaxArtifactLevel">Стеля рівня артефакта — після неї «Посилити» зникає.</param>
+    /// <param name="ArtifactLevelExperience">
+    /// Накопичений досвід, з яким артефакт стає рівня n (індекс — рівень, від 0 до стелі): кузня рахує,
+    /// скільки «їжі» до рівня +1, +2… без власної копії формули.
+    /// </param>
     /// <param name="MaxMastery">Стеля майстерності коваля.</param>
     /// <param name="ArtifactRepair">Ремонт зламаного заточкою артефакта й шанси поломки (GDD §9.12).</param>
     /// <param name="SpeedUp">
@@ -44,6 +48,7 @@
         int HealGemsPerUnit,
         IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
         int MaxArtifactLevel,
+        IReadOnlyList<long> ArtifactLevelExperience,
         int MaxMastery,
         CatalogArtifactRepair ArtifactRepair,
         CatalogSpeedUp SpeedUp,

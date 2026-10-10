@@ -9998,6 +9998,7 @@
       },
       "CatalogResponse": {
         "required": [
+          "artifactLevelExperience",
           "artifactRepair",
           "artifactSets",
           "artifactSlots",
@@ -10137,6 +10138,13 @@
           "maxArtifactLevel": {
             "type": "integer",
             "format": "int32"
+          },
+          "artifactLevelExperience": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
           },
           "maxMastery": {
             "type": "integer",
