@@ -19,6 +19,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(p => p.PlayerId == playerId && p.LootboxKey == lootboxKey, cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<LootboxPity>> GetPitiesReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.LootboxPity
+                .AsNoTracking()
+                .Where(p => p.PlayerId == playerId)
+                .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public async Task AddPityAsync(LootboxPity pity, CancellationToken cancellationToken = default)
         {
             await _context.LootboxPity.AddAsync(pity, cancellationToken);

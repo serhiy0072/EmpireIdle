@@ -4831,6 +4831,56 @@
         }
       }
     },
+    "/api/inventory/{playerId}/lootboxes/pity": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "operationId": "Inventory_GetLootboxPity",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LootboxPityView"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LootboxPityView"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LootboxPityView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/inventory/{playerId}/speedups": {
       "post": {
         "tags": [
@@ -12331,6 +12381,28 @@
             "items": {
               "$ref": "#/components/schemas/LootboxDrop"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "LootboxPityView": {
+        "required": [
+          "lootboxKey",
+          "pityWithin",
+          "since"
+        ],
+        "type": "object",
+        "properties": {
+          "lootboxKey": {
+            "type": "string"
+          },
+          "since": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pityWithin": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

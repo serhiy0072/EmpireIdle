@@ -16,4 +16,9 @@ namespace EmpireIdle.Application.Lootboxes.Contracts
 
     /// <summary>Покупка з відкриттям — разом із залишком gems, щоб клієнт не перепитував гаманець.</summary>
     public record LootboxPurchase(string ItemKey, IReadOnlyList<LootboxDrop> Drops, int GemBalance);
+
+    /// <summary>Скільки до гарантії в скрині.</summary>
+    /// <param name="Since">Відкриттів поспіль без позиції гарантії.</param>
+    /// <param name="PityWithin">На якому відкритті поспіль гарантія спрацьовує.</param>
+    public record LootboxPityView(string LootboxKey, int Since, int PityWithin);
 }

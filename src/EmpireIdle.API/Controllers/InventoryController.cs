@@ -5,6 +5,7 @@ using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
 using EmpireIdle.Application.Lootboxes.Commands;
 using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.Queries;
 using EmpireIdle.Application.Speedups.Commands;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -87,6 +88,13 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<LootboxOpening>> OpenLootbox(Guid playerId, string itemKey,
             [FromQuery][Range(1, OpenLootboxCommand.MaxCount)] int count = 1, CancellationToken cancellationToken = default)
             => Ok(await _mediator.Send(new OpenLootboxCommand(playerId, itemKey, count), cancellationToken));
+
+        /// <summary>Лічильники гарантій скринь: скільки відкриттів поспіль без позиції гарантії.</summary>
+        [HttpGet("{playerId:guid}/lootboxes/pity")]
+        [ProducesResponseType(typeof(IReadOnlyList<LootboxPityView>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IReadOnlyList<LootboxPityView>>> GetLootboxPity(Guid playerId,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new GetLootboxPityQuery(playerId), cancellationToken));
 
         /// <summary>
         /// Прискорити таймер предметами-прискореннями (будівництво, тренування, рівень військ, марш).
