@@ -51,6 +51,26 @@ public class GameCatalogProjectionTests
     }
 
     /// <summary>
+    /// Скрині з шансами в порядку таблиці й гарантією (GDD §9.12): розкриття шансів обов'язкове,
+    /// і клієнт показує саме те, з чим кидає сервер.
+    /// </summary>
+    [Fact]
+    public void Response_ShouldDiscloseTheLootboxOdds()
+    {
+        var catalog = new GameConfigBuilder().WithLootboxes().BuildCatalog();
+
+        var big = new GameCatalogProjection(catalog).ResponseFor(null).Lootboxes.Single(b => b.Key == TestKeys.BigChest);
+
+        Assert.Equal(3, big.PityWithin);
+        Assert.Equal(
+        [
+            new CatalogLootboxEntry("Lootbox", TestKeys.SmallChest, 2, 60, false),
+            new CatalogLootboxEntry("Gems", null, 100, 30, false),
+            new CatalogLootboxEntry("Artifact", "Unique", 1, 10, true)
+        ], big.Entries);
+    }
+
+    /// <summary>
     /// Радіус ближнього телепорта доходить до клієнта — мапа каже «задалеко» ще до відмови сервера.
     /// В інших типів радіуса немає: null, а не нуль, щоб клієнт не прочитав «нуль клітин».
     /// </summary>

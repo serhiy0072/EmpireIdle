@@ -145,6 +145,11 @@ namespace EmpireIdle.Application.Catalog
                 units,
                 beasts,
                 ArtifactSets(config, Name),
+                config.Lootboxes
+                    .Select(box => new CatalogLootbox(box.Key, box.PityWithin, box.Entries
+                        .Zip(LootboxRoller.Odds(box), (entry, chance) => new CatalogLootboxEntry(entry.Type, entry.Key, entry.Amount, chance, entry.Pity))
+                        .ToList()))
+                    .ToList(),
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxStars,
                 config.HeroSettings.PartsPerStar,

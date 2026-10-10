@@ -9879,6 +9879,60 @@
         },
         "additionalProperties": false
       },
+      "CatalogLootbox": {
+        "required": [
+          "entries",
+          "key",
+          "pityWithin"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "pityWithin": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogLootboxEntry"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogLootboxEntry": {
+        "required": [
+          "amount",
+          "chance",
+          "pity",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chance": {
+            "type": "number",
+            "format": "double"
+          },
+          "pity": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogPosition": {
         "required": [
           "x",
@@ -9928,6 +9982,7 @@
           "heroes",
           "items",
           "language",
+          "lootboxes",
           "mainBuildingKey",
           "mapSize",
           "maxArtifactLevel",
@@ -9988,6 +10043,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CatalogArtifactSet"
+            }
+          },
+          "lootboxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogLootbox"
             }
           },
           "heroClasses": {
