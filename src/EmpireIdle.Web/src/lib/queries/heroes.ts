@@ -117,6 +117,40 @@ export function useAdvanceHeroStar(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/star`, ["heroes", "power"]);
 }
 
+/** Зброя героя (GDD §6.4): наступний рівень за шматки, що лежать на герої. */
+export function useUpgradeWeapon(playerId: string) {
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/weapon`, ["heroes", "power"]);
+}
+
+/** Скрині зброї з рюкзака — у шматки зброї обраного героя з трійки скрині. */
+export function useOpenWeaponChests(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { heroId: string; itemKey: string; count: number }) =>
+      api<void>(`/api/heroes/${playerId}/${input.heroId}/weapon/chests`, {
+        method: "POST",
+        body: { itemKey: input.itemKey, count: input.count },
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "inventory"]),
+  });
+}
+
+/** Шматки зброї звичайного чи рідкісного героя за gems; у унікальних — лише зі скринь зброї. */
+export function useBuyWeaponShards(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { heroId: string; count: number }) =>
+      api<number>(`/api/shop/${playerId}/heroes/${input.heroId}/weapon-shards?count=${input.count}`, {
+        method: "POST",
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "wallet"]),
+  });
+}
+
 /** Універсальні осколки — в осколки відкритого героя 1:1. */
 export function useConvertUniversalShards(playerId: string) {
   const queryClient = useQueryClient();

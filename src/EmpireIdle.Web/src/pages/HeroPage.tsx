@@ -218,9 +218,11 @@ export default function HeroPage() {
             />
           ) : tab === "gear" ? (
             <HeroGearTab
+              playerId={playerId}
               hero={hero}
               config={config}
               equipment={inventory.data?.equipment ?? []}
+              items={inventory.data?.items ?? []}
               busy={busy}
               onEquip={(equipmentId) => equip.mutate({ heroId: hero.id, equipmentId })}
               onUnequip={(equipmentId) => unequip.mutate(equipmentId)}

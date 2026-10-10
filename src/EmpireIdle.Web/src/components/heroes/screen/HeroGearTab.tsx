@@ -1,23 +1,30 @@
 import { useState } from "react";
-import type { EquipmentResponse } from "../../../lib/apiTypes";
+import type { EquipmentResponse, InventoryItemResponse } from "../../../lib/apiTypes";
 import { useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
 import { statLabel } from "../../../lib/statNames";
 import { GameButton, Tile } from "../../game/GameUi";
 import ItemIcon from "../../inventory/ItemIcon";
 import HeroPortrait from "../HeroPortrait";
+import { WeaponDetails, WeaponSlot } from "./HeroWeapon";
 
 interface Props {
+  playerId: string;
   hero: HeroSummary;
   config: CatalogHero;
   /** Усе спорядження гравця — і вдягнене, і вільне. */
   equipment: EquipmentResponse[];
+  /** Стакові предмети — для скринь зброї. */
+  items: InventoryItemResponse[];
   busy: boolean;
   onEquip: (equipmentId: string) => void;
   onUnequip: (equipmentId: string) => void;
   onUnequipAll: (equipmentIds: string[]) => void;
   onEquipBest: () => void;
 }
+
+/** Обраний слот зброї — поруч із номерами артефактних слотів. */
+const WEAPON = "weapon";
 
 /** Слот артефакта героя за типом (намисто, корона…). */
 interface Slot {
@@ -27,10 +34,21 @@ interface Slot {
 }
 
 /**
- * Вкладка «Спорядження» (рішення 08.10.2026): чотири артефакти навколо героя.
+ * Вкладка «Спорядження» (рішення 08.10.2026): чотири артефакти навколо героя й зброя під ним (GDD §6.4).
  * Порожній слот показує вільне, що туди підходить; «Швидке використання» вдягає найкраще вільне.
  */
-export default function HeroGearTab({ hero, config, equipment, busy, onEquip, onUnequip, onUnequipAll, onEquipBest }: Props) {
+export default function HeroGearTab({
+  playerId,
+  hero,
+  config,
+  equipment,
+  items,
+  busy,
+  onEquip,
+  onUnequip,
+  onUnequipAll,
+  onEquipBest,
+}: Props) {
   const catalog = useCatalog();
   const [picked, setPicked] = useState<string | null>(null);
 
@@ -87,8 +105,9 @@ export default function HeroGearTab({ hero, config, equipment, busy, onEquip, on
           {left1 !== undefined && slotTile(left1)}
           {left2 !== undefined && slotTile(left2)}
         </div>
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-3">
           <HeroPortrait heroKey={hero.heroKey} heroClass={config.class} rank={config.rank} tier={hero.tier} size={160} />
+          <WeaponSlot hero={hero} config={config} selected={picked === WEAPON} onSelect={() => setPicked(WEAPON)} />
         </div>
         <div className="space-y-6">
           {right1 !== undefined && slotTile(right1)}
@@ -106,6 +125,8 @@ export default function HeroGearTab({ hero, config, equipment, busy, onEquip, on
           Швидке використання
         </GameButton>
       </div>
+
+      {picked === WEAPON && <WeaponDetails playerId={playerId} hero={hero} config={config} items={items} />}
 
       {pickedSlot !== null && (
         <SlotDetails
