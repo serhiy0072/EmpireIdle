@@ -140,6 +140,7 @@
     /// <param name="WeaponHeroes">Для скрині зброї — чию зброю вона качає (поточна трійка); порожньо для решти.</param>
     /// <param name="WeaponShards">Для скрині зброї — шматків за одну скриню; null для решти.</param>
     /// <param name="ArtifactExperience">Для гаєчки — скільки досвіду рівня дає артефакту; null для решти.</param>
+    /// <param name="HeroExperience">Для банки досвіду — скільки досвіду додає в запас героїв; null для решти.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -157,7 +158,8 @@
         int? SpeedUpMinutes,
         IReadOnlyList<string> WeaponHeroes,
         int? WeaponShards,
-        int? ArtifactExperience);
+        int? ArtifactExperience,
+        long? HeroExperience);
 
     /// <summary>Скриня (GDD §9.12): позиції з базовими шансами й гарантія.</summary>
     /// <param name="Key">Ключ предмета-скрині.</param>

@@ -9900,6 +9900,11 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "heroExperience": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
           }
         },
         "additionalProperties": false

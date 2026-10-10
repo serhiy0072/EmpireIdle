@@ -50,6 +50,19 @@ public class GameCatalogProjectionTests
             (beast.Key, beast.DisplayName, beast.MonsterKey, beast.Effect));
     }
 
+    /// <summary>Банка досвіду каже, скільки дає: сторінка героя пропонує саме стільки банок, скільки бракує.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheExperienceOfAJar_Only()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        config.Items.Add(new ItemConfig { Key = "hero_xp_1k", Type = "heroxp", DisplayName = "j", Description = "j", HeroExperience = 1000 });
+
+        var items = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).Items;
+
+        Assert.Equal(1000, items.Single(i => i.Key == "hero_xp_1k").HeroExperience);
+        Assert.Null(items.Single(i => i.Key == TestKeys.Artifact).HeroExperience);
+    }
+
     /// <summary>Крива рівня артефакта — та сама, за якою сервер рахує рівень: від нуля до стелі.</summary>
     [Fact]
     public void Response_ShouldCarryTheArtifactLevelCurve()

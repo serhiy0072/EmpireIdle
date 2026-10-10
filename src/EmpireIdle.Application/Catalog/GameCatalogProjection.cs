@@ -104,7 +104,8 @@ namespace EmpireIdle.Application.Catalog
                     item.Type == "speedup" ? item.SpeedUpMinutes : null,
                     item.WeaponHeroes,
                     item.Type == "weaponchest" ? item.WeaponShards : null,
-                    item.Type == "wrench" ? item.ArtifactExperience : null))
+                    item.Type == "wrench" ? item.ArtifactExperience : null,
+                    item.Type == "heroxp" ? item.HeroExperience : null))
                 .ToList();
 
             var resources = config.Resources
