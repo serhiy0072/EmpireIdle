@@ -72,7 +72,7 @@ export function useFeedArtifact(playerId: string) {
   });
 }
 
-/** Майстерність коваля: спроба за золото села; невдача лише з'їдає золото. */
+/** Майстерність коваля: спроба за золото села; невдача з'їдає золото, а на пізніх заточках може зламати предмет. */
 export function useRaiseMastery(playerId: string) {
   const queryClient = useQueryClient();
 
@@ -83,6 +83,21 @@ export function useRaiseMastery(playerId: string) {
         idempotent: true,
       }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes"]),
+  });
+}
+
+/** Ремонт зламаного заточкою артефакта: за gems або ремкомплектом. */
+export function useRepairArtifact(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { equipmentId: string; useKit: boolean }) =>
+      api<void>(`/api/inventory/${playerId}/equipment/${input.equipmentId}/repair`, {
+        method: "POST",
+        body: { useKit: input.useKit },
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "wallet", "heroes", "power"]),
   });
 }
 

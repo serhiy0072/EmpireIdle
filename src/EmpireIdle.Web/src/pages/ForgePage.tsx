@@ -5,7 +5,8 @@ import { useSession } from "../hooks/useSession";
 import type { EquipmentResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
-import { useFeedArtifact, useInventory, useRaiseMastery } from "../lib/queries/inventory";
+import { useFeedArtifact, useInventory, useRaiseMastery, useRepairArtifact } from "../lib/queries/inventory";
+import { useWallet } from "../lib/queries/wallet";
 import { rarityKey, rarityLabel, rarityStyle } from "../lib/rarity";
 
 const RARITY_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
@@ -43,6 +44,7 @@ function EquipmentRow({ equipment, wearer, busy, selected, onSelect }: RowProps)
           <span className={`rounded px-1.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
           <span className="text-slate-600">рів. {equipment.level}</span>
           {equipment.mastery > 0 && <span className="text-sky-700">майст. {equipment.mastery}</span>}
+          {equipment.isBroken && <span className="rounded bg-rose-100 px-1.5 text-rose-700">зламано</span>}
           {wearer !== null && <span className="text-slate-500">{wearer}</span>}
         </div>
       </div>
@@ -52,8 +54,8 @@ function EquipmentRow({ equipment, wearer, busy, selected, onSelect }: RowProps)
 
 /**
  * Кузня: два виміри артефакта (GDD §6.4). Посилення — згодувати інше спорядження (крім унікального)
- * і гаєчки: згодований передає весь свій досвід. Майстерність коваля — спроба за золото з шансом,
- * без поломки. Повна картка предмета з «до → після» — окремим кроком.
+ * і гаєчки: згодований передає весь свій досвід. Майстерність коваля — спроба за золото з шансом;
+ * на пізніх заточках невдача може зламати предмет, і тоді його ремонтують за gems чи ремкомплектом. Повна картка предмета з «до → після» — окремим кроком.
  */
 export default function ForgePage() {
   const session = useSession();
@@ -65,6 +67,8 @@ export default function ForgePage() {
 
   const feed = useFeedArtifact(playerId);
   const mastery = useRaiseMastery(playerId);
+  const repair = useRepairArtifact(playerId);
+  const wallet = useWallet(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [foodIds, setFoodIds] = useState<string[]>([]);
@@ -91,8 +95,8 @@ export default function ForgePage() {
     return <ErrorBanner error={inventory.error} />;
   }
 
-  const busy = feed.isPending || mastery.isPending;
-  const failure = feed.error ?? mastery.error;
+  const busy = feed.isPending || mastery.isPending || repair.isPending;
+  const failure = feed.error ?? mastery.error ?? repair.error;
 
   const selected = equipment.find((item) => item.id === selectedId) ?? equipment[0] ?? null;
   const heroName = (heroId: string | null | undefined) => {
@@ -125,6 +129,12 @@ export default function ForgePage() {
     if (selected === null) return;
     feed.mutate({ equipmentId: selected.id, foodIds, wrenches }, { onSuccess: reset });
   };
+
+  // Ремонт: gems за кожен рівень заточки або один ремкомплект (GDD §9.12)
+  const repairGems = (selected?.mastery ?? 0) * catalog.artifactRepair.gemsPerMastery;
+  const kits = inventory.data.items.find((item) => item.itemKey === catalog.artifactRepair.kitItemKey)?.count ?? 0;
+  // Спроба на +n має шанс поломки з індексом n − 1: зараз це наступна заточка
+  const breakChance = catalog.artifactRepair.breakChances[selected?.mastery ?? 0] ?? 0;
 
   const select = (id: string) => {
     setSelectedId(id);
@@ -284,18 +294,54 @@ export default function ForgePage() {
                 </h3>
                 {mastery.data !== undefined && mastery.variables === selected.id && (
                   <p className={`text-xs ${mastery.data.success ? "text-emerald-700" : "text-rose-700"}`}>
-                    {mastery.data.success ? "Вдалося!" : "Не вдалося — золото витрачено, предмет цілий."}
+                    {mastery.data.success
+                      ? "Вдалося!"
+                      : mastery.data.broken
+                        ? "Не вдалося — предмет зламався. Відремонтуйте його, щоб повернути повні стати й точити далі."
+                        : "Не вдалося — золото витрачено, предмет цілий."}
                   </p>
                 )}
-                {selected.mastery < catalog.maxMastery ? (
-                  <button
-                    type="button"
-                    onClick={() => mastery.mutate(selected.id)}
-                    disabled={busy}
-                    className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
-                  >
-                    Спробувати за золото
-                  </button>
+                {selected.isBroken ? (
+                  <div className="space-y-2 rounded-lg border border-rose-200 bg-rose-50 p-2">
+                    <p className="text-xs text-rose-800">
+                      Зламаний: дає половину статів і не точиться. Рівень качати можна.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => repair.mutate({ equipmentId: selected.id, useKit: false })}
+                        disabled={busy || (wallet.data?.gemBalance ?? 0) < repairGems}
+                        className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+                      >
+                        Відремонтувати за {repairGems.toLocaleString("uk-UA")} 💎
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => repair.mutate({ equipmentId: selected.id, useKit: true })}
+                        disabled={busy || kits === 0}
+                        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        {catalog.itemName(catalog.artifactRepair.kitItemKey)} · є {kits}
+                      </button>
+                    </div>
+                  </div>
+                ) : selected.mastery < catalog.maxMastery ? (
+                  <>
+                    {breakChance > 0 && (
+                      <p className="text-xs text-amber-700">
+                        Обережно: після невдалої спроби предмет може зламатися ({Math.round(breakChance * 100)}%). Зламаний дає
+                        половину статів, доки його не відремонтуєте.
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => mastery.mutate(selected.id)}
+                      disabled={busy}
+                      className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
+                    >
+                      Спробувати за золото
+                    </button>
+                  </>
                 ) : (
                   <p className="text-xs text-slate-500">Найвища майстерність.</p>
                 )}
