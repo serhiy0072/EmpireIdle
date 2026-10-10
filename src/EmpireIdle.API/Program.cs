@@ -51,6 +51,7 @@ builder.Configuration
     .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/beasts.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/lootboxes.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —

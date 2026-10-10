@@ -111,5 +111,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Екіпірування героїв.</summary>
         public EquipmentConfig Equipment { get; set; } = new();
+
+        /// <summary>Скрині: таблиці нагород предметів із Type "lootbox" (GDD §9.12).</summary>
+        public List<LootboxConfig> Lootboxes { get; set; } = new();
     }
 }

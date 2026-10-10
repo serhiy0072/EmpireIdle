@@ -39,6 +39,7 @@ namespace EmpireIdle.Domain.Services
             ValidateTeleports(config);
             ValidateSpeedUpItems(config);
             ValidateWeaponChests(config);
+            ValidateLootboxes(config);
             ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
@@ -443,6 +444,83 @@ namespace EmpireIdle.Domain.Services
                 if (chest.WeaponHeroes.Count == 0 || chest.WeaponHeroes.Any(key => !heroKeys.Contains(key)))
                     throw new InvalidOperationException($"Weapon chest '{chest.Key}' needs known WeaponHeroes.");
             }
+        }
+
+        /// <summary>
+        /// Скрині (GDD §9.12): таблиця на кожен предмет-скриню, додатні ваги й кількості,
+        /// відомі ключі, гарантія з позиціями й вкладені скрині без циклу.
+        /// </summary>
+        private static void ValidateLootboxes(GameConfig config)
+        {
+            RequireUniqueKeys(config.Lootboxes.Select(b => b.Key), "Lootboxes");
+
+            var items = config.Items.ToDictionary(i => i.Key);
+            var boxes = config.Lootboxes.ToDictionary(b => b.Key);
+
+            // Предмет-скриня без таблиці відкривався б у нікуди, таблиця без предмета — недосяжна
+            foreach (var item in config.Items.Where(i => i.Type == "lootbox" && !boxes.ContainsKey(i.Key)))
+                throw new InvalidOperationException($"Lootbox item '{item.Key}' has no table in Lootboxes.");
+
+            foreach (var box in config.Lootboxes.Where(b => items.GetValueOrDefault(b.Key)?.Type != "lootbox"))
+                throw new InvalidOperationException($"Lootbox '{box.Key}' is not an item of Type 'lootbox'.");
+
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+
+            // Випадковий артефакт береться з наборів данжів — рідкість без жодного предмета не видала б нічого
+            var artifactRarities = config.Dungeons.Dungeons
+                .SelectMany(d => Enum.GetValues<Rarity>()
+                    .Where(r => items.Values.Any(i => i.SetKey == $"{d.ArtifactSetKey}_{r.ToString().ToLowerInvariant()}")))
+                .ToHashSet();
+
+            foreach (var box in config.Lootboxes)
+            {
+                if (box.Entries.Count == 0)
+                    throw new InvalidOperationException($"Lootbox '{box.Key}' has no entries.");
+
+                var broken = box.Entries
+                    .Where(e => e.Weight <= 0 || e.Amount <= 0 || (e.IsLootbox
+                        ? e.Key is null || !boxes.ContainsKey(e.Key)
+                        : e.IsArtifact
+                            ? !Enum.TryParse<Rarity>(e.Key, ignoreCase: true, out var rarity) || !artifactRarities.Contains(rarity)
+                            : IsRewardBroken(e, resourceKeys, items, heroKeys)))
+                    .Select(e => $"{e.Type} '{e.Key ?? "(no key)"}' ×{e.Amount} weight {e.Weight}")
+                    .ToList();
+
+                if (broken.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Lootbox '{box.Key}' has entries with unknown keys, keys of the wrong kind or non-positive amounts: {string.Join("; ", broken)}.");
+
+                if (box.PityWithin < 0)
+                    throw new InvalidOperationException($"Lootbox '{box.Key}' has negative PityWithin.");
+
+                // Гарантія без позиції не мала б що віддати, позиція без гарантії — обіцянка, якої ніхто не дотримає
+                if (box.PityWithin > 0 != box.Entries.Any(e => e.Pity))
+                    throw new InvalidOperationException(
+                        $"Lootbox '{box.Key}' needs both PityWithin and at least one Pity entry, or neither.");
+            }
+
+            // Вкладена скриня відкривається одразу — цикл відкривав би скрині без кінця
+            var visiting = new HashSet<string>();
+            var done = new HashSet<string>();
+
+            void Visit(string key)
+            {
+                if (done.Contains(key))
+                    return;
+
+                if (!visiting.Add(key))
+                    throw new InvalidOperationException($"Lootbox '{key}' contains itself through nested lootboxes.");
+
+                foreach (var nested in boxes[key].Entries.Where(e => e.IsLootbox))
+                    Visit(nested.Key!);
+
+                visiting.Remove(key);
+                done.Add(key);
+            }
+
+            foreach (var key in boxes.Keys)
+                Visit(key);
         }
 
         /// <summary>Прискорення без хвилин нічого б не зрізало — предмет-пустушка в рюкзаку.</summary>

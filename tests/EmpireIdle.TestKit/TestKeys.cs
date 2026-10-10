@@ -55,5 +55,8 @@ public static class TestKeys
 
     public const string DungeonAbility = "test_slash";
 
+    public const string SmallChest = "test_chest_small";
+    public const string BigChest = "test_chest_big";
+
     public const string Terrain = "plain";
 }

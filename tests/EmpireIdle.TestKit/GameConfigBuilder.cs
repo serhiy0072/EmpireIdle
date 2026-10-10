@@ -352,6 +352,51 @@
         }
 
         /// <summary>
+        /// Скрині (GDD §9.12): мала — золото чи gems без гарантії; велика — дві малі всередині,
+        /// gems або унікальний артефакт з гарантією на третьому відкритті. Артефакт береться
+        /// з набору данжу, тож секція тягне за собою WithDungeons.
+        /// </summary>
+        public GameConfigBuilder WithLootboxes(Action<List<LootboxConfig>>? tune = null)
+        {
+            if (_config.Dungeons.Dungeons.Count == 0)
+                WithDungeons();
+
+            _config.Items.AddRange(
+            [
+                new ItemConfig { Key = TestKeys.SmallChest, Type = "lootbox", DisplayName = "Мала скриня", Description = "s" },
+                new ItemConfig { Key = TestKeys.BigChest, Type = "lootbox", DisplayName = "Велика скриня", Description = "b" }
+            ]);
+
+            _config.Lootboxes =
+            [
+                new LootboxConfig
+                {
+                    Key = TestKeys.SmallChest,
+                    Entries =
+                    [
+                        new LootboxEntryConfig { Type = "Resource", Key = TestKeys.Gold, Amount = 500, Weight = 3 },
+                        new LootboxEntryConfig { Type = "Gems", Amount = 10, Weight = 1 }
+                    ]
+                },
+                new LootboxConfig
+                {
+                    Key = TestKeys.BigChest,
+                    PityWithin = 3,
+                    Entries =
+                    [
+                        new LootboxEntryConfig { Type = LootboxEntryConfig.LootboxType, Key = TestKeys.SmallChest, Amount = 2, Weight = 6 },
+                        new LootboxEntryConfig { Type = "Gems", Amount = 100, Weight = 3 },
+                        new LootboxEntryConfig { Type = LootboxEntryConfig.ArtifactType, Key = "Unique", Amount = 1, Weight = 1, Pity = true }
+                    ]
+                }
+            ];
+
+            tune?.Invoke(_config.Lootboxes);
+
+            return this;
+        }
+
+        /// <summary>
         /// Звірі (GDD §5.10): звіринець на одне місце за рівень, монстр, з якого приручається
         /// вовк, і корм-предмет. Будівлі задає WithBuildings, тож звіринець додається поверх них.
         /// </summary>
