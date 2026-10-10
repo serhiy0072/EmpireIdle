@@ -38,6 +38,7 @@ namespace EmpireIdle.Domain.Services
             ValidateBeasts(config);
             ValidateTeleports(config);
             ValidateSpeedUpItems(config);
+            ValidateEnergyJars(config);
             ValidateWeaponChests(config);
             ValidateLootboxes(config);
             ValidateLocalization(config);
@@ -521,6 +522,13 @@ namespace EmpireIdle.Domain.Services
 
             foreach (var key in boxes.Keys)
                 Visit(key);
+        }
+
+        /// <summary>Банка без енергії нічого б не дала — предмет-пустушка в рюкзаку.</summary>
+        private static void ValidateEnergyJars(GameConfig config)
+        {
+            foreach (var jar in config.Items.Where(i => i.Type == "energy" && i.DungeonEnergy <= 0))
+                throw new InvalidOperationException($"Energy jar '{jar.Key}' needs positive DungeonEnergy.");
         }
 
         /// <summary>Прискорення без хвилин нічого б не зрізало — предмет-пустушка в рюкзаку.</summary>

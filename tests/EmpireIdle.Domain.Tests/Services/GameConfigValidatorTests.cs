@@ -98,6 +98,18 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Ключі ----------
 
+        /// <summary>Банка енергії без енергії — пустушка в рюкзаку.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAnEnergyJarWithoutEnergy()
+        {
+            var config = ValidConfig();
+            config.Items.Add(new ItemConfig { Key = "dungeon_energy_0", Type = "energy", DisplayName = "e", Description = "e" });
+
+            var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+
+            Assert.Contains("dungeon_energy_0", error.Message);
+        }
+
         [Fact]
         public void Validate_ShouldRejectDuplicateBuildingKeys()
         {

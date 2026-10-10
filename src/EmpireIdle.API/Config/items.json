@@ -254,6 +254,22 @@
         "ArtifactExperience": 300
       },
       {
+        "Key": "dungeon_energy_10",
+        "DisplayName": "Ковток енергії",
+        "Description": "Додає 10 енергії данжів — один забіг. Працює й понад повну шкалу",
+        "Rarity": "common",
+        "Type": "energy",
+        "DungeonEnergy": 10
+      },
+      {
+        "Key": "dungeon_energy_50",
+        "DisplayName": "Фляга енергії",
+        "Description": "Додає 50 енергії данжів — п'ять забігів. Працює й понад повну шкалу",
+        "Rarity": "rare",
+        "Type": "energy",
+        "DungeonEnergy": 50
+      },
+      {
         "Key": "repair_kit",
         "DisplayName": "Ремкомплект",
         "Description": "Лагодить артефакт, зламаний невдалою заточкою, — на будь-якій заточці й без gems",

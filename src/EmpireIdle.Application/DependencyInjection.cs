@@ -58,6 +58,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IItemEffect, TeleportItemEffect>();
             services.AddScoped<IItemEffect, ScoutVeilItemEffect>();
             services.AddScoped<IItemEffect, HeroExperienceItemEffect>();
+            services.AddScoped<IItemEffect, DungeonEnergyItemEffect>();
 
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<SpeedUpTargets>();

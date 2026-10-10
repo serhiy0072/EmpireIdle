@@ -89,6 +89,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Для прискорення (Type = "speedup"): скільки хвилин зрізає з будь-якого таймера (рішення 08.10.2026).</summary>
         public int SpeedUpMinutes { get; set; }
 
+        /// <summary>Для банки енергії (Type = "energy"): скільки енергії данжів додає — і понад стелю.</summary>
+        public int DungeonEnergy { get; set; }
+
         /// <summary>Для гаєчки (Type = "wrench", GDD §6.4): скільки досвіду рівня дає артефакту.</summary>
         public int ArtifactExperience { get; set; }
 

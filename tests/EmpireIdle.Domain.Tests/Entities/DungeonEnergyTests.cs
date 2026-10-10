@@ -125,4 +125,51 @@ public class DungeonEnergyTests
 
         Assert.Equal(Max, energy.Current(Max, RegenHours, Now.AddHours(2)));
     }
+
+    /// <summary>Банка енергії йде понад стелю: банки накопичуються, а не згорають.</summary>
+    [Fact]
+    public void AddBeyondCap_ShouldGoPastTheCap()
+    {
+        var energy = Energy(95);
+
+        energy.AddBeyondCap(50, Max, RegenHours, Now);
+
+        Assert.Equal(145, energy.Current(Max, RegenHours, Now));
+    }
+
+    /// <summary>Понад стелю шкала не росте, доки енергія не впаде нижче за неї.</summary>
+    [Fact]
+    public void Current_ShouldNotRegenerate_AboveTheCap()
+    {
+        var energy = Energy(Max);
+        energy.AddBeyondCap(50, Max, RegenHours, Now);
+
+        Assert.Equal(150, energy.Current(Max, RegenHours, Now.AddDays(2)));
+        Assert.Null(energy.FullAt(Max, RegenHours, Now));
+    }
+
+    /// <summary>Нижче стелі після банок шкала знову росте — від моменту, коли впала.</summary>
+    [Fact]
+    public void Spend_BelowTheCap_ShouldRestartTheRegeneration()
+    {
+        var energy = Energy(Max);
+        energy.AddBeyondCap(10, Max, RegenHours, Now);
+
+        energy.Spend(20, Max, RegenHours, Now.AddHours(5));
+
+        Assert.Equal(90, energy.Current(Max, RegenHours, Now.AddHours(5)));
+        Assert.Equal(95, energy.Current(Max, RegenHours, Now.AddHours(6)));
+    }
+
+    /// <summary>Доливання до стелі не зрізає енергію, що вже понад нею.</summary>
+    [Fact]
+    public void Add_ShouldNotCutEnergyAboveTheCap()
+    {
+        var energy = Energy(Max);
+        energy.AddBeyondCap(30, Max, RegenHours, Now);
+
+        energy.Add(50, Max, RegenHours, Now);
+
+        Assert.Equal(130, energy.Current(Max, RegenHours, Now));
+    }
 }

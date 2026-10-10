@@ -30,12 +30,13 @@ namespace EmpireIdle.Domain.Entities
         protected DungeonEnergy() { } // для EF Core
 
         /// <summary>
-        /// Скільки енергії зараз: збережене плюс накопичене за минулий час, але не понад стелю.
+        /// Скільки енергії зараз: збережене плюс накопичене за минулий час. Саме шкала росте лише
+        /// до стелі; понад неї енергію дають тільки банки, і тоді вона не росте, доки не впаде нижче.
         /// </summary>
         public int Current(int maxEnergy, double regenHours, DateTime utcNow)
         {
             if (Amount >= maxEnergy || utcNow <= RefreshedAt)
-                return Math.Min(Amount, maxEnergy);
+                return Amount;
 
             var perHour = maxEnergy / regenHours;
             var gained = (int)Math.Floor((utcNow - RefreshedAt).TotalHours * perHour);
@@ -74,14 +75,27 @@ namespace EmpireIdle.Domain.Entities
             Amount -= cost;
         }
 
-        /// <summary>Нараховує енергію понад накопичене — нагорода або покупка.</summary>
+        /// <summary>
+        /// Нараховує енергію понад накопичене, але не вище стелі — нагорода або покупка.
+        /// Енергію понад стелю від банок не зрізає: доливання не має забирати.
+        /// </summary>
         public void Add(int amount, int maxEnergy, double regenHours, DateTime utcNow)
         {
             if (amount <= 0)
                 throw new ArgumentOutOfRangeException(nameof(amount), "Energy amount must be positive.");
 
             Accrue(maxEnergy, regenHours, utcNow);
-            Amount = Math.Min(maxEnergy, Amount + amount);
+            Amount = Math.Max(Amount, Math.Min(maxEnergy, Amount + amount));
+        }
+
+        /// <summary>Банка енергії (рішення 11.10.2026): нараховує без стелі.</summary>
+        public void AddBeyondCap(int amount, int maxEnergy, double regenHours, DateTime utcNow)
+        {
+            if (amount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), "Energy amount must be positive.");
+
+            Accrue(maxEnergy, regenHours, utcNow);
+            Amount = checked(Amount + amount);
         }
 
         /// <summary>
