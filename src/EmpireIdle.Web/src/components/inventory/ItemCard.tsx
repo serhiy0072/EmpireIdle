@@ -21,6 +21,7 @@ const TYPE_LABELS: Record<string, string> = {
   feed: "Корм",
   scoutveil: "Захист від розвідки",
   energy: "Енергія данжів",
+  heroxp: "Досвід героїв",
 };
 
 /**
@@ -38,7 +39,7 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
   const teleportScope = item.type === "teleport" ? catalog.item(item.itemKey)?.teleportScope : undefined;
   const gamePicksCell = teleportScope === "Random" || teleportScope === "ClanLeader";
 
-  const usable = item.type === "resources" || item.type === "boost" || item.type === "scoutveil" || item.type === "energy";
+  const usable = item.type === "resources" || item.type === "boost" || item.type === "scoutveil" || item.type === "energy" || item.type === "heroxp";
   const safeCount = Math.min(item.count, Math.max(1, count));
 
   const use = () => onUse({ itemKey: item.itemKey, count: safeCount, targetX: null, targetY: null });

@@ -122,6 +122,30 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
+    // Банка досвіду: глечик із золотим сяйвом — досвід іде в спільний запас героїв
+    test: /hero_xp/,
+    draw: () => (
+      <g>
+        <rect x={40} y={20} width={20} height={8} rx={2} fill="#92400e" />
+        <path d="M38 28 L62 28 L60 36 Q74 44 72 62 Q70 80 50 80 Q30 80 28 62 Q26 44 40 36 Z" fill="#fde68a" stroke="#b45309" strokeWidth={2.5} />
+        <path d="M33 58 Q50 52 67 58 Q66 76 50 76 Q34 76 33 58 Z" fill="#f59e0b" />
+        <path d="M50 46 L53 54 L61 54 L55 59 L57 67 L50 62 L43 67 L45 59 L39 54 L47 54 Z" fill="#fffbeb" />
+      </g>
+    ),
+  },
+  {
+    // Банка енергії данжів: колба з блискавкою
+    test: /energy/,
+    draw: () => (
+      <g>
+        <rect x={42} y={18} width={16} height={8} rx={2} fill="#475569" />
+        <path d="M44 26 L56 26 L56 40 L72 70 Q74 80 64 80 L36 80 Q26 80 28 70 L44 40 Z" fill="#cffafe" stroke="#0e7490" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M34 64 L66 64 L70 72 Q70 77 64 77 L36 77 Q30 77 30 72 Z" fill="#22d3ee" />
+        <path d="M54 44 L44 60 L51 60 L46 74 L58 56 L51 56 Z" fill="#facc15" stroke="#a16207" strokeWidth={1} strokeLinejoin="round" />
+      </g>
+    ),
+  },
+  {
     test: /crate|chest|box/,
     draw: () => (
       <g>
@@ -196,6 +220,9 @@ const BY_TYPE: Record<string, RegExp> = {
   evolution: /essence/,
   feed: /feed/,
   scoutveil: /veil/,
+  heroxp: /hero_xp/,
+  energy: /energy/,
+  lootbox: /chest/,
 };
 
 export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false }: Props): ReactElement {
