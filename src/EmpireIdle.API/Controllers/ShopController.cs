@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Lootboxes.Commands;
+using EmpireIdle.Application.Lootboxes.Contracts;
 using EmpireIdle.Application.Shop.Commands;
 using EmpireIdle.Application.Shop.Queries;
 using MediatR;
@@ -34,6 +36,18 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<int>> BuyItem(
             Guid playerId, string itemKey, [FromQuery][Range(1, 100)] int count = 1, CancellationToken cancellationToken = default)
             => Ok(await _mediator.Send(new BuyShopItemCommand(playerId, itemKey, count), cancellationToken));
+
+        /// <summary>
+        /// Купити скрині й одразу відкрити (GDD §9.12): повертає, що випало, і залишок gems.
+        /// Ідемпотентна за заголовком Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/lootboxes/{itemKey}")]
+        [ProducesResponseType(typeof(LootboxPurchase), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<LootboxPurchase>> BuyLootbox(
+            Guid playerId, string itemKey, [FromQuery][Range(1, 100)] int count = 1, CancellationToken cancellationToken = default)
+            => Ok(await _mediator.Send(new BuyLootboxCommand(playerId, itemKey, count), cancellationToken));
 
         /// <summary>
         /// Купити шматки зброї звичайного чи рідкісного героя за gems (GDD §6.4). Повертає залишок gems.

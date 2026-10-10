@@ -2,6 +2,7 @@ using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Shop.Services;
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -38,6 +39,10 @@ namespace EmpireIdle.Application.Shop.Commands
         public async Task<int> Handle(BuyShopItemCommand request, CancellationToken cancellationToken)
         {
             var (offer, item) = _checkout.Find(request.ItemKey);
+
+            // Куплена скриня відкривається одразу (GDD §9.12) — у рюкзак вона приходить лише нагородою
+            if (item.Type == "lootbox")
+                throw new RequirementNotMetException($"'{offer.ItemKey}' is a lootbox — buy it through the lootbox endpoint.");
 
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var charge = await _checkout.ChargeAsync(request.PlayerId, offer, item, request.Count, now, cancellationToken);

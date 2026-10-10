@@ -13,4 +13,7 @@ namespace EmpireIdle.Application.Lootboxes.Contracts
     /// <summary>Підсумок відкриття.</summary>
     /// <param name="Drops">У порядку відкриттів.</param>
     public record LootboxOpening(string ItemKey, IReadOnlyList<LootboxDrop> Drops);
+
+    /// <summary>Покупка з відкриттям — разом із залишком gems, щоб клієнт не перепитував гаманець.</summary>
+    public record LootboxPurchase(string ItemKey, IReadOnlyList<LootboxDrop> Drops, int GemBalance);
 }
