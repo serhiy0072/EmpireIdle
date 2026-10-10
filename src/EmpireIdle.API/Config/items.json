@@ -205,6 +205,30 @@
         "HeroExperience": 50000
       },
       {
+        "Key": "hero_xp_1k",
+        "DisplayName": "Баночка досвіду",
+        "Description": "Додає 1 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "common",
+        "Type": "heroxp",
+        "HeroExperience": 1000
+      },
+      {
+        "Key": "hero_xp_10k",
+        "DisplayName": "Глечик досвіду",
+        "Description": "Додає 10 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "rare",
+        "Type": "heroxp",
+        "HeroExperience": 10000
+      },
+      {
+        "Key": "hero_xp_20k",
+        "DisplayName": "Барило досвіду",
+        "Description": "Додає 20 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "unique",
+        "Type": "heroxp",
+        "HeroExperience": 20000
+      },
+      {
         "Key": "weapon_chest",
         "DisplayName": "Скриня зброї",
         "Description": "Шматок унікальної зброї героя поточного банера на ваш вибір: Гуннар, Елоуен або Кестрел. Відкривається з картки героя",
