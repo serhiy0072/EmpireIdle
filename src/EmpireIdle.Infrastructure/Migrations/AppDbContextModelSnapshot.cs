@@ -1334,6 +1334,39 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("LoginRewardProgress", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.LootboxPity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LootboxKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Since")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalOpened")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "LootboxKey")
+                        .IsUnique();
+
+                    b.ToTable("LootboxPity", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.MailLetter", b =>
                 {
                     b.Property<Guid>("Id")

@@ -8,6 +8,7 @@ using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
+using EmpireIdle.Application.Lootboxes.Services;
 using EmpireIdle.Application.Mail.Services;
 using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Marches.Services;
@@ -101,6 +102,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IRewardGranter, HeroExperienceRewardGranter>();
             services.AddScoped<IRewardGranter, HeroShardsRewardGranter>();
             services.AddScoped<RewardDispatcher>();
+            services.AddScoped<LootboxOpener>();
             services.AddScoped<ShopCheckout>();
             services.AddScoped<DungeonTeamFactory>();
             services.AddScoped<DungeonRewarder>();

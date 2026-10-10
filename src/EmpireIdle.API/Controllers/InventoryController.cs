@@ -3,12 +3,15 @@ using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
+using EmpireIdle.Application.Lootboxes.Commands;
+using EmpireIdle.Application.Lootboxes.Contracts;
 using EmpireIdle.Application.Speedups.Commands;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -72,6 +75,18 @@ namespace EmpireIdle.API.Controllers
 
             return NoContent();
         }
+
+        /// <summary>
+        /// Відкрити скрині з рюкзака (GDD §9.12): повертає, що випало. Ідемпотентна операція — потрібен
+        /// заголовок Idempotency-Key, інакше повтор запиту відкрив би ще раз.
+        /// </summary>
+        [HttpPost("{playerId:guid}/lootboxes/{itemKey}/open")]
+        [ProducesResponseType(typeof(LootboxOpening), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<LootboxOpening>> OpenLootbox(Guid playerId, string itemKey,
+            [FromQuery][Range(1, OpenLootboxCommand.MaxCount)] int count = 1, CancellationToken cancellationToken = default)
+            => Ok(await _mediator.Send(new OpenLootboxCommand(playerId, itemKey, count), cancellationToken));
 
         /// <summary>
         /// Прискорити таймер предметами-прискореннями (будівництво, тренування, рівень військ, марш).

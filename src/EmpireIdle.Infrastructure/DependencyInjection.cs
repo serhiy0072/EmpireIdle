@@ -65,6 +65,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IClanQuestRepository, ClanQuestRepository>();
             services.AddScoped<IClanRequestRepository, ClanRequestRepository>();
             services.AddScoped<IBannerRepository, BannerRepository>();
+            services.AddScoped<ILootboxRepository, LootboxRepository>();
             services.AddScoped<IDungeonRepository, DungeonRepository>();
             services.AddScoped<IMarketRepository, MarketRepository>();
             services.AddScoped<IChatRepository, ChatRepository>();
