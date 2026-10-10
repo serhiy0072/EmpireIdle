@@ -47,7 +47,7 @@ namespace EmpireIdle.Application.Inventory.Queries
                     .Select(e => new EquipmentView(e.Id, e.ItemKey, e.Slot, e.Rarity, e.Level, e.Experience,
                         _progression.ExperienceToNext(e), _progression.FeedValue(e), e.Mastery, e.EquippedByHeroId, e.SlotIndex,
                         new Dictionary<string, double>(_artifacts.Compute(e)),
-                        e.IsOnMarket, e.ResaleLockedUntil))
+                        e.IsBroken, e.IsOnMarket, e.ResaleLockedUntil))
                     .ToList(),
                 effects.Select(e => new ActiveEffectView(e.Target, e.Multiplier, e.ExpiresAt, e.SourceItemKey)).ToList());
         }

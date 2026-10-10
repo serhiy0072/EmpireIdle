@@ -14,7 +14,7 @@ namespace EmpireIdle.Application.Tests.Heroes;
 
 /// <summary>
 /// Заточка коваля (GDD §9.12): спроба за золото в кузні. Успіх додає ранг бонусу з журналом
-/// сіду; невдача з'їдає золото, а заточка не падає.
+/// сіду; невдача з'їдає золото, а заточка не падає; на пізніх рангах невдача може зламати предмет.
 /// </summary>
 public class RaiseArtifactMasteryCommandTests
 {
@@ -56,7 +56,7 @@ public class RaiseArtifactMasteryCommandTests
         return item;
     }
 
-    private Task<bool> Raise(EquipmentItem item)
+    private Task<MasteryOutcome> Raise(EquipmentItem item)
         => new RaiseArtifactMasteryCommandHandler(_inventory, _villages, _unitOfWork, new FakeTimeProvider(Now),
                 new MasteryRules(_config.Equipment), _random, new ArtifactRoller(_config.Equipment), new GameCatalog(_config),
                 NullLogger<RaiseArtifactMasteryCommandHandler>.Instance)
@@ -71,10 +71,10 @@ public class RaiseArtifactMasteryCommandTests
         var item = GivenItem();
         _random.NextDouble().Returns(0.99);
 
-        var success = await Raise(item);
+        var outcome = await Raise(item);
 
         // Перші п'ять спроб певні, навіть із найгіршим кидком
-        Assert.True(success);
+        Assert.Equal(MasteryOutcome.Success, outcome);
         Assert.Equal(1, item.Mastery);
         Assert.Equal(100_000 - 400, Gold(village));
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -127,20 +127,52 @@ public class RaiseArtifactMasteryCommandTests
         Assert.Empty(item.Rolls);
     }
 
-    /// <summary>Невдача: золото списане й збережене, майстерність та сама, предмет цілий.</summary>
+    /// <summary>Невдача до +10: золото списане й збережене, заточка та сама, предмет цілий.</summary>
     [Fact]
     public async Task Handle_ShouldKeepTheMastery_AndStillCharge_OnFailure()
     {
         var village = GivenVillage();
         var item = GivenItem(mastery: 5);
-        _random.NextDouble().Returns(0.99);
+        _random.NextDouble().Returns(0.99, 0.0);
 
-        var success = await Raise(item);
+        var outcome = await Raise(item);
 
-        Assert.False(success);
+        Assert.Equal(MasteryOutcome.Failed, outcome);
+        Assert.False(item.IsBroken);
         Assert.Equal(5, item.Mastery);
         Assert.Equal(100_000 - new MasteryRules(_config.Equipment).Cost(5), Gold(village));
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Невдача на ризиковому ранзі й програний кидок поломки: предмет зламаний, заточка та сама.</summary>
+    [Fact]
+    public async Task Handle_ShouldBreakTheItem_OnARiskyFailure()
+    {
+        var village = GivenVillage(gold: 1_000_000);
+        var item = GivenItem(mastery: 15);
+        _random.NextDouble().Returns(0.99, 0.0);
+
+        var outcome = await Raise(item);
+
+        Assert.Equal(MasteryOutcome.Broken, outcome);
+        Assert.True(item.IsBroken);
+        Assert.Equal(15, item.Mastery);
+        Assert.Equal(1_000_000 - new MasteryRules(_config.Equipment).Cost(15), Gold(village));
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Зламаний не точиться — відмова до списання золота.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuseABrokenItem_WithoutCharging()
+    {
+        var village = GivenVillage();
+        var item = GivenItem(mastery: 12);
+        item.Break(Now);
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() => Raise(item));
+
+        Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
+        Assert.Equal(100_000, Gold(village));
     }
 
     [Fact]

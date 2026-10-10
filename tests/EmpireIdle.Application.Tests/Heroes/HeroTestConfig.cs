@@ -74,7 +74,8 @@ internal static class HeroTestConfig
                 Slot = EquipmentSlot.Artifact,
                 ArtifactSlot = "ring",
                 SetKey = "dawn"
-            }
+            },
+            new ItemConfig { Key = TestKit.GameConfigBuilder.RepairKit, Type = "repairkit", DisplayName = "Ремкомплект" }
         ],
         Equipment = TestKit.GameConfigBuilder.DefaultEquipment(Forge),
         HeroSettings = new HeroesConfig

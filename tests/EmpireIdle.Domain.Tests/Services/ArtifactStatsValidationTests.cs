@@ -86,6 +86,25 @@ public class ArtifactStatsValidationTests
     public void Validate_ShouldRejectAZeroWeight()
         => Assert.Contains("CritChance", Rejects(c => Slot(c, "necklace").RandomBonuses[0].Weight = 0).Message);
 
+    [Fact]
+    public void Validate_ShouldRejectBreakChancesShorterThanTheCeiling()
+        => Assert.Contains("MasteryBreakChances",
+            Rejects(c => c.Equipment.MasteryBreakChances.RemoveAt(19)).Message);
+
+    /// <summary>Без жодної поломки — теж валідний баланс: порожній список.</summary>
+    [Fact]
+    public void Validate_ShouldAcceptNoBreakChancesAtAll()
+    {
+        var config = Valid();
+        config.Equipment.MasteryBreakChances.Clear();
+
+        Assert.Null(Record.Exception(() => GameConfigValidator.Validate(config)));
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectAnUnknownRepairKit()
+        => Assert.Contains("glue", Rejects(c => c.Equipment.RepairKitItemKey = "glue").Message);
+
     /// <summary>Шансів менше за стелю — спроба на останні рангові кроки не мала б шансу.</summary>
     [Fact]
     public void Validate_ShouldRejectMasteryChancesShorterThanTheCeiling()

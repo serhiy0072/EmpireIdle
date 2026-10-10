@@ -42,7 +42,7 @@ namespace EmpireIdle.API.Controllers
                 .Select(e => new EquipmentResponse(
                     e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
                     e.Level, e.Experience, e.ExperienceToNext, e.FeedValue, e.Mastery, e.EquippedByHeroId, e.SlotIndex, e.Stats,
-                    e.IsOnMarket, e.ResaleLockedUntil))
+                    e.IsBroken, e.IsOnMarket, e.ResaleLockedUntil))
                 .ToList();
 
             var activeEffects = inventory.ActiveEffects
@@ -122,7 +122,7 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Майстерність коваля: спроба за золото. Ідемпотентна операція — потрібен заголовок Idempotency-Key.
+        /// Заточка коваля: спроба за золото. Ідемпотентна операція — потрібен заголовок Idempotency-Key.
         /// </summary>
         [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/mastery")]
         [ProducesResponseType(typeof(ArtifactMasteryResponse), StatusCodes.Status200OK)]
@@ -130,8 +130,22 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<ArtifactMasteryResponse>> RaiseMastery(Guid playerId, Guid equipmentId,
             CancellationToken cancellationToken)
         {
-            var success = await _mediator.Send(new RaiseArtifactMasteryCommand(playerId, equipmentId), cancellationToken);
-            return Ok(new ArtifactMasteryResponse(success));
+            var outcome = await _mediator.Send(new RaiseArtifactMasteryCommand(playerId, equipmentId), cancellationToken);
+            return Ok(new ArtifactMasteryResponse(outcome == MasteryOutcome.Success, outcome == MasteryOutcome.Broken));
+        }
+
+        /// <summary>
+        /// Ремонт зламаного артефакта за gems чи ремкомплектом. Ідемпотентна операція — потрібен
+        /// заголовок Idempotency-Key, інакше повтор запиту заплатив би вдруге.
+        /// </summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/repair")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Repair(Guid playerId, Guid equipmentId, [FromBody] RepairArtifactRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RepairArtifactCommand(playerId, equipmentId, request.UseKit), cancellationToken);
+            return NoContent();
         }
     }
 }

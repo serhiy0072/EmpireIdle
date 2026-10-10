@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -10,13 +11,13 @@ namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
     /// Заточка коваля (GDD §9.12): спроба за золото з шансом. Успіх додає ранг бонусу — його стат
-    /// і ступінь розігрує ArtifactRoller із сідом у журналі предмета. Невдача з'їдає золото.
-    /// Повертає true, якщо заточка піднялась.
+    /// і ступінь розігрує ArtifactRoller із сідом у журналі предмета. Невдача з'їдає золото, а на
+    /// пізніх рангах може ще й зламати предмет; попередження про це — у клієнті.
     /// </summary>
     public record RaiseArtifactMasteryCommand(Guid PlayerId, Guid EquipmentId)
-        : IRequest<bool>, IPlayerScopedRequest, IIdempotentRequest;
+        : IRequest<MasteryOutcome>, IPlayerScopedRequest, IIdempotentRequest;
 
-    public sealed class RaiseArtifactMasteryCommandHandler : IRequestHandler<RaiseArtifactMasteryCommand, bool>
+    public sealed class RaiseArtifactMasteryCommandHandler : IRequestHandler<RaiseArtifactMasteryCommand, MasteryOutcome>
     {
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IVillageRepository _villageRepository;
@@ -50,7 +51,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             _logger = logger;
         }
 
-        public async Task<bool> Handle(RaiseArtifactMasteryCommand request, CancellationToken cancellationToken)
+        public async Task<MasteryOutcome> Handle(RaiseArtifactMasteryCommand request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var equipment = _catalog.Config.Equipment;
@@ -60,8 +61,9 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (item is null || item.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Equipment", request.EquipmentId.ToString());
 
-            // До списання золота: виставлений лот не можна ні прокачати, ні оплатити спробу
+            // До списання золота: виставлений чи зламаний не можна ні прокачати, ні оплатити спробу
             item.EnsureNotOnMarket();
+            item.EnsureNotBroken();
 
             if (item.Mastery >= equipment.MaxMastery)
                 throw new RequirementNotMetException(RefusalReasons.EquipmentMaxMastery,
@@ -76,9 +78,12 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             village.ChargeCost([new ResourceCost { Resource = "gold", Amount = _rules.Cost(item.Mastery) }], now);
 
-            var success = _rules.Roll(item.Mastery, _random);
+            var outcome = _rules.Roll(item.Mastery, _random);
 
-            if (success)
+            if (outcome == MasteryOutcome.Broken)
+                item.Break(now);
+
+            if (outcome == MasteryOutcome.Success)
             {
                 var seed = _random.Next(int.MaxValue);
                 var rank = _roller.RollRank(_catalog.FindItem(item.ItemKey)?.ArtifactSlot, item.Mastery, item.Stats, seed);
@@ -90,9 +95,9 @@ namespace EmpireIdle.Application.Heroes.Commands
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Artifact {EquipmentId} mastery attempt: {Outcome}, now {Mastery}",
-                item.Id, success ? "success" : "failure", item.Mastery);
+                item.Id, outcome, item.Mastery);
 
-            return success;
+            return outcome;
         }
     }
 }

@@ -55,6 +55,12 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Заточка коваля +0…+20 — ранги відсоткових бонусів (GDD §9.12).</summary>
         public int Mastery { get; private set; }
 
+        /// <summary>
+        /// Зламаний невдалою заточкою: зберігає все, але дає лише частку статів, з героя не знімається
+        /// й не точиться, доки його не відремонтують. Рівень качати можна.
+        /// </summary>
+        public bool IsBroken { get; private set; }
+
         /// <summary>Герой, на якому вдягнене; null — лежить в інвентарі.</summary>
         public Guid? EquippedByHeroId { get; private set; }
 
@@ -160,6 +166,7 @@ namespace EmpireIdle.Domain.Entities
         public void ApplyMasteryRank(int position, string statKey, double step, DateTime utcNow)
         {
             EnsureNotOnMarket();
+            EnsureNotBroken();
 
             if (position is < 0 or > 3)
                 throw new ArgumentOutOfRangeException(nameof(position), position, "An artifact has four bonus positions.");
@@ -189,6 +196,43 @@ namespace EmpireIdle.Domain.Entities
             // Сила рахується лише з вдягнутого: заточка на складі її не рухає
             if (EquippedByHeroId is not null)
                 RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Невдала заточка зламала предмет.</summary>
+        public void Break(DateTime utcNow)
+        {
+            EnsureNotOnMarket();
+            EnsureNotBroken();
+
+            IsBroken = true;
+            Touch(utcNow);
+
+            if (EquippedByHeroId is not null)
+                RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Ремонт повертає повні стати. Чим заплачено — gems чи ремкомплектом — вирішує викликач.</summary>
+        public void Repair(DateTime utcNow)
+        {
+            EnsureNotOnMarket();
+
+            if (!IsBroken)
+                throw new InvalidStateException(RefusalReasons.EquipmentNotBroken, $"Equipment {Id} is not broken.");
+
+            IsBroken = false;
+            Touch(utcNow);
+
+            if (EquippedByHeroId is not null)
+                RaiseDomainEvent(new EquipmentChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>
+        /// Зламаний не точиться. Публічний, бо заточка мусить перевірити це до списання золота.
+        /// </summary>
+        public void EnsureNotBroken()
+        {
+            if (IsBroken)
+                throw new InvalidStateException(RefusalReasons.EquipmentBroken, $"Equipment {Id} is broken.");
         }
 
         /// <summary>

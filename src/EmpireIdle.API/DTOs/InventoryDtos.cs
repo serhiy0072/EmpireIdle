@@ -22,15 +22,21 @@ public record InventoryItemResponse(
 public record EquipmentResponse(
     Guid Id, string ItemKey, string Slot, string Rarity,
     int Level, long Experience, long? ExperienceToNext, long? FeedValue, int Mastery,
-    Guid? EquippedByHeroId, int SlotIndex, Dictionary<string, double> Stats, bool IsOnMarket, DateTime? ResaleLockedUntil);
+    Guid? EquippedByHeroId, int SlotIndex, Dictionary<string, double> Stats, bool IsBroken, bool IsOnMarket, DateTime? ResaleLockedUntil);
 
 /// <summary>Згодувати артефакту спорядження й гаєчки.</summary>
 /// <param name="FoodIds">Спорядження, яке зникне; унікальне не годується.</param>
 /// <param name="Wrenches">Ключ гаєчки → кількість.</param>
 public record FeedArtifactRequest(List<Guid> FoodIds, Dictionary<string, int> Wrenches);
 
-/// <summary>Результат спроби майстерності: невдача з'їдає золото, але нічого не ламає.</summary>
-public record ArtifactMasteryResponse(bool Success);
+/// <summary>Результат спроби заточки: невдача з'їдає золото, а на пізніх рангах може й зламати предмет.</summary>
+/// <param name="Success">Заточка піднялась.</param>
+/// <param name="Broken">Невдача зламала предмет — він дає половину статів до ремонту.</param>
+public record ArtifactMasteryResponse(bool Success, bool Broken);
+
+/// <summary>Ремонт зламаного артефакта.</summary>
+/// <param name="UseKit">true — ремкомплектом, false — gems.</param>
+public record RepairArtifactRequest(bool UseKit);
 
 /// <summary>Діючий буст.</summary>
 public record ActiveEffectResponse(string Target, double Multiplier, DateTime ExpiresAt, string SourceItemKey);

@@ -1385,6 +1385,17 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Equipment.MasterySuccessChances lists {settings.MasterySuccessChances.Count} attempts, "
                     + $"but MaxMastery is {settings.MaxMastery}.");
+
+            // Порожній список — поломок немає взагалі; неповний означав би тиху «останню» поломку на пізніх рангах
+            if (settings.MasteryBreakChances.Count > 0 && settings.MasteryBreakChances.Count < settings.MaxMastery)
+                throw new InvalidOperationException(
+                    $"Equipment.MasteryBreakChances lists {settings.MasteryBreakChances.Count} attempts, "
+                    + $"but MaxMastery is {settings.MaxMastery}.");
+
+            // Ремкомплект, якого немає в предметах, не видати й не витратити — ремонт лишився б лише за gems мовчки
+            if (!config.Items.Any(i => i.Key == settings.RepairKitItemKey))
+                throw new InvalidOperationException(
+                    $"Equipment.RepairKitItemKey '{settings.RepairKitItemKey}' is not a known item.");
         }
 
         /// <summary>Чи посилається нагорода на неіснуючий ключ або на ключ не того виду.</summary>

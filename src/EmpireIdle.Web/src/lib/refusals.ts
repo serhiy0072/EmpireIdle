@@ -195,8 +195,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
 
   // ---------- Спорядження ----------
   "equipment.maxLevel": ({ max }) => `Артефакт уже на найвищому, ${max} рівні`,
-  "equipment.maxMastery": ({ max }) => `Майстерність коваля вже найвища — ${max}`,
-  "equipment.uniqueFood": ({ item }) => `«${item}» унікальний — унікальне спорядження не згодовується`,
+  "equipment.maxMastery": ({ max }) => `Заточка вже найвища — +${max}`,
+  "equipment.broken": () => "Артефакт зламаний — спершу відремонтуйте його в кузні",
+  "equipment.notBroken": () => "Артефакт цілий — ремонтувати нічого",
+  "equipment.uniqueFood": ({ item }) => `«${item}» не згодовується`,
   "equipment.foodEquipped": () => "Спершу зніміть предмет із героя — вдягнене не згодовується",
 
   // ---------- Ринок ----------

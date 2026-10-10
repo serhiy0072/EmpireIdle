@@ -121,6 +121,9 @@ builder.Services.AddOptions<GameConfig>()
         "GameConfig.Equipment mastery cost must be positive and must not fall with mastery.")
     .Validate(c => c.Equipment.MasterySuccessChances.All(p => p is > 0 and <= 1),
         "GameConfig.Equipment.MasterySuccessChances must be within (0; 1] — a zero chance is a wall nobody passes.")
+    .Validate(c => c.Equipment.MasteryBreakChances.All(p => p is >= 0 and <= 1) && c.Equipment.BrokenStatShare is >= 0 and <= 1,
+        "GameConfig.Equipment.MasteryBreakChances and BrokenStatShare must be shares within [0; 1].")
+    .Validate(c => c.Equipment.RepairGemsPerMastery >= 0, "GameConfig.Equipment.RepairGemsPerMastery cannot be negative.")
     .Validate(c => c.Equipment.ArtifactTierMultipliers.All(m => m > 0), "GameConfig.Equipment.ArtifactTierMultipliers must be positive — otherwise higher-tier artifacts roll zero stats.")
     .Validate(c => c.Mail.LetterRetentionDays > 0 && c.Mail.AnnouncementRetentionDays > 0 && c.Mail.RewardRetentionDays > 0,
         "GameConfig.Mail retention must be positive.")

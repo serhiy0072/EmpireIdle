@@ -135,6 +135,7 @@
     "dungeon",
     "level"
   ],
+  "equipment.broken": [],
   "equipment.foodEquipped": [],
   "equipment.maxLevel": [
     "max"
@@ -142,6 +143,7 @@
   "equipment.maxMastery": [
     "max"
   ],
+  "equipment.notBroken": [],
   "equipment.uniqueFood": [
     "item"
   ],

@@ -91,6 +91,16 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Power_WithGear_ShouldAddTheItemPowerWithTheClassMultiplier()
             => Assert.Equal(184, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), [Necklace()]), 3);
 
+        /// <summary>Зламаний дає половину сили: (20 + 80 × 0.25 + 2% крита × 10) / 2.</summary>
+        [Fact]
+        public void Power_ShouldHalve_ForABrokenItem()
+        {
+            var item = Necklace(0, (2, "CritChance", 2));
+            item.Break(TestKit.Entities.Now);
+
+            Assert.Equal(30, Stats().Power(item), 3);
+        }
+
         /// <summary>Відсотки крита складаються в силу за своєю вагою, а не з пласкою атакою.</summary>
         [Fact]
         public void Power_WithGear_ShouldNotSumPercentStatsAsFlatStats()
@@ -172,6 +182,19 @@ namespace EmpireIdle.Domain.Tests.Services
 
             Assert.Equal(10, withTier1 - bareTier1, 3);
             Assert.Equal(10, withTier3 - bareTier3, 3);
+        }
+
+        /// <summary>Зламаний урізає і базу, і відсотки: 10 / 2 атаки, 4% / 2 крита.</summary>
+        [Fact]
+        public void Compute_ShouldHalveABrokenItemsStats()
+        {
+            var item = Necklace(0, (2, "CritChance", 4));
+            item.Break(TestKit.Entities.Now);
+
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [item]);
+
+            Assert.Equal(105, result["Attack"], 3);
+            Assert.Equal(2, result["CritChance"], 3);
         }
 
         /// <summary>Рівень 2 і сталий бонус +10% атаки: (10 + 2 × 2) × 1.1.</summary>

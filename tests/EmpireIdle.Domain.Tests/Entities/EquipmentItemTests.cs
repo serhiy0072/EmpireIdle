@@ -160,6 +160,64 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Throws<InvalidStateException>(() => item.ApplyMasteryRank(0, "Attack", 5, Now));
         }
 
+        /// <summary>Зламаний зберігає все й не точиться, доки його не відремонтують.</summary>
+        [Fact]
+        public void Break_ShouldKeepEverything_AndBlockMastery()
+        {
+            var item = Artifact();
+            item.ApplyMasteryRank(0, "Attack", 5, Now);
+
+            item.Break(Now);
+
+            Assert.True(item.IsBroken);
+            Assert.Equal(1, item.Mastery);
+            Assert.Single(item.Stats);
+            var refusal = Assert.Throws<InvalidStateException>(() => item.ApplyMasteryRank(1, "UnitAttack", 5, Now));
+            Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
+        }
+
+        /// <summary>Рівень зламаного качати можна — заборона лише на заточку.</summary>
+        [Fact]
+        public void Break_ShouldStillAllowLevelling()
+        {
+            var item = Artifact();
+            item.Break(Now);
+
+            item.GainExperience(100, 1, Now);
+
+            Assert.Equal(1, item.Level);
+        }
+
+        [Fact]
+        public void Repair_ShouldMakeTheItemWholeAgain()
+        {
+            var item = Artifact();
+            item.Break(Now);
+
+            item.Repair(Now);
+
+            Assert.False(item.IsBroken);
+        }
+
+        [Fact]
+        public void Repair_ShouldRefuseAWholeItem()
+            => Assert.Equal(RefusalReasons.EquipmentNotBroken.Key,
+                Assert.Throws<InvalidStateException>(() => Artifact().Repair(Now)).Reason);
+
+        /// <summary>Поломка й ремонт вдягнутого міняють силу героя — подія перерахунку.</summary>
+        [Fact]
+        public void BreakAndRepair_ShouldRaiseEquipmentChanged_WhileEquipped()
+        {
+            var item = Artifact();
+            item.EquipTo(Guid.NewGuid(), 0, Now);
+            item.ClearDomainEvents();
+
+            item.Break(Now);
+            item.Repair(Now);
+
+            Assert.Equal(2, item.DomainEvents.OfType<EquipmentChanged>().Count());
+        }
+
         /// <summary>Вдягнене не згодовується: гравець не має випадково роздягти героя.</summary>
         [Fact]
         public void EnsureCanBeFed_ShouldRefuseAnEquippedItem()

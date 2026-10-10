@@ -47,7 +47,7 @@ namespace EmpireIdle.Application.Market.Services
                     listing.SellerId == viewerId,
                     listing.Kind == MarketListingKind.Equipment
                         && equipment.TryGetValue(listing.EquipmentId!.Value, out var item)
-                        ? new MarketEquipmentView(item.Slot.ToString(), item.Rarity.ToString(), item.Level, item.Mastery,
+                        ? new MarketEquipmentView(item.Slot.ToString(), item.Rarity.ToString(), item.Level, item.Mastery, item.IsBroken,
                             new Dictionary<string, double>(_artifacts.Compute(item)))
                         : null))
                 .ToList();

@@ -100,6 +100,21 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public List<double> MasterySuccessChances { get; set; } = new();
 
+        /// <summary>
+        /// Шанс поломки, якщо спроба з поточної заточки невдала: індекс 0 — спроба на +1.
+        /// Кидається лише при невдачі — успіх ніколи не ламає.
+        /// </summary>
+        public List<double> MasteryBreakChances { get; set; } = new();
+
+        /// <summary>Частка статів і сили, яку дає зламаний предмет, доки його не відремонтують.</summary>
+        public double BrokenStatShare { get; set; } = 0.5;
+
+        /// <summary>Ремонт за gems: стільки за кожен рівень заточки зламаного предмета.</summary>
+        public int RepairGemsPerMastery { get; set; } = 50;
+
+        /// <summary>Ремкомплект — ремонт без gems на будь-якій заточці; ключ предмета з Items.</summary>
+        public string RepairKitItemKey { get; set; } = "repair_kit";
+
         /// <summary>Бонуси за повні набори артефактів.</summary>
         public List<SetBonusConfig> SetBonuses { get; set; } = new();
 

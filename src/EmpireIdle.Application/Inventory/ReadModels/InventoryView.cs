@@ -13,11 +13,12 @@ namespace EmpireIdle.Application.Inventory.ReadModels
 
     /// <summary>
     /// Екземпляр спорядження. Stats — пласка база з рівнем і сталими бонусами заточки плюс відсотки
-    /// випадкових бонусів, без множника класу: предмет сам по собі, ще не на герої. ExperienceToNext — null на стелі; FeedValue — null, якщо не годується.
+    /// випадкових бонусів, без множника класу: предмет сам по собі, ще не на герої; у зламаного — урізані.
+    /// ExperienceToNext — null на стелі; FeedValue — null, якщо не годується.
     /// </summary>
     public record EquipmentView(Guid Id, string ItemKey, EquipmentSlot Slot, Rarity Rarity, int Level, long Experience,
         long? ExperienceToNext, long? FeedValue, int Mastery, Guid? EquippedByHeroId, int SlotIndex,
-        Dictionary<string, double> Stats, bool IsOnMarket,
+        Dictionary<string, double> Stats, bool IsBroken, bool IsOnMarket,
         DateTime? ResaleLockedUntil);
 
     /// <summary>Діючий буст.</summary>

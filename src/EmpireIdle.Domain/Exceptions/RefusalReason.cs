@@ -355,10 +355,16 @@
         /// <summary>Артефакт уже на стелі рівня (GDD §6.4); max — стеля.</summary>
         public static readonly RefusalReason EquipmentMaxLevel = new("equipment.maxLevel", "max");
 
-        /// <summary>Майстерність коваля вже на стелі; max — стеля.</summary>
+        /// <summary>Заточка вже на стелі; max — стеля.</summary>
         public static readonly RefusalReason EquipmentMaxMastery = new("equipment.maxMastery", "max");
 
-        /// <summary>Унікальне спорядження не згодовують (рішення 08.10.2026); item — назва.</summary>
+        /// <summary>Зламаний предмет не точиться — спершу ремонт (GDD §9.12).</summary>
+        public static readonly RefusalReason EquipmentBroken = new("equipment.broken");
+
+        /// <summary>Ремонтувати нічого: предмет цілий.</summary>
+        public static readonly RefusalReason EquipmentNotBroken = new("equipment.notBroken");
+
+        /// <summary>Рідкість без досвіду згодовування в конфігу не годується; item — назва.</summary>
         public static readonly RefusalReason EquipmentUniqueFood = new("equipment.uniqueFood", "item");
 
         /// <summary>Згодувати вдягнене не можна — спершу зняти з героя.</summary>

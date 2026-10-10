@@ -8,7 +8,8 @@ namespace EmpireIdle.Domain.Services
     ///
     /// База — пласкі атака й захист героя та юнітів: рідкість, рівень і тір набору, підсилені
     /// сталими бонусами заточки. Випадкові бонуси заточки — відсотки, що діють на героя.
-    /// Нічого з бази не зберігається на предметі: рахується щоразу з конфігу.
+    /// Нічого з бази не зберігається на предметі: рахується щоразу з конфігу. Зламаний предмет
+    /// дає лише BrokenStatShare усіх статів, доки його не відремонтують.
     ///
     /// Чиста функція: нічого не зберігає.
     /// </summary>
@@ -53,6 +54,7 @@ namespace EmpireIdle.Domain.Services
         {
             var equipment = _catalog.Config.Equipment;
             var result = new Dictionary<string, double>();
+            var share = item.IsBroken ? equipment.BrokenStatShare : 1.0;
 
             if (equipment.ArtifactBase.TryGetValue(item.Rarity, out var basis))
             {
@@ -62,14 +64,14 @@ namespace EmpireIdle.Domain.Services
                 var attack = multiplier?.Attack ?? 1.0;
                 var defense = multiplier?.Defense ?? 1.0;
 
-                result[Attack] = Round(hero * attack * Boost(item, Attack));
-                result[Defense] = Round(hero * defense * Boost(item, Defense));
-                result[UnitAttack] = Round(unit * attack * Boost(item, UnitAttack));
-                result[UnitDefense] = Round(unit * defense * Boost(item, UnitDefense));
+                result[Attack] = Round(hero * attack * Boost(item, Attack) * share);
+                result[Defense] = Round(hero * defense * Boost(item, Defense) * share);
+                result[UnitAttack] = Round(unit * attack * Boost(item, UnitAttack) * share);
+                result[UnitDefense] = Round(unit * defense * Boost(item, UnitDefense) * share);
             }
 
             foreach (var stat in item.Stats.Where(s => !BaseStats.Contains(s.StatKey)))
-                result[stat.StatKey] = stat.Value;
+                result[stat.StatKey] = Round(stat.Value * share);
 
             return result;
         }
