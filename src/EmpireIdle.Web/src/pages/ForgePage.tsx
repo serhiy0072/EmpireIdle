@@ -55,7 +55,8 @@ function EquipmentRow({ equipment, wearer, busy, selected, onSelect }: RowProps)
 /**
  * Кузня: два виміри артефакта (GDD §6.4). Посилення — згодувати інше спорядження (крім унікального)
  * і гаєчки: згодований передає весь свій досвід. Майстерність коваля — спроба за золото з шансом;
- * на пізніх заточках невдача може зламати предмет, і тоді його ремонтують за gems чи ремкомплектом. Повна картка предмета з «до → після» — окремим кроком.
+ * на пізніх заточках невдача може зламати предмет, і тоді його ремонтують за gems чи ремкомплектом.
+ * Повна картка предмета з «до → після» — окремим кроком.
  */
 export default function ForgePage() {
   const session = useSession();
@@ -136,6 +137,55 @@ export default function ForgePage() {
   // Спроба на +n має шанс поломки з індексом n − 1: зараз це наступна заточка
   const breakChance = catalog.artifactRepair.breakChances[selected?.mastery ?? 0] ?? 0;
 
+  // Рівень після обраного — та сама крива, що на сервері
+  const levelAfter = (() => {
+    if (selected === null) return 0;
+    const curve = catalog.artifactLevelExperience;
+    let level = selected.level;
+    while (level + 1 < curve.length && (curve[level + 1] ?? Infinity) <= selected.experience + gained) level++;
+    return level;
+  })();
+
+  /**
+   * Автовибір: кожне натискання докладає «їжі» рівно до ще одного рівня понад уже обране. Спершу
+   * непрокачані предмети від найдешевших — щоб не перебрати й не з'їсти вкладене, — потім гаєчки.
+   */
+  const autoPick = () => {
+    if (selected === null) return;
+
+    const target = catalog.artifactLevelExperience[levelAfter + 1];
+    if (target === undefined) return;
+
+    let missing = target - (selected.experience + gained);
+    const nextFood = [...foodIds];
+    const nextWrenches = { ...wrenches };
+
+    const plain = food
+      .filter((item) => !foodIds.includes(item.id) && item.level === 0 && item.mastery === 0)
+      .sort((a, b) => (a.feedValue ?? 0) - (b.feedValue ?? 0));
+
+    for (const item of plain) {
+      if (missing <= 0) break;
+      nextFood.push(item.id);
+      missing -= item.feedValue ?? 0;
+    }
+
+    const byValue = [...ownedWrenches].sort((a, b) => wrenchExperience(a.itemKey) - wrenchExperience(b.itemKey));
+
+    for (const wrench of byValue) {
+      const value = wrenchExperience(wrench.itemKey);
+      const used = nextWrenches[wrench.itemKey] ?? 0;
+      if (missing <= 0 || value <= 0 || used >= wrench.count) continue;
+
+      const take = Math.min(wrench.count - used, Math.ceil(missing / value));
+      nextWrenches[wrench.itemKey] = used + take;
+      missing -= take * value;
+    }
+
+    setFoodIds(nextFood);
+    setWrenches(nextWrenches);
+  };
+
   const select = (id: string) => {
     setSelectedId(id);
     reset();
@@ -199,11 +249,32 @@ export default function ForgePage() {
                   <>
                     <p className="text-xs text-slate-500">
                       До наступного рівня — {selected.experienceToNext} досвіду
-                      {gained > 0 && <span className="text-emerald-700"> · обрано +{gained}</span>}
+                      {gained > 0 && (
+                        <span className="text-emerald-700">
+                          {" "}
+                          · обрано +{gained} → рівень {levelAfter}
+                        </span>
+                      )}
                     </p>
 
-                    {food.length === 0 && ownedWrenches.length === 0 && (
+                    {food.length === 0 && ownedWrenches.length === 0 ? (
                       <p className="text-xs text-slate-500">Нема чим посилити: потрібні вільні неунікальні артефакти або гаєчки.</p>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={autoPick}
+                          disabled={busy}
+                          className="rounded-lg border border-amber-400 px-3 py-1 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                        >
+                          Автовибір +1 рівень
+                        </button>
+                        {gained > 0 && (
+                          <button type="button" onClick={reset} disabled={busy} className="text-sm text-slate-500 hover:underline">
+                            очистити
+                          </button>
+                        )}
+                      </div>
                     )}
 
                     <div className="max-h-40 space-y-1 overflow-y-auto">
