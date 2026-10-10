@@ -40,7 +40,7 @@ export function useUseItem(playerId: string) {
     },
     onSuccess: () => {
       // Телепорт одразу повертає додому всі війська — з маршів і з чужих гарнізонів
-      invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes", "garrison", "marches", "power"]);
+      invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes", "garrison", "marches", "power", "dungeons"]);
       void queryClient.invalidateQueries({ queryKey: ["map"] });
     },
   });

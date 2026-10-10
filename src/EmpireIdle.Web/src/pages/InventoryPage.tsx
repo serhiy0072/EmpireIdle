@@ -28,6 +28,7 @@ const TAB_OF_TYPE: Record<string, Tab> = {
   speedup: "speedups",
   boost: "bonus",
   scoutveil: "bonus",
+  energy: "bonus",
 };
 
 const RARITY_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
