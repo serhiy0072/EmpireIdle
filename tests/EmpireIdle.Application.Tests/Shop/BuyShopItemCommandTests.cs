@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Application.Shop.Commands;
+using EmpireIdle.Application.Shop.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
@@ -65,11 +66,7 @@ public class BuyShopItemCommandTests
         };
 
         return new BuyShopItemCommandHandler(
-            _players,
-            _wallets,
-            _servers,
-            _serverContext,
-            new GameCatalog(config),
+            new ShopCheckout(_players, _wallets, _servers, _serverContext, new GameCatalog(config)),
             new RewardDispatcher([_granter]),
             _unitOfWork,
             new FakeTimeProvider(Now),

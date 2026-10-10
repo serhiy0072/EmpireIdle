@@ -18,6 +18,7 @@ using EmpireIdle.Application.Quests.Tracking.Mappers;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Granters;
 using EmpireIdle.Application.Scouting.Services;
+using EmpireIdle.Application.Shop.Services;
 using EmpireIdle.Application.Speedups.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Events;
@@ -100,6 +101,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IRewardGranter, HeroExperienceRewardGranter>();
             services.AddScoped<IRewardGranter, HeroShardsRewardGranter>();
             services.AddScoped<RewardDispatcher>();
+            services.AddScoped<ShopCheckout>();
             services.AddScoped<DungeonTeamFactory>();
             services.AddScoped<DungeonRewarder>();
             services.AddScoped<MarketGoods>();
