@@ -40,7 +40,9 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
   const gamePicksCell = teleportScope === "Random" || teleportScope === "ClanLeader";
 
   const usable = item.type === "resources" || item.type === "boost" || item.type === "scoutveil" || item.type === "energy" || item.type === "heroxp";
-  const safeCount = Math.min(item.count, Math.max(1, count));
+  // Сервер приймає до 10 000 за запит (UseItemCommand.MaxCount) — цього досить на будь-який стек
+  const limit = Math.min(item.count, 10_000);
+  const safeCount = Math.min(limit, Math.max(1, count));
 
   const use = () => onUse({ itemKey: item.itemKey, count: safeCount, targetX: null, targetY: null });
 
@@ -66,15 +68,20 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
 
       {usable && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          {item.count > 1 && (
-            <input
-              type="number"
-              min={1}
-              max={item.count}
-              value={safeCount}
-              onChange={(event) => setCount(Number(event.target.value))}
-              className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-sm"
-            />
+          {limit > 1 && (
+            <>
+              <input
+                type="number"
+                min={1}
+                max={limit}
+                value={safeCount}
+                onChange={(event) => setCount(Number(event.target.value))}
+                className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+              />
+              <button type="button" onClick={() => setCount(limit)} className="text-sm text-sky-700 hover:underline">
+                усі
+              </button>
+            </>
           )}
 
           <button

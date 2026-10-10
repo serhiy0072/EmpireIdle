@@ -7,7 +7,7 @@ import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { LootboxOdds } from "./LootboxPanels";
 
 /** Сервер відкриває щонайбільше стільки скринь за запит (OpenLootboxCommand.MaxCount). */
-const MAX_PER_OPEN = 10;
+const MAX_PER_OPEN = 100;
 
 interface Props {
   playerId: string;
@@ -48,14 +48,19 @@ export default function LootboxCard({ playerId, item, onOpened }: Props) {
 
         <div className="mt-3 flex items-center gap-2">
           {limit > 1 && (
-            <input
-              type="number"
-              min={1}
-              max={limit}
-              value={safeCount}
-              onChange={(event) => setCount(Number(event.target.value))}
-              className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
-            />
+            <>
+              <input
+                type="number"
+                min={1}
+                max={limit}
+                value={safeCount}
+                onChange={(event) => setCount(Number(event.target.value))}
+                className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+              />
+              <button type="button" onClick={() => setCount(limit)} className="text-sm text-sky-700 hover:underline">
+                усі
+              </button>
+            </>
           )}
           <button
             type="button"

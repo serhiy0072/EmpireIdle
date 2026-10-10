@@ -67,14 +67,24 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
 
       <div className="mt-3 flex items-center gap-2">
         {offer.maxPerPurchase > 1 && (
-          <input
-            type="number"
-            min={1}
-            max={offer.maxPerPurchase}
-            value={safeCount}
-            onChange={(event) => setCount(Number(event.target.value))}
-            className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
-          />
+          <>
+            <input
+              type="number"
+              min={1}
+              max={offer.maxPerPurchase}
+              value={safeCount}
+              onChange={(event) => setCount(Number(event.target.value))}
+              className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+            />
+            {/* Скільки дозволяє і пропозиція, і гаманець */}
+            <button
+              type="button"
+              onClick={() => setCount(Math.max(1, Math.min(offer.maxPerPurchase, Math.floor(gems / offer.priceGems))))}
+              className="text-sm text-sky-700 hover:underline"
+            >
+              макс.
+            </button>
+          </>
         )}
         <button
           type="button"
