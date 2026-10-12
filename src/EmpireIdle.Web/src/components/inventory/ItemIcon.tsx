@@ -157,6 +157,17 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
+    // Ключ скрині: стоїть до «chest», бо chest_key_* — це самі скрині, а не ключі
+    test: /^key_/,
+    draw: () => (
+      <g>
+        <circle cx={36} cy={50} r={14} fill="none" stroke="#b45309" strokeWidth={7} />
+        <path d="M50 50 L80 50 M70 50 L70 62 M78 50 L78 58" stroke="#b45309" strokeWidth={7} strokeLinecap="round" />
+        <circle cx={36} cy={50} r={5} fill="#fde68a" />
+      </g>
+    ),
+  },
+  {
     // Прискорення — подвійний шеврон, як у грі: тривалість пише плитка, а не іконка
     test: /speedup/,
     draw: () => (
@@ -281,6 +292,7 @@ const BY_TYPE: Record<string, RegExp> = {
   universalshard: /shard/,
   wrench: /wrench/,
   repairkit: /repair/,
+  chestkey: /^key_/,
 };
 
 export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false }: Props): ReactElement {

@@ -20,6 +20,7 @@ const TYPE_LABELS: Record<string, string> = {
   feed: "Корм",
   lootbox: "Скриня",
   weaponchest: "Скриня зброї",
+  chestkey: "Ключ скрині",
 };
 
 function price(cents: number, currency: string): string {

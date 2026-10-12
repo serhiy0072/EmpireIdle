@@ -22,6 +22,7 @@ const TYPE_LABELS: Record<string, string> = {
   scoutveil: "Захист від розвідки",
   energy: "Енергія данжів",
   heroxp: "Досвід героїв",
+  chestkey: "Ключ скрині",
 };
 
 /**
