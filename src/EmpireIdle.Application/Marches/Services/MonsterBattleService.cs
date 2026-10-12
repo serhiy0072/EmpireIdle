@@ -34,6 +34,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly HeroCombatants _combatants;
         private readonly GameCatalog _catalog;
         private readonly TerritoryBonus _territoryBonus;
         private readonly ClanTerritoryRules _territory;
@@ -55,6 +56,7 @@ namespace EmpireIdle.Application.Marches.Services
             MarchLogistics logistics,
             BattleAftermath aftermath,
             HeroCombatModifiers heroModifiers,
+            HeroCombatants combatants,
             GameCatalog catalog,
             TerritoryBonus territoryBonus,
             ClanTerritoryRules territory,
@@ -75,6 +77,7 @@ namespace EmpireIdle.Application.Marches.Services
             _logistics = logistics;
             _aftermath = aftermath;
             _heroModifiers = heroModifiers;
+            _combatants = combatants;
             _catalog = catalog;
             _territoryBonus = territoryBonus;
             _territory = territory;
@@ -123,7 +126,8 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Монстр ні стін, ні героїв не має, тому бік захисту йде без бонусів
             var outcome = _resolver.Resolve(attackerArmy, DefenceStacks.FromArmy(defenderArmy), terrain, seed,
-                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.ForMarch(attackerHeroes));
+                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.ForMarch(attackerHeroes),
+                attackerHeroes: await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 
             var result = outcome.Battle;
             var split = outcome.AttackerCasualties;

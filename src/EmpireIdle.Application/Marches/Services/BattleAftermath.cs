@@ -119,10 +119,10 @@ namespace EmpireIdle.Application.Marches.Services
                 garrison.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-            // Провалена атака кладе героїв маршу в госпіталь. Ранить лише їх:
-            // вдома ростер бою не бачив
-            if (!result.AttackerWon)
-                foreach (var hero in await _heroRepository.GetByMarchAsync(march.Id, cancellationToken))
+            // Героя маршу ранить його частка шкоди (варіант B, 08.10.2026) — і після перемоги теж.
+            // Ранить лише їх: вдома ростер бою не бачив
+            foreach (var hero in await _heroRepository.GetByMarchAsync(march.Id, cancellationToken))
+                if (result.AttackerWoundedHeroes?.Contains(hero.Id) == true)
                     hero.Wound(utcNow);
 
             march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, targetName, utcNow);
@@ -173,14 +173,15 @@ namespace EmpireIdle.Application.Marches.Services
 
             defenderGarrison.AdmitWounded(split.Wounded, utcNow);
 
-            // Програна оборона ранить лідера гарнізону. Решта героїв стоїть
+            // Лідера гарнізону ранить його частка шкоди (варіант B). Решта героїв стоїть
             // у резерві й у бою не була: інакше одна поразка клала б увесь зал
-            if (result.AttackerWon)
+            if (result.DefenderWoundedHeroes is { Count: > 0 } wounded)
             {
                 var leader = await _heroRepository.GetLeaderAsync(
                     defenderGarrison.Id, defenderVillage.PlayerId, cancellationToken);
 
-                leader?.Wound(utcNow);
+                if (leader is not null && wounded.Contains(leader.Id))
+                    leader.Wound(utcNow);
             }
 
             var hostStoodByType = ByType(hostStood);
@@ -356,8 +357,9 @@ namespace EmpireIdle.Application.Marches.Services
                 homeGarrison?.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-            if (result.AttackerWon)
-                foreach (var hero in await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken))
+            // Героїв табору ранить їхня частка шкоди — як і героїв маршу
+            foreach (var hero in await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken))
+                if (result.DefenderWoundedHeroes?.Contains(hero.Id) == true)
                     hero.Wound(utcNow);
 
             report.AnnounceDefence(utcNow);

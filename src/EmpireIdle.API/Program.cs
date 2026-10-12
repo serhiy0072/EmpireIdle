@@ -138,6 +138,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Market.GoldPerGem > 0 && c.Market.GoldPerPower.Values.All(v => v > 0), "GameConfig.Market anchors must be positive.")
     .Validate(c => c.HeroSettings.MonsterExperiencePerLevel >= 0, "GameConfig.HeroSettings.MonsterExperiencePerLevel must not be negative.")
     .Validate(c => c.Dungeons.HeroExperiencePerRun >= 0, "GameConfig.Dungeons.HeroExperiencePerRun must not be negative.")
+    .Validate(c => c.Combat.HeroHealthScale > 0, "GameConfig.Combat.HeroHealthScale must be positive — otherwise every hero in a battle is wounded.")
     .Validate(c => c.Shop.Banners.All(b => b.WindowDays is null or > 0), "GameConfig.Shop.Banners WindowDays must be positive when set.")
     .Validate(c => c.Dungeons.RefillPricesGems.All(p => p > 0) && c.Dungeons.RefillPricesGems.Zip(c.Dungeons.RefillPricesGems.Skip(1)).All(p => p.First <= p.Second),
         "GameConfig.Dungeons.RefillPricesGems must be positive and must not fall from one refill to the next.")

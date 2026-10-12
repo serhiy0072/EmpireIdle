@@ -89,6 +89,7 @@ namespace EmpireIdle.Application
             services.AddScoped<VillageBattleService>();
             services.AddScoped<VillageRelocator>();
             services.AddScoped<CityFallService>();
+            services.AddScoped<HeroCombatants>();
             services.AddScoped<MonsterBattleService>();
             services.AddScoped<BeastTamer>();
             services.AddScoped<MarchTargetResolver>();

@@ -33,6 +33,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly VillageStatus _status;
         private readonly PlunderCalculator _plunder;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly HeroCombatants _combatants;
         private readonly CityFallService _cityFall;
         private readonly TerritoryBonus _territoryBonus;
         private readonly HostilityRules _hostility;
@@ -53,6 +54,7 @@ namespace EmpireIdle.Application.Marches.Services
             VillageStatus status,
             PlunderCalculator plunder,
             HeroCombatModifiers heroModifiers,
+            HeroCombatants combatants,
             CityFallService cityFall,
             TerritoryBonus territoryBonus,
             HostilityRules hostility,
@@ -72,6 +74,7 @@ namespace EmpireIdle.Application.Marches.Services
             _status = status;
             _plunder = plunder;
             _heroModifiers = heroModifiers;
+            _combatants = combatants;
             _cityFall = cityFall;
             _territoryBonus = territoryBonus;
             _hostility = hostility;
@@ -129,8 +132,10 @@ namespace EmpireIdle.Application.Marches.Services
             // Бонуси знімаються до бою: хто лідер у момент удару, той і б'ється
             var stationed = await _heroRepository.GetByGarrisonAsync(targetGarrison.Id, cancellationToken);
 
+            var hostLeader = stationed.FirstOrDefault(h => h.IsLeader && h.PlayerId == targetVillage.PlayerId);
+
             var defenceBuffs = new DefenceBuffs(
-                _heroModifiers.For(stationed.FirstOrDefault(h => h.IsLeader && h.PlayerId == targetVillage.PlayerId)),
+                _heroModifiers.For(hostLeader),
                 // Союзник прийшов із кількома героями — кожен підсилює власні конвої (GDD §6.1)
                 stationed
                     .Where(h => h.PlayerId != targetVillage.PlayerId)
@@ -158,8 +163,11 @@ namespace EmpireIdle.Application.Marches.Services
 
             var attackerWoundedCapacity = _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison);
 
+            // Бійці — герої маршу й лідер господаря; лідери союзників лише підсилюють свої конвої
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
-                attackerBonus, defenderBonus, attackerWoundedCapacity, attackerBuff, defenceBuffs);
+                attackerBonus, defenderBonus, attackerWoundedCapacity, attackerBuff, defenceBuffs,
+                await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken),
+                await _combatants.ForAsync([hostLeader], attacking: false, cancellationToken));
 
 
             var result = outcome.Battle;

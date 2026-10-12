@@ -49,6 +49,7 @@ public class CompleteMarchCommandTests
     private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
     private readonly IScoutReportRepository _scoutReports = Substitute.For<IScoutReportRepository>();
     private readonly IBeastPenRepository _pens = Substitute.For<IBeastPenRepository>();
+    private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
 
     private const int StructureGarrisonCapacity = 50;
     private const long MonsterExperiencePerLevel = 1000;
@@ -178,6 +179,10 @@ public class CompleteMarchCommandTests
 
         var heroModifiers = new HeroCombatModifiers(catalog);
 
+        // Спорядження в цих сценах немає: бійця дають власні стати героя
+        _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
+        var combatants = new HeroCombatants(_inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
+
         var logistics = new MarchLogistics(
             _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
             new HeroStats(new HeroProgression(config.HeroSettings), catalog), NullLogger<MarchLogistics>.Instance);
@@ -198,7 +203,7 @@ public class CompleteMarchCommandTests
 
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _heroes, _random,
-            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, catalog, territoryBonus, territory, _clans,
+            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, combatants, catalog, territoryBonus, territory, _clans,
             new BeastTamer(_pens, _monsters, _random, new BeastTaming(catalog), capacities, status, catalog),
             new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog),
             NullLogger<MonsterBattleService>.Instance);
@@ -218,7 +223,7 @@ public class CompleteMarchCommandTests
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
             resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, heroModifiers, cityFallService, territoryBonus, new HostilityRules(_clans),
+            status, plunder, heroModifiers, combatants, cityFallService, territoryBonus, new HostilityRules(_clans),
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
@@ -239,7 +244,7 @@ public class CompleteMarchCommandTests
 
         var structureBattle = new StructureBattleService(
             _garrisons, _villages, _heroes, _clans, _structures, _random, resolver, new DefenceLossAllocator(), effects,
-            logistics, aftermath, status, heroModifiers, territory, territoryBonus, remover, _structureFalls,
+            logistics, aftermath, status, heroModifiers, combatants, territory, territoryBonus, remover, _structureFalls,
             NullLogger<StructureBattleService>.Instance);
 
         var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, heroModifiers,
@@ -247,7 +252,7 @@ public class CompleteMarchCommandTests
 
         var campBattle = new CampBattleService(
             _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,
-            logistics, aftermath, status, heroModifiers, territoryBonus,
+            logistics, aftermath, status, heroModifiers, combatants, territoryBonus,
             new CampHomecoming(_heroes, calculator, new HeroProgression(config.HeroSettings), catalog),
             new HostilityRules(_clans), NullLogger<CampBattleService>.Instance);
 
@@ -719,7 +724,7 @@ public class CompleteMarchCommandTests
     }
 
     /// <summary>
-    /// Армія загинула вся, але герой живий — він вертається сам, пораненим. Завершити
+    /// Армія загинула вся, але герой живий — він вертається сам. Завершити
     /// похід одразу означало б лишити героя без гарнізону назавжди: поставити його
     /// назад може лише прибуття додому.
     /// </summary>
@@ -739,7 +744,6 @@ public class CompleteMarchCommandTests
         Assert.Equal(MarchState.Returning, march.State);
         Assert.Empty(march.GetUnits());
         Assert.True(march.ArrivesAt > Now);
-        Assert.Equal(HeroState.Wounded, hero.State);
 
         // Доходить додому — і стає в гарнізон, як завжди
         await Handler(at: march.ArrivesAt).Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);

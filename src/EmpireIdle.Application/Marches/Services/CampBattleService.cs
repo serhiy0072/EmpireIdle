@@ -30,6 +30,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly BattleAftermath _aftermath;
         private readonly VillageStatus _status;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly HeroCombatants _combatants;
         private readonly TerritoryBonus _territoryBonus;
         private readonly CampHomecoming _campHomecoming;
         private readonly HostilityRules _hostility;
@@ -48,6 +49,7 @@ namespace EmpireIdle.Application.Marches.Services
             BattleAftermath aftermath,
             VillageStatus status,
             HeroCombatModifiers heroModifiers,
+            HeroCombatants combatants,
             TerritoryBonus territoryBonus,
             CampHomecoming campHomecoming,
             HostilityRules hostility,
@@ -65,6 +67,7 @@ namespace EmpireIdle.Application.Marches.Services
             _aftermath = aftermath;
             _status = status;
             _heroModifiers = heroModifiers;
+            _combatants = combatants;
             _territoryBonus = territoryBonus;
             _campHomecoming = campHomecoming;
             _hostility = hostility;
@@ -119,7 +122,9 @@ namespace EmpireIdle.Application.Marches.Services
 
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
                 attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.ForMarch(attackerHeroes), defenceBuffs);
+                _heroModifiers.ForMarch(attackerHeroes), defenceBuffs,
+                await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken),
+                await _combatants.ForAsync(campHeroes, attacking: false, cancellationToken));
 
             var result = outcome.Battle;
 
