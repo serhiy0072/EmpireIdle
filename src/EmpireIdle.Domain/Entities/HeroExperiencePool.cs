@@ -17,12 +17,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Скільки досвіду ще не витрачено.</summary>
         public long Amount { get; private set; }
 
-        /// <summary>Доба UTC, за яку рахується <see cref="MonsterRewardsToday"/>; null — ще жодного.</summary>
-        public DateOnly? MonsterRewardsDay { get; private set; }
-
-        /// <summary>Скільки перемог над монстрами вже дали досвід цієї доби.</summary>
-        public int MonsterRewardsToday { get; private set; }
-
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
 
@@ -40,29 +34,6 @@ namespace EmpireIdle.Domain.Entities
                 throw new ArgumentOutOfRangeException(nameof(amount), amount, "Hero experience to add must be positive.");
 
             Amount = checked(Amount + amount);
-        }
-
-        /// <summary>
-        /// Досвід за перемогу над монстром — не більше dailyLimit перемог за добу UTC, щоб фарм дрібних
-        /// монстрів не замінив решту джерел. Понад ліміт перемога досвіду не дає. Повертає нараховане.
-        /// </summary>
-        public long AddForMonster(long amount, int dailyLimit, DateTime utcNow)
-        {
-            var today = DateOnly.FromDateTime(utcNow);
-
-            if (MonsterRewardsDay != today)
-            {
-                MonsterRewardsDay = today;
-                MonsterRewardsToday = 0;
-            }
-
-            if (MonsterRewardsToday >= dailyLimit)
-                return 0;
-
-            MonsterRewardsToday++;
-            Add(amount);
-
-            return amount;
         }
 
         /// <summary>Знімає досвід; не вистачає — відмова з цифрами, пул не змінюється.</summary>

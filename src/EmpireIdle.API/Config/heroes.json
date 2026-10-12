@@ -12,7 +12,6 @@
       ],
       "SummonShards": 10,
       "MonsterExperiencePerLevel": 10000,
-      "MonsterExperienceDailyLimit": 20,
       "MaxStars": 5,
       "PartsPerStar": 6,
       "StarPartCosts": [

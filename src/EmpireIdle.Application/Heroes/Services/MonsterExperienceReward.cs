@@ -5,7 +5,8 @@ namespace EmpireIdle.Application.Heroes.Services
 {
     /// <summary>
     /// Досвід героїв за перемогу над монстром (GDD §6.1): PvE-марш — полювання чи приручення —
-    /// поповнює спільний запас гравця пропорційно рівню монстра, у межах денного ліміту перемог.
+    /// поповнює спільний запас гравця пропорційно рівню монстра. Ліміту немає: полювання не витрачає енергії
+    /// й обмежене лише часом маршу.
     /// </summary>
     public sealed class MonsterExperienceReward
     {
@@ -20,7 +21,7 @@ namespace EmpireIdle.Application.Heroes.Services
             _catalog = catalog;
         }
 
-        /// <summary>Нараховує досвід за переможеного монстра; повертає, скільки нараховано (0 — понад ліміт).</summary>
+        /// <summary>Нараховує досвід за переможеного монстра; повертає, скільки нараховано.</summary>
         public async Task<long> GrantAsync(Guid playerId, int monsterLevel, DateTime utcNow, CancellationToken cancellationToken)
         {
             var settings = _catalog.Config.HeroSettings;
@@ -31,7 +32,9 @@ namespace EmpireIdle.Application.Heroes.Services
 
             var pool = await _heroRepository.GetOrCreateExperienceAsync(playerId, _serverContext.ServerId, cancellationToken);
 
-            return pool.AddForMonster(amount, settings.MonsterExperienceDailyLimit, utcNow);
+            pool.Add(amount);
+
+            return amount;
         }
     }
 }

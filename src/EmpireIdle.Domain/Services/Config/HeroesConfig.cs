@@ -49,9 +49,6 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public long MonsterExperiencePerLevel { get; set; }
 
-        /// <summary>Скільки перемог над монстрами за добу UTC дають досвід.</summary>
-        public int MonsterExperienceDailyLimit { get; set; } = 20;
-
         /// <summary>Скільки зірок має герой.</summary>
         public int MaxStars { get; set; } = 5;
 
