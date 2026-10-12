@@ -114,6 +114,13 @@ export default function ForgePage() {
     .filter((item) => item.type === "wrench")
     .sort((a, b) => wrenchExperience(a.itemKey) - wrenchExperience(b.itemKey));
 
+  // Один ряд «їжі»: предмети й гаєчки впереміш, від найдешевшої до найдорожчої — як бере автовибір.
+  // Гаєчка — стек однакових штук, у ряду вона стоїть одним записом за ціною однієї штуки
+  const feedList = [
+    ...food.map((item) => ({ value: item.feedValue ?? 0, item, wrench: null })),
+    ...ownedWrenches.map((wrench) => ({ value: wrenchExperience(wrench.itemKey), item: null, wrench })),
+  ].sort((a, b) => a.value - b.value);
+
   const chosenFood = food.filter((item) => foodIds.includes(item.id));
   const gained =
     chosenFood.reduce((sum, item) => sum + (item.feedValue ?? 0), 0) +
@@ -163,13 +170,9 @@ export default function ForgePage() {
     const nextFood = [...foodIds];
     const nextWrenches = { ...wrenches };
 
-    // Гаєчка — стек однакових штук: у черзі вона стоїть одним записом за ціною однієї штуки
-    const queue = [
-      ...food
-        .filter((item) => !foodIds.includes(item.id) && item.level === 0 && item.mastery === 0)
-        .map((item) => ({ value: item.feedValue ?? 0, item, wrench: null })),
-      ...ownedWrenches.map((wrench) => ({ value: wrenchExperience(wrench.itemKey), item: null, wrench })),
-    ].sort((a, b) => a.value - b.value);
+    const queue = feedList.filter(
+      ({ item }) => item === null || (!foodIds.includes(item.id) && item.level === 0 && item.mastery === 0),
+    );
 
     for (const { value, item, wrench } of queue) {
       if (missing <= 0) break;
@@ -282,49 +285,50 @@ export default function ForgePage() {
                       </div>
                     )}
 
-                    <div className="max-h-40 space-y-1 overflow-y-auto">
-                      {food.map((item) => (
-                        <label key={item.id} className="flex items-center gap-2 text-sm text-slate-700">
-                          <input
-                            type="checkbox"
-                            checked={foodIds.includes(item.id)}
-                            disabled={busy}
-                            onChange={(event) =>
-                              setFoodIds((previous) =>
-                                event.target.checked ? [...previous, item.id] : previous.filter((id) => id !== item.id),
-                              )
-                            }
-                          />
-                          <span className="truncate">{catalog.itemName(item.itemKey)}</span>
-                          {item.level > 0 && <span className="text-xs text-amber-700">рів. {item.level}</span>}
-                          <span className="ml-auto text-xs text-slate-500">+{item.feedValue}</span>
-                        </label>
-                      ))}
+                    <div className="max-h-48 space-y-1 overflow-y-auto">
+                      {feedList.map(({ item, wrench }) =>
+                        item !== null ? (
+                          <label key={item.id} className="flex items-center gap-2 text-sm text-slate-700">
+                            <input
+                              type="checkbox"
+                              checked={foodIds.includes(item.id)}
+                              disabled={busy}
+                              onChange={(event) =>
+                                setFoodIds((previous) =>
+                                  event.target.checked ? [...previous, item.id] : previous.filter((id) => id !== item.id),
+                                )
+                              }
+                            />
+                            <span className="truncate">{catalog.itemName(item.itemKey)}</span>
+                            {item.level > 0 && <span className="text-xs text-amber-700">рів. {item.level}</span>}
+                            <span className="ml-auto text-xs text-slate-500">+{item.feedValue}</span>
+                          </label>
+                        ) : wrench !== null ? (
+                          <label key={wrench.itemKey} className="flex items-center gap-2 text-sm text-slate-700">
+                            <span className="truncate">{wrench.displayName}</span>
+                            <span className="text-xs text-slate-500">є {wrench.count}</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={wrench.count}
+                              value={wrenches[wrench.itemKey] ?? 0}
+                              disabled={busy}
+                              onChange={(event) => {
+                                const count = Math.max(0, Math.min(wrench.count, Number(event.target.value) || 0));
+                                setWrenches((previous) => {
+                                  const next = { ...previous };
+                                  if (count === 0) delete next[wrench.itemKey];
+                                  else next[wrench.itemKey] = count;
+                                  return next;
+                                });
+                              }}
+                              className="ml-auto w-20 rounded border border-slate-300 px-2 py-0.5 text-right"
+                            />
+                            <span className="w-12 text-right text-xs text-slate-500">+{wrenchExperience(wrench.itemKey)}</span>
+                          </label>
+                        ) : null,
+                      )}
                     </div>
-
-                    {ownedWrenches.map((wrench) => (
-                      <label key={wrench.itemKey} className="flex items-center gap-2 text-sm text-slate-700">
-                        <span className="truncate">{wrench.displayName}</span>
-                        <span className="text-xs text-slate-500">+{wrenchExperience(wrench.itemKey)} · є {wrench.count}</span>
-                        <input
-                          type="number"
-                          min={0}
-                          max={wrench.count}
-                          value={wrenches[wrench.itemKey] ?? 0}
-                          disabled={busy}
-                          onChange={(event) => {
-                            const count = Math.max(0, Math.min(wrench.count, Number(event.target.value) || 0));
-                            setWrenches((previous) => {
-                              const next = { ...previous };
-                              if (count === 0) delete next[wrench.itemKey];
-                              else next[wrench.itemKey] = count;
-                              return next;
-                            });
-                          }}
-                          className="ml-auto w-20 rounded border border-slate-300 px-2 py-0.5 text-right"
-                        />
-                      </label>
-                    ))}
 
                     {confirming ? (
                       <div className="space-y-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-900">
