@@ -12030,6 +12030,7 @@
           "itemKey",
           "level",
           "mastery",
+          "power",
           "rarity",
           "slot",
           "slotIndex",
@@ -12098,6 +12099,10 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "power": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false

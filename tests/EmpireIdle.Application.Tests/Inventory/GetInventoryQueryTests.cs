@@ -31,6 +31,14 @@ public class GetInventoryQueryTests
 
     private GetInventoryQueryHandler Handler()
     {
+        var config = Config();
+
+        return new GetInventoryQueryHandler(_inventory, _effects, new GameCatalog(config), new FakeTimeProvider(Now),
+            new ArtifactProgression(config.Equipment));
+    }
+
+    private static GameConfig Config()
+    {
         var config = new GameConfigBuilder().WithBuildings().Build();
         config.Equipment = GameConfigBuilder.DefaultEquipment(TestKeys.Forge);
         config.Items.Add(new ItemConfig
@@ -38,8 +46,7 @@ public class GetInventoryQueryTests
             Key = "wood_crate", DisplayName = "Ящик дерева", Description = "+500 дерева", Rarity = Rarity.Rare, Type = "resource"
         });
 
-        return new GetInventoryQueryHandler(_inventory, _effects, new GameCatalog(config), new FakeTimeProvider(Now),
-            new ArtifactProgression(config.Equipment));
+        return config;
     }
 
     [Fact]
@@ -88,6 +95,22 @@ public class GetInventoryQueryTests
         Assert.Equal(110L, shown.ExperienceToNext);
         // Звичайний: 100 за рідкість плюс увесь вкладений
         Assert.Equal(300L, shown.FeedValue);
+    }
+
+    /// <summary>Сила предмета — та сама, що на ринку: без множника класу, у зламаного — урізана.</summary>
+    [Fact]
+    public async Task Handle_ShouldReportTheItemsPower_CutForABrokenOne()
+    {
+        var amulet = Entities.Equipment("amulet", EquipmentSlot.Artifact, PlayerId, bonuses: [(0, "Attack", 10), (2, "CritChance", 2)]);
+        var expected = new ArtifactStats(new GameCatalog(Config())).Power(amulet);
+        amulet.Break(Now);
+
+        _inventory.GetEquipmentAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([amulet]);
+
+        var shown = Assert.Single((await Handler().Handle(new GetInventoryQuery(PlayerId), CancellationToken.None)).Equipment);
+
+        Assert.True(expected > 0);
+        Assert.Equal(expected * 0.5, shown.Power, precision: 1);
     }
 
     [Fact]

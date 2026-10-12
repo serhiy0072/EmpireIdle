@@ -46,7 +46,7 @@ namespace EmpireIdle.API.Controllers
                 .Select(e => new EquipmentResponse(
                     e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
                     e.Level, e.Experience, e.ExperienceToNext, e.FeedValue, e.Mastery, e.EquippedByHeroId, e.SlotIndex, e.Stats,
-                    e.IsBroken, e.IsOnMarket, e.ResaleLockedUntil))
+                    e.IsBroken, e.IsOnMarket, e.ResaleLockedUntil, e.Power))
                 .ToList();
 
             var activeEffects = inventory.ActiveEffects

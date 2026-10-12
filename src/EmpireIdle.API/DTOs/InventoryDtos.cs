@@ -19,10 +19,12 @@ public record InventoryItemResponse(
 /// <param name="Mastery">Майстерність коваля — заточка за золото з шансом.</param>
 /// <param name="IsOnMarket">Виставлене на ринок: у заставі, не одягається й не заточується.</param>
 /// <param name="ResaleLockedUntil">Куплене на ринку не перепродається до цього моменту; null — обмеження немає.</param>
+/// <param name="Power">Сила предмета без множника класу героя; у зламаного — урізана.</param>
 public record EquipmentResponse(
     Guid Id, string ItemKey, string Slot, string Rarity,
     int Level, long Experience, long? ExperienceToNext, long? FeedValue, int Mastery,
-    Guid? EquippedByHeroId, int SlotIndex, Dictionary<string, double> Stats, bool IsBroken, bool IsOnMarket, DateTime? ResaleLockedUntil);
+    Guid? EquippedByHeroId, int SlotIndex, Dictionary<string, double> Stats, bool IsBroken, bool IsOnMarket, DateTime? ResaleLockedUntil,
+    double Power);
 
 /// <summary>Згодувати артефакту спорядження й гаєчки.</summary>
 /// <param name="FoodIds">Спорядження, яке зникне; унікальне не годується.</param>
