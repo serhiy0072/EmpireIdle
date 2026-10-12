@@ -91,7 +91,10 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
 
       {occupant === "Monster" && (
         <div className="space-y-1 text-sm">
-          <p className="text-slate-700">Рівень {cell.monsterLevel ?? "?"}</p>
+          <p className="text-slate-700">
+            Рівень {cell.monsterLevel ?? "?"}
+            {cell.monsterPower != null && <span className="ml-2 font-medium">⚔ {Math.round(cell.monsterPower).toLocaleString("uk-UA")}</span>}
+          </p>
           {cell.monsterUnits !== null && cell.monsterUnits !== undefined && (
             <ul className="text-slate-600">
               {Object.entries(cell.monsterUnits).map(([unitType, count]) => (

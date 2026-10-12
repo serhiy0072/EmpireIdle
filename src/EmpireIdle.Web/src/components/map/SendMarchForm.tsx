@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { MarchIntent, MarchTargetType, SendMarchRequest } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { useGarrison } from "../../lib/queries/garrison";
 import { useHeroes } from "../../lib/queries/heroes";
-import { BATTLE_ODDS, MARCH_INTENT, MARCH_TARGET, usePreviewMarch, useSendMarch } from "../../lib/queries/marches";
+import { BATTLE_VERDICT, MARCH_INTENT, MARCH_TARGET, usePreviewMarch, useSendMarch } from "../../lib/queries/marches";
 import { useVillage } from "../../lib/queries/village";
 import { isShieldActive } from "../../lib/shield";
 import { formatDuration, parseTimeSpan } from "../../lib/time";
@@ -82,7 +82,19 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
     intent,
   });
 
-  const odds = preview.data === undefined ? null : BATTLE_ODDS[preview.data.odds];
+  // Прев'ю рахується саме, щойно склад змінився: гравець бачить шанси, поки крутить повзунки.
+  // Пауза — щоб не слати запит на кожен крок повзунка
+  const previewKey = ready && !reinforce ? JSON.stringify(request()) : null;
+  const { mutate: estimate } = preview;
+
+  useEffect(() => {
+    if (previewKey === null) return;
+
+    const timer = window.setTimeout(() => estimate(JSON.parse(previewKey) as SendMarchRequest), 400);
+    return () => window.clearTimeout(timer);
+  }, [previewKey, estimate]);
+
+  const verdict = preview.data === undefined ? null : BATTLE_VERDICT[preview.data.verdict];
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
@@ -196,24 +208,25 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
         )}
       </div>
 
-      {preview.data !== undefined && odds !== null && (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className={`rounded px-2 py-0.5 ${odds.className}`}>{odds.label}</span>
-          <span className="text-slate-600">в дорозі {formatDuration(parseTimeSpan(preview.data.travelTime))}</span>
+      {previewKey !== null && preview.data !== undefined && verdict !== null && (
+        <div className={`space-y-1 rounded-lg bg-slate-50 p-2 text-sm ${preview.isPending ? "opacity-60" : ""}`}>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`rounded px-2 py-0.5 font-medium ${verdict.className}`}>{verdict.label}</span>
+            {preview.data.verdict === 1 && (
+              <span className="text-slate-700">шанс {Math.round(preview.data.winChance * 100)}%</span>
+            )}
+            <span className="text-slate-600">в дорозі {formatDuration(parseTimeSpan(preview.data.travelTime))}</span>
+          </div>
+          {preview.data.attackerPower != null && preview.data.targetPower != null && (
+            <p className="text-slate-600">
+              ⚔ ваша сила {Math.round(preview.data.attackerPower).toLocaleString("uk-UA")} проти{" "}
+              {Math.round(preview.data.targetPower).toLocaleString("uk-UA")}
+            </p>
+          )}
         </div>
       )}
 
       <div className="flex gap-2">
-        {!reinforce && (
-          <button
-            type="button"
-            onClick={() => preview.mutate(request())}
-            disabled={!ready || preview.isPending}
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          >
-            {preview.isPending ? "Оцінюємо…" : "Оцінити шанси"}
-          </button>
-        )}
         <button
           type="button"
           data-tutorial="send-march"
