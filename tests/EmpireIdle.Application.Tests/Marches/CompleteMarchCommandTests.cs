@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Services;
@@ -50,10 +51,12 @@ public class CompleteMarchCommandTests
     private readonly IBeastPenRepository _pens = Substitute.For<IBeastPenRepository>();
 
     private const int StructureGarrisonCapacity = 50;
+    private const long MonsterExperiencePerLevel = 1000;
 
     private static GameConfig Config(bool cityFall = false)
     {
         var config = BaseConfig(cityFall);
+        config.HeroSettings.MonsterExperiencePerLevel = MonsterExperiencePerLevel;
 
         // Увімкнено для всіх сцен: гравці тут поза кланом, тож бонус — 1, а кешбеку немає
         config.Clan.Territory = new ClanTerritoryConfig
@@ -197,6 +200,7 @@ public class CompleteMarchCommandTests
             _monsters, _map, _garrisons, _villages, _heroes, _random,
             armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, catalog, territoryBonus, territory, _clans,
             new BeastTamer(_pens, _monsters, _random, new BeastTaming(catalog), capacities, status, catalog),
+            new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog),
             NullLogger<MonsterBattleService>.Instance);
 
         var homecoming = new MarchHomecoming(_heroes, logistics, NullLogger<MarchHomecoming>.Instance);
@@ -581,6 +585,32 @@ public class CompleteMarchCommandTests
 
         Assert.True(carried > 0, "бій мав дати здобич");
         Assert.Equal(carried, village.Resources.Single(r => r.ResourceType == "food").Amount);
+    }
+
+    /// <summary>Перемога над монстром дає досвід героям у спільний запас — за кожен рівень монстра.</summary>
+    [Fact]
+    public async Task Handle_ShouldGrantHeroExperience_WhenTheAttackerWins()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 500, monsterLevel: 2);
+        var pool = new HeroExperiencePool(Guid.NewGuid(), PlayerId, 1);
+        _heroes.GetExperienceAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pool);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(2 * MonsterExperiencePerLevel, pool.Amount);
+    }
+
+    /// <summary>Програний бій досвіду не дає.</summary>
+    [Fact]
+    public async Task Handle_ShouldNotGrantHeroExperience_WhenTheAttackerLoses()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 1, monsterLevel: 10);
+        var pool = new HeroExperiencePool(Guid.NewGuid(), PlayerId, 1);
+        _heroes.GetExperienceAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pool);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Equal(0, pool.Amount);
     }
 
     /// <summary>Звіт створюється завжди — і при перемозі, і при поразці.</summary>

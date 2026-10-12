@@ -1210,6 +1210,12 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<long>("Amount")
                         .HasColumnType("bigint");
 
+                    b.Property<DateOnly?>("MonsterRewardsDay")
+                        .HasColumnType("date");
+
+                    b.Property<int>("MonsterRewardsToday")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
 

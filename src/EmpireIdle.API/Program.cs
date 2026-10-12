@@ -136,6 +136,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Market.MinSalesForMedian >= 1 && c.Market.OutlierTrimShare is >= 0 and < 0.5, "GameConfig.Market needs at least one sale for a median and must trim less than half of the sales on each side.")
     .Validate(c => c.Market.MedianMinAnchorShare is > 0 and <= 1 && c.Market.MedianMaxAnchorShare >= 1, "GameConfig.Market anchor band must contain the anchor itself: MedianMinAnchorShare ≤ 1 ≤ MedianMaxAnchorShare.")
     .Validate(c => c.Market.GoldPerGem > 0 && c.Market.GoldPerPower.Values.All(v => v > 0), "GameConfig.Market anchors must be positive.")
+    .Validate(c => c.HeroSettings.MonsterExperiencePerLevel >= 0 && c.HeroSettings.MonsterExperienceDailyLimit >= 0,
+        "GameConfig.HeroSettings.MonsterExperiencePerLevel and MonsterExperienceDailyLimit must not be negative.")
     .Validate(c => c.Dungeons.HeroExperiencePerRun >= 0, "GameConfig.Dungeons.HeroExperiencePerRun must not be negative.")
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
     .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")

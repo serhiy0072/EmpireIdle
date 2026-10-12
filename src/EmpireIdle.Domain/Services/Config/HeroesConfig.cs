@@ -43,6 +43,15 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки осколків коштує призов будь-якого героя (GDD §6.1): 10 осколків — це герой.</summary>
         public int SummonShards { get; set; } = 10;
 
+        /// <summary>
+        /// Досвід героїв у спільний запас за перемогу над монстром — полювання чи приручення (GDD §6.1):
+        /// стільки за кожен рівень монстра. 0 — монстри досвіду не дають.
+        /// </summary>
+        public long MonsterExperiencePerLevel { get; set; }
+
+        /// <summary>Скільки перемог над монстрами за добу UTC дають досвід.</summary>
+        public int MonsterExperienceDailyLimit { get; set; } = 20;
+
         /// <summary>Скільки зірок має герой.</summary>
         public int MaxStars { get; set; } = 5;
 

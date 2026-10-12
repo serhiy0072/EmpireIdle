@@ -67,6 +67,7 @@ namespace EmpireIdle.Application
             services.AddScoped<HeroGranter>();
             services.AddScoped<HeroShardBank>();
             services.AddScoped<TrainingCampService>();
+            services.AddScoped<MonsterExperienceReward>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<ClanSuccession>();
             services.AddScoped<ClanDisbander>();

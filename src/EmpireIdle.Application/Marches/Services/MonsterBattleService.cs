@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
@@ -37,6 +38,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly ClanTerritoryRules _territory;
         private readonly IClanRepository _clanRepository;
         private readonly BeastTamer _tamer;
+        private readonly MonsterExperienceReward _experience;
         private readonly ILogger<MonsterBattleService> _logger;
 
         public MonsterBattleService(
@@ -57,6 +59,7 @@ namespace EmpireIdle.Application.Marches.Services
             ClanTerritoryRules territory,
             IClanRepository clanRepository,
             BeastTamer tamer,
+            MonsterExperienceReward experience,
             ILogger<MonsterBattleService> logger)
         {
             _monsterRepository = monsterRepository;
@@ -76,6 +79,7 @@ namespace EmpireIdle.Application.Marches.Services
             _territory = territory;
             _clanRepository = clanRepository;
             _tamer = tamer;
+            _experience = experience;
             _logger = logger;
         }
 
@@ -138,6 +142,9 @@ namespace EmpireIdle.Application.Marches.Services
 
                 if (tamed is null)
                     await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken);
+
+                // Досвід героїв — за будь-яку перемогу, і полювання, і приручення (GDD §6.1)
+                await _experience.GrantAsync(village.PlayerId, monster.Level, utcNow, cancellationToken);
             }
 
             await _aftermath.RecordAttackerAsync(march, village, garrison,
