@@ -305,6 +305,10 @@ namespace EmpireIdle.Domain.Entities
 
             ArrivesAt -= reduction;
             Touch(utcNow);
+
+            // Захисник чекає за старим часом — тривога мусить знати новий
+            if (State == MarchState.Outbound && IsHostileToPlayers)
+                RaiseDomainEvent(new HostileMarchRetimed(Id, TargetType, TargetId, ArrivesAt, utcNow));
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;

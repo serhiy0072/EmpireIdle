@@ -50,6 +50,25 @@ public class IncomingAttackAlertTests
         return village;
     }
 
+    /// <summary>Прискорений напад — та сама тривога з новим часом: клієнт замінить стару за ключем маршу.</summary>
+    [Fact]
+    public async Task Alert_ShouldBeSentAgain_WhenTheAttackIsSpedUp()
+    {
+        var owner = Guid.NewGuid();
+        var village = GivenVillage(owner, clanId: null);
+        var attack = Attack(village.Id);
+
+        _marches.GetIncomingAttackAsync(attack.MarchId, Arg.Any<CancellationToken>()).Returns(attack);
+
+        await LaunchedHandler().Handle(
+            new DomainEventNotification<HostileMarchRetimed>(
+                new HostileMarchRetimed(attack.MarchId, attack.TargetType, attack.TargetId, attack.ArrivesAt, Now)),
+            CancellationToken.None);
+
+        await _notifier.Received(1).NotifyAttackIncomingAsync(
+            Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(new[] { owner })), attack, Arg.Any<CancellationToken>());
+    }
+
     [Fact]
     public async Task Alert_ShouldGoToTheWholeClan_WhenTheDefenderIsInOne()
     {
