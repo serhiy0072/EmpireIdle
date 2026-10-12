@@ -344,6 +344,9 @@
 
         public static readonly RefusalReason CampHeroNotIn = new("camp.heroNotIn");
 
+        /// <summary>Герой у таборі: його рівень тримає табір, власний не піднімається.</summary>
+        public static readonly RefusalReason CampHeroLevelLocked = new("camp.heroLevelLocked");
+
         /// <summary>Усі слоти за gems уже куплені; count — скільки їх.</summary>
         public static readonly RefusalReason CampAllSlotsBought = new("camp.allSlotsBought", "count");
 

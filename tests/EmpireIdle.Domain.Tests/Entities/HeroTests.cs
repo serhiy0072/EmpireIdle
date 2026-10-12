@@ -248,6 +248,19 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(5, hero.Level);
         }
 
+        /// <summary>Герой у таборі власного рівня не піднімає — його рівень тримає табір.</summary>
+        [Fact]
+        public void GainLevels_ShouldRefuse_ForAHeroInTheCamp()
+        {
+            var hero = CreateHero();
+            hero.EnterCamp(0, campLevel: 20, Now);
+
+            var refusal = Assert.Throws<InvalidStateException>(() => hero.GainLevels(1, maxLevel: 80, Now));
+
+            Assert.Equal(RefusalReasons.CampHeroLevelLocked.Key, refusal.Reason);
+            Assert.Equal(1, hero.Level);
+        }
+
         /// <summary>Понад стелю — відмова, рівень не змінюється навіть частково.</summary>
         [Fact]
         public void GainLevels_ShouldRefuse_AboveTheCeiling()

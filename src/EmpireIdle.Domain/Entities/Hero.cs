@@ -300,6 +300,8 @@ namespace EmpireIdle.Domain.Entities
             if (levels < 1)
                 throw new ArgumentOutOfRangeException(nameof(levels), levels, "Levels to gain must be positive.");
 
+            EnsureOwnLevelCanGrow();
+
             if (Level + levels > maxLevel)
                 throw new RequirementNotMetException(RefusalReasons.HeroLevelCeiling,
                     $"Hero {Id} cannot go above level {maxLevel}.", HeroKey, maxLevel);
@@ -307,6 +309,17 @@ namespace EmpireIdle.Domain.Entities
             Level += levels;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>
+        /// Герой у таборі власного рівня не піднімає (Сергій, 12.10.2026): його рівень тримає табір,
+        /// а піднятий у слоті герой не повертався б у п'ятірку інструкторів. Окремим методом —
+        /// щоб викликач перевірив до списання досвіду.
+        /// </summary>
+        public void EnsureOwnLevelCanGrow()
+        {
+            if (CampSlot is not null)
+                throw new InvalidStateException(RefusalReasons.CampHeroLevelLocked, $"Hero {Id} is in the training camp.");
         }
 
         /// <summary>Скидає героя на перший рівень. Повернення досвіду рахує викликач. Повертає рівень до скидання.</summary>

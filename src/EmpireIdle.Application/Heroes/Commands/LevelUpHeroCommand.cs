@@ -54,6 +54,9 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (hero.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
+            // До списання досвіду: герой у таборі не піднімається, і досвід не має згоріти
+            hero.EnsureOwnLevelCanGrow();
+
             var target = hero.Level + request.Levels;
 
             if (target > _progression.MaxLevel)

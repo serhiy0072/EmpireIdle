@@ -113,6 +113,21 @@ public class HeroExperienceTests
         await Assert.ThrowsAsync<NotEnoughResourcesException>(() => LevelUp(hero, levels: 1));
     }
 
+    /// <summary>Герой у таборі — відмова до списання: досвід лишається в пулі.</summary>
+    [Fact]
+    public async Task LevelUp_ShouldRefuseWithoutSpending_ForAHeroInTheCamp()
+    {
+        var hero = GivenHero();
+        hero.EnterCamp(0, campLevel: 20, Now);
+        GivenExperience(1_000_000);
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() => LevelUp(hero, levels: 1));
+
+        Assert.Equal(RefusalReasons.CampHeroLevelLocked.Key, refusal.Reason);
+        Assert.Equal(1_000_000, _pool!.Amount);
+        Assert.Equal(1, hero.Level);
+    }
+
     /// <summary>Стеля одна — MaxLevel; ратуша й тір її більше не задають.</summary>
     [Fact]
     public async Task LevelUp_ShouldRefuse_AboveTheMaxLevel()
