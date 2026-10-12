@@ -11,7 +11,7 @@ namespace EmpireIdle.Application.Tests.Heroes;
 
 /// <summary>
 /// «Швидке використання» (GDD §6.4): у кожен слот артефакта — найкраще вільне за рідкістю,
-/// далі за заточкою; чуже, зламане й виставлене на ринок не чіпає.
+/// далі за силою (зламане — з урізаною); чуже й виставлене на ринок не чіпає.
 /// </summary>
 public class EquipBestHeroGearCommandTests
 {
@@ -35,7 +35,7 @@ public class EquipBestHeroGearCommandTests
     {
         var catalog = HeroTestConfig.Catalog();
 
-        return new(_heroes, _inventory, _unitOfWork, new FakeTimeProvider(Now), new EquipmentFit(catalog),
+        return new(_heroes, _inventory, _unitOfWork, new FakeTimeProvider(Now), new EquipmentFit(catalog), catalog,
             NullLogger<EquipBestHeroGearCommandHandler>.Instance);
     }
 
@@ -79,7 +79,7 @@ public class EquipBestHeroGearCommandTests
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    /// <summary>Рідкість важить більше за заточку, а за рівної рідкості перемагає заточка.</summary>
+    /// <summary>Рідкість важить більше за силу, а за рівної рідкості перемагає сильніший.</summary>
     [Fact]
     public async Task Handle_ShouldPreferRarity_ThenEnhancement()
     {
@@ -92,6 +92,51 @@ public class EquipBestHeroGearCommandTests
 
         Assert.Equal(hero.Id, best.EquippedByHeroId);
         Assert.Single(_owned, e => e.EquippedByHeroId == hero.Id);
+    }
+
+    /// <summary>Зламаний дає половину сили, але й так може переважити цілий слабший тієї ж рідкості.</summary>
+    [Fact]
+    public async Task Handle_ShouldWearABrokenItem_WhenItIsStillStronger()
+    {
+        var hero = GivenHero();
+        GivenItem(HeroTestConfig.Artifact, Rarity.Rare, level: 0);
+        var strongBroken = GivenItem(HeroTestConfig.Artifact, Rarity.Rare, level: 10);
+        strongBroken.Break(Now);
+
+        await QuickEquip(hero);
+
+        Assert.Equal(hero.Id, strongBroken.EquippedByHeroId);
+    }
+
+    /// <summary>Зламаний, що з половиною сили слабший за цілий, поступається цілому — навіть із вищим рівнем.</summary>
+    [Fact]
+    public async Task Handle_ShouldPreferAnIntactItem_WhenTheBrokenOneIsWeaker()
+    {
+        var hero = GivenHero();
+        var intact = GivenItem(HeroTestConfig.Artifact, Rarity.Rare, level: 0);
+        var weakBroken = GivenItem(HeroTestConfig.Artifact, Rarity.Rare, level: 2);
+        weakBroken.Break(Now);
+
+        await QuickEquip(hero);
+
+        Assert.Equal(hero.Id, intact.EquippedByHeroId);
+        Assert.Null(weakBroken.EquippedByHeroId);
+    }
+
+    /// <summary>Вдягнений зламаний міняється на сильніший цілий тієї ж рідкості.</summary>
+    [Fact]
+    public async Task Handle_ShouldReplaceAWornBrokenItem_WithAStrongerOne()
+    {
+        var hero = GivenHero();
+        var broken = GivenItem(HeroTestConfig.Artifact, Rarity.Rare, level: 2);
+        broken.EquipTo(hero.Id, HeroTestConfig.NecklaceSlot, Now);
+        broken.Break(Now);
+        var intact = GivenItem(HeroTestConfig.Artifact, Rarity.Rare, level: 0);
+
+        await QuickEquip(hero);
+
+        Assert.Null(broken.EquippedByHeroId);
+        Assert.Equal(hero.Id, intact.EquippedByHeroId);
     }
 
     /// <summary>Вдягнене на іншого героя й виставлене на ринок — не вільне.</summary>

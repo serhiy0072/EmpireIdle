@@ -9,7 +9,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
     /// «Швидке використання» (GDD §6.1): у кожен слот героя — найкраще вільне спорядження,
-    /// якщо воно краще за вдягнене. З інших героїв нічого не знімає.
+    /// якщо воно краще за вдягнене: спершу рідкість, далі сила під клас героя. З інших героїв нічого не знімає.
     /// </summary>
     public record EquipBestHeroGearCommand(Guid PlayerId, Guid HeroId)
         : IRequest<int>, IPlayerScopedRequest, IIdempotentRequest;
@@ -27,6 +27,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly EquipmentFit _fit;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<EquipBestHeroGearCommandHandler> _logger;
 
         public EquipBestHeroGearCommandHandler(
@@ -35,6 +36,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             EquipmentFit fit,
+            GameCatalog catalog,
             ILogger<EquipBestHeroGearCommandHandler> logger)
         {
             _heroRepository = heroRepository;
@@ -42,6 +44,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
             _fit = fit;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -60,8 +63,9 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (hero.StationedGarrisonId is null)
                 throw new RequirementNotMetException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on the move.");
 
+            var heroClass = _catalog.Hero(hero.HeroKey).Class;
             var owned = await _inventoryRepository.GetEquipmentAsync(request.PlayerId, cancellationToken);
-            var best = _fit.BestFree(owned);
+            var best = _fit.BestFree(owned, heroClass);
             var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
             var changed = 0;
 
@@ -69,7 +73,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             {
                 var occupant = equipped.FirstOrDefault(e => e.SlotIndex == index);
 
-                if (!EquipmentFit.IsBetter(candidate, occupant))
+                if (!_fit.IsBetter(candidate, occupant, heroClass))
                     continue;
 
                 // Кандидат прочитаний без трекінгу — вдягаємо відстежений екземпляр

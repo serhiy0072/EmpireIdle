@@ -11,10 +11,12 @@ namespace EmpireIdle.Domain.Services
     public class EquipmentFit
     {
         private readonly GameCatalog _catalog;
+        private readonly ArtifactStats _stats;
 
         public EquipmentFit(GameCatalog catalog)
         {
             _catalog = catalog;
+            _stats = new ArtifactStats(catalog);
         }
 
         /// <summary>
@@ -27,22 +29,33 @@ namespace EmpireIdle.Domain.Services
                    $"Artifact '{itemConfig.Key}' has no known ArtifactSlot '{itemConfig.ArtifactSlot}'.");
 
         /// <summary>
-        /// Чи кращий кандидат за те, що вже стоїть: вища рідкість, далі вищий рівень, далі майстерність.
+        /// Чи кращий кандидат за те, що вже стоїть на герої цього класу: вища рідкість, далі більша сила
+        /// під клас героя. Зламаний рахується зі своєю урізаною силою — і все одно може виявитися кращим.
         /// Рівний не кращий — автоекіп не міняє шило на швайку.
         /// </summary>
-        public static bool IsBetter(EquipmentItem candidate, EquipmentItem? current)
-            => current is null
-               || candidate.Rarity > current.Rarity
-               || (candidate.Rarity == current.Rarity
-                   && (candidate.Level > current.Level
-                       || (candidate.Level == current.Level && candidate.Mastery > current.Mastery)));
+        public bool IsBetter(EquipmentItem candidate, EquipmentItem? current, string heroClass)
+        {
+            if (current is null)
+                return true;
+
+            if (candidate.Rarity != current.Rarity)
+                return candidate.Rarity > current.Rarity;
+
+            var multiplier = _stats.ClassMultiplier(heroClass);
+
+            return _stats.Power(candidate, multiplier) > _stats.Power(current, multiplier);
+        }
 
         /// <summary>
-        /// Найкраще вільне для кожного слота героя: не вдягнене й не виставлене на ринок.
+        /// Найкраще вільне для кожного слота героя цього класу: не вдягнене й не виставлене на ринок.
+        /// Порядок той самий, що в <see cref="IsBetter"/>; за рівної сили — вищий рівень і заточка.
         /// Ключ — номер слота артефакта.
         /// </summary>
-        public Dictionary<int, EquipmentItem> BestFree(IEnumerable<EquipmentItem> owned)
-            => owned
+        public Dictionary<int, EquipmentItem> BestFree(IEnumerable<EquipmentItem> owned, string heroClass)
+        {
+            var multiplier = _stats.ClassMultiplier(heroClass);
+
+            return owned
                 .Where(e => e.EquippedByHeroId is null && !e.IsOnMarket)
                 .Select(e => (Item: e, Config: _catalog.FindItem(e.ItemKey)))
                 .Where(pair => pair.Config is not null)
@@ -52,9 +65,11 @@ namespace EmpireIdle.Domain.Services
                     group => group
                         .Select(pair => pair.Item)
                         .OrderByDescending(e => e.Rarity)
+                        .ThenByDescending(e => _stats.Power(e, multiplier))
                         .ThenByDescending(e => e.Level)
                         .ThenByDescending(e => e.Mastery)
                         .ThenBy(e => e.Id)
                         .First());
+        }
     }
 }
