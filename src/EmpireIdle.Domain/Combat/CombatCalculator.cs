@@ -27,20 +27,26 @@ namespace EmpireIdle.Domain.Combat
         /// </param>
         /// <param name="attackerBuff">Пасивки героя, що веде марш.</param>
         /// <param name="defenceBuffs">Пасивки лідерів у гарнізоні.</param>
+        /// <param name="attackerHeroes">Герої маршу як бійці: їхня сила — до сили військ, шкода — по частці.</param>
+        /// <param name="defenderHeroes">Герої оборони як бійці.</param>
         public BattleResult Resolve(IReadOnlyDictionary<UnitStackKey, int> attacker, IReadOnlyList<DefenceStack> defence,
             string terrainType, int seed, double attackerBonus = 1.0, double defenderBonus = 1.0,
-            StackBuff? attackerBuff = null, DefenceBuffs? defenceBuffs = null)
+            StackBuff? attackerBuff = null, DefenceBuffs? defenceBuffs = null,
+            IReadOnlyList<HeroCombatant>? attackerHeroes = null, IReadOnlyList<HeroCombatant>? defenderHeroes = null)
         {
             // Власний PRNG, а не Random: у звіті зберігається лише сід, і послідовність
             // BCL-класу не гарантована між версіями рантайму — переграш бою після
             // апгрейду SDK дав би інший результат, ніж оригінал.
             var random = new DeterministicRandom(seed);
 
-            var attackerPower = CalculatePower(attacker, terrainType, isAttacker: true, attackerBuff)
-                * attackerBonus * RollRandom(random);
+            // Герой — окремий боєць (варіант B): його атака чи захист додається до сили військ
+            // до бонусів і випадковості — бонуси й удача діють на всю сторону однаково
+            var attackerBase = CalculatePower(attacker, terrainType, isAttacker: true, attackerBuff) + HeroPower(attackerHeroes);
+            var defenderBase = CalculateDefencePower(defence, terrainType, defenceBuffs) + HeroPower(defenderHeroes);
 
-            var defenderPower = CalculateDefencePower(defence, terrainType, defenceBuffs)
-                * defenderBonus * RollRandom(random);
+            var attackerPower = attackerBase * attackerBonus * RollRandom(random);
+
+            var defenderPower = defenderBase * defenderBonus * RollRandom(random);
 
             var attackerWon = attackerPower > defenderPower;
             var total = attackerPower + defenderPower;
@@ -68,7 +74,28 @@ namespace EmpireIdle.Domain.Combat
                 attackerPower,
                 defenderPower,
                 ApplyLosses(attacker, attackerLossRatio, terrainType, attackerWon),
-                ApplyLosses(defenderArmy, defenderLossRatio, terrainType, !attackerWon));
+                ApplyLosses(defenderArmy, defenderLossRatio, terrainType, !attackerWon),
+                WoundedHeroes(attackerHeroes, attackerBase, defenderPower * attackerLossRatio),
+                WoundedHeroes(defenderHeroes, defenderBase, attackerPower * defenderLossRatio));
+        }
+
+        private static double HeroPower(IReadOnlyList<HeroCombatant>? heroes)
+            => heroes?.Sum(h => Math.Max(0, h.Power)) ?? 0;
+
+        /// <summary>
+        /// Шкода стороні — сила супротивника × частка її втрат; герой бере її частку за своєю
+        /// часткою в силі сторони й пораняється, коли вона сягає його здоров'я × HeroHealthScale.
+        /// Тож поранення можливе й після перемоги, а розгром кладе героя майже напевно.
+        /// </summary>
+        private List<Guid> WoundedHeroes(IReadOnlyList<HeroCombatant>? heroes, double sidePower, double damage)
+        {
+            if (heroes is null || heroes.Count == 0 || sidePower <= 0)
+                return [];
+
+            return heroes
+                .Where(h => damage * Math.Max(0, h.Power) / sidePower >= h.Health * _config.HeroHealthScale)
+                .Select(h => h.HeroId)
+                .ToList();
         }
 
         /// <summary>

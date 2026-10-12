@@ -12,6 +12,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Розкид нормального розподілу навколо 1.0.</summary>
         public double RandomSigma { get; set; } = 0.15;
 
+        /// <summary>
+        /// Скільки шкоди витримує герой у бою військ: поранення — коли його частка шкоди сягає
+        /// Health × цей множник (варіант B, рішення 08.10.2026). Число — Режисер.
+        /// </summary>
+        public double HeroHealthScale { get; set; } = 1.0;
+
         /// <summary>Марші розвідників: хто відправляє й наскільки вони швидші за військо.</summary>
         public ScoutingConfig Scouting { get; set; } = new();
 
