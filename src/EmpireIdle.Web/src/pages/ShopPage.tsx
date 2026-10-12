@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ItemIcon from "../components/inventory/ItemIcon";
+import KeyChests from "../components/lootboxes/KeyChests";
 import { LootboxDrops, LootboxOdds } from "../components/lootboxes/LootboxPanels";
 import { useSession } from "../hooks/useSession";
 import type { LootboxDrop, ShopItemView } from "../lib/apiTypes";
@@ -142,6 +143,8 @@ export default function ShopPage() {
       <ErrorBanner error={buy.error ?? buyLootbox.error ?? checkout.error} />
 
       {drops !== null && <LootboxDrops drops={drops} onClose={() => setDrops(null)} />}
+
+      <KeyChests playerId={playerId} />
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">За самоцвіти</h2>

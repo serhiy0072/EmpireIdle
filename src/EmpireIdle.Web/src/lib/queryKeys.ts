@@ -21,6 +21,7 @@ export const queryKeys = {
   tutorial: (playerId: string) => ["tutorial", playerId] as const,
   inventory: (playerId: string) => ["inventory", playerId] as const,
   lootboxPity: (playerId: string) => ["lootboxPity", playerId] as const,
+  keyChests: (playerId: string) => ["keyChests", playerId] as const,
   beasts: (playerId: string) => ["beasts", playerId] as const,
   /** Історія каналу; для приватного — з конкретним співрозмовником. */
   chatHistory: (playerId: string, channel: string, partnerId: string | null) =>

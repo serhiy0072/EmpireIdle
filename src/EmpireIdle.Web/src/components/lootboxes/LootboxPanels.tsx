@@ -18,6 +18,10 @@ function rewardName(catalog: Catalog, type: string, key: string | null | undefin
       return "Досвід героїв";
     case "artifact":
       return `Випадковий артефакт (${rarityLabel(key ?? "")})`;
+    case "randomhero":
+      return `Випадковий герой (${rarityLabel(key ?? "")})`;
+    case "randomheroshards":
+      return `Осколки випадкового героя (${rarityLabel(key ?? "")})`;
     default:
       return catalog.itemName(key ?? "");
   }
@@ -48,6 +52,7 @@ export function LootboxOdds({ itemKey, since }: OddsProps) {
         <button type="button" onClick={() => setOpen(!open)} className="text-sky-700 hover:underline">
           {open ? "Сховати шанси" : "Шанси"}
         </button>
+        {box.rolls > 1 && <span className="text-xs text-slate-500">{box.rolls} нагороди за відкриття</span>}
         {box.pityWithin > 0 && (
           <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
             {left === null ? `гарантія — не пізніше ${box.pityWithin}-ї` : `гарантія через ${left}`}

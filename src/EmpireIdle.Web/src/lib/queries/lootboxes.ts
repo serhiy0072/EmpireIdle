@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
-import type { LootboxOpening, LootboxPityView, LootboxPurchase } from "../apiTypes";
+import type { KeyChestView, LootboxOpening, LootboxPityView, LootboxPurchase } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer, type PlayerScope } from "./invalidate";
 
@@ -27,6 +27,29 @@ export function useOpenLootbox(playerId: string) {
         idempotent: true,
       }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, OPENED),
+  });
+}
+
+/** Ключові скрині: ключі, залишок безкоштовних відкриттів і коли наступне. */
+export function useKeyChests(playerId: string): UseQueryResult<KeyChestView[]> {
+  return useQuery({
+    queryKey: queryKeys.keyChests(playerId),
+    queryFn: () => api<KeyChestView[]>(`/api/inventory/${playerId}/key-chests`),
+    enabled: playerId !== "",
+  });
+}
+
+/** Відкрити ключову скриню: безкоштовно — одну, ключами — count. */
+export function useOpenKeyChest(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { chestKey: string; free: boolean; count: number }) =>
+      api<LootboxOpening>(
+        `/api/inventory/${playerId}/key-chests/${input.chestKey}/open?free=${input.free}&count=${input.count}`,
+        { method: "POST", idempotent: true },
+      ),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, [...OPENED, "keyChests"]),
   });
 }
 
