@@ -253,7 +253,7 @@
       },
       "RoleUnits": {
         "warrior": "infantry",
-        "knight": "cavalry",
+        "knight": "spearman",
         "archer": "archer"
       },
       "ConvoySize": 100,
@@ -568,7 +568,7 @@
         "DisplayName": "Ордвін Непохитний",
         "Class": "knight",
         "Rank": "rare",
-        "Description": "Пробиває броню. Підсилює важку кінноту й зменшує захист оборонця.",
+        "Description": "Пробиває броню. Підсилює списоносців і зменшує захист оборонця.",
         "Lore": "Ордвін присягав трьом володарям, і всі троє програли. Четвертому він служити відмовився, забрав коня та спис і пішов на схід. Тепер його спис коштує дорожче за титул, який йому колись обіцяли.",
         "Speed": 8,
         "BaseStats": {
@@ -658,7 +658,7 @@
             "Kind": "Passive",
             "UnlockLevel": 40,
             "Troops": {
-              "Target": "cavalry",
+              "Target": "spearman",
               "Stat": "Attack",
               "Percents": [
                 9,
@@ -678,7 +678,7 @@
             "Kind": "Passive",
             "UnlockLevel": 1,
             "Troops": {
-              "Target": "cavalry",
+              "Target": "spearman",
               "Stat": "Defense",
               "Percents": [
                 6,
@@ -1354,7 +1354,7 @@
         "DisplayName": "Альдрік Списоносець",
         "Class": "knight",
         "Rank": "rare",
-        "Description": "Веде кінноту клином, що не знає зупинки.",
+        "Description": "Веде списоносців клином, що не знає зупинки.",
         "Lore": "Лицар без замку: усе, що має, — кінь, спис і слово.",
         "Speed": 8,
         "BaseStats": {
@@ -1444,7 +1444,7 @@
             "Kind": "Passive",
             "UnlockLevel": 40,
             "Troops": {
-              "Target": "cavalry",
+              "Target": "spearman",
               "Stat": "Attack",
               "Percents": [
                 8,
@@ -1464,7 +1464,7 @@
             "Kind": "Passive",
             "UnlockLevel": 1,
             "Troops": {
-              "Target": "cavalry",
+              "Target": "spearman",
               "Stat": "Defense",
               "Percents": [
                 5,
@@ -1613,7 +1613,7 @@
             "Kind": "Passive",
             "UnlockLevel": 1,
             "Troops": {
-              "Target": "cavalry",
+              "Target": "spearman",
               "Stat": "Defense",
               "Percents": [
                 7,
@@ -2678,7 +2678,7 @@
             "Kind": "Passive",
             "UnlockLevel": 40,
             "Troops": {
-              "Target": "cavalry",
+              "Target": "spearman",
               "Stat": "Attack",
               "Percents": [
                 10,
@@ -2698,7 +2698,7 @@
             "Kind": "Passive",
             "UnlockLevel": 1,
             "Troops": {
-              "Target": "cavalry",
+              "Target": "spearman",
               "Stat": "Defense",
               "Percents": [
                 6,

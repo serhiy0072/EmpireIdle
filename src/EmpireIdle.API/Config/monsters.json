@@ -113,7 +113,7 @@
         "RequiresServerLevel": 3,
         "Units": [
           {
-            "UnitType": "cavalry",
+            "UnitType": "spearman",
             "Count": 20
           },
           {

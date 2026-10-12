@@ -279,9 +279,9 @@
         "UpgradeCostGrowth": 1.28
       },
       {
-        "Key": "stable",
-        "DisplayName": "Стайня",
-        "RequiresMainBuildingLevel": 5,
+        "Key": "spearyard",
+        "DisplayName": "Двір списоносців",
+        "RequiresMainBuildingLevel": 3,
         "Position": {
           "X": 84.0,
           "Y": 70.0
@@ -301,7 +301,32 @@
           }
         ],
         "BaseBuildMinutes": 6,
-        "BuildTimeGrowth": 1.30,
+        "BuildTimeGrowth": 1.3,
+        "ProducesResource": null,
+        "BaseProductionPerMinute": 0,
+        "BaseStorage": 0,
+        "UpgradeCostGrowth": 1.28
+      },
+      {
+        "Key": "range",
+        "DisplayName": "Стрільбище",
+        "RequiresMainBuildingLevel": 2,
+        "Position": {
+          "X": 48.0,
+          "Y": 72.0
+        },
+        "Cost": [
+          {
+            "Resource": "gold",
+            "Amount": 400
+          },
+          {
+            "Resource": "wood",
+            "Amount": 300
+          }
+        ],
+        "BaseBuildMinutes": 6,
+        "BuildTimeGrowth": 1.3,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
         "BaseStorage": 0,
