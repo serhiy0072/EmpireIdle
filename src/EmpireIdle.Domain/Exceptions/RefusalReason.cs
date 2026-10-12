@@ -116,6 +116,9 @@
         /// <summary>Предметів менше, ніж треба; need — скільки, have — скільки є.</summary>
         public static readonly RefusalReason ItemNotEnough = new("item.notEnough", "item", "need", "have");
 
+        /// <summary>Безкоштовне відкриття ключової скрині ще не готове; at — UTC у форматі ISO 8601.</summary>
+        public static readonly RefusalReason KeyChestFreeNotReady = new("lootbox.freeNotReady", "at");
+
         public static readonly RefusalReason TeleportOutsideRegion = new("teleport.outsideRegion");
 
         public static readonly RefusalReason TeleportCellUnsuitable = new("teleport.cellUnsuitable");

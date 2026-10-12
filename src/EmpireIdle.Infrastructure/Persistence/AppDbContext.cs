@@ -58,6 +58,7 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<HeroShardProgress> HeroShards => Set<HeroShardProgress>();
         public DbSet<BannerPityProgress> BannerPity => Set<BannerPityProgress>();
         public DbSet<LootboxPity> LootboxPity => Set<LootboxPity>();
+        public DbSet<KeyChestProgress> KeyChestProgress => Set<KeyChestProgress>();
 
         /// <summary>
         /// Журнал роллів. Фільтра за світом немає навмисно: gems акаунтні,

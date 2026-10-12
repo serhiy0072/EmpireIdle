@@ -41,6 +41,7 @@ namespace EmpireIdle.Domain.Services
             ValidateEnergyJars(config);
             ValidateWeaponChests(config);
             ValidateLootboxes(config);
+            ValidateKeyChests(config);
             ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
@@ -451,6 +452,29 @@ namespace EmpireIdle.Domain.Services
         /// Скрині (GDD §9.12): таблиця на кожен предмет-скриню, додатні ваги й кількості,
         /// відомі ключі, гарантія з позиціями й вкладені скрині без циклу.
         /// </summary>
+        /// <summary>Ключова скриня посилається на таблицю скрині й на предмет-ключ — обидва мусять існувати.</summary>
+        private static void ValidateKeyChests(GameConfig config)
+        {
+            RequireUniqueKeys(config.KeyChests.Select(c => c.LootboxKey), "KeyChests");
+
+            var boxes = config.Lootboxes.Select(b => b.Key).ToHashSet();
+            var items = config.Items.ToDictionary(i => i.Key);
+
+            foreach (var chest in config.KeyChests)
+            {
+                if (!boxes.Contains(chest.LootboxKey))
+                    throw new InvalidOperationException($"Key chest '{chest.LootboxKey}' has no table in Lootboxes.");
+
+                if (items.GetValueOrDefault(chest.KeyItemKey)?.Type != "chestkey")
+                    throw new InvalidOperationException(
+                        $"Key chest '{chest.LootboxKey}' opens with '{chest.KeyItemKey}', which is not an item of Type 'chestkey'.");
+
+                if (chest.FreePerDay < 0 || chest.FreeCooldownMinutes < 0)
+                    throw new InvalidOperationException(
+                        $"Key chest '{chest.LootboxKey}' has a negative FreePerDay or FreeCooldownMinutes.");
+            }
+        }
+
         private static void ValidateLootboxes(GameConfig config)
         {
             RequireUniqueKeys(config.Lootboxes.Select(b => b.Key), "Lootboxes");

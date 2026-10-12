@@ -21,4 +21,10 @@ namespace EmpireIdle.Application.Lootboxes.Contracts
     /// <param name="Since">Відкриттів поспіль без позиції гарантії.</param>
     /// <param name="PityWithin">На якому відкритті поспіль гарантія спрацьовує.</param>
     public record LootboxPityView(string LootboxKey, int Since, int PityWithin);
+
+    /// <summary>Ключова скриня гравця: ключі в рюкзаку й безкоштовні відкриття.</summary>
+    /// <param name="Keys">Скільки ключів цієї скрині в рюкзаку.</param>
+    /// <param name="FreeLeftToday">Безкоштовних відкриттів, що лишились до кінця доби UTC.</param>
+    /// <param name="NextFreeAt">Коли можна відкрити безкоштовно; null — уже зараз.</param>
+    public record KeyChestView(string ChestKey, string KeyItemKey, int Keys, int FreePerDay, int FreeLeftToday, DateTime? NextFreeAt);
 }

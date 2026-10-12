@@ -1306,6 +1306,42 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("IdempotencyRecords", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.KeyChestProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ChestKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateOnly?>("FreeDay")
+                        .HasColumnType("date");
+
+                    b.Property<int>("FreeOnDay")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("LastFreeAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "ChestKey")
+                        .IsUnique();
+
+                    b.ToTable("KeyChestProgress", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.LoginRewardProgress", b =>
                 {
                     b.Property<Guid>("Id")

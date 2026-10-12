@@ -117,6 +117,17 @@ public class LootboxValidationTests
         => Assert.Contains(TestKeys.SmallChest, Rejects(c => Box(c, TestKeys.SmallChest).Entries.Add(
             new LootboxEntryConfig { Type = LootboxEntryConfig.RandomHeroType, Key = "Rare", Amount = 1, Weight = 1 })).Message);
 
+    /// <summary>Ключова скриня без таблиці або з ключем, що не є предметом-ключем, відкривалась би в нікуди.</summary>
+    [Fact]
+    public void Validate_ShouldRejectAKeyChestWithoutAKeyItem()
+        => Assert.Contains(TestKeys.SmallChest, Rejects(c => c.KeyChests.Add(
+            new KeyChestConfig { LootboxKey = TestKeys.SmallChest, KeyItemKey = TestKeys.BigChest, FreePerDay = 1 })).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectAKeyChestWithoutATable()
+        => Assert.Contains("missing_chest", Rejects(c => c.KeyChests.Add(
+            new KeyChestConfig { LootboxKey = "missing_chest", KeyItemKey = TestKeys.BigChest })).Message);
+
     /// <summary>Відкриття без жодного кидка не дало б нічого.</summary>
     [Fact]
     public void Validate_ShouldRejectAChestWithoutRolls()

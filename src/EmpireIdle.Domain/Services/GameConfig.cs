@@ -114,5 +114,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Скрині: таблиці нагород предметів із Type "lootbox" (GDD §9.12).</summary>
         public List<LootboxConfig> Lootboxes { get; set; } = new();
+
+        /// <summary>Ключові скрині: безкоштовні відкриття на добу, понад них — ключ (рішення 12.10.2026).</summary>
+        public List<KeyChestConfig> KeyChests { get; set; } = new();
     }
 }

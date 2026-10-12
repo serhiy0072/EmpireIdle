@@ -96,6 +96,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "item.giftNotClanmate": () => "Дарувати можна лише членам свого клану",
   "item.giftToSelf": () => "Собі подарунок не зробиш",
   "item.notEnough": ({ item, need, have }) => `Замало: «${item}» потрібно ${need}, є ${have}`,
+  "lootbox.freeNotReady": ({ at }) => `Безкоштовне відкриття буде доступне ${localTime(at)}`,
   "teleport.outsideRegion": () => "Ця клітинка поза освоєною зоною світу",
   "teleport.cellUnsuitable": () => "На цій клітинці не можна заснувати поселення",
   "teleport.cellOccupied": () => "Ця клітинка вже зайнята",

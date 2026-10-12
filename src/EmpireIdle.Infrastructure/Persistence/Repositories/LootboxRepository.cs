@@ -30,5 +30,25 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         {
             await _context.LootboxPity.AddAsync(pity, cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public Task<KeyChestProgress?> GetKeyChestProgressAsync(Guid playerId, string chestKey,
+            CancellationToken cancellationToken = default)
+            => _context.KeyChestProgress
+                .FirstOrDefaultAsync(p => p.PlayerId == playerId && p.ChestKey == chestKey, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<List<KeyChestProgress>> GetKeyChestProgressesReadOnlyAsync(Guid playerId,
+            CancellationToken cancellationToken = default)
+            => _context.KeyChestProgress
+                .AsNoTracking()
+                .Where(p => p.PlayerId == playerId)
+                .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task AddKeyChestProgressAsync(KeyChestProgress progress, CancellationToken cancellationToken = default)
+        {
+            await _context.KeyChestProgress.AddAsync(progress, cancellationToken);
+        }
     }
 }

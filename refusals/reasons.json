@@ -238,6 +238,9 @@
     "multiplier",
     "until"
   ],
+  "lootbox.freeNotReady": [
+    "at"
+  ],
   "mail.letterExpired": [],
   "mail.nothingToClaim": [],
   "march.camping": [],
