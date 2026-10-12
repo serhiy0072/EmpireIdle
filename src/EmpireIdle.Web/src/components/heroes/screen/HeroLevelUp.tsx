@@ -42,6 +42,15 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
 
   const press = () => (affordable ? onLevelUp() : setOffering(true));
 
+  // Рівень героя в таборі тримає табір — власний не піднімається, сервер однаково відмовить
+  if (hero.campSlot != null) {
+    return (
+      <p className="max-w-md text-center text-sm text-amber-200">
+        Герой у навчальному таборі: рівень {hero.effectiveLevel} тримає табір. Виведіть героя з табору, щоб піднімати власний рівень.
+      </p>
+    );
+  }
+
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-2">
       <p className="text-sm text-sky-100">
