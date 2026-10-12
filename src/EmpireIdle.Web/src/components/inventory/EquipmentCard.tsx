@@ -51,6 +51,10 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
 
           <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
+            <span className="rounded bg-slate-800 px-2 py-0.5 font-medium text-amber-200">
+              ⚔ {Math.round(equipment.power).toLocaleString("uk-UA")}
+            </span>
+            {equipment.isBroken && <span className="rounded bg-rose-100 px-2 py-0.5 text-rose-800">Зламано · ½ сили</span>}
             {equipment.isOnMarket && <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">На ринку</span>}
             {set !== null && (
               <Link
@@ -78,7 +82,18 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
         ))}
       </dl>
 
+      {equipment.experienceToNext != null && (
+        <p className="mt-2 text-xs text-slate-500">
+          До рівня {equipment.level + 1}: ще {equipment.experienceToNext.toLocaleString("uk-UA")} досвіду
+        </p>
+      )}
+
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        {!equipment.isOnMarket && (
+          <Link to={`/forge?item=${equipment.id}`} className={button}>
+            {equipment.isBroken ? "Відремонтувати" : "Посилити · майстерність"}
+          </Link>
+        )}
         {equipment.isOnMarket ? (
           <Link to="/market?tab=mine" className="text-xs text-amber-700 hover:underline">
             На ринку — до своїх лотів

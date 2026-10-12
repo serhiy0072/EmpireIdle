@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { EquipmentResponse, InventoryItemResponse } from "../../../lib/apiTypes";
 import { useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
@@ -168,6 +169,8 @@ function SlotDetails({
               {catalog.itemName(worn.itemKey)}
               {worn.level > 0 && <span className="text-amber-200"> · рів. {worn.level}</span>}
               {worn.mastery > 0 && <span className="text-sky-200"> · майст. {worn.mastery}</span>}
+              <span className="text-amber-200"> · ⚔ {Math.round(worn.power).toLocaleString("uk-UA")}</span>
+              {worn.isBroken && <span className="text-rose-300"> · зламано</span>}
             </p>
             <p className="text-sm text-sky-100/90">
               {Object.entries(worn.stats)
@@ -175,9 +178,14 @@ function SlotDetails({
                 .join(" · ")}
             </p>
           </div>
-          <GameButton onClick={() => onUnequip(worn.id)} disabled={disabled} variant="secondary">
-            Зняти
-          </GameButton>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <GameButton onClick={() => onUnequip(worn.id)} disabled={disabled} variant="secondary">
+              Зняти
+            </GameButton>
+            <Link to={`/forge?item=${worn.id}`} className="text-xs text-sky-200 hover:underline">
+              {worn.isBroken ? "Відремонтувати →" : "Посилити →"}
+            </Link>
+          </div>
         </div>
       )}
 

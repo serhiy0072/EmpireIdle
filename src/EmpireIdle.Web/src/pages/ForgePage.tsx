@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ItemIcon from "../components/inventory/ItemIcon";
 import { useSession } from "../hooks/useSession";
@@ -66,7 +67,9 @@ export default function ForgePage() {
   const repair = useRepairArtifact(playerId);
   const wallet = useWallet(playerId);
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Картка спорядження веде сюди з ?item=<id>: кузня відкривається саме на цьому предметі
+  const [searchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get("item"));
   const [foodIds, setFoodIds] = useState<string[]>([]);
   const [wrenches, setWrenches] = useState<Record<string, number>>({});
   const [confirming, setConfirming] = useState(false);
