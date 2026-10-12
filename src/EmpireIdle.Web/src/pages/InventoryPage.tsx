@@ -8,7 +8,7 @@ import EquipmentCard from "../components/inventory/EquipmentCard";
 import ItemCard from "../components/inventory/ItemCard";
 import ItemIcon from "../components/inventory/ItemIcon";
 import LootboxCard from "../components/lootboxes/LootboxCard";
-import { LootboxDrops } from "../components/lootboxes/LootboxPanels";
+import { LootboxDrops, WeaponChestContents } from "../components/lootboxes/LootboxPanels";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
 import type { EquipmentResponse, InventoryItemResponse, LootboxDrop } from "../lib/apiTypes";
@@ -219,6 +219,11 @@ export default function InventoryPage() {
               })
             }
           />
+          {pickedItem.type === "weaponchest" && (
+            <div className="px-1">
+              <WeaponChestContents itemKey={pickedItem.itemKey} />
+            </div>
+          )}
           {pickedItem.type === "speedup" && (
             <p className="px-1 text-xs text-slate-500">
               Прискорення вживається з таймера: натисніть «Прискорити» біля будівництва, тренування чи маршу.

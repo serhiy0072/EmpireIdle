@@ -77,6 +77,37 @@ export function LootboxOdds({ itemKey, since }: OddsProps) {
   );
 }
 
+/**
+ * Вміст скрині зброї: чиї шматки зброї вона дає. Шматки лягають на героя, якого гравець обирає
+ * на його картці, тож тут лише перелік трійки й кількість за скриню.
+ */
+export function WeaponChestContents({ itemKey }: { itemKey: string }) {
+  const catalog = useCatalog();
+  const [open, setOpen] = useState(false);
+  const chest = catalog.item(itemKey);
+
+  if (chest === null || chest.weaponHeroes.length === 0) return null;
+
+  return (
+    <div className="mt-2 text-sm">
+      <button type="button" onClick={() => setOpen(!open)} className="text-sky-700 hover:underline">
+        {open ? "Сховати вміст" : "Вміст"}
+      </button>
+
+      {open && (
+        <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200">
+          {chest.weaponHeroes.map((heroKey) => (
+            <li key={heroKey} className="flex items-center justify-between gap-2 px-2 py-1">
+              <span className="text-slate-700">Зброя: {catalog.heroName(heroKey)}</span>
+              <span className="tabular-nums text-slate-500">×{chest.weaponShards ?? 1} шматок на вибір</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 interface DropsProps {
   drops: LootboxDrop[];
   onClose: () => void;

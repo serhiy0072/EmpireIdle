@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ItemIcon from "../components/inventory/ItemIcon";
 import KeyChests from "../components/lootboxes/KeyChests";
-import { LootboxDrops, LootboxOdds } from "../components/lootboxes/LootboxPanels";
+import { LootboxDrops, LootboxOdds, WeaponChestContents } from "../components/lootboxes/LootboxPanels";
 import { useSession } from "../hooks/useSession";
 import type { LootboxDrop, ShopItemView } from "../lib/apiTypes";
 import { useBuyLootbox, useLootboxPity } from "../lib/queries/lootboxes";
@@ -67,6 +67,7 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
       {offer.description !== "" && <p className="mt-2 text-sm text-slate-600">{offer.description}</p>}
 
       {offer.type === "lootbox" && <LootboxOdds itemKey={offer.itemKey} since={pitySince} />}
+      {offer.type === "weaponchest" && <WeaponChestContents itemKey={offer.itemKey} />}
 
       <div className="mt-3 flex items-center gap-2">
         {offer.maxPerPurchase > 1 && (
