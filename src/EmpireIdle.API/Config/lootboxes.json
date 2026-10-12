@@ -3,77 +3,92 @@
     "Lootboxes": [
       {
         "Key": "chest_supply",
+        "PityWithin": 50,
         "Entries": [
           {
             "Type": "Item",
             "Key": "crate_mixed_large",
             "Amount": 3,
-            "Weight": 160
+            "Weight": 640
           },
           {
             "Type": "Item",
             "Key": "crate_wood_5000",
             "Amount": 6,
-            "Weight": 100
+            "Weight": 400
           },
           {
             "Type": "Item",
             "Key": "hero_xp_1k",
             "Amount": 10,
-            "Weight": 130
+            "Weight": 520
           },
           {
             "Type": "Item",
             "Key": "hero_xp_10k",
             "Amount": 2,
-            "Weight": 250
+            "Weight": 1000
           },
           {
             "Type": "Item",
             "Key": "hero_xp_20k",
             "Amount": 1,
-            "Weight": 100
+            "Weight": 400
           },
           {
             "Type": "Item",
             "Key": "speedup_5m",
             "Amount": 15,
-            "Weight": 80
+            "Weight": 320
           },
           {
             "Type": "Item",
             "Key": "speedup_1h",
             "Amount": 2,
-            "Weight": 60
+            "Weight": 240
           },
           {
             "Type": "Item",
             "Key": "wrench_common",
             "Amount": 15,
-            "Weight": 50
+            "Weight": 200
           },
           {
             "Type": "Item",
             "Key": "wrench_rare",
             "Amount": 5,
-            "Weight": 30
+            "Weight": 120
           },
           {
             "Type": "Item",
             "Key": "dungeon_energy_10",
             "Amount": 5,
-            "Weight": 20
+            "Weight": 80
           },
           {
             "Type": "Item",
             "Key": "repair_kit",
             "Amount": 1,
-            "Weight": 15
+            "Weight": 60
           },
           {
             "Type": "Gems",
             "Amount": 1000,
-            "Weight": 5
+            "Weight": 20
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_essence_t2",
+            "Amount": 1,
+            "Weight": 1,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_essence_t3",
+            "Amount": 1,
+            "Weight": 1,
+            "Pity": true
           }
         ]
       },
