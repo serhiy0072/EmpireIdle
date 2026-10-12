@@ -20,7 +20,7 @@ export function useBuyShopItem(playerId: string) {
   return useMutation({
     mutationFn: (input: { itemKey: string; count: number }) =>
       api<number>(`/api/shop/${playerId}/items/${input.itemKey}?count=${input.count}`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["wallet", "inventory"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["wallet", "inventory", "keyChests"]),
   });
 }
 
