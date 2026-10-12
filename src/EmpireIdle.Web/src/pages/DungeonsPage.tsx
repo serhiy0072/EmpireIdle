@@ -171,6 +171,7 @@ export default function DungeonsPage() {
               {levelView !== null && (
                 <p className="text-xs text-slate-500">
                   Нагорода: {levelView.reward.map((line) => `${catalog.resourceName(line.resource)} ${line.amount.toLocaleString("uk-UA")}`).join(" · ")}
+                  {levelView.heroExperience > 0 && ` · досвід героїв ${levelView.heroExperience.toLocaleString("uk-UA")}`}
                 </p>
               )}
               {dropSet !== null && (

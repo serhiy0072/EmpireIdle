@@ -266,6 +266,9 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
             <div className="text-slate-700">
               {reward.resources.map((line) => `${line.resource} +${line.amount.toLocaleString("uk-UA")}`).join(" · ")}
             </div>
+            {reward.heroExperience > 0 && (
+              <div className="text-slate-700">⭐ Досвід героїв +{reward.heroExperience.toLocaleString("uk-UA")}</div>
+            )}
             {reward.artifacts.map((artifact) => (
               <div key={artifact.itemKey} className="text-slate-800">
                 🏺 {artifact.displayName}
