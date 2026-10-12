@@ -1393,10 +1393,6 @@ namespace EmpireIdle.Domain.Services
             {
                 if (item.Slot is null)
                     throw new InvalidOperationException($"Item '{item.Key}' is equipment but has no Slot.");
-
-                if (item.Slot == EquipmentSlot.Artifact && item.BaseStats.Count > 0)
-                    throw new InvalidOperationException(
-                        $"Artifact '{item.Key}' has BaseStats — artifact base comes from Equipment.ArtifactBase.");
             }
         }
 

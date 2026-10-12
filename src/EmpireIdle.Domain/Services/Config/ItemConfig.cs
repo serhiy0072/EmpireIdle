@@ -55,12 +55,6 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Сила унікальної властивості часткою: 0.1 — плюс десять відсотків.</summary>
         public double UniqueStatValue { get; set; }
 
-        /// <summary>
-        /// equipment: базові стати зброї. В артефактів порожні — їхні стати
-        /// випадкові й лежать на екземплярі, а не на типі.
-        /// </summary>
-        public Dictionary<string, double> BaseStats { get; set; } = new();
-
         /// <summary>equipment: ключ набору, за повний комплект якого дається бонус.</summary>
         public string? SetKey { get; set; }
 

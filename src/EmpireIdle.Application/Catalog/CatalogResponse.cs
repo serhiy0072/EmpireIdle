@@ -153,7 +153,6 @@
         string Rarity,
         string Type,
         string? Slot,
-        IReadOnlyDictionary<string, double> BaseStats,
         string? SetKey,
         string? ArtifactSlot,
         bool Tradeable,

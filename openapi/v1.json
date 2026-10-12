@@ -9824,7 +9824,6 @@
       },
       "CatalogItem": {
         "required": [
-          "baseStats",
           "description",
           "displayName",
           "giftable",
@@ -9854,13 +9853,6 @@
           "slot": {
             "type": "string",
             "nullable": true
-          },
-          "baseStats": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "number",
-              "format": "double"
-            }
           },
           "setKey": {
             "type": "string",

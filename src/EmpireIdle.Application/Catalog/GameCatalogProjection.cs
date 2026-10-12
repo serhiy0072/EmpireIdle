@@ -95,7 +95,6 @@ namespace EmpireIdle.Application.Catalog
                     item.Rarity.ToString(),
                     item.Type,
                     item.Slot?.ToString(),
-                    item.BaseStats,
                     item.SetKey,
                     item.ArtifactSlot,
                     item.Tradeable,
