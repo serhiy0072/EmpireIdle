@@ -36,6 +36,8 @@ export interface Catalog {
   heroName: (key: string) => string;
   itemName: (key: string) => string;
   resourceName: (key: string) => string;
+  /** Місце ресурсу в довіднику: за ним шапка тримає сталий порядок, хоч сервер його не гарантує. */
+  resourceOrder: (key: string) => number;
   buildingName: (key: string) => string;
   unitName: (key: string) => string;
   beastName: (key: string) => string;
@@ -115,6 +117,7 @@ export function useCatalog(): Catalog {
     const heroes = new Map((data?.heroes ?? []).map((hero) => [hero.key, hero]));
     const items = new Map((data?.items ?? []).map((item) => [item.key, item]));
     const resources = new Map((data?.resources ?? []).map((resource) => [resource.key, resource]));
+    const resourceIndex = new Map((data?.resources ?? []).map((resource, index) => [resource.key, index]));
     const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
     const units = new Map((data?.units ?? []).map((unit) => [unit.key, unit]));
     const beasts = new Map((data?.beasts ?? []).map((beast) => [beast.key, beast]));
@@ -136,6 +139,7 @@ export function useCatalog(): Catalog {
       heroName: (key) => heroes.get(key)?.displayName ?? key,
       itemName: (key) => items.get(key)?.displayName ?? key,
       resourceName: (key) => resources.get(key)?.displayName ?? key,
+      resourceOrder: (key) => resourceIndex.get(key) ?? Number.MAX_SAFE_INTEGER,
       buildingName: (key) => buildings.get(key)?.displayName ?? key,
       unitName: (key) => units.get(key)?.displayName ?? key,
       beastName: (key) => beasts.get(key)?.displayName ?? key,
