@@ -195,7 +195,7 @@
     /// </summary>
     /// <param name="Tier">Рівень набору: вищий — сильніші стати.</param>
     /// <param name="StatMultiplier">Множник статів за рівнем — те, що рівень означає в числах.</param>
-    /// <param name="FocusStats">Характерні стати: частіше випадають, і бонус набору в них.</param>
+    /// <param name="FocusStats">Характер набору для гравця — атакувальний чи захисний; на стати предметів не впливає.</param>
     /// <param name="Dungeon">Данж, з якого падає набір; null — набір поза данжами.</param>
     public record CatalogArtifactSet(
         string Key,

@@ -125,7 +125,7 @@ export default function ArtifactSetsPage() {
 
                   {set.focusStats.length > 0 && (
                     <p className="text-xs text-slate-500">
-                      Частіше випадає: {set.focusStats.map(statLabel).join(", ").toLowerCase()}
+                      Характер набору: {set.focusStats.map(statLabel).join(", ").toLowerCase()}
                     </p>
                   )}
 
