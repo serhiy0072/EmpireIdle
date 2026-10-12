@@ -105,15 +105,21 @@ export default function ForgePage() {
     return hero === undefined ? null : catalog.heroName(hero.heroKey);
   };
 
-  // Годуються лише вільні неунікальні: сервер відмовить решті, тож клієнт їх і не пропонує
-  const food = equipment.filter(
-    (item) =>
-      item.id !== selected?.id && item.feedValue != null && item.equippedByHeroId == null && !item.isOnMarket,
-  );
-  const ownedWrenches = (inventory.data?.items ?? []).filter((item) => item.type === "wrench");
+  const wrenchExperience = (key: string) => catalog.item(key)?.artifactExperience ?? 0;
+
+  // Годуються лише вільні неунікальні: сервер відмовить решті, тож клієнт їх і не пропонує.
+  // Від найдешевшого до найдорожчого — тим самим порядком іде автовибір
+  const food = equipment
+    .filter(
+      (item) =>
+        item.id !== selected?.id && item.feedValue != null && item.equippedByHeroId == null && !item.isOnMarket,
+    )
+    .sort((a, b) => (a.feedValue ?? 0) - (b.feedValue ?? 0));
+  const ownedWrenches = (inventory.data?.items ?? [])
+    .filter((item) => item.type === "wrench")
+    .sort((a, b) => wrenchExperience(a.itemKey) - wrenchExperience(b.itemKey));
 
   const chosenFood = food.filter((item) => foodIds.includes(item.id));
-  const wrenchExperience = (key: string) => catalog.item(key)?.artifactExperience ?? 0;
   const gained =
     chosenFood.reduce((sum, item) => sum + (item.feedValue ?? 0), 0) +
     Object.entries(wrenches).reduce((sum, [key, count]) => sum + wrenchExperience(key) * count, 0);
@@ -148,8 +154,9 @@ export default function ForgePage() {
   })();
 
   /**
-   * Автовибір: кожне натискання докладає «їжі» рівно до ще одного рівня понад уже обране. Спершу
-   * непрокачані предмети від найдешевших — щоб не перебрати й не з'їсти вкладене, — потім гаєчки.
+   * Автовибір: кожне натискання докладає «їжі» рівно до ще одного рівня понад уже обране — від найдешевшої
+   * до найдорожчої, предмети й гаєчки впереміш за досвідом. Прокачані й заточені не беруться: з ними
+   * зникла б вкладена майстерність, їх обирають лише руками.
    */
   const autoPick = () => {
     if (selected === null) return;
@@ -161,26 +168,28 @@ export default function ForgePage() {
     const nextFood = [...foodIds];
     const nextWrenches = { ...wrenches };
 
-    const plain = food
-      .filter((item) => !foodIds.includes(item.id) && item.level === 0 && item.mastery === 0)
-      .sort((a, b) => (a.feedValue ?? 0) - (b.feedValue ?? 0));
+    // Гаєчка — стек однакових штук: у черзі вона стоїть одним записом за ціною однієї штуки
+    const queue = [
+      ...food
+        .filter((item) => !foodIds.includes(item.id) && item.level === 0 && item.mastery === 0)
+        .map((item) => ({ value: item.feedValue ?? 0, item, wrench: null })),
+      ...ownedWrenches.map((wrench) => ({ value: wrenchExperience(wrench.itemKey), item: null, wrench })),
+    ].sort((a, b) => a.value - b.value);
 
-    for (const item of plain) {
+    for (const { value, item, wrench } of queue) {
       if (missing <= 0) break;
-      nextFood.push(item.id);
-      missing -= item.feedValue ?? 0;
-    }
+      if (value <= 0) continue;
 
-    const byValue = [...ownedWrenches].sort((a, b) => wrenchExperience(a.itemKey) - wrenchExperience(b.itemKey));
-
-    for (const wrench of byValue) {
-      const value = wrenchExperience(wrench.itemKey);
-      const used = nextWrenches[wrench.itemKey] ?? 0;
-      if (missing <= 0 || value <= 0 || used >= wrench.count) continue;
-
-      const take = Math.min(wrench.count - used, Math.ceil(missing / value));
-      nextWrenches[wrench.itemKey] = used + take;
-      missing -= take * value;
+      if (item !== null) {
+        nextFood.push(item.id);
+        missing -= value;
+      } else if (wrench !== null) {
+        const used = nextWrenches[wrench.itemKey] ?? 0;
+        const take = Math.min(wrench.count - used, Math.ceil(missing / value));
+        if (take <= 0) continue;
+        nextWrenches[wrench.itemKey] = used + take;
+        missing -= take * value;
+      }
     }
 
     setFoodIds(nextFood);
