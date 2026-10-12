@@ -4,6 +4,7 @@ import { isApiError } from "../../lib/api";
 import { fetchDungeonRun, useAbandonDungeonRun, useDungeonTurn } from "../../lib/queries/dungeons";
 import ErrorBanner from "../ErrorBanner";
 import CombatantCard from "./CombatantCard";
+import DungeonRewardCard from "./DungeonRewardCard";
 
 interface Props {
   playerId: string;
@@ -261,21 +262,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         <h2 className={`text-lg font-medium ${won ? "text-emerald-700" : "text-rose-700"}`}>{outcome.title}</h2>
         <p className="text-sm text-slate-600">{outcome.hint}</p>
 
-        {reward != null && (
-          <div className="space-y-1 rounded-lg bg-slate-50 p-3 text-sm">
-            <div className="text-slate-700">
-              {reward.resources.map((line) => `${line.resource} +${line.amount.toLocaleString("uk-UA")}`).join(" · ")}
-            </div>
-            {reward.heroExperience > 0 && (
-              <div className="text-slate-700">⭐ Досвід героїв +{reward.heroExperience.toLocaleString("uk-UA")}</div>
-            )}
-            {reward.artifacts.map((artifact) => (
-              <div key={artifact.itemKey} className="text-slate-800">
-                🏺 {artifact.displayName}
-              </div>
-            ))}
-          </div>
-        )}
+        {reward != null && <DungeonRewardCard reward={reward} />}
         <button
           type="button"
           onClick={onFinished}
