@@ -4900,6 +4900,172 @@
         }
       }
     },
+    "/api/inventory/{playerId}/key-chests/{chestKey}/open": {
+      "post": {
+        "tags": [
+          "Inventory"
+        ],
+        "operationId": "Inventory_OpenKeyChest",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chestKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "free",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LootboxOpening"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LootboxOpening"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LootboxOpening"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory/{playerId}/key-chests": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "operationId": "Inventory_GetKeyChests",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KeyChestView"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KeyChestView"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KeyChestView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/inventory/{playerId}/lootboxes/pity": {
       "get": {
         "tags": [
@@ -9979,7 +10145,8 @@
         "required": [
           "entries",
           "key",
-          "pityWithin"
+          "pityWithin",
+          "rolls"
         ],
         "type": "object",
         "properties": {
@@ -9995,6 +10162,10 @@
             "items": {
               "$ref": "#/components/schemas/CatalogLootboxEntry"
             }
+          },
+          "rolls": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -12399,6 +12570,42 @@
             "items": {
               "$ref": "#/components/schemas/ActiveEffectResponse"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "KeyChestView": {
+        "required": [
+          "chestKey",
+          "freeLeftToday",
+          "freePerDay",
+          "keyItemKey",
+          "keys"
+        ],
+        "type": "object",
+        "properties": {
+          "chestKey": {
+            "type": "string"
+          },
+          "keyItemKey": {
+            "type": "string"
+          },
+          "keys": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "freePerDay": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "freeLeftToday": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextFreeAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false

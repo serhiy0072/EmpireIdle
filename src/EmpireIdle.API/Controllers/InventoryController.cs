@@ -89,6 +89,24 @@ namespace EmpireIdle.API.Controllers
             [FromQuery][Range(1, OpenLootboxCommand.MaxCount)] int count = 1, CancellationToken cancellationToken = default)
             => Ok(await _mediator.Send(new OpenLootboxCommand(playerId, itemKey, count), cancellationToken));
 
+        /// <summary>
+        /// Відкрити ключову скриню: free=true — одне безкоштовне відкриття, коли готове; інакше count скринь
+        /// ключами, по ключу за скриню. Ідемпотентна — потрібен заголовок Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/key-chests/{chestKey}/open")]
+        [ProducesResponseType(typeof(LootboxOpening), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<LootboxOpening>> OpenKeyChest(Guid playerId, string chestKey, [FromQuery] bool free = false,
+            [FromQuery][Range(1, OpenKeyChestCommand.MaxCount)] int count = 1, CancellationToken cancellationToken = default)
+            => Ok(await _mediator.Send(new OpenKeyChestCommand(playerId, chestKey, free, count), cancellationToken));
+
+        /// <summary>Ключові скрині гравця: ключі в рюкзаку, залишок безкоштовних відкриттів і коли наступне.</summary>
+        [HttpGet("{playerId:guid}/key-chests")]
+        [ProducesResponseType(typeof(IReadOnlyList<KeyChestView>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IReadOnlyList<KeyChestView>>> GetKeyChests(Guid playerId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new GetKeyChestsQuery(playerId), cancellationToken));
+
         /// <summary>Лічильники гарантій скринь: скільки відкриттів поспіль без позиції гарантії.</summary>
         [HttpGet("{playerId:guid}/lootboxes/pity")]
         [ProducesResponseType(typeof(IReadOnlyList<LootboxPityView>), StatusCodes.Status200OK)]

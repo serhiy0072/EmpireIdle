@@ -168,10 +168,14 @@
     /// <summary>Скриня (GDD §9.12): позиції з базовими шансами й гарантія.</summary>
     /// <param name="Key">Ключ предмета-скрині.</param>
     /// <param name="PityWithin">Позиція з Pity — не пізніше цього відкриття поспіль; 0 — без гарантії.</param>
-    public record CatalogLootbox(string Key, int PityWithin, IReadOnlyList<CatalogLootboxEntry> Entries);
+    /// <param name="Rolls">Скільки кидків таблиці дає одне відкриття.</param>
+    public record CatalogLootbox(string Key, int PityWithin, IReadOnlyList<CatalogLootboxEntry> Entries, int Rolls);
 
     /// <summary>Позиція скрині.</summary>
-    /// <param name="Type">Тип нагороди; "Lootbox" — вкладена скриня, "Artifact" — випадковий артефакт рідкості Key.</param>
+    /// <param name="Type">
+    /// Тип нагороди; "Lootbox" — вкладена скриня, "Artifact" — випадковий артефакт рідкості Key,
+    /// "RandomHero" / "RandomHeroShards" — випадковий герой або його уламки рідкості Key.
+    /// </param>
     /// <param name="Chance">Базовий шанс у відсотках, без гарантії.</param>
     /// <param name="Pity">Позиція, яку віддає гарантія.</param>
     public record CatalogLootboxEntry(string Type, string? Key, int Amount, double Chance, bool Pity);
