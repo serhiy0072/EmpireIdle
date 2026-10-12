@@ -514,7 +514,7 @@
       {
         "Key": "chest_key_rare",
         "Rolls": 4,
-        "PityWithin": 160,
+        "PityWithin": 40,
         "Entries": [
           {
             "Type": "Item",
@@ -618,7 +618,7 @@
       {
         "Key": "chest_key_unique",
         "Rolls": 4,
-        "PityWithin": 20,
+        "PityWithin": 5,
         "Entries": [
           {
             "Type": "Item",
