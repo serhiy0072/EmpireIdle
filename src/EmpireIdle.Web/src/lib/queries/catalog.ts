@@ -59,6 +59,8 @@ export interface Catalog {
   maxTier: number;
   /** Кап рівня юніта від тренування чи прокачки (§5.2 GDD). */
   maxUnitLevel: number;
+  /** Скільки юнітів будівля тренує чи качає за одну партію на цьому рівні. */
+  unitBatchSize: (buildingLevel: number) => number;
   /** Ціна лікування пораненого юніта в gems — та сама для будь-якого типу. */
   healGemsPerUnit: number;
   /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
@@ -162,6 +164,10 @@ export function useCatalog(): Catalog {
       summonShards: data?.summonShards ?? 10,
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
+      unitBatchSize: (buildingLevel) => {
+        const sizes = data?.unitBatchSizes ?? [];
+        return sizes[Math.min(Math.max(buildingLevel, 1), sizes.length) - 1] ?? 1;
+      },
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
       artifactSlots: data?.artifactSlots ?? [],
       artifactSlotName: (itemKey) => {

@@ -129,7 +129,7 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         buildingLevel={building.level}
         underConstruction={building.isUnderConstruction}
       />
-      <LevelUpUnitsPanel playerId={playerId} buildingType={building.type} />
+      <LevelUpUnitsPanel playerId={playerId} buildingType={building.type} buildingLevel={building.level} />
       {building.type === "hospital" && <HospitalPanel playerId={playerId} />}
     </div>
   );

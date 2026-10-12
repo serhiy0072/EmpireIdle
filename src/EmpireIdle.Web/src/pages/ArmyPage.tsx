@@ -75,7 +75,7 @@ export default function ArmyPage() {
               buildingLevel={building.level}
               underConstruction={building.isUnderConstruction}
             />
-            <LevelUpUnitsPanel playerId={playerId} buildingType={building.type} />
+            <LevelUpUnitsPanel playerId={playerId} buildingType={building.type} buildingLevel={building.level} />
           </div>
         ))}
 
