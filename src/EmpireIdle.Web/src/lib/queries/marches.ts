@@ -108,7 +108,8 @@ export function useSpeedUpMarch(playerId: string) {
   return useMutation({
     mutationFn: (marchId: string) =>
       api<void>(`/api/marches/${playerId}/${marchId}/speedup`, { method: "POST", idempotent: true }),
-    // Сервер завершує похід одразу: бій, повернення армії й героя видно в тій самій відповіді
+    // Прискорення лишає останні пів хвилини (Monetization.SpeedUpFloorSeconds.March): бій проведе
+    // сканер, а результат прийде подією BattleFinished. Тут — гаманець і новий час маршу
     onSuccess: () => {
       invalidatePlayer(queryClient, playerId, ["marches", "wallet", "garrison", "heroes", "village", "battleReports", "quests"]);
       void queryClient.invalidateQueries({ queryKey: ["map"] });
