@@ -5,16 +5,12 @@ import HeroPortrait from "../components/heroes/HeroPortrait";
 import { useSession } from "../hooks/useSession";
 import { rankLabel, rankStyle, skillEffect, skillHalfLabel, skillKindLabel, useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
+import { CLASS_LABELS } from "../lib/heroClasses";
 import { statLabel } from "../lib/statNames";
 
 const RANK_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
 
 // Три ролі (GDD §6.1, рішення 06.10.2026): мага прибрано
-const CLASS_LABELS: Record<string, string> = {
-  warrior: "Воїн",
-  knight: "Лицар",
-  archer: "Лучник",
-};
 
 
 /** Звідки береться герой (GDD §6.1): усі — з осколків, що падають із банерів і скриньок. */
