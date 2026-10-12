@@ -49,6 +49,7 @@
         int SummonShards,
         int MaxTier,
         int MaxUnitLevel,
+        IReadOnlyList<int> UnitBatchSizes,
         int HealGemsPerUnit,
         IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
         int MaxArtifactLevel,

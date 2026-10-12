@@ -31,6 +31,31 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Empty(garrison.Units); // юніти приходять лише після завершення
         }
 
+        /// <summary>У кожної будівлі своя черга: піхота й лучники тренуються одночасно.</summary>
+        [Fact]
+        public void TrainUnits_ShouldRunQueuesOfDifferentBuildings_InParallel()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+            garrison.TrainUnits("infantry", 1, 5, 30, 100, TimeSpan.FromMinutes(1), DateTime.UtcNow, ["infantry"]);
+            garrison.TrainUnits("archer", 1, 5, 30, 100, TimeSpan.FromMinutes(1), DateTime.UtcNow, ["archer"]);
+
+            Assert.Equal(2, garrison.TrainingOrders.Count);
+        }
+
+        /// <summary>Та сама будівля — друга партія чекає, поки скінчиться перша.</summary>
+        [Fact]
+        public void TrainUnits_ShouldRefuse_ASecondBatchInTheSameBuilding()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            garrison.TrainUnits("infantry", 1, 5, 30, 100, TimeSpan.FromMinutes(1), DateTime.UtcNow, ["infantry"]);
+
+            var refusal = Assert.Throws<InvalidStateException>(() =>
+                garrison.TrainUnits("infantry", 2, 5, 30, 100, TimeSpan.FromMinutes(1), DateTime.UtcNow, ["infantry"]));
+
+            Assert.Equal(RefusalReasons.GarrisonTrainingBusy.Key, refusal.Reason);
+        }
+
         /// <summary>
         /// Розмір партії обмежений 1–5: за межами діапазону — виняток.
         /// </summary>
@@ -79,7 +104,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         }
 
         /// <summary>
-        /// Одночасно може тренуватись лише одна партія.
+        /// Одночасно може тренуватись лише одна партія тієї самої будівлі.
         /// </summary>
         [Fact]
         public void TrainUnits_ShouldRejectSecondOrder_WhileFirstIsActive()
@@ -88,7 +113,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             garrison.TrainUnits("infantry", 1, 2, 5, 100, TimeSpan.FromMinutes(4), DateTime.UtcNow);
 
             var refusal = Assert.Throws<InvalidStateException>(() =>
-                garrison.TrainUnits("archer", 1, 1, 5, 100, TimeSpan.FromMinutes(2), DateTime.UtcNow));
+                garrison.TrainUnits("infantry", 2, 1, 5, 100, TimeSpan.FromMinutes(2), DateTime.UtcNow));
             Assert.Equal(RefusalReasons.GarrisonTrainingBusy.Key, refusal.Reason);
         }
 

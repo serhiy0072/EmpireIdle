@@ -163,6 +163,10 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.SummonShards,
                 config.HeroSettings.MaxTier,
                 config.MaxUnitLevel,
+                // Ліміт партії за рівнем будівлі юніта: індекс 0 — рівень 1
+                Enumerable.Range(1, config.MaxBuildingLevel)
+                    .Select(level => ProgressionCurves.UnitBatchSize(level, config.MaxBuildingLevel, config.UnitBatchMin, config.UnitBatchMax))
+                    .ToList(),
                 config.Monetization.HealGemsPerUnit,
                 config.Equipment.ArtifactSlots
                     .Select(slot => new CatalogArtifactSlot(slot.Key, Name("artifactSlot", slot.Key, slot.DisplayName)))

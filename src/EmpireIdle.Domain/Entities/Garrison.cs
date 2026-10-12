@@ -146,14 +146,20 @@ namespace EmpireIdle.Domain.Entities
         /// перевіряти їх означало б тягнути в агрегат чужий стан. Чужі
         /// підкріплення теж не входять — у них свій ліміт від посольства.
         /// </param>
+        /// <param name="queue">
+        /// Типи юнітів, що тренуються в тій самій будівлі: у кожної будівлі своя черга (рішення 12.10.2026).
+        /// null — черга лише цього типу.
+        /// </param>
         public void TrainUnits(string unitType, int level, int count, int maxBatchSize, int armyCapacity,
-            TimeSpan trainDuration, DateTime utcNow)
+            TimeSpan trainDuration, DateTime utcNow, IReadOnlyCollection<string>? queue = null)
         {
             if (count < 1 || count > maxBatchSize)
                 throw new RequirementNotMetException(RefusalReasons.GarrisonBatchSize,
                     $"Training batch size must be between 1 and {maxBatchSize}.", maxBatchSize);
 
-            if (_trainingOrders.Any())
+            var building = queue ?? [unitType];
+
+            if (_trainingOrders.Any(o => building.Contains(o.UnitType)))
                 throw new InvalidStateException(RefusalReasons.GarrisonTrainingBusy, "Barracks are already training a batch.");
 
             var occupied = Occupied();
@@ -214,8 +220,9 @@ namespace EmpireIdle.Domain.Entities
         /// одразу (§5.2 GDD): недоступні для маршів і оборони, поки не завершиться.
         /// Ліміту армії прокачка не підлягає — кількість не змінюється.
         /// </summary>
+        /// <param name="queue">Типи юнітів тієї самої будівлі — черга прокачки в кожної будівлі своя.</param>
         public void LevelUpUnits(string unitType, int fromLevel, int toLevel, int count, int maxBatchSize,
-            TimeSpan duration, DateTime utcNow)
+            TimeSpan duration, DateTime utcNow, IReadOnlyCollection<string>? queue = null)
         {
             if (count < 1 || count > maxBatchSize)
                 throw new RequirementNotMetException(RefusalReasons.GarrisonBatchSize,
@@ -224,7 +231,9 @@ namespace EmpireIdle.Domain.Entities
             if (toLevel <= fromLevel)
                 throw new RequirementNotMetException("Target level must be higher than the current level.");
 
-            if (_levelUpOrders.Any())
+            var building = queue ?? [unitType];
+
+            if (_levelUpOrders.Any(o => building.Contains(o.UnitType)))
                 throw new InvalidStateException(RefusalReasons.GarrisonLevelUpBusy, "Barracks are already levelling up a batch.");
 
             // Юніти — не ресурс: NotEnoughResources показав би гравцю «не вистачає swordsman»

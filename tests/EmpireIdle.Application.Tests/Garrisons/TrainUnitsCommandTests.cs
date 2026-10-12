@@ -25,7 +25,8 @@ public class TrainUnitsCommandTests
 
     private static GameConfig Config() => new()
     {
-        MaxTrainingBatchSize = 50,
+        UnitBatchMin = 50,
+        UnitBatchMax = 50,
         ArmyCapacityPerBarracksLevel = 20,
         Buildings =
         [

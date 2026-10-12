@@ -105,8 +105,13 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             village.ChargeCost(costPerUnit, now, request.Count);
 
-            garrison.TrainUnits(request.UnitType, request.Level, request.Count, _catalog.Config.MaxTrainingBatchSize,
-                armyCapacity, TimerDurations.Training(config, request.Level, request.Count), now);
+            // Партія росте з рівнем будівлі юніта, черга в кожної будівлі своя (рішення 12.10.2026)
+            var batch = ProgressionCurves.UnitBatchSize(trainingBuilding.Level.Value, _catalog.Config.MaxBuildingLevel,
+                _catalog.Config.UnitBatchMin, _catalog.Config.UnitBatchMax);
+            var queue = _catalog.Units.Values.Where(u => u.RequiresBuilding == config.RequiresBuilding).Select(u => u.Key).ToList();
+
+            garrison.TrainUnits(request.UnitType, request.Level, request.Count, batch,
+                armyCapacity, TimerDurations.Training(config, request.Level, request.Count), now, queue);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

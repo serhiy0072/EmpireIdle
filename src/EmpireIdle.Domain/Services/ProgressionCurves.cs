@@ -55,6 +55,20 @@ namespace EmpireIdle.Domain.Services
         public static double UnitStatMultiplier(int level) => 1 + 0.10 * (level - 1);
 
         /// <summary>
+        /// Скільки юнітів будівля тренує чи качає за одну партію: від min на першому рівні
+        /// до max на maxLevel, лінійно, з округленням до цілого (рішення 12.10.2026).
+        /// </summary>
+        public static int UnitBatchSize(int buildingLevel, int maxLevel, int min, int max)
+        {
+            if (maxLevel <= 1)
+                return max;
+
+            var level = Math.Clamp(buildingLevel, 1, maxLevel);
+
+            return (int)Math.Round(min + (max - min) * (level - 1) / (double)(maxLevel - 1), MidpointRounding.AwayFromZero);
+        }
+
+        /// <summary>
         /// Сумарна вартість (чи час) прокачки з fromLevel у toLevel: крок за
         /// кроком, геометрична крива на кожен крок. Стрибок через кілька
         /// рівнів коштує суму кроків, а не різницю кінцевих цін (§5.2 GDD) —

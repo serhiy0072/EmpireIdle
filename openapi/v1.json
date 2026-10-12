@@ -10288,6 +10288,7 @@
           "speedUp",
           "starPartBonus",
           "summonShards",
+          "unitBatchSizes",
           "units",
           "version",
           "weaponShardCosts"
@@ -10388,6 +10389,13 @@
           "maxUnitLevel": {
             "type": "integer",
             "format": "int32"
+          },
+          "unitBatchSizes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
           },
           "healGemsPerUnit": {
             "type": "integer",

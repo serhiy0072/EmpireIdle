@@ -88,5 +88,14 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.True(level2 > level10);
             Assert.True(level10 > level50);
         }
+
+        /// <summary>Партія тренування й прокачки: 30 на першому рівні будівлі, 150 на стелі, між ними — рівно.</summary>
+        [Theory]
+        [InlineData(1, 30)]
+        [InlineData(15, 88)]
+        [InlineData(30, 150)]
+        [InlineData(40, 150)]
+        public void UnitBatchSize_ShouldGrowFrom30To150_WithTheBuildingLevel(int level, int expected)
+            => Assert.Equal(expected, ProgressionCurves.UnitBatchSize(level, maxLevel: 30, min: 30, max: 150));
     }
 }
