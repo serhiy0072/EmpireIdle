@@ -87,7 +87,7 @@ export default function AppLayout() {
               )}
               <PowerBadge playerId={playerId} village={village.data} />
               <span className="rounded-full bg-violet-100 px-3 py-1 text-sm text-violet-800">
-                💎 <span className="font-medium">{(wallet.data?.gemBalance ?? 0).toLocaleString("uk-UA")}</span>
+                💎 <span className="font-medium">{wallet.data === undefined ? "…" : wallet.data.gemBalance.toLocaleString("uk-UA")}</span>
               </span>
               {(wallet.data?.sealBalance ?? 0) > 0 && (
                 <span className="rounded-full bg-sky-100 px-3 py-1 text-sm text-sky-800" title="Печатки призову">
