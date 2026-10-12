@@ -9229,6 +9229,7 @@
           "attackerPower",
           "defenderPower",
           "foughtAt",
+          "heroExperience",
           "id",
           "isRead",
           "lines",
@@ -9295,6 +9296,10 @@
           "tamedBeastKey": {
             "type": "string",
             "nullable": true
+          },
+          "heroExperience": {
+            "type": "integer",
+            "format": "int64"
           }
         },
         "additionalProperties": false
