@@ -4,6 +4,7 @@ import type { InventoryItemResponse } from "../../../lib/apiTypes";
 import { useCatalog } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
 import { useUseItem } from "../../../lib/queries/inventory";
+import { statGains } from "../../../lib/statNames";
 import { GameButton } from "../../game/GameUi";
 import ItemIcon from "../../inventory/ItemIcon";
 
@@ -53,6 +54,11 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
       <GameButton onClick={press} disabled={busy || drinkJar.isPending} variant="accent">
         Підняти рівень
       </GameButton>
+
+      {/* Що дасть рівень — до витрати досвіду */}
+      {statGains(hero.stats, hero.nextLevelStats).length > 0 && (
+        <p className="text-xs text-emerald-300">{statGains(hero.stats, hero.nextLevelStats).join(" · ")}</p>
+      )}
 
       {!affordable && offering && (
         <div className="w-full space-y-2 rounded-xl bg-[#16305e]/80 p-3 text-left ring-1 ring-[#335c9a]">

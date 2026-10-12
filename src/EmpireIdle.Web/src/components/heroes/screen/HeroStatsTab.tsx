@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { heroState, useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
-import { statLabel } from "../../../lib/statNames";
+import { statLabel, statValue } from "../../../lib/statNames";
 import { GameButton } from "../../game/GameUi";
 
 interface Props {
@@ -34,10 +34,32 @@ export default function HeroStatsTab({ hero, config, busy, onEvolve, onAppointLe
         <Row label="Веде" value={hero.unitType === null || hero.unitType === undefined ? "—" : catalog.unitName(hero.unitType)} />
         <Row label="Швидкість" value={String(config.speed)} />
         <Row label="Лідер гарнізону" value={hero.isLeader ? "так" : "ні"} />
-        {Object.entries(config.baseStats).map(([stat, value]) => (
-          <Row key={stat} label={`${statLabel(stat)} (база)`} value={`${value} +${config.statGrowth[stat] ?? 0}/рів.`} />
-        ))}
       </dl>
+
+      {/* Стати зараз — з тіром, зірками, зброєю й спорядженням; поруч — що дасть наступний рівень */}
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-xl bg-[#16305e]/80 p-3 ring-1 ring-[#335c9a] sm:grid-cols-3">
+        {Object.entries(hero.stats).map(([stat, value]) => {
+          const next = hero.nextLevelStats?.[stat];
+          const gain = next === undefined ? 0 : next - value;
+
+          return (
+            <div key={stat}>
+              <dt className="text-xs text-sky-200">{statLabel(stat)}</dt>
+              <dd className="font-semibold">
+                {statValue(stat, value)}
+                {gain > 0.05 && (
+                  <span className="ml-1 text-xs font-normal text-emerald-300">
+                    → {statValue(stat, next ?? value)} (+{statValue(stat, gain)})
+                  </span>
+                )}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+      {hero.nextLevelStats != null && (
+        <p className="-mt-2 text-xs text-sky-200/80">Зелене — стати після підняття рівня {hero.effectiveLevel + 1}.</p>
+      )}
 
       {config.description !== "" && <p className="text-sky-50/90">{config.description}</p>}
 
