@@ -21,6 +21,8 @@ namespace EmpireIdle.Application.Heroes.Contracts
     /// <param name="WeaponShards">Шматки зброї, ще не вкладені в рівень.</param>
     /// <param name="NextWeaponCost">Шматків на наступний рівень; null — зброя на стелі.</param>
     /// <param name="SkillLevelCap">До якого рівня можна підняти вміння з поточними зірками: зірки + 1.</param>
+    /// <param name="Stats">Стати героя зараз — разом зі зброєю, зірками й спорядженням.</param>
+    /// <param name="NextLevelStats">Ті самі стати після підняття рівня; null — рівень на стелі або табір тримає вищий.</param>
     public record HeroSummary(
         Guid Id,
         string HeroKey,
@@ -44,5 +46,7 @@ namespace EmpireIdle.Application.Heroes.Contracts
         double Power,
         int WeaponLevel,
         int WeaponShards,
-        int? NextWeaponCost);
+        int? NextWeaponCost,
+        IReadOnlyDictionary<string, double> Stats,
+        IReadOnlyDictionary<string, double>? NextLevelStats);
 }

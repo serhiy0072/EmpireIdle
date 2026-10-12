@@ -90,7 +90,12 @@ namespace EmpireIdle.Application.Heroes.Queries
                     Power(h, equipped[h.Id].ToList()),
                     h.WeaponLevel,
                     h.WeaponShards,
-                    _progression.NextWeaponCost(h.WeaponLevel)))
+                    _progression.NextWeaponCost(h.WeaponLevel),
+                    Stats(h, equipped[h.Id].ToList(), h.EffectiveLevel) ?? new Dictionary<string, double>(),
+                    // Табір тримає вищий рівень — власний рівень бойових статів не змінить
+                    h.Level < _progression.MaxLevel && h.EffectiveLevel == h.Level
+                        ? Stats(h, equipped[h.Id].ToList(), h.Level + 1)
+                        : null))
                 .ToList();
 
             // Осколки ще не призваних героїв — до призову; осколки відкритих ідуть у зірки й стоять у картці героя
@@ -109,6 +114,13 @@ namespace EmpireIdle.Application.Heroes.Queries
                 _progression.MarchCapacity(heroes.Count(h => h.IsAvailable)),
                 await CampAsync(request.PlayerId, heroes, cancellationToken));
         }
+
+        /// <summary>Стати героя на заданому рівні, округлені для показу; герой поза довідником — null.</summary>
+        private IReadOnlyDictionary<string, double>? Stats(Domain.Entities.Hero hero,
+            IReadOnlyCollection<Domain.Entities.EquipmentItem> equipped, int level)
+            => _catalog.FindHero(hero.HeroKey) is { } config
+                ? _heroStats.ComputeAt(hero, config, equipped, level).ToDictionary(s => s.Key, s => Math.Round(s.Value, 1))
+                : null;
 
         /// <summary>Сила героя з вдягненим (як у рейтингу повної сили); герой поза довідником — нуль.</summary>
         private double Power(Domain.Entities.Hero hero, IReadOnlyCollection<Domain.Entities.EquipmentItem> equipped)

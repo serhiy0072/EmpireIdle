@@ -32,11 +32,19 @@ namespace EmpireIdle.Domain.Services
         /// <param name="equipped">Спорядження саме цього героя.</param>
         public IReadOnlyDictionary<string, double> Compute(Hero hero, HeroConfig config,
             IReadOnlyCollection<EquipmentItem> equipped)
+            => ComputeAt(hero, config, equipped, hero.EffectiveLevel);
+
+        /// <summary>
+        /// Стати героя, якби він був на заданому рівні, — решта (тір, зірки, зброя, спорядження) та сама.
+        /// Так екран героя показує «було → стане» до підняття рівня.
+        /// </summary>
+        public IReadOnlyDictionary<string, double> ComputeAt(Hero hero, HeroConfig config,
+            IReadOnlyCollection<EquipmentItem> equipped, int level)
         {
             var result = new Dictionary<string, double>();
 
             foreach (var stat in config.BaseStats.Keys)
-                result[stat] = _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel);
+                result[stat] = _progression.StatValue(config, stat, level, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel);
 
             var multiplier = _artifacts.ClassMultiplier(config.Class);
 

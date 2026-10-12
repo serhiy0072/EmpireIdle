@@ -12332,6 +12332,7 @@
           "skillLevels",
           "starParts",
           "state",
+          "stats",
           "tier",
           "weaponLevel",
           "weaponShards"
@@ -12432,6 +12433,21 @@
           "nextWeaponCost": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          },
+          "stats": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "nextLevelStats": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            },
             "nullable": true
           }
         },

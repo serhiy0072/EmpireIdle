@@ -88,4 +88,27 @@ public class GetHeroesOverviewQueryTests
         Assert.Equal(2, view.Convoys);
         Assert.Equal(200, view.ConvoyCapacity);
     }
+
+    /// <summary>
+    /// Стати зараз і після підняття рівня — тією самою формулою, що й бій: гравець бачить,
+    /// що дасть наступний рівень, ще до витрати досвіду.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldShowTheStats_NowAndAtTheNextLevel()
+    {
+        var hero = TestKit.Entities.Hero(HeroTestConfig.CommonHero, PlayerId);
+        _roster.Add(hero);
+
+        var view = Assert.Single((await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None)).Heroes);
+
+        var config = Config();
+        var stats = new HeroStats(new HeroProgression(config.HeroSettings), new GameCatalog(config));
+        var heroConfig = config.Heroes.Single(h => h.Key == hero.HeroKey);
+        var next = stats.ComputeAt(hero, heroConfig, [], hero.Level + 1);
+
+        Assert.Equal(Math.Round(stats.Compute(hero, heroConfig, [])["Attack"], 1), view.Stats["Attack"]);
+        Assert.NotNull(view.NextLevelStats);
+        Assert.Equal(Math.Round(next["Attack"], 1), view.NextLevelStats["Attack"]);
+        Assert.True(view.NextLevelStats["Attack"] > view.Stats["Attack"]);
+    }
 }
