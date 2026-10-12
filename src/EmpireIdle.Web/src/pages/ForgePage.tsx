@@ -68,7 +68,7 @@ export default function ForgePage() {
   const wallet = useWallet(playerId);
 
   // Картка спорядження веде сюди з ?item=<id>: кузня відкривається саме на цьому предметі
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get("item"));
   const [foodIds, setFoodIds] = useState<string[]>([]);
   const [wrenches, setWrenches] = useState<Record<string, number>>({});
@@ -199,6 +199,7 @@ export default function ForgePage() {
 
   const select = (id: string) => {
     setSelectedId(id);
+    setSearchParams({ item: id }, { replace: true });
     reset();
   };
 
