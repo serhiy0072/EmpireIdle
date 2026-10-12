@@ -178,6 +178,47 @@ namespace EmpireIdle.Domain.Combat
             return (BattleOdds)thresholds.Count;
         }
 
+        /// <summary>
+        /// Вердикт за межами удачі: удача в бою — множник RandomMin…RandomMax на кожну сторону,
+        /// тож за цими межами результат від неї вже не залежить.
+        /// </summary>
+        public BattleVerdict Verdict(double attackerPower, double defenderPower)
+        {
+            if (attackerPower * _config.RandomMin > defenderPower * _config.RandomMax)
+                return BattleVerdict.Win;
+
+            if (attackerPower * _config.RandomMax <= defenderPower * _config.RandomMin)
+                return BattleVerdict.Loss;
+
+            return BattleVerdict.Possible;
+        }
+
+        /// <summary>
+        /// Шанс перемоги за силами без удачі — тією самою функцією удачі, що й у бою (RollRandom).
+        /// Вибірка зі сталим сідом: прев'ю для тих самих сил щоразу показує те саме число.
+        /// </summary>
+        public double WinChance(double attackerPower, double defenderPower)
+        {
+            const int samples = 4_000;
+
+            if (defenderPower <= 0)
+                return 1.0;
+
+            var random = new DeterministicRandom(WinChanceSeed);
+            var wins = 0;
+
+            for (var i = 0; i < samples; i++)
+            {
+                if (attackerPower * RollRandom(random) > defenderPower * RollRandom(random))
+                    wins++;
+            }
+
+            return (double)wins / samples;
+        }
+
+        /// <summary>Сід вибірки шансу: сталий, щоб прев'ю не стрибало між однаковими запитами.</summary>
+        private const int WinChanceSeed = 0x5EED;
+
         /// <summary>Множник типу юніта на місцевості (1.0 — без бонусу).</summary>
         private double GetTerrainModifier(string terrainType, string unitType)
             => _config.TerrainBonuses

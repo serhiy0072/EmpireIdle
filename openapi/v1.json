@@ -9394,7 +9394,9 @@
           "targetX",
           "targetY",
           "terrain",
-          "travelTime"
+          "travelTime",
+          "verdict",
+          "winChance"
         ],
         "type": "object",
         "properties": {
@@ -9418,6 +9420,23 @@
           "travelTime": {
             "type": "string",
             "format": "date-span"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/BattleVerdict"
+          },
+          "winChance": {
+            "type": "number",
+            "format": "double"
+          },
+          "attackerPower": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "targetPower": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -9548,6 +9567,15 @@
           4,
           5,
           6
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "BattleVerdict": {
+        "enum": [
+          0,
+          1,
+          2
         ],
         "type": "integer",
         "format": "int32"

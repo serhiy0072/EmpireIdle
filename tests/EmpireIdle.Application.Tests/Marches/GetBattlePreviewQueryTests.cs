@@ -128,4 +128,17 @@ public class GetBattlePreviewQueryTests
 
         Assert.Equal(withoutHero.TravelTime, withForeignHero.TravelTime);
     }
+
+    /// <summary>Проти монстра — вердикт, шанс і умовні сили обох сторін (рішення 12.10.2026).</summary>
+    [Fact]
+    public async Task Handle_ShouldShowPowersAndAVerdict_AgainstAMonster()
+    {
+        var (monster, hero) = GivenState(heroOwnerId: PlayerId);
+
+        var preview = await Preview(monster.Id, hero.Id);
+
+        Assert.True(preview.TargetPower > 0);
+        Assert.True(preview.AttackerPower > 0);
+        Assert.InRange(preview.WinChance, 0, 1);
+    }
 }

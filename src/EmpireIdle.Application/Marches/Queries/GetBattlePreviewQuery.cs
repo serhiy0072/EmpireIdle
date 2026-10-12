@@ -130,9 +130,16 @@ namespace EmpireIdle.Application.Marches.Queries
                 / await _effectResolver.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
                 / _progression.MarchSpeedMultiplier(leaders);
 
+            // Сили — лише проти монстра (рішення 12.10.2026): у чужого села це розвідка, а не прев'ю
+            var monster = request.TargetType == MarchTargetType.Monster;
+
             return new BattlePreviewResult(
                 _combat.EstimateOdds(attackerPower, defenderPower),
-                target.Name, target.X, target.Y, terrain, travelTime);
+                target.Name, target.X, target.Y, terrain, travelTime,
+                _combat.Verdict(attackerPower, defenderPower),
+                Math.Round(_combat.WinChance(attackerPower, defenderPower), 3),
+                monster ? Math.Round(attackerPower) : null,
+                monster ? Math.Round(defenderPower) : null);
         }
     }
 }

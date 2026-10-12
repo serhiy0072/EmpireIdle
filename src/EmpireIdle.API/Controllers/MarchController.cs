@@ -135,8 +135,8 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Оцінка бою до відправки. Повертає смугу шансів, не числа:
-        /// точне співвідношення сил гравцю не показується.
+        /// Оцінка бою до відправки: смуга шансів, вердикт і шанс перемоги. Сили сторін — лише проти
+        /// монстра; у чужого села їх показує розвідка, а не прев'ю.
         /// </summary>
         [HttpPost("{playerId:guid}/preview")]
         [ProducesResponseType(typeof(BattlePreviewResult), StatusCodes.Status200OK)]
