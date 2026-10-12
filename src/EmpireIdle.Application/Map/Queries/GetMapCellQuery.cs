@@ -24,12 +24,14 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly TimeProvider _timeProvider;
         private readonly IClanStructureRepository _structureRepository;
         private readonly IClanRepository _clanRepository;
+        private readonly GameCatalog _catalog;
 
         public GetMapCellQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
             IVillageRepository villageRepository, MonsterArmyBuilder armyBuilder, TimeProvider timeProvider,
             IClanStructureRepository structureRepository, IClanRepository clanRepository,
-            IServerContext serverContext, TerrainGenerator terrain)
+            IServerContext serverContext, TerrainGenerator terrain, GameCatalog catalog)
         {
+            _catalog = catalog;
             _serverContext = serverContext;
             _terrain = terrain;
             _structureRepository = structureRepository;
@@ -68,7 +70,8 @@ namespace EmpireIdle.Application.Map.Queries
                 if (monster is null)
                     return null;
 
-                return new MapCellOccupant("Monster", monster.Id, monster.Type, monster.Level,
+                // Ім'я — з довідника, як у звіті й поході; ключ іде окремим полем
+                return new MapCellOccupant("Monster", monster.Id, _catalog.MonsterName(monster.Type), monster.Level,
                     _armyBuilder.BuildArmy(monster.Type, monster.Level), MonsterType: monster.Type);
             }
 

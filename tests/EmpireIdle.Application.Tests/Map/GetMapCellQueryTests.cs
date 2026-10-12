@@ -33,7 +33,7 @@ public class GetMapCellQueryTests
 
         return new GetMapCellQueryHandler(_map, _monsters, Substitute.For<IVillageRepository>(),
             new MonsterArmyBuilder(catalog), new FakeTimeProvider(), Substitute.For<IClanStructureRepository>(),
-            Substitute.For<IClanRepository>(), _serverContext, new TerrainGenerator(Config.Map));
+            Substitute.For<IClanRepository>(), _serverContext, new TerrainGenerator(Config.Map), catalog);
     }
 
     [Fact]
@@ -66,5 +66,19 @@ public class GetMapCellQueryTests
         var cell = await Handler().Handle(new GetMapCellQuery(3, 4), CancellationToken.None);
 
         Assert.Equal(TestKeys.BeastMonster, cell.Occupant?.MonsterType);
+    }
+
+    /// <summary>Назва монстра на клітині — з довідника, а не ключ конфіга: інакше картка й похід показують «wolves».</summary>
+    [Fact]
+    public async Task Handle_ShouldNameTheMonster_FromTheCatalog()
+    {
+        var monster = new Monster(Guid.NewGuid(), 1, TestKeys.BeastMonster, 2, 3, 4, DateTime.UtcNow);
+        _map.GetAreaAsync(1, 3, 4, 3, 4, Arg.Any<CancellationToken>())
+            .Returns(new List<MapCell> { new(Guid.NewGuid(), 1, 3, 4, MapOccupantType.Monster, monster.Id) });
+        _monsters.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([monster]);
+
+        var cell = await Handler().Handle(new GetMapCellQuery(3, 4), CancellationToken.None);
+
+        Assert.Equal("Вовки", cell.Occupant?.OccupantName);
     }
 }
