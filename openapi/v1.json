@@ -13150,6 +13150,11 @@
           "monsterType": {
             "type": "string",
             "nullable": true
+          },
+          "monsterPower": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false

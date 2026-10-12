@@ -1,8 +1,10 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Map.ReadModels;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 
 namespace EmpireIdle.Application.Map.Queries
@@ -25,13 +27,15 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly IClanStructureRepository _structureRepository;
         private readonly IClanRepository _clanRepository;
         private readonly GameCatalog _catalog;
+        private readonly CombatCalculator _combat;
 
         public GetMapCellQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
             IVillageRepository villageRepository, MonsterArmyBuilder armyBuilder, TimeProvider timeProvider,
             IClanStructureRepository structureRepository, IClanRepository clanRepository,
-            IServerContext serverContext, TerrainGenerator terrain, GameCatalog catalog)
+            IServerContext serverContext, TerrainGenerator terrain, GameCatalog catalog, CombatCalculator combat)
         {
             _catalog = catalog;
+            _combat = combat;
             _serverContext = serverContext;
             _terrain = terrain;
             _structureRepository = structureRepository;
@@ -50,13 +54,14 @@ namespace EmpireIdle.Application.Map.Queries
 
             var serverId = _serverContext.ServerId;
             var terrain = _terrain.GetTerrain(serverId, request.X, request.Y);
-            var occupant = await OccupantAsync(serverId, request.X, request.Y, cancellationToken);
+            var occupant = await OccupantAsync(serverId, request.X, request.Y, terrain.Type, cancellationToken);
 
             return new MapCellView(request.X, request.Y, terrain.Type, terrain.Passable, terrain.Habitable, terrain.MoveCost,
                 occupant);
         }
 
-        private async Task<MapCellOccupant?> OccupantAsync(int serverId, int x, int y, CancellationToken cancellationToken)
+        private async Task<MapCellOccupant?> OccupantAsync(int serverId, int x, int y, string terrain,
+            CancellationToken cancellationToken)
         {
             var cells = await _mapRepository.GetAreaAsync(serverId, x, y, x, y, cancellationToken);
 
@@ -70,9 +75,15 @@ namespace EmpireIdle.Application.Map.Queries
                 if (monster is null)
                     return null;
 
+                var army = _armyBuilder.BuildArmy(monster.Type, monster.Level);
+
+                // Умовна сила — та сама, з якою монстр обороняється в бою на своїй клітині (рівень юнітів 1)
+                var power = _combat.CalculateDefencePower(
+                    DefenceStacks.FromArmy(army.ToDictionary(kv => new UnitStackKey(kv.Key, 1), kv => kv.Value)), terrain);
+
                 // Ім'я — з довідника, як у звіті й поході; ключ іде окремим полем
                 return new MapCellOccupant("Monster", monster.Id, _catalog.MonsterName(monster.Type), monster.Level,
-                    _armyBuilder.BuildArmy(monster.Type, monster.Level), MonsterType: monster.Type);
+                    army, MonsterType: monster.Type, MonsterPower: Math.Round(power));
             }
 
             if (cell.OccupantType == MapOccupantType.ClanStructure)

@@ -2,6 +2,7 @@ namespace EmpireIdle.Application.Map.ReadModels
 {
     /// <summary>Дані окупанта клітини. ShieldUntil — щит села після падіння, лише поки діє.</summary>
     /// <param name="MonsterType">Тип монстра — за ним клієнт знає, чи монстр приручається (GDD §5.10).</param>
+    /// <param name="MonsterPower">Умовна сила монстра в обороні на цій клітині.</param>
     public record MapCellOccupant(
         string OccupantType,
         Guid OccupantId,
@@ -9,7 +10,8 @@ namespace EmpireIdle.Application.Map.ReadModels
         int? MonsterLevel,
         Dictionary<string, int>? MonsterUnits,
         DateTime? ShieldUntil = null,
-        string? MonsterType = null);
+        string? MonsterType = null,
+        double? MonsterPower = null);
 
     /// <summary>Клітина цілком: місцевість (обчислюється з сіду світу) і окупант, якщо є.</summary>
     public record MapCellView(

@@ -1,9 +1,11 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Map.Queries;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.TestKit;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -33,7 +35,8 @@ public class GetMapCellQueryTests
 
         return new GetMapCellQueryHandler(_map, _monsters, Substitute.For<IVillageRepository>(),
             new MonsterArmyBuilder(catalog), new FakeTimeProvider(), Substitute.For<IClanStructureRepository>(),
-            Substitute.For<IClanRepository>(), _serverContext, new TerrainGenerator(Config.Map), catalog);
+            Substitute.For<IClanRepository>(), _serverContext, new TerrainGenerator(Config.Map), catalog,
+            new CombatCalculator(Config.Combat, catalog));
     }
 
     [Fact]
@@ -80,5 +83,25 @@ public class GetMapCellQueryTests
         var cell = await Handler().Handle(new GetMapCellQuery(3, 4), CancellationToken.None);
 
         Assert.Equal("Вовки", cell.Occupant?.OccupantName);
+    }
+
+    /// <summary>Умовна сила монстра — та сама формула оборони, що в бою: прев'ю й карта не розходяться.</summary>
+    [Fact]
+    public async Task Handle_ShouldShowTheMonstersPower_AsItDefendsInBattle()
+    {
+        var monster = new Monster(Guid.NewGuid(), 1, TestKeys.BeastMonster, 2, 3, 4, DateTime.UtcNow);
+        _map.GetAreaAsync(1, 3, 4, 3, 4, Arg.Any<CancellationToken>())
+            .Returns(new List<MapCell> { new(Guid.NewGuid(), 1, 3, 4, MapOccupantType.Monster, monster.Id) });
+        _monsters.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([monster]);
+
+        var cell = await Handler().Handle(new GetMapCellQuery(3, 4), CancellationToken.None);
+
+        var catalog = new GameCatalog(Config);
+        var army = new MonsterArmyBuilder(catalog).BuildArmy(monster.Type, monster.Level)
+            .ToDictionary(kv => new UnitStackKey(kv.Key, 1), kv => kv.Value);
+        var expected = new CombatCalculator(Config.Combat, catalog)
+            .CalculateDefencePower(DefenceStacks.FromArmy(army), cell.TerrainType);
+
+        Assert.Equal(Math.Round(expected), cell.Occupant?.MonsterPower);
     }
 }
