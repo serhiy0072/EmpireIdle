@@ -87,6 +87,16 @@
           "MaxPerPurchase": 100
         },
         {
+          "ItemKey": "key_rare",
+          "PriceGems": 500,
+          "MaxPerPurchase": 100
+        },
+        {
+          "ItemKey": "key_unique",
+          "PriceGems": 1000,
+          "MaxPerPurchase": 100
+        },
+        {
           "ItemKey": "beast_feed",
           "PriceGems": 10,
           "MaxPerPurchase": 100

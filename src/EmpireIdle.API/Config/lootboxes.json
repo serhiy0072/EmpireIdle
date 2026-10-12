@@ -510,6 +510,223 @@
             "Pity": true
           }
         ]
+      },
+      {
+        "Key": "chest_key_rare",
+        "Rolls": 4,
+        "PityWithin": 160,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "speedup_5m",
+            "Amount": 1,
+            "Weight": 220
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_10m",
+            "Amount": 1,
+            "Weight": 70
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_1h",
+            "Amount": 1,
+            "Weight": 8
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_1k",
+            "Amount": 2,
+            "Weight": 175
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_10k",
+            "Amount": 1,
+            "Weight": 30
+          },
+          {
+            "Type": "Item",
+            "Key": "wrench_common",
+            "Amount": 3,
+            "Weight": 100
+          },
+          {
+            "Type": "Item",
+            "Key": "wrench_rare",
+            "Amount": 1,
+            "Weight": 50
+          },
+          {
+            "Type": "Item",
+            "Key": "dungeon_energy_10",
+            "Amount": 1,
+            "Weight": 80
+          },
+          {
+            "Type": "Item",
+            "Key": "crate_mixed_large",
+            "Amount": 1,
+            "Weight": 60
+          },
+          {
+            "Type": "Item",
+            "Key": "boost_production_1h",
+            "Amount": 1,
+            "Weight": 40
+          },
+          {
+            "Type": "Item",
+            "Key": "teleport_random",
+            "Amount": 1,
+            "Weight": 10
+          },
+          {
+            "Type": "Item",
+            "Key": "repair_kit",
+            "Amount": 1,
+            "Weight": 10
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Rare",
+            "Amount": 1,
+            "Weight": 105
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Rare",
+            "Amount": 2,
+            "Weight": 30
+          },
+          {
+            "Type": "RandomHero",
+            "Key": "Common",
+            "Amount": 1,
+            "Weight": 6
+          },
+          {
+            "Type": "RandomHero",
+            "Key": "Rare",
+            "Amount": 1,
+            "Weight": 6,
+            "Pity": true
+          }
+        ]
+      },
+      {
+        "Key": "chest_key_unique",
+        "Rolls": 4,
+        "PityWithin": 20,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "speedup_10m",
+            "Amount": 2,
+            "Weight": 160
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_1h",
+            "Amount": 1,
+            "Weight": 30
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_5h",
+            "Amount": 1,
+            "Weight": 3
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_10k",
+            "Amount": 1,
+            "Weight": 185
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_20k",
+            "Amount": 1,
+            "Weight": 50
+          },
+          {
+            "Type": "Item",
+            "Key": "wrench_rare",
+            "Amount": 3,
+            "Weight": 110
+          },
+          {
+            "Type": "Item",
+            "Key": "repair_kit",
+            "Amount": 1,
+            "Weight": 40
+          },
+          {
+            "Type": "Item",
+            "Key": "dungeon_energy_50",
+            "Amount": 1,
+            "Weight": 60
+          },
+          {
+            "Type": "Item",
+            "Key": "teleport_random",
+            "Amount": 1,
+            "Weight": 40
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Rare",
+            "Amount": 3,
+            "Weight": 120
+          },
+          {
+            "Type": "Item",
+            "Key": "universal_shard_rare",
+            "Amount": 3,
+            "Weight": 75
+          },
+          {
+            "Type": "RandomHero",
+            "Key": "Rare",
+            "Amount": 1,
+            "Weight": 12
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Unique",
+            "Amount": 1,
+            "Weight": 60
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Unique",
+            "Amount": 2,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "universal_shard_unique",
+            "Amount": 1,
+            "Weight": 40,
+            "Pity": true
+          }
+        ]
+      }
+    ],
+    "KeyChests": [
+      {
+        "LootboxKey": "chest_key_rare",
+        "KeyItemKey": "key_rare",
+        "FreePerDay": 5,
+        "FreeCooldownMinutes": 5
+      },
+      {
+        "LootboxKey": "chest_key_unique",
+        "KeyItemKey": "key_unique",
+        "FreePerDay": 1,
+        "FreeCooldownMinutes": 2880
       }
     ]
   }

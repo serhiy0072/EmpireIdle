@@ -1666,6 +1666,34 @@
         "Description": "Піднімає на рівень захисне вміння унікального лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
         "Rarity": "unique",
         "Type": "skillbook"
+      },
+      {
+        "Key": "chest_key_rare",
+        "DisplayName": "Рідкісна скриня",
+        "Description": "Чотири нагороди: прискорення, досвід героїв, предмети, уламки й часом цілий герой",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_key_unique",
+        "DisplayName": "Унікальна скриня",
+        "Description": "Чотири нагороди, серед них — уламки унікальних героїв і універсальні уламки",
+        "Rarity": "unique",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "key_rare",
+        "DisplayName": "Рідкісний ключ",
+        "Description": "Відкриває рідкісну скриню понад безкоштовні відкриття",
+        "Rarity": "rare",
+        "Type": "chestkey"
+      },
+      {
+        "Key": "key_unique",
+        "DisplayName": "Унікальний ключ",
+        "Description": "Відкриває унікальну скриню понад безкоштовне відкриття",
+        "Rarity": "unique",
+        "Type": "chestkey"
       }
     ],
     "Equipment": {
