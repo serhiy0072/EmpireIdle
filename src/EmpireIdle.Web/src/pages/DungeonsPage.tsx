@@ -7,7 +7,13 @@ import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
 import type { DungeonRunView, DungeonView } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
-import { artifactRarityLabel, useDungeonRun, useDungeons, useStartDungeonRun } from "../lib/queries/dungeons";
+import {
+  artifactRarityLabel,
+  useDungeonRun,
+  useDungeons,
+  useRefillDungeonEnergy,
+  useStartDungeonRun,
+} from "../lib/queries/dungeons";
 import { useHeroes } from "../lib/queries/heroes";
 import { rarityStyle } from "../lib/rarity";
 import { formatRemaining } from "../lib/time";
@@ -26,6 +32,7 @@ export default function DungeonsPage() {
   const dungeons = useDungeons(playerId);
   const heroes = useHeroes(playerId);
   const start = useStartDungeonRun(playerId);
+  const refill = useRefillDungeonEnergy(playerId);
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [level, setLevel] = useState(1);
@@ -100,13 +107,27 @@ export default function DungeonsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Данжі</h1>
-        <p className="text-sm text-slate-500">
-          ⚡ {overview.energy} / {overview.maxEnergy} · забіг {overview.energyPerRun}
-          {overview.energyFullAt != null && ` · повна за ${formatRemaining(overview.energyFullAt, now)}`}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm text-slate-500">
+            ⚡ {overview.energy} / {overview.maxEnergy} · забіг {overview.energyPerRun}
+            {overview.energyFullAt != null && ` · повна за ${formatRemaining(overview.energyFullAt, now)}`}
+          </p>
+          {/* Поповнення лише до стелі: на повній шкалі кнопки немає — сервер однаково відмовить */}
+          {overview.energy < overview.maxEnergy && overview.refillPriceGems != null && (
+            <button
+              type="button"
+              onClick={() => refill.mutate()}
+              disabled={refill.isPending}
+              title={`Сьогодні лишилось поповнень: ${overview.refillsLeft}`}
+              className="rounded-lg border border-amber-400 px-2 py-0.5 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+            >
+              Поповнити до {overview.maxEnergy} ⚡ · {overview.refillPriceGems.toLocaleString("uk-UA")} 💎
+            </button>
+          )}
+        </div>
       </div>
 
-      <ErrorBanner error={start.error} />
+      <ErrorBanner error={start.error ?? refill.error} />
 
       <div className="grid gap-4 lg:grid-cols-[2fr_3fr]">
         <div className="space-y-2">
