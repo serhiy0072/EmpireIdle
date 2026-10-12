@@ -38,6 +38,7 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly HeroCombatModifiers _heroModifiers;
         private readonly GameCatalog _catalog;
         private readonly HeroProgression _progression;
+        private readonly HeroCombatants _combatants;
 
         public GetBattlePreviewQueryHandler(
             IVillageRepository villageRepository,
@@ -52,8 +53,10 @@ namespace EmpireIdle.Application.Marches.Queries
             MarchTargetResolver targets,
             HeroCombatModifiers heroModifiers,
             GameCatalog catalog,
-            HeroProgression progression)
+            HeroProgression progression,
+            HeroCombatants combatants)
         {
+            _combatants = combatants;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _heroRepository = heroRepository;
@@ -110,8 +113,11 @@ namespace EmpireIdle.Application.Marches.Queries
             // Та сама формула, що й у бою — інакше прев'ю розійдеться з результатом.
             // Герої теж ті самі, яких гравець збирається відправити: без їхніх
             // вмінь прев'ю занижувало б силу рівно на їхню величину
-            var attackerPower = _combat.CalculatePower(attackerArmy, terrain, isAttacker: true,
-                _heroModifiers.ForMarch(attackerHeroes)) * attackerBonus;
+            // Герой ще й б'ється сам (варіант B): його атака додається до сили військ до бонусів
+            var heroPower = (await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken)).Sum(h => h.Power);
+
+            var attackerPower = (_combat.CalculatePower(attackerArmy, terrain, isAttacker: true,
+                _heroModifiers.ForMarch(attackerHeroes)) + heroPower) * attackerBonus;
 
             var defenderPower = _combat.CalculateDefencePower(target.Defence, terrain, target.DefenceBuffs)
                 * target.DefenceMultiplier;

@@ -28,6 +28,14 @@ public class GetBattlePreviewQueryTests
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
+
+    /// <summary>Спорядження в сценах немає: бійця дають власні стати героя.</summary>
+    private IInventoryRepository EmptyInventory()
+    {
+        _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
+        return _inventory;
+    }
 
     // Герой без власної швидкості ходить зі швидкістю за замовчуванням —
     // утричі повільніше за піхоту, тож його присутність видно в часі дороги
@@ -72,7 +80,8 @@ public class GetBattlePreviewQueryTests
             _villages, _garrisons, _heroes, _serverContext,
             new CombatCalculator(config.Combat, catalog), terrain, new MarchCalculator(terrain, catalog),
             TestEffects.Resolver(_effects), new FakeTimeProvider(Now), targets, heroModifiers, catalog,
-            new HeroProgression(config.HeroSettings));
+            new HeroProgression(config.HeroSettings),
+            new HeroCombatants(EmptyInventory(), new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog));
     }
 
     /// <summary>Село з піхотою, монстр поруч; повертає монстра й героя з заданим власником.</summary>
