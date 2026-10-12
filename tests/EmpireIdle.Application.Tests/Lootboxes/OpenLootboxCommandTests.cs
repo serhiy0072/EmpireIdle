@@ -101,6 +101,40 @@ public class OpenLootboxCommandTests
         Assert.Contains(reward.Key, _config.Heroes.Where(h => h.Rank == Rarity.Common).Select(h => h.Key));
     }
 
+    /// <summary>
+    /// Гарантія рахується у відкриттях, а не в кидках (Сергій, 12.10.2026): відкриття з чотирма кидками
+    /// рухає лічильник на одиницю, а на відкритті гарантії її позицію віддає останній кидок.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldCountPityPerOpening_NotPerRoll()
+    {
+        var box = Box(TestKeys.SmallChest);
+        box.Rolls = 4;
+        box.PityWithin = 2;
+        box.Entries =
+        [
+            new LootboxEntryConfig { Type = "Gems", Amount = 1, Weight = 1 },
+            new LootboxEntryConfig { Type = "Resource", Key = TestKeys.Gold, Amount = 500, Weight = 1, Pity = true }
+        ];
+        GivenChests(TestKeys.SmallChest, 2);
+
+        var first = await Open(TestKeys.SmallChest);
+        var pity = Assert.Single(_added);
+
+        Assert.Equal(4, first.Drops.Count);
+        Assert.DoesNotContain(first.Drops, d => d.WasPity);
+        Assert.Equal(1, pity.Since);
+
+        _lootboxes.GetPityAsync(PlayerId, TestKeys.SmallChest, Arg.Any<CancellationToken>()).Returns(pity);
+
+        var second = await Open(TestKeys.SmallChest);
+
+        Assert.Equal(4, second.Drops.Count);
+        Assert.True(second.Drops[^1].WasPity);
+        Assert.Equal("Resource", second.Drops[^1].Type);
+        Assert.Equal(0, pity.Since);
+    }
+
     /// <summary>Скриня з кількома кидками дає стільки нагород за одне відкриття (ключова скриня — 4).</summary>
     [Fact]
     public async Task Handle_ShouldRollTheTableSeveralTimes_ForAMultiRollChest()

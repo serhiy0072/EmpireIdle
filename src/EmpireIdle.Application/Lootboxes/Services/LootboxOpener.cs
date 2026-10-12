@@ -48,23 +48,34 @@ namespace EmpireIdle.Application.Lootboxes.Services
             return session.Drops;
         }
 
-        /// <summary>Одне відкриття — Rolls кидків таблиці поспіль.</summary>
+        /// <summary>
+        /// Одне відкриття — Rolls кидків таблиці поспіль. Гарантія рахується у відкриттях: лічильник
+        /// рухається на одиницю за відкриття, а настала гарантія — останній кидок віддає її позицію,
+        /// якщо попередні кидки цього відкриття її не дали.
+        /// </summary>
         private async Task OpenOneAsync(Session session, LootboxConfig box, CancellationToken cancellationToken)
         {
+            var pity = await PityAsync(session, box.Key, cancellationToken);
+            var due = LootboxRoller.PityDue(box, pity.Since);
+            var dropped = false;
+
             for (var i = 0; i < box.Rolls; i++)
-                await RollOnceAsync(session, box, cancellationToken);
+            {
+                var force = due && !dropped && i == box.Rolls - 1;
+
+                // Сід окремо від кидка — так само, як у банера
+                var entry = LootboxRoller.Pick(box, force, _random.Next(int.MaxValue));
+                dropped |= entry.Pity;
+
+                await GrantEntryAsync(session, box, entry, force, cancellationToken);
+            }
+
+            pity.Apply(LootboxRoller.Next(box, pity.Since, dropped));
         }
 
-        private async Task RollOnceAsync(Session session, LootboxConfig box, CancellationToken cancellationToken)
+        private async Task GrantEntryAsync(Session session, LootboxConfig box, LootboxEntryConfig entry, bool wasPity,
+            CancellationToken cancellationToken)
         {
-            var pity = await PityAsync(session, box.Key, cancellationToken);
-
-            // Сід окремо від кидка — так само, як у банера
-            var roll = LootboxRoller.Roll(box, pity.Since, _random.Next(int.MaxValue));
-            pity.Apply(roll.PitySince);
-
-            var entry = roll.Entry;
-
             if (entry.IsLootbox)
             {
                 // Валідатор гарантує ключ і відсутність циклу
@@ -85,7 +96,7 @@ namespace EmpireIdle.Application.Lootboxes.Services
                 for (var i = 0; i < entry.Amount; i++)
                 {
                     var piece = pieces[_random.Next(pieces.Count)];
-                    await GrantAsync(session, box, new RewardConfig { Type = "Equipment", Key = piece, Amount = 1 }, roll.WasPity,
+                    await GrantAsync(session, box, new RewardConfig { Type = "Equipment", Key = piece, Amount = 1 }, wasPity,
                         cancellationToken);
                 }
 
@@ -101,20 +112,20 @@ namespace EmpireIdle.Application.Lootboxes.Services
                 {
                     for (var i = 0; i < entry.Amount; i++)
                         await GrantAsync(session, box,
-                            new RewardConfig { Type = "Hero", Key = heroes[_random.Next(heroes.Count)], Amount = 1 }, roll.WasPity,
+                            new RewardConfig { Type = "Hero", Key = heroes[_random.Next(heroes.Count)], Amount = 1 }, wasPity,
                             cancellationToken);
                 }
                 else
                 {
                     await GrantAsync(session, box,
                         new RewardConfig { Type = "HeroShards", Key = heroes[_random.Next(heroes.Count)], Amount = entry.Amount },
-                        roll.WasPity, cancellationToken);
+                        wasPity, cancellationToken);
                 }
 
                 return;
             }
 
-            await GrantAsync(session, box, new RewardConfig { Type = entry.Type, Key = entry.Key, Amount = entry.Amount }, roll.WasPity,
+            await GrantAsync(session, box, new RewardConfig { Type = entry.Type, Key = entry.Key, Amount = entry.Amount }, wasPity,
                 cancellationToken);
         }
 

@@ -15,17 +15,26 @@ namespace EmpireIdle.Domain.Services
     {
         public static LootboxRoll Roll(LootboxConfig box, int pitySince, int seed)
         {
-            var random = new DeterministicRandom(seed);
+            var pity = PityDue(box, pitySince);
+            var entry = Pick(box, pity, seed);
 
-            // Порівняння з +1: це відкриття і є тим, на якому гарантія спрацьовує
-            var pity = box.PityWithin > 0 && pitySince + 1 >= box.PityWithin;
-            var entry = Pick(box, pity ? box.Entries.Where(e => e.Pity) : box.Entries, random);
-
-            // Без гарантії лічильник не потрібен — він лишається нулем
-            var since = box.PityWithin == 0 || entry.Pity ? 0 : pitySince + 1;
-
-            return new LootboxRoll(entry, since, pity);
+            return new LootboxRoll(entry, Next(box, pitySince, entry.Pity), pity);
         }
+
+        /// <summary>
+        /// Чи це відкриття — те, на якому гарантія спрацьовує. Гарантія рахується у відкриттях,
+        /// а не в кидках: одне відкриття з Rolls кидків рухає лічильник на одиницю (рішення 12.10.2026).
+        /// </summary>
+        public static bool PityDue(LootboxConfig box, int pitySince)
+            => box.PityWithin > 0 && pitySince + 1 >= box.PityWithin;
+
+        /// <summary>Лічильник після відкриття: позиція гарантії випала — нуль, інакше на одиницю більше.</summary>
+        public static int Next(LootboxConfig box, int pitySince, bool pityEntryDropped)
+            => box.PityWithin == 0 || pityEntryDropped ? 0 : pitySince + 1;
+
+        /// <summary>Один кидок таблиці; forcePity — кидок лише серед позицій гарантії.</summary>
+        public static LootboxEntryConfig Pick(LootboxConfig box, bool forcePity, int seed)
+            => Pick(box, forcePity ? box.Entries.Where(e => e.Pity) : box.Entries, new DeterministicRandom(seed));
 
         /// <summary>
         /// Базові шанси позицій у відсотках, у порядку таблиці, — без гарантії, як їх бачить гравець.
