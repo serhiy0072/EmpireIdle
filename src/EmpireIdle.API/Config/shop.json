@@ -52,6 +52,11 @@
           "MaxPerPurchase": 20
         },
         {
+          "ItemKey": "weapon_chest_2",
+          "PriceGems": 2000,
+          "MaxPerPurchase": 20
+        },
+        {
           "ItemKey": "chest_supply",
           "PriceGems": 1500,
           "MaxPerPurchase": 100

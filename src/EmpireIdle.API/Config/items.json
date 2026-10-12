@@ -230,11 +230,20 @@
       },
       {
         "Key": "weapon_chest",
-        "DisplayName": "Скриня зброї",
-        "Description": "Шматок унікальної зброї героя поточного банера на ваш вибір: Гуннар, Елоуен або Кестрел. Відкривається з картки героя",
+        "DisplayName": "Скриня зброї I",
+        "Description": "Шматок унікальної зброї героя банера першого світу на ваш вибір: Гуннар, Елоуен або Кестрел. Відкривається з картки героя",
         "Rarity": "unique",
         "Type": "weaponchest",
         "WeaponHeroes": ["warrior_gunnar", "knight_elowen", "archer_kestrel"],
+        "WeaponShards": 1
+      },
+      {
+        "Key": "weapon_chest_2",
+        "DisplayName": "Скриня зброї II",
+        "Description": "Шматок унікальної зброї героя банера другого світу на ваш вибір: Сабіна, Ваель або Ізелла. Відкривається з картки героя",
+        "Rarity": "unique",
+        "Type": "weaponchest",
+        "WeaponHeroes": ["mage_sabine", "mage_vael", "mage_iselle"],
         "WeaponShards": 1
       },
       {
