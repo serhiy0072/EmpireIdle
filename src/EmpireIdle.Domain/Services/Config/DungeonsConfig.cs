@@ -34,6 +34,12 @@ namespace EmpireIdle.Domain.Services.Config
         public List<double> LevelRewardMultipliers { get; set; } = [1.0, 2.0, 3.5];
 
         /// <summary>
+        /// Досвід героїв у спільний запас гравця за успішний забіг рівня 1 (GDD §6.1);
+        /// вищі рівні множаться тим самим LevelRewardMultipliers. 0 — досвіду не дають.
+        /// </summary>
+        public long HeroExperiencePerRun { get; set; }
+
+        /// <summary>
         /// Пом'якшення захисту у формулі шкоди: damage = attack × K / (K + defense).
         /// Що більше K, то слабше захист гасить шкоду.
         /// </summary>

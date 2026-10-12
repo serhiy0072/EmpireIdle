@@ -11514,6 +11514,7 @@
       "DungeonLevelView": {
         "required": [
           "artifactRarity",
+          "heroExperience",
           "level",
           "powerMultiplier",
           "reward",
@@ -11541,6 +11542,10 @@
             "items": {
               "$ref": "#/components/schemas/RewardLine"
             }
+          },
+          "heroExperience": {
+            "type": "integer",
+            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -11548,6 +11553,7 @@
       "DungeonRewardView": {
         "required": [
           "artifacts",
+          "heroExperience",
           "resources"
         ],
         "type": "object",
@@ -11563,6 +11569,10 @@
             "items": {
               "$ref": "#/components/schemas/ArtifactDropView"
             }
+          },
+          "heroExperience": {
+            "type": "integer",
+            "format": "int64"
           }
         },
         "additionalProperties": false

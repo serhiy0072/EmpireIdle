@@ -90,7 +90,8 @@ public class TakeDungeonTurnCommandTests
             Substitute.For<IInventoryRepository>(),
             Substitute.For<IServerContext>());
 
-        var rewarder = new DungeonRewarder(_dungeons, Substitute.For<IVillageRepository>(), granter,
+        var rewarder = new DungeonRewarder(_dungeons, Substitute.For<IVillageRepository>(),
+            Substitute.For<IHeroRepository>(), Substitute.For<IServerContext>(), granter,
             new BattleBuilder(config.Dungeons), catalog, Substitute.For<IRandomSource>());
 
         return new TakeDungeonTurnCommandHandler(

@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Dungeons.Commands;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Entities;
@@ -11,14 +12,16 @@ using EmpireIdle.Domain.Services.Config;
 namespace EmpireIdle.Application.Dungeons.Services
 {
     /// <summary>
-    /// Видає нагороду за успішний забіг: ресурси в село, один артефакт із
-    /// набору данжу тієї рідкості, що відповідає рівню, і відмітку про
+    /// Видає нагороду за успішний забіг: ресурси в село, досвід у спільний запас героїв,
+    /// один артефакт із набору данжу тієї рідкості, що відповідає рівню, і відмітку про
     /// зачистку — саме вона відкриває наступний рівень.
     /// </summary>
     public class DungeonRewarder
     {
         private readonly IDungeonRepository _dungeons;
         private readonly IVillageRepository _villages;
+        private readonly IHeroRepository _heroes;
+        private readonly IServerContext _serverContext;
         private readonly ItemGranter _items;
         private readonly BattleBuilder _builder;
         private readonly GameCatalog _catalog;
@@ -27,6 +30,8 @@ namespace EmpireIdle.Application.Dungeons.Services
         public DungeonRewarder(
             IDungeonRepository dungeons,
             IVillageRepository villages,
+            IHeroRepository heroes,
+            IServerContext serverContext,
             ItemGranter items,
             BattleBuilder builder,
             GameCatalog catalog,
@@ -34,6 +39,8 @@ namespace EmpireIdle.Application.Dungeons.Services
         {
             _dungeons = dungeons;
             _villages = villages;
+            _heroes = heroes;
+            _serverContext = serverContext;
             _items = items;
             _builder = builder;
             _catalog = catalog;
@@ -57,6 +64,14 @@ namespace EmpireIdle.Application.Dungeons.Services
                 ?? throw new EntityNotFoundException("Village for player", run.PlayerId);
 
             village.GrantResources(resources, now);
+
+            var experience = _builder.HeroExperience(run.Level);
+
+            if (experience > 0)
+            {
+                var pool = await _heroes.GetOrCreateExperienceAsync(run.PlayerId, _serverContext.ServerId, cancellationToken);
+                pool.Add(experience);
+            }
 
             var artifacts = new List<string>();
             var rarity = RarityFor(run.Level);
@@ -84,7 +99,7 @@ namespace EmpireIdle.Application.Dungeons.Services
                 await _dungeons.AddClearAsync(
                     new DungeonClear(Guid.NewGuid(), run.PlayerId, dungeon.Key, run.Level, now), cancellationToken);
 
-            return new DungeonReward(resources, artifacts);
+            return new DungeonReward(resources, artifacts, experience);
         }
 
         /// <summary>Рівень забігу обирає рідкість набору: 1 — звичайний, 2 — рідкісний, 3 — унікальний.</summary>

@@ -64,7 +64,8 @@ namespace EmpireIdle.Application.Dungeons.Queries
                             _builder.PowerMultiplier(level),
                             dungeon.Reward
                                 .Select(r => new RewardLine(r.Resource, (int)Math.Round(r.Amount * _builder.RewardMultiplier(level))))
-                                .ToList()))
+                                .ToList(),
+                            _builder.HeroExperience(level)))
                         .ToList();
 
                     return new DungeonView(

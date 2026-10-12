@@ -26,12 +26,14 @@ namespace EmpireIdle.Application.Dungeons.Contracts
         IReadOnlyList<DungeonLevelView> Levels);
 
     /// <param name="Waves">Скільки боїв у забігу цього рівня, включно з босом.</param>
+    /// <param name="HeroExperience">Досвід героїв у спільний запас за успішний забіг цього рівня.</param>
     public record DungeonLevelView(
         int Level,
         string ArtifactRarity,
         int Waves,
         double PowerMultiplier,
-        IReadOnlyList<RewardLine> Reward);
+        IReadOnlyList<RewardLine> Reward,
+        long HeroExperience);
 
     public record RewardLine(string Resource, int Amount);
 
@@ -86,7 +88,8 @@ namespace EmpireIdle.Application.Dungeons.Contracts
         bool IgnoresLine);
 
     /// <summary>Що видано за успішний забіг.</summary>
-    public record DungeonRewardView(IReadOnlyList<RewardLine> Resources, IReadOnlyList<ArtifactDropView> Artifacts);
+    /// <param name="HeroExperience">Досвід героїв, що ліг у спільний запас гравця.</param>
+    public record DungeonRewardView(IReadOnlyList<RewardLine> Resources, IReadOnlyList<ArtifactDropView> Artifacts, long HeroExperience);
 
     public record ArtifactDropView(string ItemKey, string DisplayName, string Rarity, string SetKey);
 }
