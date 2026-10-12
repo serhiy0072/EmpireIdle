@@ -391,7 +391,8 @@ const market: Art = (cx, cy, _s, tier) => {
   };
 };
 
-const stable: Art = (cx, cy, s, tier) => {
+/** Двір списоносців: казарма з колодою й стійкою списів біля огорожі. */
+const spearyard: Art = (cx, cy, s, tier) => {
   const h = 14 * s;
   const posts = [-4.5, -2.5, -0.5, 1.5, 3.5];
   return {
@@ -410,8 +411,10 @@ const stable: Art = (cx, cy, s, tier) => {
         <Box cx={cx - 0.5} cy={cy + 3.5} hx={4.3} hy={0.12} h={1} z={4} faces={WOOD} />
         <Fence from={{ x: cx - 4.5, y: cy + 3.5 }} to={{ x: cx - 4.5, y: cy + 6 }} />
         <Fence from={{ x: cx + 3.5, y: cy + 3.5 }} to={{ x: cx + 3.5, y: cy + 6 }} />
-        {/* Копиця й корито */}
-        <Cylinder cx={cx - 2.5} cy={cy + 5} r={0.9} h={3.5} faces={HAY} />
+        {/* Стійка списів: тонкі древка вище за огорожу */}
+        {[-3, -2, -1].map((offset) => (
+          <Box key={offset} cx={cx + offset} cy={cy + 5} hx={0.12} hy={0.12} h={9} faces={WOOD} />
+        ))}
         <Box cx={cx + 1.5} cy={cy + 5} hx={1.2} hy={0.4} h={1.5} faces={WOOD} />
         {tier >= 1 && <Cylinder cx={cx + 6} cy={cy + 1} r={0.9} h={3.5} faces={HAY} />}
         {tier >= 2 && <Flag x={cx + 5} y={cy - 3.5} z={h} h={14} color={TIER_FLAG[2]} />}
@@ -564,6 +567,29 @@ const fallback: Art = (cx, cy, s) => {
   };
 };
 
+/** Стрільбище: навіс для лучників і ряд мішеней на стовпах. */
+const range: Art = (cx, cy, s, tier) => {
+  const h = 10 * s;
+  const targets = [-3, 0, 3];
+  return {
+    foot: 5,
+    height: h + 10,
+    node: (
+      <g>
+        <Box cx={cx - 2} cy={cy - 2} hx={3} hy={2} h={h} faces={WOOD} />
+        <Gable cx={cx - 2} cy={cy - 2} hx={3.4} hy={2.4} z={h} h={6} faces={ROOF_BROWN} />
+        {targets.map((offset) => (
+          <g key={offset}>
+            <Box cx={cx + offset} cy={cy + 4} hx={0.25} hy={0.25} h={5} faces={WOOD} />
+            <Cylinder cx={cx + offset} cy={cy + 4} r={1.1} h={0.4} z={5} faces={HAY} />
+          </g>
+        ))}
+        {tier >= 2 && <Flag x={cx + 4} y={cy - 3} z={h} h={12} color={TIER_FLAG[2]} />}
+      </g>
+    ),
+  };
+};
+
 const ART: Record<string, Art> = {
   townhall,
   warehouse,
@@ -577,7 +603,8 @@ const ART: Record<string, Art> = {
   lootshop,
   hospital,
   market,
-  stable,
+  spearyard,
+  range,
   embassy,
   scouttower,
   forge,

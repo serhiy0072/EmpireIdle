@@ -30,7 +30,7 @@ function costLabel(unit: CatalogUnit, level: number, count: number, resourceName
     .join(", ");
 }
 
-/** Тренування юнітів на конкретній будівлі (казарми, стайня…) — список доступних типів і черга. */
+/** Тренування юнітів на конкретній будівлі (казарма, двір списоносців, стрільбище) — список доступних типів і черга. */
 export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel, underConstruction }: Props) {
   const now = useNow();
   const catalog = useCatalog();

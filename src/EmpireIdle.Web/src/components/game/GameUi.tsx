@@ -154,7 +154,7 @@ const ROLE_BACKS: Record<string, string> = {
   archer: "#15803d",
 };
 
-const ROLE_NAMES: Record<string, string> = { warrior: "Воїн · піхота", knight: "Лицар · кіннота", archer: "Лучник · стрільці" };
+const ROLE_NAMES: Record<string, string> = { warrior: "Воїн · піхота", knight: "Лицар · списоносці", archer: "Лучник · стрільці" };
 
 /** Значок ролі героя на щитку — той самий, що на плитках героїв і спорядження. */
 export function RoleBadge({ role, size = 20 }: { role: string | undefined; size?: number }) {
