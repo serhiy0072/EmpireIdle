@@ -51,6 +51,30 @@ namespace EmpireIdle.Domain.Services.Config
         /// <inheritdoc cref="StartsAt"/>
         public DateTimeOffset? EndsAt { get; set; }
 
+        /// <summary>
+        /// Подієвий банер тіру (GDD §9.12): відкритий стільки днів від досягнення світом RequiresServerLevel
+        /// і лише на цьому рівні світу. null — банер без такого вікна.
+        /// </summary>
+        public int? WindowDays { get; set; }
+
+        /// <summary>
+        /// Коли банер закривається для світу на цьому рівні: раніший із EndsAt і кінця вікна тіру.
+        /// null — не закривається; минулий момент — уже закритий.
+        /// </summary>
+        public DateTimeOffset? ClosesAt(int serverLevel, DateTime levelSince)
+        {
+            DateTimeOffset? window = WindowDays is not { } days
+                ? null
+                : serverLevel == RequiresServerLevel
+                    ? new DateTimeOffset(DateTime.SpecifyKind(levelSince, DateTimeKind.Utc).AddDays(days))
+                    : DateTimeOffset.MinValue;
+
+            if (window is null)
+                return EndsAt;
+
+            return EndsAt is { } end && end < window ? end : window;
+        }
+
         public List<BannerDropConfig> Drops { get; set; } = new();
 
         /// <summary>Категорія банера: нею обмежений пул гарантій.</summary>

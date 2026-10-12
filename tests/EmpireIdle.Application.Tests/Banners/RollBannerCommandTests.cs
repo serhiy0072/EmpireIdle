@@ -41,10 +41,13 @@ public class RollBannerCommandTests
     }
 
     private int _serverLevel = 1;
+    private DateTime _levelSince = Now.AddDays(-5);
 
-    private static BannerConfig Banner(DateTimeOffset? startsAt = null, DateTimeOffset? endsAt = null, int requiresServerLevel = 1) => new()
+    private static BannerConfig Banner(DateTimeOffset? startsAt = null, DateTimeOffset? endsAt = null, int requiresServerLevel = 1,
+        int? windowDays = null) => new()
     {
         RequiresServerLevel = requiresServerLevel,
+        WindowDays = windowDays,
         Key = BannerKey,
         DisplayName = "Test banner",
         Kind = BannerKind.Hero,
@@ -86,7 +89,7 @@ public class RollBannerCommandTests
         serverContext.ServerId.Returns(1);
 
         var servers = Substitute.For<IServerRepository>();
-        servers.GetLevelAsync(1, Arg.Any<CancellationToken>()).Returns(_serverLevel);
+        servers.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(_ => Server());
 
         return new RollBannerCommandHandler(
             _players,
@@ -100,6 +103,17 @@ public class RollBannerCommandTests
             _unitOfWork,
             new FakeTimeProvider(Now),
             NullLogger<RollBannerCommandHandler>.Instance);
+    }
+
+    /// <summary>Світ на рівні _serverLevel, піднятий до нього _levelSince.</summary>
+    private Server Server()
+    {
+        var server = new Server(1, "test", _levelSince.AddDays(-1));
+
+        for (var level = 1; level < _serverLevel; level++)
+            server.RaiseLevel(_levelSince);
+
+        return server;
     }
 
     private Task<BannerRollResponse> Roll(BannerConfig banner, int count = 1, BannerCurrency currency = BannerCurrency.Gems)
@@ -267,5 +281,42 @@ public class RollBannerCommandTests
 
         Assert.Equal(RefusalReasons.BannerWorldLevel.Key, refusal.Reason);
         Assert.Equal(1_000, _wallet.GemBalance.Value);
+    }
+
+    /// <summary>Подієвий банер тіру крутиться, поки не минуло вікно від підняття світу.</summary>
+    [Fact]
+    public async Task Handle_ShouldRoll_AnEventBannerWithinItsTierWindow()
+    {
+        _serverLevel = 2;
+        _levelSince = Now.AddDays(-29);
+
+        await Roll(Banner(requiresServerLevel: 2, windowDays: 30));
+
+        Assert.Equal(1_000 - Price, _wallet.GemBalance.Value);
+    }
+
+    /// <summary>Вікно минуло — банер закритий, gems не списано.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_AnEventBannerAfterItsTierWindow()
+    {
+        _serverLevel = 2;
+        _levelSince = Now.AddDays(-31);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(requiresServerLevel: 2, windowDays: 30)));
+
+        Assert.Equal(RefusalReasons.BannerClosed.Key, refusal.Reason);
+        Assert.Equal(1_000, _wallet.GemBalance.Value);
+    }
+
+    /// <summary>Світ пішов на наступний рівень — банер минулого тіру закрився, хоч вікно й не минуло.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_AnEventBannerOfAnEarlierTier()
+    {
+        _serverLevel = 3;
+        _levelSince = Now.AddDays(-1);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Roll(Banner(requiresServerLevel: 2, windowDays: 30)));
+
+        Assert.Equal(RefusalReasons.BannerClosed.Key, refusal.Reason);
     }
 }

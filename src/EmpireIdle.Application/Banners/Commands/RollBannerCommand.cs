@@ -97,13 +97,17 @@ namespace EmpireIdle.Application.Banners.Commands
                 throw new RequirementNotMetException(RefusalReasons.BannerNotOpen,
                     $"Banner '{banner.Key}' opens at {start:u}.", start.UtcDateTime.ToString("O"));
 
-            if (banner.EndsAt is { } end && now >= end)
-                throw new RequirementNotMetException(RefusalReasons.BannerClosed, $"Banner '{banner.Key}' closed at {end:u}.");
+            var server = await _serverRepository.GetByIdAsync(_serverContext.ServerId, cancellationToken)
+                ?? throw new InvalidOperationException($"Server {_serverContext.ServerId} not found.");
 
             // Герої тіру N приходять лише зі світу N (GDD §6.1)
-            if (await _serverRepository.GetLevelAsync(_serverContext.ServerId, cancellationToken) < banner.RequiresServerLevel)
+            if (server.Level < banner.RequiresServerLevel)
                 throw new RequirementNotMetException(RefusalReasons.BannerWorldLevel,
                     $"Banner '{banner.Key}' opens at world level {banner.RequiresServerLevel}.", banner.RequiresServerLevel);
+
+            // Кінець дат або вікна тіру: подієвий банер живе місяць після підняття світу (GDD §9.12)
+            if (banner.ClosesAt(server.Level, server.LevelSince) is { } end && now >= end)
+                throw new RequirementNotMetException(RefusalReasons.BannerClosed, $"Banner '{banner.Key}' closed at {end:u}.");
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
             var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
