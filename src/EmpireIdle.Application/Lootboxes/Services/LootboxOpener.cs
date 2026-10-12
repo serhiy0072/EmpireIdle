@@ -48,7 +48,14 @@ namespace EmpireIdle.Application.Lootboxes.Services
             return session.Drops;
         }
 
+        /// <summary>Одне відкриття — Rolls кидків таблиці поспіль.</summary>
         private async Task OpenOneAsync(Session session, LootboxConfig box, CancellationToken cancellationToken)
+        {
+            for (var i = 0; i < box.Rolls; i++)
+                await RollOnceAsync(session, box, cancellationToken);
+        }
+
+        private async Task RollOnceAsync(Session session, LootboxConfig box, CancellationToken cancellationToken)
         {
             var pity = await PityAsync(session, box.Key, cancellationToken);
 

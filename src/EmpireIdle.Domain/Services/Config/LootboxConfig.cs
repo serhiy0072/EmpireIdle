@@ -10,11 +10,17 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Ключ предмета-скрині з Items.</summary>
         public string Key { get; set; } = null!;
 
-        /// <summary>Позиції таблиці: одна випадає за відкриття, з шансом вага / сума ваг.</summary>
+        /// <summary>Позиції таблиці: одна випадає за кидок, з шансом вага / сума ваг.</summary>
         public List<LootboxEntryConfig> Entries { get; set; } = new();
 
         /// <summary>
-        /// Гарантія: позиція з Pity випадає не пізніше цього відкриття поспіль, лічильник
+        /// Скільки незалежних кидків таблиці дає одне відкриття: ключова скриня — 4 предмети (рішення 12.10.2026).
+        /// Гарантія рахується в кидках.
+        /// </summary>
+        public int Rolls { get; set; } = 1;
+
+        /// <summary>
+        /// Гарантія: позиція з Pity випадає не пізніше цього кидка поспіль, лічильник
         /// скидається, щойно вона випала. 0 — скриня без гарантії.
         /// </summary>
         public int PityWithin { get; set; }

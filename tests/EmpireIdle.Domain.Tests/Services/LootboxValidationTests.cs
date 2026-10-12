@@ -110,4 +110,9 @@ public class LootboxValidationTests
     [Fact]
     public void Validate_ShouldRejectANegativePity()
         => Assert.Contains(TestKeys.BigChest, Rejects(c => Box(c, TestKeys.BigChest).PityWithin = -1).Message);
+
+    /// <summary>Відкриття без жодного кидка не дало б нічого.</summary>
+    [Fact]
+    public void Validate_ShouldRejectAChestWithoutRolls()
+        => Assert.Contains(TestKeys.SmallChest, Rejects(c => Box(c, TestKeys.SmallChest).Rolls = 0).Message);
 }

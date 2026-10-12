@@ -70,6 +70,20 @@ public class OpenLootboxCommandTests
             .Handle(new OpenLootboxCommand(PlayerId, key, count), CancellationToken.None);
     }
 
+    /// <summary>Скриня з кількома кидками дає стільки нагород за одне відкриття (ключова скриня — 4).</summary>
+    [Fact]
+    public async Task Handle_ShouldRollTheTableSeveralTimes_ForAMultiRollChest()
+    {
+        Only(TestKeys.SmallChest, e => e.Type == "Resource");
+        Box(TestKeys.SmallChest).Rolls = 4;
+        GivenChests(TestKeys.SmallChest, 2);
+
+        var opening = await Open(TestKeys.SmallChest, count: 2);
+
+        Assert.Equal(8, _granted.Count);
+        Assert.Equal(8, opening.Drops.Count);
+    }
+
     /// <summary>Дві скрині — два кидки й дві видачі; останні скрині знімають стек; одне збереження.</summary>
     [Fact]
     public async Task Handle_ShouldOpenEachChest_AndSpendTheStack()

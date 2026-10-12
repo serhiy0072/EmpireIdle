@@ -495,6 +495,9 @@ namespace EmpireIdle.Domain.Services
                 if (box.PityWithin < 0)
                     throw new InvalidOperationException($"Lootbox '{box.Key}' has negative PityWithin.");
 
+                if (box.Rolls < 1)
+                    throw new InvalidOperationException($"Lootbox '{box.Key}' must roll its table at least once per opening.");
+
                 // Гарантія без позиції не мала б що віддати, позиція без гарантії — обіцянка, якої ніхто не дотримає
                 if (box.PityWithin > 0 != box.Entries.Any(e => e.Pity))
                     throw new InvalidOperationException(
