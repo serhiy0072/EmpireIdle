@@ -468,6 +468,9 @@ namespace EmpireIdle.Domain.Services
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
             var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
 
+            // Випадковий герой рідкості без жодного героя цієї рідкості не видав би нічого
+            var heroRanks = config.Heroes.Select(h => h.Rank).ToHashSet();
+
             // Випадковий артефакт береться з наборів данжів — рідкість без жодного предмета не видала б нічого
             var artifactRarities = config.Dungeons.Dungeons
                 .SelectMany(d => Enum.GetValues<Rarity>()
@@ -484,7 +487,9 @@ namespace EmpireIdle.Domain.Services
                         ? e.Key is null || !boxes.ContainsKey(e.Key)
                         : e.IsArtifact
                             ? !Enum.TryParse<Rarity>(e.Key, ignoreCase: true, out var rarity) || !artifactRarities.Contains(rarity)
-                            : IsRewardBroken(e, resourceKeys, items, heroKeys)))
+                            : e.IsRandomHero || e.IsRandomHeroShards
+                                ? !Enum.TryParse<Rarity>(e.Key, ignoreCase: true, out var rank) || !heroRanks.Contains(rank)
+                                : IsRewardBroken(e, resourceKeys, items, heroKeys)))
                     .Select(e => $"{e.Type} '{e.Key ?? "(no key)"}' ×{e.Amount} weight {e.Weight}")
                     .ToList();
 

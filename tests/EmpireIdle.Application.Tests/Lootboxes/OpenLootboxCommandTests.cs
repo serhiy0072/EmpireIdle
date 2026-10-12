@@ -5,6 +5,7 @@ using EmpireIdle.Application.Lootboxes.Services;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -62,12 +63,42 @@ public class OpenLootboxCommandTests
     private Task<LootboxOpening> Open(string key, int count = 1)
     {
         var catalog = new GameCatalog(_config);
-        var dispatcher = new RewardDispatcher([Granter("Resource"), Granter("Gems"), Granter("Equipment"), Granter("Item")]);
+        var dispatcher = new RewardDispatcher(
+            [Granter("Resource"), Granter("Gems"), Granter("Equipment"), Granter("Item"), Granter("Hero"), Granter("HeroShards")]);
         var opener = new LootboxOpener(_lootboxes, _villages, dispatcher, catalog, _random);
 
         return new OpenLootboxCommandHandler(_inventory, opener, catalog, _unitOfWork, new FakeTimeProvider(Now),
                 NullLogger<OpenLootboxCommandHandler>.Instance)
             .Handle(new OpenLootboxCommand(PlayerId, key, count), CancellationToken.None);
+    }
+
+    /// <summary>Випадковий цілий герой — герой тієї рідкості з довідника, по одному на кожен у позиції.</summary>
+    [Fact]
+    public async Task Handle_ShouldGrantARandomHeroOfTheRarity()
+    {
+        Box(TestKeys.SmallChest).Entries =
+            [new LootboxEntryConfig { Type = LootboxEntryConfig.RandomHeroType, Key = "Unique", Amount = 2, Weight = 1 }];
+        GivenChests(TestKeys.SmallChest, 1);
+
+        await Open(TestKeys.SmallChest);
+
+        Assert.Equal(2, _granted.Count);
+        Assert.All(_granted, reward => Assert.Equal(("Hero", TestKeys.UniqueHero, 1), (reward.Type, reward.Key, reward.Amount)));
+    }
+
+    /// <summary>Уламки випадкового героя — усі разом одному герою тієї рідкості.</summary>
+    [Fact]
+    public async Task Handle_ShouldGrantShardsOfARandomHeroOfTheRarity()
+    {
+        Box(TestKeys.SmallChest).Entries =
+            [new LootboxEntryConfig { Type = LootboxEntryConfig.RandomHeroShardsType, Key = "Common", Amount = 3, Weight = 1 }];
+        GivenChests(TestKeys.SmallChest, 1);
+
+        await Open(TestKeys.SmallChest);
+
+        var reward = Assert.Single(_granted);
+        Assert.Equal(("HeroShards", 3), (reward.Type, reward.Amount));
+        Assert.Contains(reward.Key, _config.Heroes.Where(h => h.Rank == Rarity.Common).Select(h => h.Key));
     }
 
     /// <summary>Скриня з кількома кидками дає стільки нагород за одне відкриття (ключова скриня — 4).</summary>

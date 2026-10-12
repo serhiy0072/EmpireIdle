@@ -111,6 +111,12 @@ public class LootboxValidationTests
     public void Validate_ShouldRejectANegativePity()
         => Assert.Contains(TestKeys.BigChest, Rejects(c => Box(c, TestKeys.BigChest).PityWithin = -1).Message);
 
+    /// <summary>Випадковий герой рідкості, якої немає серед героїв, не мав би кого видати.</summary>
+    [Fact]
+    public void Validate_ShouldRejectARandomHeroOfARarityWithoutHeroes()
+        => Assert.Contains(TestKeys.SmallChest, Rejects(c => Box(c, TestKeys.SmallChest).Entries.Add(
+            new LootboxEntryConfig { Type = LootboxEntryConfig.RandomHeroType, Key = "Rare", Amount = 1, Weight = 1 })).Message);
+
     /// <summary>Відкриття без жодного кидка не дало б нічого.</summary>
     [Fact]
     public void Validate_ShouldRejectAChestWithoutRolls()

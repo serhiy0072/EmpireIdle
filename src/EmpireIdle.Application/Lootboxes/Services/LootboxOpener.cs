@@ -92,9 +92,42 @@ namespace EmpireIdle.Application.Lootboxes.Services
                 return;
             }
 
+            if (entry.IsRandomHero || entry.IsRandomHeroShards)
+            {
+                var heroes = HeroesOf(Enum.Parse<Rarity>(entry.Key!, ignoreCase: true));
+
+                // Цілий герой іде через HeroGranter: дублікат той сам перетворить на уламки
+                if (entry.IsRandomHero)
+                {
+                    for (var i = 0; i < entry.Amount; i++)
+                        await GrantAsync(session, box,
+                            new RewardConfig { Type = "Hero", Key = heroes[_random.Next(heroes.Count)], Amount = 1 }, roll.WasPity,
+                            cancellationToken);
+                }
+                else
+                {
+                    await GrantAsync(session, box,
+                        new RewardConfig { Type = "HeroShards", Key = heroes[_random.Next(heroes.Count)], Amount = entry.Amount },
+                        roll.WasPity, cancellationToken);
+                }
+
+                return;
+            }
+
             await GrantAsync(session, box, new RewardConfig { Type = entry.Type, Key = entry.Key, Amount = entry.Amount }, roll.WasPity,
                 cancellationToken);
         }
+
+        /// <summary>
+        /// Герої заданої рідкості з довідника. Сортування — щоб порядок у JSON не впливав на те,
+        /// що дає той самий кидок; валідатор гарантує, що список не порожній.
+        /// </summary>
+        private List<string> HeroesOf(Rarity rarity)
+            => _catalog.Config.Heroes
+                .Where(h => h.Rank == rarity)
+                .Select(h => h.Key)
+                .OrderBy(key => key, StringComparer.Ordinal)
+                .ToList();
 
         private async Task GrantAsync(Session session, LootboxConfig box, RewardConfig reward, bool wasPity,
             CancellationToken cancellationToken)
