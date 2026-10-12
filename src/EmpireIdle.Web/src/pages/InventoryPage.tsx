@@ -228,13 +228,17 @@ export default function InventoryPage() {
       )}
 
       {pickedEquipment !== null && (
-        <EquipmentCard
-          equipment={pickedEquipment}
-          heroes={roster}
-          busy={busy}
-          onEquip={(heroId) => equip.mutate({ heroId, equipmentId: pickedEquipment.id })}
-          onUnequip={() => unequip.mutate(pickedEquipment.id)}
-        />
+        // Сітка спорядження довга: картка обраного з'являється під нею — докручуємо до неї,
+        // інакше клік виглядав би без відповіді. key — щоб докрутка спрацьовувала на кожен вибір
+        <div key={pickedEquipment.id} ref={(node) => node?.scrollIntoView({ behavior: "smooth", block: "nearest" })}>
+          <EquipmentCard
+            equipment={pickedEquipment}
+            heroes={roster}
+            busy={busy}
+            onEquip={(heroId) => equip.mutate({ heroId, equipmentId: pickedEquipment.id })}
+            onUnequip={() => unequip.mutate(pickedEquipment.id)}
+          />
+        </div>
       )}
     </div>
   );
