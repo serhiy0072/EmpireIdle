@@ -34,6 +34,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Звір, якого приручила ця перемога (GDD §5.10); null — не приручали або не вдалось.</summary>
         public string? TamedBeastKey { get; private set; }
 
+        /// <summary>Досвід, який перемога над монстром додала до спільного запасу героїв (GDD §6.1); 0 — не дала.</summary>
+        public long HeroExperience { get; private set; }
+
         /// <summary>Деталі по типах юнітів.</summary>
         public IReadOnlyCollection<BattleReportLine> Lines => _lines.AsReadOnly();
 
@@ -64,6 +67,9 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Перемога дала звіра — новий вид чи ранг наявного.</summary>
         public void RecordTaming(string beastKey) => TamedBeastKey = beastKey;
+
+        /// <summary>Перемога поповнила запас досвіду героїв.</summary>
+        public void RecordHeroExperience(long amount) => HeroExperience = amount;
 
         /// <summary>Позначає звіт прочитаним.</summary>
         public void MarkAsRead() => IsRead = true;

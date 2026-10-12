@@ -131,6 +131,7 @@ namespace EmpireIdle.Application.Marches.Services
             garrison.AdmitWounded(split.Wounded, utcNow);
 
             string? tamed = null;
+            long experience = 0;
 
             if (result.AttackerWon)
             {
@@ -144,12 +145,12 @@ namespace EmpireIdle.Application.Marches.Services
                     await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken);
 
                 // Досвід героїв — за будь-яку перемогу, і полювання, і приручення (GDD §6.1)
-                await _experience.GrantAsync(village.PlayerId, monster.Level, utcNow, cancellationToken);
+                experience = await _experience.GrantAsync(village.PlayerId, monster.Level, utcNow, cancellationToken);
             }
 
             await _aftermath.RecordAttackerAsync(march, village, garrison,
                 _catalog.MonsterName(monster.Type), monster.Level,
-                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken, tamed);
+                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken, tamed, experience);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +

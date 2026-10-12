@@ -598,6 +598,8 @@ public class CompleteMarchCommandTests
         await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
 
         Assert.Equal(2 * MonsterExperiencePerLevel, pool.Amount);
+        await _reports.Received(1).AddAsync(
+            Arg.Is<BattleReport>(r => r.HeroExperience == 2 * MonsterExperiencePerLevel), Arg.Any<CancellationToken>());
     }
 
     /// <summary>Програний бій досвіду не дає.</summary>
@@ -611,6 +613,7 @@ public class CompleteMarchCommandTests
         await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
 
         Assert.Equal(0, pool.Amount);
+        await _reports.Received(1).AddAsync(Arg.Is<BattleReport>(r => r.HeroExperience == 0), Arg.Any<CancellationToken>());
     }
 
     /// <summary>Звіт створюється завжди — і при перемозі, і при поразці.</summary>

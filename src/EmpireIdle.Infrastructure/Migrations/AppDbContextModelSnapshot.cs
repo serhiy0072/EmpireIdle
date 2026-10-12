@@ -228,6 +228,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime>("FoughtAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long>("HeroExperience")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
