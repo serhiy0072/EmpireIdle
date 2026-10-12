@@ -602,6 +602,42 @@ public class CompleteMarchCommandTests
             Arg.Is<BattleReport>(r => r.HeroExperience == 2 * MonsterExperiencePerLevel), Arg.Any<CancellationToken>());
     }
 
+    /// <summary>Перемога над монстром піднімає MonsterDefeated — з нього ростуть квести «полювання» й рейтинг.</summary>
+    [Fact]
+    public async Task Handle_ShouldRaiseMonsterDefeated_WhenTheAttackerWins()
+    {
+        var (march, village, _, _) = GivenBattle(attackerInfantry: 500, monsterLevel: 2);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        var defeated = Assert.Single(march.DomainEvents.OfType<MonsterDefeated>());
+        Assert.Equal((village.Id, PlayerId, "wolves", 2), (defeated.VillageId, defeated.PlayerId, defeated.MonsterType, defeated.MonsterLevel));
+        Assert.Equal(march.GetCargo().Values.Sum(), defeated.Rewards.Sum(r => r.Amount));
+    }
+
+    /// <summary>Приручення — теж перемога: квест рахує її, хоч здобичі й немає.</summary>
+    [Fact]
+    public async Task Tame_ShouldRaiseMonsterDefeated_WithoutSpoils()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 500, intent: MarchIntent.Tame);
+        _random.NextDouble().Returns(0.0);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Empty(Assert.Single(march.DomainEvents.OfType<MonsterDefeated>()).Rewards);
+    }
+
+    /// <summary>Поразка монстра не перемагає — подія не піднімається.</summary>
+    [Fact]
+    public async Task Handle_ShouldNotRaiseMonsterDefeated_WhenTheAttackerLoses()
+    {
+        var (march, _, _, _) = GivenBattle(attackerInfantry: 1, monsterLevel: 10);
+
+        await Handler().Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        Assert.Empty(march.DomainEvents.OfType<MonsterDefeated>());
+    }
+
     /// <summary>Програний бій досвіду не дає.</summary>
     [Fact]
     public async Task Handle_ShouldNotGrantHeroExperience_WhenTheAttackerLoses()

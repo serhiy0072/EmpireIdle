@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
@@ -287,6 +288,14 @@ namespace EmpireIdle.Domain.Entities
             RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName, utcNow));
             Touch(utcNow);
         }
+
+        /// <summary>
+        /// Фіксує перемогу над монстром для квестів і рейтингу. Здобич — те, що армія везе додому;
+        /// приручення здобичі не дає, тож там вона порожня.
+        /// </summary>
+        public void RecordMonsterDefeated(Guid villageId, Guid playerId, string monsterType, int monsterLevel,
+            List<ResourceCost> spoils, DateTime utcNow)
+            => RaiseDomainEvent(new MonsterDefeated(villageId, playerId, Id, monsterType, monsterLevel, spoils, utcNow));
 
         /// <summary>Прискорює прибуття (speedup за gems).</summary>
         public void ReduceTravelTime(TimeSpan reduction, DateTime utcNow)

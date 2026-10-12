@@ -7,6 +7,7 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -141,8 +142,12 @@ namespace EmpireIdle.Application.Marches.Services
                 if (march.Intent == MarchIntent.Tame)
                     tamed = await _tamer.TameAsync(village, monster.Type, utcNow, cancellationToken);
 
-                if (tamed is null)
-                    await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken);
+                var spoils = tamed is null
+                    ? await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken)
+                    : [];
+
+                // Квести «полювання» й рейтинг рахують перемоги саме з цієї події
+                march.RecordMonsterDefeated(village.Id, village.PlayerId, monster.Type, monster.Level, spoils, utcNow);
 
                 // Досвід героїв — за будь-яку перемогу, і полювання, і приручення (GDD §6.1)
                 experience = await _experience.GrantAsync(village.PlayerId, monster.Level, utcNow, cancellationToken);
@@ -176,9 +181,9 @@ namespace EmpireIdle.Application.Marches.Services
 
         /// <summary>
         /// Вантажить нагороду. Здобич не з'являється в момент перемоги: вона їде з армією
-        /// й лягає на склад лише по прибутті, у межах вантажопідйомності.
+        /// й лягає на склад лише по прибутті, у межах вантажопідйомності. Повертає завантажене.
         /// </summary>
-        private async Task TakeSpoilsAsync(March march, Monster monster, Guid playerId, DateTime utcNow,
+        private async Task<List<ResourceCost>> TakeSpoilsAsync(March march, Monster monster, Guid playerId, DateTime utcNow,
             CancellationToken cancellationToken)
         {
             var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
@@ -198,6 +203,8 @@ namespace EmpireIdle.Application.Marches.Services
 
                 clan?.EarnPoints(_territory.CashbackFor(carried), playerId, utcNow);
             }
+
+            return carried.Select(c => new ResourceCost { Resource = c.Key, Amount = c.Value }).ToList();
         }
     }
 }
