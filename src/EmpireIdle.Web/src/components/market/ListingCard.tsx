@@ -3,7 +3,7 @@ import { useNow } from "../../hooks/useNow";
 import { useCatalog } from "../../lib/queries/catalog";
 import type { MarketListingView } from "../../lib/queries/market";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
-import { statLabel } from "../../lib/statNames";
+import { statLabel, statValue } from "../../lib/statNames";
 import { formatRemaining } from "../../lib/time";
 import ItemIcon from "../inventory/ItemIcon";
 
@@ -49,7 +49,7 @@ export default function ListingCard({ listing, action }: Props) {
           {listing.equipment != null &&
             Object.entries(listing.equipment.stats).map(([stat, value]) => (
               <span key={stat} className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
-                {statLabel(stat)} {Math.round(value)}
+                {statLabel(stat)} {statValue(stat, value)}
               </span>
             ))}
         </div>

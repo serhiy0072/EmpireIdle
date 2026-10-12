@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { EquipmentResponse, InventoryItemResponse } from "../../../lib/apiTypes";
 import { useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
-import { statLabel } from "../../../lib/statNames";
+import { statLabel, statValue } from "../../../lib/statNames";
 import { GameButton, Tile } from "../../game/GameUi";
 import ItemIcon from "../../inventory/ItemIcon";
 import HeroPortrait from "../HeroPortrait";
@@ -171,7 +171,7 @@ function SlotDetails({
             </p>
             <p className="text-sm text-sky-100/90">
               {Object.entries(worn.stats)
-                .map(([stat, value]) => `${statLabel(stat)} +${Math.round(value)}`)
+                .map(([stat, value]) => `${statLabel(stat)} +${statValue(stat, value)}`)
                 .join(" · ")}
             </p>
           </div>

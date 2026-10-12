@@ -8,14 +8,9 @@ import { useHeroes } from "../lib/queries/heroes";
 import { useFeedArtifact, useInventory, useRaiseMastery, useRepairArtifact } from "../lib/queries/inventory";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityKey, rarityLabel, rarityStyle } from "../lib/rarity";
+import { statLabel, statValue } from "../lib/statNames";
 
 const RARITY_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
-
-const STAT_LABELS: Record<string, string> = {
-  Attack: "Атака",
-  Defense: "Захист",
-  Health: "Здоров'я",
-};
 
 interface RowProps {
   equipment: EquipmentResponse;
@@ -242,8 +237,8 @@ export default function ForgePage() {
               <dl className="grid grid-cols-3 gap-1 text-sm">
                 {Object.entries(selected.stats).map(([stat, value]) => (
                   <div key={stat} className="rounded bg-slate-50 px-2 py-1">
-                    <dt className="text-xs text-slate-500">{STAT_LABELS[stat] ?? stat}</dt>
-                    <dd className="font-medium text-slate-800">{Math.round(value)}</dd>
+                    <dt className="text-xs text-slate-500">{statLabel(stat)}</dt>
+                    <dd className="font-medium text-slate-800">{statValue(stat, value)}</dd>
                   </div>
                 ))}
               </dl>

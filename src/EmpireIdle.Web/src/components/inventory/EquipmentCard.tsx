@@ -4,7 +4,7 @@ import type { EquipmentResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import type { HeroSummary } from "../../lib/queries/heroes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
-import { statLabel } from "../../lib/statNames";
+import { statLabel, statValue } from "../../lib/statNames";
 import ItemIcon from "./ItemIcon";
 
 interface Props {
@@ -73,7 +73,7 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
         {Object.entries(equipment.stats).map(([stat, value]) => (
           <div key={stat} className="rounded bg-slate-50 px-2 py-1">
             <dt className="text-xs text-slate-500">{statLabel(stat)}</dt>
-            <dd className="font-medium text-slate-800">{Math.round(value)}</dd>
+            <dd className="font-medium text-slate-800">{statValue(stat, value)}</dd>
           </div>
         ))}
       </dl>
