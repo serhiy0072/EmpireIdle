@@ -103,6 +103,60 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
+    // Книга вміння атаки: червона обкладинка з клинком. Стоїть до «attack|war» — інакше
+    // skill_book_warrior_* ловив би хрест атаки
+    test: /skill_book.*attack/,
+    draw: () => (
+      <g>
+        <path d="M28 24 L66 24 Q72 24 72 30 L72 78 L34 78 Q28 78 28 72 Z" fill="#dc2626" stroke="#7f1d1d" strokeWidth={2.5} />
+        <path d="M34 72 L72 72 L72 78 L34 78 Q28 78 28 72 Q28 66 34 72 Z" fill="#fef3c7" />
+        <path d="M50 32 L50 58 M43 52 L57 52" stroke="#fef3c7" strokeWidth={4} strokeLinecap="round" />
+      </g>
+    ),
+  },
+  {
+    // Книга вміння захисту: синя обкладинка зі щитом
+    test: /skill_book.*defense/,
+    draw: () => (
+      <g>
+        <path d="M28 24 L66 24 Q72 24 72 30 L72 78 L34 78 Q28 78 28 72 Z" fill="#2563eb" stroke="#1e3a8a" strokeWidth={2.5} />
+        <path d="M34 72 L72 72 L72 78 L34 78 Q28 78 28 72 Q28 66 34 72 Z" fill="#fef3c7" />
+        <path d="M50 32 L60 36 L58 50 Q55 57 50 60 Q45 57 42 50 L40 36 Z" fill="#fef3c7" />
+      </g>
+    ),
+  },
+  {
+    // Універсальний уламок героя: кристал
+    test: /shard/,
+    draw: () => (
+      <g>
+        <path d="M50 18 L70 40 L60 80 L40 80 L30 40 Z" fill="#c4b5fd" stroke="#5b21b6" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M50 18 L56 40 L50 80 L44 40 Z" fill="#ede9fe" />
+      </g>
+    ),
+  },
+  {
+    // Гаєчка — досвід рівня артефакта
+    test: /wrench/,
+    draw: () => (
+      <g>
+        <path d="M30 70 L56 44" stroke="#64748b" strokeWidth={10} strokeLinecap="round" />
+        <path d="M54 30 Q66 20 76 30 L66 36 L64 44 L72 46 L78 38 Q80 54 62 52 Z" fill="#94a3b8" stroke="#334155" strokeWidth={2.5} strokeLinejoin="round" />
+      </g>
+    ),
+  },
+  {
+    // Ремкомплект: скринька з хрестом
+    test: /repair/,
+    draw: () => (
+      <g>
+        <rect x={24} y={36} width={52} height={38} rx={5} fill="#f59e0b" stroke="#78350f" strokeWidth={2.5} />
+        <path d="M40 36 L40 28 L60 28 L60 36" fill="none" stroke="#78350f" strokeWidth={3} />
+        <path d="M50 44 L50 66 M39 55 L61 55" stroke="#fffbeb" strokeWidth={6} strokeLinecap="round" />
+      </g>
+    ),
+  },
+  {
     // Прискорення — подвійний шеврон, як у грі: тривалість пише плитка, а не іконка
     test: /speedup/,
     draw: () => (
@@ -223,6 +277,10 @@ const BY_TYPE: Record<string, RegExp> = {
   heroxp: /hero_xp/,
   energy: /energy/,
   lootbox: /chest/,
+  weaponchest: /chest/,
+  universalshard: /shard/,
+  wrench: /wrench/,
+  repairkit: /repair/,
 };
 
 export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false }: Props): ReactElement {
