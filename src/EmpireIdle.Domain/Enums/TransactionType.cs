@@ -10,8 +10,8 @@ namespace EmpireIdle.Domain.Enums
         GemPurchase = 0,
 
         GemSpend = 1,
-        SealEarned = 2,
-        SealSpend = 3,
+
+        // 2 і 3 — колишні печатки призову (прибрані 12.10.2026); номери не перевикористовуються
 
         /// <summary>Gems із нагороди (квест, лист, подія) — не купівля.</summary>
         GemReward = 4

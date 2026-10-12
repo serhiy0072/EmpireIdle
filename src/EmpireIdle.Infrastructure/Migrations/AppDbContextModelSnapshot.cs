@@ -2003,11 +2003,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("GemBalance");
 
-                    b.Property<int>("SealBalance")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 

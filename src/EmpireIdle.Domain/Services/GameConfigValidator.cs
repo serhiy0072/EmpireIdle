@@ -1037,8 +1037,6 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"HeroSettings.EvolutionItemKeys reference unknown items: {string.Join(", ", unknownItems)}.");
 
-            // Надлишок понад стелю сузір'я стає печатками призову. Забутий ранг означав би,
-            // що дублікат зникає без сліду — саме те, чого ми уникали.
             // Зірки (GDD §6.1): ціна кожної частинки, інакше заповнення впало б на першій дірці
             if (settings.SummonShards < 1)
                 throw new InvalidOperationException("HeroSettings.SummonShards must be at least 1 — summoning would be free.");
@@ -1580,8 +1578,8 @@ namespace EmpireIdle.Domain.Services
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' has no {rarity} {banner.Kind} drop — its pity could never pay out.");
 
-                if (banner.PriceGems <= 0 && banner.PriceSeals <= 0)
-                    throw new InvalidOperationException($"Banner '{banner.Key}' has no price in gems nor in seals.");
+                if (banner.PriceGems <= 0)
+                    throw new InvalidOperationException($"Banner '{banner.Key}' has no price in gems.");
 
                 // Стандартний банер — без промо за визначенням: рівні шанси на будь-кого
                 if (banner.Kind == BannerKind.Standard && banner.FeaturedKey is not null)

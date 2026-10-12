@@ -109,7 +109,6 @@
           "Kind": "Hero",
           "PityGroup": "hero",
           "PriceGems": 1000,
-          "PriceSeals": 100,
           "RarePity": 10,
           "UniquePity": 50,
           "RequiresServerLevel": 1,
@@ -971,7 +970,6 @@
           "Kind": "Hero",
           "PityGroup": "hero",
           "PriceGems": 1000,
-          "PriceSeals": 100,
           "RarePity": 10,
           "UniquePity": 50,
           "RequiresServerLevel": 2,
@@ -1833,7 +1831,6 @@
           "Kind": "Standard",
           "PityGroup": "standard",
           "PriceGems": 1200,
-          "PriceSeals": 60,
           "RarePity": 10,
           "UniquePity": 60,
           "Drops": [
