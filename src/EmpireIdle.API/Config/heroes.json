@@ -64,8 +64,8 @@
         "Unique": [5, 9, 14, 20, 28]
       },
       "WeaponShardPriceGems": {
-        "Common": 250,
-        "Rare": 750
+        "Common": 1000,
+        "Rare": 1500
       },
       "UniversalShardUpgrade": {
         "Common": 100,
@@ -242,14 +242,14 @@
           30
         ],
         "ExtraSlotPricesGems": [
-          100,
-          200,
-          300,
-          400,
-          500
+          1000,
+          1200,
+          1400,
+          1700,
+          2000
         ],
         "SlotCooldownHours": 24,
-        "SkipCooldownGems": 50
+        "SkipCooldownGems": 1000
       },
       "RoleUnits": {
         "warrior": "infantry",

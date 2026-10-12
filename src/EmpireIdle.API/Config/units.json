@@ -4,7 +4,7 @@
       {
         "Key": "infantry",
         "DisplayName": "Піхота",
-        "RecoverCostGems": 1,
+        "RecoverCostGems": 10,
         "Cost": [
           {
             "Resource": "gold",
@@ -24,7 +24,7 @@
       {
         "Key": "archer",
         "DisplayName": "Лучники",
-        "RecoverCostGems": 1,
+        "RecoverCostGems": 10,
         "Cost": [
           {
             "Resource": "gold",
@@ -48,7 +48,7 @@
       {
         "Key": "cavalry",
         "DisplayName": "Кіннота",
-        "RecoverCostGems": 1,
+        "RecoverCostGems": 10,
         "Cost": [
           {
             "Resource": "gold",

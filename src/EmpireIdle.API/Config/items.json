@@ -1743,7 +1743,7 @@
       "MasterySuccessChances": [ 1, 1, 1, 1, 1, 0.95, 0.9, 0.9, 0.85, 0.85, 0.8, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4 ],
       "MasteryBreakChances": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1, 0.1, 0.1, 0.1 ],
       "BrokenStatShare": 0.5,
-      "RepairGemsPerMastery": 50,
+      "RepairGemsPerMastery": 100,
       "RepairKitItemKey": "repair_kit",
       "SetBonuses": [
         {

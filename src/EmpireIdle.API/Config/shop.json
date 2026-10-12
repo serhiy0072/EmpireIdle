@@ -5,28 +5,28 @@
         {
           "Key": "pack_small",
           "DisplayName": "Жменя самоцвітів",
-          "Gems": 100,
+          "Gems": 1000,
           "PriceCents": 99,
           "BonusPercent": 0
         },
         {
           "Key": "pack_medium",
           "DisplayName": "Мішечок самоцвітів",
-          "Gems": 550,
+          "Gems": 5500,
           "PriceCents": 499,
           "BonusPercent": 10
         },
         {
           "Key": "pack_large",
           "DisplayName": "Скриня самоцвітів",
-          "Gems": 1200,
+          "Gems": 12000,
           "PriceCents": 999,
           "BonusPercent": 20
         },
         {
           "Key": "pack_huge",
           "DisplayName": "Сховище самоцвітів",
-          "Gems": 6500,
+          "Gems": 65000,
           "PriceCents": 4999,
           "BonusPercent": 30
         }
@@ -34,14 +34,14 @@
       "Items": [
         {
           "ItemKey": "hero_essence_t2",
-          "PriceGems": 300,
+          "PriceGems": 1000,
           "MaxPerPurchase": 5,
           "ServerLevel": 2,
           "WindowDays": 14
         },
         {
           "ItemKey": "hero_essence_t3",
-          "PriceGems": 900,
+          "PriceGems": 2000,
           "MaxPerPurchase": 5,
           "ServerLevel": 3,
           "WindowDays": 14
@@ -68,7 +68,7 @@
         },
         {
           "ItemKey": "chest_boosts",
-          "PriceGems": 600,
+          "PriceGems": 1000,
           "MaxPerPurchase": 100
         },
         {
@@ -88,7 +88,7 @@
         },
         {
           "ItemKey": "beast_feed",
-          "PriceGems": 1,
+          "PriceGems": 10,
           "MaxPerPurchase": 100
         }
       ],
