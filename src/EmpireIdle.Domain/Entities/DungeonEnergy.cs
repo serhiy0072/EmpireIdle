@@ -18,6 +18,12 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime RefreshedAt { get; private set; }
 
+        /// <summary>Доба UTC, за яку рахується <see cref="RefillsOnDay"/>; null — поповнень ще не було.</summary>
+        public DateOnly? RefillDay { get; private set; }
+
+        /// <summary>Скільки разів шкалу доливали за gems у добу <see cref="RefillDay"/>.</summary>
+        public int RefillsOnDay { get; private set; }
+
         public uint Version { get; private set; }
 
         public DungeonEnergy(Guid id, Guid playerId, int amount, DateTime utcNow) : base(id)
@@ -86,6 +92,45 @@ namespace EmpireIdle.Domain.Entities
 
             Accrue(maxEnergy, regenHours, utcNow);
             Amount = Math.Max(Amount, Math.Min(maxEnergy, Amount + amount));
+        }
+
+        /// <summary>Скільки поповнень за gems уже було цієї доби UTC: нова доба починає з нуля.</summary>
+        public int RefillsToday(DateTime utcNow)
+            => RefillDay == DateOnly.FromDateTime(utcNow) ? RefillsOnDay : 0;
+
+        /// <summary>
+        /// Поповнення за gems (рішення 12.10.2026): доливає шкалу до стелі, не вище, і не частіше
+        /// dailyLimit разів за добу UTC. Повна шкала не поповнюється — gems згоріли б даремно.
+        /// Ціну за номером поповнення рахує той, хто списує gems: агрегат знає лише лічильник.
+        /// </summary>
+        public void RefillToCap(int maxEnergy, double regenHours, int dailyLimit, DateTime utcNow)
+        {
+            EnsureRefillable(maxEnergy, regenHours, dailyLimit, utcNow);
+
+            var today = RefillsToday(utcNow);
+
+            Accrue(maxEnergy, regenHours, utcNow);
+            Amount = maxEnergy;
+            RefillDay = DateOnly.FromDateTime(utcNow);
+            RefillsOnDay = today + 1;
+        }
+
+        /// <summary>
+        /// Чи можна зараз поповнити: окремо від самого поповнення, щоб команда перевірила
+        /// до списання gems, а не після.
+        /// </summary>
+        public void EnsureRefillable(int maxEnergy, double regenHours, int dailyLimit, DateTime utcNow)
+        {
+            var current = Current(maxEnergy, regenHours, utcNow);
+
+            if (current >= maxEnergy)
+                throw new InvalidStateException(RefusalReasons.DungeonEnergyFull, $"Dungeon energy is already {current} of {maxEnergy}.");
+
+            var today = RefillsToday(utcNow);
+
+            if (today >= dailyLimit)
+                throw new RequirementNotMetException(RefusalReasons.DungeonRefillLimit,
+                    $"Dungeon energy was refilled {today} times today, the limit is {dailyLimit}.", dailyLimit);
         }
 
         /// <summary>Банка енергії (рішення 11.10.2026): нараховує без стелі.</summary>

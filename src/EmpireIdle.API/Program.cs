@@ -138,6 +138,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Market.GoldPerGem > 0 && c.Market.GoldPerPower.Values.All(v => v > 0), "GameConfig.Market anchors must be positive.")
     .Validate(c => c.HeroSettings.MonsterExperiencePerLevel >= 0, "GameConfig.HeroSettings.MonsterExperiencePerLevel must not be negative.")
     .Validate(c => c.Dungeons.HeroExperiencePerRun >= 0, "GameConfig.Dungeons.HeroExperiencePerRun must not be negative.")
+    .Validate(c => c.Dungeons.RefillPricesGems.All(p => p > 0) && c.Dungeons.RefillPricesGems.Zip(c.Dungeons.RefillPricesGems.Skip(1)).All(p => p.First <= p.Second),
+        "GameConfig.Dungeons.RefillPricesGems must be positive and must not fall from one refill to the next.")
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
     .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
     .ValidateOnStart();

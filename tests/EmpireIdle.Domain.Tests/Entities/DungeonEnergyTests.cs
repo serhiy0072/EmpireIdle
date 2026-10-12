@@ -172,4 +172,58 @@ public class DungeonEnergyTests
 
         Assert.Equal(130, energy.Current(Max, RegenHours, Now));
     }
+
+    /// <summary>Поповнення за gems доливає саме до стелі й рахує раз на добу.</summary>
+    [Fact]
+    public void RefillToCap_ShouldFillToTheCap_AndCountTheRefill()
+    {
+        var energy = Energy(20);
+
+        energy.RefillToCap(Max, RegenHours, dailyLimit: 5, Now);
+
+        Assert.Equal(Max, energy.Current(Max, RegenHours, Now));
+        Assert.Equal(1, energy.RefillsToday(Now));
+    }
+
+    /// <summary>Повна шкала — відмова: gems згоріли б даремно. І понад стелю від банок теж.</summary>
+    [Theory]
+    [InlineData(Max)]
+    [InlineData(Max + 30)]
+    public void RefillToCap_ShouldRefuse_WhenTheScaleIsFull(int amount)
+    {
+        var energy = Energy(amount);
+
+        var refusal = Assert.Throws<InvalidStateException>(() => energy.RefillToCap(Max, RegenHours, dailyLimit: 5, Now));
+
+        Assert.Equal(RefusalReasons.DungeonEnergyFull.Key, refusal.Reason);
+    }
+
+    /// <summary>Денний ліміт вичерпано — відмова до нової доби UTC.</summary>
+    [Fact]
+    public void RefillToCap_ShouldRefuse_OverTheDailyLimit()
+    {
+        var energy = Energy(0);
+        energy.RefillToCap(Max, RegenHours, dailyLimit: 1, Now);
+        energy.Spend(Max, Max, RegenHours, Now);
+
+        var refusal = Assert.Throws<RequirementNotMetException>(() =>
+            energy.RefillToCap(Max, RegenHours, dailyLimit: 1, Now.AddMinutes(1)));
+
+        Assert.Equal(RefusalReasons.DungeonRefillLimit.Key, refusal.Reason);
+    }
+
+    /// <summary>Нова доба UTC починає лічильник поповнень із нуля.</summary>
+    [Fact]
+    public void RefillsToday_ShouldResetOnANewUtcDay()
+    {
+        var energy = Energy(0);
+        energy.RefillToCap(Max, RegenHours, dailyLimit: 1, Now);
+        energy.Spend(Max, Max, RegenHours, Now);
+
+        var tomorrow = Now.Date.AddDays(1);
+        energy.RefillToCap(Max, RegenHours, dailyLimit: 1, tomorrow);
+
+        Assert.Equal(1, energy.RefillsToday(tomorrow));
+        Assert.Equal(0, energy.RefillsToday(tomorrow.AddDays(1)));
+    }
 }

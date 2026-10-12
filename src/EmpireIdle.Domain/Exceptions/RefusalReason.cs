@@ -420,6 +420,12 @@
         /// <summary>Ціль закрита передньою лінією або провокацією.</summary>
         public static readonly RefusalReason DungeonTargetUnreachable = new("dungeon.targetUnreachable");
 
+        /// <summary>Шкала енергії вже повна — поповнювати за gems нічого.</summary>
+        public static readonly RefusalReason DungeonEnergyFull = new("dungeon.energyFull");
+
+        /// <summary>Поповнень за gems на сьогодні більше немає.</summary>
+        public static readonly RefusalReason DungeonRefillLimit = new("dungeon.refillLimit", "limit");
+
         // ---------- Звірі ----------
 
         /// <summary>Звіринець ще не відкритий: приручати нікуди.</summary>

@@ -12,6 +12,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>За скільки годин шкала заповнюється з нуля до стелі.</summary>
         public double RegenHours { get; set; } = 20;
 
+        /// <summary>
+        /// Ціни поповнення енергії до стелі за gems (рішення 12.10.2026): n-те поповнення доби UTC
+        /// коштує n-ту ціну, кількість цін — денний ліміт. Порожньо — поповнення вимкнене.
+        /// </summary>
+        public List<int> RefillPricesGems { get; set; } = new();
+
         /// <summary>Скільки енергії з'їдає один забіг — незалежно від рівня.</summary>
         public int EnergyPerRun { get; set; } = 10;
 

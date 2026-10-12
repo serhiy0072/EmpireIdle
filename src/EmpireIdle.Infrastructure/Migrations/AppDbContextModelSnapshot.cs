@@ -892,6 +892,12 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("RefillDay")
+                        .HasColumnType("date");
+
+                    b.Property<int>("RefillsOnDay")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("RefreshedAt")
                         .HasColumnType("timestamp with time zone");
 

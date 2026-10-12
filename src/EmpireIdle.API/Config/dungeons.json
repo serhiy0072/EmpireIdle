@@ -4,6 +4,7 @@
       "MaxEnergy": 100,
       "RegenHours": 20,
       "EnergyPerRun": 10,
+      "RefillPricesGems": [ 1000, 1200, 1400, 1700, 2000 ],
       "TeamSize": 4,
       "FrontLineClasses": [
         "warrior",

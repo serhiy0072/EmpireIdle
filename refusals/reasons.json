@@ -122,12 +122,16 @@
   "common.buildingRequired": [
     "building"
   ],
+  "dungeon.energyFull": [],
   "dungeon.heroWounded": [
     "hero"
   ],
   "dungeon.levelLocked": [
     "level",
     "previous"
+  ],
+  "dungeon.refillLimit": [
+    "limit"
   ],
   "dungeon.runInProgress": [],
   "dungeon.targetUnreachable": [],

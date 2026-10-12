@@ -225,6 +225,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "dungeon.heroWounded": ({ hero }) => `${hero} зараз у госпіталі — оберіть іншого героя`,
   "dungeon.runInProgress": () => "У вас уже є незавершений забіг — поверніться до нього",
   "dungeon.targetUnreachable": () => "Цю ціль зараз не дістати: спершу бийте передню лінію або того, хто провокує",
+  "dungeon.energyFull": () => "Енергія вже повна — поповнювати нічого",
+  "dungeon.refillLimit": ({ limit }) => `Сьогодні енергію вже поповнено ${limit} разів — нові поповнення з опівночі UTC`,
 
   // ---------- Звірі ----------
   "beast.penMissing": () => "Приручати нікуди: спершу відкрийте звіринець",
