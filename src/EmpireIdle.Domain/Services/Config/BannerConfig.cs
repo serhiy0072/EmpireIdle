@@ -10,7 +10,7 @@ namespace EmpireIdle.Domain.Services.Config
     /// </summary>
     public class BannerConfig
     {
-        /// <summary>Ключ конкретного банера, наприклад "dawn_2026_09".</summary>
+        /// <summary>Ключ конкретного банера, наприклад "event_world_1".</summary>
         public string Key { get; set; } = null!;
 
         public string DisplayName { get; set; } = null!;
