@@ -27,6 +27,20 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<DungeonsOverview>> GetDungeons(Guid playerId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new GetDungeonsQuery(playerId), cancellationToken));
 
+        /// <summary>
+        /// Поповнює енергію до стелі за gems; ціна росте з кожним поповненням доби UTC.
+        /// Повертає оновлену вітрину. Ідемпотентна за заголовком Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/energy/refill")]
+        [ProducesResponseType(typeof(DungeonsOverview), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<DungeonsOverview>> RefillEnergy(Guid playerId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RefillDungeonEnergyCommand(playerId), cancellationToken);
+
+            return Ok(await _mediator.Send(new GetDungeonsQuery(playerId), cancellationToken));
+        }
+
         /// <summary>Незавершений забіг із повним станом бою; 204 — забігу немає.</summary>
         [HttpGet("{playerId:guid}/run")]
         [ProducesResponseType(typeof(DungeonRunView), StatusCodes.Status200OK)]

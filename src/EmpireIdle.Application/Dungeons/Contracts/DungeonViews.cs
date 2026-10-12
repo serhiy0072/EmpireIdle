@@ -3,6 +3,8 @@ using EmpireIdle.Domain.Dungeons;
 namespace EmpireIdle.Application.Dungeons.Contracts
 {
     /// <summary>Вітрина данжів: що доступно, за скільки й що з нього падає.</summary>
+    /// <param name="RefillPriceGems">Ціна наступного поповнення енергії до стелі; null — на сьогодні поповнень не лишилось.</param>
+    /// <param name="RefillsLeft">Скільки поповнень за gems ще можна зробити до кінця доби UTC.</param>
     public record DungeonsOverview(
         int Energy,
         int MaxEnergy,
@@ -10,7 +12,9 @@ namespace EmpireIdle.Application.Dungeons.Contracts
         DateTime? EnergyFullAt,
         int TeamSize,
         Guid? ActiveRunId,
-        IReadOnlyList<DungeonView> Dungeons);
+        IReadOnlyList<DungeonView> Dungeons,
+        int? RefillPriceGems,
+        int RefillsLeft);
 
     /// <param name="ClearedLevel">Найвищий зачищений рівень; 0 — данж ще не пройдено.</param>
     /// <param name="UnlockedLevel">Найвищий доступний рівень: пройдений плюс один.</param>
