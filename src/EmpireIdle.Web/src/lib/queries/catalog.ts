@@ -22,6 +22,7 @@ export type CatalogSetRarity = components["schemas"]["CatalogSetRarity"];
 export type CatalogArtifactSlot = components["schemas"]["CatalogArtifactSlot"];
 export type CatalogLootbox = components["schemas"]["CatalogLootbox"];
 export type CatalogArtifactRepair = components["schemas"]["CatalogArtifactRepair"];
+export type CatalogMasteryAttempt = components["schemas"]["CatalogMasteryAttempt"];
 
 export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
@@ -68,6 +69,8 @@ export interface Catalog {
   maxMastery: number;
   /** Накопичений досвід, з яким артефакт стає рівня n (індекс — рівень). */
   artifactLevelExperience: number[];
+  /** Ціна в золоті й шанс успіху спроби з кожної поточної майстерності (індекс 0 — спроба на +1). */
+  masteryAttempts: CatalogMasteryAttempt[];
   /** Ціна ремонту й шанси поломки на кожну заточку. */
   artifactRepair: CatalogArtifactRepair;
   /** Сторона світової мапи в клітинах. */
@@ -164,6 +167,7 @@ export function useCatalog(): Catalog {
       maxArtifactLevel: data?.maxArtifactLevel ?? 20,
       maxMastery: data?.maxMastery ?? 10,
       artifactLevelExperience: data?.artifactLevelExperience ?? [],
+      masteryAttempts: data?.masteryAttempts ?? [],
       artifactRepair: data?.artifactRepair ?? { gemsPerMastery: 0, kitItemKey: "repair_kit", breakChances: [] },
       mapSize: data?.mapSize ?? 500,
       mainBuildingKey: data?.mainBuildingKey ?? "townhall",

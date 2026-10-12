@@ -136,6 +136,7 @@ export default function ForgePage() {
   const kits = inventory.data.items.find((item) => item.itemKey === catalog.artifactRepair.kitItemKey)?.count ?? 0;
   // Спроба на +n має шанс поломки з індексом n − 1: зараз це наступна заточка
   const breakChance = catalog.artifactRepair.breakChances[selected?.mastery ?? 0] ?? 0;
+  const attempt = catalog.masteryAttempts[selected?.mastery ?? 0] ?? null;
 
   // Рівень після обраного — та сама крива, що на сервері
   const levelAfter = (() => {
@@ -410,8 +411,13 @@ export default function ForgePage() {
                       disabled={busy}
                       className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
                     >
-                      Спробувати за золото
+                      {attempt === null
+                        ? "Спробувати за золото"
+                        : `Спробувати за ${attempt.gold.toLocaleString("uk-UA")} 🪙 · шанс ${Math.round(attempt.chance * 100)}%`}
                     </button>
+                    {attempt !== null && (
+                      <p className="text-xs text-slate-500">Невдача з'їдає золото, майстерність не падає.</p>
+                    )}
                   </>
                 ) : (
                   <p className="text-xs text-slate-500">Найвища майстерність.</p>
