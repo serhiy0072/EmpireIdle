@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Application.Catalog
 {
@@ -172,6 +173,7 @@ namespace EmpireIdle.Application.Catalog
                     .Select(new ArtifactProgression(config.Equipment).ExperienceToReach)
                     .ToList(),
                 config.Equipment.MaxMastery,
+                MasteryAttempts(config.Equipment),
                 new CatalogArtifactRepair(config.Equipment.RepairGemsPerMastery, config.Equipment.RepairKitItemKey,
                     config.Equipment.MasteryBreakChances),
                 new CatalogSpeedUp(
@@ -185,6 +187,16 @@ namespace EmpireIdle.Application.Catalog
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag
             return response with { Version = Hash(response) };
+        }
+
+        /// <summary>Ціна й шанс кожної спроби заточки — правилами коваля, без копії формули.</summary>
+        private static List<CatalogMasteryAttempt> MasteryAttempts(EquipmentConfig equipment)
+        {
+            var rules = new MasteryRules(equipment);
+
+            return Enumerable.Range(0, equipment.MaxMastery)
+                .Select(mastery => new CatalogMasteryAttempt(rules.Cost(mastery), rules.SuccessChance(mastery)))
+                .ToList();
         }
 
         /// <summary>

@@ -9963,6 +9963,24 @@
         },
         "additionalProperties": false
       },
+      "CatalogMasteryAttempt": {
+        "required": [
+          "chance",
+          "gold"
+        ],
+        "type": "object",
+        "properties": {
+          "gold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chance": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogPosition": {
         "required": [
           "x",
@@ -10017,6 +10035,7 @@
           "lootboxes",
           "mainBuildingKey",
           "mapSize",
+          "masteryAttempts",
           "maxArtifactLevel",
           "maxMastery",
           "maxSkillLevel",
@@ -10154,6 +10173,12 @@
           "maxMastery": {
             "type": "integer",
             "format": "int32"
+          },
+          "masteryAttempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogMasteryAttempt"
+            }
           },
           "artifactRepair": {
             "$ref": "#/components/schemas/CatalogArtifactRepair"

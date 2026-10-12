@@ -77,6 +77,21 @@ public class GameCatalogProjectionTests
         Assert.Equal(progression.ExperienceToReach(config.Equipment.MaxLevel), curve[^1]);
     }
 
+    /// <summary>Кнопка заточки показує ціну й шанс кожної спроби — від спроби на +1 до стелі.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheMasteryAttempts()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        var rules = new MasteryRules(config.Equipment);
+
+        var attempts = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).MasteryAttempts;
+
+        Assert.Equal(config.Equipment.MaxMastery, attempts.Count);
+        Assert.Equal((rules.Cost(0), rules.SuccessChance(0)), (attempts[0].Gold, attempts[0].Chance));
+        Assert.Equal((rules.Cost(config.Equipment.MaxMastery - 1), rules.SuccessChance(config.Equipment.MaxMastery - 1)),
+            (attempts[^1].Gold, attempts[^1].Chance));
+    }
+
     /// <summary>Кузня показує ціну ремонту й попереджає про поломку тими самими числами, що й сервер.</summary>
     [Fact]
     public void Response_ShouldCarryTheArtifactRepair()
