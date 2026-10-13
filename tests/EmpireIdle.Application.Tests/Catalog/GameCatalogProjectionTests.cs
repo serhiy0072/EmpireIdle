@@ -224,6 +224,21 @@ public class GameCatalogProjectionTests
         Assert.All(response.Units, unit => Assert.NotEmpty(unit.Cost));
     }
 
+    /// <summary>Табір показує місткість своєї будівлі — від першого рівня до останнього, по одній на рівень.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheUnitCapacityOfEveryBuildingLevel()
+    {
+        var config = new GameConfigBuilder().WithBuildings().WithUnits().Build();
+        config.UnitCapacityMin = 1500;
+        config.UnitCapacityMax = 300_000;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null);
+
+        Assert.Equal(config.MaxBuildingLevel, response.UnitCapacities.Count);
+        Assert.Equal(1500, response.UnitCapacities[0]);
+        Assert.Equal(300_000, response.UnitCapacities[^1]);
+    }
+
     /// <summary>Екран табору показує показники юніта — стати 1 рівня доходять до клієнта як є.</summary>
     [Fact]
     public void Response_ShouldCarryTheUnitStats()

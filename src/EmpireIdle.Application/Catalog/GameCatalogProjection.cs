@@ -168,6 +168,10 @@ namespace EmpireIdle.Application.Catalog
                 Enumerable.Range(1, config.MaxBuildingLevel)
                     .Select(level => ProgressionCurves.UnitBatchSize(level, config.MaxBuildingLevel, config.UnitBatchMin, config.UnitBatchMax))
                     .ToList(),
+                // Місткість будівлі юнітів за її рівнем: індекс 0 — рівень 1
+                Enumerable.Range(1, config.MaxBuildingLevel)
+                    .Select(level => ProgressionCurves.UnitCapacity(level, config.MaxBuildingLevel, config.UnitCapacityMin, config.UnitCapacityMax))
+                    .ToList(),
                 config.Monetization.HealGemsPerUnit,
                 config.Equipment.ArtifactSlots
                     .Select(slot => new CatalogArtifactSlot(slot.Key, Name("artifactSlot", slot.Key, slot.DisplayName)))

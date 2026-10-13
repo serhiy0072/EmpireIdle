@@ -91,7 +91,9 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 throw new RequirementNotMetException(RefusalReasons.GarrisonUnitLevelCeiling,
                     $"Unit level {request.Level} is above the town hall ceiling {levelCeiling}.", levelCeiling);
 
-            var armyCapacity = trainingBuilding.Level.Value * _catalog.Config.ArmyCapacityPerBarracksLevel;
+            // У кожної будівлі юнітів своя місткість від її рівня (рішення 13.10.2026)
+            var armyCapacity = ProgressionCurves.UnitCapacity(trainingBuilding.Level.Value, _catalog.Config.MaxBuildingLevel,
+                _catalog.Config.UnitCapacityMin, _catalog.Config.UnitCapacityMax);
 
             // Тренування з нуля на обраний рівень коштує суму кроків від 1 до нього —
             // так само, як прокачка вже навченого юніта (§5.2 GDD)
@@ -118,7 +120,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             _logger.LogInformation(
                 "Training {Count} x {UnitType} started for village {VillageId} (player {PlayerId}), capacity {Used}/{Capacity}",
                 request.Count, request.UnitType, village.Id, request.PlayerId,
-                garrison.Units.Sum(u => u.Count), armyCapacity);
+                garrison.Units.Where(u => queue.Contains(u.UnitType)).Sum(u => u.Count), armyCapacity);
         }
     }
 }

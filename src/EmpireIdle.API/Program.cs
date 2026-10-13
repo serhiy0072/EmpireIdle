@@ -140,6 +140,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Dungeons.HeroExperiencePerRun >= 0, "GameConfig.Dungeons.HeroExperiencePerRun must not be negative.")
     .Validate(c => c.UnitBatchMin >= 1 && c.UnitBatchMax >= c.UnitBatchMin,
         "GameConfig.UnitBatchMin must be at least 1 and not above UnitBatchMax.")
+    .Validate(c => c.UnitCapacityMin >= c.UnitBatchMax && c.UnitCapacityMax >= c.UnitCapacityMin,
+        "GameConfig.UnitCapacityMin must hold a full batch and not exceed UnitCapacityMax.")
     .Validate(c => c.Beasts.FoodUpkeep is { PerPenLevelPerHour: >= 0, PerBeastPerHour: >= 0, PerBeastLevelPerHour: >= 0 }
             && c.Beasts.FoodUpkeep.HungerDefenceMultiplier is > 0 and <= 1
             && c.Beasts.FoodUpkeep.HungerProductionMultiplier is > 0 and <= 1,

@@ -125,8 +125,11 @@ namespace EmpireIdle.Domain.Entities
         /// зняте на тренування чи прокачку. Марші й чужі підкріплення сюди
         /// не входять (§5.3, §5.2 GDD).
         /// </summary>
-        private int Occupied()
-            => _units.Sum(u => u.Count) + _trainingOrders.Sum(o => o.Count) + _levelUpOrders.Sum(o => o.Count);
+        /// <summary>Скільки місць займають юніти цих типів: у гарнізоні, на тренуванні й на прокачці.</summary>
+        private int Occupied(IReadOnlyCollection<string> unitTypes)
+            => _units.Where(u => unitTypes.Contains(u.UnitType)).Sum(u => u.Count)
+               + _trainingOrders.Where(o => unitTypes.Contains(o.UnitType)).Sum(o => o.Count)
+               + _levelUpOrders.Where(o => unitTypes.Contains(o.UnitType)).Sum(o => o.Count);
 
         #endregion
 
@@ -141,7 +144,8 @@ namespace EmpireIdle.Domain.Entities
         /// рівень, а не завжди на 1 (§5.2 GDD: "апати або створювати з нуля").
         /// </param>
         /// <param name="armyCapacity">
-        /// Скільки юнітів гарнізон може тримати. Рахується від рівня казарм.
+        /// Скільки юнітів типів цієї будівлі гарнізон може тримати — у кожної будівлі юнітів свій ліміт
+        /// від її рівня (рішення 13.10.2026), інші типи в нього не входять.
         /// Юніти в маршах у ліміт не входять: вони вже зняті з гарнізону, і
         /// перевіряти їх означало б тягнути в агрегат чужий стан. Чужі
         /// підкріплення теж не входять — у них свій ліміт від посольства.
@@ -162,7 +166,7 @@ namespace EmpireIdle.Domain.Entities
             if (_trainingOrders.Any(o => building.Contains(o.UnitType)))
                 throw new InvalidStateException(RefusalReasons.GarrisonTrainingBusy, "Barracks are already training a batch.");
 
-            var occupied = Occupied();
+            var occupied = Occupied(building);
 
             if (occupied + count > armyCapacity)
                 throw new RequirementNotMetException(RefusalReasons.GarrisonArmyCapacity,

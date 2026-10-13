@@ -9,7 +9,8 @@
       "food": 300
     },
     "ScanBatchSize": 500,
-    "ArmyCapacityPerBarracksLevel": 50,
+    "UnitCapacityMin": 1500,
+    "UnitCapacityMax": 300000,
     "DefaultServerId": 1,
     "ActiveServerIds": [ 1 ],
     "BuildingLevelsPerTier": 10

@@ -10388,6 +10388,7 @@
           "starPartBonus",
           "summonShards",
           "unitBatchSizes",
+          "unitCapacities",
           "units",
           "version",
           "weaponShardCosts"
@@ -10490,6 +10491,13 @@
             "format": "int32"
           },
           "unitBatchSizes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "unitCapacities": {
             "type": "array",
             "items": {
               "type": "integer",

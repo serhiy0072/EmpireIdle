@@ -50,6 +50,7 @@
         int MaxTier,
         int MaxUnitLevel,
         IReadOnlyList<int> UnitBatchSizes,
+        IReadOnlyList<int> UnitCapacities,
         int HealGemsPerUnit,
         IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
         int MaxArtifactLevel,

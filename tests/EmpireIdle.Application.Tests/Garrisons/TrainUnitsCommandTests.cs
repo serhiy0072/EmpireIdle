@@ -27,7 +27,8 @@ public class TrainUnitsCommandTests
     {
         UnitBatchMin = 50,
         UnitBatchMax = 50,
-        ArmyCapacityPerBarracksLevel = 20,
+        UnitCapacityMin = 20,
+        UnitCapacityMax = 100,
         Buildings =
         [
             new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 },
@@ -257,8 +258,8 @@ public class TrainUnitsCommandTests
     }
 
     /// <summary>
-    /// Ліміт армії від рівня казарм — те, що замінило населення.
-    /// Казарма 1 рівня × 20 = 20 юнітів.
+    /// Ліміт армії від рівня будівлі юніта — те, що замінило населення.
+    /// Казарма 1 рівня вміщує 20 юнітів.
     /// </summary>
     [Fact]
     public async Task Handle_ShouldReject_WhenArmyCapacityIsExceeded()
@@ -270,11 +271,11 @@ public class TrainUnitsCommandTests
         Assert.Equal(RefusalReasons.GarrisonArmyCapacity.Key, refusal.Reason);
     }
 
-    /// <summary>Вища казарма піднімає стелю армії.</summary>
+    /// <summary>Вища казарма піднімає стелю армії: на 30 рівні — 100 юнітів.</summary>
     [Fact]
     public async Task Handle_ShouldRaiseArmyCapacity_WithTheBuildingLevel()
     {
-        var (_, garrison) = GivenVillage(barracksLevel: 3);
+        var (_, garrison) = GivenVillage(barracksLevel: 30);
 
         await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 50), CancellationToken.None);
 

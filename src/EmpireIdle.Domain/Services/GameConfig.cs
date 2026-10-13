@@ -85,8 +85,14 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Квести з Config/quests.json — усі гілки: intro, military, milestones, daily, server.</summary>
         public List<QuestConfig> Quests { get; set; } = new();
 
-        /// <summary>Ліміт армії на рівень будівлі, що гейтить юніта; марші й поранені не рахуються.</summary>
-        public int ArmyCapacityPerBarracksLevel { get; set; }
+        /// <summary>
+        /// Скільки юнітів свого типу вміщує будівля першого рівня (рішення 13.10.2026): у кожної будівлі юнітів
+        /// свій ліміт, що росте геометрично до UnitCapacityMax на MaxBuildingLevel. Марші й поранені не рахуються.
+        /// </summary>
+        public int UnitCapacityMin { get; set; } = 1500;
+
+        /// <summary>Місткість будівлі юнітів максимального рівня.</summary>
+        public int UnitCapacityMax { get; set; } = 300_000;
 
         /// <summary>Скільки рівнів будівель відкриває один рівень сервера.</summary>
         public int BuildingLevelsPerTier { get; set; } = 10;

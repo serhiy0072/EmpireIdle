@@ -97,5 +97,15 @@ namespace EmpireIdle.Domain.Tests.Services
         [InlineData(40, 150)]
         public void UnitBatchSize_ShouldGrowFrom30To150_WithTheBuildingLevel(int level, int expected)
             => Assert.Equal(expected, ProgressionCurves.UnitBatchSize(level, maxLevel: 30, min: 30, max: 150));
+
+        /// <summary>Місткість будівлі юнітів — від 1 500 до 300 000 геометрично (рішення 13.10.2026).</summary>
+        [Theory]
+        [InlineData(0, 1500)]
+        [InlineData(1, 1500)]
+        [InlineData(15, 19361)]
+        [InlineData(30, 300000)]
+        [InlineData(40, 300000)]
+        public void UnitCapacity_ShouldGrowGeometricallyFrom1500To300000(int level, int expected)
+            => Assert.Equal(expected, ProgressionCurves.UnitCapacity(level, maxLevel: 30, min: 1500, max: 300_000));
     }
 }
