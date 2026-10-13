@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import type { EquipmentResponse, InventoryItemResponse } from "../../../lib/apiTypes";
 import { useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
-import { statLabel, statValue } from "../../../lib/statNames";
 import { GameButton, Tile } from "../../game/GameUi";
 import ItemIcon from "../../inventory/ItemIcon";
 import HeroPortrait from "../HeroPortrait";
+import EquipmentInfoModal from "./EquipmentInfoModal";
 import { WeaponDetails, WeaponSlot } from "./HeroWeapon";
 
 interface Props {
@@ -52,6 +51,8 @@ export default function HeroGearTab({
 }: Props) {
   const catalog = useCatalog();
   const [picked, setPicked] = useState<string | null>(null);
+  // Вдягнений предмет відкривається окремим вікном з прокачкою (референс 13.10.2026)
+  const [infoSlot, setInfoSlot] = useState<number | null>(null);
 
   const atHome = hero.stationedGarrisonId != null;
   const worn = equipment.filter((piece) => piece.equippedByHeroId === hero.id);
@@ -87,8 +88,11 @@ export default function HeroGearTab({
     ) : (
       <Tile
         rarity={piece.rarity}
-        selected={picked === slotId(slot)}
-        onClick={() => setPicked(slotId(slot))}
+        selected={infoSlot === slot.index}
+        onClick={() => {
+          setPicked(null);
+          setInfoSlot(slot.index);
+        }}
         title={catalog.itemName(piece.itemKey)}
         top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
       >
@@ -129,66 +133,52 @@ export default function HeroGearTab({
 
       {picked === WEAPON && <WeaponDetails playerId={playerId} hero={hero} config={config} items={items} />}
 
-      {pickedSlot !== null && (
+      {infoSlot !== null && (
+        <EquipmentInfoModal
+          playerId={playerId}
+          worn={[...worn].sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))}
+          slotIndex={infoSlot}
+          onSlot={setInfoSlot}
+          candidatesFor={(piece) => {
+            const slot = slots.find((candidate) => candidate.index === piece.slotIndex);
+            return slot === undefined ? [] : candidatesFor(slot);
+          }}
+          locked={!atHome}
+          busy={busy}
+          onEquip={onEquip}
+          onUnequip={onUnequip}
+          onClose={() => setInfoSlot(null)}
+        />
+      )}
+
+      {pickedSlot !== null && wornIn(pickedSlot) === null && (
         <SlotDetails
           slot={pickedSlot}
-          worn={wornIn(pickedSlot)}
           candidates={candidatesFor(pickedSlot)}
           disabled={busy || !atHome}
           onEquip={onEquip}
-          onUnequip={onUnequip}
         />
       )}
     </div>
   );
 }
 
+/** Порожній слот: вільне, що туди підходить. Вдягнене відкривається вікном EquipmentInfoModal. */
 function SlotDetails({
   slot,
-  worn,
   candidates,
   disabled,
   onEquip,
-  onUnequip,
 }: {
   slot: Slot;
-  worn: EquipmentResponse | null;
   candidates: EquipmentResponse[];
   disabled: boolean;
   onEquip: (equipmentId: string) => void;
-  onUnequip: (equipmentId: string) => void;
 }) {
   const catalog = useCatalog();
 
   return (
     <div className="space-y-3 rounded-xl bg-[#16305e]/80 p-3 ring-1 ring-[#335c9a]">
-      {worn !== null && (
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="font-semibold">
-              {catalog.itemName(worn.itemKey)}
-              {worn.level > 0 && <span className="text-amber-200"> · рів. {worn.level}</span>}
-              {worn.mastery > 0 && <span className="text-sky-200"> · майст. {worn.mastery}</span>}
-              <span className="text-amber-200"> · ⚔ {Math.round(worn.power).toLocaleString("uk-UA")}</span>
-              {worn.isBroken && <span className="text-rose-300"> · зламано</span>}
-            </p>
-            <p className="text-sm text-sky-100/90">
-              {Object.entries(worn.stats)
-                .map(([stat, value]) => `${statLabel(stat)} +${statValue(stat, value)}`)
-                .join(" · ")}
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1">
-            <GameButton onClick={() => onUnequip(worn.id)} disabled={disabled} variant="secondary">
-              Зняти
-            </GameButton>
-            <Link to={`/forge?item=${worn.id}`} className="text-xs text-sky-200 hover:underline">
-              {worn.isBroken ? "Відремонтувати →" : "Посилити →"}
-            </Link>
-          </div>
-        </div>
-      )}
-
       <p className="text-sm font-semibold">
         {slot.label}: {candidates.length === 0 ? "вільного спорядження немає" : "вільне, що підходить"}
       </p>
