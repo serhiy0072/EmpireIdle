@@ -31,6 +31,45 @@
         ]
       },
       {
+        "Key": "crate_food_5000",
+        "DisplayName": "Ящик їжі",
+        "Description": "Миттєво додає 5000 їжі",
+        "Rarity": "common",
+        "Type": "resources",
+        "Resources": [
+          {
+            "Resource": "food",
+            "Amount": 5000
+          }
+        ]
+      },
+      {
+        "Key": "crate_gold_5000",
+        "DisplayName": "Ящик золота",
+        "Description": "Миттєво додає 5000 золота",
+        "Rarity": "common",
+        "Type": "resources",
+        "Resources": [
+          {
+            "Resource": "gold",
+            "Amount": 5000
+          }
+        ]
+      },
+      {
+        "Key": "crate_iron_2500",
+        "DisplayName": "Ящик заліза",
+        "Description": "Миттєво додає 2500 заліза",
+        "Rarity": "common",
+        "Type": "resources",
+        "Resources": [
+          {
+            "Resource": "iron",
+            "Amount": 2500
+          }
+        ]
+      },
+      {
         "Key": "crate_mixed_large",
         "DisplayName": "Ящик припасів",
         "Description": "Набір ресурсів для розбудови",

@@ -1049,11 +1049,50 @@
               "Key": "loot_crate_wood_5000",
               "DisplayName": "Ящик деревини ×1",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 125,
               "Rewards": [
                 {
                   "Type": "Item",
                   "Key": "crate_wood_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_food_5000",
+              "DisplayName": "Ящик їжі ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_food_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_gold_5000",
+              "DisplayName": "Ящик золота ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_gold_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_iron_2500",
+              "DisplayName": "Ящик заліза ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_iron_2500",
                   "Amount": 1
                 }
               ]
@@ -2157,11 +2196,50 @@
               "Key": "loot_crate_wood_5000",
               "DisplayName": "Ящик деревини ×1",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 125,
               "Rewards": [
                 {
                   "Type": "Item",
                   "Key": "crate_wood_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_food_5000",
+              "DisplayName": "Ящик їжі ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_food_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_gold_5000",
+              "DisplayName": "Ящик золота ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_gold_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_iron_2500",
+              "DisplayName": "Ящик заліза ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_iron_2500",
                   "Amount": 1
                 }
               ]
@@ -3422,11 +3500,50 @@
               "Key": "loot_crate_wood_5000",
               "DisplayName": "Ящик деревини ×1",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 125,
               "Rewards": [
                 {
                   "Type": "Item",
                   "Key": "crate_wood_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_food_5000",
+              "DisplayName": "Ящик їжі ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_food_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_gold_5000",
+              "DisplayName": "Ящик золота ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_gold_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_iron_2500",
+              "DisplayName": "Ящик заліза ×1",
+              "Rarity": "Common",
+              "Weight": 125,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_iron_2500",
                   "Amount": 1
                 }
               ]

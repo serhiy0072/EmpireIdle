@@ -15,7 +15,25 @@
             "Type": "Item",
             "Key": "crate_wood_5000",
             "Amount": 6,
-            "Weight": 400
+            "Weight": 100
+          },
+          {
+            "Type": "Item",
+            "Key": "crate_food_5000",
+            "Amount": 6,
+            "Weight": 100
+          },
+          {
+            "Type": "Item",
+            "Key": "crate_gold_5000",
+            "Amount": 6,
+            "Weight": 100
+          },
+          {
+            "Type": "Item",
+            "Key": "crate_iron_2500",
+            "Amount": 6,
+            "Weight": 100
           },
           {
             "Type": "Item",
