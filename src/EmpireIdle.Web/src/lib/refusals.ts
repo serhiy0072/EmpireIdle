@@ -67,6 +67,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "mail.nothingToClaim": () => "Тут нічого забирати — нагороду вже отримано",
   "mail.letterExpired": () => "Строк листа минув — нагорода згоріла",
   "village.nothingToRepair": () => "Ремонтувати нічого — усі будівлі цілі",
+  "village.buildingOutOfBounds": () => "Будівля має стояти всередині муру",
+  "village.buildingOverlaps": () => "Тут будівля налізе на іншу — оберіть вільне місце",
   "building.serverCeiling": ({ serverLevel, ceiling }) =>
     `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
   "building.maxLevel": ({ maxLevel }) => `Будівля вже на найвищому рівні ${maxLevel}`,

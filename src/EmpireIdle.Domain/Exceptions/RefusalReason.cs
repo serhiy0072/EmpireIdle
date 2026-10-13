@@ -236,6 +236,12 @@
         /// <summary>Ремонтувати нічого — жодна будівля не пошкоджена.</summary>
         public static readonly RefusalReason VillageNothingToRepair = new("village.nothingToRepair");
 
+        /// <summary>Місце будівлі поза муром або не на сітці; min/max — межі центру за кожною віссю.</summary>
+        public static readonly RefusalReason VillageBuildingOutOfBounds = new("village.buildingOutOfBounds", "min", "max");
+
+        /// <summary>Будівля налазить на іншу; building — тип тієї, що заважає.</summary>
+        public static readonly RefusalReason VillageBuildingOverlaps = new("village.buildingOverlaps", "building");
+
         /// <summary>Ціль нещодавно впала й під щитом після падіння (GDD §2.6).</summary>
         public static readonly RefusalReason MarchTargetFallShield = new("march.targetFallShield");
 

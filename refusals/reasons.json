@@ -341,5 +341,12 @@
   ],
   "territory.ownStructure": [],
   "village.alreadyThere": [],
+  "village.buildingOutOfBounds": [
+    "min",
+    "max"
+  ],
+  "village.buildingOverlaps": [
+    "building"
+  ],
   "village.nothingToRepair": []
 }

@@ -1661,29 +1661,27 @@ namespace EmpireIdle.Domain.Services
             }
         }
 
-        /// <summary>
-        /// Мінімальна відстань між центрами будівель на плані за будь-якою віссю.
-        /// Клієнт малює будівлю квадратом із півстороною до 6, тож два силуети
-        /// не перетинаються, коли центри рознесені щонайменше на 12.
-        /// </summary>
-        private const double MinBuildingSpacing = 12;
-
-        /// <summary>Будівлі на плані села не налазять одна на одну.</summary>
+        /// <summary>Будівлі на плані села стоять на сітці в межах муру й не налазять одна на одну (VillageLayout).</summary>
         private static void ValidateBuildingLayout(GameConfig config)
         {
             var placed = config.Buildings.Where(b => b.Position is not null).ToList();
 
+            var offPlan = placed.Where(b => !VillageLayout.IsValidSpot(b.Position!.X, b.Position.Y)).Select(b => b.Key).ToList();
+
+            if (offPlan.Count > 0)
+                throw new InvalidOperationException(
+                    $"Buildings stand off the village grid or outside the wall: {string.Join(", ", offPlan)}.");
+
             var collisions = placed
                 .SelectMany((first, index) => placed.Skip(index + 1).Select(second => (first, second)))
-                .Where(pair => Math.Max(
-                    Math.Abs(pair.first.Position!.X - pair.second.Position!.X),
-                    Math.Abs(pair.first.Position.Y - pair.second.Position.Y)) < MinBuildingSpacing)
+                .Where(pair => VillageLayout.Overlap(
+                    pair.first.Position!.X, pair.first.Position.Y, pair.second.Position!.X, pair.second.Position.Y))
                 .Select(pair => $"{pair.first.Key} ↔ {pair.second.Key}")
                 .ToList();
 
             if (collisions.Count > 0)
                 throw new InvalidOperationException(
-                    $"Buildings are placed closer than {MinBuildingSpacing} on the village plan: {string.Join(", ", collisions)}.");
+                    $"Buildings are placed closer than {VillageLayout.MinSpacing} on the village plan: {string.Join(", ", collisions)}.");
         }
     }
 }
