@@ -4,7 +4,10 @@ namespace EmpireIdle.Application.Beasts.ReadModels
     /// <param name="Capacity">Скільки видів звірів вміщає; 0 — звіринець ще не відкритий.</param>
     /// <param name="Beasts">Приручені звірі.</param>
     /// <param name="Taming">Шанс і гарантія приручення для кожного типу звіра.</param>
-    public record BeastPenView(int Capacity, List<BeastView> Beasts, List<BeastTamingView> Taming);
+    /// <param name="FoodUpkeepPerHour">Скільки їжі за годину з'їдає звіринець (рішення 13.10.2026).</param>
+    /// <param name="IsHungry">Остання оплата не вдалась: захист і видобуток (крім їжі) знижені.</param>
+    public record BeastPenView(int Capacity, List<BeastView> Beasts, List<BeastTamingView> Taming,
+        int FoodUpkeepPerHour = 0, bool IsHungry = false);
 
     /// <param name="Experience">Досвід усередині поточного рівня.</param>
     /// <param name="ExperienceToNext">Скільки корму треба на наступний рівень.</param>

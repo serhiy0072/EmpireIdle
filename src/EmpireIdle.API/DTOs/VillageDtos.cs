@@ -2,7 +2,7 @@ namespace EmpireIdle.API.DTOs;
 
 /// <summary>Село гравця. X/Y — клітина на мапі світу: клієнт центрує на ній карту.</summary>
 public record VillageResponse(Guid Id, string Name, int X, int Y, List<BuildingResponse> Buildings, List<ResourceResponse> Resources,
-    DateTime? ShieldUntil, VillageDamageResponse? Damage);
+    DateTime? ShieldUntil, VillageDamageResponse? Damage, bool IsHungry);
 
 /// <summary>
 /// Наслідки програних оборон, лише поки є пошкоджені будівлі: серія поразок,

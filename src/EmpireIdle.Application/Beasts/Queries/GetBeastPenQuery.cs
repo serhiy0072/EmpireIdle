@@ -50,7 +50,9 @@ namespace EmpireIdle.Application.Beasts.Queries
                 _catalog.Config.Beasts.Types
                     .Select(beast => new BeastTamingView(beast.Key, beast.MonsterKey,
                         _taming.ChanceFor(beast, penLevel), pen?.MissesFor(beast.Key) ?? 0, pityWins))
-                    .ToList());
+                    .ToList(),
+                _catalog.Config.Beasts.FoodUpkeep.HourlyUpkeep(penLevel, pen?.Beasts.Select(b => b.Level) ?? []),
+                village.IsHungry);
         }
 
         private BeastPassiveView Passive(Domain.Entities.Beast beast)

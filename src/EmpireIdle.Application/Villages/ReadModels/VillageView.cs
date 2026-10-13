@@ -12,7 +12,8 @@ namespace EmpireIdle.Application.Villages.ReadModels
         List<BuildingView> Buildings,
         List<ResourceView> Resources,
         DateTime? ShieldUntil,
-        VillageDamageView? Damage);
+        VillageDamageView? Damage,
+        bool IsHungry = false);
 
     /// <summary>
     /// Наслідки програних оборон (GDD §2.6), лише поки є пошкоджені будівлі.

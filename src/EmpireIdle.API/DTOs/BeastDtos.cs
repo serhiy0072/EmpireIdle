@@ -1,7 +1,8 @@
 namespace EmpireIdle.API.DTOs;
 
 /// <summary>Звіринець гравця (GDD §5.10). Capacity — скільки видів вміщає; 0 — звіринець ще не відкритий.</summary>
-public record BeastPenResponse(int Capacity, List<BeastResponse> Beasts, List<BeastTamingResponse> Taming);
+public record BeastPenResponse(int Capacity, List<BeastResponse> Beasts, List<BeastTamingResponse> Taming,
+    int FoodUpkeepPerHour, bool IsHungry);
 
 /// <summary>Приручений звір. Рівень росте від корму до MaxLevel — стелі рангу; Experience — досвід усередині рівня.</summary>
 public record BeastResponse(string BeastKey, int Rank, int Level, int Experience, int ExperienceToNext, int MaxLevel,

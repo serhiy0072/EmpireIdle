@@ -9730,6 +9730,8 @@
         "required": [
           "beasts",
           "capacity",
+          "foodUpkeepPerHour",
+          "isHungry",
           "taming"
         ],
         "type": "object",
@@ -9749,6 +9751,13 @@
             "items": {
               "$ref": "#/components/schemas/BeastTamingResponse"
             }
+          },
+          "foodUpkeepPerHour": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isHungry": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -14990,6 +14999,7 @@
         "required": [
           "buildings",
           "id",
+          "isHungry",
           "name",
           "resources",
           "x",
@@ -15031,6 +15041,9 @@
           },
           "damage": {
             "$ref": "#/components/schemas/VillageDamageResponse"
+          },
+          "isHungry": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
