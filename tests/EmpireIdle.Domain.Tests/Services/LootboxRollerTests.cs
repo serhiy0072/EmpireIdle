@@ -23,6 +23,24 @@ public class LootboxRollerTests
         Assert.Equal([60.0, 30.0, 10.0], LootboxRoller.Odds(Big));
     }
 
+    /// <summary>Шанс у соті частки відсотка не губиться в округленні: 1 з 4002 — це 0,025%.</summary>
+    [Fact]
+    public void Odds_ShouldKeepThreeDecimals_ForTheRarestEntries()
+    {
+        var box = new LootboxConfig
+        {
+            Key = "rare_odds",
+            Entries =
+            [
+                new LootboxEntryConfig { Type = "Gems", Amount = 1, Weight = 4000 },
+                new LootboxEntryConfig { Type = "Gems", Amount = 2, Weight = 1 },
+                new LootboxEntryConfig { Type = "Gems", Amount = 3, Weight = 1 }
+            ]
+        };
+
+        Assert.Equal([99.95, 0.025, 0.025], LootboxRoller.Odds(box));
+    }
+
     /// <summary>Тисячі сідів дають частоти, близькі до ваг.</summary>
     [Fact]
     public void Roll_ShouldPickByWeight()

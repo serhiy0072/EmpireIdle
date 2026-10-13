@@ -44,7 +44,8 @@ namespace EmpireIdle.Domain.Services
             var total = box.Entries.Sum(e => e.Weight);
 
             return box.Entries
-                .Select(e => total > 0 ? Math.Round(e.Weight * 100.0 / total, 2) : 0)
+                // Три знаки: найрідкісніші позиції (есенції в Обозі, 0,025%) не мають округлюватися вниз
+                .Select(e => total > 0 ? Math.Round(e.Weight * 100.0 / total, 3) : 0)
                 .ToList();
         }
 
