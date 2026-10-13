@@ -7,6 +7,7 @@ import { useActivateBeast, useBeastPen, useFeedBeast, type BeastResponse } from 
 import { useCatalog } from "../lib/queries/catalog";
 import { useInventory } from "../lib/queries/inventory";
 import { formatRemaining } from "../lib/time";
+import HungerBanner from "../components/HungerBanner";
 
 /** Ключ корму з конфіга — той самий, що в beasts.json. */
 const FEED_ITEM = "beast_feed";
@@ -49,8 +50,14 @@ export default function BeastPenPage() {
         <h1 className="text-xl font-medium text-slate-800">Звіринець</h1>
         <p className="text-sm text-slate-600">
           Видів {pen.data.beasts.length} з {pen.data.capacity} · корму {feedLeft.toLocaleString("uk-UA")}
+          {pen.data.foodUpkeepPerHour > 0 && (
+            <> · їсть {pen.data.foodUpkeepPerHour.toLocaleString("uk-UA")} їжі/год</>
+          )}
         </p>
       </div>
+
+      {/* Звіринець їсть зі складу й незібраного виробітку ферм (рішення 13.10.2026) */}
+      {pen.data.isHungry && <HungerBanner />}
 
       <ErrorBanner error={feed.error ?? activate.error} />
 

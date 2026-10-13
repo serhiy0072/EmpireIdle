@@ -1,5 +1,6 @@
 import { useState } from "react";
 import BuildingCard from "../components/BuildingCard";
+import HungerBanner from "../components/HungerBanner";
 import ErrorBanner from "../components/ErrorBanner";
 import LockedBuildingCard from "../components/LockedBuildingCard";
 import DamageBanner from "../components/village/DamageBanner";
@@ -88,6 +89,8 @@ export default function VillagePage() {
       </div>
 
       <ErrorBanner error={failure} />
+
+      {village.data.isHungry && <HungerBanner />}
 
       {village.data.damage != null && (
         <DamageBanner
