@@ -422,6 +422,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime?>("DamagedUntil")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<double>("HungerProductionMultiplier")
+                        .HasColumnType("double precision");
+
                     b.Property<DateTime>("LastAccruedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2543,6 +2546,12 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<int>("DefeatStreak")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("FoodUpkeepAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsHungry")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
