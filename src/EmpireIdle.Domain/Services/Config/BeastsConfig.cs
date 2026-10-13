@@ -39,6 +39,9 @@ namespace EmpireIdle.Domain.Services.Config
         public double ExperienceGrowth { get; set; } = 1.0;
 
         public List<BeastConfig> Types { get; set; } = new();
+
+        /// <summary>Скільки їжі з'їдає звіринець і що робить голод (рішення 13.10.2026).</summary>
+        public FoodUpkeepConfig FoodUpkeep { get; set; } = new();
     }
 
     /// <summary>Тип звіра. Приручається з монстра одного типу — і лише з нього.</summary>

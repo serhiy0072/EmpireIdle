@@ -58,6 +58,12 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
+        /// <summary>До якого моменту звіринець уже нагодовано; null — ще жодного разу (рішення 13.10.2026).</summary>
+        public DateTime? FoodUpkeepAt { get; private set; }
+
+        /// <summary>Остання оплата їжі не вдалась: захист і видобуток (крім їжі) знижені, доки їжі знову не вистачить.</summary>
+        public bool IsHungry { get; private set; }
+
         #endregion
 
         #region Створення
@@ -360,6 +366,50 @@ namespace EmpireIdle.Domain.Entities
                     building.Materialize(buildingConfigs[building.Type], utcNow, boost, locationMultiplier);
             }
             Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Годує звіринець (рішення 13.10.2026): amount їжі береться спершу зі складу, потім із
+        /// незібраного виробітку будівель, що дають їжу. Не вистачило — село голодує, і будівлі,
+        /// що дають інші ресурси, переходять на голодний темп; вистачило — голод минає.
+        /// </summary>
+        /// <returns>Скільки їжі не вистачило; 0 — звіринець ситий.</returns>
+        public int PayFoodUpkeep(int amount, string foodResource, double hungerProductionMultiplier,
+            IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, ProductionBoost boost,
+            double locationMultiplier)
+        {
+            var store = _resources.FirstOrDefault(r => r.ResourceType == foodResource);
+            var fromStore = (int)Math.Min(Math.Max(amount, 0), store?.Amount ?? 0);
+            store?.Subtract(fromStore);
+            var missing = Math.Max(amount, 0) - fromStore;
+
+            foreach (var building in _buildings.Where(b => missing > 0 && IsProducing(b, buildingConfigs)
+                         && buildingConfigs[b.Type].ProducesResource == foodResource))
+            {
+                building.Materialize(buildingConfigs[building.Type], utcNow, boost, locationMultiplier);
+                missing -= building.Plunder(missing);
+            }
+
+            var hungry = missing > 0;
+
+            if (hungry != IsHungry)
+            {
+                foreach (var building in _buildings.Where(b => buildingConfigs.TryGetValue(b.Type, out var c)
+                             && c.ProducesResource is not null && c.ProducesResource != foodResource))
+                {
+                    // Вироблене до зміни — за старим темпом
+                    if (IsProducing(building, buildingConfigs))
+                        building.Materialize(buildingConfigs[building.Type], utcNow, boost, locationMultiplier);
+
+                    building.SetHungerMultiplier(hungry ? hungerProductionMultiplier : 1.0);
+                }
+
+                IsHungry = hungry;
+            }
+
+            FoodUpkeepAt = utcNow;
+            Touch(utcNow);
+            return missing;
         }
 
         /// <summary>

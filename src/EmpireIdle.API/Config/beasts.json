@@ -9,6 +9,13 @@
       "FeedItemKey": "beast_feed",
       "BaseExperience": 100,
       "ExperienceGrowth": 1.08,
+      "FoodUpkeep": {
+        "PerPenLevelPerHour": 100,
+        "PerBeastPerHour": 100,
+        "PerBeastLevelPerHour": 10,
+        "HungerDefenceMultiplier": 0.5,
+        "HungerProductionMultiplier": 0.5
+      },
       "Types": [
         {
           "Key": "wolf",

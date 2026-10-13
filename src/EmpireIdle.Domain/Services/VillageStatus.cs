@@ -61,12 +61,15 @@ namespace EmpireIdle.Domain.Services
         {
             var lossPerDamage = _catalog.Config.Combat.CityFall.DefenceLossPerDamage;
 
-            return 1.0 + village.Buildings
+            // Голодне село захищається гірше (рішення 13.10.2026)
+            var hunger = village.IsHungry ? _catalog.Config.Beasts.FoodUpkeep.HungerDefenceMultiplier : 1.0;
+
+            return hunger * (1.0 + village.Buildings
                 .Where(b => !b.IsUnderConstruction
                             && _catalog.Buildings.TryGetValue(b.Type, out var c)
                             && c.DefenceBonusPerLevel > 0)
                 .Sum(b => _catalog.Buildings[b.Type].DefenceBonusPerLevel * b.Level.Value
-                          * Math.Max(0, 1 - b.DamageAt(utcNow) * lossPerDamage));
+                          * Math.Max(0, 1 - b.DamageAt(utcNow) * lossPerDamage)));
         }
     }
 }

@@ -55,6 +55,12 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public double DamagedProductionMultiplier { get; private set; } = 1.0;
 
+        /// <summary>
+        /// Темп виробництва, поки село голодує (рішення 13.10.2026). Як і пошкодження,
+        /// змінюється лише після фіксації буфера — вироблене до голоду рахується за повним темпом.
+        /// </summary>
+        public double HungerProductionMultiplier { get; private set; } = 1.0;
+
         /// <summary>Чи пошкоджена будівля на цей момент.</summary>
         public bool IsDamagedAt(DateTime utcNow) => DamagedUntil > utcNow;
 
@@ -132,7 +138,7 @@ namespace EmpireIdle.Domain.Entities
                 totalMinutes + boost.BonusMinutes(LastAccruedAt, utcNow)
                 + (damaged - 1) * (damagedMinutes + boost.BonusMinutes(LastAccruedAt, damageEnd));
 
-            var ratePerMinute = Level.Value * config.BaseProductionPerMinute * locationMultiplier;
+            var ratePerMinute = Level.Value * config.BaseProductionPerMinute * locationMultiplier * HungerProductionMultiplier;
             var produced = ratePerMinute * effectiveMinutes;
 
             // Обрізаємо до стелі ще в double: за довгу відсутність виробіток перевищує int,
@@ -165,6 +171,12 @@ namespace EmpireIdle.Domain.Entities
             DamagedUntil = utcNow + repairIn;
             DamagedProductionMultiplier = productionMultiplier;
         }
+
+        /// <summary>
+        /// Голод почався чи минув. Буфер виробничої будівлі фіксує село перед цим викликом —
+        /// тут лише новий темп, щоб і будівля під туманом чи на апгрейді вийшла з нього з правильним.
+        /// </summary>
+        internal void SetHungerMultiplier(double multiplier) => HungerProductionMultiplier = multiplier;
 
         /// <summary>Миттєвий ремонт: вироблене до нього — за пошкодженим темпом, далі — за повним.</summary>
         public void Repair(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier)

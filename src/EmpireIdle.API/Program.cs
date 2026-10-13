@@ -140,6 +140,10 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Dungeons.HeroExperiencePerRun >= 0, "GameConfig.Dungeons.HeroExperiencePerRun must not be negative.")
     .Validate(c => c.UnitBatchMin >= 1 && c.UnitBatchMax >= c.UnitBatchMin,
         "GameConfig.UnitBatchMin must be at least 1 and not above UnitBatchMax.")
+    .Validate(c => c.Beasts.FoodUpkeep is { PerPenLevelPerHour: >= 0, PerBeastPerHour: >= 0, PerBeastLevelPerHour: >= 0 }
+            && c.Beasts.FoodUpkeep.HungerDefenceMultiplier is > 0 and <= 1
+            && c.Beasts.FoodUpkeep.HungerProductionMultiplier is > 0 and <= 1,
+        "GameConfig.Beasts.FoodUpkeep needs non-negative rates and hunger multipliers in (0, 1].")
     .Validate(c => c.Combat.HeroHealthScale > 0, "GameConfig.Combat.HeroHealthScale must be positive — otherwise every hero in a battle is wounded.")
     .Validate(c => c.Shop.Banners.All(b => b.WindowDays is null or > 0), "GameConfig.Shop.Banners WindowDays must be positive when set.")
     .Validate(c => c.Dungeons.RefillPricesGems.All(p => p > 0) && c.Dungeons.RefillPricesGems.Zip(c.Dungeons.RefillPricesGems.Skip(1)).All(p => p.First <= p.Second),
