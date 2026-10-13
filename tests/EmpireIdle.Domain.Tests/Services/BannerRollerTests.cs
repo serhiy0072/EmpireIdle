@@ -180,6 +180,16 @@ public class BannerRollerTests
         Assert.Equal(100.0, Roller(banner).Odds(banner).Values.Sum(), 1);
     }
 
+    /// <summary>Шанс у соті частки відсотка показується з трьома знаками, а не зрізається до 0,01.</summary>
+    [Fact]
+    public void Odds_ShouldKeepThreeDecimals()
+    {
+        var banner = Banner(withAlternativeUnique: false);
+        banner.Drops[2].Weight = 7999; // разом 8010: один з 8010 — це 0,012%
+
+        Assert.Equal(0.012, Roller(banner).Odds(banner)[Featured]);
+    }
+
     /// <summary>Філер чужої категорії не закриває гарантію й не скидає лічильники.</summary>
     [Fact]
     public void Roll_ShouldNotResetCounters_OnAFillerDrop()

@@ -111,7 +111,8 @@ namespace EmpireIdle.Domain.Services
 
             return banner.Drops.ToDictionary(
                 d => d.Key,
-                d => total > 0 ? Math.Round(d.Weight * 100.0 / total, 2) : 0);
+                // Три знаки: цілий унікальний герой — соті частки відсотка, два знаки їх би зрізали
+                d => total > 0 ? Math.Round(d.Weight * 100.0 / total, 3) : 0);
         }
 
         /// <summary>

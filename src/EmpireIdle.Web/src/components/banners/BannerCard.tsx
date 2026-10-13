@@ -79,7 +79,7 @@ export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }
                 <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(drop.rarity)}`}>{rarityLabel(drop.rarity)}</span>
                 <span className="text-slate-700">{drop.displayName}</span>
               </span>
-              <span className="text-xs text-slate-500">{drop.chance.toFixed(2)}%</span>
+              <span className="text-xs text-slate-500">{drop.chance.toFixed(3)}%</span>
             </li>
           ))}
         </ul>
