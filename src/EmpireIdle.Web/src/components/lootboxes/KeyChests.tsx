@@ -85,18 +85,46 @@ export default function KeyChests({ playerId }: { playerId: string }) {
   const pity = useLootboxPity(playerId);
   const open = useOpenKeyChest(playerId);
   const [drops, setDrops] = useState<LootboxDrop[] | null>(null);
+  // Що відкривали останнім — «ще раз» у вікні нагород повторює це ключами
+  const [last, setLast] = useState<{ chestKey: string; count: number } | null>(null);
 
   if (chests.data === undefined || chests.data.length === 0) return null;
 
   const onOpen = (chestKey: string) => (free: boolean, count: number) =>
-    open.mutate({ chestKey, free, count }, { onSuccess: (opening) => setDrops(opening.drops) });
+    open.mutate(
+      { chestKey, free, count },
+      {
+        onSuccess: (opening) => {
+          setDrops(opening.drops);
+          setLast({ chestKey, count });
+        },
+      },
+    );
+
+  const lastChest = last === null ? undefined : chests.data.find((chest) => chest.chestKey === last.chestKey);
+  const againCount = lastChest === undefined || last === null ? 0 : Math.max(1, Math.min(last.count, lastChest.keys));
 
   return (
     <section className="space-y-2">
       <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Скрині з ключами</h2>
 
       <ErrorBanner error={open.error} />
-      {drops !== null && <LootboxDrops drops={drops} onClose={() => setDrops(null)} />}
+      {drops !== null && (
+        <LootboxDrops
+          drops={drops}
+          onClose={() => setDrops(null)}
+          pending={open.isPending}
+          again={
+            lastChest === undefined
+              ? undefined
+              : {
+                  label: `Відкрити ще ×${againCount} · 🗝 ${againCount}`,
+                  disabled: lastChest.keys < againCount,
+                  onClick: () => onOpen(lastChest.chestKey)(false, againCount),
+                }
+          }
+        />
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         {chests.data.map((chest) => (

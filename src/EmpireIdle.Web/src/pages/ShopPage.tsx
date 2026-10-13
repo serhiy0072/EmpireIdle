@@ -116,6 +116,8 @@ export default function ShopPage() {
   const pity = useLootboxPity(playerId);
   const checkout = useCheckout(playerId);
   const [drops, setDrops] = useState<LootboxDrop[] | null>(null);
+  // Остання куплена скриня — «ще раз» у вікні нагород купує й відкриває стільки ж
+  const [lastBuy, setLastBuy] = useState<{ itemKey: string; count: number; price: number } | null>(null);
   const location = useLocation();
 
   // Посилання на конкретну пропозицію (/shop#chest_supply): вітрина малюється після запиту,
@@ -144,7 +146,26 @@ export default function ShopPage() {
 
       <ErrorBanner error={buy.error ?? buyLootbox.error ?? checkout.error} />
 
-      {drops !== null && <LootboxDrops drops={drops} onClose={() => setDrops(null)} />}
+      {drops !== null && (
+        <LootboxDrops
+          drops={drops}
+          onClose={() => setDrops(null)}
+          pending={buyLootbox.isPending}
+          again={
+            lastBuy === null
+              ? undefined
+              : {
+                  label: `Ще ×${lastBuy.count} · 💎 ${(lastBuy.price * lastBuy.count).toLocaleString("uk-UA")}`,
+                  disabled: gems < lastBuy.price * lastBuy.count,
+                  onClick: () =>
+                    buyLootbox.mutate(
+                      { itemKey: lastBuy.itemKey, count: lastBuy.count },
+                      { onSuccess: (result) => setDrops(result.drops) },
+                    ),
+                }
+          }
+        />
+      )}
 
       <KeyChests playerId={playerId} />
 
@@ -161,7 +182,15 @@ export default function ShopPage() {
               onBuy={(count) =>
                 // Скриня з крамниці відкривається одразу — показуємо, що випало
                 offer.type === "lootbox"
-                  ? buyLootbox.mutate({ itemKey: offer.itemKey, count }, { onSuccess: (result) => setDrops(result.drops) })
+                  ? buyLootbox.mutate(
+                      { itemKey: offer.itemKey, count },
+                      {
+                        onSuccess: (result) => {
+                          setDrops(result.drops);
+                          setLastBuy({ itemKey: offer.itemKey, count, price: offer.priceGems });
+                        },
+                      },
+                    )
                   : buy.mutate({ itemKey: offer.itemKey, count })
               }
             />
