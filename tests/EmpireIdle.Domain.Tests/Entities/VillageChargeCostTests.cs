@@ -19,7 +19,7 @@ public class VillageChargeCostTests
         return village;
     }
 
-    private static int Gold(Village village)
+    private static long Gold(Village village)
         => village.Resources.Single(r => r.ResourceType == "gold").Amount;
 
     private static List<ResourceCost> Price(int amount)

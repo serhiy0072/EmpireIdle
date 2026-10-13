@@ -36,7 +36,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             var duration = _calculator.CalculateDuration(
                 camp.ServerId, camp.TargetX, camp.TargetY, home.X, home.Y, camp.GetUnits(),
-                hero is null ? null : _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey)));
+                hero is null ? null : _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey))) / camp.SpeedMultiplier;
 
             camp.BreakCamp(home.X, home.Y, duration, utcNow);
 

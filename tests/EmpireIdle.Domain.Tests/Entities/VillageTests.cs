@@ -24,7 +24,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var foodBefore = village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount;
             var collectAt = building.LastAccruedAt.AddMinutes(5);
 
-            village.CollectFromBuilding(building.Id, configs, storageCap: 100_000, collectAt, ProductionBoost.None, 1.0);
+            village.CollectFromBuilding(building.Id, configs, collectAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(0, building.AccruedAmount);
             Assert.Equal(foodBefore + 50, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
@@ -40,43 +40,30 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             var foodBefore = village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount;
 
-            village.CollectFromBuilding(building.Id, configs, storageCap: 100_000, building.LastAccruedAt, ProductionBoost.None, 1.0);
+            village.CollectFromBuilding(building.Id, configs, building.LastAccruedAt, ProductionBoost.None, 1.0);
 
             Assert.Equal(foodBefore, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
         }
 
         /// <summary>
-        /// Повний склад — відмова з ключем ресурсу: назву в потрібному відмінку
-        /// підставляє клієнт, а буфер будівлі лишається недоторканим.
+        /// Стелі складу немає (GDD §4.1): запас понад межу int приймає весь буфер,
+        /// і будівля спорожнюється повністю.
         /// </summary>
         [Fact]
-        public void CollectFromBuilding_ShouldRefuse_WhenStorageIsFull()
+        public void CollectFromBuilding_ShouldTakeTheWholeBuffer_WhateverIsInStore()
         {
-            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 0);
             var configs = TestKit.Entities.FarmConfigs();
             var building = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
-
-            var refusal = Assert.Throws<RequirementNotMetException>(() => village.CollectFromBuilding(
-                building.Id, configs, storageCap: 1000, building.LastAccruedAt.AddMinutes(5), ProductionBoost.None, 1.0));
-
-            Assert.Equal(RefusalReasons.VillageStorageFull.Key, refusal.Reason);
-            Assert.Equal(TestKit.TestKeys.Food, refusal.Args["resource"]);
-        }
-
-        /// <summary>Склад із місцем на частину буфера бере частину — решта чекає в будівлі.</summary>
-        [Fact]
-        public void CollectFromBuilding_ShouldTakeOnlyWhatFits_AndKeepTheRest()
-        {
-            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
-            var configs = TestKit.Entities.FarmConfigs();
-            var building = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+            var food = village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food);
+            food.Add(int.MaxValue);
 
             var collected = village.CollectFromBuilding(
-                building.Id, configs, storageCap: 1020, building.LastAccruedAt.AddMinutes(5), ProductionBoost.None, 1.0);
+                building.Id, configs, building.LastAccruedAt.AddMinutes(5), ProductionBoost.None, 1.0);
 
-            Assert.Equal(20, collected);
-            Assert.Equal(1020, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount);
-            Assert.Equal(30, building.AccruedAmount);
+            Assert.Equal(50, collected);
+            Assert.Equal((long)int.MaxValue + 50, food.Amount);
+            Assert.Equal(0, building.AccruedAmount);
         }
 
         /// <summary>Під туманом будівля не виробляє, і збирати з неї нічого.</summary>
@@ -89,7 +76,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             Assert.False(village.IsProducing(village.Buildings.Single(b => b.Id == mineId), configs));
             Assert.Throws<RequirementNotMetException>(() => village.CollectFromBuilding(
-                mineId, configs, storageCap: 100_000, TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0));
+                mineId, configs, TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0));
         }
 
         /// <summary>«Зібрати все» не чіпає будівлі під туманом.</summary>
@@ -100,46 +87,39 @@ namespace EmpireIdle.Domain.Tests.Entities
             var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 0);
             village.AddBuilding(Mine, configs, TestKit.Entities.Now);
 
-            var summary = village.CollectAll(configs, _ => 100_000,
-                TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0);
+            var summary = village.CollectAll(configs, TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0);
 
             Assert.Equal(50, summary.Collected[TestKit.TestKeys.Food]);
             Assert.False(summary.Collected.ContainsKey(TestKit.TestKeys.Iron));
             Assert.Equal(0, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Iron).Amount);
         }
 
-        /// <summary>
-        /// Повний склад одного ресурсу не зупиняє збір решти — він лише
-        /// потрапляє в список, щоб клієнт пояснив, чому буфер лишився.
-        /// </summary>
+        /// <summary>«Зібрати все» спорожнює всі буфери поза туманом, хоч яким великим був запас.</summary>
         [Fact]
-        public void CollectAll_ShouldCollectTheRest_WhenOneStorageIsFull()
+        public void CollectAll_ShouldEmptyEveryBuffer()
         {
             var configs = ConfigsWithFoggedMine();
             var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 2, resourceAmount: 1000);
             var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
             village.AddBuilding(Mine, configs, TestKit.Entities.Now);
+            var at = TestKit.Entities.Now.AddMinutes(5);
 
-            var summary = village.CollectAll(configs,
-                resource => resource == TestKit.TestKeys.Food ? 1000 : 100_000,
-                TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0);
+            var summary = village.CollectAll(configs, at, ProductionBoost.None, 1.0);
 
-            Assert.Equal([TestKit.TestKeys.Food], summary.FullStorages);
+            Assert.Equal(50, summary.Collected[TestKit.TestKeys.Food]);
             Assert.Equal(50, summary.Collected[TestKit.TestKeys.Iron]);
             Assert.Equal(1050, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Iron).Amount);
-            Assert.Equal(50, farm.StoredAt(configs[TestKit.TestKeys.Farm], TestKit.Entities.Now.AddMinutes(5), ProductionBoost.None, 1.0));
+            Assert.Equal(0, farm.StoredAt(configs[TestKit.TestKeys.Farm], at, ProductionBoost.None, 1.0));
         }
 
-        /// <summary>Порожній буфер при повному складі — не привід скаржитись на склад.</summary>
+        /// <summary>Порожні буфери — порожній підсумок.</summary>
         [Fact]
-        public void CollectAll_ShouldNotReportAFullStorage_WhenTheBufferIsEmpty()
+        public void CollectAll_ShouldReportNothing_WhenTheBuffersAreEmpty()
         {
             var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1, resourceAmount: 1000);
 
-            var summary = village.CollectAll(TestKit.Entities.FarmConfigs(), _ => 1000,
-                TestKit.Entities.Now, ProductionBoost.None, 1.0);
+            var summary = village.CollectAll(TestKit.Entities.FarmConfigs(), TestKit.Entities.Now, ProductionBoost.None, 1.0);
 
-            Assert.Empty(summary.FullStorages);
             Assert.Empty(summary.Collected);
         }
 
@@ -530,7 +510,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             var taken = plunder.Plunder(village, carryCapacity: int.MaxValue, ProductionBoost.None, 1.0, at);
 
-            Assert.Equal(taken, lootable);
+            Assert.Equal(taken.ToDictionary(x => x.Key, x => (long)x.Value), lootable);
         }
 
         /// <summary>Вантажопідйомність — стеля: решта лишається в селі.</summary>

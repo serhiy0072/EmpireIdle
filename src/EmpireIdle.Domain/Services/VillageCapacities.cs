@@ -14,21 +14,6 @@ namespace EmpireIdle.Domain.Services
         public VillageCapacities(GameCatalog catalog) => _catalog = catalog;
 
         /// <summary>
-        /// Місткість сховища для ресурсу. Золото в банку, решта на складі:
-        /// два різні сховища, два різні рівні. Будівля під будівництвом
-        /// місткості не дає.
-        /// </summary>
-        public int StorageCapFor(Village village, string resourceKey)
-        {
-            var storage = StorageFor(village, resourceKey, out var config);
-
-            if (config is null)
-                return int.MaxValue;
-
-            return storage is null ? 0 : config.BaseStorage * storage.Level.Value;
-        }
-
-        /// <summary>
         /// Недоторканий запас — абсолютне число від рівня сховища.
         /// Не частка від місткості: інакше качання складу піднімало б
         /// і захист, і здобич, і гравець не мав би важеля.
@@ -39,6 +24,27 @@ namespace EmpireIdle.Domain.Services
 
             return storage is null || config is null ? 0 : config.ProtectedStorage * storage.Level.Value;
         }
+
+        /// <summary>
+        /// Скільки видів звірів вміщає звіринець (GDD §5.10). Звіринець під туманом
+        /// місць не дає: будівля існує з першого дня, але гравцю ще не відкрита.
+        /// </summary>
+        public int BeastSlots(Village village, VillageStatus status)
+            => village.Buildings
+                .Where(b => !b.IsUnderConstruction && status.IsUnlocked(village, b.Type))
+                .Sum(b => _catalog.Buildings.TryGetValue(b.Type, out var config)
+                    ? config.BeastCapacityPerLevel * b.Level.Value
+                    : 0);
+
+        /// <summary>Рівень звіринця — від нього росте шанс приручення; 0, якщо його немає чи він під туманом.</summary>
+        public int BeastPenLevel(Village village, VillageStatus status)
+            => village.Buildings
+                .Where(b => status.IsUnlocked(village, b.Type)
+                            && _catalog.Buildings.TryGetValue(b.Type, out var config)
+                            && config.BeastCapacityPerLevel > 0)
+                .Select(b => b.Level.Value)
+                .DefaultIfEmpty(0)
+                .Max();
 
         /// <summary>Скільки чужих юнітів вміщає посольство.</summary>
         public int ReinforcementSlots(Village village)

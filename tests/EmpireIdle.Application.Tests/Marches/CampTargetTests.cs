@@ -41,7 +41,7 @@ public class CampTargetTests
             Substitute.For<IMonsterRepository>(), _villages, _garrisons, Substitute.For<IHeroRepository>(),
             new MonsterArmyBuilder(catalog), new HeroCombatModifiers(catalog), catalog, new VillageStatus(catalog),
             Substitute.For<IClanStructureRepository>(), Substitute.For<IClanRepository>(),
-            new ClanTerritoryRules(catalog), _marches);
+            new ClanTerritoryRules(catalog), _marches, TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()));
     }
 
     /// <summary>Село з ратушею 5 і стіною 3 — вдома воно б'ється з бонусом +30%.</summary>

@@ -34,6 +34,14 @@ export default function MapPage() {
   // Телепорт: інвентар приводить сюди з ?teleport=<ключ>, місце обирають кліком, дію можна скасувати
   const [searchParams, setSearchParams] = useSearchParams();
   const teleportKey = searchParams.get("teleport");
+  const teleportItem = teleportKey === null ? null : catalog.item(teleportKey);
+  // Межа типу телепорта — щоб гравець не клікав навмання, а сервер не відмовляв (GDD §8.9)
+  const teleportHint =
+    teleportItem?.teleportScope === "Nearby"
+      ? "Цей телепорт дістає лише недалеко від поселення."
+      : teleportItem?.teleportScope === "ClanTerritory"
+        ? "Лише на території вашого клану — поруч зі спорудою."
+        : null;
   const teleport = useUseItem(playerId);
   const cancelTeleport = () => setSearchParams({});
 
@@ -113,6 +121,7 @@ export default function MapPage() {
         <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
           <span className="text-sm text-emerald-900">
             Переселення: оберіть вільну придатну клітину на мапі й підтвердіть у панелі праворуч.
+            {teleportHint !== null && ` ${teleportHint}`}
           </span>
           <button
             type="button"

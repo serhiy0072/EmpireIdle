@@ -240,6 +240,10 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("RandomSeed")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TamedBeastKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<int>("TargetLevel")
                         .HasColumnType("integer");
 
@@ -299,6 +303,100 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.HasIndex("BattleReportId");
 
                     b.ToTable("BattleReportLines", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.Beast", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ActivatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ActiveUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BeastKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("BeastPenId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CooldownUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Experience")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("TamedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BeastPenId", "BeastKey")
+                        .IsUnique();
+
+                    b.ToTable("Beasts", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.BeastPen", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.ToTable("BeastPens", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.BeastTamingPity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BeastKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("BeastPenId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Misses")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BeastPenId", "BeastKey")
+                        .IsUnique();
+
+                    b.ToTable("BeastTamingPity", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Building", b =>
@@ -1317,6 +1415,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
 
+                    b.Property<double>("SpeedMultiplier")
+                        .HasColumnType("double precision");
+
                     b.Property<int>("State")
                         .HasColumnType("integer");
 
@@ -2020,8 +2121,8 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Amount")
-                        .HasColumnType("integer");
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("ResourceType")
                         .IsRequired()
@@ -2395,8 +2496,8 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<int>("Amount")
-                        .HasColumnType("integer");
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -2781,6 +2882,24 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.Beast", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.BeastPen", null)
+                        .WithMany("Beasts")
+                        .HasForeignKey("BeastPenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.BeastTamingPity", b =>
+                {
+                    b.HasOne("EmpireIdle.Domain.Entities.BeastPen", null)
+                        .WithMany("Pity")
+                        .HasForeignKey("BeastPenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Building", b =>
                 {
                     b.HasOne("EmpireIdle.Domain.Entities.Village", null)
@@ -3015,6 +3134,13 @@ namespace EmpireIdle.Infrastructure.Migrations
             modelBuilder.Entity("EmpireIdle.Domain.Entities.BattleReport", b =>
                 {
                     b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.BeastPen", b =>
+                {
+                    b.Navigation("Beasts");
+
+                    b.Navigation("Pity");
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.Clan", b =>

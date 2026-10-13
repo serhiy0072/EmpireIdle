@@ -31,7 +31,7 @@ namespace EmpireIdle.API.Hubs
 
         /// <inheritdoc/>
         public Task NotifyBuildingCollectedAsync(Guid playerId, Guid buildingId, string resourceType, int collected,
-            int newVillageAmount, CancellationToken cancellationToken = default)
+            long newVillageAmount, CancellationToken cancellationToken = default)
             => _buffer.SendAsync(() => Player(playerId).BuildingCollected(
                 new BuildingCollectedEvent(buildingId, resourceType, collected, newVillageAmount)));
 

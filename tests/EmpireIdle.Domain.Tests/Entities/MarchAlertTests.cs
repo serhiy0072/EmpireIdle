@@ -157,9 +157,9 @@ public class MarchAlertTests
         var march = Send(MarchTargetType.Village, MarchIntent.Scout, Guid.NewGuid());
 
         var report = ScoutReport.Success(Guid.NewGuid(), 1, Guid.NewGuid(), march, "Ціль", 120.5,
-            new Dictionary<string, int> { ["food"] = 300, ["wood"] = 0 }, Now);
+            new Dictionary<string, long> { ["food"] = 300, ["wood"] = 0 }, Now);
 
-        Assert.Equal(("food", 300), Assert.Single(report.Resources.Select(r => (r.ResourceType, r.Amount))));
+        Assert.Equal(("food", 300L), Assert.Single(report.Resources.Select(r => (r.ResourceType, r.Amount))));
         Assert.Throws<ArgumentException>(() => ScoutReport.Failed(Guid.NewGuid(), 1, Guid.NewGuid(), march, "Ціль",
             ScoutOutcome.Success, Now));
     }

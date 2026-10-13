@@ -26,6 +26,7 @@ export const MARCH_INTENT = {
   attack: 1,
   reinforce: 2,
   scout: 3,
+  tame: 4,
 } as const satisfies Record<string, MarchIntent>;
 
 export const MARCH_TARGET = {

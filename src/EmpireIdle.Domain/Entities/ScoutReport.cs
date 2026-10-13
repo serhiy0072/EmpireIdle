@@ -61,7 +61,7 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Вдала розвідка: сила оборони й здобич, яку можна винести.</summary>
         public static ScoutReport Success(Guid id, int serverId, Guid playerId, March march, string targetName,
-            double defencePower, IReadOnlyDictionary<string, int> lootable, DateTime utcNow)
+            double defencePower, IReadOnlyDictionary<string, long> lootable, DateTime utcNow)
         {
             var report = new ScoutReport(id, serverId, playerId, march, targetName, ScoutOutcome.Success, defencePower, utcNow);
 
@@ -89,9 +89,9 @@ namespace EmpireIdle.Domain.Entities
 
         public string ResourceType { get; private set; } = null!;
 
-        public int Amount { get; private set; }
+        public long Amount { get; private set; }
 
-        public ScoutReportResource(Guid id, Guid scoutReportId, string resourceType, int amount) : base(id)
+        public ScoutReportResource(Guid id, Guid scoutReportId, string resourceType, long amount) : base(id)
         {
             ScoutReportId = scoutReportId;
             ResourceType = resourceType;

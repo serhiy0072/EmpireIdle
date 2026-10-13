@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
@@ -58,6 +59,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly TerritoryBonus _territoryBonus;
         private readonly IMarchRepository _marchRepository;
         private readonly HostilityRules _hostility;
+        private readonly EffectResolver _effects;
 
         public MarchTargetResolver(
             IMonsterRepository monsterRepository,
@@ -71,7 +73,8 @@ namespace EmpireIdle.Application.Marches.Services
             IClanStructureRepository structureRepository,
             IClanRepository clanRepository,
             ClanTerritoryRules territory,
-            IMarchRepository marchRepository)
+            IMarchRepository marchRepository,
+            EffectResolver effects)
         {
             _monsterRepository = monsterRepository;
             _villageRepository = villageRepository;
@@ -85,6 +88,7 @@ namespace EmpireIdle.Application.Marches.Services
             _clanRepository = clanRepository;
             _territory = territory;
             _marchRepository = marchRepository;
+            _effects = effects;
 
             // Той самий розрахунок, що в бою: прев'ю не має розходитись із результатом
             _territoryBonus = new TerritoryBonus(clanRepository, structureRepository, territory);
@@ -152,7 +156,8 @@ namespace EmpireIdle.Application.Marches.Services
                         defence,
                         buffs,
                         _status.DefenceMultiplier(village, utcNow)
-                        * await _territoryBonus.DefenceMultiplierAsync(village, utcNow, cancellationToken));
+                        * await _territoryBonus.DefenceMultiplierAsync(village, utcNow, cancellationToken)
+                        * await _effects.GetMultiplierAsync(village.PlayerId, EffectTarget.Defense, utcNow, cancellationToken));
 
                 case MarchTargetType.ClanStructure:
                     var structure = await _structureRepository.GetByIdAsync(targetId, cancellationToken)

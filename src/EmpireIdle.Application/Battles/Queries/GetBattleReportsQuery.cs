@@ -30,7 +30,8 @@ namespace EmpireIdle.Application.Battles.Queries
                     r.AttackerPower, r.DefenderPower, r.FoughtAt, r.IsRead,
                     r.Lines
                         .Select(l => new BattleReportLineView(l.UnitType, l.Sent, l.Survived, l.Wounded, l.Recoverable, l.Dead))
-                        .ToList()))
+                        .ToList(),
+                    r.TamedBeastKey))
                 .ToList();
         }
     }

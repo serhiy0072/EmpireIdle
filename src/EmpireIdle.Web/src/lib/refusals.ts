@@ -5,7 +5,6 @@
  * контрактний тест на беку з RefusalReasons. Тип нижче виводиться з того
  * файлу, тож новий ключ без тексту тут не пройде typecheck.
  */
-import { resourceGenitive } from "./resourceNames";
 
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
@@ -64,8 +63,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "garrison.notEnoughUnits": ({ need, have }) => `Воїнів цього загону менше, ніж треба: потрібно ${need}, є ${have}`,
 
   // ---------- Село й будівлі ----------
-  "village.storageFull": ({ resource }) =>
-    `Склад ${resourceGenitive(String(resource))} заповнений — витратьте частину, перш ніж збирати`,
   "village.alreadyThere": () => "Поселення вже стоїть на цій клітинці",
   "mail.nothingToClaim": () => "Тут нічого забирати — нагороду вже отримано",
   "mail.letterExpired": () => "Строк листа минув — нагорода згоріла",
@@ -200,6 +197,23 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "dungeon.heroWounded": ({ hero }) => `${hero} зараз у госпіталі — оберіть іншого героя`,
   "dungeon.runInProgress": () => "У вас уже є незавершений забіг — поверніться до нього",
   "dungeon.targetUnreachable": () => "Цю ціль зараз не дістати: спершу бийте передню лінію або того, хто провокує",
+
+  // ---------- Звірі ----------
+  "beast.penMissing": () => "Приручати нікуди: спершу відкрийте звіринець",
+  "beast.penFull": ({ capacity }) =>
+    `Звіринець повний: усі ${capacity} місць зайняті іншими звірами. Підніміть рівень звіринця`,
+  "beast.notTameable": () => "Цього монстра не приручити",
+  "beast.notEnoughFeed": ({ need, have }) => `Корму не вистачає: потрібно ${need}, є ${have}`,
+  "beast.levelCapped": ({ level }) =>
+    `Звір досяг стелі рівня ${level} для свого рангу — підніміть ранг, приручивши ще одного такого звіра`,
+  "beast.onCooldown": ({ readyAt }) =>
+    `Звір ще відпочиває — пасивку можна ввімкнути ${localTime(readyAt)}`,
+  "beast.effectActive": () => "Такий самий бонус уже дає інший звір — дочекайтесь, поки його дія скінчиться",
+
+  // ---------- Телепорти ----------
+  "teleport.tooFar": ({ range }) => `Цей телепорт дістає не далі ${range} клітин від поселення`,
+  "teleport.noClan": () => "Клановий телепорт працює лише в клані",
+  "teleport.outsideClanTerritory": () => "Клановий телепорт переносить лише на територію вашого клану — поруч зі спорудою",
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */

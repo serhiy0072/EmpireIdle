@@ -67,7 +67,8 @@ namespace EmpireIdle.Domain.Services
                 if (available <= 0)
                     continue;
 
-                var taken = Math.Min(available, remaining);
+                // remaining — int, тож мінімум теж уміщається в int
+                var taken = (int)Math.Min(available, remaining);
 
                 village.TakeFromStore(resource.ResourceType, taken, utcNow);
 
@@ -83,10 +84,11 @@ namespace EmpireIdle.Domain.Services
         /// розвідки. Ті самі правила, що й у <see cref="Plunder"/>: буфери будівель повністю,
         /// зі складу — понад захищений запас. Чиста функція: село не змінює.
         /// </summary>
-        public Dictionary<string, int> Lootable(Village village, ProductionBoost boost, double locationMultiplier,
+        public Dictionary<string, long> Lootable(Village village, ProductionBoost boost, double locationMultiplier,
             DateTime utcNow)
         {
-            var loot = new Dictionary<string, int>();
+            // long: склад без стелі (GDD §4.1), а тут без обмеження вантажопідйомністю
+            var loot = new Dictionary<string, long>();
 
             foreach (var building in village.Buildings)
             {
@@ -97,7 +99,7 @@ namespace EmpireIdle.Domain.Services
                 var stored = building.StoredAt(config, utcNow, boost, locationMultiplier);
 
                 if (stored > 0)
-                    Add(loot, config.ProducesResource!, stored);
+                    loot[config.ProducesResource!] = loot.GetValueOrDefault(config.ProducesResource!) + stored;
             }
 
             foreach (var resource in village.Resources)
@@ -105,7 +107,7 @@ namespace EmpireIdle.Domain.Services
                 var available = resource.Amount - _capacities.ProtectedReserveFor(village, resource.ResourceType);
 
                 if (available > 0)
-                    Add(loot, resource.ResourceType, available);
+                    loot[resource.ResourceType] = loot.GetValueOrDefault(resource.ResourceType) + available;
             }
 
             return loot;

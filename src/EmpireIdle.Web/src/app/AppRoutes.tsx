@@ -4,6 +4,7 @@ import { useSession } from "../hooks/useSession";
 import ArmyPage from "../pages/ArmyPage";
 import ArtifactSetsPage from "../pages/ArtifactSetsPage";
 import BannersPage from "../pages/BannersPage";
+import BeastPenPage from "../pages/BeastPenPage";
 import ChatPage from "../pages/ChatPage";
 import ClanPage from "../pages/ClanPage";
 import DungeonsPage from "../pages/DungeonsPage";
@@ -46,6 +47,7 @@ export default function AppRoutes() {
             <Route path="/dungeons" element={<DungeonsPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/inventory/sets" element={<ArtifactSetsPage />} />
+            <Route path="/beasts" element={<BeastPenPage />} />
             <Route path="/forge" element={<ForgePage />} />
             <Route path="/banners" element={<BannersPage />} />
             <Route path="/clan" element={<ClanPage />} />

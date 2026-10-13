@@ -67,9 +67,17 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
+        /// <summary>
+        /// Швидкість від бонусів гравця на момент виходу (пасивка звіра, GDD §5.10).
+        /// Фіксується на марші: зворотна дорога йде так само швидко, навіть коли пасивка вже скінчилась.
+        /// </summary>
+        public double SpeedMultiplier { get; private set; } = 1.0;
+
         public March(Guid id, int serverId, Guid garrisonId, Guid? heroId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
-            Guid targetId, IReadOnlyDictionary<UnitStackKey, int> units, DateTime arrivesAt, DateTime departedAt, MarchIntent intent = MarchIntent.Attack) : base(id)
+            Guid targetId, IReadOnlyDictionary<UnitStackKey, int> units, DateTime arrivesAt, DateTime departedAt, MarchIntent intent = MarchIntent.Attack,
+            double speedMultiplier = 1.0) : base(id)
         {
+            SpeedMultiplier = speedMultiplier;
             ServerId = serverId;
             GarrisonId = garrisonId;
             HeroId = heroId;

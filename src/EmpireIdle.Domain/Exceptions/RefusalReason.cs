@@ -64,9 +64,6 @@
 
         // ---------- Село й будівлі ----------
 
-        /// <summary>resource — ключ ресурсу: назву в потрібному відмінку підставляє клієнт.</summary>
-        public static readonly RefusalReason VillageStorageFull = new("village.storageFull", "resource");
-
         public static readonly RefusalReason VillageAlreadyThere = new("village.alreadyThere");
 
         /// <summary>Правило A: стеля будівель від рівня світу.</summary>
@@ -345,5 +342,39 @@
 
         /// <summary>Ціль закрита передньою лінією або провокацією.</summary>
         public static readonly RefusalReason DungeonTargetUnreachable = new("dungeon.targetUnreachable");
+
+        // ---------- Звірі ----------
+
+        /// <summary>Звіринець ще не відкритий: приручати нікуди.</summary>
+        public static readonly RefusalReason BeastPenMissing = new("beast.penMissing");
+
+        /// <summary>Новий вид, а всі місця звіринця зайняті. capacity — скільки місць.</summary>
+        public static readonly RefusalReason BeastPenFull = new("beast.penFull", "capacity");
+
+        /// <summary>Цей монстр не приручається.</summary>
+        public static readonly RefusalReason BeastNotTameable = new("beast.notTameable");
+
+        /// <summary>Корму менше, ніж гравець хоче віддати. need — скільки просив, have — скільки є.</summary>
+        public static readonly RefusalReason BeastNotEnoughFeed = new("beast.notEnoughFeed", "need", "have");
+
+        /// <summary>Звір на стелі рівня для свого рангу: далі веде лише дублікат. level — стеля.</summary>
+        public static readonly RefusalReason BeastLevelCapped = new("beast.levelCapped", "level");
+
+        /// <summary>Пасивка ще перезаряджається; readyAt — коли знову можна (ISO 8601, UTC).</summary>
+        public static readonly RefusalReason BeastOnCooldown = new("beast.onCooldown", "readyAt");
+
+        /// <summary>Такий самий ефект уже дає інший звір; beast — його ключ.</summary>
+        public static readonly RefusalReason BeastEffectActive = new("beast.effectActive", "beast");
+
+        // ---------- Телепорти ----------
+
+        /// <summary>Клітина далі, ніж дозволяє телепорт ближнього переїзду; range — його радіус.</summary>
+        public static readonly RefusalReason TeleportTooFar = new("teleport.tooFar", "range");
+
+        /// <summary>Клановий телепорт — без клану.</summary>
+        public static readonly RefusalReason TeleportNoClan = new("teleport.noClan");
+
+        /// <summary>Клановий телепорт — клітина поза територією свого клану.</summary>
+        public static readonly RefusalReason TeleportOutsideClanTerritory = new("teleport.outsideClanTerritory");
     }
 }

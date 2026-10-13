@@ -51,14 +51,14 @@ namespace EmpireIdle.Domain.Services.Config
         public int BaseProductionPerMinute { get; set; }
 
         /// <summary>
-        /// Базова місткість на 1 рівні. Для виробничої будівлі це буфер,
-        /// для сховища — ліміт ресурсів у селищі. Росте лінійно з рівнем.
+        /// Базова місткість буфера виробничої будівлі на 1 рівні. Росте лінійно з рівнем.
+        /// Сховища стелі не мають (GDD §4.1) — їхній рівень дає лише <see cref="ProtectedStorage"/>.
         /// </summary>
         public int BaseStorage { get; set; }
 
         /// <summary>
-        /// Які ресурси зберігає ця будівля (null — не сховище).
-        /// Склад тримає базові ресурси, банк — золото.
+        /// Які ресурси ця будівля захищає від грабунку (null — не сховище).
+        /// Склад — базові ресурси, банк — золото.
         /// </summary>
         public List<string>? StoresResources { get; set; }
 

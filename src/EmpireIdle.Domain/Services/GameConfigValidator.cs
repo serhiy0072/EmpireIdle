@@ -35,6 +35,8 @@ namespace EmpireIdle.Domain.Services
             ValidateDungeons(config);
             ValidateUnlockThresholds(config);
             ValidateMarket(config);
+            ValidateBeasts(config);
+            ValidateTeleports(config);
             ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
@@ -344,6 +346,76 @@ namespace EmpireIdle.Domain.Services
         /// Ринок: будівля існує, кожен товар має якір ціни. Без якоря коридор
         /// рахувався б із першого ж продажу, і його задавав би вош.
         /// </summary>
+        /// <summary>
+        /// Звірі (GDD §5.10): кожен тип приручається з наявного монстра, один звір на монстра,
+        /// шанс у (0; 1], є звіринець із місцями й корм-предмет — інакше приручати нікуди й годувати нічим.
+        /// </summary>
+        private static void ValidateBeasts(GameConfig config)
+        {
+            var beasts = config.Beasts;
+
+            if (beasts.Types.Count == 0)
+                return;
+
+            RequireUniqueKeys(beasts.Types.Select(b => b.Key), "Beasts.Types");
+            RequireUniqueKeys(beasts.Types.Select(b => b.MonsterKey), "Beasts.Types monster keys");
+
+            var monsterKeys = config.Monsters.Select(m => m.Key).ToHashSet();
+
+            var broken = beasts.Types
+                .Where(b => !monsterKeys.Contains(b.MonsterKey) || b.TameChance <= 0 || b.TameChance > 1)
+                .Select(b => b.Key)
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException(
+                    $"Beasts need an existing monster and a tame chance in (0; 1]: {string.Join(", ", broken)}.");
+
+            if (beasts.TameChancePerPenLevel < 0 || beasts.MaxTameChanceMultiplier < 1
+                || beasts.PityWins < 1 || beasts.MaxRank < 1)
+                throw new InvalidOperationException(
+                    "Beasts need a non-negative chance per pen level, a chance cap multiplier of at least 1, "
+                    + "PityWins and MaxRank of at least 1.");
+
+            if (beasts.LevelsPerRank < 1 || beasts.BaseExperience < 1 || beasts.ExperienceGrowth < 1)
+                throw new InvalidOperationException(
+                    "Beasts need LevelsPerRank and BaseExperience of at least 1 and ExperienceGrowth of at least 1.");
+
+            // Пасивка мусить щось давати, діяти й мати перезарядку, не коротшу за дію: інакше вона діяла б завжди
+            var brokenPassives = beasts.Types
+                .Where(b => b.Effect is not (EffectTarget.Production or EffectTarget.Attack or EffectTarget.Defense
+                                or EffectTarget.MarchSpeed or EffectTarget.Carry)
+                            || b.BaseBonus <= 0 || b.BonusPerLevel < 0 || b.DurationMinutes <= 0
+                            || b.CooldownMinutes < b.DurationMinutes || b.ActivationFood <= 0)
+                .Select(b => b.Key)
+                .ToList();
+
+            if (brokenPassives.Count > 0)
+                throw new InvalidOperationException(
+                    "Beast passives need a multiplier effect, a positive bonus, a duration, a cooldown no shorter "
+                    + $"than the duration and a food price: {string.Join(", ", brokenPassives)}.");
+
+            // Корм — стаковий предмет: спорядження поштучне й годувати ним не можна
+            if (config.Items.FirstOrDefault(i => i.Key == beasts.FeedItemKey) is not { Slot: null })
+                throw new InvalidOperationException(
+                    $"Beasts.FeedItemKey '{beasts.FeedItemKey}' must be a stackable item from Items.");
+
+            if (!config.Buildings.Any(b => b.BeastCapacityPerLevel > 0))
+                throw new InvalidOperationException("Beasts are configured, but no building gives beast slots.");
+        }
+
+        /// <summary>Телепорт ближнього переїзду без радіусу не переносив би нікуди (GDD §8.9).</summary>
+        private static void ValidateTeleports(GameConfig config)
+        {
+            var broken = config.Items
+                .Where(i => i.Type == "teleport" && i.TeleportScope == TeleportScope.Nearby && i.TeleportRange <= 0)
+                .Select(i => i.Key)
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException($"Nearby teleports need a positive TeleportRange: {string.Join(", ", broken)}.");
+        }
+
         private static void ValidateMarket(GameConfig config)
         {
             var market = config.Market;
@@ -428,6 +500,7 @@ namespace EmpireIdle.Domain.Services
                 .Concat(config.Resources.Select(r => $"resource.{r.Key}"))
                 .Concat(config.Units.Select(u => $"unit.{u.Key}"))
                 .Concat(config.Monsters.Select(m => $"monster.{m.Key}"))
+                .Concat(config.Beasts.Types.Select(b => $"beast.{b.Key}"))
                 .Concat(config.Equipment.ArtifactSets.Select(s => $"artifactSet.{s.Key}"))
                 .Concat(config.Equipment.ArtifactSlots.Select(s => $"artifactSlot.{s.Key}"))
                 .ToHashSet();
@@ -538,8 +611,8 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Buildings cost resources unlocked later: {string.Join("; ", unreachable)}.");
 
-            // Кожен вироблюваний ресурс має сховище, інакше він накопичується
-            // без ліміту й тихо ламає економіку складу
+            // Кожен вироблюваний ресурс має сховище: стелі складу немає (GDD §4.1),
+            // але без сховища в ресурсу не було б захищеного запасу від грабунку
             var stored = config.Buildings
                 .Where(b => b.StoresResources is not null)
                 .SelectMany(b => b.StoresResources!)

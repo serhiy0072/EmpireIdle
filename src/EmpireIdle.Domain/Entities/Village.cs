@@ -224,22 +224,19 @@ namespace EmpireIdle.Domain.Entities
         #region Ресурси
 
         /// <summary>
-        /// Переносить накопичене з буфера будівлі у сховище села.
-        ///
-        /// Береться лише те, що влазить; решта лишається в буфері. Повний склад
-        /// **відмовляє** в зборі: буфер не під контролем гравця, і збір,
-        /// що нічого не взяв, мовчки виглядав би як успіх.
+        /// Переносить увесь буфер будівлі у сховище села. Стелі складу немає
+        /// (GDD §4.1), тож збір не відмовляє й нічого не лишає в буфері.
         /// </summary>
         /// <param name="buildingId">Ідентифікатор будівлі.</param>
         /// <param name="buildingConfigs">Конфігурації будівель з GameConfig.</param>
         /// <param name="utcNow">Момент збору.</param>
         /// <param name="boost">Вікно дії буста виробництва.</param>
         /// <returns>Скільки зараховано на склад.</returns>
-        /// <exception cref="RequirementNotMetException">На складі немає місця або будівля під туманом.</exception>
+        /// <exception cref="RequirementNotMetException">Будівля під туманом.</exception>
         /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
         /// <exception cref="InvalidOperationException">Тип збудованої будівлі зник із конфіга — поломка розгортання.</exception>
         public int CollectFromBuilding(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            int storageCap, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
                 ?? throw new EntityNotFoundException("Building", buildingId);
@@ -256,22 +253,14 @@ namespace EmpireIdle.Domain.Entities
             if (!IsProducing(building, buildingConfigs))
                 throw new RequirementNotMetException($"Building '{building.Type}' is still under the fog.");
 
-            return TryCollect(building, config, storageCap, utcNow, boost, locationMultiplier)
-                ?? throw new RequirementNotMetException(RefusalReasons.VillageStorageFull,
-                    $"Storage for '{config.ProducesResource}' is full: spend before collecting.", config.ProducesResource);
+            return Collect(building, config, utcNow, boost, locationMultiplier);
         }
 
-        /// <summary>
-        /// Збирає всі виробничі будівлі поза туманом. Повний склад одного
-        /// ресурсу не зупиняє збір решти — інакше одна переповнена ферма
-        /// блокувала б кнопку для всього селища.
-        /// </summary>
-        /// <param name="storageCapFor">Кап складу для ресурсу — рахує доменний сервіс місткостей.</param>
+        /// <summary>Збирає всі виробничі будівлі поза туманом.</summary>
         public CollectionSummary CollectAll(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            Func<string, int> storageCapFor, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             var collected = new Dictionary<string, int>();
-            var fullStorages = new List<string>();
 
             // Знімок наперед: збір змінює стан будівель, які перебираємо
             var producing = _buildings.Where(b => IsProducing(b, buildingConfigs)).ToList();
@@ -279,44 +268,31 @@ namespace EmpireIdle.Domain.Entities
             foreach (var building in producing)
             {
                 var config = buildingConfigs[building.Type];
-                var resourceKey = config.ProducesResource!;
+                var accepted = Collect(building, config, utcNow, boost, locationMultiplier);
 
-                var accepted = TryCollect(building, config, storageCapFor(resourceKey), utcNow, boost, locationMultiplier);
-
-                if (accepted is null)
-                {
-                    if (!fullStorages.Contains(resourceKey))
-                        fullStorages.Add(resourceKey);
-                }
-                else if (accepted > 0)
-                {
-                    collected[resourceKey] = collected.GetValueOrDefault(resourceKey) + accepted.Value;
-                }
+                if (accepted > 0)
+                    collected[config.ProducesResource!] = collected.GetValueOrDefault(config.ProducesResource!) + accepted;
             }
 
-            return new CollectionSummary(collected, fullStorages);
+            return new CollectionSummary(collected);
         }
 
         /// <summary>
-        /// Спільне ядро збору. null — буфер не порожній, а склад повний.
-        /// Будівля під будівництвом віддає те, що встигла накопичити до нього.
+        /// Спільне ядро збору. Будівля під будівництвом віддає те, що встигла
+        /// накопичити до нього.
         /// </summary>
-        private int? TryCollect(Building building, BuildingConfig config, int storageCap,
+        private int Collect(Building building, BuildingConfig config,
             DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             var resourceKey = config.ProducesResource!;
 
-            // Порожній буфер — не подія і не зміна стану, навіть коли склад повний
+            // Порожній буфер — не подія і не зміна стану
             if (building.StoredAt(config, utcNow, boost, locationMultiplier) == 0)
                 return 0;
 
+            var collected = building.Collect(config, utcNow, boost, locationMultiplier);
+
             var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey);
-            var free = storageCap - (resource?.Amount ?? 0);
-
-            if (free <= 0)
-                return null;
-
-            var collected = building.Collect(config, utcNow, boost, locationMultiplier, limit: free);
 
             if (resource is null)
             {
@@ -324,13 +300,13 @@ namespace EmpireIdle.Domain.Entities
                 _resources.Add(resource);
             }
 
-            var accepted = resource.AddUpTo(collected, storageCap);
+            resource.Add(collected);
 
             RaiseDomainEvent(new Events.BuildingCollected(
-                Id, PlayerId, building.Id, resourceKey, accepted, resource.Amount, utcNow));
+                Id, PlayerId, building.Id, resourceKey, collected, resource.Amount, utcNow));
             Touch(utcNow);
 
-            return accepted;
+            return collected;
         }
 
         /// <summary>
@@ -383,9 +359,8 @@ namespace EmpireIdle.Domain.Entities
                     throw new NotEnoughResourcesException(resource, need, res.Amount);
             }
 
-            // Після перевірки кожне need не більше за запас, отже вміщається в int
             foreach (var (resource, need) in charges)
-                _resources.First(r => r.ResourceType == resource).Subtract((int)need);
+                _resources.First(r => r.ResourceType == resource).Subtract(need);
 
             Touch(utcNow);
         }
@@ -418,24 +393,18 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Нараховує ресурс від нагороди. Повертає, скільки реально зараховано:
-        /// надлишок понад сумарний кап складів згорає.
+        /// Нараховує ресурс (нагорода, здобич, предмет). Стелі складу немає (GDD §4.1).
         /// </summary>
-        public int GrantResource(string resourceKey, int amount, int storageCap, DateTime utcNow)
+        public void GrantResource(string resourceKey, int amount, DateTime utcNow)
         {
             if (amount <= 0)
-                return 0;
+                return;
 
             var resource = _resources.FirstOrDefault(r => r.ResourceType == resourceKey)
                 ?? throw new InvalidOperationException($"Village has no '{resourceKey}' resource.");
 
-            var granted = Math.Max(0, Math.Min(amount, storageCap - resource.Amount));
-
-            if (granted > 0)
-                resource.Add(granted);
-
+            resource.Add(amount);
             Touch(utcNow);
-            return granted;
         }
 
         /// <summary>Нараховує стартові ресурси при заснуванні поселення.</summary>

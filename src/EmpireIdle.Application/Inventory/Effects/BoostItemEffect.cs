@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Domain.Entities;
@@ -18,14 +19,17 @@ namespace EmpireIdle.Application.Inventory.Effects
         private readonly IServerRepository _serverRepository;
         private readonly GameCatalog _catalog;
         private readonly WorldGeometry _geometry;
+        private readonly EffectResolver _effects;
 
-        public BoostItemEffect(IActiveEffectRepository repository, IVillageRepository villageRepository, IServerRepository serverRepository, GameCatalog catalog, WorldGeometry geometry)
+        public BoostItemEffect(IActiveEffectRepository repository, IVillageRepository villageRepository, IServerRepository serverRepository,
+            GameCatalog catalog, WorldGeometry geometry, EffectResolver effects)
         {
             _repository = repository;
             _villageRepository = villageRepository;
             _serverRepository = serverRepository;
             _catalog = catalog;
             _geometry = geometry;
+            _effects = effects;
         }
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
@@ -44,7 +48,7 @@ namespace EmpireIdle.Application.Inventory.Effects
             if (existing is null)
             {
                 if (target == EffectTarget.Production)
-                    await MaterializeProductionAsync(context, null, cancellationToken);
+                    await MaterializeProductionAsync(context, cancellationToken);
 
                 await _repository.AddAsync(
                     new ActiveEffect(Guid.NewGuid(), context.PlayerId, target, config.Multiplier,
@@ -56,7 +60,7 @@ namespace EmpireIdle.Application.Inventory.Effects
             if (!existing.IsActive(context.UtcNow))
             {
                 if (target == EffectTarget.Production)
-                    await MaterializeProductionAsync(context, existing, cancellationToken);
+                    await MaterializeProductionAsync(context, cancellationToken);
 
                 existing.Restart(config.Multiplier, context.UtcNow, context.UtcNow + duration, config.Key);
                 return;
@@ -75,26 +79,24 @@ namespace EmpireIdle.Application.Inventory.Effects
                     existing.Multiplier, DateTime.SpecifyKind(existing.ExpiresAt, DateTimeKind.Utc).ToString("O"));
 
             if (target == EffectTarget.Production)
-                await MaterializeProductionAsync(context, existing, cancellationToken);
+                await MaterializeProductionAsync(context, cancellationToken);
 
             // Сильніший буст витісняє слабший; залишок часу слабкого згорає
             existing.Restart(config.Multiplier, context.UtcNow, context.UtcNow + duration, config.Key);
         }
 
         /// <summary>
-        /// Фіксує накопичене за чинним бустом, перш ніж множник зміниться.
-        /// Тільки для Production — решта цілей на буфер не впливає.
+        /// Фіксує накопичене за чинними вікнами (буст крамниці й пасивки звірів), перш ніж
+        /// вікно буста зміниться. Тільки для Production — решта цілей на буфер не впливає.
         /// </summary>
-        private async Task MaterializeProductionAsync(ItemUsageContext context, ActiveEffect? current,
-            CancellationToken cancellationToken)
+        private async Task MaterializeProductionAsync(ItemUsageContext context, CancellationToken cancellationToken)
         {
             var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken);
             if (village is null)
                 return;
 
-            var boost = current is null
-                ? ProductionBoost.None
-                : new ProductionBoost(current.Multiplier, current.StartedAt, current.ExpiresAt);
+            // Ефект іще старий: Restart буде після, тож вікна — ті, за якими буфер накопичувався
+            var boost = await _effects.GetProductionBoostAsync(context.PlayerId, context.UtcNow, cancellationToken);
 
             var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
             var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);

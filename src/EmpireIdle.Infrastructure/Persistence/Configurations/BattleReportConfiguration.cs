@@ -16,6 +16,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(r => r.TerrainType).IsRequired().HasMaxLength(30);
             builder.Property(r => r.TargetName).IsRequired().HasMaxLength(100);
+            builder.Property(r => r.TamedBeastKey).HasMaxLength(50);
 
             // Список звітів гравця, найновіші зверху
             builder.HasIndex(r => new { r.PlayerId, r.FoughtAt });

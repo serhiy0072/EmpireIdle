@@ -36,7 +36,8 @@ public class BattleReportController : ControllerBase
                 r.Lines
                     .Select(l => new BattleReportLineResponse(
                         l.UnitType, l.Sent, l.Survived, l.Wounded, l.Recoverable, l.Dead))
-                    .ToList()))
+                    .ToList(),
+                r.TamedBeastKey))
             .ToList();
 
         return Ok(response);

@@ -188,7 +188,7 @@ public class BuildingTests
         var building = CreateFarm();
         var at = building.LastAccruedAt.AddMinutes(5);
 
-        var collected = building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0, limit: int.MaxValue);
+        var collected = building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0);
 
         Assert.Equal(50, collected);
         Assert.Equal(0, building.AccruedAmount);
@@ -202,23 +202,9 @@ public class BuildingTests
         var building = CreateFarm();
         var at = building.LastAccruedAt.AddMinutes(5);
 
-        building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0, limit: int.MaxValue);
+        building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0);
 
-        Assert.Equal(0, building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0, limit: int.MaxValue));
-    }
-
-    /// <summary>Ліміт забирає частину, решта лишається в буфері, а не згорає.</summary>
-    [Fact]
-    public void Collect_ShouldLeaveTheRemainderInTheBuffer_WhenLimited()
-    {
-        var building = CreateFarm();
-        var at = building.LastAccruedAt.AddMinutes(5);
-
-        var collected = building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0, limit: 20);
-
-        Assert.Equal(20, collected);
-        Assert.Equal(30, building.AccruedAmount);
-        Assert.Equal(30, building.StoredAt(Farm, at, ProductionBoost.None, locationMultiplier: 1.0));
+        Assert.Equal(0, building.Collect(Farm, at, ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>Відкриття з-під туману обнуляє буфер і стартує відлік з цього моменту.</summary>

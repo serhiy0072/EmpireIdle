@@ -76,7 +76,8 @@ namespace EmpireIdle.Application.Marches.Services
             string terrain,
             int seed,
             DateTime utcNow,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            string? tamedBeastKey = null)
         {
             var result = outcome.Battle;
             var split = outcome.AttackerCasualties;
@@ -88,6 +89,9 @@ namespace EmpireIdle.Application.Marches.Services
                 march.TargetX, march.TargetY, terrain,
                 targetName, targetLevel,
                 result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
+
+            if (tamedBeastKey is not null)
+                report.RecordTaming(tamedBeastKey);
 
             var armyByType = ByType(army);
             var woundedByType = ByType(split.Wounded);

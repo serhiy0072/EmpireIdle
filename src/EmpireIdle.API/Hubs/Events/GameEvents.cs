@@ -1,7 +1,7 @@
 namespace EmpireIdle.API.Hubs.Events
 {
     /// <param name="NewVillageAmount">Баланс після зарахування: клієнту не треба перезапитувати село.</param>
-    public record BuildingCollectedEvent(Guid BuildingId, string ResourceType, int Collected, int NewVillageAmount);
+    public record BuildingCollectedEvent(Guid BuildingId, string ResourceType, int Collected, long NewVillageAmount);
 
     /// <param name="CompletesAt">UTC. Клієнт рахує таймер від нього, а не від власного годинника.</param>
     public record UpgradeStartedEvent(Guid BuildingId, DateTime CompletesAt);

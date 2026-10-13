@@ -7,6 +7,6 @@ namespace EmpireIdle.Domain.Events
         Guid BuildingId,
         string ResourceType,
         int Amount,
-        int NewVillageAmount,
+        long NewVillageAmount,
         DateTime OccurredAt) : IDomainEvent;
 }

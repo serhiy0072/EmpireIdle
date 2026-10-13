@@ -88,7 +88,8 @@ namespace EmpireIdle.Application.Catalog
                     item.ArtifactSlot,
                     item.PriceGold,
                     item.Tradeable,
-                    item.Giftable))
+                    item.Giftable,
+                    item.Type == "teleport" ? item.TeleportScope.ToString() : null))
                 .ToList();
 
             var resources = config.Resources
@@ -116,12 +117,18 @@ namespace EmpireIdle.Application.Catalog
                     unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList()))
                 .ToList();
 
+            var beasts = config.Beasts.Types
+                .Select(beast => new CatalogBeast(beast.Key, Name("beast", beast.Key, beast.DisplayName), beast.MonsterKey,
+                    beast.Effect.ToString()))
+                .ToList();
+
             var response = new CatalogResponse(
                 heroes,
                 items,
                 resources,
                 buildings,
                 units,
+                beasts,
                 ArtifactSets(config, Name),
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxConstellation,

@@ -42,6 +42,10 @@ namespace EmpireIdle.Application.Territory.Services
         private Task<bool> IsCoveredAsync(Village village, DateTime utcNow, CancellationToken cancellationToken)
             => IsCoveredAsync(village.PlayerId, village.X, village.Y, utcNow, cancellationToken);
 
+        /// <summary>Чи клітина на території клану гравця — у радіусі діючої споруди (§7.2).</summary>
+        public Task<bool> CoversAsync(Guid playerId, int x, int y, DateTime utcNow, CancellationToken cancellationToken)
+            => IsCoveredAsync(playerId, x, y, utcNow, cancellationToken);
+
         private async Task<bool> IsCoveredAsync(Guid playerId, int x, int y, DateTime utcNow, CancellationToken cancellationToken)
         {
             // Світ без території не ходить у базу на кожен бій

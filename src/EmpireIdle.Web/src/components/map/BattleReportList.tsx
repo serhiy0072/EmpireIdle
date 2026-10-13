@@ -49,6 +49,7 @@ export default function BattleReportList({ playerId }: Props) {
             <span className={report.isRead ? "text-slate-700" : "font-semibold text-slate-900"}>
               {report.won ? "Перемога" : "Поразка"} · {report.targetName}
               {report.targetLevel > 0 && ` (рів. ${report.targetLevel})`}
+              {report.tamedBeastKey != null && ` · приручено: ${catalog.beastName(report.tamedBeastKey)}`}
             </span>
             <span className="flex items-center gap-2 text-xs text-slate-500">
               <span

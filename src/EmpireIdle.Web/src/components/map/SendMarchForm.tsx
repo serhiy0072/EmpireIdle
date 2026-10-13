@@ -32,6 +32,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
   const intent = target.intent ?? MARCH_INTENT.attack;
   const reinforce = intent === MARCH_INTENT.reinforce;
+  const tame = intent === MARCH_INTENT.tame;
 
   // Щит після падіння знімає будь-який напад на гравця — попереджаємо до кліку
   const losesShield =
@@ -69,7 +70,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
     <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="font-medium text-slate-800">
-          {reinforce ? "Підкріплення" : "Похід на"} {target.name}
+          {reinforce ? "Підкріплення" : tame ? "Приручення:" : "Похід на"} {target.name}
         </h3>
         <button type="button" onClick={onCancel} className="text-sm text-slate-500 hover:underline">
           Скасувати
@@ -81,6 +82,13 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
       {reinforce && (
         <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           Військо стане гарнізоном споруди, а поки вона будується — прискорить будівництво: сильніший загін дає більше.
+        </p>
+      )}
+
+      {tame && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Бій як звичайний. Перемога з шансом дасть звіра в звіринець замість здобичі; не вдасться — заберете здобич, а
+          гарантія наблизиться.
         </p>
       )}
 

@@ -125,7 +125,7 @@ namespace EmpireIdle.Application.Scouting.Services
 
             // Споруда не грабується — лише сила гарнізону
             return ScoutReport.Success(Guid.NewGuid(), march.ServerId, scouter.PlayerId, march, target.Name,
-                DefencePower(target, terrain), new Dictionary<string, int>(), utcNow);
+                DefencePower(target, terrain), new Dictionary<string, long>(), utcNow);
         }
 
         private async Task<ScoutReport> ScoutCampAsync(March march, Village scouter, string terrain,
@@ -146,7 +146,7 @@ namespace EmpireIdle.Application.Scouting.Services
 
             // Табір здобичі не везе — лише сила армії
             return ScoutReport.Success(Guid.NewGuid(), march.ServerId, scouter.PlayerId, march, target.Name,
-                DefencePower(target, terrain), new Dictionary<string, int>(), utcNow);
+                DefencePower(target, terrain), new Dictionary<string, long>(), utcNow);
         }
 
         /// <summary>Та сама сила, що в прев'ю й бою, без кидка кубика.</summary>

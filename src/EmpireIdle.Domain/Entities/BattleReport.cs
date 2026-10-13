@@ -31,6 +31,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Чи прочитано гравцем.</summary>
         public bool IsRead { get; private set; }
 
+        /// <summary>Звір, якого приручила ця перемога (GDD §5.10); null — не приручали або не вдалось.</summary>
+        public string? TamedBeastKey { get; private set; }
+
         /// <summary>Деталі по типах юнітів.</summary>
         public IReadOnlyCollection<BattleReportLine> Lines => _lines.AsReadOnly();
 
@@ -58,6 +61,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Додає рядок звіту по типу юніта.</summary>
         public void AddLine(string unitType, int sent, int wounded, int recoverable, int dead)
             => _lines.Add(new BattleReportLine(Guid.NewGuid(), Id, unitType, sent, wounded, recoverable, dead));
+
+        /// <summary>Перемога дала звіра — новий вид чи ранг наявного.</summary>
+        public void RecordTaming(string beastKey) => TamedBeastKey = beastKey;
 
         /// <summary>Позначає звіт прочитаним.</summary>
         public void MarkAsRead() => IsRead = true;

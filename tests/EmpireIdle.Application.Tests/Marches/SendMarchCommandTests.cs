@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Beasts.Services;
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Services;
@@ -34,10 +36,18 @@ public class SendMarchCommandTests
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
+    private readonly IBeastPenRepository _pens = Substitute.For<IBeastPenRepository>();
+    private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+
+    private EffectResolver Effects(GameCatalog catalog) => TestEffects.Resolver(_effects, _pens, catalog);
 
     private static GameConfig Config() => new()
     {
-        Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true }],
+        Buildings =
+        [
+            new BuildingConfig { Key = "townhall", IsMainBuilding = true },
+            new BuildingConfig { Key = "beastpen", BeastCapacityPerLevel = 1 }
+        ],
         Units = [new UnitConfig { Key = "infantry", Stats = new Dictionary<string, double> { ["Speed"] = 4 } }],
         Map = new MapConfig
         {
@@ -53,8 +63,44 @@ public class SendMarchCommandTests
                 Key = "wolves", MinLevel = 1, MaxLevel = 10, UnitGrowth = 1.5, RewardGrowth = 1.3,
                 Units = [new UnitStack { UnitType = "infantry", Count = 1 }],
                 Rewards = [new ResourceCost { Resource = "food", Amount = 500 }]
+            },
+            new MonsterConfig
+            {
+                Key = "bats", MinLevel = 1, MaxLevel = 10, UnitGrowth = 1.5, RewardGrowth = 1.3,
+                Units = [new UnitStack { UnitType = "infantry", Count = 1 }],
+                Rewards = [new ResourceCost { Resource = "food", Amount = 100 }]
+            },
+            new MonsterConfig
+            {
+                Key = "boars", MinLevel = 1, MaxLevel = 10, UnitGrowth = 1.5, RewardGrowth = 1.3,
+                Units = [new UnitStack { UnitType = "infantry", Count = 1 }],
+                Rewards = [new ResourceCost { Resource = "food", Amount = 100 }]
             }
         ],
+        Items = [new ItemConfig { Key = "beast_feed", DisplayName = "Корм", Description = "Корм", Type = "feed" }],
+        // Кажани не приручаються: звіра для них немає
+        Beasts = new BeastsConfig
+        {
+            PityWins = 10,
+            MaxRank = 5,
+            LevelsPerRank = 10,
+            FeedItemKey = "beast_feed",
+            BaseExperience = 100,
+            ExperienceGrowth = 1.25,
+            Types =
+            [
+                new BeastConfig
+                {
+                    Key = "wolf", MonsterKey = "wolves", TameChance = 0.2, Effect = EffectTarget.MarchSpeed,
+                    BaseBonus = 0.25, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                },
+                new BeastConfig
+                {
+                    Key = "boar", MonsterKey = "boars", TameChance = 0.2, Effect = EffectTarget.Production,
+                    BaseBonus = 0.15, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                }
+            ]
+        },
         HeroSettings = new HeroesConfig
         {
             MaxMarches = 3
@@ -75,7 +121,7 @@ public class SendMarchCommandTests
 
         var targets = new MarchTargetResolver(
             _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog, status,
-            _structures, _clans, new ClanTerritoryRules(catalog), _marches);
+            _structures, _clans, new ClanTerritoryRules(catalog), _marches, Effects(catalog));
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
@@ -86,6 +132,8 @@ public class SendMarchCommandTests
             targets, reinforcementRules, new StructureMarchRules(_clans),
             new HeroProgression(config.HeroSettings),
             catalog,
+            new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog),
+            Effects(catalog),
             NullLogger<SendMarchCommandHandler>.Instance);
     }
 
@@ -95,15 +143,18 @@ public class SendMarchCommandTests
     /// перевіряє саме його стан.
     /// </summary>
     private (Garrison Garrison, Monster Monster, Hero Hero) GivenState(
-        int infantry = 100, int activeMarches = 0, int availableHeroes = 3)
+        int infantry = 100, int activeMarches = 0, int availableHeroes = 3, bool withPen = false, string monsterType = "wolves")
     {
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 50, 50);
+
+        if (withPen)
+            village.AddBuilding("beastpen", new GameCatalog(Config()).Buildings, Now);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         if (infantry > 0)
             garrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, Now);
 
-        var monster = new Monster(Guid.NewGuid(), 1, "wolves", 1, 55, 55, Now);
+        var monster = new Monster(Guid.NewGuid(), 1, monsterType, 1, 55, 55, Now);
 
         var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "warrior_bran", garrison.Id, asLeader: true, Now);
 
@@ -125,9 +176,69 @@ public class SendMarchCommandTests
         return (garrison, monster, hero);
     }
 
-    private static SendMarchCommand Send(Guid targetId, Guid heroId, int infantry = 10) =>
+    private static SendMarchCommand Send(Guid targetId, Guid heroId, int infantry = 10,
+        MarchIntent intent = MarchIntent.Attack) =>
         new(PlayerId, MarchTargetType.Monster, targetId,
-            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, heroId);
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, heroId, intent);
+
+    /// <summary>Звіринець з одним прирученим звіром — на одне місце це повний звіринець.</summary>
+    private void GivenPenWith(string beastKey)
+    {
+        var pen = new BeastPen(Guid.NewGuid(), PlayerId, 1, Now);
+        pen.ResolveTaming(beastKey, rolled: true, pityWins: 10, capacity: 1, maxRank: 5, Now);
+
+        _pens.GetByPlayerReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pen);
+    }
+
+    /// <summary>Приручати нікуди, доки звіринець не відкритий (GDD §5.10).</summary>
+    [Fact]
+    public async Task Tame_ShouldRefuse_WithoutABeastPen()
+    {
+        var (_, monster, hero) = GivenState();
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(Send(monster.Id, hero.Id, intent: MarchIntent.Tame), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.BeastPenMissing.Key, refusal.Reason);
+    }
+
+    [Fact]
+    public async Task Tame_ShouldRefuse_AMonsterThatGivesNoBeast()
+    {
+        var (_, monster, hero) = GivenState(withPen: true, monsterType: "bats");
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(Send(monster.Id, hero.Id, intent: MarchIntent.Tame), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.BeastNotTameable.Key, refusal.Reason);
+    }
+
+    /// <summary>Новий вид у повний звіринець — відмова до відправки, а армія лишається вдома.</summary>
+    [Fact]
+    public async Task Tame_ShouldRefuse_ANewKindWhenThePenIsFull()
+    {
+        var (garrison, monster, hero) = GivenState(withPen: true);
+        GivenPenWith("boar");
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(Send(monster.Id, hero.Id, intent: MarchIntent.Tame), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.BeastPenFull.Key, refusal.Reason);
+        Assert.Equal(1, refusal.Args["capacity"]);
+        Assert.Equal(100, garrison.Units.Sum(u => u.Count));
+    }
+
+    /// <summary>Дублікат місця не займає: на вже приручений вид іти можна й з повним звіринцем.</summary>
+    [Fact]
+    public async Task Tame_ShouldSend_ForAKindAlreadyInAFullPen()
+    {
+        var (_, monster, hero) = GivenState(withPen: true);
+        GivenPenWith("wolf");
+
+        await Handler().Handle(Send(monster.Id, hero.Id, intent: MarchIntent.Tame), CancellationToken.None);
+
+        await _marches.Received(1).AddAsync(Arg.Is<March>(m => m.Intent == MarchIntent.Tame), Arg.Any<CancellationToken>());
+    }
 
     /// <summary>Власне село не атакують: інакше підкріплення соклановців гинули б від господаря.</summary>
     [Fact]
@@ -410,5 +521,34 @@ public class SendMarchCommandTests
         await _marches.Received(1).AddAsync(
             Arg.Is<March>(m => m.Intent == MarchIntent.Reinforce && m.HeroId == hero.Id && m.GetUnits().Count == 0),
             Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Активний вовк зі швидкістю +25%: дорога коротша в 1.25 раза, і множник фіксується
+    /// на марші — зворотна дорога піде так само швидко.
+    /// </summary>
+    [Fact]
+    public async Task SpeedPassive_ShouldShortenTheMarch_AndStayOnIt()
+    {
+        var marches = new List<March>();
+        await _marches.AddAsync(Arg.Do<March>(marches.Add), Arg.Any<CancellationToken>());
+
+        var (_, plainTarget, plainHero) = GivenState();
+        await Handler().Handle(Send(plainTarget.Id, plainHero.Id), CancellationToken.None);
+
+        var (_, fastTarget, fastHero) = GivenState();
+        var pen = new BeastPen(Guid.NewGuid(), PlayerId, 1, Now);
+        pen.ResolveTaming("wolf", rolled: true, pityWins: 10, capacity: 1, maxRank: 5, Now);
+        pen.Activate("wolf", _ => EffectTarget.MarchSpeed, TimeSpan.FromHours(2), TimeSpan.FromHours(8), Now.AddMinutes(-10));
+        _pens.GetByPlayerReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pen);
+
+        await Handler().Handle(Send(fastTarget.Id, fastHero.Id), CancellationToken.None);
+
+        var plain = marches[0].ArrivesAt - Now;
+        var fast = marches[1].ArrivesAt - Now;
+
+        Assert.Equal(plain.TotalSeconds / 1.25, fast.TotalSeconds, precision: 3);
+        Assert.Equal(1.25, marches[1].SpeedMultiplier, precision: 10);
+        Assert.Equal(1.0, marches[0].SpeedMultiplier, precision: 10);
     }
 }

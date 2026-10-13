@@ -56,6 +56,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IServerRepository, ServerRepository>();
             services.AddScoped<IPlayerPowerRepository, PlayerPowerRepository>();
             services.AddScoped<ITutorialProgressRepository, TutorialProgressRepository>();
+            services.AddScoped<IBeastPenRepository, BeastPenRepository>();
             services.AddScoped<IPlayerRatingRepository, PlayerRatingRepository>();
             services.AddScoped<IServerQuestRepository, ServerQuestRepository>();
             services.AddScoped<IClanRepository, ClanRepository>();

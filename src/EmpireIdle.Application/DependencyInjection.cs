@@ -8,6 +8,7 @@ using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
 using EmpireIdle.Application.Mail.Services;
+using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Market.Services;
 using EmpireIdle.Application.Quests.Services;
@@ -79,6 +80,7 @@ namespace EmpireIdle.Application
             services.AddScoped<VillageRelocator>();
             services.AddScoped<CityFallService>();
             services.AddScoped<MonsterBattleService>();
+            services.AddScoped<BeastTamer>();
             services.AddScoped<MarchTargetResolver>();
             services.AddScoped<BattleAftermath>();
             services.AddScoped<ReinforcementRules>();

@@ -47,7 +47,6 @@
         "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
-        "BaseStorage": 2000,
         "UpgradeCostGrowth": 1.28
       },
       {
@@ -174,7 +173,6 @@
         "BuildTimeGrowth": 1.30,
         "ProducesResource": null,
         "BaseProductionPerMinute": 0,
-        "BaseStorage": 2000,
         "UpgradeCostGrowth": 1.28
       },
       {
@@ -392,7 +390,7 @@
           "X": 30.0,
           "Y": 86.0
         },
-        "BeastCapacityPerLevel": 2,
+        "BeastCapacityPerLevel": 1,
         "Cost": [
           {
             "Resource": "wood",

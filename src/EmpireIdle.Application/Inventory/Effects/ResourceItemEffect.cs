@@ -10,13 +10,8 @@ namespace EmpireIdle.Application.Inventory.Effects
         public string ItemType => "resources";
 
         private readonly IVillageRepository _villageRepository;
-        private readonly VillageCapacities _capacities;
 
-        public ResourceItemEffect(IVillageRepository villageRepository, VillageCapacities capacities)
-        {
-            _villageRepository = villageRepository;
-            _capacities = capacities;
-        }
+        public ResourceItemEffect(IVillageRepository villageRepository) => _villageRepository = villageRepository;
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
         {
@@ -26,13 +21,9 @@ namespace EmpireIdle.Application.Inventory.Effects
             var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {context.PlayerId}.");
 
-            // Той самий шлях, що й нагороди квестів: надлишок понад кап згорає
+            // Той самий шлях, що й нагороди квестів; стелі складу немає (GDD §4.1)
             foreach (var line in context.Config.Resources)
-                village.GrantResource(
-                    line.Resource,
-                    line.Amount * context.Count,
-                    _capacities.StorageCapFor(village, line.Resource),
-                    context.UtcNow);
+                village.GrantResource(line.Resource, line.Amount * context.Count, context.UtcNow);
         }
     }
 }

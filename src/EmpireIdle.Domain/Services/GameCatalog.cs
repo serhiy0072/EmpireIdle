@@ -26,6 +26,12 @@ namespace EmpireIdle.Domain.Services
 
         public IReadOnlyDictionary<string, DungeonConfig> Dungeons { get; }
 
+        /// <summary>Типи звірів за ключем звіра.</summary>
+        public IReadOnlyDictionary<string, BeastConfig> Beasts { get; }
+
+        /// <summary>Типи звірів за ключем монстра, з якого їх приручають.</summary>
+        public IReadOnlyDictionary<string, BeastConfig> BeastsByMonster { get; }
+
         /// <summary>Які предмети входять у кожен набір.</summary>
         public IReadOnlyDictionary<string, IReadOnlyList<string>> SetPieces { get; }
 
@@ -49,6 +55,8 @@ namespace EmpireIdle.Domain.Services
             Quests = config.Quests.ToDictionary(q => q.Key);
             Heroes = config.Heroes.ToDictionary(h => h.Key);
             Dungeons = config.Dungeons.Dungeons.ToDictionary(d => d.Key);
+            Beasts = config.Beasts.Types.ToDictionary(b => b.Key);
+            BeastsByMonster = config.Beasts.Types.ToDictionary(b => b.MonsterKey);
             MainBuildingKey = config.Buildings.Single(b => b.IsMainBuilding).Key;
             SetPieces = config.Items
                 .Where(i => !string.IsNullOrWhiteSpace(i.SetKey))

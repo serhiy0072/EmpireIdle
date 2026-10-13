@@ -1,4 +1,6 @@
+using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Territory.Services;
@@ -42,6 +44,8 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly StructureMarchRules _structureMarches;
         private readonly HeroProgression _progression;
         private readonly GameCatalog _catalog;
+        private readonly BeastTamer _tamer;
+        private readonly EffectResolver _effects;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
         public SendMarchCommandHandler(
@@ -58,6 +62,8 @@ namespace EmpireIdle.Application.Marches.Commands
             StructureMarchRules structureMarches,
             HeroProgression progression,
             GameCatalog catalog,
+            BeastTamer tamer,
+            EffectResolver effects,
             ILogger<SendMarchCommandHandler> logger)
         {
             _villageRepository = villageRepository;
@@ -73,6 +79,8 @@ namespace EmpireIdle.Application.Marches.Commands
             _structureMarches = structureMarches;
             _progression = progression;
             _catalog = catalog;
+            _tamer = tamer;
+            _effects = effects;
             _logger = logger;
         }
 
@@ -141,6 +149,9 @@ namespace EmpireIdle.Application.Marches.Commands
             {
                 await _targets.EnsureAttackAllowedAsync(village, target, now, cancellationToken);
 
+                if (request.Intent == MarchIntent.Tame)
+                    await _tamer.EnsureAllowedAsync(village, request.TargetId, cancellationToken);
+
                 // Напад на гравця — на село чи на його табір — знімає власний щит
                 // після падіння: інакше з-під нього можна було б безкарно атакувати
                 if (target.Village is not null || target.Camp is not null)
@@ -159,16 +170,19 @@ namespace EmpireIdle.Application.Marches.Commands
             // Колона йде за найповільнішим учасником, і герой тут нарівні
             // з юнітами: підкріплення з самого героя інакше плелося б
             // базовою швидкістю замість власної
+            // Пасивка звіра пришвидшує марш; множник фіксується на марші й діє на зворотній дорозі
+            var speed = await _effects.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken);
+
             var duration = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, request.Units,
-                _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey)));
+                _progression.MarchSpeed(_catalog.FindHero(hero.HeroKey))) / speed;
 
             var march = new March(
                 Guid.NewGuid(), _serverContext.ServerId, garrison.Id, hero.Id,
                 village.X, village.Y, target.X, target.Y,
                 request.TargetType, request.TargetId,
                 request.Units, now + duration, now,
-                request.Intent);
+                request.Intent, speed);
 
             await _marchRepository.AddAsync(march, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -6,6 +6,24 @@
   "banner.notOpen": [
     "startsAt"
   ],
+  "beast.effectActive": [
+    "beast"
+  ],
+  "beast.levelCapped": [
+    "level"
+  ],
+  "beast.notEnoughFeed": [
+    "need",
+    "have"
+  ],
+  "beast.notTameable": [],
+  "beast.onCooldown": [
+    "readyAt"
+  ],
+  "beast.penFull": [
+    "capacity"
+  ],
+  "beast.penMissing": [],
   "building.alreadyCompleted": [],
   "building.notUpgradable": [
     "building"
@@ -216,7 +234,12 @@
   ],
   "teleport.cellOccupied": [],
   "teleport.cellUnsuitable": [],
+  "teleport.noClan": [],
+  "teleport.outsideClanTerritory": [],
   "teleport.outsideRegion": [],
+  "teleport.tooFar": [
+    "range"
+  ],
   "territory.cellTaken": [],
   "territory.cellUnfit": [],
   "territory.foreignStructure": [],
@@ -229,8 +252,5 @@
   ],
   "territory.ownStructure": [],
   "village.alreadyThere": [],
-  "village.nothingToRepair": [],
-  "village.storageFull": [
-    "resource"
-  ]
+  "village.nothingToRepair": []
 }
