@@ -1533,6 +1533,12 @@ namespace EmpireIdle.Domain.Services
             };
 
         /// <summary>Банери: категорія, пул, пороги pity й посилання лотів.</summary>
+        /// <summary>Лот — лише осколки героїв, і всі ці герої саме такого рангу.</summary>
+        private static bool IsShardsOfRank(BannerDropConfig drop, Dictionary<string, HeroConfig> heroes, Rarity rank)
+            => drop.Rewards.Count > 0
+               && drop.Rewards.All(r => string.Equals(r.Type, "HeroShards", StringComparison.OrdinalIgnoreCase)
+                   && r.Key is not null && heroes.TryGetValue(r.Key, out var hero) && hero.Rank == rank);
+
         private static void ValidateBanners(GameConfig config)
         {
             if (config.Shop.Banners.Count == 0)
@@ -1621,12 +1627,15 @@ namespace EmpireIdle.Domain.Services
                             $"Banner '{banner.Key}' drop '{drop.Key}' references unknown keys "
                             + $"or keys of the wrong kind: {string.Join("; ", broken)}.");
 
-                    // Лот чужої категорії — це філер. Рідкісний філер виглядав би
-                    // як виплата гарантії, якою він не є
-                    if (!BannerRoller.Counts(banner, drop) && drop.Rarity != Rarity.Common)
+                    // Лот чужої категорії — це філер. Рідкісний філер виглядав би як виплата гарантії,
+                    // якою він не є. Виняток — дрібні осколки героя: вони несуть ранг свого героя, щоб гравець
+                    // бачив на вітрині, що це осколки унікального, хоч гарантії вони й не рухають (рішення 13.10.2026)
+                    if (!BannerRoller.Counts(banner, drop) && drop.Rarity != Rarity.Common
+                        && !IsShardsOfRank(drop, heroes, drop.Rarity))
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' drop '{drop.Key}' is a {drop.Rarity} filler — "
-                            + "only the banner's own category carries rare and unique drops.");
+                            + "only the banner's own category carries rare and unique drops, "
+                            + "and filler shards carry the rank of their hero.");
 
                     // Банер видає осколки героя (GDD §6.1) — 10 осколків це герой; цілий герой теж годиться
                     if (drop.Kind == BannerKind.Hero
@@ -1635,18 +1644,15 @@ namespace EmpireIdle.Domain.Services
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a hero drop but grants no hero.");
 
-                    // Лот категорії — це те, чим платить гарантія й 50/50, тож він мусить давати цілого героя.
-                    // Пачки осколків менші за призов — звичайний лут (GDD §6.1, рішення 08.10.2026)
-                    var partial = drop.Rewards
-                        .Where(r => string.Equals(r.Type, "HeroShards", StringComparison.OrdinalIgnoreCase)
-                            && r.Amount < config.HeroSettings.SummonShards)
-                        .ToList();
-
-                    if (drop.Kind == BannerKind.Hero && partial.Count > 0)
+                    // Лот категорії — це те, чим платить гарантія. Пачка осколків теж годиться (рішення 13.10.2026:
+                    // унікальна гарантія — 5 осколків), але ранг лота мусить бути рангом героя — інакше
+                    // «унікальна» гарантія платила б осколками звичайного
+                    if (drop.Kind == BannerKind.Hero
+                        && drop.Rewards.Any(r => string.Equals(r.Type, "HeroShards", StringComparison.OrdinalIgnoreCase))
+                        && !IsShardsOfRank(drop, heroes, drop.Rarity))
                         throw new InvalidOperationException(
-                            $"Banner '{banner.Key}' drop '{drop.Key}' is a hero drop with fewer than "
-                            + $"{config.HeroSettings.SummonShards} shards — a pity payout must be a whole hero; "
-                            + "smaller bundles go in as filler (no Kind).");
+                            $"Banner '{banner.Key}' drop '{drop.Key}' is a {drop.Rarity} hero drop "
+                            + "with shards of a hero of another rank.");
 
                     // Рідкість лота — обіцянка гравцю; предмет в інвентарі несе рідкість зі свого конфіга.
                     // Розбіжність означала б «унікальний» на вітрині і «звичайний» у руках

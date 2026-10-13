@@ -86,6 +86,25 @@ public class BannerRollerTests
         Assert.Equal(0, result.State.RareSince);
     }
 
+    /// <summary>
+    /// Гарантія рідкісного платить саме рідкісним (рішення 13.10.2026): навіть коли унікальних у пулі
+    /// більше, ніж рідкісних, на кроці RarePity випадає рідкісний.
+    /// </summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(99)]
+    public void Roll_ShouldPayTheRarePity_WithARareOnly(int seed)
+    {
+        var banner = Banner();
+        banner.Drops.Single(d => d.Key == Featured).Weight = 1000;
+
+        var result = Roll(banner, new PityState(RareSince: 9, UniqueSince: 0, FeaturedGuaranteed: false), seed);
+
+        Assert.Equal(Rarity.Rare, result.Drop.Rarity);
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(2)]

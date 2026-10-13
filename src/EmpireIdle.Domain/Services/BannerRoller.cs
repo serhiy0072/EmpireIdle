@@ -56,11 +56,9 @@ namespace EmpireIdle.Domain.Services
             var uniquePity = state.UniqueSince + 1 >= banner.UniquePity;
             var rarePity = state.RareSince + 1 >= banner.RarePity;
 
-            // Гарантія платить у категорії банера. Звичайний лут у пул гарантій не входить
-            var pool = uniquePity || rarePity
-                ? banner.Drops.Where(d => Counts(banner, d)
-                    && d.Rarity >= (uniquePity ? Rarity.Unique : Rarity.Rare))
-                : banner.Drops;
+            // Гарантія платить у категорії банера своєю рідкістю: рідкісна — рідкісним лотом (5 чи 10 осколків,
+            // рішення 13.10.2026), а не унікальним; лише банер без рідкісних платить кращим. Звичайний лут у пул не входить
+            var pool = uniquePity || rarePity ? PityPool(banner, uniquePity ? Rarity.Unique : Rarity.Rare) : banner.Drops;
 
             var drop = Pick(banner, pool, random);
             var lost = false;
@@ -99,6 +97,15 @@ namespace EmpireIdle.Domain.Services
                 FeaturedGuaranteed: ofKind && drop.Rarity == Rarity.Unique ? lost : state.FeaturedGuaranteed);
 
             return new BannerRollResult(drop, next, WasPity: uniquePity || rarePity, LostFiftyFifty: lost);
+        }
+
+        /// <summary>Лоти категорії, якими платить гарантія цієї рідкості: рівно такої, а без них — кращої.</summary>
+        private static IEnumerable<BannerDropConfig> PityPool(BannerConfig banner, Rarity rarity)
+        {
+            var category = banner.Drops.Where(d => Counts(banner, d)).ToList();
+            var exact = category.Where(d => d.Rarity == rarity).ToList();
+
+            return exact.Count > 0 ? exact : category.Where(d => d.Rarity >= rarity);
         }
 
         /// <summary>

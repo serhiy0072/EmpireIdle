@@ -522,16 +522,29 @@ namespace EmpireIdle.Domain.Tests.Services
             return config;
         }
 
-        /// <summary>Пачка осколків менша за призов — звичайний лут: гарантія не може заплатити одним осколком.</summary>
+        /// <summary>Дрібна пачка осколків — філер, що не рухає гарантій.</summary>
         [Fact]
         public void Validate_ShouldAcceptAPartialShardBundle_AsFiller()
             => GameConfigValidator.Validate(WithHeroBanner(shards: 2, kind: null, rarity: Rarity.Common));
 
+        /// <summary>Філер-осколки несуть ранг свого героя: на вітрині видно, що це осколки унікального.</summary>
         [Fact]
-        public void Validate_ShouldRejectAPartialShardBundle_InTheHeroCategory()
+        public void Validate_ShouldAcceptFillerShards_WithTheRankOfTheirHero()
+            => GameConfigValidator.Validate(WithHeroBanner(shards: 1, kind: null, rarity: Rarity.Unique));
+
+        /// <summary>Гарантія може платити пачкою осколків — 5 осколків унікального (рішення 13.10.2026).</summary>
+        [Fact]
+        public void Validate_ShouldAcceptAPartialShardBundle_InTheHeroCategory()
+            => GameConfigValidator.Validate(WithHeroBanner(shards: 5, kind: BannerKind.Hero, rarity: Rarity.Unique));
+
+        /// <summary>«Рідкісні» осколки унікального героя збрехали б гравцю й зламали б гарантію рідкісного.</summary>
+        [Theory]
+        [InlineData(null)]
+        [InlineData(BannerKind.Hero)]
+        public void Validate_ShouldRejectShards_WithARankOtherThanTheirHero(BannerKind? kind)
         {
             var error = Assert.Throws<InvalidOperationException>(() =>
-                GameConfigValidator.Validate(WithHeroBanner(shards: 5, kind: BannerKind.Hero, rarity: Rarity.Unique)));
+                GameConfigValidator.Validate(WithHeroBanner(shards: 5, kind, rarity: Rarity.Rare)));
 
             Assert.Contains("bundle", error.Message);
         }
