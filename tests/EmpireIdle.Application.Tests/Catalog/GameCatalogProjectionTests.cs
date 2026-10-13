@@ -224,6 +224,21 @@ public class GameCatalogProjectionTests
         Assert.All(response.Units, unit => Assert.NotEmpty(unit.Cost));
     }
 
+    /// <summary>Екран табору показує показники юніта — стати 1 рівня доходять до клієнта як є.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheUnitStats()
+    {
+        var catalog = new GameConfigBuilder().WithBuildings().WithUnits(unit =>
+        {
+            unit.Stats = new Dictionary<string, double> { ["Attack"] = 12, ["CarryCapacity"] = 40 };
+        }).BuildCatalog();
+
+        var response = new GameCatalogProjection(catalog).ResponseFor(null);
+
+        Assert.All(response.Units, unit => Assert.Equal(12, unit.Stats["Attack"]));
+        Assert.All(response.Units, unit => Assert.Equal(40, unit.Stats["CarryCapacity"]));
+    }
+
     /// <summary>
     /// Кап рівня й крива вартості прокачки мусять доїхати до клієнта: без них
     /// екран не знає, скільки рівнів пропонувати й скільки це коштуватиме.

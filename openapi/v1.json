@@ -10797,7 +10797,8 @@
           "displayName",
           "key",
           "levelUpCostGrowth",
-          "requiresBuildingLevel"
+          "requiresBuildingLevel",
+          "stats"
         ],
         "type": "object",
         "properties": {
@@ -10827,6 +10828,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CatalogUnitCost"
+            }
+          },
+          "stats": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
             }
           }
         },

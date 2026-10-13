@@ -130,7 +130,8 @@ namespace EmpireIdle.Application.Catalog
                     unit.RequiresBuildingLevel,
                     unit.BaseTrainMinutes,
                     unit.LevelUpCostGrowth,
-                    unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList()))
+                    unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList(),
+                    unit.Stats))
                 .ToList();
 
             var beasts = config.Beasts.Types

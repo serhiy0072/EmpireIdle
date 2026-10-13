@@ -239,6 +239,10 @@
     public record CatalogUnitCost(string Resource, int Amount);
 
     /// <param name="RequiresBuilding">Будівля, потрібна для тренування; null — без вимог.</param>
+    /// <param name="Stats">
+    /// Бойові стати юніта 1 рівня (Attack, Defense, Speed, CarryCapacity…). Атака й захист ростуть
+    /// з рівнем на +10% за рівень (ProgressionCurves.UnitStatMultiplier), швидкість і вантаж — ні.
+    /// </param>
     public record CatalogUnit(
         string Key,
         string DisplayName,
@@ -246,5 +250,6 @@
         int RequiresBuildingLevel,
         int BaseTrainMinutes,
         double LevelUpCostGrowth,
-        IReadOnlyList<CatalogUnitCost> Cost);
+        IReadOnlyList<CatalogUnitCost> Cost,
+        IReadOnlyDictionary<string, double> Stats);
 }
