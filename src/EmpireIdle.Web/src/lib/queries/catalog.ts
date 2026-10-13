@@ -11,7 +11,7 @@ export type CatalogHero = components["schemas"]["CatalogHero"];
 export type CatalogItem = components["schemas"]["CatalogItem"];
 export type CatalogResource = components["schemas"]["CatalogResource"];
 export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
-export type CatalogPassive = components["schemas"]["CatalogPassive"];
+export type CatalogSkill = components["schemas"]["CatalogSkill"];
 export type CatalogUnit = components["schemas"]["CatalogUnit"];
 export type CatalogBeast = components["schemas"]["CatalogBeast"];
 export type CatalogArtifactSet = components["schemas"]["CatalogArtifactSet"];
@@ -39,7 +39,15 @@ export interface Catalog {
   unitsFor: (buildingType: string, buildingLevel: number) => CatalogUnit[];
   /** Ключі будівель, що тренують хоч один тип юнітів. */
   trainingBuildingKeys: string[];
-  maxConstellation: number;
+  /** Зірки героя (GDD §6.1): скільки їх і скільки частинок у кожній. */
+  maxStars: number;
+  partsPerStar: number;
+  /** Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1). */
+  maxSkillLevel: number;
+  /** Ключ предмета-книги для вмінь цієї половини в героя такої ролі й рідкості; null — книги немає. */
+  skillBook: (heroClass: string, rarity: string, half: string) => string | null;
+  /** Скільки осколків коштує призов будь-якого героя. */
+  summonShards: number;
   maxTier: number;
   /** Кап рівня юніта від тренування чи прокачки (§5.2 GDD). */
   maxUnitLevel: number;
@@ -125,7 +133,15 @@ export function useCatalog(): Catalog {
       trainingBuildingKeys: [
         ...new Set((data?.units ?? []).flatMap((unit) => (unit.requiresBuilding == null ? [] : [unit.requiresBuilding]))),
       ],
-      maxConstellation: data?.maxConstellation ?? 6,
+      maxStars: data?.maxStars ?? 5,
+      partsPerStar: data?.partsPerStar ?? 6,
+      maxSkillLevel: data?.maxSkillLevel ?? 6,
+      skillBook: (heroClass, rarity, half) =>
+        (data?.skillBooks ?? []).find(
+          (book) =>
+            book.class === heroClass && book.rarity.toLowerCase() === rarity.toLowerCase() && book.half === half,
+        )?.itemKey ?? null,
+      summonShards: data?.summonShards ?? 10,
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
@@ -189,9 +205,68 @@ export function heroState(state: string): string {
   return STATES[state] ?? state;
 }
 
-/** Поточна сила пасивки: база плюс приріст за кожне сузір'я понад те, що її відкрило. */
-export function passivePercent(passive: CatalogPassive, constellation: number): number | null {
-  if (constellation < passive.unlockConstellation) return null;
+const SKILL_KINDS: Record<string, string> = {
+  Active: "активне",
+  Passive: "пасивне",
+  Periodic: "періодичне",
+  Utility: "небойове",
+};
 
-  return passive.basePercent + passive.percentPerConstellation * (constellation - passive.unlockConstellation);
+/** Вид вміння словом для підпису. */
+export function skillKindLabel(kind: string): string {
+  return SKILL_KINDS[kind] ?? kind;
+}
+
+/** Половина вмінь (GDD §6.1): її книга й піднімає вміння. */
+export function skillHalfLabel(half: string): string {
+  return half === "Attack" ? "Атака" : half === "Defense" ? "Захист" : half;
+}
+
+/** Значення з пер-рівневого списку — та сама формула, що HeroSkills.At на сервері. */
+export function skillValue(values: number[], level: number): number {
+  if (values.length === 0 || level < 1) return 0;
+
+  return values[Math.min(level, values.length) - 1] ?? 0;
+}
+
+const SKILL_STATS: Record<string, string> = { Attack: "атаки", Defense: "захисту" };
+
+const SKILL_TARGETS: Record<string, string> = {
+  all: "усьому війську",
+  infantry: "піхоті",
+  archer: "лучникам",
+  cavalry: "кінноті",
+  siege: "облоговим",
+};
+
+/** Що вміння робить на рівні level; закрите (0) показується першим рівнем — «що відкриється». */
+export function skillEffect(skill: CatalogSkill, level: number): string {
+  const at = Math.max(1, level);
+  const parts: string[] = [];
+
+  if (skill.battle !== null && skill.battle !== undefined) {
+    const scale = skillValue(skill.battle.levelScale, at);
+    const power =
+      skill.battle.damageMultiplier > 0
+        ? `×${(skill.battle.damageMultiplier * scale).toFixed(1)} шкоди`
+        : skill.battle.healPercent > 0
+          ? `лікує ${Math.round(skill.battle.healPercent * scale * 100)}%`
+          : skill.battle.shieldPercent > 0
+            ? `щит ${Math.round(skill.battle.shieldPercent * scale * 100)}%`
+            : "накладає стан";
+    parts.push(`у данжі ${power}, раз на ${skill.battle.cooldown} ход.`);
+  }
+
+  if (skill.troops !== null && skill.troops !== undefined) {
+    const percent = skillValue(skill.troops.percents, at);
+    const stat = SKILL_STATS[skill.troops.stat] ?? skill.troops.stat;
+    parts.push(`+${percent}% ${stat} ${SKILL_TARGETS[skill.troops.target] ?? skill.troops.target}`);
+  }
+
+  if (skill.utility !== null && skill.utility !== undefined) {
+    const percent = skillValue(skill.utility.percents, at);
+    parts.push(skill.utility.effect === "MarchSpeed" ? `+${percent}% швидкості маршу` : `+${percent}% ${skill.utility.effect}`);
+  }
+
+  return parts.join(" · ");
 }

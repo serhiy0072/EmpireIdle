@@ -16,7 +16,7 @@ namespace EmpireIdle.Domain.Enums
         /// <summary>Зменшує отриману шкоду на частку.</summary>
         DamageReduction = 2,
 
-        /// <summary>Додає енергію за кожен власний удар понад звичайний приріст.</summary>
-        EnergyOnAttack = 3
+        /// <summary>Скорочує перезарядку активного вміння на стільки ходів (ціле), але не нижче одного ходу.</summary>
+        CooldownReduction = 3
     }
 }

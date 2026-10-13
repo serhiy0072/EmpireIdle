@@ -64,6 +64,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Items.Count > 0, "GameConfig.Items is empty — check Config/items.json.")
     .Validate(c => c.Quests.Count > 0, "GameConfig.Quests is empty — check Config/quests.json.")
     .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
+    .Validate(c => c.Items.Where(i => i.Type == "heroxp").All(i => i.HeroExperience > 0), "GameConfig has a hero experience jar without HeroExperience.")
     .Validate(c => c.Quests.Where(q => q.Scope == EmpireIdle.Domain.Enums.QuestScope.Server).All(q => q.Rewards.Count > 0),
         "GameConfig has a server quest without Rewards — every player of the world gets them by mail.")
     .Validate(c => c.Quests.SelectMany(q => q.Rewards.Concat(q.RewardTiers.SelectMany(t => t.Rewards))).All(r => r.Amount > 0), "GameConfig has a quest reward with non-positive Amount.")
@@ -157,6 +158,7 @@ builder.Services.AddSingleton(sp => new MarchCalculator(sp.GetRequiredService<Te
 builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<TerrainGenerator>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));
 builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
 builder.Services.AddSingleton(sp => new HeroProgression(gameConfig.HeroSettings));
+builder.Services.AddSingleton(sp => new HeroSkills(gameConfig.HeroSettings));
 builder.Services.AddSingleton(sp => new HeroCombatModifiers(sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));

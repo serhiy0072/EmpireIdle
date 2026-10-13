@@ -6,6 +6,9 @@
   "banner.notOpen": [
     "startsAt"
   ],
+  "banner.worldLevel": [
+    "level"
+  ],
   "beast.effectActive": [
     "beast"
   ],
@@ -141,6 +144,9 @@
     "hero",
     "ceiling"
   ],
+  "hero.maxStars": [
+    "parts"
+  ],
   "hero.maxTier": [
     "tier"
   ],
@@ -149,9 +155,30 @@
     "need",
     "have"
   ],
+  "hero.notOwned": [
+    "hero"
+  ],
   "hero.onMarket": [],
   "hero.onTheMove": [],
-  "hero.trainingBusy": [],
+  "hero.shardUpgradeLocked": [
+    "rarity"
+  ],
+  "hero.skillLocked": [
+    "skill",
+    "level"
+  ],
+  "hero.skillMaxed": [
+    "level"
+  ],
+  "hero.skillNoBook": [
+    "book"
+  ],
+  "hero.skillStarCapped": [
+    "stars"
+  ],
+  "hero.tierLocked": [
+    "tier"
+  ],
   "hero.worldLevelRequired": [
     "required",
     "current"
@@ -192,7 +219,6 @@
     "hero"
   ],
   "market.heroBusy": [],
-  "market.heroTraining": [],
   "market.itemListed": [],
   "market.listingClosed": [],
   "market.listingLimit": [
@@ -232,6 +258,7 @@
   "shop.maxPerPurchase": [
     "max"
   ],
+  "shop.offerClosed": [],
   "speedup.atFloor": [
     "seconds"
   ],

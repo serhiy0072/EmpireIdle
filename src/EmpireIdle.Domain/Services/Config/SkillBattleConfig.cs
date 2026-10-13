@@ -3,23 +3,19 @@ using EmpireIdle.Domain.Enums;
 namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>
-    /// Активне вміння героя для покрокового бою в данжі. У героя їх два:
-    /// слабке за половину шкали енергії й сильне за повну. У маршах і обороні
-    /// вміння не діють — там працюють пасивки, і це навмисний поділ:
-    /// армійський бій рахується однією формулою, без черги ходів.
+    /// Ефект вміння в покроковому бою данжу: активного (гравець вирішує, коли) чи
+    /// періодичного (спрацьовує саме). У маршах і обороні не діє — там армійський бій
+    /// рахується однією формулою без черги ходів, і вміння дає лише бонус війську.
     /// </summary>
-    public class HeroAbilityConfig
+    public class SkillBattleConfig
     {
-        public string Key { get; set; } = null!;
-
-        public string DisplayName { get; set; } = null!;
-
-        public string Description { get; set; } = string.Empty;
-
-        /// <summary>Скільки енергії з'їдає застосування: 50 — слабке, 100 — сильне.</summary>
-        public int EnergyCost { get; set; }
-
         public AbilityTarget Target { get; set; }
+
+        /// <summary>
+        /// Скільки власних ходів героя між застосуваннями. Відлік іде й на старті бою:
+        /// вміння не готове з першого ходу, як колись порожня шкала енергії.
+        /// </summary>
+        public int Cooldown { get; set; }
 
         /// <summary>Множник шкоди від атаки виконавця; 0 — вміння не б'є.</summary>
         public double DamageMultiplier { get; set; }
@@ -45,10 +41,13 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки ходів тримається стан.</summary>
         public int StatusTurns { get; set; }
 
-        /// <summary>
-        /// Дістає задню лінію попри живу передню — ознака далекобійних
-        /// і магічних умінь.
-        /// </summary>
+        /// <summary>Дістає задню лінію попри живу передню — ознака далекобійних умінь.</summary>
         public bool IgnoresLine { get; set; }
+
+        /// <summary>
+        /// Множник шкоди, лікування й щита на кожному рівні вміння, від першого:
+        /// [1.0, 1.2, …, 2.0] — це «100–200% шкоди залежно від рівня».
+        /// </summary>
+        public List<double> LevelScale { get; set; } = new();
     }
 }

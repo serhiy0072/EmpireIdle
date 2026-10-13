@@ -121,7 +121,8 @@ namespace EmpireIdle.Application.Marches.Queries
                 attackerHero is null
                     ? null
                     : _progression.MarchSpeed(_catalog.FindHero(attackerHero.HeroKey)))
-                / await _effectResolver.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken);
+                / await _effectResolver.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
+                / (attackerHero is null ? 1 : _progression.MarchSpeedMultiplier(attackerHero, _catalog.FindHero(attackerHero.HeroKey)));
 
             return new BattlePreviewResult(
                 _combat.EstimateOdds(attackerPower, defenderPower),

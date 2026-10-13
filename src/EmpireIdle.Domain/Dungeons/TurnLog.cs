@@ -18,7 +18,7 @@ namespace EmpireIdle.Domain.Dungeons
         /// <summary>Хто ходив.</summary>
         public required int ActorIndex { get; init; }
 
-        /// <summary>Яке вміння застосоване; null — звичайний удар.</summary>
+        /// <summary>Яке активне вміння застосоване; null — звичайний удар.</summary>
         public string? AbilityKey { get; init; }
 
         /// <summary>Хід пропущено через оглушення.</summary>
@@ -47,5 +47,8 @@ namespace EmpireIdle.Domain.Dungeons
         public BattleStatusKind? StatusApplied { get; init; }
 
         public bool Died { get; init; }
+
+        /// <summary>Періодичне вміння, що спрацювало саме; null — наслідок основної дії ходу.</summary>
+        public string? SkillKey { get; init; }
     }
 }

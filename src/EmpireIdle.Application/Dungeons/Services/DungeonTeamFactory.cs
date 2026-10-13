@@ -19,19 +19,22 @@ namespace EmpireIdle.Application.Dungeons.Services
         private readonly GameCatalog _catalog;
         private readonly HeroStats _heroStats;
         private readonly HeroProgression _progression;
+        private readonly HeroSkills _skills;
 
         public DungeonTeamFactory(
             IHeroRepository heroRepository,
             IInventoryRepository inventoryRepository,
             GameCatalog catalog,
             HeroStats heroStats,
-            HeroProgression progression)
+            HeroProgression progression,
+            HeroSkills skills)
         {
             _heroRepository = heroRepository;
             _inventoryRepository = inventoryRepository;
             _catalog = catalog;
             _heroStats = heroStats;
             _progression = progression;
+            _skills = skills;
         }
 
         /// <summary>
@@ -74,11 +77,25 @@ namespace EmpireIdle.Application.Dungeons.Services
                     stats.GetValueOrDefault("Health"),
                     // Швидкість героя задає чергу ходів; без власної береться типова
                     _progression.MarchSpeed(config),
-                    UniqueStats(equipped)));
+                    UniqueStats(equipped),
+                    Skills(hero, config)));
             }
 
             return team;
         }
+
+        /// <summary>
+        /// Вміння для бою (GDD §6.1): лише відкриті рівнем героя й ті, що мають ефект у данжі, —
+        /// активне й періодичні. Пасивки тут не діють: вони підсилюють військо, а в данжі його немає.
+        /// </summary>
+        private List<CombatSkill> Skills(Hero hero, Domain.Services.Config.HeroConfig config)
+            => config.Skills
+                .Where(s => s.Battle is not null && s.Kind is SkillKind.Active or SkillKind.Periodic)
+                .Select(s => (Skill: s, Level: _skills.LevelOf(hero, s)))
+                .Where(x => x.Level > 0)
+                .Select(x => CombatSkill.Prepare(x.Skill.Key, x.Skill.Kind, x.Skill.Battle!,
+                    HeroSkills.At(x.Skill.Battle!.LevelScale, x.Level)))
+                .ToList();
 
         /// <summary>
         /// Унікальні властивості з надітих артефактів. Однакові складаються:

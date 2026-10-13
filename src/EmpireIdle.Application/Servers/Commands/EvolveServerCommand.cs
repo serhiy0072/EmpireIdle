@@ -73,11 +73,9 @@ namespace EmpireIdle.Application.Servers.Commands
                 }
             }
 
-            // Світ, що ще не піднімався, відлічує строк від створення. Один рівень за прогін:
-            // джоб щоденний, і світ, що простояв без джоба, наздожене за кілька днів, а не стрибком
-            var since = server.LevelRaisedAt ?? server.CreatedAt;
-
-            if (now - since >= TimeSpan.FromDays(evolution.DaysPerLevel))
+            // Один рівень за прогін: джоб щоденний, і світ, що простояв без джоба,
+            // наздожене за кілька днів, а не стрибком
+            if (now - server.LevelSince >= TimeSpan.FromDays(evolution.DaysPerLevel))
             {
                 server.RaiseLevel(now);
                 changed = true;

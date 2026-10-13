@@ -1,4 +1,5 @@
 
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Services
@@ -15,36 +16,69 @@ namespace EmpireIdle.Domain.Services
     public class HeroProgression
     {
         private readonly HeroesConfig _config;
+        private readonly HeroSkills _skills;
 
         public HeroProgression(HeroesConfig config)
         {
             _config = config;
+            _skills = new HeroSkills(config);
         }
 
         /// <summary>
-        /// Стеля рівня героя. Дві незалежні межі, береться нижча:
-        /// ратуша обмежує всіх героїв гравця, тір — конкретного героя.
-        ///
-        /// Саме тому еволюція не є обов'язковою для прогресу: гравець
-        /// із ратушею 8 упреться в ратушу, а не в тір.
+        /// Множник бойової міці від зірок (GDD §6.1): кожна частинка — StarPartBonus до всіх статів.
+        /// Множиться з тіром, тож розрив між рідним і піднятим героєм росте разом із зірками.
         /// </summary>
-        public int MaxLevel(int townHallLevel, int tier)
-            => Math.Min(townHallLevel, tier * _config.LevelsPerTier);
+        public double StarMultiplier(int starParts) => 1 + _config.StarPartBonus * Math.Max(0, starParts);
+
+        /// <summary>Скільки повних зірок дають заповнені частинки.</summary>
+        public int Stars(int starParts) => _config.PartsPerStar < 1 ? 0 : starParts / _config.PartsPerStar;
+
+        /// <summary>Ціна наступної частинки в осколках; null — усі зірки вже заповнені.</summary>
+        public int? NextStarPartCost(int starParts)
+        {
+            if (starParts >= _config.MaxStarParts)
+                return null;
+
+            var star = starParts / _config.PartsPerStar;
+            var part = starParts % _config.PartsPerStar;
+
+            return _config.StarPartCosts[star][part];
+        }
+
+        /// <summary>Стеля рівня героя — одна для всіх (GDD §6.1).</summary>
+        public int MaxLevel => _config.MaxLevel;
+
+        /// <summary>Скільки досвіду коштує перехід із рівня <paramref name="level"/> на наступний.</summary>
+        public long ExperienceToNext(int level)
+            => (long)Math.Round(_config.ExperienceBase * Math.Pow(Math.Max(1, level), _config.ExperienceExponent));
+
+        /// <summary>Скільки досвіду коштує дорога з рівня <paramref name="from"/> до <paramref name="to"/>.</summary>
+        public long ExperienceBetween(int from, int to)
+        {
+            long total = 0;
+
+            for (var level = from; level < to; level++)
+                total += ExperienceToNext(level);
+
+            return total;
+        }
 
         /// <summary>
-        /// Множник базових стат за тіром. Поза межами списку повертає
-        /// останній відомий: конфіг із коротшим списком не має валити бій.
+        /// Скільки досвіду повертає скидання героя з рівня <paramref name="level"/> на перший:
+        /// усе вкладене, без втрат (GDD §6.1) — досвід вільно переходить між героями.
         /// </summary>
-        public double TierMultiplier(int tier)
+        public long ResetRefund(int level) => ExperienceBetween(1, level);
+
+        /// <summary>
+        /// Множник статів за тіром (GDD §6.1): TierGrowth^(тір−1) × EvolutionPenalty^(тір − рідний тір).
+        /// Рідний T2 — ×1.10, піднятий з T1 до T2 — ×1.045: апи тримають старих героїв у грі,
+        /// але нові того самого тіру завжди сильніші.
+        /// </summary>
+        public double TierMultiplier(int tier, int nativeTier)
         {
-            var multipliers = _config.TierStatMultipliers;
+            var steps = Math.Max(0, tier - nativeTier);
 
-            if (multipliers.Count == 0)
-                return 1.0;
-
-            var index = Math.Clamp(tier - 1, 0, multipliers.Count - 1);
-
-            return multipliers[index];
+            return Math.Pow(_config.TierGrowth, Math.Max(0, tier - 1)) * Math.Pow(_config.EvolutionPenalty, steps);
         }
 
         /// <summary>
@@ -52,12 +86,12 @@ namespace EmpireIdle.Domain.Services
         /// на множник тіру. Порядок саме такий — множник діє і на приріст,
         /// інакше високий тір знецінювався б з кожним рівнем.
         /// </summary>
-        public double StatValue(HeroConfig hero, string statKey, int level, int tier)
+        public double StatValue(HeroConfig hero, string statKey, int level, int tier, int nativeTier, int starParts)
         {
             var basis = hero.BaseStats.GetValueOrDefault(statKey, 0.0);
             var growth = hero.StatGrowth.GetValueOrDefault(statKey, 0.0);
 
-            return (basis + growth * (level - 1)) * TierMultiplier(tier);
+            return (basis + growth * (level - 1)) * TierMultiplier(tier, nativeTier) * StarMultiplier(starParts);
         }
 
         /// <summary>
@@ -70,6 +104,14 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public double MarchSpeed(HeroConfig? config)
             => config?.Speed ?? _config.DefaultMarchSpeed;
+
+        /// <summary>
+        /// Множник швидкості всього маршу від небойового вміння героя (GDD §6.1). Діє на колону,
+        /// а не на самого героя: колона йде за найповільнішим, і прудкіший герой інакше нічого б не дав.
+        /// Як і пасивка звіра, фіксується на марші при виході й діє на зворотній дорозі.
+        /// </summary>
+        public double MarchSpeedMultiplier(Hero hero, HeroConfig? config)
+            => 1 + _skills.UtilityPercent(hero, config, SkillUtilityConfig.MarchSpeed) / 100;
 
         /// <summary>
         /// Чи можна підняти тір. Тір прив'язаний до рівня світу: перехід
@@ -109,28 +151,5 @@ namespace EmpireIdle.Domain.Services
             => _config.HealCostPerLevel
             .Select(c => new ResourceCost { Resource = c.Resource, Amount = c.Amount * level })
             .ToList();
-
-        /// <summary>Скільки триває підняття рівня до targetLevel.</summary>
-        public TimeSpan LevelUpDuration(int targetLevel)
-            => TimeSpan.FromMinutes(_config.BaseLevelUpMinutes * targetLevel);
-
-        /// <summary>
-        /// Вартість переходу на targetLevel. Береться смуга з найбільшим
-        /// FromLevel, який не перевищує цільовий рівень.
-        ///
-        /// Список повертається як є, без множення: множник передається
-        /// у ChargeCost, щоб вартість і списання не розходились у двох місцях.
-        /// </summary>
-        public List<ResourceCost> LevelUpCost(HeroConfig hero, int targetLevel)
-        {
-            var band = hero.LevelUpCosts
-                .Where(b => b.FromLevel <= targetLevel)
-                .OrderByDescending(b => b.FromLevel)
-                .FirstOrDefault()
-                ?? throw new InvalidOperationException(
-                    $"Hero '{hero.Key}' has no cost band covering level {targetLevel}.");
-
-            return band.Cost;
-        }
     }
 }

@@ -237,18 +237,17 @@ namespace EmpireIdle.Domain.Tests.Services
 
             config.Items =
             [
+                .. TestKit.UniversalShards.All(),
                 new ItemConfig { Key = "hero_essence_t2" },
                 new ItemConfig { Key = "hero_essence_t3" }
             ];
 
             config.HeroSettings = new HeroesConfig
             {
-                LevelsPerTier = 10,
-                MaxTier = 3,
                 MaxMarches = 8,
-                TierStatMultipliers = [1.0, 1.35, 1.8],
+                TierGrowth = 1.10,
+                StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]],
                 EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-                OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 BuildingKey = "heroeshall",
                 HealBuildingKey = "hospital",
                 HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
@@ -260,28 +259,11 @@ namespace EmpireIdle.Domain.Tests.Services
                 new HeroConfig
                     {
                         Key = "warrior_bran", Class = "warrior", Rank = Rarity.Common,
-                        SummonShards = 10, ShardPriceGold = 1200,
-                        LevelUpCosts =
-                        [
-                            new HeroLevelCostBand
-                            {
-                                FromLevel = 1,
-                                Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
-                            }
-                        ]
-                    },
+},
                     new HeroConfig
                     {
                         Key = "archer_lyra", Class = "archer", Rank = Rarity.Unique,
-                        LevelUpCosts =
-                        [
-                            new HeroLevelCostBand
-                            {
-                                FromLevel = 1,
-                                Cost = [new ResourceCost { Resource = "food", Amount = 100 }]
-                            }
-                        ]
-                    }
+}
             ];
 
             return config;
@@ -317,8 +299,8 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectDuplicateHeroKeys()
             => RejectsHero(c => c.Heroes =
             [
-                new HeroConfig { Key = "warrior_bran", Class = "warrior", SummonShards = 1, ShardPriceGold = 1 },
-                new HeroConfig { Key = "warrior_bran", Class = "warrior", SummonShards = 1, ShardPriceGold = 1 }
+                new HeroConfig { Key = "warrior_bran", Class = "warrior" },
+                new HeroConfig { Key = "warrior_bran", Class = "warrior" }
             ]);
 
         /// <summary>
@@ -337,39 +319,44 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectDuplicateClasses()
             => RejectsHero(c => c.HeroSettings.Classes = ["warrior", "warrior", "archer"]);
 
-        /// <summary>Множників має бути рівно стільки, скільки тірів.</summary>
+        /// <summary>Тір без росту — новий тір не сильніший за старий (GDD §6.1).</summary>
         [Fact]
-        public void Validate_ShouldRejectTierMultiplierCountMismatch()
-            => RejectsHero(c => c.HeroSettings.TierStatMultipliers = [1.0, 1.35]);
+        public void Validate_ShouldRejectATierGrowthOfOneOrLess()
+            => RejectsHero(c => c.HeroSettings.TierGrowth = 1.0);
 
-        /// <summary>
-        /// Незростаючі множники означають, що еволюція піднімає лише стелю,
-        /// і два герої різних тірів на тому самому рівні однакові.
-        /// </summary>
+        /// <summary>Штраф понад 1 зробив би піднятого героя сильнішим за рідного.</summary>
         [Fact]
-        public void Validate_ShouldRejectNonIncreasingTierMultipliers()
-            => RejectsHero(c => c.HeroSettings.TierStatMultipliers = [1.0, 1.35, 1.35]);
+        public void Validate_ShouldRejectAnEvolutionPenaltyAboveOne()
+            => RejectsHero(c => c.HeroSettings.EvolutionPenalty = 1.05);
 
-        /// <summary>Переходів рівно на один менше, ніж тірів.</summary>
+        /// <summary>Рідний тір, якого немає серед описаних тірів, — героя ніколи б не видали.</summary>
         [Fact]
-        public void Validate_ShouldRejectEvolutionItemCountMismatch()
-            => RejectsHero(c => c.HeroSettings.EvolutionItemKeys = ["hero_essence_t2"]);
+        public void Validate_ShouldRejectANativeTierAboveTheHighestTier()
+            => RejectsHero(c => c.Heroes[0].NativeTier = 4);
 
         [Fact]
         public void Validate_ShouldRejectUnknownEvolutionItem()
             => RejectsHero(c => c.HeroSettings.EvolutionItemKeys = ["hero_essence_t2", "missing_essence"]);
 
-        /// <summary>
-        /// Звичайні герої — основний щоденний стік золота. Без ціни уламка
-        /// вони роздавались би безкоштовно.
-        /// </summary>
+        /// <summary>Зірка з неповним списком цін упала б на першій же частинці без ціни (GDD §6.1).</summary>
         [Fact]
-        public void Validate_ShouldRejectCommonHeroWithoutShardPrice()
-            => RejectsHero(c => c.Heroes[0].ShardPriceGold = 0);
+        public void Validate_ShouldRejectAStarWithoutEveryPartCost()
+            => RejectsHero(c => c.HeroSettings.StarPartCosts[4] = [40, 40]);
 
+        /// <summary>Безкоштовна частинка — зірки задарма.</summary>
         [Fact]
-        public void Validate_ShouldRejectCommonHeroWithoutShardCount()
-            => RejectsHero(c => c.Heroes[0].SummonShards = 0);
+        public void Validate_ShouldRejectAFreeStarPart()
+            => RejectsHero(c => c.HeroSettings.StarPartCosts[0][0] = 0);
+
+        /// <summary>Без універсального осколка рідкості надлишок прокачаного героя нікуди подіти.</summary>
+        [Fact]
+        public void Validate_ShouldRejectARosterRarityWithoutAUniversalShard()
+            => RejectsHero(c => c.Items.RemoveAll(i => i.Key == TestKit.UniversalShards.Unique));
+
+        /// <summary>З найвищої рідкості міняти нікуди.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAnUpgradeFromTheTopRarity()
+            => RejectsHero(c => c.HeroSettings.UniversalShardUpgrade["Unique"] = 500);
 
         /// <summary>Нуль маршів лишив би гравця з героями без доступу до карти.</summary>
         [Fact]
@@ -381,31 +368,14 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectUnknownHeroBuilding()
             => RejectsHero(c => c.HeroSettings.BuildingKey = "ghosthall");
 
-        /// <summary>
-        /// Забутий ранг означав би, що дублікат понад стелю сузір'я
-        /// зникає без сліду — саме те, чого ми уникали.
-        /// </summary>
+        /// <summary>Крива без росту — пізні рівні коштували б як перші (GDD §6.1).</summary>
         [Fact]
-        public void Validate_ShouldRejectMissingOverflowSealsForRank()
-            => RejectsHero(c => c.HeroSettings.OverflowSeals.Remove("Unique"));
-
-        /// <summary>Герой без смуг вартості не качався б узагалі.</summary>
-        [Fact]
-        public void Validate_ShouldRejectHeroWithoutLevelUpCosts()
-            => RejectsHero(c => c.Heroes[0].LevelUpCosts = []);
-
-        /// <summary>
-        /// Смуга має починатися з першого рівня, інакше герой упреться
-        /// в дірку одразу після призову.
-        /// </summary>
-        [Fact]
-        public void Validate_ShouldRejectLevelUpCostsNotStartingAtOne()
-            => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].FromLevel = 5);
+        public void Validate_ShouldRejectANonPositiveExperienceCurve()
+            => RejectsHero(c => c.HeroSettings.ExperienceExponent = 0);
 
         [Fact]
-        public void Validate_ShouldRejectLevelUpCostWithUnknownResource()
-            => RejectsHero(c => c.Heroes[0].LevelUpCosts[0].Cost =
-                [new ResourceCost { Resource = "mithril", Amount = 10 }]);
+        public void Validate_ShouldRejectAMaxLevelBelowOne()
+            => RejectsHero(c => c.HeroSettings.MaxLevel = 0);
 
         [Fact]
         public void Validate_ShouldRejectAnUnknownHealBuilding()
@@ -504,6 +474,51 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Contains("Unique", error.Message);
         }
 
+        /// <summary>
+        /// Банер героїв із лотом на <paramref name="shards"/> осколків, позначеним як лот категорії або як філер.
+        /// Повний лот на 10 осколків лишається завжди — інакше гарантії не було б чим платити.
+        /// </summary>
+        private static GameConfig WithHeroBanner(int shards, BannerKind? kind, Rarity rarity)
+        {
+            var config = new GameConfigBuilder().WithResources().WithBuildings().WithHeroes().Build();
+
+            BannerDropConfig Shards(string key, int amount, BannerKind? dropKind, Rarity dropRarity) => new()
+            {
+                Key = key, DisplayName = key, Rarity = dropRarity, Kind = dropKind, Weight = 1,
+                Rewards = [new RewardConfig { Type = "HeroShards", Key = TestKeys.UniqueHero, Amount = amount }]
+            };
+
+            config.Shop.Banners =
+            [
+                new BannerConfig
+                {
+                    Key = "dawn", DisplayName = "Dawn", Kind = BannerKind.Hero, PityGroup = "hero", PriceGems = 100,
+                    RarePity = 10, UniquePity = 50,
+                    Drops =
+                    [
+                        Shards("whole", config.HeroSettings.SummonShards, BannerKind.Hero, Rarity.Unique),
+                        Shards("bundle", shards, kind, rarity)
+                    ]
+                }
+            ];
+
+            return config;
+        }
+
+        /// <summary>Пачка осколків менша за призов — звичайний лут: гарантія не може заплатити одним осколком.</summary>
+        [Fact]
+        public void Validate_ShouldAcceptAPartialShardBundle_AsFiller()
+            => GameConfigValidator.Validate(WithHeroBanner(shards: 2, kind: null, rarity: Rarity.Common));
+
+        [Fact]
+        public void Validate_ShouldRejectAPartialShardBundle_InTheHeroCategory()
+        {
+            var error = Assert.Throws<InvalidOperationException>(() =>
+                GameConfigValidator.Validate(WithHeroBanner(shards: 5, kind: BannerKind.Hero, rarity: Rarity.Unique)));
+
+            Assert.Contains("bundle", error.Message);
+        }
+
         [Fact]
         public void Validate_ShouldRejectAShopItem_ThatIsNotAnItem()
         {
@@ -529,7 +544,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldAcceptAShopItem_ThatSellsAnExistingConsumable()
         {
             var config = ValidConfig();
-            config.Items = [new ItemConfig { Key = "hero_essence_t2", DisplayName = "Essence", Description = "", Type = "evolution" }];
+            config.Items = [.. TestKit.UniversalShards.All(), new ItemConfig { Key = "hero_essence_t2", DisplayName = "Essence", Description = "", Type = "evolution" }];
             config.Shop.Items = [new ShopItemConfig { ItemKey = "hero_essence_t2", PriceGems = 300 }];
 
             var exception = Record.Exception(() => GameConfigValidator.Validate(config));

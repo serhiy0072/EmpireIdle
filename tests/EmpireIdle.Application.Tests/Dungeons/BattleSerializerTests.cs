@@ -28,7 +28,14 @@ public class BattleSerializerTests
                 MaxHealth = 600,
                 Health = 600,
                 Speed = 4,
-                Energy = 0,
+                Skills =
+                [
+                    new CombatSkill
+                    {
+                        Key = "warrior_bran_smash", Kind = SkillKind.Active, Target = AbilityTarget.SingleEnemy,
+                        Cooldown = 3, CooldownLeft = 0, DamageMultiplier = 2.2,
+                    },
+                ],
                 Statuses = [new BattleStatus { Kind = BattleStatusKind.Taunt, Magnitude = 0, TurnsLeft = 2 }],
                 UniqueStats = new Dictionary<DungeonStat, double> { [DungeonStat.CritChance] = 0.12 },
             },
@@ -43,7 +50,6 @@ public class BattleSerializerTests
                 MaxHealth = 240,
                 Health = 240,
                 Speed = 9,
-                Energy = 0,
                 ShieldPoints = 0,
                 Statuses = [],
                 UniqueStats = [],
@@ -72,7 +78,8 @@ public class BattleSerializerTests
         var hero = restored.Combatants[0];
         Assert.Equal(0, hero.Index);
         Assert.Equal(BattleSide.Heroes, hero.Side);
-        Assert.Equal(0, hero.Energy);
+        Assert.Equal(0, hero.Skills[0].CooldownLeft);
+        Assert.Equal(SkillKind.Active, hero.Skills[0].Kind);
         Assert.Equal(original.Combatants[0].HeroId, hero.HeroId);
         Assert.Equal(0.12, hero.UniqueStats[DungeonStat.CritChance]);
         Assert.Equal(BattleStatusKind.Taunt, hero.Statuses[0].Kind);
@@ -81,5 +88,24 @@ public class BattleSerializerTests
         Assert.Equal(BattleSide.Enemies, enemy.Side);
         Assert.Equal(BattleLine.Back, enemy.Line);
         Assert.Null(enemy.HeroId);
+    }
+
+    /// <summary>
+    /// Забіг, збережений до вмінь (зі шкалою енергії), читається як бій без вмінь, а не падає:
+    /// зайве поле ігнорується, а відсутній список вмінь — порожній.
+    /// </summary>
+    [Fact]
+    public void Read_ShouldAcceptABattleSavedBeforeSkills()
+    {
+        const string legacy = """
+            {"combatants":[{"index":0,"side":"Heroes","line":"Front","key":"warrior_bran","heroId":null,
+            "attack":10,"defense":5,"maxHealth":100,"health":100,"speed":4,"energy":50,"shieldPoints":0,
+            "statuses":[],"uniqueStats":{}}],"wave":1,"round":1,"queue":[0],"seed":7,"turnNumber":3}
+            """;
+
+        var restored = BattleSerializer.Read(legacy);
+
+        Assert.Empty(restored.Combatants[0].Skills);
+        Assert.Equal(3, restored.TurnNumber);
     }
 }

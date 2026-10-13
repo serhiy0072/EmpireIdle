@@ -1,22 +1,64 @@
 {
   "GameConfig": {
     "HeroSettings": {
-      "LevelsPerTier": 10,
-      "MaxTier": 3,
-      "TierStatMultipliers": [
-        1.0,
-        1.35,
-        1.8
-      ],
+      "MaxLevel": 80,
+      "ExperienceBase": 8,
+      "ExperienceExponent": 2.6,
+      "TierGrowth": 1.1,
+      "EvolutionPenalty": 0.95,
       "EvolutionItemKeys": [
         "hero_essence_t2",
         "hero_essence_t3"
       ],
-      "MaxConstellation": 6,
-      "OverflowSeals": {
-        "Common": 0,
-        "Rare": 15,
-        "Unique": 60
+      "SummonShards": 10,
+      "MaxStars": 5,
+      "PartsPerStar": 6,
+      "StarPartCosts": [
+        [
+          1,
+          1,
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ]
+      ],
+      "StarPartBonus": 0.05,
+      "UniversalShardUpgrade": {
+        "Common": 100,
+        "Rare": 300
       },
       "MaxMarches": 8,
       "HealCostPerLevel": [
@@ -30,13 +72,139 @@
         }
       ],
       "HealBuildingKey": "hospital",
-      "BaseLevelUpMinutes": 12,
       "BuildingKey": "heroeshall",
       "Classes": [
         "warrior",
         "knight",
-        "archer",
-        "mage"
+        "archer"
+      ],
+      "MaxSkillLevel": 6,
+      "SkillLayouts": {
+        "Common": {
+          "Attack": 2,
+          "Defense": 2,
+          "Utility": 1
+        },
+        "Rare": {
+          "Attack": 3,
+          "Defense": 2,
+          "Utility": 0
+        },
+        "Unique": {
+          "Attack": 3,
+          "Defense": 3,
+          "Utility": 0
+        }
+      },
+      "SkillBooks": [
+        {
+          "ItemKey": "skill_book_warrior_common_attack",
+          "Class": "warrior",
+          "Rarity": "Common",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_warrior_common_defense",
+          "Class": "warrior",
+          "Rarity": "Common",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_warrior_rare_attack",
+          "Class": "warrior",
+          "Rarity": "Rare",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_warrior_rare_defense",
+          "Class": "warrior",
+          "Rarity": "Rare",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_warrior_unique_attack",
+          "Class": "warrior",
+          "Rarity": "Unique",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_warrior_unique_defense",
+          "Class": "warrior",
+          "Rarity": "Unique",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_knight_common_attack",
+          "Class": "knight",
+          "Rarity": "Common",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_knight_common_defense",
+          "Class": "knight",
+          "Rarity": "Common",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_knight_rare_attack",
+          "Class": "knight",
+          "Rarity": "Rare",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_knight_rare_defense",
+          "Class": "knight",
+          "Rarity": "Rare",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_knight_unique_attack",
+          "Class": "knight",
+          "Rarity": "Unique",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_knight_unique_defense",
+          "Class": "knight",
+          "Rarity": "Unique",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_archer_common_attack",
+          "Class": "archer",
+          "Rarity": "Common",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_archer_common_defense",
+          "Class": "archer",
+          "Rarity": "Common",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_archer_rare_attack",
+          "Class": "archer",
+          "Rarity": "Rare",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_archer_rare_defense",
+          "Class": "archer",
+          "Rarity": "Rare",
+          "Half": "Defense"
+        },
+        {
+          "ItemKey": "skill_book_archer_unique_attack",
+          "Class": "archer",
+          "Rarity": "Unique",
+          "Half": "Attack"
+        },
+        {
+          "ItemKey": "skill_book_archer_unique_defense",
+          "Class": "archer",
+          "Rarity": "Unique",
+          "Half": "Defense"
+        }
       ]
     },
     "Heroes": [
@@ -47,117 +215,129 @@
         "Rank": "common",
         "Description": "Тримає стрій. Зменшує безповоротні втрати піхоти в обороні.",
         "Lore": "Бран був ковалем у прикордонному селі, доки повз нього не пройшло військо, яке не спинилось. Із того дня він носить щит, скутий із дверей власної кузні, і не відступив жодного разу. Каже, що не з упертості, а тому що вже пробував відступати.",
-        "SummonShards": 10,
-        "ShardPriceGold": 1200,
         "Speed": 4,
         "BaseStats": {
           "Attack": 40,
           "Defense": 60,
           "Health": 300
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 4,
           "Defense": 7,
           "Health": 35
         },
-        "Passives": [
-          {
-            "Key": "shieldwall",
-            "DisplayName": "Стіна щитів",
-            "UnlockConstellation": 0,
-            "Target": "infantry",
-            "Stat": "Defense",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "hold_the_line",
-            "DisplayName": "Тримати стрій",
-            "UnlockConstellation": 3,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 4,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "warrior_bran_guard",
-            "DisplayName": "Стійка",
-            "Description": "Щит собі й провокація ворога.",
-            "EnergyCost": 50,
-            "Target": "Self",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.25,
-            "ShieldTurns": 2,
-            "IgnoresLine": false,
-            "Status": "Taunt",
-            "StatusMagnitude": 0,
-            "StatusTurns": 2
-          },
+        "Skills": [
           {
             "Key": "warrior_bran_smash",
             "DisplayName": "Розтрощення",
             "Description": "Важкий удар по цілі зі зниженням її захисту.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.2,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false,
-            "Status": "DefenseDown",
-            "StatusMagnitude": 0.25,
-            "StatusTurns": 2
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.2,
+              "Status": "DefenseDown",
+              "StatusMagnitude": 0.25,
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "warrior_bran_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "Self",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "ShieldPercent": 0.25,
+              "ShieldTurns": 2,
+              "Status": "Taunt",
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "warrior_bran_swift_march",
+            "DisplayName": "Швидкий марш",
+            "Description": "Пришвидшує марш, який веде герой.",
+            "Half": "Defense",
+            "Kind": "Utility",
+            "UnlockLevel": 1,
+            "Utility": {
+              "Effect": "MarchSpeed",
+              "Percents": [
+                5,
+                10,
+                15,
+                20,
+                25,
+                30
+              ]
+            }
+          },
+          {
+            "Key": "shieldwall",
+            "DisplayName": "Стіна щитів",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "infantry",
+              "Stat": "Defense",
+              "Percents": [
+                6,
+                12,
+                18,
+                24,
+                30,
+                36
+              ]
+            }
           }
         ]
       },
@@ -168,113 +348,127 @@
         "Rank": "common",
         "Description": "Б'є першою. Підвищує шанс криту стрільців у наступальному марші.",
         "Lore": "Ліра виросла на сторожовій вежі, де єдиною розвагою було рахувати кроки чужинців на обрії. Вона навчилась влучати в те, чого ще не видно іншим. Стріляє мовчки й ніколи не дивиться, чи влучила.",
-        "SummonShards": 10,
-        "ShardPriceGold": 1200,
         "Speed": 6,
         "BaseStats": {
           "Attack": 65,
           "Defense": 30,
           "Health": 220
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 3,
           "Health": 24
         },
-        "Passives": [
-          {
-            "Key": "volley",
-            "DisplayName": "Залп",
-            "UnlockConstellation": 0,
-            "Target": "archer",
-            "Stat": "Attack",
-            "BasePercent": 7,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "steady_aim",
-            "DisplayName": "Тверда рука",
-            "UnlockConstellation": 4,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 3,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "archer_lyra_aimed",
-            "DisplayName": "Прицільний",
-            "Description": "Постріл у тил повз передню лінію.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.5,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
-          },
+        "Skills": [
           {
             "Key": "archer_lyra_venom",
             "DisplayName": "Отруйна стріла",
             "Description": "Постріл, що лишає отруту.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.8,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true,
-            "Status": "Poison",
-            "StatusMagnitude": 45,
-            "StatusTurns": 3
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.8,
+              "Status": "Poison",
+              "StatusMagnitude": 45,
+              "StatusTurns": 3,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "archer_lyra_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.5,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "archer_lyra_swift_march",
+            "DisplayName": "Швидкий марш",
+            "Description": "Пришвидшує марш, який веде герой.",
+            "Half": "Defense",
+            "Kind": "Utility",
+            "UnlockLevel": 1,
+            "Utility": {
+              "Effect": "MarchSpeed",
+              "Percents": [
+                5,
+                10,
+                15,
+                20,
+                25,
+                30
+              ]
+            }
+          },
+          {
+            "Key": "archer_lyra_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -285,254 +479,315 @@
         "Rank": "rare",
         "Description": "Пробиває броню. Підсилює важку кінноту й зменшує захист оборонця.",
         "Lore": "Ордвін присягав трьом володарям, і всі троє програли. Четвертому він служити відмовився, забрав коня та спис і пішов на схід. Тепер його спис коштує дорожче за титул, який йому колись обіцяли.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 8,
         "BaseStats": {
           "Attack": 70,
           "Defense": 75,
           "Health": 380
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 8,
           "Health": 42
         },
-        "Passives": [
-          {
-            "Key": "lance_charge",
-            "DisplayName": "Удар списом",
-            "UnlockConstellation": 0,
-            "Target": "cavalry",
-            "Stat": "Attack",
-            "BasePercent": 9,
-            "PercentPerConstellation": 2.5
-          },
-          {
-            "Key": "barded_horses",
-            "DisplayName": "Кінська броня",
-            "UnlockConstellation": 2,
-            "Target": "cavalry",
-            "Stat": "Defense",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "vanguard",
-            "DisplayName": "Авангард",
-            "UnlockConstellation": 5,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 5,
-            "PercentPerConstellation": 2
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "knight_ordwin_charge",
-            "DisplayName": "Наскок",
-            "Description": "Швидкий удар списом.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.6,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "knight_ordwin_lance",
             "DisplayName": "Пробій",
             "Description": "Удар, що дістає й тил.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.4,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.4,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "knight_ordwin_charge",
+            "DisplayName": "Наскок",
+            "Description": "Швидкий удар списом.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.6,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "lance_charge",
+            "DisplayName": "Удар списом",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "cavalry",
+              "Stat": "Attack",
+              "Percents": [
+                9,
+                18,
+                27,
+                36,
+                45,
+                54
+              ]
+            }
+          },
+          {
+            "Key": "barded_horses",
+            "DisplayName": "Кінська броня",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "cavalry",
+              "Stat": "Defense",
+              "Percents": [
+                6,
+                12,
+                18,
+                24,
+                30,
+                36
+              ]
+            }
+          },
+          {
+            "Key": "knight_ordwin_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
       {
         "Key": "mage_iselle",
         "DisplayName": "Ізелла Дев'ятого Полум'я",
-        "Class": "mage",
+        "Class": "archer",
         "Rank": "unique",
         "Description": "Множить шкоду по масі. Найсильніша проти щільного строю.",
         "Lore": "Із дев'яти вогнів академії Ізель лишили доглядати найменший — той, що гасне від протягу. Вона роздула його так, що згоріла й академія, і вісім інших вогнів. Її не судили: не лишилось нікого, хто б міг.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 105,
           "Defense": 35,
           "Health": 260
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 13,
           "Defense": 4,
           "Health": 28
         },
-        "Passives": [
-          {
-            "Key": "flame_wave",
-            "DisplayName": "Вогняна хвиля",
-            "UnlockConstellation": 0,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 8,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "scorched_ranks",
-            "DisplayName": "Випалені лави",
-            "UnlockConstellation": 2,
-            "Target": "siege",
-            "Stat": "Attack",
-            "BasePercent": 10,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "ward",
-            "DisplayName": "Оберіг",
-            "UnlockConstellation": 4,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 5,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "ninth_flame",
-            "DisplayName": "Дев'яте полум'я",
-            "UnlockConstellation": 6,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 8,
-            "PercentPerConstellation": 0
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "mage_iselle_mend",
-            "DisplayName": "Зцілення",
-            "Description": "Лікує найпораненішого союзника.",
-            "EnergyCost": 50,
-            "Target": "SingleAlly",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.3,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "mage_iselle_storm",
             "DisplayName": "Буря",
             "Description": "Магічний удар по всіх ворогах з оглушенням.",
-            "EnergyCost": 100,
-            "Target": "AllEnemies",
-            "DamageMultiplier": 1.5,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true,
-            "Status": "Stun",
-            "StatusMagnitude": 0,
-            "StatusTurns": 1
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "AllEnemies",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.5,
+              "Status": "Stun",
+              "StatusTurns": 1,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "mage_iselle_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleAlly",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "HealPercent": 0.3,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "flame_wave",
+            "DisplayName": "Вогняна хвиля",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                8,
+                16,
+                24,
+                32,
+                40,
+                48
+              ]
+            }
+          },
+          {
+            "Key": "ward",
+            "DisplayName": "Оберіг",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                5,
+                10,
+                15,
+                20,
+                25,
+                30
+              ]
+            }
+          },
+          {
+            "Key": "mage_iselle_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "mage_iselle_tempering_2",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -543,117 +798,150 @@
         "Rank": "rare",
         "Description": "Тримає стрій там, де інші відступають.",
         "Lore": "Виросла в прикордонній заставі; перший щит отримала раніше за перший хліб.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 55,
           "Defense": 90,
           "Health": 420
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 6,
           "Defense": 10,
           "Health": 46
         },
-        "Passives": [
-          {
-            "Key": "iron_stance",
-            "DisplayName": "Залізна стійка",
-            "UnlockConstellation": 0,
-            "Target": "infantry",
-            "Stat": "Defense",
-            "BasePercent": 7,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "rally",
-            "DisplayName": "Клич",
-            "UnlockConstellation": 3,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 4,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "warrior_hedda_guard",
-            "DisplayName": "Стійка",
-            "Description": "Щит собі й провокація ворога.",
-            "EnergyCost": 50,
-            "Target": "Self",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.25,
-            "ShieldTurns": 2,
-            "IgnoresLine": false,
-            "Status": "Taunt",
-            "StatusMagnitude": 0,
-            "StatusTurns": 2
-          },
+        "Skills": [
           {
             "Key": "warrior_hedda_smash",
             "DisplayName": "Розтрощення",
             "Description": "Важкий удар по цілі зі зниженням її захисту.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.2,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false,
-            "Status": "DefenseDown",
-            "StatusMagnitude": 0.25,
-            "StatusTurns": 2
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.2,
+              "Status": "DefenseDown",
+              "StatusMagnitude": 0.25,
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "warrior_hedda_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "Self",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "ShieldPercent": 0.25,
+              "ShieldTurns": 2,
+              "Status": "Taunt",
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "rally",
+            "DisplayName": "Клич",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                4,
+                8,
+                12,
+                16,
+                20,
+                24
+              ]
+            }
+          },
+          {
+            "Key": "iron_stance",
+            "DisplayName": "Залізна стійка",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "infantry",
+              "Stat": "Defense",
+              "Percents": [
+                7,
+                14,
+                21,
+                28,
+                35,
+                42
+              ]
+            }
+          },
+          {
+            "Key": "warrior_hedda_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -664,117 +952,150 @@
         "Rank": "rare",
         "Description": "Ветеран сотні облог, живий усім на диво.",
         "Lore": "Кажуть, він не програв жодної оборони — бо ніколи не здавав стін.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 55,
           "Defense": 90,
           "Health": 420
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 6,
           "Defense": 10,
           "Health": 46
         },
-        "Passives": [
-          {
-            "Key": "bulwark",
-            "DisplayName": "Бастіон",
-            "UnlockConstellation": 0,
-            "Target": "infantry",
-            "Stat": "Defense",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "last_stand",
-            "DisplayName": "Останній рубіж",
-            "UnlockConstellation": 4,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 4,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "warrior_torvald_guard",
-            "DisplayName": "Стійка",
-            "Description": "Щит собі й провокація ворога.",
-            "EnergyCost": 50,
-            "Target": "Self",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.25,
-            "ShieldTurns": 2,
-            "IgnoresLine": false,
-            "Status": "Taunt",
-            "StatusMagnitude": 0,
-            "StatusTurns": 2
-          },
+        "Skills": [
           {
             "Key": "warrior_torvald_smash",
             "DisplayName": "Розтрощення",
             "Description": "Важкий удар по цілі зі зниженням її захисту.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.2,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false,
-            "Status": "DefenseDown",
-            "StatusMagnitude": 0.25,
-            "StatusTurns": 2
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.2,
+              "Status": "DefenseDown",
+              "StatusMagnitude": 0.25,
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "warrior_torvald_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "Self",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "ShieldPercent": 0.25,
+              "ShieldTurns": 2,
+              "Status": "Taunt",
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "warrior_torvald_fervor_2",
+            "DisplayName": "Бойовий запал",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "bulwark",
+            "DisplayName": "Бастіон",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "infantry",
+              "Stat": "Defense",
+              "Percents": [
+                6,
+                12,
+                18,
+                24,
+                30,
+                36
+              ]
+            }
+          },
+          {
+            "Key": "last_stand",
+            "DisplayName": "Останній рубіж",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                4,
+                8,
+                12,
+                16,
+                20,
+                24
+              ]
+            }
           }
         ]
       },
@@ -785,117 +1106,150 @@
         "Rank": "rare",
         "Description": "Б'є першою й не питає імен.",
         "Lore": "Її сокира старша за неї — спадок від матері, теж сокирниці.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 55,
           "Defense": 90,
           "Health": 420
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 6,
           "Defense": 10,
           "Health": 46
         },
-        "Passives": [
-          {
-            "Key": "cleave",
-            "DisplayName": "Розріз",
-            "UnlockConstellation": 0,
-            "Target": "infantry",
-            "Stat": "Attack",
-            "BasePercent": 7,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "frenzy",
-            "DisplayName": "Шал",
-            "UnlockConstellation": 3,
-            "Target": "infantry",
-            "Stat": "Attack",
-            "BasePercent": 5,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "warrior_maren_guard",
-            "DisplayName": "Стійка",
-            "Description": "Щит собі й провокація ворога.",
-            "EnergyCost": 50,
-            "Target": "Self",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.25,
-            "ShieldTurns": 2,
-            "IgnoresLine": false,
-            "Status": "Taunt",
-            "StatusMagnitude": 0,
-            "StatusTurns": 2
-          },
+        "Skills": [
           {
             "Key": "warrior_maren_smash",
             "DisplayName": "Розтрощення",
             "Description": "Важкий удар по цілі зі зниженням її захисту.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.2,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false,
-            "Status": "DefenseDown",
-            "StatusMagnitude": 0.25,
-            "StatusTurns": 2
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.2,
+              "Status": "DefenseDown",
+              "StatusMagnitude": 0.25,
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "warrior_maren_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "Self",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "ShieldPercent": 0.25,
+              "ShieldTurns": 2,
+              "Status": "Taunt",
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "cleave",
+            "DisplayName": "Розріз",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "infantry",
+              "Stat": "Attack",
+              "Percents": [
+                7,
+                14,
+                21,
+                28,
+                35,
+                42
+              ]
+            }
+          },
+          {
+            "Key": "warrior_maren_tempering_0",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "warrior_maren_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -906,110 +1260,144 @@
         "Rank": "rare",
         "Description": "Веде кінноту клином, що не знає зупинки.",
         "Lore": "Лицар без замку: усе, що має, — кінь, спис і слово.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 8,
         "BaseStats": {
           "Attack": 70,
           "Defense": 75,
           "Health": 380
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 8,
           "Health": 42
         },
-        "Passives": [
-          {
-            "Key": "wedge",
-            "DisplayName": "Клин",
-            "UnlockConstellation": 0,
-            "Target": "cavalry",
-            "Stat": "Attack",
-            "BasePercent": 8,
-            "PercentPerConstellation": 2.5
-          },
-          {
-            "Key": "barding",
-            "DisplayName": "Броня коней",
-            "UnlockConstellation": 3,
-            "Target": "cavalry",
-            "Stat": "Defense",
-            "BasePercent": 5,
-            "PercentPerConstellation": 2
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "knight_aldric_charge",
-            "DisplayName": "Наскок",
-            "Description": "Швидкий удар списом.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.6,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "knight_aldric_lance",
             "DisplayName": "Пробій",
             "Description": "Удар, що дістає й тил.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.4,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.4,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "knight_aldric_charge",
+            "DisplayName": "Наскок",
+            "Description": "Швидкий удар списом.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.6,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "wedge",
+            "DisplayName": "Клин",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "cavalry",
+              "Stat": "Attack",
+              "Percents": [
+                8,
+                16,
+                24,
+                32,
+                40,
+                48
+              ]
+            }
+          },
+          {
+            "Key": "barding",
+            "DisplayName": "Броня коней",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "cavalry",
+              "Stat": "Defense",
+              "Percents": [
+                5,
+                10,
+                15,
+                20,
+                25,
+                30
+              ]
+            }
+          },
+          {
+            "Key": "knight_aldric_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -1020,110 +1408,144 @@
         "Rank": "rare",
         "Description": "Береже фланги так, ніби вони — її дім.",
         "Lore": "Служила в кінній варті трьох володарів і жодного не зрадила.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 8,
         "BaseStats": {
           "Attack": 70,
           "Defense": 75,
           "Health": 380
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 8,
           "Health": 42
         },
-        "Passives": [
-          {
-            "Key": "flank_guard",
-            "DisplayName": "Варта флангу",
-            "UnlockConstellation": 0,
-            "Target": "cavalry",
-            "Stat": "Defense",
-            "BasePercent": 7,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "escort",
-            "DisplayName": "Ескорт",
-            "UnlockConstellation": 4,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 3,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "knight_serah_charge",
-            "DisplayName": "Наскок",
-            "Description": "Швидкий удар списом.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.6,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "knight_serah_lance",
             "DisplayName": "Пробій",
             "Description": "Удар, що дістає й тил.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.4,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.4,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "knight_serah_charge",
+            "DisplayName": "Наскок",
+            "Description": "Швидкий удар списом.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.6,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "knight_serah_fervor_2",
+            "DisplayName": "Бойовий запал",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "flank_guard",
+            "DisplayName": "Варта флангу",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "cavalry",
+              "Stat": "Defense",
+              "Percents": [
+                7,
+                14,
+                21,
+                28,
+                35,
+                42
+              ]
+            }
+          },
+          {
+            "Key": "escort",
+            "DisplayName": "Ескорт",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -1134,113 +1556,148 @@
         "Rank": "rare",
         "Description": "Стріляє туди, куди інші ще не дивляться.",
         "Lore": "Мисливець із північних лісів; уперше побачив місто в двадцять.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 6,
         "BaseStats": {
           "Attack": 95,
           "Defense": 40,
           "Health": 300
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 11,
           "Defense": 4,
           "Health": 32
         },
-        "Passives": [
-          {
-            "Key": "long_shot",
-            "DisplayName": "Далекий постріл",
-            "UnlockConstellation": 0,
-            "Target": "archer",
-            "Stat": "Attack",
-            "BasePercent": 8,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "marksman",
-            "DisplayName": "Влучність",
-            "UnlockConstellation": 3,
-            "Target": "archer",
-            "Stat": "Attack",
-            "BasePercent": 4,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "archer_finn_aimed",
-            "DisplayName": "Прицільний",
-            "Description": "Постріл у тил повз передню лінію.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.5,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
-          },
+        "Skills": [
           {
             "Key": "archer_finn_venom",
             "DisplayName": "Отруйна стріла",
             "Description": "Постріл, що лишає отруту.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.8,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true,
-            "Status": "Poison",
-            "StatusMagnitude": 45,
-            "StatusTurns": 3
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.8,
+              "Status": "Poison",
+              "StatusMagnitude": 45,
+              "StatusTurns": 3,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "archer_finn_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.5,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "long_shot",
+            "DisplayName": "Далекий постріл",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "archer",
+              "Stat": "Attack",
+              "Percents": [
+                8,
+                16,
+                24,
+                32,
+                40,
+                48
+              ]
+            }
+          },
+          {
+            "Key": "archer_finn_tempering_0",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "archer_finn_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -1251,113 +1708,148 @@
         "Rank": "rare",
         "Description": "Її тятиви не чути, а стріли — не бачать.",
         "Lore": "Учениця лісових розвідників; говорить мало, влучає завжди.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 6,
         "BaseStats": {
           "Attack": 95,
           "Defense": 40,
           "Health": 300
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 11,
           "Defense": 4,
           "Health": 32
         },
-        "Passives": [
-          {
-            "Key": "silent_volley",
-            "DisplayName": "Тихий залп",
-            "UnlockConstellation": 0,
-            "Target": "archer",
-            "Stat": "Attack",
-            "BasePercent": 7,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "cover_fire",
-            "DisplayName": "Прикриття",
-            "UnlockConstellation": 4,
-            "Target": "infantry",
-            "Stat": "Defense",
-            "BasePercent": 4,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "archer_ysolde_aimed",
-            "DisplayName": "Прицільний",
-            "Description": "Постріл у тил повз передню лінію.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.5,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
-          },
+        "Skills": [
           {
             "Key": "archer_ysolde_venom",
             "DisplayName": "Отруйна стріла",
             "Description": "Постріл, що лишає отруту.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.8,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true,
-            "Status": "Poison",
-            "StatusMagnitude": 45,
-            "StatusTurns": 3
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.8,
+              "Status": "Poison",
+              "StatusMagnitude": 45,
+              "StatusTurns": 3,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "archer_ysolde_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.5,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "silent_volley",
+            "DisplayName": "Тихий залп",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "archer",
+              "Stat": "Attack",
+              "Percents": [
+                7,
+                14,
+                21,
+                28,
+                35,
+                42
+              ]
+            }
+          },
+          {
+            "Key": "cover_fire",
+            "DisplayName": "Прикриття",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "infantry",
+              "Stat": "Defense",
+              "Percents": [
+                4,
+                8,
+                12,
+                16,
+                20,
+                24
+              ]
+            }
+          },
+          {
+            "Key": "archer_ysolde_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -1368,341 +1860,446 @@
         "Rank": "rare",
         "Description": "Найманець із луком і сумлінням за окрему плату.",
         "Lore": "Змінив п'ять прапорів, але жодного разу — сторону в бою.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 6,
         "BaseStats": {
           "Attack": 95,
           "Defense": 40,
           "Health": 300
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 11,
           "Defense": 4,
           "Health": 32
         },
-        "Passives": [
-          {
-            "Key": "barrage",
-            "DisplayName": "Обстріл",
-            "UnlockConstellation": 0,
-            "Target": "archer",
-            "Stat": "Attack",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "harass",
-            "DisplayName": "Виснаження",
-            "UnlockConstellation": 3,
-            "Target": "cavalry",
-            "Stat": "Attack",
-            "BasePercent": 4,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "archer_rook_aimed",
-            "DisplayName": "Прицільний",
-            "Description": "Постріл у тил повз передню лінію.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.5,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
-          },
+        "Skills": [
           {
             "Key": "archer_rook_venom",
             "DisplayName": "Отруйна стріла",
             "Description": "Постріл, що лишає отруту.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.8,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true,
-            "Status": "Poison",
-            "StatusMagnitude": 45,
-            "StatusTurns": 3
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.8,
+              "Status": "Poison",
+              "StatusMagnitude": 45,
+              "StatusTurns": 3,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "archer_rook_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.5,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "barrage",
+            "DisplayName": "Обстріл",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "archer",
+              "Stat": "Attack",
+              "Percents": [
+                6,
+                12,
+                18,
+                24,
+                30,
+                36
+              ]
+            }
+          },
+          {
+            "Key": "archer_rook_tempering_0",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "archer_rook_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
       {
         "Key": "mage_calder",
         "DisplayName": "Кальдер Громовий",
-        "Class": "mage",
+        "Class": "knight",
         "Rank": "rare",
         "Description": "Викликає грозу там, де стоїть ворог.",
         "Lore": "Вигнаний з академії за надто гучні досліди — і надто вдалі.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 100,
           "Defense": 35,
           "Health": 250
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 12,
           "Defense": 4,
           "Health": 27
         },
-        "Passives": [
-          {
-            "Key": "thunder",
-            "DisplayName": "Грім",
-            "UnlockConstellation": 0,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "storm_siege",
-            "DisplayName": "Буря над стінами",
-            "UnlockConstellation": 3,
-            "Target": "siege",
-            "Stat": "Attack",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "mage_calder_mend",
-            "DisplayName": "Зцілення",
-            "Description": "Лікує найпораненішого союзника.",
-            "EnergyCost": 50,
-            "Target": "SingleAlly",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.3,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "mage_calder_bolt",
             "DisplayName": "Розряд",
             "Description": "Удар магією повз передню лінію.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.3,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.3,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "mage_calder_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleAlly",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "HealPercent": 0.3,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "thunder",
+            "DisplayName": "Грім",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                6,
+                12,
+                18,
+                24,
+                30,
+                36
+              ]
+            }
+          },
+          {
+            "Key": "mage_calder_tempering_0",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "mage_calder_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
       {
         "Key": "mage_nerys",
         "DisplayName": "Неріс Дзеркальна",
-        "Class": "mage",
+        "Class": "archer",
         "Rank": "rare",
         "Description": "Відбиває удари ще до того, як вони завдані.",
         "Lore": "Її щити — з світла й розрахунку; жодного разу не тріснули.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 100,
           "Defense": 35,
           "Health": 250
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 12,
           "Defense": 4,
           "Health": 27
         },
-        "Passives": [
-          {
-            "Key": "mirror_ward",
-            "DisplayName": "Дзеркальний оберіг",
-            "UnlockConstellation": 0,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "refraction",
-            "DisplayName": "Заломлення",
-            "UnlockConstellation": 4,
-            "Target": "siege",
-            "Stat": "Defense",
-            "BasePercent": 5,
-            "PercentPerConstellation": 1.5
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "mage_nerys_mend",
-            "DisplayName": "Зцілення",
-            "Description": "Лікує найпораненішого союзника.",
-            "EnergyCost": 50,
-            "Target": "SingleAlly",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.3,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "mage_nerys_bolt",
             "DisplayName": "Розряд",
             "Description": "Удар магією повз передню лінію.",
-            "EnergyCost": 100,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 2.3,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 3,
+              "DamageMultiplier": 2.3,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "mage_nerys_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleAlly",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "HealPercent": 0.3,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "mage_nerys_fervor_2",
+            "DisplayName": "Бойовий запал",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "mirror_ward",
+            "DisplayName": "Дзеркальний оберіг",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                6,
+                12,
+                18,
+                24,
+                30,
+                36
+              ]
+            }
+          },
+          {
+            "Key": "refraction",
+            "DisplayName": "Заломлення",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "siege",
+              "Stat": "Defense",
+              "Percents": [
+                5,
+                10,
+                15,
+                20,
+                25,
+                30
+              ]
+            }
           }
         ]
       },
@@ -1713,135 +2310,170 @@
         "Rank": "unique",
         "Description": "Стіна, що йде в наступ.",
         "Lore": "Кажуть, у нього немає серця — лише камінь, що б'ється повільно і вічно.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 72,
           "Defense": 90,
           "Health": 546
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 8,
           "Defense": 10,
           "Health": 60
         },
-        "Passives": [
-          {
-            "Key": "stone_skin",
-            "DisplayName": "Кам'яна шкіра",
-            "UnlockConstellation": 0,
-            "Target": "infantry",
-            "Stat": "Defense",
-            "BasePercent": 9,
-            "PercentPerConstellation": 2.5
-          },
-          {
-            "Key": "avalanche",
-            "DisplayName": "Лавина",
-            "UnlockConstellation": 2,
-            "Target": "infantry",
-            "Stat": "Attack",
-            "BasePercent": 7,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "unbroken",
-            "DisplayName": "Незламність",
-            "UnlockConstellation": 4,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 5,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "mountain_heart",
-            "DisplayName": "Серце гори",
-            "UnlockConstellation": 6,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 6,
-            "PercentPerConstellation": 0
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "warrior_gunnar_guard",
-            "DisplayName": "Стійка",
-            "Description": "Щит собі й провокація ворога.",
-            "EnergyCost": 50,
-            "Target": "Self",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.25,
-            "ShieldTurns": 2,
-            "IgnoresLine": false,
-            "Status": "Taunt",
-            "StatusMagnitude": 0,
-            "StatusTurns": 2
-          },
+        "Skills": [
           {
             "Key": "warrior_gunnar_quake",
             "DisplayName": "Струс",
             "Description": "Удар по всіх ворогах зі зниженням захисту.",
-            "EnergyCost": 100,
-            "Target": "AllEnemies",
-            "DamageMultiplier": 1.3,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false,
-            "Status": "DefenseDown",
-            "StatusMagnitude": 0.25,
-            "StatusTurns": 2
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "AllEnemies",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.3,
+              "Status": "DefenseDown",
+              "StatusMagnitude": 0.25,
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "warrior_gunnar_guard",
+            "DisplayName": "Стійка",
+            "Description": "Щит собі й провокація ворога.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "Self",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "ShieldPercent": 0.25,
+              "ShieldTurns": 2,
+              "Status": "Taunt",
+              "StatusTurns": 2,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "avalanche",
+            "DisplayName": "Лавина",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "infantry",
+              "Stat": "Attack",
+              "Percents": [
+                7,
+                14,
+                21,
+                28,
+                35,
+                42
+              ]
+            }
+          },
+          {
+            "Key": "stone_skin",
+            "DisplayName": "Кам'яна шкіра",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "infantry",
+              "Stat": "Defense",
+              "Percents": [
+                9,
+                18,
+                27,
+                36,
+                45,
+                54
+              ]
+            }
+          },
+          {
+            "Key": "unbroken",
+            "DisplayName": "Незламність",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                5,
+                10,
+                15,
+                20,
+                25,
+                30
+              ]
+            }
+          },
+          {
+            "Key": "mountain_heart",
+            "DisplayName": "Серце гори",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                6,
+                12,
+                18,
+                24,
+                30,
+                36
+              ]
+            }
           }
         ]
       },
@@ -1852,131 +2484,166 @@
         "Rank": "unique",
         "Description": "Перший промінь і перший удар — завжди її.",
         "Lore": "Народжена на світанку битви, яка вирішила долю трьох королівств.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 8,
         "BaseStats": {
           "Attack": 91,
           "Defense": 75,
           "Health": 494
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 10,
           "Defense": 8,
           "Health": 55
         },
-        "Passives": [
-          {
-            "Key": "dawn_charge",
-            "DisplayName": "Світанковий наступ",
-            "UnlockConstellation": 0,
-            "Target": "cavalry",
-            "Stat": "Attack",
-            "BasePercent": 10,
-            "PercentPerConstellation": 2.5
-          },
-          {
-            "Key": "radiance",
-            "DisplayName": "Сяйво",
-            "UnlockConstellation": 2,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 5,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "aegis",
-            "DisplayName": "Егіда",
-            "UnlockConstellation": 4,
-            "Target": "cavalry",
-            "Stat": "Defense",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "first_light",
-            "DisplayName": "Перше світло",
-            "UnlockConstellation": 6,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 8,
-            "PercentPerConstellation": 0
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "knight_elowen_charge",
-            "DisplayName": "Наскок",
-            "Description": "Швидкий удар списом.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.6,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "knight_elowen_banner",
             "DisplayName": "Штандарт",
             "Description": "Удар і бойовий клич усій команді.",
-            "EnergyCost": 100,
-            "Target": "AllAllies",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false,
-            "Status": "AttackUp",
-            "StatusMagnitude": 0.3,
-            "StatusTurns": 3
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "AllAllies",
+              "Cooldown": 3,
+              "DamageMultiplier": 0.0,
+              "Status": "AttackUp",
+              "StatusMagnitude": 0.3,
+              "StatusTurns": 3,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "knight_elowen_charge",
+            "DisplayName": "Наскок",
+            "Description": "Швидкий удар списом.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.6,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "dawn_charge",
+            "DisplayName": "Світанковий наступ",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "cavalry",
+              "Stat": "Attack",
+              "Percents": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60
+              ]
+            }
+          },
+          {
+            "Key": "aegis",
+            "DisplayName": "Егіда",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "cavalry",
+              "Stat": "Defense",
+              "Percents": [
+                6,
+                12,
+                18,
+                24,
+                30,
+                36
+              ]
+            }
+          },
+          {
+            "Key": "knight_elowen_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "knight_elowen_tempering_2",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
@@ -1987,398 +2654,507 @@
         "Rank": "unique",
         "Description": "Жодна ціль не надто далека, жодна — не надто швидка.",
         "Lore": "Її сокіл бачить далі, ніж вона стріляє, — і це єдине, що її дратує.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 6,
         "BaseStats": {
           "Attack": 124,
           "Defense": 40,
           "Health": 390
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 14,
           "Defense": 4,
           "Health": 42
         },
-        "Passives": [
-          {
-            "Key": "hawk_eye",
-            "DisplayName": "Соколине око",
-            "UnlockConstellation": 0,
-            "Target": "archer",
-            "Stat": "Attack",
-            "BasePercent": 10,
-            "PercentPerConstellation": 2.5
-          },
-          {
-            "Key": "piercing",
-            "DisplayName": "Пробиття",
-            "UnlockConstellation": 2,
-            "Target": "cavalry",
-            "Stat": "Attack",
-            "BasePercent": 6,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "high_ground",
-            "DisplayName": "Висота",
-            "UnlockConstellation": 4,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 5,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "stoop",
-            "DisplayName": "Пике",
-            "UnlockConstellation": 6,
-            "Target": "archer",
-            "Stat": "Attack",
-            "BasePercent": 8,
-            "PercentPerConstellation": 0
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "archer_kestrel_aimed",
-            "DisplayName": "Прицільний",
-            "Description": "Постріл у тил повз передню лінію.",
-            "EnergyCost": 50,
-            "Target": "SingleEnemy",
-            "DamageMultiplier": 1.5,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
-          },
+        "Skills": [
           {
             "Key": "archer_kestrel_rain",
             "DisplayName": "Злива стріл",
             "Description": "Залп по всіх ворогах.",
-            "EnergyCost": 100,
-            "Target": "AllEnemies",
-            "DamageMultiplier": 1.4,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "AllEnemies",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.4,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "archer_kestrel_aimed",
+            "DisplayName": "Прицільний",
+            "Description": "Постріл у тил повз передню лінію.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleEnemy",
+              "Cooldown": 4,
+              "DamageMultiplier": 1.5,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "hawk_eye",
+            "DisplayName": "Соколине око",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "archer",
+              "Stat": "Attack",
+              "Percents": [
+                10,
+                20,
+                30,
+                40,
+                50,
+                60
+              ]
+            }
+          },
+          {
+            "Key": "archer_kestrel_tempering_0",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "archer_kestrel_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "archer_kestrel_tempering_2",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
       {
         "Key": "mage_vael",
         "DisplayName": "Ваель Безмовний",
-        "Class": "mage",
+        "Class": "knight",
         "Rank": "unique",
         "Description": "Мовчить, поки вороги ще дихають.",
         "Lore": "Обітниця мовчання — ціна сили, яку він узяв з мертвої академії.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 130,
           "Defense": 35,
           "Health": 325
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 16,
           "Defense": 4,
           "Health": 35
         },
-        "Passives": [
-          {
-            "Key": "hush",
-            "DisplayName": "Тиша",
-            "UnlockConstellation": 0,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 8,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "shatter",
-            "DisplayName": "Розлом",
-            "UnlockConstellation": 2,
-            "Target": "siege",
-            "Stat": "Attack",
-            "BasePercent": 10,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "null_ward",
-            "DisplayName": "Порожній оберіг",
-            "UnlockConstellation": 4,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 5,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "silence",
-            "DisplayName": "Безмов'я",
-            "UnlockConstellation": 6,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 8,
-            "PercentPerConstellation": 0
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "mage_vael_mend",
-            "DisplayName": "Зцілення",
-            "Description": "Лікує найпораненішого союзника.",
-            "EnergyCost": 50,
-            "Target": "SingleAlly",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.3,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "mage_vael_storm",
             "DisplayName": "Буря",
             "Description": "Магічний удар по всіх ворогах з оглушенням.",
-            "EnergyCost": 100,
-            "Target": "AllEnemies",
-            "DamageMultiplier": 1.5,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true,
-            "Status": "Stun",
-            "StatusMagnitude": 0,
-            "StatusTurns": 1
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "AllEnemies",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.5,
+              "Status": "Stun",
+              "StatusTurns": 1,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "mage_vael_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleAlly",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "HealPercent": 0.3,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "hush",
+            "DisplayName": "Тиша",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                8,
+                16,
+                24,
+                32,
+                40,
+                48
+              ]
+            }
+          },
+          {
+            "Key": "null_ward",
+            "DisplayName": "Порожній оберіг",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                5,
+                10,
+                15,
+                20,
+                25,
+                30
+              ]
+            }
+          },
+          {
+            "Key": "mage_vael_tempering_1",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "Key": "mage_vael_tempering_2",
+            "DisplayName": "Загартування",
+            "Description": "Заглушка до Режисера.",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                3,
+                6,
+                9,
+                12,
+                15,
+                18
+              ]
+            }
           }
         ]
       },
       {
         "Key": "mage_sabine",
         "DisplayName": "Сабіна Морозна",
-        "Class": "mage",
+        "Class": "warrior",
         "Rank": "unique",
         "Description": "Зупиняє армії, не проливаючи крові.",
         "Lore": "Її зима приходить у липні й іде, коли їй заманеться.",
-        "SummonShards": 0,
-        "ShardPriceGold": 0,
         "Speed": 4,
         "BaseStats": {
           "Attack": 130,
           "Defense": 35,
           "Health": 325
         },
-        "LevelUpCosts": [
-          {
-            "FromLevel": 1,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 400
-              },
-              {
-                "Resource": "food",
-                "Amount": 800
-              }
-            ]
-          },
-          {
-            "FromLevel": 11,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 900
-              },
-              {
-                "Resource": "food",
-                "Amount": 1500
-              },
-              {
-                "Resource": "iron",
-                "Amount": 300
-              }
-            ]
-          },
-          {
-            "FromLevel": 21,
-            "Cost": [
-              {
-                "Resource": "gold",
-                "Amount": 2000
-              },
-              {
-                "Resource": "food",
-                "Amount": 2600
-              },
-              {
-                "Resource": "iron",
-                "Amount": 900
-              }
-            ]
-          }
-        ],
         "StatGrowth": {
           "Attack": 16,
           "Defense": 4,
           "Health": 35
         },
-        "Passives": [
-          {
-            "Key": "frost",
-            "DisplayName": "Мороз",
-            "UnlockConstellation": 0,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 7,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "glacier",
-            "DisplayName": "Льодовик",
-            "UnlockConstellation": 2,
-            "Target": "infantry",
-            "Stat": "Defense",
-            "BasePercent": 8,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "cold_snap",
-            "DisplayName": "Хапавка",
-            "UnlockConstellation": 4,
-            "Target": "all",
-            "Stat": "Attack",
-            "BasePercent": 5,
-            "PercentPerConstellation": 2
-          },
-          {
-            "Key": "deep_winter",
-            "DisplayName": "Глибока зима",
-            "UnlockConstellation": 6,
-            "Target": "all",
-            "Stat": "Defense",
-            "BasePercent": 8,
-            "PercentPerConstellation": 0
-          }
-        ],
-        "Abilities": [
-          {
-            "Key": "mage_sabine_mend",
-            "DisplayName": "Зцілення",
-            "Description": "Лікує найпораненішого союзника.",
-            "EnergyCost": 50,
-            "Target": "SingleAlly",
-            "DamageMultiplier": 0.0,
-            "HealPercent": 0.3,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": false
-          },
+        "Skills": [
           {
             "Key": "mage_sabine_storm",
             "DisplayName": "Буря",
             "Description": "Магічний удар по всіх ворогах з оглушенням.",
-            "EnergyCost": 100,
-            "Target": "AllEnemies",
-            "DamageMultiplier": 1.5,
-            "HealPercent": 0.0,
-            "ShieldPercent": 0.0,
-            "IgnoresLine": true,
-            "Status": "Stun",
-            "StatusMagnitude": 0,
-            "StatusTurns": 1
+            "Half": "Attack",
+            "Kind": "Active",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                2,
+                4,
+                6,
+                8,
+                10,
+                12
+              ]
+            },
+            "Battle": {
+              "Target": "AllEnemies",
+              "Cooldown": 3,
+              "DamageMultiplier": 1.5,
+              "Status": "Stun",
+              "StatusTurns": 1,
+              "IgnoresLine": true,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "mage_sabine_mend",
+            "DisplayName": "Зцілення",
+            "Description": "Лікує найпораненішого союзника.",
+            "Half": "Attack",
+            "Kind": "Periodic",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "Battle": {
+              "Target": "SingleAlly",
+              "Cooldown": 4,
+              "DamageMultiplier": 0.0,
+              "HealPercent": 0.3,
+              "LevelScale": [
+                1.0,
+                1.2,
+                1.4,
+                1.6,
+                1.8,
+                2.0
+              ]
+            }
+          },
+          {
+            "Key": "cold_snap",
+            "DisplayName": "Хапавка",
+            "Description": "",
+            "Half": "Attack",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Attack",
+              "Percents": [
+                5,
+                10,
+                15,
+                20,
+                25,
+                30
+              ]
+            }
+          },
+          {
+            "Key": "frost",
+            "DisplayName": "Мороз",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 1,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                7,
+                14,
+                21,
+                28,
+                35,
+                42
+              ]
+            }
+          },
+          {
+            "Key": "glacier",
+            "DisplayName": "Льодовик",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 20,
+            "Troops": {
+              "Target": "infantry",
+              "Stat": "Defense",
+              "Percents": [
+                8,
+                16,
+                24,
+                32,
+                40,
+                48
+              ]
+            }
+          },
+          {
+            "Key": "deep_winter",
+            "DisplayName": "Глибока зима",
+            "Description": "",
+            "Half": "Defense",
+            "Kind": "Passive",
+            "UnlockLevel": 40,
+            "Troops": {
+              "Target": "all",
+              "Stat": "Defense",
+              "Percents": [
+                8,
+                16,
+                24,
+                32,
+                40,
+                48
+              ]
+            }
           }
         ]
       }

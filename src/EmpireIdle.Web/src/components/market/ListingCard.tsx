@@ -54,7 +54,7 @@ export default function ListingCard({ listing, action }: Props) {
           {rarity !== undefined && <span className={`rounded px-2 py-0.5 ${rarityStyle(rarity)}`}>{rarityLabel(rarity)}</span>}
           {listing.hero != null && (
             <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
-              рів. {listing.hero.level} · тір {listing.hero.tier} · сузір'я {listing.hero.constellation}
+              рів. {listing.hero.level} · тір {listing.hero.tier} · зірки {Math.floor(listing.hero.starParts / 6)}
             </span>
           )}
           {listing.equipment != null &&

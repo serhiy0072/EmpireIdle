@@ -208,12 +208,12 @@ namespace EmpireIdle.Application.Clans.Services
                 host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y, units,
                 heroes.Count > 0
                     ? _progression.MarchSpeed(_catalog.FindHero(heroes[0].HeroKey))
-                    : null) / speed;
+                    : null) / LedBy(heroes.FirstOrDefault(), speed);
 
             var march = March.ReturningHome(
                 Guid.NewGuid(), host.ServerId, ownerGarrison!.Id, escort,
                 ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
-                units, duration, utcNow, from.Value.Type, speed);
+                units, duration, utcNow, from.Value.Type, LedBy(heroes.FirstOrDefault(), speed));
 
             await _marchRepository.AddAsync(march, cancellationToken);
 
@@ -226,12 +226,12 @@ namespace EmpireIdle.Application.Clans.Services
                 var soloDuration = _calculator.CalculateDuration(
                     host.ServerId, from.Value.X, from.Value.Y, ownerVillage.X, ownerVillage.Y,
                     new Dictionary<UnitStackKey, int>(),
-                    _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey))) / speed;
+                    _progression.MarchSpeed(_catalog.FindHero(extra.HeroKey))) / LedBy(extra, speed);
 
                 await _marchRepository.AddAsync(March.ReturningHome(
                     Guid.NewGuid(), host.ServerId, ownerGarrison.Id, extra.Id,
                     ownerVillage.X, ownerVillage.Y, from.Value.X, from.Value.Y, from.Value.Id,
-                    new Dictionary<UnitStackKey, int>(), soloDuration, utcNow, from.Value.Type, speed), cancellationToken);
+                    new Dictionary<UnitStackKey, int>(), soloDuration, utcNow, from.Value.Type, LedBy(extra, speed)), cancellationToken);
             }
 
             _logger.LogInformation(
@@ -312,5 +312,9 @@ namespace EmpireIdle.Application.Clans.Services
                 ? null
                 : await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken);
         }
+
+        /// <summary>Множник швидкості колони: пасивка звіра й небойове вміння героя, що її веде (GDD §6.1).</summary>
+        private double LedBy(Hero? hero, double speed)
+            => hero is null ? speed : speed * _progression.MarchSpeedMultiplier(hero, _catalog.FindHero(hero.HeroKey));
     }
 }

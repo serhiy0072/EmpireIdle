@@ -8,7 +8,7 @@ import { portraitFor } from "./heroSprites";
  */
 interface Props {
   heroKey: string;
-  /** Клас із каталогу: warrior, archer, knight, mage. Невідомий — базовий бюст. */
+  /** Клас із каталогу: warrior, knight, archer. Невідомий — базовий бюст. */
   heroClass: string | undefined;
   /** Ранг із каталогу: Common, Rare, Unique. */
   rank: string | undefined;
@@ -28,7 +28,6 @@ const CLASS_BACK: Record<string, [string, string]> = {
   warrior: ["#fecaca", "#b91c1c"],
   archer: ["#bbf7d0", "#15803d"],
   knight: ["#dbeafe", "#1e40af"],
-  mage: ["#e9d5ff", "#6d28d9"],
 };
 
 const SKINS = ["#fcd9b6", "#f1c27d", "#e0ac69", "#c68642", "#8d5524"];
@@ -93,21 +92,6 @@ function Knight(): ReactElement {
   );
 }
 
-function Mage({ accent }: { accent: string }): ReactElement {
-  return (
-    <g>
-      {/* Гострий капелюх із крисами */}
-      <path d="M22 44 Q50 38 78 44 Q50 50 22 44 Z" fill="#4c1d95" />
-      <path d="M32 42 Q46 8 58 4 Q58 26 68 42 Z" fill="#5b21b6" />
-      <circle cx={57} cy={14} r={2.5} fill="#fde68a" />
-      {/* Посох зі сферою */}
-      <rect x={84} y={40} width={3} height={64} rx={1} fill="#78350f" />
-      <circle cx={85.5} cy={36} r={7} fill={accent} opacity={0.9} />
-      <circle cx={85.5} cy={36} r={3} fill="#fef3c7" />
-    </g>
-  );
-}
-
 export default function HeroPortrait({ heroKey, heroClass, rank, tier, size = 56, className = "" }: Props): ReactElement {
   const sprite = portraitFor(heroKey, tier);
   const frame = RANK_FRAME[rank ?? ""] ?? (RANK_FRAME.Common as { stroke: string; glow: string });
@@ -164,7 +148,6 @@ export default function HeroPortrait({ heroKey, heroClass, rank, tier, size = 56
       {heroClass === "warrior" && <Warrior hair={hair} />}
       {heroClass === "archer" && <Archer hair={hair} />}
       {heroClass === "knight" && <Knight />}
-      {heroClass === "mage" && <Mage accent={light} />}
       {(heroClass === undefined || !(heroClass in CLASS_BACK)) && (
         <path d="M30 40 Q34 26 50 25 Q66 26 70 40 Q60 33 50 33 Q40 33 30 40 Z" fill={hair} />
       )}

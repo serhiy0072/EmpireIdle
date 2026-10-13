@@ -11,35 +11,31 @@ namespace EmpireIdle.Domain.Tests.Services
     {
         private static HeroProgression Create(
             int levelsPerTier = 10,
-            int maxTier = 3,
             int maxMarches = 8,
-            List<double>? multipliers = null,
+            double tierGrowth = 1.10,
+            double evolutionPenalty = 0.95,
             List<string>? evolutionItems = null)
             => new(new HeroesConfig
             {
-                LevelsPerTier = levelsPerTier,
-                MaxTier = maxTier,
                 MaxMarches = maxMarches,
-                TierStatMultipliers = multipliers ?? [1.0, 1.35, 1.8],
+                TierGrowth = tierGrowth,
+                EvolutionPenalty = evolutionPenalty,
                 EvolutionItemKeys = evolutionItems ?? ["hero_essence_t2", "hero_essence_t3"],
                 HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
-                BaseLevelUpMinutes = 4
-            });
+});
 
         private static HeroProgression Progression(HeroesConfig? settings = null)
             => new(settings ?? Settings());
 
         private static HeroesConfig Settings() => new()
         {
-            LevelsPerTier = 10,
-            MaxTier = 3,
-            TierStatMultipliers = [1.0, 1.35, 1.8],
+            TierGrowth = 1.10,
+            EvolutionPenalty = 0.95,
             EvolutionItemKeys = ["hero_essence_t2", "hero_essence_t3"],
-            MaxConstellation = 6,
+            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]],
             MaxMarches = 8,
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
-            BaseLevelUpMinutes = 4
-        };
+};
 
         private static HeroConfig Hero() => new()
         {
@@ -51,58 +47,80 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Стеля рівня ----------
 
-        /// <summary>
-        /// Ратуша нижча за стелю тіру — вона й обмежує. Саме тому еволюція
-        /// не обов'язкова для прогресу на ранніх ратушах.
-        /// </summary>
-        [Fact]
-        public void MaxLevel_ShouldFollowTownHall_WhenItIsTheLowerBound()
-        {
-            var progression = Create();
+        // ---------- Досвід ----------
 
-            Assert.Equal(8, progression.MaxLevel(townHallLevel: 8, tier: 2));
+        /// <summary>Стеля одна для всіх героїв — ні ратуша, ні тір її більше не задають (GDD §6.1).</summary>
+        [Fact]
+        public void MaxLevel_ShouldComeFromTheConfig()
+            => Assert.Equal(80, Progression(new HeroesConfig { MaxLevel = 80 }).MaxLevel);
+
+        /// <summary>Крива: ExperienceBase × L^ExperienceExponent — кожен наступний рівень дорожчий.</summary>
+        [Fact]
+        public void ExperienceToNext_ShouldFollowThePowerCurve()
+        {
+            var progression = Progression(new HeroesConfig { ExperienceBase = 10, ExperienceExponent = 2 });
+
+            Assert.Equal(10, progression.ExperienceToNext(1));
+            Assert.Equal(40, progression.ExperienceToNext(2));
+            Assert.Equal(1000, progression.ExperienceToNext(10));
         }
 
         [Fact]
-        public void MaxLevel_ShouldFollowTier_WhenTownHallIsHigher()
+        public void ExperienceBetween_ShouldSumEveryStep()
         {
-            var progression = Create();
+            var progression = Progression(new HeroesConfig { ExperienceBase = 10, ExperienceExponent = 2 });
 
-            Assert.Equal(10, progression.MaxLevel(townHallLevel: 25, tier: 1));
-            Assert.Equal(20, progression.MaxLevel(townHallLevel: 25, tier: 2));
+            // 1→2: 10, 2→3: 40, 3→4: 90
+            Assert.Equal(140, progression.ExperienceBetween(1, 4));
+            Assert.Equal(0, progression.ExperienceBetween(4, 4));
+        }
+
+        /// <summary>Скидання повертає все вкладене до одиниці — досвід не згорає.</summary>
+        [Fact]
+        public void ResetRefund_ShouldReturnAllTheInvestedExperience()
+        {
+            var progression = Progression(new HeroesConfig { ExperienceBase = 10, ExperienceExponent = 2 });
+
+            // 10×1² + 10×2² + 10×3² = 140
+            Assert.Equal(140, progression.ResetRefund(level: 4));
+            Assert.Equal(0, progression.ResetRefund(level: 1));
         }
 
         // ---------- Множник тіру ----------
 
-        /// <summary>
-        /// Без множника еволюція піднімала б лише стелю, і два герої
-        /// різних тірів на десятому рівні були б однакові.
-        /// </summary>
+        /// <summary>Рідний тір — складний відсоток (GDD §6.1): T2 = 1.10, T3 = 1.21.</summary>
         [Fact]
-        public void TierMultiplier_ShouldGrowWithTier()
+        public void TierMultiplier_ShouldCompoundForNativeHeroes()
         {
             var progression = Create();
 
-            Assert.True(progression.TierMultiplier(2) > progression.TierMultiplier(1));
-            Assert.True(progression.TierMultiplier(3) > progression.TierMultiplier(2));
+            Assert.Equal(1.0, progression.TierMultiplier(tier: 1, nativeTier: 1), 6);
+            Assert.Equal(1.10, progression.TierMultiplier(tier: 2, nativeTier: 2), 6);
+            Assert.Equal(1.21, progression.TierMultiplier(tier: 3, nativeTier: 3), 6);
         }
 
+        /// <summary>
+        /// Кожен ап — ще −5%, і штраф накопичується: T1→T2 = 1.045, T1→T3 = 1.092 (рідний T3 — 1.21).
+        /// Старий герой лишається в грі, але новий того самого тіру завжди сильніший.
+        /// </summary>
         [Fact]
-        public void TierMultiplier_ShouldFallBackToOne_WhenNotConfigured()
+        public void TierMultiplier_ShouldPenaliseEveryEvolutionStep()
         {
-            var progression = Create(multipliers: []);
+            var progression = Create();
 
-            Assert.Equal(1.0, progression.TierMultiplier(2));
+            Assert.Equal(1.045, progression.TierMultiplier(tier: 2, nativeTier: 1), 6);
+            Assert.Equal(1.21 * 0.95, progression.TierMultiplier(tier: 3, nativeTier: 2), 6);
+            Assert.Equal(1.21 * 0.9025, progression.TierMultiplier(tier: 3, nativeTier: 1), 6);
         }
 
-        /// <summary>Коротший список не має валити бій — беремо останній відомий.</summary>
+        /// <summary>Ап усе одно сильніший за тір, з якого герой вийшов, — інакше предмет апу нічого б не давав.</summary>
         [Fact]
-        public void TierMultiplier_ShouldClampOutsideTheConfiguredRange()
+        public void TierMultiplier_ShouldStillReward_AnEvolution()
         {
-            var progression = Create(multipliers: [1.0, 1.5]);
+            var progression = Create();
 
-            Assert.Equal(1.0, progression.TierMultiplier(0));
-            Assert.Equal(1.5, progression.TierMultiplier(9));
+            Assert.True(progression.TierMultiplier(tier: 2, nativeTier: 1) > progression.TierMultiplier(tier: 1, nativeTier: 1));
+            Assert.True(progression.TierMultiplier(tier: 3, nativeTier: 1) > progression.TierMultiplier(tier: 2, nativeTier: 1));
         }
 
         // ---------- Стати ----------
@@ -114,18 +132,18 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void StatValue_ShouldApplyGrowthThenTierMultiplier()
         {
-            var progression = Create(multipliers: [1.0, 2.0, 3.0]);
+            var progression = Create(tierGrowth: 2.0);
 
             // (40 + 4 × 4) × 2.0
-            Assert.Equal(112.0, progression.StatValue(Hero(), "Attack", level: 5, tier: 2), 6);
+            Assert.Equal(112.0, progression.StatValue(Hero(), "Attack", level: 5, tier: 2, nativeTier: 2, starParts: 0), 6);
         }
 
         [Fact]
         public void StatValue_ShouldReturnBaseAtFirstLevel()
         {
-            var progression = Create(multipliers: [1.0, 2.0, 3.0]);
+            var progression = Create(tierGrowth: 2.0);
 
-            Assert.Equal(40.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1), 6);
+            Assert.Equal(40.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 0), 6);
         }
 
         /// <summary>
@@ -137,7 +155,33 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var progression = Create();
 
-            Assert.Equal(0.0, progression.StatValue(Hero(), "Mana", level: 5, tier: 1));
+            Assert.Equal(0.0, progression.StatValue(Hero(), "Mana", level: 5, tier: 1, nativeTier: 1, starParts: 0));
+        }
+
+        /// <summary>Кожна частинка зірки — +5% до всіх статів (GDD §6.1); множиться з тіром.</summary>
+        [Fact]
+        public void StatValue_ShouldGrowWithEveryStarPart()
+        {
+            var progression = Create(tierGrowth: 2.0);
+
+            // 40 × 1.0 (тір 1) × (1 + 0.05 × 6)
+            Assert.Equal(52.0, progression.StatValue(Hero(), "Attack", level: 1, tier: 1, nativeTier: 1, starParts: 6), 6);
+        }
+
+        [Fact]
+        public void NextStarPartCost_ShouldWalkTheStarsAndStopAtTheEnd()
+        {
+            var progression = Progression(new HeroesConfig
+            {
+                MaxStars = 2, PartsPerStar = 2, StarPartCosts = [[1, 3], [10, 100]]
+            });
+
+            Assert.Equal(1, progression.NextStarPartCost(0));
+            Assert.Equal(3, progression.NextStarPartCost(1));
+            Assert.Equal(10, progression.NextStarPartCost(2));
+            Assert.Equal(100, progression.NextStarPartCost(3));
+            Assert.Null(progression.NextStarPartCost(4));
+            Assert.Equal(1, progression.Stars(3));
         }
 
         // ---------- Еволюція ----------
@@ -216,100 +260,6 @@ namespace EmpireIdle.Domain.Tests.Services
             var cost = progression.HealCost(level: 10);
 
             Assert.Equal(400, cost.Single(c => c.Resource == "food").Amount);
-        }
-
-        [Fact]
-        public void LevelUpDuration_ShouldScaleWithTargetLevel()
-        {
-            var progression = Create();
-
-            Assert.Equal(TimeSpan.FromMinutes(20), progression.LevelUpDuration(targetLevel: 5));
-        }
-
-        // ---------- Смуги вартості ----------
-
-        private static HeroConfig BandedHero() => new()
-        {
-            Key = "warrior_bran",
-            Class = "warrior",
-            LevelUpCosts =
-            [
-                new HeroLevelCostBand
-                {
-                    FromLevel = 1,
-                    Cost = [new ResourceCost { Resource = "gold", Amount = 400 }]
-                },
-                new HeroLevelCostBand
-                {
-                    FromLevel = 11,
-                    Cost =
-                    [
-                        new ResourceCost { Resource = "gold", Amount = 900 },
-                        new ResourceCost { Resource = "iron", Amount = 300 }
-                    ]
-                }
-            ]
-        };
-
-        /// <summary>Нижче другої межі діє перша смуга.</summary>
-        [Theory]
-        [InlineData(1)]
-        [InlineData(10)]
-        public void LevelUpCost_ShouldTakeTheFirstBand_BelowTheNextBoundary(int level)
-        {
-            var cost = Progression().LevelUpCost(BandedHero(), level);
-
-            Assert.Equal(400, Assert.Single(cost).Amount);
-        }
-
-        /// <summary>
-        /// З рівнем міняється не лише кількість, а й набір ресурсів:
-        /// на одинадцятому з'являється залізо, якого до того не було.
-        /// </summary>
-        [Fact]
-        public void LevelUpCost_ShouldSwitchBands_AtTheBoundary()
-        {
-            var cost = Progression().LevelUpCost(BandedHero(), 11);
-
-            Assert.Equal(2, cost.Count);
-            Assert.Contains(cost, c => c.Resource == "iron" && c.Amount == 300);
-        }
-
-        /// <summary>Вище останньої межі діє остання смуга, а не жодна.</summary>
-        [Fact]
-        public void LevelUpCost_ShouldKeepTheLastBand_AboveEveryBoundary()
-        {
-            var cost = Progression().LevelUpCost(BandedHero(), 30);
-
-            Assert.Contains(cost, c => c.Resource == "iron");
-        }
-
-        /// <summary>
-        /// Порядок смуг у конфігу не має значення — береться найбільший
-        /// FromLevel, що не перевищує цільовий рівень.
-        /// </summary>
-        [Fact]
-        public void LevelUpCost_ShouldIgnoreBandOrderInConfig()
-        {
-            var hero = BandedHero();
-            hero.LevelUpCosts.Reverse();
-
-            var cost = Progression().LevelUpCost(hero, 5);
-
-            Assert.Equal(400, Assert.Single(cost).Amount);
-        }
-
-        /// <summary>
-        /// Діра в смугах — це помилка конфіга, а не мовчазний нуль:
-        /// безкоштовна прокачка помітна пізніше й гірше.
-        /// </summary>
-        [Fact]
-        public void LevelUpCost_ShouldThrow_WhenNoBandCoversTheLevel()
-        {
-            var hero = BandedHero();
-            hero.LevelUpCosts = [new HeroLevelCostBand { FromLevel = 5, Cost = [] }];
-
-            Assert.Throws<InvalidOperationException>(() => Progression().LevelUpCost(hero, 3));
         }
 
         /// <summary>

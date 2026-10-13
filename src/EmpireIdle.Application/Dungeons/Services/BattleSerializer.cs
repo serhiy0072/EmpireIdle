@@ -11,7 +11,7 @@ namespace EmpireIdle.Application.Dungeons.Services
     /// </summary>
     public static class BattleSerializer
     {
-        // Нульові значення пишуться теж: index, side й energy позначені required,
+        // Нульові значення пишуться теж: index, side й cooldownLeft позначені required,
         // і пропуск нуля зробив би збережений бій нечитним
         private static readonly JsonSerializerOptions Options = new()
         {

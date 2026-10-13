@@ -1,22 +1,30 @@
-import { heroState, passivePercent, rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
-import { useNow } from "../hooks/useNow";
-import { speedUpLabel } from "../lib/speedUp";
-import type { components } from "../lib/schema";
+import { useState } from "react";
+import {
+  heroState,
+  rankLabel,
+  rankStyle,
+  skillEffect,
+  skillHalfLabel,
+  skillKindLabel,
+  useCatalog,
+} from "../lib/queries/catalog";
 import type { HeroSummary } from "../lib/queries/heroes";
-import { formatRemaining } from "../lib/time";
 import HeroPortrait from "./heroes/HeroPortrait";
-
-type HeroLevelOrder = components["schemas"]["HeroLevelOrderSummary"];
 
 interface Props {
   hero: HeroSummary;
-  /** Черга одна на гравця: поки вона зайнята, інші герої качатись не можуть. */
-  queueBusy: boolean;
-  /** Активна прокачка саме цього героя; null — він не в черзі. */
-  order: HeroLevelOrder | null;
+  /** Пул досвіду гравця (GDD §6.1): з нього качається будь-який герой. */
+  experience: number;
+  /** Універсальні осколки рідкості цього героя в інвентарі. */
+  universalShards: number;
+  /** Скільки книг вмінь цієї половини («Attack» / «Defense») для цього героя в інвентарі. */
+  skillBooks: (half: string) => number;
+  onUpgradeSkill: (skillKey: string) => void;
   busy: boolean;
   onLevelUp: () => void;
-  onSpeedUp: () => void;
+  onResetLevel: () => void;
+  onAdvanceStar: () => void;
+  onConvertShards: (count: number) => void;
   onEvolve: () => void;
   onAppointLeader: () => void;
   onHeal: () => void;
@@ -24,20 +32,28 @@ interface Props {
 
 export default function HeroDetails({
   hero,
-  queueBusy,
-  order,
+  experience,
+  universalShards,
+  skillBooks,
+  onUpgradeSkill,
   busy,
   onLevelUp,
-  onSpeedUp,
+  onResetLevel,
+  onAdvanceStar,
+  onConvertShards,
   onEvolve,
   onAppointLeader,
   onHeal,
 }: Props) {
   const catalog = useCatalog();
-  const now = useNow();
   const config = catalog.hero(hero.heroKey);
+  const [confirmingReset, setConfirmingReset] = useState(false);
 
   const atLevelCap = hero.level >= hero.maxLevel;
+  const stars = Math.floor(hero.starParts / catalog.partsPerStar);
+  const starCost = hero.nextStarPartCost ?? null;
+  const shardsMissing = starCost === null ? 0 : Math.max(0, starCost - hero.shards);
+  const affordable = experience >= hero.experienceToNext;
   const atTierCap = hero.tier >= catalog.maxTier;
   const stationed = hero.stationedGarrisonId !== null && hero.stationedGarrisonId !== undefined;
 
@@ -61,8 +77,9 @@ export default function HeroDetails({
         </div>
 
         <p className="mt-2 text-sm text-slate-500">
-          Тір {hero.tier} з {catalog.maxTier} · рівень {hero.level} з {hero.maxLevel} · сузір'я {hero.constellation}/
-          {catalog.maxConstellation}
+          Тір {hero.tier} з {catalog.maxTier} · рівень {hero.level} з {hero.maxLevel} · зірки {stars}/{catalog.maxStars}
+          {hero.starParts % catalog.partsPerStar > 0 && ` (+${hero.starParts % catalog.partsPerStar}/${catalog.partsPerStar})`} ·
+          осколків {hero.shards}
         </p>
         <p className="mt-1 text-sm text-slate-600">{heroState(hero.state)}</p>
 
@@ -79,58 +96,137 @@ export default function HeroDetails({
         )}
       </div>
 
-      {config !== null && config.passives.length > 0 && (
+      {/* Вміння (GDD §6.1): рівень героя відкриває, зірки стелять рівень — до зірки + 1 */}
+      {config !== null && config.skills.length > 0 && (
         <section>
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Вміння</h3>
-          <ul className="mt-2 space-y-2">
-            {config.passives.map((passive) => {
-              const percent = passivePercent(passive, hero.constellation);
+          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Вміння · рівень до {hero.skillLevelCap} з {catalog.maxSkillLevel}
+          </h3>
+          {["Attack", "Defense"].map((half) => (
+            <div key={half} className="mt-2">
+              <p className="text-xs text-slate-400">
+                {skillHalfLabel(half)} · книг: {skillBooks(half)}
+              </p>
+              <ul className="mt-1 space-y-2">
+                {config.skills
+                  .filter((skill) => skill.half === half)
+                  .map((skill) => {
+                    // Рівень рахує сервер: відкриття за рівнем героя й стелю зірок клієнт не дублює
+                    const level = hero.skillLevels[skill.key] ?? 0;
+                    const canRaise =
+                      level > 0 && level < hero.skillLevelCap && level < catalog.maxSkillLevel && skillBooks(half) > 0;
 
-              return (
-                <li key={passive.key} className="text-sm">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className={percent === null ? "text-slate-400" : "text-slate-800"}>{passive.displayName}</span>
-                    <span className={percent === null ? "text-xs text-slate-400" : "text-xs text-emerald-700"}>
-                      {percent === null ? `з сузір'я ${passive.unlockConstellation}` : `+${percent.toFixed(1)}%`}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    {passive.stat} · {passive.target === "all" ? "усе військо" : passive.target}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
+                    return (
+                      <li key={skill.key} className="text-sm">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className={level === 0 ? "text-slate-400" : "text-slate-800"}>
+                            {skill.displayName}
+                            <span className="ml-1 text-xs text-slate-400">{skillKindLabel(skill.kind)}</span>
+                          </span>
+                          <span className="flex items-baseline gap-2">
+                            <span className={level === 0 ? "text-xs text-slate-400" : "text-xs text-emerald-700"}>
+                              {level === 0 ? `з ${skill.unlockLevel} рівня` : `рів. ${level}`}
+                            </span>
+                            {level > 0 && level < catalog.maxSkillLevel && (
+                              <button
+                                type="button"
+                                onClick={() => onUpgradeSkill(skill.key)}
+                                disabled={busy || !canRaise}
+                                title={
+                                  level >= hero.skillLevelCap
+                                    ? `Наступний рівень — на ${level} зірці`
+                                    : skillBooks(half) === 0
+                                      ? "Немає книги"
+                                      : "Підняти рівень за книгу"
+                                }
+                                className="rounded border border-emerald-300 px-1.5 text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"
+                              >
+                                +1
+                              </button>
+                            )}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500">{skillEffect(skill, level)}</p>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+          ))}
         </section>
       )}
 
       <div className="space-y-2">
-        {order !== null && (
-          <div className="flex items-center justify-between gap-2 rounded-lg bg-sky-50 px-3 py-2 text-sm">
-            <span className="text-sky-900">
-              До рівня {order.targetLevel}: {formatRemaining(order.completesAt, now)}
-            </span>
-            {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
-              <button
-                type="button"
-                onClick={onSpeedUp}
-                disabled={busy}
-                className="rounded-lg border border-sky-300 bg-white px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100 disabled:opacity-50"
-              >
-                {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
-              </button>
-            )}
-          </div>
-        )}
-
         <button
           type="button"
           onClick={onLevelUp}
-          disabled={busy || queueBusy || atLevelCap}
+          disabled={busy || atLevelCap || !affordable}
           className="w-full rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
         >
-          {atLevelCap ? "Рівень уперся в стелю" : queueBusy ? "Черга зайнята" : "Підняти рівень"}
+          {atLevelCap
+            ? "Найвищий рівень"
+            : `Підняти рівень · ${hero.experienceToNext.toLocaleString("uk-UA")} досвіду`}
         </button>
+        {!atLevelCap && !affordable && (
+          <p className="text-xs text-slate-500">
+            Бракує {(hero.experienceToNext - experience).toLocaleString("uk-UA")} досвіду — його дають баночки досвіду.
+          </p>
+        )}
+
+        {/* Зірки за осколки героя (GDD §6.1): кожна частинка — +5% бойової міці */}
+        <button
+          type="button"
+          onClick={onAdvanceStar}
+          disabled={busy || starCost === null || shardsMissing > 0}
+          className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+        >
+          {starCost === null ? "Усі зірки заповнені" : `Заповнити частинку зірки · ${starCost} осколків`}
+        </button>
+        {shardsMissing > 0 && universalShards > 0 && (
+          <button
+            type="button"
+            onClick={() => onConvertShards(Math.min(shardsMissing, universalShards))}
+            disabled={busy}
+            className="w-full rounded-lg border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            Добрати {Math.min(shardsMissing, universalShards)} з універсальних осколків (є {universalShards})
+          </button>
+        )}
+
+        {/* Скидання не скасувати — тож другий клік; досвід повертається в пул повністю */}
+        {hero.level > 1 &&
+          (confirmingReset ? (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="flex-1 text-slate-600">Скинути на 1 рівень? Увесь досвід повернеться в пул.</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmingReset(false);
+                  onResetLevel();
+                }}
+                disabled={busy}
+                className="rounded-lg bg-rose-600 px-3 py-1 text-white hover:bg-rose-700 disabled:opacity-50"
+              >
+                Так
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingReset(false)}
+                className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50"
+              >
+                Ні
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmingReset(true)}
+              disabled={busy}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              Скинути рівень
+            </button>
+          ))}
 
         <button
           type="button"

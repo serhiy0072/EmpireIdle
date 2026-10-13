@@ -5,22 +5,26 @@ import HeroPortrait from "./heroes/HeroPortrait";
 interface Props {
   hero: HeroSummary;
   selected: boolean;
-  levelingUntil: string | null;
   onSelect: () => void;
 }
 
-/** Сузір'я крапками: число тут читається гірше, ніж заповнені кружки. */
-function Constellation({ value, max }: { value: number; max: number }) {
+/** Зірки крапками (GDD §6.1): повна — яскрава, та, що заповнюється, — бліда. */
+function Stars({ parts, max, perStar }: { parts: number; max: number; perStar: number }) {
+  const full = Math.floor(parts / perStar);
+
   return (
-    <span className="flex gap-0.5" title={`Сузір'я ${value}/${max}`}>
+    <span className="flex gap-0.5" title={`Зірки ${full}/${max} · частинок ${parts % perStar}/${perStar}`}>
       {Array.from({ length: max }, (_, index) => (
-        <span key={index} className={`h-1.5 w-1.5 rounded-full ${index < value ? "bg-amber-500" : "bg-slate-200"}`} />
+        <span
+          key={index}
+          className={`h-1.5 w-1.5 rounded-full ${index < full ? "bg-amber-500" : index === full && parts % perStar > 0 ? "bg-amber-200" : "bg-slate-200"}`}
+        />
       ))}
     </span>
   );
 }
 
-export default function HeroCard({ hero, selected, levelingUntil, onSelect }: Props) {
+export default function HeroCard({ hero, selected, onSelect }: Props) {
   const catalog = useCatalog();
   const config = catalog.hero(hero.heroKey);
 
@@ -47,7 +51,7 @@ export default function HeroCard({ hero, selected, levelingUntil, onSelect }: Pr
               рів. {hero.level}
               <span className="text-slate-400"> / {hero.maxLevel}</span>
             </span>
-            <Constellation value={hero.constellation} max={catalog.maxConstellation} />
+            <Stars parts={hero.starParts} max={catalog.maxStars} perStar={catalog.partsPerStar} />
           </div>
         </div>
       </div>
@@ -61,7 +65,6 @@ export default function HeroCard({ hero, selected, levelingUntil, onSelect }: Pr
         )}
         <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{heroState(hero.state)}</span>
         {hero.isLeader && <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">Лідер</span>}
-        {levelingUntil !== null && <span className="rounded bg-sky-100 px-2 py-0.5 text-sky-800">{levelingUntil}</span>}
       </div>
     </button>
   );

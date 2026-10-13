@@ -116,31 +116,29 @@
         }
 
         /// <summary>
-        /// Ростер: звичайний воїн, унікальний маг і третій без пасивок —
-        /// для перевірок «бонусу немає».
+        /// Ростер: звичайний воїн, унікальний маг і третій без вмінь —
+        /// для перевірок «бонусу немає». Склад вмінь за рідкістю не задано, тож валідатор
+        /// його не перевіряє: героям досить тих вмінь, які потрібні тесту.
         /// </summary>
         public GameConfigBuilder WithHeroes(Action<HeroesConfig>? tune = null,
-            params HeroPassiveConfig[] passives)
+            params HeroSkillConfig[] passives)
         {
             EnsureResources();
             EnsureBuildings(TestKeys.Hall, TestKeys.Hospital);
             EnsureItems(TestKeys.EssenceT2, TestKeys.EssenceT3);
+            _config.Items.AddRange(UniversalShards.All().Where(u => _config.Items.All(i => i.Key != u.Key)));
 
             _config.HeroSettings = new HeroesConfig
             {
                 BuildingKey = TestKeys.Hall,
                 HealBuildingKey = TestKeys.Hospital,
 
-                LevelsPerTier = 10,
-                MaxTier = 3,
                 MaxMarches = 8,
-                MaxConstellation = 6,
-                BaseLevelUpMinutes = 4,
+                StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]],
                 DefaultMarchSpeed = 6,
                 HealCostPerLevel = [new ResourceCost { Resource = TestKeys.Food, Amount = 40 }],
-                TierStatMultipliers = [1.0, 1.5, 2.0],
+                TierGrowth = 1.5,
                 EvolutionItemKeys = [TestKeys.EssenceT2, TestKeys.EssenceT3],
-                OverflowSeals = new Dictionary<string, int> { ["Common"] = 0, ["Rare"] = 15, ["Unique"] = 40 },
                 Classes = ["warrior", "knight", "archer", "mage"]
             };
 
@@ -242,17 +240,24 @@
             if (_config.Equipment.SetBonuses.Count == 0)
                 WithEquipment();
 
-            _config.Heroes.First(h => h.Key == TestKeys.CommonHero).Abilities =
-            [
-                new HeroAbilityConfig
+            var common = _config.Heroes.First(h => h.Key == TestKeys.CommonHero);
+
+            common.Skills.RemoveAll(s => s.Kind == SkillKind.Active);
+            common.Skills.Add(new HeroSkillConfig
+            {
+                Key = TestKeys.DungeonAbility,
+                DisplayName = "Розтин",
+                Half = SkillHalf.Attack,
+                Kind = SkillKind.Active,
+                Troops = new SkillTroopBonusConfig { Stat = "Attack", Percents = [0, 0, 0, 0, 0, 0] },
+                Battle = new SkillBattleConfig
                 {
-                    Key = TestKeys.DungeonAbility,
-                    DisplayName = "Розтин",
-                    EnergyCost = 50,
                     Target = AbilityTarget.SingleEnemy,
-                    DamageMultiplier = 1.8
+                    Cooldown = 2,
+                    DamageMultiplier = 1.8,
+                    LevelScale = [1, 1.2, 1.4, 1.6, 1.8, 2]
                 }
-            ];
+            });
 
             foreach (var rarity in Enum.GetNames<Rarity>())
             {
@@ -395,13 +400,11 @@
         };
 
         private static HeroConfig Hero(string key, string heroClass, Rarity rank, double attack,
-            HeroPassiveConfig[]? passives = null) => new()
+            HeroSkillConfig[]? passives = null) => new()
             {
                 Key = key,
                 Class = heroClass,
                 Rank = rank,
-                SummonShards = 10,
-                ShardPriceGold = 100,
                 DisplayName = $"Hero {key}",
                 Description = $"Test hero {key}",
                 BaseStats = new Dictionary<string, double>
@@ -412,15 +415,7 @@
                 // Швидкість — окреме поле: у BaseStats вона множилась би тіром і йшла в Power
                 Speed = 4,
                 StatGrowth = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 4 },
-                LevelUpCosts =
-                [
-                    new HeroLevelCostBand
-                    {
-                        FromLevel = 1,
-                        Cost = [new ResourceCost { Resource = TestKeys.Gold, Amount = 100 }]
-                    }
-                ],
-                Passives = [.. passives ?? []]
+                Skills = [.. passives ?? []]
             };
 
         private static ItemConfig WeaponItem(string key, double attack, int price) => new()

@@ -45,7 +45,8 @@ public class StartDungeonRunCommandTests
         return new StartDungeonRunCommandHandler(
             _dungeons,
             _villages,
-            new DungeonTeamFactory(_heroes, _inventory, catalog, new HeroStats(progression, catalog), progression),
+            new DungeonTeamFactory(_heroes, _inventory, catalog, new HeroStats(progression, catalog), progression,
+                new HeroSkills(_config.HeroSettings)),
             new BattleBuilder(_config.Dungeons),
             catalog,
             Substitute.For<IRandomSource>(),

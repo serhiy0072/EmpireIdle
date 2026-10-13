@@ -160,6 +160,51 @@
         "Type": "feed"
       },
       {
+        "Key": "universal_shard_common",
+        "DisplayName": "Універсальний осколок (звичайний)",
+        "Description": "Перетворюється на осколок будь-якого вже відкритого героя цієї рідкості — для прокачки зірок",
+        "Rarity": "common",
+        "Type": "universalshard"
+      },
+      {
+        "Key": "universal_shard_rare",
+        "DisplayName": "Універсальний осколок (рідкісний)",
+        "Description": "Перетворюється на осколок будь-якого вже відкритого героя цієї рідкості — для прокачки зірок",
+        "Rarity": "rare",
+        "Type": "universalshard"
+      },
+      {
+        "Key": "universal_shard_unique",
+        "DisplayName": "Універсальний осколок (унікальний)",
+        "Description": "Перетворюється на осколок будь-якого вже відкритого героя цієї рідкості — для прокачки зірок",
+        "Rarity": "unique",
+        "Type": "universalshard"
+      },
+      {
+        "Key": "hero_xp_small",
+        "DisplayName": "Мала баночка досвіду",
+        "Description": "Додає 500 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "common",
+        "Type": "heroxp",
+        "HeroExperience": 500
+      },
+      {
+        "Key": "hero_xp_medium",
+        "DisplayName": "Баночка досвіду",
+        "Description": "Додає 5 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "rare",
+        "Type": "heroxp",
+        "HeroExperience": 5000
+      },
+      {
+        "Key": "hero_xp_large",
+        "DisplayName": "Велика баночка досвіду",
+        "Description": "Додає 50 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
+        "Rarity": "unique",
+        "Type": "heroxp",
+        "HeroExperience": 50000
+      },
+      {
         "Key": "sword_iron",
         "Type": "equipment",
         "Rarity": "common",
@@ -208,7 +253,8 @@
         "DisplayName": "Жарний посох",
         "Slot": "Weapon",
         "WeaponClasses": [
-          "mage"
+          "archer",
+          "knight"
         ],
         "BaseStats": {
           "Attack": 16
@@ -267,7 +313,8 @@
         "DisplayName": "Дубовий посох",
         "Slot": "Weapon",
         "WeaponClasses": [
-          "mage"
+          "archer",
+          "knight"
         ],
         "BaseStats": {
           "Attack": 26,
@@ -703,8 +750,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
         "SetKey": "tide_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 10
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "tide_ring_unique",
@@ -714,8 +761,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
         "SetKey": "tide_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 10
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "tide_crown_unique",
@@ -725,8 +772,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
         "SetKey": "tide_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 10
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "tide_belt_unique",
@@ -736,8 +783,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
         "SetKey": "tide_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 10
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "storm_necklace_common",
@@ -1167,8 +1214,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
         "SetKey": "hollow_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 12
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "hollow_ring_unique",
@@ -1178,8 +1225,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
         "SetKey": "hollow_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 12
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "hollow_crown_unique",
@@ -1189,8 +1236,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
         "SetKey": "hollow_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 12
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "hollow_belt_unique",
@@ -1200,8 +1247,8 @@
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
         "SetKey": "hollow_unique",
-        "UniqueStat": "EnergyOnAttack",
-        "UniqueStatValue": 12
+        "UniqueStat": "CooldownReduction",
+        "UniqueStatValue": 1
       },
       {
         "Key": "gale_necklace_common",
@@ -1434,6 +1481,132 @@
         "SetKey": "obsidian_unique",
         "UniqueStat": "DamageReduction",
         "UniqueStatValue": 0.18
+      },
+      {
+        "Key": "skill_book_warrior_common_attack",
+        "DisplayName": "Книга атаки воїна (звичайна)",
+        "Description": "Піднімає на рівень атакувальне вміння звичайного воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_common_defense",
+        "DisplayName": "Книга захисту воїна (звичайна)",
+        "Description": "Піднімає на рівень захисне вміння звичайного воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_rare_attack",
+        "DisplayName": "Книга атаки воїна (рідкісна)",
+        "Description": "Піднімає на рівень атакувальне вміння рідкісного воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_rare_defense",
+        "DisplayName": "Книга захисту воїна (рідкісна)",
+        "Description": "Піднімає на рівень захисне вміння рідкісного воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_unique_attack",
+        "DisplayName": "Книга атаки воїна (унікальна)",
+        "Description": "Піднімає на рівень атакувальне вміння унікального воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_warrior_unique_defense",
+        "DisplayName": "Книга захисту воїна (унікальна)",
+        "Description": "Піднімає на рівень захисне вміння унікального воїна. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_common_attack",
+        "DisplayName": "Книга атаки лицаря (звичайна)",
+        "Description": "Піднімає на рівень атакувальне вміння звичайного лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_common_defense",
+        "DisplayName": "Книга захисту лицаря (звичайна)",
+        "Description": "Піднімає на рівень захисне вміння звичайного лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_rare_attack",
+        "DisplayName": "Книга атаки лицаря (рідкісна)",
+        "Description": "Піднімає на рівень атакувальне вміння рідкісного лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_rare_defense",
+        "DisplayName": "Книга захисту лицаря (рідкісна)",
+        "Description": "Піднімає на рівень захисне вміння рідкісного лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_unique_attack",
+        "DisplayName": "Книга атаки лицаря (унікальна)",
+        "Description": "Піднімає на рівень атакувальне вміння унікального лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_knight_unique_defense",
+        "DisplayName": "Книга захисту лицаря (унікальна)",
+        "Description": "Піднімає на рівень захисне вміння унікального лицаря. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_common_attack",
+        "DisplayName": "Книга атаки лучника (звичайна)",
+        "Description": "Піднімає на рівень атакувальне вміння звичайного лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_common_defense",
+        "DisplayName": "Книга захисту лучника (звичайна)",
+        "Description": "Піднімає на рівень захисне вміння звичайного лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "common",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_rare_attack",
+        "DisplayName": "Книга атаки лучника (рідкісна)",
+        "Description": "Піднімає на рівень атакувальне вміння рідкісного лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_rare_defense",
+        "DisplayName": "Книга захисту лучника (рідкісна)",
+        "Description": "Піднімає на рівень захисне вміння рідкісного лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "rare",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_unique_attack",
+        "DisplayName": "Книга атаки лучника (унікальна)",
+        "Description": "Піднімає на рівень атакувальне вміння унікального лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
+      },
+      {
+        "Key": "skill_book_archer_unique_defense",
+        "DisplayName": "Книга захисту лучника (унікальна)",
+        "Description": "Піднімає на рівень захисне вміння унікального лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
+        "Rarity": "unique",
+        "Type": "skillbook"
       }
     ],
     "Equipment": {

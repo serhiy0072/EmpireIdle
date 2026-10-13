@@ -47,6 +47,40 @@ namespace EmpireIdle.Domain.Services
             ValidateScouting(config);
             ValidateFlatBuildings(config);
             ValidateMonsters(config);
+            ValidateTierGates(config);
+        }
+
+        /// <summary>
+        /// Тір героя відкривається з рівнем світу (GDD §6.1): банер не може видати героя
+        /// вищого тіру, ніж світ, з якого банер відкритий, а вікно продажу предмета апу
+        /// не може пережити свій рівень світу — інакше його ніколи не закрила б ця модель.
+        /// </summary>
+        private static void ValidateTierGates(GameConfig config)
+        {
+            var heroes = config.Heroes.ToDictionary(h => h.Key);
+
+            var early = config.Shop.Banners
+                .SelectMany(b => b.Drops
+                    .SelectMany(d => d.Rewards)
+                    .Where(r => r.Type is "Hero" or "HeroShards" && r.Key is not null && heroes.TryGetValue(r.Key, out var hero)
+                                && hero.NativeTier > b.RequiresServerLevel)
+                    .Select(r => $"{b.Key} → {r.Key} (tier {heroes[r.Key!].NativeTier}, banner opens at {b.RequiresServerLevel})"))
+                .ToList();
+
+            if (early.Count > 0)
+                throw new InvalidOperationException(
+                    $"Banners hand out heroes above their world level: {string.Join(", ", early)}.");
+
+            var badWindows = config.Shop.Items
+                .Where(i => i.ServerLevel is { } level
+                            && (level < 1 || i.WindowDays <= 0 || i.WindowDays > config.Map.Evolution.DaysPerLevel))
+                .Select(i => $"{i.ItemKey} (level {i.ServerLevel}, {i.WindowDays} days)")
+                .ToList();
+
+            if (badWindows.Count > 0)
+                throw new InvalidOperationException(
+                    $"Shop windows need a world level ≥ 1 and 1–{config.Map.Evolution.DaysPerLevel} days "
+                    + $"(no longer than a world level): {string.Join(", ", badWindows)}.");
         }
 
         /// <summary>
@@ -779,7 +813,7 @@ namespace EmpireIdle.Domain.Services
                     "Combat.DefenderLossLosses.Min must not be below DefenderWinLosses.Max: losing would cost less than winning.");
         }
 
-        /// <summary>Ростер героїв: класи, тіри, вартість прокачки, лікування, пасивки.</summary>
+        /// <summary>Ростер героїв: класи, тіри, вартість прокачки, лікування, вміння.</summary>
         private static void ValidateHeroes(GameConfig config)
         {
             // Порожній ростер — конфіг героїв не описує (мінімальні фікстури в тестах).
@@ -787,37 +821,15 @@ namespace EmpireIdle.Domain.Services
             if (config.Heroes.Count == 0)
                 return;
 
-            // Щит без тривалості згасає в тому ж ході, в якому його наклали: стан тікає
-            // наприкінці ходу носія, тож на себе потрібно щонайменше 2
-            var shortShields = config.Heroes
-                .SelectMany(h => h.Abilities)
-                .Where(a => a.ShieldPercent > 0 && a.ShieldTurns < (a.Target == AbilityTarget.Self ? 2 : 1))
-                .Select(a => a.Key)
-                .ToList();
-
-            if (shortShields.Count > 0)
-                throw new InvalidOperationException(
-                    $"Shield abilities vanish before they can absorb anything — raise ShieldTurns: {string.Join(", ", shortShields)}.");
-
-            // Шкала енергії бійця в данжі впирається в Dungeons.MaxEnergy: дорожче вміння не настане ніколи
-            var unaffordable = config.Heroes
-                .SelectMany(h => h.Abilities)
-                .Where(a => a.EnergyCost <= 0 || a.EnergyCost > config.Dungeons.MaxEnergy)
-                .Select(a => $"{a.Key} ({a.EnergyCost})")
-                .ToList();
-
-            if (unaffordable.Count > 0)
-                throw new InvalidOperationException(
-                    $"Hero abilities must cost between 1 and Dungeons.MaxEnergy ({config.Dungeons.MaxEnergy}) energy: "
-                    + $"{string.Join(", ", unaffordable)}.");
-
             var settings = config.HeroSettings;
 
-            if (settings.MaxTier < 1)
-                throw new InvalidOperationException("HeroSettings.MaxTier must be at least 1.");
+            // Крива досвіду героя (GDD §6.1): без росту пізні рівні коштували б як перші
+            if (settings.MaxLevel < 1)
+                throw new InvalidOperationException("HeroSettings.MaxLevel must be at least 1.");
 
-            if (settings.LevelsPerTier < 1)
-                throw new InvalidOperationException("HeroSettings.LevelsPerTier must be at least 1.");
+            if (settings.ExperienceBase <= 0 || settings.ExperienceExponent <= 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.ExperienceBase and ExperienceExponent must be positive — levels would cost nothing.");
 
             if (settings.MaxMarches < 1)
                 throw new InvalidOperationException(
@@ -852,24 +864,23 @@ namespace EmpireIdle.Domain.Services
                     $"HeroSettings.HealBuildingKey '{settings.HealBuildingKey}' is not a known building — "
                     + "wounded heroes would have nowhere to be healed.");
 
-            if (settings.TierStatMultipliers.Count != settings.MaxTier)
+            // Тір має бути відчутним, а ап — не вигіднішим за рідного героя (GDD §6.1)
+            if (settings.TierGrowth <= 1.0)
                 throw new InvalidOperationException(
-                    $"HeroSettings.TierStatMultipliers needs exactly MaxTier entries ({settings.MaxTier}), "
-                    + $"got {settings.TierStatMultipliers.Count}.");
+                    "HeroSettings.TierGrowth must be above 1 — otherwise a higher tier is not stronger.");
 
-            for (var i = 1; i < settings.TierStatMultipliers.Count; i++)
-            {
-                if (settings.TierStatMultipliers[i] <= settings.TierStatMultipliers[i - 1])
-                    throw new InvalidOperationException(
-                        "HeroSettings.TierStatMultipliers must increase: otherwise evolution raises only the "
-                        + "ceiling, and two heroes of different tiers are identical at the same level.");
-            }
-
-            // Переходів рівно на один менше, ніж тірів: 1→2 і 2→3 для трьох тірів
-            if (settings.EvolutionItemKeys.Count != settings.MaxTier - 1)
+            if (settings.EvolutionPenalty is <= 0.0 or > 1.0)
                 throw new InvalidOperationException(
-                    $"HeroSettings.EvolutionItemKeys needs MaxTier - 1 entries ({settings.MaxTier - 1}), "
-                    + $"got {settings.EvolutionItemKeys.Count}.");
+                    "HeroSettings.EvolutionPenalty must be in (0, 1] — an evolved hero cannot outgrow a native one.");
+
+            var badTiers = config.Heroes
+                .Where(h => h.NativeTier < 1 || h.NativeTier > settings.MaxTier)
+                .Select(h => $"{h.Key} ({h.NativeTier})")
+                .ToList();
+
+            if (badTiers.Count > 0)
+                throw new InvalidOperationException(
+                    $"Heroes have a NativeTier outside 1–{settings.MaxTier}: {string.Join(", ", badTiers)}.");
 
             var itemKeys = config.Items.Select(i => i.Key).ToHashSet();
 
@@ -883,26 +894,50 @@ namespace EmpireIdle.Domain.Services
 
             // Надлишок понад стелю сузір'я стає печатками призову. Забутий ранг означав би,
             // що дублікат зникає без сліду — саме те, чого ми уникали.
+            // Зірки (GDD §6.1): ціна кожної частинки, інакше заповнення впало б на першій дірці
+            if (settings.SummonShards < 1)
+                throw new InvalidOperationException("HeroSettings.SummonShards must be at least 1 — summoning would be free.");
+
+            if (settings.MaxStars < 1 || settings.PartsPerStar < 1)
+                throw new InvalidOperationException("HeroSettings.MaxStars and PartsPerStar must be at least 1.");
+
+            if (settings.StarPartCosts.Count != settings.MaxStars
+                || settings.StarPartCosts.Any(star => star.Count != settings.PartsPerStar || star.Any(cost => cost < 1)))
+                throw new InvalidOperationException(
+                    $"HeroSettings.StarPartCosts needs {settings.MaxStars} stars of {settings.PartsPerStar} positive part costs.");
+
+            if (settings.StarPartBonus < 0)
+                throw new InvalidOperationException("HeroSettings.StarPartBonus cannot be negative — a star never weakens a hero.");
+
             var rankNames = Enum.GetNames<Rarity>().ToHashSet();
 
-            var unknownRanks = settings.OverflowSeals.Keys
-                .Where(k => !rankNames.Contains(k))
+            // Обмін на вищу рідкість: з найвищої міняти нікуди
+            var badUpgrades = settings.UniversalShardUpgrade
+                .Where(u => !rankNames.Contains(u.Key) || u.Key == Rarity.Unique.ToString() || u.Value < 1)
+                .Select(u => $"{u.Key} ({u.Value})")
                 .ToList();
 
-            if (unknownRanks.Count > 0)
+            if (badUpgrades.Count > 0)
                 throw new InvalidOperationException(
-                    $"HeroSettings.OverflowSeals has keys that are not ranks: {string.Join(", ", unknownRanks)}.");
+                    $"HeroSettings.UniversalShardUpgrade has invalid entries: {string.Join(", ", badUpgrades)}.");
 
-            var missingRanks = config.Heroes
-                .Select(h => h.Rank.ToString())
+            // Кожна рідкість ростеру — зі своїм універсальним осколком, інакше надлишок прокачаного героя нікуди подіти
+            var universal = config.Items
+                .Where(item => item.Type == "universalshard")
+                .GroupBy(item => item.Rarity)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var badUniversal = config.Heroes
+                .Select(h => h.Rank)
                 .Distinct()
-                .Where(r => !settings.OverflowSeals.ContainsKey(r))
+                .Where(rank => universal.GetValueOrDefault(rank) != 1)
+                .Select(rank => rank.ToString())
                 .ToList();
 
-            if (missingRanks.Count > 0)
+            if (badUniversal.Count > 0)
                 throw new InvalidOperationException(
-                    "HeroSettings.OverflowSeals has no entry for ranks in the roster: "
-                    + $"{string.Join(", ", missingRanks)}.");
+                    "Every hero rarity needs exactly one universal shard item (Type = universalshard): "
+                    + $"{string.Join(", ", badUniversal)}.");
 
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
             var unitKeys = config.Units.Select(u => u.Key).ToHashSet();
@@ -926,73 +961,185 @@ namespace EmpireIdle.Domain.Services
             if (settings.DefaultMarchSpeed <= 0)
                 throw new InvalidOperationException("HeroSettings.DefaultMarchSpeed must be above zero.");
 
+            // Вміння (GDD §6.1, рішення 08.10.2026): стеля рівня й склад за рідкістю
+            if (settings.MaxSkillLevel < 1)
+                throw new InvalidOperationException("HeroSettings.MaxSkillLevel must be at least 1.");
+
+            var badLayouts = settings.SkillLayouts
+                .Where(l => !rankNames.Contains(l.Key)
+                    || l.Value.Attack < 1 || l.Value.Defense < 0
+                    || l.Value.Utility < 0 || l.Value.Utility > l.Value.Defense)
+                .Select(l => l.Key)
+                .ToList();
+
+            if (badLayouts.Count > 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.SkillLayouts needs a known rarity, at least the active skill in Attack "
+                    + $"and no more utility skills than Defense holds: {string.Join(", ", badLayouts)}.");
+
             foreach (var hero in config.Heroes)
             {
-                // Смуги вартості прокачки. Набір ресурсів міняється з рівнем, тож діра
-                // між смугами вилізла б лише тоді, коли до неї дійшов би гравець.
-                if (hero.LevelUpCosts.Count == 0)
-                    throw new InvalidOperationException(
-                        $"Hero '{hero.Key}' has no LevelUpCosts — it could never be levelled.");
-
-                if (hero.LevelUpCosts.All(b => b.FromLevel > 1))
-                    throw new InvalidOperationException(
-                        $"Hero '{hero.Key}' has no cost band starting at level 1.");
-
-                RequireUniqueKeys(
-                    hero.LevelUpCosts.Select(b => b.FromLevel.ToString()),
-                    $"Hero '{hero.Key}' LevelUpCosts.FromLevel");
-
-                var brokenLines = hero.LevelUpCosts
-                    .SelectMany(b => b.Cost.Select(c => (b.FromLevel, c.Resource, c.Amount)))
-                    .Where(x => !resourceKeys.Contains(x.Resource) || x.Amount < 1)
-                    .Select(x => $"from {x.FromLevel}: '{x.Resource}' × {x.Amount}")
-                    .ToList();
-
-                if (brokenLines.Count > 0)
-                    throw new InvalidOperationException(
-                        $"Hero '{hero.Key}' has invalid LevelUpCosts entries: {string.Join(", ", brokenLines)}.");
-
                 if (hero.Speed is <= 0)
                     throw new InvalidOperationException($"Hero '{hero.Key}' has non-positive Speed — its marches would never arrive.");
 
-                // Пасивки: саме вони, а не стати героя, рухають бойову формулу,
-                // тож описка в цілі або статі мовчки знеструмила б героя
-                RequireUniqueKeys(hero.Passives.Select(p => p.Key).ToList(), $"Heroes['{hero.Key}'].Passives");
+                ValidateHeroSkills(hero, settings, unitKeys, statKeys);
+            }
 
-                foreach (var passive in hero.Passives)
+            ValidateSkillBooks(config);
+        }
+
+        /// <summary>
+        /// Книги вмінь (GDD §6.1): кожна — предмет-книга своєї рідкості для відомої ролі, по одній
+        /// на роль × рідкість × половину, і кожен герой має книги для обох своїх половин —
+        /// інакше його вміння застрягли б на першому рівні.
+        /// </summary>
+        private static void ValidateSkillBooks(GameConfig config)
+        {
+            var books = config.HeroSettings.SkillBooks;
+
+            // Книги не описані — мінімальні фікстури; у грі без книг вміння просто не качаються
+            if (books.Count == 0)
+                return;
+
+            var items = config.Items.ToDictionary(i => i.Key);
+            var classes = config.HeroSettings.Classes.ToHashSet();
+
+            var broken = books
+                .Where(b => !items.TryGetValue(b.ItemKey ?? string.Empty, out var item)
+                    || item.Type != "skillbook" || item.Rarity != b.Rarity || !classes.Contains(b.Class))
+                .Select(b => b.ItemKey)
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException(
+                    "HeroSettings.SkillBooks must point at skillbook items of the same rarity for a known class: "
+                    + $"{string.Join(", ", broken)}.");
+
+            var duplicates = books
+                .GroupBy(b => (b.Class, b.Rarity, b.Half))
+                .Where(g => g.Count() > 1)
+                .Select(g => $"{g.Key.Class}/{g.Key.Rarity}/{g.Key.Half}")
+                .ToList();
+
+            if (duplicates.Count > 0)
+                throw new InvalidOperationException(
+                    $"HeroSettings.SkillBooks has more than one book for: {string.Join(", ", duplicates)}.");
+
+            var missing = config.Heroes
+                .SelectMany(h => h.Skills.Select(s => s.Half).Distinct().Select(half => (Hero: h, Half: half)))
+                .Where(x => !books.Any(b => b.Class == x.Hero.Class && b.Rarity == x.Hero.Rank && b.Half == x.Half))
+                .Select(x => $"{x.Hero.Key} ({x.Half})")
+                .ToList();
+
+            if (missing.Count > 0)
+                throw new InvalidOperationException(
+                    $"Heroes without a skill book for their skill half: {string.Join(", ", missing)}.");
+        }
+
+        /// <summary>
+        /// Вміння одного героя. Саме вони, а не стати, рухають армійську формулу й бій у данжі,
+        /// тож описка в цілі, статі чи довжині списку мовчки знеструмила б героя.
+        /// </summary>
+        private static void ValidateHeroSkills(HeroConfig hero, HeroesConfig settings,
+            IReadOnlySet<string> unitKeys, IReadOnlySet<string> statKeys)
+        {
+            RequireUniqueKeys(hero.Skills.Select(s => s.Key).ToList(), $"Heroes['{hero.Key}'].Skills");
+
+            foreach (var skill in hero.Skills)
+            {
+                var name = $"Hero '{hero.Key}' skill '{skill.Key}'";
+
+                if (skill.UnlockLevel < 1 || skill.UnlockLevel > settings.MaxLevel)
+                    throw new InvalidOperationException(
+                        $"{name} unlocks at hero level {skill.UnlockLevel}, outside 1..{settings.MaxLevel}.");
+
+                // Кожен вид має рівно свої частини: бойове без бонусу війську нічого не дало б у марші,
+                // небойове з ним стало б бойовим
+                var parts = skill.Kind switch
                 {
-                    if (passive.Target != HeroCombatModifiers.AllUnits && !unitKeys.Contains(passive.Target))
-                        throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' targets unknown unit '{passive.Target}'.");
+                    SkillKind.Active or SkillKind.Periodic => skill.Troops is not null && skill.Battle is not null && skill.Utility is null,
+                    SkillKind.Passive => skill.Troops is not null && skill.Battle is null && skill.Utility is null,
+                    SkillKind.Utility => skill.Utility is not null && skill.Troops is null && skill.Battle is null,
+                    _ => false,
+                };
 
-                    if (!statKeys.Contains(passive.Stat ?? string.Empty))
-                        throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' affects unknown stat '{passive.Stat}' — "
-                            + "combat knows Attack and Defense.");
+                if (!parts)
+                    throw new InvalidOperationException(
+                        $"{name} ({skill.Kind}) has the wrong parts: Active and Periodic need Troops and Battle, "
+                        + "Passive only Troops, Utility only Utility.");
 
-                    if (passive.UnlockConstellation < 0 || passive.UnlockConstellation > settings.MaxConstellation)
-                        throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' unlocks at constellation "
-                            + $"{passive.UnlockConstellation}, outside 0..{settings.MaxConstellation}.");
+                // Без активного з першого рівня новий герой у данжі б'є лише звичайним ударом
+                if (skill.Kind == SkillKind.Active && (skill.Half != SkillHalf.Attack || skill.UnlockLevel != 1))
+                    throw new InvalidOperationException($"{name} is active — it belongs to the Attack half and unlocks at level 1.");
 
-                    if (passive.BasePercent < 0 || passive.PercentPerConstellation < 0)
+                if (skill.Kind == SkillKind.Utility && skill.Half != SkillHalf.Defense)
+                    throw new InvalidOperationException($"{name} is a utility skill — it belongs to the Defense half.");
+
+                if (skill.Troops is { } troops)
+                {
+                    if (troops.Target != HeroCombatModifiers.AllUnits && !unitKeys.Contains(troops.Target))
+                        throw new InvalidOperationException($"{name} targets unknown unit '{troops.Target}'.");
+
+                    if (!statKeys.Contains(troops.Stat ?? string.Empty))
                         throw new InvalidOperationException(
-                            $"Hero '{hero.Key}' passive '{passive.Key}' has negative percentages — "
-                            + "a passive never weakens its own army.");
+                            $"{name} affects unknown stat '{troops.Stat}' — combat knows Attack and Defense.");
+
+                    RequireLevels(troops.Percents, settings, $"{name} Troops.Percents", allowZero: true);
+                }
+
+                if (skill.Utility is { } utility)
+                {
+                    if (!SkillUtilityConfig.KnownEffects.Contains(utility.Effect ?? string.Empty))
+                        throw new InvalidOperationException(
+                            $"{name} has unknown utility effect '{utility.Effect}' — known: "
+                            + $"{string.Join(", ", SkillUtilityConfig.KnownEffects)}.");
+
+                    RequireLevels(utility.Percents, settings, $"{name} Utility.Percents", allowZero: true);
+                }
+
+                if (skill.Battle is { } battle)
+                {
+                    if (battle.Cooldown < 1)
+                        throw new InvalidOperationException($"{name} has Cooldown {battle.Cooldown} — it needs at least one turn.");
+
+                    if (battle.DamageMultiplier <= 0 && battle.HealPercent <= 0 && battle.ShieldPercent <= 0 && battle.Status is null)
+                        throw new InvalidOperationException($"{name} does nothing in battle — no damage, heal, shield or status.");
+
+                    // Щит без тривалості згасає в тому ж ході, в якому його наклали: стан тікає
+                    // наприкінці ходу носія, тож на себе потрібно щонайменше 2
+                    if (battle.ShieldPercent > 0 && battle.ShieldTurns < (battle.Target == AbilityTarget.Self ? 2 : 1))
+                        throw new InvalidOperationException($"{name} shield vanishes before it can absorb anything — raise ShieldTurns.");
+
+                    RequireLevels(battle.LevelScale, settings, $"{name} Battle.LevelScale", allowZero: false);
                 }
             }
 
-            // Звичайні герої купуються уламками за золото — це основний щоденний
-            // стік золота. Решта приходить із банерів цілими, ціни не має.
-            var brokenShards = config.Heroes
-                .Where(h => h.Rank == Rarity.Common && (h.SummonShards < 1 || h.ShardPriceGold < 1))
-                .Select(h => h.Key)
-                .ToList();
+            if (hero.Skills.Count(s => s.Kind == SkillKind.Active) > 1)
+                throw new InvalidOperationException($"Hero '{hero.Key}' has more than one active skill.");
 
-            if (brokenShards.Count > 0)
+            // Склад за рідкістю перевіряється, лише якщо рідкість описана — так фікстури тримають
+            // героїв з одним-двома вміннями
+            if (!settings.SkillLayouts.TryGetValue(hero.Rank.ToString(), out var layout))
+                return;
+
+            var attack = hero.Skills.Count(s => s.Half == SkillHalf.Attack);
+            var defense = hero.Skills.Count(s => s.Half == SkillHalf.Defense);
+            var utilities = hero.Skills.Count(s => s.Kind == SkillKind.Utility);
+            var actives = hero.Skills.Count(s => s.Kind == SkillKind.Active);
+
+            if (attack != layout.Attack || defense != layout.Defense || utilities != layout.Utility || actives != 1)
                 throw new InvalidOperationException(
-                    "Common heroes need SummonShards and ShardPriceGold above zero: "
-                    + $"{string.Join(", ", brokenShards)}.");
+                    $"Hero '{hero.Key}' ({hero.Rank}) needs {layout.Attack} attack skills with one active, "
+                    + $"{layout.Defense} defense skills of which {layout.Utility} utility — has {attack} attack "
+                    + $"({actives} active) and {defense} defense ({utilities} utility).");
+        }
+
+        /// <summary>Пер-рівневий список: рівно MaxSkillLevel значень, жодне не від'ємне (і не нульове, якщо так сказано).</summary>
+        private static void RequireLevels(IReadOnlyList<double> values, HeroesConfig settings, string name, bool allowZero)
+        {
+            if (values.Count != settings.MaxSkillLevel || values.Any(v => v < 0 || (!allowZero && v == 0)))
+                throw new InvalidOperationException(
+                    $"{name} needs {settings.MaxSkillLevel} {(allowZero ? "non-negative" : "positive")} values, one per skill level.");
         }
 
         /// <summary>Спорядження: слоти, класи зброї, набори, ціни.</summary>
@@ -1129,7 +1276,7 @@ namespace EmpireIdle.Domain.Services
             {
                 null => true,
                 "resource" => reward.Key is null || !resourceKeys.Contains(reward.Key),
-                "hero" => reward.Key is null || !heroKeys.Contains(reward.Key),
+                "hero" or "heroshards" => reward.Key is null || !heroKeys.Contains(reward.Key),
                 "item" => reward.Key is null || items.GetValueOrDefault(reward.Key) is not { Slot: null },
                 "equipment" => reward.Key is null || items.GetValueOrDefault(reward.Key) is not { Slot: not null },
                 _ => false
@@ -1231,10 +1378,25 @@ namespace EmpireIdle.Domain.Services
                             $"Banner '{banner.Key}' drop '{drop.Key}' is a {drop.Rarity} filler — "
                             + "only the banner's own category carries rare and unique drops.");
 
+                    // Банер видає осколки героя (GDD §6.1) — 10 осколків це герой; цілий герой теж годиться
                     if (drop.Kind == BannerKind.Hero
-                        && !drop.Rewards.Any(r => string.Equals(r.Type, "Hero", StringComparison.OrdinalIgnoreCase)))
+                        && !drop.Rewards.Any(r => string.Equals(r.Type, "Hero", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(r.Type, "HeroShards", StringComparison.OrdinalIgnoreCase)))
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a hero drop but grants no hero.");
+
+                    // Лот категорії — це те, чим платить гарантія й 50/50, тож він мусить давати цілого героя.
+                    // Пачки осколків менші за призов — звичайний лут (GDD §6.1, рішення 08.10.2026)
+                    var partial = drop.Rewards
+                        .Where(r => string.Equals(r.Type, "HeroShards", StringComparison.OrdinalIgnoreCase)
+                            && r.Amount < config.HeroSettings.SummonShards)
+                        .ToList();
+
+                    if (drop.Kind == BannerKind.Hero && partial.Count > 0)
+                        throw new InvalidOperationException(
+                            $"Banner '{banner.Key}' drop '{drop.Key}' is a hero drop with fewer than "
+                            + $"{config.HeroSettings.SummonShards} shards — a pity payout must be a whole hero; "
+                            + "smaller bundles go in as filler (no Kind).");
 
                     if (drop.Kind == BannerKind.Weapon
                         && !drop.Rewards.Any(r => string.Equals(r.Type, "Equipment", StringComparison.OrdinalIgnoreCase)
@@ -1252,17 +1414,6 @@ namespace EmpireIdle.Domain.Services
                             throw new InvalidOperationException(
                                 $"Banner '{banner.Key}' drop '{drop.Key}' is {drop.Rarity}, but item '{reward.Key}' is {equipment.Rarity} in Items.");
                     }
-
-                    // Звичайні герої купуються за золото в залі (§6.1).
-                    // У пулі за gems вони перетворили б банер на лотерею із золотим дном
-                    var commonHero = drop.Rewards
-                        .Where(r => string.Equals(r.Type, "Hero", StringComparison.OrdinalIgnoreCase) && r.Key is not null)
-                        .FirstOrDefault(r => heroes[r.Key!].Rank == Rarity.Common);
-
-                    if (commonHero is not null)
-                        throw new InvalidOperationException(
-                            $"Banner '{banner.Key}' drop '{drop.Key}' grants the common hero '{commonHero.Key}' — "
-                            + "banners carry rare and unique heroes only.");
                 }
             }
         }

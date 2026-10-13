@@ -35,22 +35,30 @@ namespace EmpireIdle.Application.Banners.Queries
         private readonly GameCatalog _catalog;
         private readonly BannerRoller _roller;
         private readonly IBannerRepository _banners;
+        private readonly IServerRepository _serverRepository;
+        private readonly IServerContext _serverContext;
         private readonly TimeProvider _timeProvider;
 
-        public GetBannersQueryHandler(GameCatalog catalog, BannerRoller roller, IBannerRepository banners, TimeProvider timeProvider)
+        public GetBannersQueryHandler(GameCatalog catalog, BannerRoller roller, IBannerRepository banners,
+            IServerRepository serverRepository, IServerContext serverContext, TimeProvider timeProvider)
         {
             _catalog = catalog;
             _roller = roller;
             _banners = banners;
+            _serverRepository = serverRepository;
+            _serverContext = serverContext;
             _timeProvider = timeProvider;
         }
 
         public async Task<IReadOnlyList<BannerView>> Handle(GetBannersQuery request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow();
+            var serverLevel = await _serverRepository.GetLevelAsync(_serverContext.ServerId, cancellationToken);
 
+            // Банер героїв вищого тіру ще не відкрився — його не показуємо, як і банер поза датами
             var active = _catalog.Config.Shop.Banners
                 .Where(b => (b.StartsAt is not { } start || now >= start) && (b.EndsAt is not { } end || now < end))
+                .Where(b => serverLevel >= b.RequiresServerLevel)
                 .ToList();
 
             // Прогрес спільний для групи, тож читаємо по групі, а не по банеру

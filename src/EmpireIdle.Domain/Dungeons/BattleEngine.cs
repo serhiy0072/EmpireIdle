@@ -5,7 +5,7 @@ using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Dungeons
 {
-    /// <summary>Дія бійця: звичайний удар або вміння з вибраною ціллю.</summary>
+    /// <summary>Дія бійця: звичайний удар або активне вміння з вибраною ціллю.</summary>
     public record BattleAction(string? AbilityKey, int? TargetIndex);
 
     /// <summary>Результат одного ходу: новий стан і журнал для клієнта.</summary>
@@ -17,8 +17,12 @@ namespace EmpireIdle.Domain.Dungeons
     /// від того, хто його рахує — сервер чи тест.
     ///
     /// Окремий від CombatCalculator навмисно: там одна формула на всю армію,
-    /// тут черга ходів, енергія та стани. Спроба звести їх до одного
+    /// тут черга ходів, перезарядки та стани. Спроба звести їх до одного
     /// розрахунку зробила б обидва гіршими.
+    ///
+    /// Вміння героя (GDD §6.1, рішення 08.10.2026): одне активне з перезарядкою —
+    /// гравець або автобій вирішує, коли бити, — і періодичні, що спрацьовують самі
+    /// наприкінці ходу героя раз на кілька його ходів.
     /// </summary>
     public class BattleEngine
     {
@@ -33,35 +37,33 @@ namespace EmpireIdle.Domain.Dungeons
         public static int? CurrentActor(BattleState state)
             => state.Queue.FirstOrDefault(i => state.Combatants[i].IsAlive, -1) is var index && index >= 0 ? index : null;
 
+        /// <summary>Активне вміння бійця; null — у ворогів і героїв без вмінь.</summary>
+        public static CombatSkill? ActiveOf(Combatant combatant)
+            => combatant.Skills.FirstOrDefault(s => s.Kind == SkillKind.Active);
+
         /// <summary>
         /// Дія, яку обере автобій за поточного стану. Та сама політика працює
         /// і для ворогів: інакше довелося б тримати дві різні «розумності».
         /// </summary>
-        public BattleAction ChooseAuto(BattleState state, int actorIndex, IReadOnlyList<HeroAbilityConfig> abilities)
+        public BattleAction ChooseAuto(BattleState state, int actorIndex)
         {
             var actor = state.Combatants[actorIndex];
 
-            // Сильне вміння має пріоритет: тримати повну шкалу нема сенсу — вона не росте далі
-            foreach (var ability in abilities.OrderByDescending(a => a.EnergyCost))
-            {
-                if (actor.Energy < ability.EnergyCost)
-                    continue;
-
-                if (!IsUseful(state, actor, ability))
-                    continue;
-
-                return new BattleAction(ability.Key, PickAutoTarget(state, actor, ability));
-            }
+            // Готове вміння б'є одразу: відкладене воно не стає сильнішим, а перезарядка стоїть
+            if (ActiveOf(actor) is { Ready: true } active && IsUseful(state, actor, active))
+                return new BattleAction(active.Key, PickAutoTarget(state, actor, active));
 
             return new BattleAction(null, PickAutoTarget(state, actor, null));
         }
 
         /// <summary>
-        /// Виконує хід. Енергія й ціль перевіряються тут, а не в застосунку: правило
+        /// Виконує хід. Перезарядка й ціль перевіряються тут, а не в застосунку: правило
         /// ліній — частина бою, і ні клієнт, ні автобій не мають шансу його обійти.
         /// </summary>
-        public TurnResult Execute(BattleState state, int actorIndex, BattleAction action, HeroAbilityConfig? ability)
+        public TurnResult Execute(BattleState state, int actorIndex, BattleAction action)
         {
+            var ability = Resolve(state.Combatants[actorIndex], action.AbilityKey);
+
             EnsureLegal(state, state.Combatants[actorIndex], ability, action);
 
             var combatants = state.Combatants.ToList();
@@ -78,10 +80,14 @@ namespace EmpireIdle.Domain.Dungeons
             if (actor.IsAlive && !stunned)
             {
                 if (ability is null)
-                    BasicAttack(combatants, actorIndex, action.TargetIndex, effects, random);
+                    Strike(combatants, actorIndex, action.TargetIndex, 1.0, effects, random);
                 else
-                    UseAbility(combatants, actorIndex, ability, action.TargetIndex, effects, random);
+                    UseSkill(combatants, actorIndex, ability, action.TargetIndex, effects, random);
             }
+
+            // Перезарядки йдуть і в оглушеного: оглушення забирає хід, а не час.
+            // Періодичне ж спрацьовує лише в того, хто діє, — оглушене чекає до наступного ходу
+            Recharge(state, combatants, actorIndex, ability, canAct: !stunned, effects, random);
 
             TickStatuses(combatants, actorIndex);
 
@@ -128,7 +134,7 @@ namespace EmpireIdle.Domain.Dungeons
         public bool IsOutOfRounds(BattleState state) => state.Round > _config.MaxRoundsPerWave;
 
         /// <summary>Чи можна бити саме цю ціль за правилом ліній.</summary>
-        public static bool CanTarget(BattleState state, Combatant actor, HeroAbilityConfig? ability, int targetIndex)
+        public static bool CanTarget(BattleState state, Combatant actor, CombatSkill? ability, int targetIndex)
         {
             if (targetIndex < 0 || targetIndex >= state.Combatants.Count)
                 return false;
@@ -162,14 +168,24 @@ namespace EmpireIdle.Domain.Dungeons
             return !frontAlive || target.Line == BattleLine.Front;
         }
 
+        /// <summary>Активне вміння, яке назвала дія; чужий чи невідомий ключ — відмова, а не тихий звичайний удар.</summary>
+        private static CombatSkill? Resolve(Combatant actor, string? key)
+        {
+            if (key is null)
+                return null;
+
+            return actor.Skills.FirstOrDefault(s => s.Key == key && s.Kind == SkillKind.Active)
+                ?? throw new RequirementNotMetException($"Combatant {actor.Index} has no active skill '{key}'.");
+        }
+
         /// <summary>
-        /// Дія законна в стані, який бачив той, хто ходить: енергії вистачає, а ціль —
+        /// Дія законна в стані, який бачив той, хто ходить: вміння перезаряджене, а ціль —
         /// жива й досяжна за правилом ліній. Масові вміння й «на себе» цілі не потребують.
         /// </summary>
-        private static void EnsureLegal(BattleState state, Combatant actor, HeroAbilityConfig? ability, BattleAction action)
+        private static void EnsureLegal(BattleState state, Combatant actor, CombatSkill? ability, BattleAction action)
         {
-            if (ability is not null && actor.Energy < ability.EnergyCost)
-                throw new RequirementNotMetException($"Ability '{ability.Key}' needs {ability.EnergyCost} energy.");
+            if (ability is { Ready: false })
+                throw new RequirementNotMetException($"Skill '{ability.Key}' is ready in {ability.CooldownLeft} turns.");
 
             var needsTarget = ability is null
                 || ability.Target is AbilityTarget.SingleEnemy or AbilityTarget.SingleAlly;
@@ -184,9 +200,9 @@ namespace EmpireIdle.Domain.Dungeons
                 throw new RequirementNotMetException(RefusalReasons.DungeonTargetUnreachable, "That target cannot be reached right now.");
         }
 
-        private bool IsUseful(BattleState state, Combatant actor, HeroAbilityConfig ability)
+        private static bool IsUseful(BattleState state, Combatant actor, CombatSkill ability)
         {
-            // Лікування в повну команду й щит на вже щитованого — змарнована енергія
+            // Лікування в повну команду й щит на вже щитованого — змарнована перезарядка
             if (ability.HealPercent > 0)
                 return state.Alive(actor.Side).Any(c => c.Health < c.MaxHealth * 0.9);
 
@@ -196,7 +212,7 @@ namespace EmpireIdle.Domain.Dungeons
             return true;
         }
 
-        private static int? PickAutoTarget(BattleState state, Combatant actor, HeroAbilityConfig? ability)
+        private static int? PickAutoTarget(BattleState state, Combatant actor, CombatSkill? ability)
         {
             if (ability is { Target: AbilityTarget.AllEnemies or AbilityTarget.AllAllies })
                 return null;
@@ -226,21 +242,14 @@ namespace EmpireIdle.Domain.Dungeons
             return target?.Index;
         }
 
-        private void BasicAttack(List<Combatant> combatants, int actorIndex, int? targetIndex,
+        private void Strike(List<Combatant> combatants, int actorIndex, int? targetIndex, double multiplier,
             List<TurnEffect> effects, DeterministicRandom random)
         {
-            if (targetIndex is not { } index)
-                return;
-
-            var actor = combatants[actorIndex];
-
-            Strike(combatants, actorIndex, index, 1.0, effects, random);
-
-            var gain = _config.EnergyPerAttack + (int)Math.Round(actor.UniqueStats.GetValueOrDefault(DungeonStat.EnergyOnAttack));
-            combatants[actorIndex] = AddEnergy(combatants[actorIndex], gain, _config.MaxEnergy);
+            if (targetIndex is { } index)
+                Strike(combatants, actorIndex, index, multiplier, effects, random);
         }
 
-        private void UseAbility(List<Combatant> combatants, int actorIndex, HeroAbilityConfig ability,
+        private void UseSkill(List<Combatant> combatants, int actorIndex, CombatSkill ability,
             int? targetIndex, List<TurnEffect> effects, DeterministicRandom random)
         {
             var actor = combatants[actorIndex];
@@ -262,11 +271,79 @@ namespace EmpireIdle.Domain.Dungeons
                 else
                     Support(combatants, actorIndex, target, ability, effects);
             }
+        }
 
-            combatants[actorIndex] = combatants[actorIndex] with
+        /// <summary>
+        /// Кінець ходу для вмінь: використане активне йде на повну перезарядку, решта чекають
+        /// на хід менше, а періодичне, що дочекалось, спрацьовує й теж іде на перезарядку.
+        /// Відлік — у власних ходах героя: швидший герой і б'є вміннями частіше.
+        /// </summary>
+        private void Recharge(BattleState state, List<Combatant> combatants, int actorIndex, CombatSkill? used,
+            bool canAct, List<TurnEffect> effects, DeterministicRandom random)
+        {
+            if (combatants[actorIndex].Skills.Count == 0)
+                return;
+
+            var skills = new List<CombatSkill>(combatants[actorIndex].Skills.Count);
+
+            foreach (var skill in combatants[actorIndex].Skills)
             {
-                Energy = Math.Max(0, combatants[actorIndex].Energy - ability.EnergyCost),
-            };
+                if (skill.Kind == SkillKind.Active)
+                {
+                    skills.Add(skill.Key == used?.Key
+                        ? skill with { CooldownLeft = FullCooldown(skill, combatants[actorIndex]) }
+                        : Tick(skill));
+                    continue;
+                }
+
+                // Мертвий герой не б'є; оглушений чекає з готовим умінням до наступного ходу
+                if (skill.Ready && canAct && combatants[actorIndex].IsAlive)
+                {
+                    FirePeriodic(state, combatants, actorIndex, skill, effects, random);
+                    skills.Add(skill with { CooldownLeft = FullCooldown(skill, combatants[actorIndex]) });
+                    continue;
+                }
+
+                skills.Add(Tick(skill));
+            }
+
+            combatants[actorIndex] = combatants[actorIndex] with { Skills = skills };
+        }
+
+        private static CombatSkill Tick(CombatSkill skill) => skill with { CooldownLeft = Math.Max(0, skill.CooldownLeft - 1) };
+
+        /// <summary>
+        /// Повна перезарядка після спрацювання: з перезарядкою N уміння знову готове через N ходів героя.
+        /// Артефакт на перезарядку скорочує лише активне — періодичне й так б'є без участі гравця.
+        /// </summary>
+        private static int FullCooldown(CombatSkill skill, Combatant actor)
+        {
+            var reduction = skill.Kind == SkillKind.Active
+                ? (int)Math.Round(actor.UniqueStats.GetValueOrDefault(DungeonStat.CooldownReduction))
+                : 0;
+
+            return Math.Max(0, skill.Cooldown - 1 - reduction);
+        }
+
+        /// <summary>
+        /// Періодичне вміння б'є тією ж логікою, що й активне, але ціль обирає саме — як автобій.
+        /// Наслідки позначаються ключем вміння, щоб клієнт показав, звідки вони взялися.
+        /// </summary>
+        private void FirePeriodic(BattleState state, List<Combatant> combatants, int actorIndex, CombatSkill skill,
+            List<TurnEffect> effects, DeterministicRandom random)
+        {
+            var current = state with { Combatants = combatants };
+            var target = PickAutoTarget(current, combatants[actorIndex], skill);
+
+            if ((skill.Target is AbilityTarget.SingleEnemy or AbilityTarget.SingleAlly) && target is null)
+                return;
+
+            var from = effects.Count;
+
+            UseSkill(combatants, actorIndex, skill, target, effects, random);
+
+            for (var i = from; i < effects.Count; i++)
+                effects[i] = effects[i] with { SkillKey = skill.Key };
         }
 
         private void Strike(List<Combatant> combatants, int actorIndex, int targetIndex, double multiplier,
@@ -309,8 +386,6 @@ namespace EmpireIdle.Domain.Dungeons
                 Health = health,
                 ShieldPoints = target.ShieldPoints - absorbed,
                 Statuses = statuses,
-                // Отримана шкода теж крутить шкалу: бита команда не лишається без вмінь
-                Energy = Math.Min(_config.MaxEnergy, target.Energy + _config.EnergyPerHitTaken),
             };
 
             var lifesteal = actor.UniqueStats.GetValueOrDefault(DungeonStat.Lifesteal);
@@ -321,7 +396,7 @@ namespace EmpireIdle.Domain.Dungeons
                 healed = Math.Round(damage * lifesteal, 1);
                 combatants[actorIndex] = combatants[actorIndex] with
                 {
-                    Health = Math.Min(actor.MaxHealth, actor.Health + healed),
+                    Health = Math.Min(actor.MaxHealth, combatants[actorIndex].Health + healed),
                 };
             }
 
@@ -340,7 +415,7 @@ namespace EmpireIdle.Domain.Dungeons
         }
 
         private static void Support(List<Combatant> combatants, int actorIndex, int targetIndex,
-            HeroAbilityConfig ability, List<TurnEffect> effects)
+            CombatSkill ability, List<TurnEffect> effects)
         {
             var target = combatants[targetIndex];
 
@@ -422,8 +497,5 @@ namespace EmpireIdle.Domain.Dungeons
 
         private static double Modifier(Combatant combatant, BattleStatusKind kind)
             => combatant.Statuses.Where(s => s.Kind == kind).Sum(s => s.Magnitude);
-
-        private static Combatant AddEnergy(Combatant combatant, int amount, int max)
-            => combatant with { Energy = Math.Min(max, combatant.Energy + amount) };
     }
 }

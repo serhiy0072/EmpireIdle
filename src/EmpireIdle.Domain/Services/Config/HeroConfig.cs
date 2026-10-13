@@ -17,6 +17,12 @@ namespace EmpireIdle.Domain.Services.Config
 
         public string DisplayName { get; set; } = null!;
 
+        /// <summary>
+        /// Рідний тір (GDD §6.1, рішення 06.10.2026): герой приходить уже в ньому, а з'являється
+        /// в банерах і залі лише з рівня світу, що дорівнює цьому тіру.
+        /// </summary>
+        public int NativeTier { get; set; } = 1;
+
         /// <summary>Ключ класу з HeroesConfig.Classes. Визначає придатну зброю.</summary>
         public string Class { get; set; } = null!;
 
@@ -48,30 +54,10 @@ namespace EmpireIdle.Domain.Services.Config
         public Dictionary<string, double> StatGrowth { get; set; } = new();
 
         /// <summary>
-        /// Скільки уламків потрібно на призов. Має сенс лише для звичайних:
-        /// решта приходить із банерів цілими.
+        /// Вміння (GDD §6.1, рішення 08.10.2026). Саме вони, а не стати героя, впливають
+        /// на армійський бій: стати вирішують силу самого героя, вміння — силу його війська.
+        /// Склад за рідкістю перевіряє валідатор; порожній список — герой б'є лише звичайними ударами.
         /// </summary>
-        public int SummonShards { get; set; }
-
-        /// <summary>Ціна одного уламка в золоті. Основний щоденний стік золота.</summary>
-        public int ShardPriceGold { get; set; }
-
-        /// <summary>
-        /// Вартість прокачки по смугах рівнів. Порожній список означає,
-        /// що герой не качається — валідатор такого не пропустить.
-        /// </summary>
-        public List<HeroLevelCostBand> LevelUpCosts { get; set; } = new();
-
-        /// <summary>
-        /// Пасивні вміння. Саме вони, а не стати героя, впливають на бій:
-        /// стати вирішують силу самого героя, пасивки — силу його війська.
-        /// </summary>
-        public List<HeroPassiveConfig> Passives { get; set; } = new();
-
-        /// <summary>
-        /// Активні вміння для покрокового бою данжів: слабке й сильне.
-        /// Порожній список означає, що герой б'є лише звичайними ударами.
-        /// </summary>
-        public List<HeroAbilityConfig> Abilities { get; set; } = new();
+        public List<HeroSkillConfig> Skills { get; set; } = new();
     }
 }

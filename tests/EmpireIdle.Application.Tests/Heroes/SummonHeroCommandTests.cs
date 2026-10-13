@@ -1,17 +1,17 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Heroes.Commands;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 
 namespace EmpireIdle.Application.Tests.Heroes;
 
+/// <summary>Призов за осколки (GDD §6.1): 10 осколків — герой, будь-якої рідкості.</summary>
 public class SummonHeroCommandTests
 {
     private static readonly DateTime Now = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
@@ -19,16 +19,18 @@ public class SummonHeroCommandTests
     private const int ServerId = 1;
 
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
-    private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
-    private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
+    private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
+    private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
 
-    private SummonHeroCommandHandler Handler()
+    private SummonHeroCommandHandler Handler(GameCatalog? catalog = null, int serverLevel = 1)
     {
+        var resolved = catalog ?? HeroTestConfig.Catalog();
         _serverContext.ServerId.Returns(ServerId);
+        _servers.GetLevelAsync(ServerId, Arg.Any<CancellationToken>()).Returns(serverLevel);
 
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, ServerId);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, ServerId);
@@ -36,31 +38,29 @@ public class SummonHeroCommandTests
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
 
-        var granter = new HeroGranter(_heroes, _players, _wallets, _villages, _garrisons, _serverContext,
-            HeroTestConfig.Catalog());
+        var granter = new HeroGranter(_heroes, new HeroShardBank(_heroes, _inventory, _serverContext, resolved),
+            _villages, _garrisons, _serverContext, resolved);
 
-        return new SummonHeroCommandHandler(
-            _heroes, granter, _unitOfWork, new FakeTimeProvider(Now),
-            NullLogger<SummonHeroCommandHandler>.Instance, HeroTestConfig.Catalog());
+        return new SummonHeroCommandHandler(_heroes, _servers, _serverContext, granter, _unitOfWork,
+            new FakeTimeProvider(Now), NullLogger<SummonHeroCommandHandler>.Instance, resolved);
     }
 
-    private HeroShardProgress GivenShards(int count)
+    private HeroShardProgress GivenShards(string heroKey, int count)
     {
-        var progress = new HeroShardProgress(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran");
+        var progress = new HeroShardProgress(Guid.NewGuid(), PlayerId, ServerId, heroKey);
 
         if (count > 0)
             progress.Add(count);
 
-        _heroes.GetShardsAsync(PlayerId, "warrior_bran", Arg.Any<CancellationToken>()).Returns(progress);
+        _heroes.GetShardsAsync(PlayerId, heroKey, Arg.Any<CancellationToken>()).Returns(progress);
 
         return progress;
     }
 
-    /// <summary>Поріг набраний — герой з'являється в ростері.</summary>
     [Fact]
     public async Task Handle_ShouldAddHero_WhenShardsSuffice()
     {
-        GivenShards(10);
+        GivenShards("warrior_bran", 10);
 
         await Handler().Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None);
 
@@ -69,25 +69,33 @@ public class SummonHeroCommandTests
             Arg.Any<CancellationToken>());
     }
 
-    /// <summary>Списується рівно поріг, надлишок лишається гравцю.</summary>
+    /// <summary>Рідкісні й унікальні тепер теж збираються з осколків — ціна та сама.</summary>
+    [Fact]
+    public async Task Handle_ShouldSummonAUniqueHero_FromShardsToo()
+    {
+        GivenShards(HeroTestConfig.UniqueHero, 10);
+
+        await Handler().Handle(new SummonHeroCommand(PlayerId, HeroTestConfig.UniqueHero), CancellationToken.None);
+
+        await _heroes.Received(1).AddAsync(Arg.Is<Hero>(h => h.HeroKey == HeroTestConfig.UniqueHero), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Списується рівно ціна призову, надлишок лишається гравцю.</summary>
     [Fact]
     public async Task Handle_ShouldSpendExactlyTheThreshold()
     {
-        var progress = GivenShards(13);
+        var progress = GivenShards("warrior_bran", 13);
 
         await Handler().Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None);
 
         Assert.Equal(3, progress.Count);
     }
 
-    /// <summary>
-    /// Нижче порогу — відмова без списання. Часткове зняття з'їло б
-    /// уже куплені уламки.
-    /// </summary>
+    /// <summary>Нижче порогу — відмова без списання.</summary>
     [Fact]
     public async Task Handle_ShouldReject_AndKeepShards_WhenBelowTheThreshold()
     {
-        var progress = GivenShards(9);
+        var progress = GivenShards("warrior_bran", 9);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None));
@@ -97,34 +105,29 @@ public class SummonHeroCommandTests
         await _heroes.DidNotReceive().AddAsync(Arg.Any<Hero>(), Arg.Any<CancellationToken>());
     }
 
-    /// <summary>Жодного уламка — окреме повідомлення, не нульовий призов.</summary>
     [Fact]
     public async Task Handle_ShouldReject_WhenNoShardsCollected()
     {
-        _heroes.GetShardsAsync(PlayerId, "warrior_bran", Arg.Any<CancellationToken>())
-            .Returns((HeroShardProgress?)null);
+        _heroes.GetShardsAsync(PlayerId, "warrior_bran", Arg.Any<CancellationToken>()).Returns((HeroShardProgress?)null);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None));
         Assert.Equal(RefusalReasons.HeroNotEnoughShards.Key, refusal.Reason);
     }
 
-    /// <summary>
-    /// Повторний призов наявного героя йде в сузір'я, а не другим рядком —
-    /// це те саме правило, що тримає унікальний індекс у базі.
-    /// </summary>
+    /// <summary>Герой тіру 2 — лише зі світу 2, хоч би звідки взялися осколки (GDD §6.1).</summary>
     [Fact]
-    public async Task Handle_ShouldRaiseConstellation_WhenTheHeroIsAlreadyOwned()
+    public async Task Handle_ShouldRefuse_AHeroAboveTheWorldLevel()
     {
-        GivenShards(10);
+        var config = HeroTestConfig.Create();
+        config.Heroes.Single(h => h.Key == "warrior_bran").NativeTier = 2;
+        var progress = GivenShards("warrior_bran", 10);
 
-        var owned = new Hero(Guid.NewGuid(), PlayerId, ServerId, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
-        _heroes.GetByKeyAsync(PlayerId, "warrior_bran", Arg.Any<CancellationToken>()).Returns(owned);
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler(new GameCatalog(config), serverLevel: 1).Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None));
 
-        await Handler().Handle(new SummonHeroCommand(PlayerId, "warrior_bran"), CancellationToken.None);
-
-        Assert.Equal(1, owned.Constellation);
-        await _heroes.DidNotReceive().AddAsync(Arg.Any<Hero>(), Arg.Any<CancellationToken>());
+        Assert.Equal(RefusalReasons.HeroTierLocked.Key, refusal.Reason);
+        Assert.Equal(10, progress.Count);
     }
 
     /// <summary>Невідомий герой — 404, а не 500.</summary>
@@ -132,22 +135,4 @@ public class SummonHeroCommandTests
     public async Task Handle_ShouldThrow_ForUnknownHero()
         => await Assert.ThrowsAsync<EntityNotFoundException>(() =>
             Handler().Handle(new SummonHeroCommand(PlayerId, "dragon_rider"), CancellationToken.None));
-
-    /// <summary>
-    /// Герой без порогу уламків не призивається, навіть якщо рядок уламків
-    /// існує: TryConsume(0) інакше проходив би завжди.
-    /// </summary>
-    [Fact]
-    public async Task Handle_ShouldThrow_WhenTheHeroHasNoShardThreshold()
-    {
-        var progress = new HeroShardProgress(Guid.NewGuid(), PlayerId, ServerId, HeroTestConfig.UniqueHero);
-        progress.Add(5);
-        _heroes.GetShardsAsync(PlayerId, HeroTestConfig.UniqueHero, Arg.Any<CancellationToken>()).Returns(progress);
-
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Handler().Handle(new SummonHeroCommand(PlayerId, HeroTestConfig.UniqueHero), CancellationToken.None));
-        Assert.Null(refusal.Reason);
-
-        await _heroes.DidNotReceive().AddAsync(Arg.Any<Hero>(), Arg.Any<CancellationToken>());
-    }
 }

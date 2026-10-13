@@ -154,22 +154,4 @@ public class ListOnMarketCommandTests
         Assert.Equal(HeroState.OnMarket, hero.State);
         Assert.Equal(power, Assert.Single(_bed.Added).Units, 3);
     }
-
-    /// <summary>Герой, що тренується, не виставляється: лот продавався б за стару силу.</summary>
-    [Fact]
-    public async Task Handle_ShouldRefuse_AHeroInTraining()
-    {
-        var hero = _bed.GivenHero(_bed.Seller);
-        var power = _bed.HeroStats.Power(hero, _bed.Catalog.Hero(hero.HeroKey));
-
-        _bed.Heroes.GetActiveOrderAsync(_bed.Seller, Arg.Any<CancellationToken>())
-            .Returns(new Domain.Entities.HeroLevelOrder(Guid.NewGuid(), hero.Id, _bed.Seller, 1, 2, MarketTestBed.Now.AddHours(1)));
-
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Handler().Handle(
-            new ListOnMarketCommand(_bed.Seller, MarketListingKind.Hero, null, hero.Id, null, 1, (int)(power * 10)),
-            CancellationToken.None));
-
-        Assert.Equal(RefusalReasons.MarketHeroTraining.Key, refusal.Reason);
-        Assert.Equal(HeroState.Idle, hero.State);
-    }
 }

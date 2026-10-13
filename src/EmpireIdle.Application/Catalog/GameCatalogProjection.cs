@@ -55,22 +55,31 @@ namespace EmpireIdle.Application.Catalog
                     Name("hero", hero.Key, hero.DisplayName),
                     hero.Class,
                     hero.Rank.ToString(),
+                    hero.NativeTier,
                     hero.Description,
                     hero.Lore,
                     hero.Speed ?? config.HeroSettings.DefaultMarchSpeed,
-                    hero.SummonShards,
-                    hero.ShardPriceGold,
                     hero.BaseStats,
                     hero.StatGrowth,
-                    hero.Passives
-                        .Select(passive => new CatalogPassive(
-                            passive.Key,
-                            passive.DisplayName,
-                            passive.UnlockConstellation,
-                            passive.Target,
-                            passive.Stat,
-                            passive.BasePercent,
-                            passive.PercentPerConstellation))
+                    hero.Skills
+                        .Select(skill => new CatalogSkill(
+                            skill.Key,
+                            skill.DisplayName,
+                            skill.Description,
+                            skill.Half.ToString(),
+                            skill.Kind.ToString(),
+                            skill.UnlockLevel,
+                            skill.Troops is { } troops
+                                ? new CatalogSkillTroops(troops.Target, troops.Stat, troops.Percents)
+                                : null,
+                            skill.Utility is { } utility
+                                ? new CatalogSkillUtility(utility.Effect, utility.Percents)
+                                : null,
+                            skill.Battle is { } battle
+                                ? new CatalogSkillBattle(battle.Target.ToString(), battle.Cooldown, battle.DamageMultiplier,
+                                    battle.HealPercent, battle.ShieldPercent, battle.Status?.ToString(), battle.IgnoresLine,
+                                    battle.LevelScale)
+                                : null))
                         .ToList()))
                 .ToList();
 
@@ -132,7 +141,14 @@ namespace EmpireIdle.Application.Catalog
                 beasts,
                 ArtifactSets(config, Name),
                 config.HeroSettings.Classes,
-                config.HeroSettings.MaxConstellation,
+                config.HeroSettings.MaxStars,
+                config.HeroSettings.PartsPerStar,
+                config.HeroSettings.MaxSkillLevel,
+                config.HeroSettings.SkillBooks
+                    .Select(book => new CatalogSkillBook(book.ItemKey, book.Class, book.Rarity.ToString(), book.Half.ToString()))
+                    .ToList(),
+                config.HeroSettings.StarPartBonus,
+                config.HeroSettings.SummonShards,
                 config.HeroSettings.MaxTier,
                 config.MaxUnitLevel,
                 config.Monetization.HealGemsPerUnit,

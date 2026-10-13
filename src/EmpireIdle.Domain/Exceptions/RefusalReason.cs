@@ -268,8 +268,6 @@
 
         public static readonly RefusalReason HeroLevelCeiling = new("hero.levelCeiling", "hero", "ceiling");
 
-        /// <summary>Зала героїв тренує одного героя за раз.</summary>
-        public static readonly RefusalReason HeroTrainingBusy = new("hero.trainingBusy");
 
         public static readonly RefusalReason HeroWorldLevelRequired = new("hero.worldLevelRequired", "required", "current");
 
@@ -277,7 +275,37 @@
 
         public static readonly RefusalReason HeroMaxTier = new("hero.maxTier", "tier");
 
+        /// <summary>Усі зірки героя вже заповнені (GDD §6.1); parts — скільки частинок усього.</summary>
+        public static readonly RefusalReason HeroMaxStars = new("hero.maxStars", "parts");
+
+        /// <summary>Універсальні осколки йдуть лише в уже відкритого героя (GDD §6.1).</summary>
+        public static readonly RefusalReason HeroNotOwned = new("hero.notOwned", "hero");
+
+        /// <summary>Обмін на вищу рідкість — лише коли всі герої рідкості прокачані до кінця; rarity — з якої міняють.</summary>
+        public static readonly RefusalReason ShardUpgradeLocked = new("hero.shardUpgradeLocked", "rarity");
+
+        /// <summary>Герой рідного тіру, вищого за рівень світу (GDD §6.1); tier — потрібний рівень світу.</summary>
+        public static readonly RefusalReason HeroTierLocked = new("hero.tierLocked", "tier");
+
+        /// <summary>Банер відкриється з рівня світу level (GDD §6.1).</summary>
+        public static readonly RefusalReason BannerWorldLevel = new("banner.worldLevel", "level");
+
+        /// <summary>Пропозиція крамниці поза своїм вікном продажу (GDD §6.1).</summary>
+        public static readonly RefusalReason ShopOfferClosed = new("shop.offerClosed");
+
         public static readonly RefusalReason HeroNotEnoughShards = new("hero.notEnoughShards", "hero", "need", "have");
+
+        /// <summary>Вміння ще закрите рівнем героя (GDD §6.1); level — з якого рівня героя воно відкривається.</summary>
+        public static readonly RefusalReason HeroSkillLocked = new("hero.skillLocked", "skill", "level");
+
+        /// <summary>Наступний рівень вміння відкриє наступна зірка (GDD §6.1); stars — скільки зірок для нього треба.</summary>
+        public static readonly RefusalReason HeroSkillStarCapped = new("hero.skillStarCapped", "stars");
+
+        /// <summary>Вміння вже на найвищому рівні; level — стеля рівня вмінь.</summary>
+        public static readonly RefusalReason HeroSkillMaxed = new("hero.skillMaxed", "level");
+
+        /// <summary>Немає книги для цього вміння (GDD §6.1); book — назва потрібної книги.</summary>
+        public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book");
 
         // ---------- Спорядження ----------
 
@@ -306,8 +334,6 @@
         /// <summary>Герой не вдома, у поході, пораненій чи на ринку.</summary>
         public static readonly RefusalReason MarketHeroBusy = new("market.heroBusy");
 
-        /// <summary>Герой саме качається в залі героїв.</summary>
-        public static readonly RefusalReason MarketHeroTraining = new("market.heroTraining");
 
         /// <summary>Такий герой у покупця вже є — купівля обійшла б сузір'я.</summary>
         public static readonly RefusalReason MarketHeroAlreadyOwned = new("market.heroAlreadyOwned", "hero");

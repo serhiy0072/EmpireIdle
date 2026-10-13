@@ -86,12 +86,22 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Equal(140, result["Attack"], 3);
         }
 
+        /// <summary>Рідний T2 — повний ріст тіру (у TestKit ×1.5).</summary>
         [Fact]
         public void Compute_ShouldMultiplyOwnStatsByTier()
         {
-            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1, tier: 2), HeroConfig(), []);
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1, tier: 2, nativeTier: 2), HeroConfig(), []);
 
             Assert.Equal(150, result["Attack"], 3);
+        }
+
+        /// <summary>Піднятий з T1 до T2 — той самий ріст мінус 5% за ап (GDD §6.1): 100 × 1.5 × 0.95.</summary>
+        [Fact]
+        public void Compute_ShouldPenaliseAnEvolvedHero()
+        {
+            var result = Stats().Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1, tier: 2), HeroConfig(), []);
+
+            Assert.Equal(142.5, result["Attack"], 3);
         }
 
         // ---------- Спорядження ----------

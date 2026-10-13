@@ -47,35 +47,24 @@ public class RecalculatePowerCommandTests
         Combat = new CombatConfig(),
         HeroSettings = new HeroesConfig
         {
-            MaxTier = 1,
-            LevelsPerTier = 10,
             MaxMarches = 3,
             BuildingKey = "heroeshall",
             HealBuildingKey = "hospital",
             HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
             Classes = ["warrior"],
-            TierStatMultipliers = [1.0],
+            TierGrowth = 1.1,
             EvolutionItemKeys = [],
-            OverflowSeals = new Dictionary<string, int> { ["Common"] = 0 }
+            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]]
         },
+        Items = [.. TestKit.UniversalShards.All()],
         Heroes =
         [
             new HeroConfig
             {
                 Key = HeroKey,
                 Class = "warrior",
-                SummonShards = 10,
-                ShardPriceGold = 100,
                 BaseStats = new Dictionary<string, double> { ["Attack"] = 100, ["Defense"] = 40 },
-                LevelUpCosts =
-                [
-                    new HeroLevelCostBand
-                    {
-                        FromLevel = 1,
-                        Cost = [new ResourceCost { Resource = "food", Amount = 50 }]
-                    }
-                ]
-            }
+}
         ]
     };
 

@@ -33,6 +33,9 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime? LevelRaisedAt { get; private set; }
 
+        /// <summary>Відколи світ на нинішньому рівні: світ, що ще не піднімався, — від створення.</summary>
+        public DateTime LevelSince => LevelRaisedAt ?? CreatedAt;
+
         public DateTime UpdatedAt { get; private set; }
 
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>

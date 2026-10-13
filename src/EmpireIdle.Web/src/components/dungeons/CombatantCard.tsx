@@ -23,11 +23,13 @@ function Bar({ value, max, className }: { value: number; max: number; className:
   );
 }
 
-/** Боєць у бою: портрет, здоров'я, шкала вмінь і накладені стани. */
+/** Боєць у бою: портрет, здоров'я, перезарядка активного вміння й накладені стани. */
 export default function CombatantCard({ combatant, active, targetable, selected, splash, onSelect }: Props) {
   const catalog = useCatalog();
   const hero = combatant.heroId == null ? null : catalog.hero(combatant.key);
   const dead = combatant.health <= 0;
+  // Шкала перезарядки: повна — вміння готове (GDD §6.1, раз на кілька ходів героя)
+  const skill = combatant.skills.find((s) => s.kind === "Active") ?? null;
 
   return (
     <button
@@ -68,7 +70,13 @@ export default function CombatantCard({ combatant, active, targetable, selected,
 
           <div className="mt-1 space-y-1">
             <Bar value={combatant.health} max={combatant.maxHealth} className={dead ? "bg-slate-400" : "bg-emerald-500"} />
-            {combatant.heroId != null && <Bar value={combatant.energy} max={100} className="bg-sky-500" />}
+            {skill !== null && (
+              <Bar
+                value={skill.cooldown - skill.cooldownLeft}
+                max={Math.max(1, skill.cooldown)}
+                className={skill.ready ? "bg-amber-500" : "bg-sky-500"}
+              />
+            )}
           </div>
 
           <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[10px] text-slate-500">

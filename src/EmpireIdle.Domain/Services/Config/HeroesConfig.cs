@@ -6,37 +6,83 @@ namespace EmpireIdle.Domain.Services.Config
     /// </summary>
     public class HeroesConfig
     {
-        /// <summary>Скільки рівнів героя відкриває один тір. Стеля тіру = Tier × це число.</summary>
-        public int LevelsPerTier { get; set; } = 10;
-
-        /// <summary>Найвищий досяжний тір.</summary>
-        public int MaxTier { get; set; } = 3;
+        /// <summary>Стеля рівня героя (GDD §6.1): інших меж немає — ні ратуша, ні тір рівень не обмежують.</summary>
+        public int MaxLevel { get; set; } = 80;
 
         /// <summary>
-        /// Множник базових стат за тіром, від першого до MaxTier.
-        /// Без нього еволюція піднімала б лише стелю, і два герої різних тірів
-        /// на десятому рівні були б однакові.
+        /// Крива досвіду: перехід із рівня L на L+1 коштує ExperienceBase × L^ExperienceExponent.
+        /// Заглушки до Режисера.
         /// </summary>
-        public List<double> TierStatMultipliers { get; set; } = new();
+        public double ExperienceBase { get; set; } = 8;
+
+        /// <inheritdoc cref="ExperienceBase"/>
+        public double ExperienceExponent { get; set; } = 2.6;
 
         /// <summary>
-        /// Ключі предметів еволюції, від переходу 1→2 і далі.
-        /// Записів рівно на один менше за MaxTier.
+        /// Ріст статів за тір, складним відсотком (GDD §6.1): рідний T(n) = TierGrowth^(n−1).
+        /// Формула, а не список: тіри відкриваються з рівнем світу, і список довелося б дописувати щоразу.
+        /// </summary>
+        public double TierGrowth { get; set; } = 1.10;
+
+        /// <summary>
+        /// Штраф за кожен ап тіру: піднятий герой слабший за рідного того самого тіру
+        /// в EvolutionPenalty^(кількість апів) раз. Нові герої завжди сильніші за старих улюбленців.
+        /// </summary>
+        public double EvolutionPenalty { get; set; } = 0.95;
+
+        /// <summary>
+        /// Ключі предметів еволюції, від переходу 1→2 і далі. Кожен новий тір додає свій предмет.
         /// </summary>
         public List<string> EvolutionItemKeys { get; set; } = new();
 
-        /// <summary>Стеля сузір'я — скільки дублікатів герой поглинає.</summary>
-        public int MaxConstellation { get; set; } = 6;
+        /// <summary>Найвищий тір — скільки переходів описано, плюс перший.</summary>
+        public int MaxTier => EvolutionItemKeys.Count + 1;
+
+        /// <summary>Скільки осколків коштує призов будь-якого героя (GDD §6.1): 10 осколків — це герой.</summary>
+        public int SummonShards { get; set; } = 10;
+
+        /// <summary>Скільки зірок має герой.</summary>
+        public int MaxStars { get; set; } = 5;
+
+        /// <summary>Скільки частинок у зірці.</summary>
+        public int PartsPerStar { get; set; } = 6;
 
         /// <summary>
-        /// Скільки джемів дає дублікат понад стелю сузір'я: ключ — назва рангу.
-        /// Рахується як чверть вартості ролла, тобто чотири надлишкових
-        /// дублікати повертають один ролл.
-        ///
-        /// Це єдине місце, де джеми з'являються не з покупки й не з квесту,
-        /// тому числа тут чіпати обережно.
+        /// Ціна кожної частинки в осколках: зовнішній список — зірки, внутрішній — частинки.
+        /// Перша зірка дешева (10 разом), частинка п'ятої — 40. Заглушки до Режисера.
         /// </summary>
-        public Dictionary<string, int> OverflowSeals { get; set; } = new();
+        public List<List<int>> StarPartCosts { get; set; } = new();
+
+        /// <summary>Скільки бойової міці дає кожна частинка зірки: 0.05 — +5% до всіх статів.</summary>
+        public double StarPartBonus { get; set; } = 0.05;
+
+        /// <summary>
+        /// Стеля рівня вміння (GDD §6.1): 6. Зірки відкривають рівні по одному —
+        /// без зірок вміння лише першого рівня, на п'ятій зірці доступний шостий.
+        /// </summary>
+        public int MaxSkillLevel { get; set; } = 6;
+
+        /// <summary>
+        /// Склад вмінь за рідкістю героя (ключ — ім'я Rarity). Рідкість без опису не перевіряється —
+        /// так тестові фікстури тримають героїв з одним-двома вміннями.
+        /// </summary>
+        public Dictionary<string, SkillLayoutConfig> SkillLayouts { get; set; } = new();
+
+        /// <summary>
+        /// Книги вмінь: яка книга до якої ролі, рідкості й половини. Порожньо — книг у грі немає
+        /// (мінімальні фікстури); інакше кожен герой мусить мати книги для своїх половин.
+        /// </summary>
+        public List<SkillBookConfig> SkillBooks { get; set; } = new();
+
+        /// <summary>Скільки частинок має повністю прокачаний герой.</summary>
+        public int MaxStarParts => MaxStars * PartsPerStar;
+
+        /// <summary>
+        /// Обмін універсальних осколків на рідкість вищу (GDD §6.1): ключ — рідкість, з якої міняють,
+        /// значення — скільки треба за один осколок наступної. Відкривається, коли всі герої цієї
+        /// рідкості прокачані до кінця.
+        /// </summary>
+        public Dictionary<string, int> UniversalShardUpgrade { get; set; } = new();
 
         /// <summary>
         /// Жорсткий кап одночасних маршів. Кількість маршів і так дорівнює
@@ -52,9 +98,6 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Будівля, без якої лікувати нікому.</summary>
         public string HealBuildingKey { get; set; } = "hospital";
-
-        /// <summary>Базовий час підняття рівня, хвилин. Множиться на цільовий рівень.</summary>
-        public double BaseLevelUpMinutes { get; set; } = 4;
 
         /// <summary>
         /// Будівля, у якій купуються й качаються герої. Ключем із конфіга,

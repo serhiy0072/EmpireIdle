@@ -25,7 +25,7 @@ namespace EmpireIdle.Application.Market.Contracts
     /// <param name="Slot">"Weapon" або "Artifact".</param>
     public record MarketEquipmentView(string Slot, string Rarity, int EnhancementLevel, IReadOnlyDictionary<string, double> Stats);
 
-    public record MarketHeroView(int Level, int Tier, int Constellation);
+    public record MarketHeroView(int Level, int Tier, int StarParts);
 
     /// <summary>Сторінка вітрини.</summary>
     public record MarketPageView(IReadOnlyList<MarketListingView> Listings, int Total, int Page, int PageSize);

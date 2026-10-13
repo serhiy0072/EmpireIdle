@@ -44,6 +44,13 @@ function Offer({ offer, gems, busy, onBuy }: OfferProps) {
           <div className="mt-1 flex items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(offer.rarity)}`}>{rarityLabel(offer.rarity)}</span>
             <span className="text-slate-500">{TYPE_LABELS[offer.type] ?? offer.type}</span>
+            {/* Предмет апу тіру продається лише вікном (GDD §6.1) — кажемо, доки, щоб не прогавили */}
+            {offer.onSaleUntil != null && (
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">
+                лише до{" "}
+                {new Date(offer.onSaleUntil).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
           </div>
         </div>
       </div>

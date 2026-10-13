@@ -92,5 +92,8 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Для телепорта Nearby — найдальша клітина від нинішнього села (відстань Чебишева).</summary>
         public int TeleportRange { get; set; }
+
+        /// <summary>Для баночки досвіду (Type = "heroxp"): скільки досвіду вона додає в пул гравця (GDD §6.1).</summary>
+        public long HeroExperience { get; set; }
     }
 }

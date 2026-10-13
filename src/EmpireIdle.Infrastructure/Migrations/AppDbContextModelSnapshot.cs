@@ -1109,9 +1109,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime>("AcquiredAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Constellation")
-                        .HasColumnType("integer");
-
                     b.Property<string>("HeroKey")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1123,6 +1120,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("Level")
                         .HasColumnType("integer");
 
+                    b.Property<int>("NativeTier")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
 
@@ -1130,6 +1130,15 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SkillLevels")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'::jsonb");
+
+                    b.Property<int>("StarParts")
                         .HasColumnType("integer");
 
                     b.Property<int>("State")
@@ -1166,16 +1175,13 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("Heroes", (string)null);
                 });
 
-            modelBuilder.Entity("EmpireIdle.Domain.Entities.HeroLevelOrder", b =>
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.HeroExperiencePool", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CompletesAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("HeroId")
-                        .HasColumnType("uuid");
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
 
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
@@ -1183,19 +1189,18 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("TargetLevel")
-                        .HasColumnType("integer");
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("HeroId");
 
                     b.HasIndex("PlayerId")
                         .IsUnique();
 
-                    b.HasIndex("ServerId", "CompletesAt");
-
-                    b.ToTable("HeroLevelOrders", (string)null);
+                    b.ToTable("HeroExperience", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.HeroShardProgress", b =>
@@ -2965,15 +2970,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.HasOne("EmpireIdle.Domain.Entities.EquipmentItem", null)
                         .WithMany("Stats")
                         .HasForeignKey("EquipmentItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EmpireIdle.Domain.Entities.HeroLevelOrder", b =>
-                {
-                    b.HasOne("EmpireIdle.Domain.Entities.Hero", null)
-                        .WithMany()
-                        .HasForeignKey("HeroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

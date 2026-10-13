@@ -21,7 +21,7 @@ namespace EmpireIdle.API.Controllers
         public HeroesController(IMediator mediator) => _mediator = mediator;
 
         /// <summary>
-        /// Ростер із поточною стелею рівня, уламками та активною чергою.
+        /// Ростер зі стелею рівня, ціною наступного рівня, уламками та пулом досвіду.
         /// </summary>
         [HttpGet("{playerId:guid}")]
         [ProducesResponseType(typeof(HeroesOverview), StatusCodes.Status200OK)]
@@ -29,13 +29,45 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<HeroesOverview>> GetOverview(Guid playerId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new GetHeroesOverviewQuery(playerId), cancellationToken));
 
-        /// <summary>Купити уламки звичайного героя за золото.</summary>
-        [HttpPost("{playerId:guid}/shards/buy")]
+        /// <summary>Перетворити універсальні осколки на осколки відкритого героя 1:1.</summary>
+        [HttpPost("{playerId:guid}/shards/convert")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> BuyShards(Guid playerId, [FromBody] BuyHeroShardsRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> ConvertShards(Guid playerId, [FromBody] ConvertUniversalShardsRequest request,
+            CancellationToken cancellationToken)
         {
-            await _mediator.Send(new BuyHeroShardsCommand(playerId, request.HeroKey, request.Count), cancellationToken);
+            await _mediator.Send(new ConvertUniversalShardsCommand(playerId, request.HeroKey, request.Count), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Обміняти універсальні осколки на рідкість вищу (коли всі герої рідкості прокачані).</summary>
+        [HttpPost("{playerId:guid}/shards/upgrade")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpgradeShards(Guid playerId, [FromBody] UpgradeUniversalShardsRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new UpgradeUniversalShardsCommand(playerId, request.From, request.Count), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Заповнити наступну частинку зірки героя за його осколки.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/star")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AdvanceStar(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new AdvanceHeroStarCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Підняти вміння героя на рівень за книгу його ролі, рідкості й половини (GDD §6.1).</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/skills/{skillKey}/upgrade")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpgradeSkill(Guid playerId, Guid heroId, string skillKey, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new UpgradeHeroSkillCommand(playerId, heroId, skillKey), cancellationToken);
             return NoContent();
         }
 
@@ -49,24 +81,24 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
-        /// <summary>Поставити героя в чергу на підняття рівня.</summary>
+        /// <summary>Підняти рівень героя одразу за досвід із пулу гравця (GDD §6.1).</summary>
         [HttpPost("{playerId:guid}/{heroId:guid}/level-up")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> LevelUp(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        public async Task<IActionResult> LevelUp(Guid playerId, Guid heroId, [FromQuery] int levels = 1,
+            CancellationToken cancellationToken = default)
         {
-            await _mediator.Send(new StartHeroLevelUpCommand(playerId, heroId), cancellationToken);
+            await _mediator.Send(new LevelUpHeroCommand(playerId, heroId, levels), cancellationToken);
             return NoContent();
         }
 
-        /// <summary>Миттєво завершити прокачку героя за gems. Новий рівень видно одразу.</summary>
-        [HttpPost("{playerId:guid}/level-up/{orderId:guid}/speedup")]
+        /// <summary>Скинути героя на перший рівень: досвід повертається в пул мінус штраф.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/reset-level")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> SpeedUpLevelUp(Guid playerId, Guid orderId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ResetLevel(Guid playerId, Guid heroId, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new SpeedUpHeroLevelUpCommand(playerId, orderId), cancellationToken);
+            await _mediator.Send(new ResetHeroLevelCommand(playerId, heroId), cancellationToken);
             return NoContent();
         }
 

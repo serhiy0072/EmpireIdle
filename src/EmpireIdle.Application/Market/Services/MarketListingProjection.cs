@@ -60,7 +60,7 @@ namespace EmpireIdle.Application.Market.Services
                         : null,
                     listing.Kind == MarketListingKind.Hero
                         && heroes.TryGetValue(listing.HeroId!.Value, out var hero)
-                        ? new MarketHeroView(hero.Level, hero.Tier, hero.Constellation)
+                        ? new MarketHeroView(hero.Level, hero.Tier, hero.StarParts)
                         : null))
                 .ToList();
         }

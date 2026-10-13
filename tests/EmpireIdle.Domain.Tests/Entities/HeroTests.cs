@@ -31,7 +31,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
             hero.ClearDomainEvents();
 
-            hero.GainLevel(maxLevel: 10, Now);
+            hero.GainLevels(1, maxLevel: 10, Now);
             Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
             hero.ClearDomainEvents();
 
@@ -39,7 +39,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
             hero.ClearDomainEvents();
 
-            Assert.True(hero.TryAddConstellation(maxConstellation: 6, Now));
+            hero.FillStarPart(maxStarParts: 36, Now);
             Assert.Single(hero.DomainEvents.OfType<HeroChanged>());
         }
 
@@ -51,7 +51,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(HeroState.Idle, hero.State);
             Assert.Equal(1, hero.Tier);
             Assert.Equal(1, hero.Level);
-            Assert.Equal(0, hero.Constellation);
+            Assert.Equal(0, hero.StarParts);
             Assert.True(hero.IsAvailable);
         }
 
@@ -186,26 +186,39 @@ namespace EmpireIdle.Domain.Tests.Entities
 
         // ---------- Рівні й тіри ----------
 
+        /// <summary>Рівень піднімається одразу на кілька — досвід списано з пулу ще до цього.</summary>
         [Fact]
-        public void GainLevel_ShouldRaiseLevelBelowTheCeiling()
+        public void GainLevels_ShouldRaiseSeveralLevelsAtOnce()
         {
             var hero = CreateHero();
 
-            hero.GainLevel(maxLevel: 10, Now);
+            hero.GainLevels(4, maxLevel: 80, Now);
 
-            Assert.Equal(2, hero.Level);
+            Assert.Equal(5, hero.Level);
         }
 
-        /// <summary>
-        /// Стеля приходить ззовні: вона залежить від ратуші й тіру, а герой
-        /// ні про село, ні про конфіг не знає.
-        /// </summary>
+        /// <summary>Понад стелю — відмова, рівень не змінюється навіть частково.</summary>
         [Fact]
-        public void GainLevel_ShouldRejectAtTheCeiling()
+        public void GainLevels_ShouldRefuse_AboveTheCeiling()
         {
             var hero = CreateHero();
 
-            Assert.Throws<RequirementNotMetException>(() => hero.GainLevel(maxLevel: 1, Now));
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.GainLevels(5, maxLevel: 5, Now));
+
+            Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
+            Assert.Equal(1, hero.Level);
+        }
+
+        /// <summary>Скидання — на перший рівень; повертає рівень до скидання, щоб викликач порахував досвід.</summary>
+        [Fact]
+        public void ResetLevel_ShouldReturnToLevelOne()
+        {
+            var hero = CreateHero();
+            hero.GainLevels(9, maxLevel: 80, Now);
+
+            var previous = hero.ResetLevel(Now);
+
+            Assert.Equal(10, previous);
             Assert.Equal(1, hero.Level);
         }
 
@@ -236,39 +249,83 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void EvolveTier_ShouldKeepTheCurrentLevel()
         {
             var hero = CreateHero();
-            hero.GainLevel(maxLevel: 10, Now);
-            hero.GainLevel(maxLevel: 10, Now);
+            hero.GainLevels(2, maxLevel: 10, Now);
 
             hero.EvolveTier(maxTier: 3, Now);
 
             Assert.Equal(3, hero.Level);
         }
 
-        // ---------- Сузір'я ----------
+        // ---------- Вміння ----------
 
         [Fact]
-        public void TryAddConstellation_ShouldAbsorbDuplicateBelowTheCap()
-        {
-            var hero = CreateHero();
+        public void SkillLevel_ShouldStartAtOne_WithoutBooks()
+            => Assert.Equal(1, TestKit.Entities.Hero().SkillLevel("fury"));
 
-            Assert.True(hero.TryAddConstellation(maxConstellation: 6, Now));
-            Assert.Equal(1, hero.Constellation);
+        [Fact]
+        public void RaiseSkill_ShouldAddOneLevel_AndRaiseAChange()
+        {
+            var hero = TestKit.Entities.Hero();
+            hero.ClearDomainEvents();
+
+            hero.RaiseSkill("fury", levelCap: 3, maxSkillLevel: 6, Now);
+
+            Assert.Equal(2, hero.SkillLevel("fury"));
+            Assert.Equal(1, hero.SkillLevel("wall"));
+            Assert.Contains(hero.DomainEvents, e => e is HeroChanged);
         }
 
-        /// <summary>
-        /// Понад стелю дублікат не зникає мовчки: false — сигнал викликачу
-        /// конвертувати його за правилами гача.
-        /// </summary>
+        /// <summary>Наступний рівень відкриває зірка: з двома зірками вміння доходить до третього рівня й не далі.</summary>
         [Fact]
-        public void TryAddConstellation_ShouldRefuseAtTheCap()
+        public void RaiseSkill_ShouldStopAtTheStarCap()
+        {
+            var hero = TestKit.Entities.Hero();
+            hero.RaiseSkill("fury", levelCap: 3, maxSkillLevel: 6, Now);
+            hero.RaiseSkill("fury", levelCap: 3, maxSkillLevel: 6, Now);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.RaiseSkill("fury", levelCap: 3, maxSkillLevel: 6, Now));
+
+            Assert.Equal(RefusalReasons.HeroSkillStarCapped.Key, refusal.Reason);
+            Assert.Equal(3, hero.SkillLevel("fury"));
+        }
+
+        [Fact]
+        public void RaiseSkill_ShouldStopAtTheTopLevel()
+        {
+            var hero = TestKit.Entities.Hero();
+
+            for (var i = 0; i < 5; i++)
+                hero.RaiseSkill("fury", levelCap: 6, maxSkillLevel: 6, Now);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.RaiseSkill("fury", levelCap: 6, maxSkillLevel: 6, Now));
+
+            Assert.Equal(RefusalReasons.HeroSkillMaxed.Key, refusal.Reason);
+        }
+
+        // ---------- Зірки ----------
+
+        [Fact]
+        public void FillStarPart_ShouldAddOnePart()
         {
             var hero = CreateHero();
 
-            for (var i = 0; i < 6; i++)
-                hero.TryAddConstellation(maxConstellation: 6, Now);
+            hero.FillStarPart(maxStarParts: 36, Now);
 
-            Assert.False(hero.TryAddConstellation(maxConstellation: 6, Now));
-            Assert.Equal(6, hero.Constellation);
+            Assert.Equal(1, hero.StarParts);
+        }
+
+        /// <summary>Усі зірки заповнені — відмова; надлишок осколків банк робить універсальними, а не тут.</summary>
+        [Fact]
+        public void FillStarPart_ShouldRefuseWhenEveryStarIsFull()
+        {
+            var hero = CreateHero();
+
+            for (var i = 0; i < 36; i++)
+                hero.FillStarPart(maxStarParts: 36, Now);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() => hero.FillStarPart(maxStarParts: 36, Now));
+            Assert.Equal(RefusalReasons.HeroMaxStars.Key, refusal.Reason);
+            Assert.Equal(36, hero.StarParts);
         }
 
         // ---------- Токен паралелізму ----------

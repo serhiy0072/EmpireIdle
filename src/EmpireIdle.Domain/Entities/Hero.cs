@@ -28,17 +28,30 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Ключ типу героя з конфіга (наприклад "archer_lyra").</summary>
         public string HeroKey { get; private set; } = null!;
 
-        /// <summary>Тір 1–3. Стелить рівень і множить базові стати.</summary>
+        /// <summary>Поточний тір. Стелить рівень і множить базові стати.</summary>
         public int Tier { get; private set; }
 
-        /// <summary>Поточний рівень. Качається чергою в залі героїв.</summary>
+        /// <summary>
+        /// Тір, у якому герой прийшов (GDD §6.1). Знімок із конфіга на момент отримання:
+        /// ребаланс конфіга не має непомітно міняти силу вже виданих героїв.
+        /// </summary>
+        public int NativeTier { get; private set; }
+
+        /// <summary>Поточний рівень. Піднімається одразу за досвід із пулу гравця (GDD §6.1).</summary>
         public int Level { get; private set; }
 
         /// <summary>
-        /// Сузір'я 0–6, набирається дублікатами. Дає пасивні перки
-        /// стратегічного бою й рівні активних умінь для міні-гри.
+        /// Заповнені частинки зірок (GDD §6.1): 5 зірок × 6 частинок, кожна — за осколки цього героя.
+        /// Кожна частинка додає бойової міці, кожна повна зірка відкриває ще один рівень вмінь.
         /// </summary>
-        public int Constellation { get; private set; }
+        public int StarParts { get; private set; }
+
+        /// <summary>
+        /// Рівні вмінь, підняті книгами (GDD §6.1): ключ вміння → рівень. Вміння без запису —
+        /// першого рівня. Знімок стану, а не довідник: перейменування вміння в конфігу
+        /// лише повертає його на перший рівень, а не валить героя.
+        /// </summary>
+        public IReadOnlyDictionary<string, int> SkillLevels { get; private set; } = new Dictionary<string, int>();
 
         public HeroState State { get; private set; }
 
@@ -78,14 +91,18 @@ namespace EmpireIdle.Domain.Entities
         public DateTime? ResaleLockedUntil { get; private set; }
 
         public Hero(Guid id, Guid playerId, int serverId, string heroKey, Guid garrisonId, bool asLeader,
-            DateTime utcNow) : base(id)
+            DateTime utcNow, int nativeTier = 1) : base(id)
         {
+            if (nativeTier < 1)
+                throw new ArgumentOutOfRangeException(nameof(nativeTier), nativeTier, "A hero's native tier starts at 1.");
+
             PlayerId = playerId;
             ServerId = serverId;
             HeroKey = heroKey;
-            Tier = 1;
+            Tier = nativeTier;
+            NativeTier = nativeTier;
             Level = 1;
-            Constellation = 0;
+            StarParts = 0;
             State = HeroState.Idle;
             StationedGarrisonId = garrisonId;
             IsLeader = asLeader;
@@ -225,19 +242,33 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Піднімає рівень на один. Стеля перевіряється викликачем через
-        /// HeroProgression: вона залежить від ратуші й тіру, а агрегат
-        /// героя ні про село, ні про конфіг не знає.
+        /// Піднімає рівень на <paramref name="levels"/>. Досвід списує викликач із пулу гравця:
+        /// пул — окремий агрегат, герой про нього не знає.
         /// </summary>
-        public void GainLevel(int maxLevel, DateTime utcNow)
+        public void GainLevels(int levels, int maxLevel, DateTime utcNow)
         {
-            if (Level >= maxLevel)
-                throw new RequirementNotMetException(
-                    $"Hero {Id} is at its ceiling of {maxLevel}: raise the town hall or evolve the tier.");
+            if (levels < 1)
+                throw new ArgumentOutOfRangeException(nameof(levels), levels, "Levels to gain must be positive.");
 
-            Level++;
+            if (Level + levels > maxLevel)
+                throw new RequirementNotMetException(RefusalReasons.HeroLevelCeiling,
+                    $"Hero {Id} cannot go above level {maxLevel}.", HeroKey, maxLevel);
+
+            Level += levels;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>Скидає героя на перший рівень. Повернення досвіду рахує викликач. Повертає рівень до скидання.</summary>
+        public int ResetLevel(DateTime utcNow)
+        {
+            var previous = Level;
+
+            Level = 1;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+
+            return previous;
         }
 
         /// <summary>
@@ -255,19 +286,42 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Зараховує дублікат у сузір'я. Понад стелю дублікат не втрачається
-        /// мовчки: повертає false, і викликач конвертує його за правилами гача.
+        /// Заповнює одну частинку зірки. Осколки списує викликач: їхній лічильник — окремий агрегат.
         /// </summary>
-        public bool TryAddConstellation(int maxConstellation, DateTime utcNow)
+        public void FillStarPart(int maxStarParts, DateTime utcNow)
         {
-            if (Constellation >= maxConstellation)
-                return false;
+            if (StarParts >= maxStarParts)
+                throw new RequirementNotMetException(RefusalReasons.HeroMaxStars,
+                    $"Hero {Id} already has every star.", maxStarParts);
 
-            Constellation++;
+            StarParts++;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
 
-            return true;
+        /// <summary>Рівень вміння за книгами; без запису — перший.</summary>
+        public int SkillLevel(string skillKey) => SkillLevels.GetValueOrDefault(skillKey, 1);
+
+        /// <summary>
+        /// Піднімає вміння на рівень. Книгу списує викликач, він же перевіряє, що вміння відкрите
+        /// рівнем героя: інвентар і конфіг — поза агрегатом. Стелю від зірок рахує HeroSkills.
+        /// </summary>
+        public void RaiseSkill(string skillKey, int levelCap, int maxSkillLevel, DateTime utcNow)
+        {
+            var current = SkillLevel(skillKey);
+
+            if (current >= maxSkillLevel)
+                throw new RequirementNotMetException(RefusalReasons.HeroSkillMaxed,
+                    $"Hero {Id} skill '{skillKey}' is already at the top level {maxSkillLevel}.", maxSkillLevel);
+
+            // Наступний рівень відкриває наступна зірка: на N зірках доступний рівень N + 1
+            if (current >= levelCap)
+                throw new RequirementNotMetException(RefusalReasons.HeroSkillStarCapped,
+                    $"Hero {Id} needs {current} stars to raise skill '{skillKey}' above level {current}.", current);
+
+            SkillLevels = new Dictionary<string, int>(SkillLevels) { [skillKey] = current + 1 };
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>
