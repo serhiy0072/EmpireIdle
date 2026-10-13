@@ -1,8 +1,8 @@
 {
   "GameConfig": {
     "Monetization": {
-      "SpeedUpFactor": 60.0,
-      "SpeedUpExponent": 0.85,
+      "SpeedUpFactor": 16.666666,
+      "SpeedUpExponent": 1.0,
       "SpeedUpFloorSeconds": {
         "Construction": 0,
         "Training": 0,

@@ -84,7 +84,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .Validate(c => c.Monetization.SpeedUpFloorSeconds.Values.All(seconds => seconds >= 0), "GameConfig.Monetization.SpeedUpFloorSeconds cannot be negative.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
-    .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
+    .Validate(c => c.Monetization.SpeedUpExponent is > 0 and <= 1, "GameConfig.Monetization.SpeedUpExponent must be above 0 and at most 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count == Enum.GetValues<EmpireIdle.Domain.Enums.BattleOdds>().Length - 1,
         "GameConfig.Combat.PreviewOddsThresholds needs one entry fewer than BattleOdds bands — otherwise previews skip bands or return values outside the enum.")
     .Validate(c => c.Combat.RandomMin > 0 && c.Combat.RandomMin <= c.Combat.RandomMax && c.Combat.RandomSigma >= 0,

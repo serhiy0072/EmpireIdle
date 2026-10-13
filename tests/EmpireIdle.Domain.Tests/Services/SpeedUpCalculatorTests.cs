@@ -39,6 +39,20 @@ public class SpeedUpCalculatorTests
         Assert.Equal(expected, cost);
     }
 
+    /// <summary>
+    /// Ціна гри (рішення 13.10.2026): 1 000 gems за годину, лінійно — партія 10 рівня на 2,5 години
+    /// коштує 2 500, партія 1 рівня на 10 хвилин — 167.
+    /// </summary>
+    [Theory]
+    [InlineData(150, 2500)]
+    [InlineData(10, 167)]
+    public void GetCost_ShouldChargeAThousandGemsAnHour_WithTheGameConfig(int minutes, int expected)
+    {
+        var calculator = new SpeedUpCalculator(new MonetizationConfig { SpeedUpFactor = 16.666666, SpeedUpExponent = 1.0 });
+
+        Assert.Equal(expected, calculator.GetCost(SpeedUpTimer.Training, Now.AddMinutes(minutes), Now));
+    }
+
     /// <summary>Безкоштовного фінішу немає: кілька секунд понад межу — це вже щонайменше 1 gem.</summary>
     [Fact]
     public void GetCost_ShouldBeAtLeastOneGem_JustAboveTheFloor()

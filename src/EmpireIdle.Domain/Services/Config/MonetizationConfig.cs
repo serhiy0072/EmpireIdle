@@ -16,7 +16,7 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Множник у формулі прискорення: ceil(Factor × хвилин^Exponent).</summary>
         public double SpeedUpFactor { get; set; } = 1.2;
 
-        /// <summary>Показник степеня. &lt;1 робить довгі таймери відносно дешевшими.</summary>
+        /// <summary>Показник степеня, не більше 1. &lt;1 робить довгі таймери відносно дешевшими, 1 — ціна за годину стала.</summary>
         public double SpeedUpExponent { get; set; } = 0.75;
     }
 }
