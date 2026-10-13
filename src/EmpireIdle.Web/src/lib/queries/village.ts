@@ -46,6 +46,29 @@ export function useSpeedUpBuilding(playerId: string) {
   return useBuildingAction(playerId, "speedup", ["village", "wallet"]);
 }
 
+/** Переставити будівлю на плані села: вузол сітки всередині муру, без накладання (рішення 13.10.2026). */
+export function useMoveBuilding(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ buildingId, x, y }: { buildingId: string; x: number; y: number }) =>
+      api<void>(`/api/village/${playerId}/buildings/${buildingId}/move`, {
+        method: "POST",
+        body: { x, y },
+        idempotent: true,
+      }),
+    // Будівля лишається там, де її відпустили, не чекаючи відповіді; відмова сервера поверне її назад
+    onMutate: ({ buildingId, x, y }) => {
+      queryClient.setQueryData<VillageResponse>(queryKeys.village(playerId), (village) =>
+        village === undefined
+          ? village
+          : { ...village, buildings: village.buildings.map((b) => (b.id === buildingId ? { ...b, x, y } : b)) },
+      );
+    },
+    onSettled: () => invalidatePlayer(queryClient, playerId, ["village"]),
+  });
+}
+
 /**
  * Миттєвий ремонт усіх пошкоджених будівель за ресурси. Лише всі разом:
  * серію поразок обнуляє тільки повне відновлення (GDD §2.6).
