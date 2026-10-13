@@ -368,6 +368,7 @@ builder.Services.AddScoped<ChatRetentionJob>();
 builder.Services.AddScoped<MailRetentionJob>();
 builder.Services.AddScoped<MarchRetentionJob>();
 builder.Services.AddScoped<MarketExpiryJob>();
+builder.Services.AddScoped<FoodUpkeepJob>();
 builder.Services.AddScoped<MarketPricesJob>();
 
 //  8. ВЕБ-ШАР

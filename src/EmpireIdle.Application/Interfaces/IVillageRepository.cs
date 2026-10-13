@@ -22,6 +22,13 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Id сіл, де є завершені будівництва. Без сутностей: обробка йде в іншому scope.</summary>
         Task<IReadOnlyList<Guid>> GetIdsWithDueConstructionsAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Id сіл зі звіринцем (будівлею одного з penTypes), які годували востаннє не пізніше dueBefore
+        /// або ще жодного разу. Без сутностей: кожне село годується у власному scope.
+        /// </summary>
+        Task<IReadOnlyList<Guid>> GetIdsDueFoodUpkeepAsync(IReadOnlyCollection<string> penTypes, DateTime dueBefore,
+            int batchSize, CancellationToken cancellationToken = default);
+
         /// <summary>Скільки сіл у поточному світі.</summary>
         Task<int> CountAsync(CancellationToken cancellationToken = default);
 

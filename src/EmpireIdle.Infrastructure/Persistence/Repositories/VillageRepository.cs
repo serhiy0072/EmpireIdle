@@ -65,6 +65,18 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsDueFoodUpkeepAsync(IReadOnlyCollection<string> penTypes,
+            DateTime dueBefore, int batchSize, CancellationToken cancellationToken = default)
+            => await _context.Villages
+                .AsNoTracking()
+                .Where(v => v.Buildings.Any(b => penTypes.Contains(b.Type))
+                            && (v.FoodUpkeepAt == null || v.FoodUpkeepAt <= dueBefore))
+                .OrderBy(v => v.Id)
+                .Take(batchSize)
+                .Select(v => v.Id)
+                .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> villageIds,
             CancellationToken cancellationToken = default)
             => _context.Villages
