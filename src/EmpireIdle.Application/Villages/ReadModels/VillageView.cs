@@ -39,7 +39,9 @@ namespace EmpireIdle.Application.Villages.ReadModels
         bool IsUnlocked,
         int? SpeedUpCostGems,
         int DamageLevel = 0,
-        DateTime? DamagedUntil = null);
+        DateTime? DamagedUntil = null,
+        double? X = null,
+        double? Y = null);
 
     /// <summary>Ресурс села.</summary>
     public record ResourceView(string ResourceType, long Amount, bool IsUnlocked);

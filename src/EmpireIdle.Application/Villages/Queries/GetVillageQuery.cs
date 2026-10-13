@@ -87,6 +87,7 @@ namespace EmpireIdle.Application.Villages.Queries
                 }
 
                 var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
+                var position = b.PositionOr(config.Position);
 
                 // Під туманом буфер не росте: число з формули було б фантомом
                 var stored = village.IsProducing(b, _catalog.Buildings)
@@ -105,7 +106,10 @@ namespace EmpireIdle.Application.Villages.Queries
                     isUnlocekd,
                     speedUpCost,
                     b.DamageAt(now),
-                    b.IsDamagedAt(now) ? b.DamagedUntil : null);
+                    b.IsDamagedAt(now) ? b.DamagedUntil : null,
+                    // Де будівля стоїть на плані: своя позиція гравця або з конфіга; null — мур
+                    position?.X,
+                    position?.Y);
             }).ToList();
 
             var resources = village.Resources
