@@ -35,7 +35,7 @@ namespace EmpireIdle.API.Controllers
                 village.Buildings.Select(b => new BuildingResponse(
                     b.Id, b.Type, b.Level, b.LastCollectedAt, b.StoredAmount, b.StorageCap,
                     b.ConstructionCompletesAt, b.IsUnderConstruction, b.SpeedUpCostGems, b.IsUnlocked,
-                    b.DamageLevel, b.DamagedUntil)).ToList(),
+                    b.DamageLevel, b.DamagedUntil, b.X, b.Y)).ToList(),
                 village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount, r.IsUnlocked)).ToList(),
                 village.ShieldUntil,
                 village.Damage is null
@@ -44,6 +44,19 @@ namespace EmpireIdle.API.Controllers
                         village.Damage.RepairCost.Select(c => new RepairCostResponse(c.Resource, c.Amount)).ToList()));
 
             return Ok(response);
+        }
+
+        /// <summary>
+        /// Переставити будівлю на плані села: вузол сітки всередині муру, без накладання на інші будівлі.
+        /// </summary>
+        [HttpPost("{playerId:guid}/buildings/{buildingId:guid}/move")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> MoveBuilding(Guid playerId, Guid buildingId, [FromBody] MoveBuildingRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new MoveBuildingCommand(playerId, buildingId, request.X, request.Y), cancellationToken);
+            return NoContent();
         }
 
         /// <summary>
