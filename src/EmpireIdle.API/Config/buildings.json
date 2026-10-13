@@ -54,8 +54,8 @@
         "DisplayName": "Ферма",
         "RequiresMainBuildingLevel": 3,
         "Position": {
-          "X": 14.0,
-          "Y": 74.0
+          "X": 48.0,
+          "Y": 72.0
         },
         "Cost": [
           {
@@ -129,8 +129,8 @@
         "DisplayName": "Казарма",
         "RequiresMainBuildingLevel": 1,
         "Position": {
-          "X": 30.0,
-          "Y": 72.0
+          "X": 14.0,
+          "Y": 86.0
         },
         "Cost": [
           {
@@ -283,7 +283,7 @@
         "DisplayName": "Двір списоносців",
         "RequiresMainBuildingLevel": 3,
         "Position": {
-          "X": 84.0,
+          "X": 14.0,
           "Y": 70.0
         },
         "Cost": [
@@ -312,8 +312,8 @@
         "DisplayName": "Стрільбище",
         "RequiresMainBuildingLevel": 2,
         "Position": {
-          "X": 48.0,
-          "Y": 72.0
+          "X": 30.0,
+          "Y": 86.0
         },
         "Cost": [
           {
@@ -412,8 +412,8 @@
         "DisplayName": "Звіринець",
         "RequiresMainBuildingLevel": 8,
         "Position": {
-          "X": 30.0,
-          "Y": 86.0
+          "X": 84.0,
+          "Y": 70.0
         },
         "BeastCapacityPerLevel": 1,
         "Cost": [
