@@ -33,6 +33,8 @@ export interface Catalog {
   item: (key: string) => CatalogItem | null;
   building: (key: string) => CatalogBuilding | null;
   unit: (key: string) => CatalogUnit | null;
+  /** Усі типи юнітів — щоб порівняти показник із найкращим серед них. */
+  units: CatalogUnit[];
   heroName: (key: string) => string;
   itemName: (key: string) => string;
   resourceName: (key: string) => string;
@@ -137,6 +139,7 @@ export function useCatalog(): Catalog {
       item: (key) => items.get(key) ?? null,
       building: (key) => buildings.get(key) ?? null,
       unit: (key) => units.get(key) ?? null,
+      units: data?.units ?? [],
       // Ключ як запасна назва: краще технічний рядок, ніж порожнє місце
       heroName: (key) => heroes.get(key)?.displayName ?? key,
       itemName: (key) => items.get(key)?.displayName ?? key,

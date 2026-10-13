@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { useSession } from "../hooks/useSession";
 import ArmyPage from "../pages/ArmyPage";
+import UnitCampPage from "../pages/UnitCampPage";
 import ArtifactSetsPage from "../pages/ArtifactSetsPage";
 import BannersPage from "../pages/BannersPage";
 import BeastPenPage from "../pages/BeastPenPage";
@@ -43,6 +44,7 @@ export default function AppRoutes() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<VillagePage />} />
             <Route path="/army" element={<ArmyPage />} />
+            <Route path="/army/:building" element={<UnitCampPage />} />
             <Route path="/heroes" element={<HeroesPage />} />
             <Route path="/heroes/codex" element={<HeroCodexPage />} />
             <Route path="/heroes/:heroId" element={<HeroPage />} />
