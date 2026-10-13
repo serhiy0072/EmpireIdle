@@ -50,7 +50,7 @@ public class TrainUnitsCommandTests
                 Key = "infantry",
                 RequiresBuilding = "barracks",
                 RequiresBuildingLevel = 1,
-                BaseTrainMinutes = 2,
+                BaseTrainSeconds = 2,
                 Cost = [new ResourceCost { Resource = "food", Amount = 10 }]
             },
             new UnitConfig
@@ -58,7 +58,7 @@ public class TrainUnitsCommandTests
                 Key = "siege",
                 RequiresBuilding = "barracks",
                 RequiresBuildingLevel = 6,
-                BaseTrainMinutes = 15,
+                BaseTrainSeconds = 15,
                 Cost = [new ResourceCost { Resource = "food", Amount = 50 }]
             },
             new UnitConfig
@@ -66,7 +66,7 @@ public class TrainUnitsCommandTests
                 Key = "cavalry",
                 RequiresBuilding = "stable",
                 RequiresBuildingLevel = 1,
-                BaseTrainMinutes = 5,
+                BaseTrainSeconds = 5,
                 Cost = [new ResourceCost { Resource = "food", Amount = 20 }]
             }
         ]
@@ -144,7 +144,7 @@ public class TrainUnitsCommandTests
         var order = Assert.Single(garrison.TrainingOrders);
         Assert.Equal("infantry", order.UnitType);
         Assert.Equal(5, order.Count);
-        Assert.Equal(Now.AddMinutes(10), order.CompletesAt);
+        Assert.Equal(Now.AddSeconds(10), order.CompletesAt);
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class TrainUnitsCommandTests
 
         // Крок(L) = 2 × 1.35^(L-1); сума L=1..4 = 2 + 2.7 + 3.645 + 4.92075 = 13.26575 → 13 (усічення)
         var order = Assert.Single(garrison.TrainingOrders);
-        Assert.Equal(Now.AddMinutes(13), order.CompletesAt);
+        Assert.Equal(Now.AddSeconds(13), order.CompletesAt);
     }
 
     /// <summary>

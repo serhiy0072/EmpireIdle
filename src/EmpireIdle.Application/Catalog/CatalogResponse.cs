@@ -249,7 +249,8 @@
         string DisplayName,
         string? RequiresBuilding,
         int RequiresBuildingLevel,
-        int BaseTrainMinutes,
+        int BaseTrainSeconds,
+        double TrainTimeGrowth,
         double LevelUpCostGrowth,
         IReadOnlyList<CatalogUnitCost> Cost,
         IReadOnlyDictionary<string, double> Stats);

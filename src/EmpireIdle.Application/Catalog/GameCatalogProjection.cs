@@ -128,7 +128,8 @@ namespace EmpireIdle.Application.Catalog
                     Name("unit", unit.Key, unit.DisplayName),
                     unit.RequiresBuilding,
                     unit.RequiresBuildingLevel,
-                    unit.BaseTrainMinutes,
+                    unit.BaseTrainSeconds,
+                    unit.TrainTimeGrowth,
                     unit.LevelUpCostGrowth,
                     unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList(),
                     unit.Stats))

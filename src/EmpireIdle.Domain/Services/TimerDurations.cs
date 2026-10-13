@@ -16,12 +16,12 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Тренування партії з нуля на рівень <paramref name="level"/> — сума кроків від 1 (§5.2).</summary>
         public static TimeSpan Training(UnitConfig unit, int level, int count)
-            => TimeSpan.FromMinutes(
-                ProgressionCurves.CumulativeUnitLevelCost(unit.BaseTrainMinutes, 1, level + 1, unit.LevelUpCostGrowth) * count);
+            => TimeSpan.FromSeconds(
+                (long)ProgressionCurves.CumulativeUnitLevelCost(unit.BaseTrainSeconds, 1, level + 1, unit.TrainTimeGrowth) * count);
 
         /// <summary>Прокачка партії з <paramref name="fromLevel"/> на <paramref name="toLevel"/> — лише пройдені кроки.</summary>
         public static TimeSpan LevelUp(UnitConfig unit, int fromLevel, int toLevel, int count)
-            => TimeSpan.FromMinutes(
-                ProgressionCurves.CumulativeUnitLevelCost(unit.BaseTrainMinutes, fromLevel, toLevel, unit.LevelUpCostGrowth) * count);
+            => TimeSpan.FromSeconds(
+                (long)ProgressionCurves.CumulativeUnitLevelCost(unit.BaseTrainSeconds, fromLevel, toLevel, unit.TrainTimeGrowth) * count);
     }
 }

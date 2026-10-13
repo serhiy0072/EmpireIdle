@@ -211,7 +211,7 @@ public class GameCatalogProjectionTests
         {
             unit.RequiresBuilding = TestKeys.Barracks;
             unit.RequiresBuildingLevel = 2;
-            unit.BaseTrainMinutes = 3;
+            unit.BaseTrainSeconds = 3;
         }).BuildCatalog();
 
         var response = new GameCatalogProjection(catalog).ResponseFor(null);
@@ -220,7 +220,7 @@ public class GameCatalogProjectionTests
         Assert.All(response.Units, unit => Assert.False(string.IsNullOrWhiteSpace(unit.DisplayName)));
         Assert.All(response.Units, unit => Assert.Equal(TestKeys.Barracks, unit.RequiresBuilding));
         Assert.All(response.Units, unit => Assert.Equal(2, unit.RequiresBuildingLevel));
-        Assert.All(response.Units, unit => Assert.Equal(3, unit.BaseTrainMinutes));
+        Assert.All(response.Units, unit => Assert.Equal(3, unit.BaseTrainSeconds));
         Assert.All(response.Units, unit => Assert.NotEmpty(unit.Cost));
     }
 

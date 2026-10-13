@@ -10800,13 +10800,14 @@
       },
       "CatalogUnit": {
         "required": [
-          "baseTrainMinutes",
+          "baseTrainSeconds",
           "cost",
           "displayName",
           "key",
           "levelUpCostGrowth",
           "requiresBuildingLevel",
-          "stats"
+          "stats",
+          "trainTimeGrowth"
         ],
         "type": "object",
         "properties": {
@@ -10824,9 +10825,13 @@
             "type": "integer",
             "format": "int32"
           },
-          "baseTrainMinutes": {
+          "baseTrainSeconds": {
             "type": "integer",
             "format": "int32"
+          },
+          "trainTimeGrowth": {
+            "type": "number",
+            "format": "double"
           },
           "levelUpCostGrowth": {
             "type": "number",
