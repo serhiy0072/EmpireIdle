@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Catalog;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.TestKit;
@@ -47,6 +48,23 @@ public class GameCatalogProjectionTests
 
         Assert.Equal((TestKeys.Beast, "Вовк", TestKeys.BeastMonster, "Attack"),
             (beast.Key, beast.DisplayName, beast.MonsterKey, beast.Effect));
+    }
+
+    /// <summary>
+    /// Радіус ближнього телепорта доходить до клієнта — мапа каже «задалеко» ще до відмови сервера.
+    /// В інших типів радіуса немає: null, а не нуль, щоб клієнт не прочитав «нуль клітин».
+    /// </summary>
+    [Fact]
+    public void Response_ShouldCarryTheRangeOfNearbyTeleportsOnly()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        config.Items.Add(new ItemConfig { Key = "teleport_nearby", DisplayName = "Ближній", Type = "teleport", TeleportScope = TeleportScope.Nearby, TeleportRange = 100 });
+        config.Items.Add(new ItemConfig { Key = "teleport", DisplayName = "Точний", Type = "teleport", TeleportScope = TeleportScope.Exact, TeleportRange = 7 });
+
+        var items = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).Items;
+
+        Assert.Equal(("Nearby", 100), (items.Single(i => i.Key == "teleport_nearby").TeleportScope, items.Single(i => i.Key == "teleport_nearby").TeleportRange));
+        Assert.Null(items.Single(i => i.Key == "teleport").TeleportRange);
     }
 
     /// <summary>Ранг і слот ідуть рядками: число в типах клієнта вимагало б власної мапи.</summary>

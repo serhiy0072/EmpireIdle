@@ -89,7 +89,8 @@ namespace EmpireIdle.Application.Catalog
                     item.PriceGold,
                     item.Tradeable,
                     item.Giftable,
-                    item.Type == "teleport" ? item.TeleportScope.ToString() : null))
+                    item.Type == "teleport" ? item.TeleportScope.ToString() : null,
+                    item.Type == "teleport" && item.TeleportScope == TeleportScope.Nearby ? item.TeleportRange : null))
                 .ToList();
 
             var resources = config.Resources

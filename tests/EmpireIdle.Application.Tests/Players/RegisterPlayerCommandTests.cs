@@ -73,7 +73,7 @@ public class RegisterPlayerCommandTests
             Width = 100,
             Height = 100,
             TerrainSeed = 7,
-            MaxServerLevel = 3,
+            FullyOpenAtLevel = 3,
             Geometry = new MapGeometryConfig
             {
                 RingBoundaries = [0.20, 0.50],

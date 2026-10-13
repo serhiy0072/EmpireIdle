@@ -13,7 +13,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             Width = 300,
             Height = 300,
-            MaxServerLevel = 3,
+            FullyOpenAtLevel = 3,
             TerrainSeed = 4242,
             Terrains =
             [

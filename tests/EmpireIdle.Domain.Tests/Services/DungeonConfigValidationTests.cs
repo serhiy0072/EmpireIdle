@@ -30,7 +30,7 @@ public class DungeonConfigValidationTests
     {
         var error = Rejects(c =>
         {
-            c.Map.MaxServerLevel = 3;
+            c.Map.FullyOpenAtLevel = 3;
             c.BuildingLevelsPerTier = 10;
             c.Dungeons.Dungeons.Single().RequiresMainBuildingLevel = 32;
         });

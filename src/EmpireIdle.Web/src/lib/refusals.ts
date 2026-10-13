@@ -69,6 +69,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "village.nothingToRepair": () => "Ремонтувати нічого — усі будівлі цілі",
   "building.serverCeiling": ({ serverLevel, ceiling }) =>
     `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
+  "building.maxLevel": ({ maxLevel }) => `Будівля вже на найвищому рівні ${maxLevel}`,
   "building.townHallCeiling": ({ building, level }) =>
     `«${building}» не може бути вищою за ратушу (${level} рівень) — спершу підніміть ратушу`,
   "building.villageLagging": ({ level, buildings }) =>
@@ -214,6 +215,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "teleport.tooFar": ({ range }) => `Цей телепорт дістає не далі ${range} клітин від поселення`,
   "teleport.noClan": () => "Клановий телепорт працює лише в клані",
   "teleport.outsideClanTerritory": () => "Клановий телепорт переносить лише на територію вашого клану — поруч зі спорудою",
+  "teleport.youAreLeader": () => "Ви і є глава клану — переселятися до себе нікуди",
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */

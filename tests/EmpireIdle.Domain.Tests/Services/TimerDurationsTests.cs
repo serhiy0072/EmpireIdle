@@ -27,7 +27,7 @@ public class TimerDurationsTests
         var expected = TimerDurations.Construction(configs[TestKit.TestKeys.Farm], farm.Level.Value);
 
         village.BeginBuildingUpgrade(farm.Id, configs, Now, ProductionBoost.None,
-            mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: 99, levelsPerTier: 10, locationMultiplier: 1.0);
+            mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: 99, levelsPerTier: 10, maxBuildingLevel: 30, locationMultiplier: 1.0);
 
         Assert.Equal(Now + expected, farm.ConstructionCompletesAt);
 

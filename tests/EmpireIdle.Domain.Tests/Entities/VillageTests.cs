@@ -12,6 +12,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         private const int UngatedServerLevel = 99;
 
         private const int LevelsPerTier = 10;
+        private const int MaxBuildingLevel = 30;
 
         /// <summary>Збір перекладає накопичене в ресурси села й обнуляє буфер.</summary>
         [Fact]
@@ -233,7 +234,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var foodBefore = village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Food).Amount;
 
             village.BeginBuildingUpgrade(farm.Id, configs, now, ProductionBoost.None,
-                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
+                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0);
 
             Assert.True(farm.IsUnderConstruction);
             Assert.NotNull(farm.ConstructionCompletesAt);
@@ -249,7 +250,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
 
             village.BeginBuildingUpgrade(farm.Id, configs, farm.LastAccruedAt.AddMinutes(4), ProductionBoost.None,
-                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
+                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0);
 
             Assert.Equal(40, farm.AccruedAmount);
         }
@@ -264,7 +265,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var startedAt = TestKit.Entities.Now;
 
             village.BeginBuildingUpgrade(farm.Id, configs, startedAt, ProductionBoost.None,
-                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0);
+                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0);
 
             Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs));
             Assert.Equal(1, farm.Level.Value);
@@ -289,8 +290,26 @@ namespace EmpireIdle.Domain.Tests.Entities
             // Сервер 1 рівня дозволяє до 10; ратуша вже там
             var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(townhall.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
-                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: 1, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: 1, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0));
             Assert.Equal(RefusalReasons.BuildingServerCeiling.Key, refusal.Reason);
+        }
+
+        /// <summary>
+        /// Абсолютна стеля (GDD §2.7): рівень світу росте без межі, а ратуша — лише до 30.
+        /// Навіть світ 99 рівня не пускає її вище.
+        /// </summary>
+        [Fact]
+        public void BeginBuildingUpgrade_ShouldReject_AboveTheMaxBuildingLevel_WhateverTheServerLevel()
+        {
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: MaxBuildingLevel, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var townhall = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Townhall);
+
+            var refusal = Assert.Throws<RequirementNotMetException>(() =>
+                village.BeginBuildingUpgrade(townhall.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
+                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier,
+                    maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0));
+            Assert.Equal(RefusalReasons.BuildingMaxLevel.Key, refusal.Reason);
         }
 
         /// <summary>
@@ -312,7 +331,7 @@ namespace EmpireIdle.Domain.Tests.Entities
 
             var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(townhall.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
-                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0));
             Assert.Equal(RefusalReasons.BuildingVillageLagging.Key, refusal.Reason);
         }
 
@@ -327,7 +346,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             // Ферма 1 → 2 при ратуші 1 (ратуша 1, тому ферма не може стати 2)
             var refusal = Assert.Throws<RequirementNotMetException>(() =>
                 village.BeginBuildingUpgrade(farm.Id, configs, TestKit.Entities.Now, ProductionBoost.None,
-                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, locationMultiplier: 1.0));
+                    mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0));
             Assert.Equal(RefusalReasons.BuildingTownHallCeiling.Key, refusal.Reason);
         }
 

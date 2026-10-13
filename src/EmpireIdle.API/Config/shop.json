@@ -88,6 +88,11 @@
           "MaxPerPurchase": 5
         },
         {
+          "ItemKey": "teleport_leader",
+          "PriceGems": 150,
+          "MaxPerPurchase": 5
+        },
+        {
           "ItemKey": "beast_feed",
           "PriceGems": 1,
           "MaxPerPurchase": 100

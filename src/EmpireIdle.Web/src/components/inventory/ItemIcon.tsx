@@ -128,6 +128,29 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
+    // Корм для звірів: миска з кісткою
+    test: /feed/,
+    draw: () => (
+      <g>
+        <path d="M24 56 L76 56 Q74 76 50 78 Q26 76 24 56 Z" fill="#d97706" stroke="#78350f" strokeWidth={2} />
+        <path d="M36 50 L64 40" stroke="#fef3c7" strokeWidth={6} strokeLinecap="round" />
+        <circle cx={34} cy={51} r={5} fill="#fef3c7" />
+        <circle cx={66} cy={39} r={5} fill="#fef3c7" />
+      </g>
+    ),
+  },
+  {
+    // Завіса туману: хмара над прихованим оком
+    test: /veil|fog/,
+    draw: () => (
+      <g>
+        <path d="M28 58 Q50 40 72 58 Q50 76 28 58 Z" fill="#e2e8f0" stroke="#475569" strokeWidth={2} />
+        <circle cx={50} cy={58} r={6} fill="#475569" />
+        <path d="M26 44 Q30 32 42 34 Q48 24 60 30 Q72 28 74 42 Z" fill="#94a3b8" />
+      </g>
+    ),
+  },
+  {
     test: /attack|war/,
     draw: () => (
       <g>
@@ -159,6 +182,8 @@ const BY_TYPE: Record<string, RegExp> = {
   resources: /crate/,
   teleport: /teleport/,
   evolution: /essence/,
+  feed: /feed/,
+  scoutveil: /veil/,
 };
 
 export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "" }: Props): ReactElement {

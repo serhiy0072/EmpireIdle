@@ -12,6 +12,8 @@ const TYPE_LABELS: Record<string, string> = {
   boost: "Буст",
   resources: "Ресурси",
   teleport: "Телепорт",
+  scoutveil: "Захист від розвідки",
+  feed: "Корм",
 };
 
 function price(cents: number, currency: string): string {

@@ -57,7 +57,7 @@ public class VillageCommandTests
         {
             Width = 20,
             Height = 20,
-            MaxServerLevel = 3,
+            FullyOpenAtLevel = 3,
             Geometry = new MapGeometryConfig
             {
                 RingBoundaries = [0.20, 0.50],

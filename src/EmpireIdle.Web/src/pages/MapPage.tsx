@@ -38,7 +38,7 @@ export default function MapPage() {
   // Межа типу телепорта — щоб гравець не клікав навмання, а сервер не відмовляв (GDD §8.9)
   const teleportHint =
     teleportItem?.teleportScope === "Nearby"
-      ? "Цей телепорт дістає лише недалеко від поселення."
+      ? `Цей телепорт дістає не далі ${teleportItem.teleportRange ?? 0} клітин від поселення.`
       : teleportItem?.teleportScope === "ClanTerritory"
         ? "Лише на території вашого клану — поруч зі спорудою."
         : null;
@@ -114,6 +114,14 @@ export default function MapPage() {
   }
 
   const isHome = selected !== null && home !== null && selected.x === home.x && selected.y === home.y;
+
+  // Ближній телепорт: відстань Чебишева, як рахує сервер — кажемо одразу, а не після відмови
+  const teleportRange = teleportItem?.teleportScope === "Nearby" ? teleportItem.teleportRange : null;
+  const tooFar =
+    teleportRange != null &&
+    selected !== null &&
+    home !== null &&
+    Math.max(Math.abs(selected.x - home.x), Math.abs(selected.y - home.y)) > teleportRange;
 
   return (
     <div className="space-y-4">
@@ -211,6 +219,10 @@ export default function MapPage() {
                 <p className="text-sm text-amber-800">Тут не оселитись — оберіть рівнину, ліс або гори.</p>
               ) : cell.data.occupantType != null ? (
                 <p className="text-sm text-amber-800">Клітина зайнята — оберіть вільну.</p>
+              ) : tooFar ? (
+                <p className="text-sm text-amber-800">
+                  Задалеко: цей телепорт дістає не далі {teleportItem?.teleportRange} клітин від поселення.
+                </p>
               ) : (
                 <p className="text-sm text-slate-600">
                   Село переїде разом із гарнізоном; усі ваші війська — з походів, таборів і підкріплень у союзників —
@@ -230,7 +242,7 @@ export default function MapPage() {
                       } },
                     )
                   }
-                  disabled={teleport.isPending || !cell.data.habitable || cell.data.occupantType != null}
+                  disabled={teleport.isPending || !cell.data.habitable || cell.data.occupantType != null || tooFar}
                   className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
                   Переселитися

@@ -2227,10 +2227,16 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("MailedThroughPlayerId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("QuestKey")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("RewardsMailedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");

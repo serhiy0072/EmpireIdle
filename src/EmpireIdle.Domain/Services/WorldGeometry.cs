@@ -112,15 +112,15 @@ namespace EmpireIdle.Domain.Services
         public bool IsWithinFog(int x, int y, int serverLevel)
             => DistanceToCentre(x, y) <= SettlementBoundary(serverLevel);
 
-        /// <summary>Прогрес рівня від 0.0 (перший) до 1.0 (максимальний).</summary>
+        /// <summary>Прогрес рівня від 0.0 (перший) до 1.0 (карта відкрита повністю, і далі не росте).</summary>
         private double LevelProgress(int serverLevel)
         {
-            if (_map.MaxServerLevel <= 1)
+            if (_map.FullyOpenAtLevel <= 1)
                 return 1.0;
 
-            var clamped = Math.Clamp(serverLevel, 1, _map.MaxServerLevel);
+            var clamped = Math.Clamp(serverLevel, 1, _map.FullyOpenAtLevel);
 
-            return (clamped - 1.0) / (_map.MaxServerLevel - 1.0);
+            return (clamped - 1.0) / (_map.FullyOpenAtLevel - 1.0);
         }
 
         /// <summary>Частка радіуса, звужена відповідно до рівня сервера.</summary>

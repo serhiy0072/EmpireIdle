@@ -63,4 +63,27 @@ public class GetBeastPenQueryTests
             (beast.BeastKey, beast.Rank, beast.Level, beast.Experience, beast.ExperienceToNext, beast.MaxLevel));
         Assert.Equal(1, view.Taming.Single().Misses);
     }
+
+    /// <summary>
+    /// Бонус пасивки — сума кроків рівня в double: 0.15 + 0.01·2 дає 0.16999999999999998.
+    /// Клієнт отримує чисте число, а не хвіст, який вилізе в інтерфейс.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReturnAClean_PassiveBonus()
+    {
+        GivenVillageWithPen();
+
+        var progression = new BeastProgression(_catalog);
+        var pen = new BeastPen(Guid.NewGuid(), PlayerId, 1, Now);
+        pen.ResolveTaming(TestKeys.Beast, rolled: true, pityWins: 10, capacity: 1, maxRank: 5, Now);
+        pen.Feed(TestKeys.Beast, progression.ExperienceToNext(1) + progression.ExperienceToNext(2),
+            progression.ExperienceToNext, levelsPerRank: 10, Now);
+        _pens.GetByPlayerReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pen);
+
+        var view = await Handler().Handle(new GetBeastPenQuery(PlayerId), CancellationToken.None);
+
+        var beast = Assert.Single(view.Beasts);
+        Assert.Equal(3, beast.Level);
+        Assert.Equal(0.17, beast.Passive.Bonus);
+    }
 }

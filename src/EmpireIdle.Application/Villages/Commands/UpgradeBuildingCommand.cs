@@ -60,7 +60,8 @@ namespace EmpireIdle.Application.Villages.Commands
             var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
 
             village.BeginBuildingUpgrade(request.BuildingId, _catalog.Buildings, now, boost,
-                _catalog.MainBuildingKey, serverLevel, _catalog.Config.BuildingLevelsPerTier, locationMultiplier);
+                _catalog.MainBuildingKey, serverLevel, _catalog.Config.BuildingLevelsPerTier, _catalog.Config.MaxBuildingLevel,
+                locationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

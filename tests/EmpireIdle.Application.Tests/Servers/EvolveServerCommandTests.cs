@@ -29,7 +29,7 @@ public class EvolveServerCommandTests
         {
             Width = 20,
             Height = 20,
-            MaxServerLevel = 3,
+            FullyOpenAtLevel = 3,
             Geometry = new MapGeometryConfig
             {
                 RingBoundaries = [0.20, 0.50],
@@ -41,8 +41,7 @@ public class EvolveServerCommandTests
             Evolution = new ServerEvolutionConfig
             {
                 DensityThreshold = 0.35,
-                MaturityMarginLevels = 2,
-                MinDaysBetweenLevels = 45
+                DaysPerLevel = 45
             }
         }
     };
@@ -59,15 +58,13 @@ public class EvolveServerCommandTests
             NullLogger<EvolveServerCommandHandler>.Instance);
     }
 
-    /// <summary>Сервер із заданим віком і станом дозрівання.</summary>
-    private Server GivenServer(int daysOld, int villages, int medianTownhall)
+    /// <summary>Сервер заданого віку з заданою кількістю сіл.</summary>
+    private Server GivenServer(int daysOld, int villages)
     {
         var server = new Server(1, "Test", Now.AddDays(-daysOld));
 
         _servers.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(server);
         _villages.CountAsync(Arg.Any<CancellationToken>()).Returns(villages);
-        _villages.GetMedianMainBuildingLevelAsync("townhall", Arg.Any<CancellationToken>())
-            .Returns(medianTownhall);
 
         return server;
     }
@@ -83,14 +80,11 @@ public class EvolveServerCommandTests
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    /// <summary>
-    /// Світ дозрів і строк минув — рівень росте. Медіана 8 із стелі 10
-    /// при запасі 2 вважається зрілістю.
-    /// </summary>
+    /// <summary>Рівень росте з часом (GDD §2.7): минув період — світ на рівень вищий, без умов зрілості.</summary>
     [Fact]
-    public async Task Handle_ShouldRaiseLevel_WhenMatureAndIntervalElapsed()
+    public async Task Handle_ShouldRaiseLevel_WhenThePeriodElapsed()
     {
-        var server = GivenServer(daysOld: 50, villages: 5, medianTownhall: 8);
+        var server = GivenServer(daysOld: 45, villages: 5);
 
         await Handler().Handle(new EvolveServerCommand(1), CancellationToken.None);
 
@@ -98,26 +92,31 @@ public class EvolveServerCommandTests
         Assert.Equal(Now, server.LevelRaisedAt);
     }
 
-    /// <summary>Строк — нижня межа: до нього рівень не росте навіть у зрілого світу.</summary>
     [Fact]
-    public async Task Handle_ShouldNotRaiseLevel_BeforeTheInterval()
+    public async Task Handle_ShouldNotRaiseLevel_BeforeThePeriodEnds()
     {
-        var server = GivenServer(daysOld: 44, villages: 5, medianTownhall: 10);
+        var server = GivenServer(daysOld: 44, villages: 5);
 
         await Handler().Handle(new EvolveServerCommand(1), CancellationToken.None);
 
         Assert.Equal(1, server.Level);
     }
 
-    /// <summary>Строк минув, але світ не дозрів — рівень стоїть.</summary>
+    /// <summary>
+    /// Стелі немає: світ іде далі за рівень, на якому карта відкрита повністю.
+    /// Період відлічується від останнього підйому, а не від створення.
+    /// </summary>
     [Fact]
-    public async Task Handle_ShouldNotRaiseLevel_WhenTheWorldIsImmature()
+    public async Task Handle_ShouldKeepRaisingLevel_PastTheFullyOpenMap()
     {
-        var server = GivenServer(daysOld: 100, villages: 5, medianTownhall: 3);
+        var server = GivenServer(daysOld: 400, villages: 5);
+        server.RaiseLevel(Now.AddDays(-300));
+        server.RaiseLevel(Now.AddDays(-200));
+        server.RaiseLevel(Now.AddDays(-50));
 
         await Handler().Handle(new EvolveServerCommand(1), CancellationToken.None);
 
-        Assert.Equal(1, server.Level);
+        Assert.Equal(5, server.Level);
     }
 
     /// <summary>
@@ -128,7 +127,7 @@ public class EvolveServerCommandTests
     public async Task Handle_ShouldCloseRegistration_WhenDensityExceedsTheThreshold()
     {
         // 81 клітина відкритої площі × 0.35 = 29
-        var server = GivenServer(daysOld: 1, villages: 30, medianTownhall: 1);
+        var server = GivenServer(daysOld: 1, villages: 30);
 
         await Handler().Handle(new EvolveServerCommand(1), CancellationToken.None);
 
@@ -139,7 +138,7 @@ public class EvolveServerCommandTests
     [Fact]
     public async Task Handle_ShouldStayOpen_BelowTheThreshold()
     {
-        var server = GivenServer(daysOld: 1, villages: 10, medianTownhall: 1);
+        var server = GivenServer(daysOld: 1, villages: 10);
 
         await Handler().Handle(new EvolveServerCommand(1), CancellationToken.None);
 
@@ -153,7 +152,7 @@ public class EvolveServerCommandTests
     [Fact]
     public async Task Handle_ShouldStillEvolve_WhenRegistrationIsClosed()
     {
-        var server = GivenServer(daysOld: 50, villages: 30, medianTownhall: 8);
+        var server = GivenServer(daysOld: 50, villages: 30);
         server.CloseRegistration(Now.AddDays(-10));
 
         await Handler().Handle(new EvolveServerCommand(1), CancellationToken.None);
@@ -165,7 +164,7 @@ public class EvolveServerCommandTests
     [Fact]
     public async Task Handle_ShouldNotSave_WhenNothingChanged()
     {
-        GivenServer(daysOld: 1, villages: 1, medianTownhall: 1);
+        GivenServer(daysOld: 1, villages: 1);
 
         await Handler().Handle(new EvolveServerCommand(1), CancellationToken.None);
 

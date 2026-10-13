@@ -25,6 +25,9 @@
   ],
   "beast.penMissing": [],
   "building.alreadyCompleted": [],
+  "building.maxLevel": [
+    "maxLevel"
+  ],
   "building.notUpgradable": [
     "building"
   ],
@@ -240,6 +243,7 @@
   "teleport.tooFar": [
     "range"
   ],
+  "teleport.youAreLeader": [],
   "territory.cellTaken": [],
   "territory.cellUnfit": [],
   "territory.foreignStructure": [],

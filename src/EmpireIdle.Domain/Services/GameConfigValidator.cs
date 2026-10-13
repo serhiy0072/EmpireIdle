@@ -507,12 +507,12 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>
         /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна
-        /// збудувати (MaxServerLevel × BuildingLevelsPerTier). Інакше вміст
+        /// збудувати (MaxBuildingLevel). Інакше вміст
         /// недосяжний назавжди, а гравець бачить замок, який не відімкнеться.
         /// </summary>
         private static void ValidateUnlockThresholds(GameConfig config)
         {
-            var ceiling = config.Map.MaxServerLevel * config.BuildingLevelsPerTier;
+            var ceiling = config.MaxBuildingLevel;
 
             var unreachable = config.Buildings
                 .Where(b => b.RequiresMainBuildingLevel > ceiling)

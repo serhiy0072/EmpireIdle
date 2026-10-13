@@ -33,8 +33,8 @@ namespace EmpireIdle.Application.Interfaces
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Ключі завершених квестів, у яких лишились невидані нагороди.
-        /// Потрібно, бо збій між завершенням і видачею інакше лишив би
+        /// Ключі завершених квестів, розсилку нагород яких ще не закінчено.
+        /// Потрібно, бо збій між завершенням і розсилкою інакше лишив би
         /// нагороди нероздаими назавжди.
         /// </summary>
         Task<List<string>> GetCompletedWithPendingRewardsAsync(CancellationToken cancellationToken = default);

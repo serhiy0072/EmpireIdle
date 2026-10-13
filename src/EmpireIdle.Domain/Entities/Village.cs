@@ -138,7 +138,7 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
             DateTime utcNow, ProductionBoost boost, string mainBuildingKey, int serverLevel, int levelsPerTier,
-            double locationMultiplier)
+            int maxBuildingLevel, double locationMultiplier)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId) ??
                 throw new EntityNotFoundException("Building", buildingId);
@@ -151,7 +151,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidStateException(RefusalReasons.BuildingNotUpgradable,
                     $"'{building.Type}' has no levels.", config.DisplayName);
 
-            EnsureTierAllows(building, config, buildingConfigs, mainBuildingKey, serverLevel, levelsPerTier);
+            EnsureTierAllows(building, config, buildingConfigs, mainBuildingKey, serverLevel, levelsPerTier, maxBuildingLevel);
 
             // Ціну рахуємо один раз: перевірка й списання мають бачити те саме число,
             // інакше вони розійдуться при першій же зміні кривої
@@ -594,10 +594,15 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         private void EnsureTierAllows(Building building, BuildingConfig config,
             IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
-            string mainBuildingKey, int serverLevel, int levelsPerTier)
+            string mainBuildingKey, int serverLevel, int levelsPerTier, int maxBuildingLevel)
         {
             var targetLevel = building.Level.Value + 1;
             var isMainBuilding = building.Type == mainBuildingKey;
+
+            // Абсолютна стеля — раніше за стелю світу: рівень світу росте без межі, а будівлі — ні
+            if (targetLevel > maxBuildingLevel)
+                throw new RequirementNotMetException(RefusalReasons.BuildingMaxLevel,
+                    $"Buildings go up to level {maxBuildingLevel}.", maxBuildingLevel);
 
             // A
             var ceiling = serverLevel * levelsPerTier;

@@ -17,6 +17,15 @@ namespace EmpireIdle.Domain.Entities
         public QuestState State { get; private set; }
         public DateTime? CompletedAt { get; private set; }
 
+        /// <summary>
+        /// Останній гравець, якому вже пішов лист із нагородою. Розсилка йде пачками за зростанням Id,
+        /// і курсор зберігається разом із пачкою: після збою наступний прогін продовжує звідси, без дублів.
+        /// </summary>
+        public Guid? MailedThroughPlayerId { get; private set; }
+
+        /// <summary>Коли нагороди отримали всі гравці світу; null — розсилка ще йде.</summary>
+        public DateTime? RewardsMailedAt { get; private set; }
+
         public ServerQuestProgress(Guid id, int serverId, string questKey, long target) : base(id)
         {
             ServerId = serverId;
@@ -39,6 +48,24 @@ namespace EmpireIdle.Domain.Entities
             CompletedAt = utcNow;
 
             return true;
+        }
+
+        /// <summary>Пачка листів пішла — курсор переходить на її останнього гравця.</summary>
+        public void AdvanceMailing(Guid lastPlayerId)
+        {
+            if (State != QuestState.Completed)
+                throw new Exceptions.InvalidStateException($"Server quest {QuestKey} is not completed.");
+
+            MailedThroughPlayerId = lastPlayerId;
+        }
+
+        /// <summary>Гравців більше немає — розсилка завершена.</summary>
+        public void FinishMailing(DateTime utcNow)
+        {
+            if (State != QuestState.Completed)
+                throw new Exceptions.InvalidStateException($"Server quest {QuestKey} is not completed.");
+
+            RewardsMailedAt ??= utcNow;
         }
     }
 }

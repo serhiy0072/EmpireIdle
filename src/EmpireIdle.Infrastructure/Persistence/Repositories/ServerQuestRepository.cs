@@ -59,9 +59,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<List<string>> GetCompletedWithPendingRewardsAsync(CancellationToken cancellationToken = default)
             => _context.ServerQuestProgress
                 .AsNoTracking()
-                .Where(p => p.State == QuestState.Completed)
-                .Where(p => _context.ServerQuestContributions
-                    .Any(c => c.QuestKey == p.QuestKey && c.Amount > 0 && c.RewardedAt == null))
+                .Where(p => p.State == QuestState.Completed && p.RewardsMailedAt == null)
                 .Select(p => p.QuestKey)
                 .ToListAsync(cancellationToken);
 

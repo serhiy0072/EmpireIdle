@@ -13,6 +13,9 @@ namespace EmpireIdle.Domain.Enums
         ClanTerritory = 2,
 
         /// <summary>Випадкова вільна придатна клітина відкритої зони; гравець нічого не обирає.</summary>
-        Random = 3
+        Random = 3,
+
+        /// <summary>Найближча вільна придатна клітина біля села глави свого клану; гравець нічого не обирає.</summary>
+        ClanLeader = 4
     }
 }

@@ -55,7 +55,7 @@ public class LeaveClanCommandTests
 
         var returner = new ReinforcementReturner(_garrisons, _villages, _structures,
             Substitute.For<IMarchRepository>(), _heroes, new MarchCalculator(new TerrainGenerator(config.Map), catalog),
-            catalog, new HeroProgression(config.HeroSettings), NullLogger<ReinforcementReturner>.Instance);
+            catalog, new HeroProgression(config.HeroSettings), TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
 
         var structureRemover = new ClanStructureRemover(_structures, _garrisons, _map, returner,
             NullLogger<ClanStructureRemover>.Instance);

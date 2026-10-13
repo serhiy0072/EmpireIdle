@@ -12,7 +12,8 @@ namespace EmpireIdle.Application.Inventory.Effects
     /// <summary>
     /// Телепорт: переносить поселення (GDD §8.9). Тип задає конфіг предмета:
     /// точний — будь-яка обрана клітина; ближній — обрана клітина в радіусі від села;
-    /// клановий — обрана клітина на території свого клану; випадковий — клітину обирає гра.
+    /// клановий — обрана клітина на території свого клану; випадковий — клітину обирає гра;
+    /// до лідера — найближча вільна клітина біля села глави клану.
     /// </summary>
     public class TeleportItemEffect : IItemEffect
     {
@@ -65,12 +66,43 @@ namespace EmpireIdle.Application.Inventory.Effects
             var serverId = _serverContext.ServerId;
             var serverLevel = await _serverRepository.GetLevelAsync(serverId, cancellationToken);
 
-            var (x, y) = context.Config.TeleportScope == TeleportScope.Random
-                ? await _placer.FindSpotAsync(serverId, serverLevel,
-                    (cx, cy) => _mapRepository.IsOccupiedAsync(serverId, cx, cy, cancellationToken))
-                : await ChosenCellAsync(context, village, serverId, serverLevel, cancellationToken);
+            var (x, y) = context.Config.TeleportScope switch
+            {
+                TeleportScope.Random => await _placer.FindSpotAsync(serverId, serverLevel,
+                    (cx, cy) => _mapRepository.IsOccupiedAsync(serverId, cx, cy, cancellationToken)),
+                TeleportScope.ClanLeader => await NextToLeaderAsync(context.PlayerId, serverId, serverLevel, cancellationToken),
+                _ => await ChosenCellAsync(context, village, serverId, serverLevel, cancellationToken)
+            };
 
             await _relocator.RelocateAsync(village, x, y, context.UtcNow, cancellationToken);
+        }
+
+        /// <summary>
+        /// Найближча вільна клітина біля села глави клану. Двох гравців, що одночасно взяли ту саму
+        /// клітину, розводить унікальний індекс мапи: другий отримує 409, і клієнт повторює запит.
+        /// </summary>
+        private async Task<(int X, int Y)> NextToLeaderAsync(Guid playerId, int serverId, int serverLevel,
+            CancellationToken cancellationToken)
+        {
+            var clan = await _clanRepository.GetByMemberAsync(playerId, cancellationToken)
+                ?? throw new RequirementNotMetException(RefusalReasons.TeleportNoClan, "A clan teleport needs a clan.");
+
+            var leaderId = clan.LeaderId
+                ?? throw new InvalidOperationException($"Clan {clan.Id} has no leader.");
+
+            if (leaderId == playerId)
+                throw new RequirementNotMetException(RefusalReasons.TeleportYouAreLeader, "The leader cannot teleport to themselves.");
+
+            var leaderVillage = await _villageRepository.GetByPlayerIdAsync(leaderId, cancellationToken)
+                ?? throw new EntityNotFoundException("Village for player", leaderId);
+
+            var spot = await _placer.FindSpotNearAsync(serverId, serverLevel, leaderVillage.X, leaderVillage.Y,
+                async (minX, minY, maxX, maxY) =>
+                    (await _mapRepository.GetAreaAsync(serverId, minX, minY, maxX, maxY, cancellationToken))
+                        .Select(cell => (cell.X, cell.Y))
+                        .ToList());
+
+            return spot ?? throw new InvalidOperationException($"No free habitable cell near the leader on server {serverId}.");
         }
 
         /// <summary>Клітина, яку обрав гравець: спільні правила заселення плюс межа типу телепорта.</summary>

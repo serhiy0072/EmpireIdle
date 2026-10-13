@@ -1,30 +1,34 @@
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Rewards;
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.ServerQuests.Commands
 {
     /// <summary>
-    /// Роздає нагороди за завершений серверний квест.
+    /// Роздає нагороду за завершений серверний квест (GDD §2.7, §8.4): кожному гравцю світу —
+    /// лист із нагородою для всіх, а топу за внеском — ще й бонус свого ярусу в тому самому листі.
     ///
     /// Ранг визначається порядком внесків: більший раніше, нічия — за часом
     /// останнього внеску. Без другого критерію ранги були б недетерміновані,
-    /// і два прогони джоба дали б різні нагороди.
+    /// і два прогони джоба дали б різні бонуси.
     /// </summary>
     public record DistributeServerQuestRewardsCommand(string QuestKey) : IRequest;
 
     public sealed class DistributeServerQuestRewardsCommandHandler
         : IRequestHandler<DistributeServerQuestRewardsCommand>
     {
-        /// <summary>Скільки внесків на одне збереження.</summary>
+        /// <summary>Скільки листів на одне збереження.</summary>
         private const int BatchSize = 200;
 
         private readonly IServerQuestRepository _questRepository;
-        private readonly RewardDispatcher _rewards;
+        private readonly IPlayerRepository _playerRepository;
+        private readonly IMailRepository _mailRepository;
+        private readonly IServerContext _serverContext;
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
@@ -32,14 +36,18 @@ namespace EmpireIdle.Application.ServerQuests.Commands
 
         public DistributeServerQuestRewardsCommandHandler(
             IServerQuestRepository questRepository,
-            RewardDispatcher rewards,
+            IPlayerRepository playerRepository,
+            IMailRepository mailRepository,
+            IServerContext serverContext,
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
             TimeProvider timeProvider,
             ILogger<DistributeServerQuestRewardsCommandHandler> logger)
         {
             _questRepository = questRepository;
-            _rewards = rewards;
+            _playerRepository = playerRepository;
+            _mailRepository = mailRepository;
+            _serverContext = serverContext;
             _unitOfWork = unitOfWork;
             _catalog = catalog;
             _timeProvider = timeProvider;
@@ -52,65 +60,90 @@ namespace EmpireIdle.Application.ServerQuests.Commands
 
             var config = _catalog.Quests.GetValueOrDefault(request.QuestKey);
 
-            if (config is null || config.RewardTiers.Count == 0)
+            if (config is null)
                 return;
 
             var progress = await _questRepository.GetProgressAsync(request.QuestKey, cancellationToken);
 
-            if (progress is null || progress.State != QuestState.Completed)
+            if (progress is null || progress.State != QuestState.Completed || progress.RewardsMailedAt is not null)
                 return;
 
-            // Внески вже відфільтровані по Amount > 0: ярус «всі інші»
-            // не має діставатись тим, хто не грав
-            var ranked = await _questRepository.GetRankedAsync(request.QuestKey, cancellationToken);
+            // Ранги рахуємо один раз на прохід: суми після завершення вже не змінюються.
+            // Внески відфільтровані по Amount > 0 — бонус топу не дістається тим, хто не грав
+            var ranked = (await _questRepository.GetRankedAsync(request.QuestKey, cancellationToken))
+                .Select((contribution, index) => (Contribution: contribution, Rank: index + 1))
+                .ToDictionary(entry => entry.Contribution.PlayerId);
 
-            var granted = 0;
+            var expiresAt = now.AddDays(_catalog.Config.Mail.RewardRetentionDays);
+            var mailed = 0;
 
-            // Пачками, кожна своїм збереженням: нагорода пише в гаманці й склади, а гравці
-            // паралельно грають, тож конфлікт xmin неминучий. Невдала пачка зупиняє прохід —
-            // після скидання трекера решта сутностей відірвана, — а наступний прохід джоба
-            // підхопить ще не позначені внески: ранги ті самі, суми після завершення не змінюються
-            for (var start = 0; start < ranked.Count; start += BatchSize)
+            // Пачками, кожна своїм збереженням разом із курсором: лист і позначка «вже відправлено»
+            // фіксуються атомарно. Конфлікт зупиняє прохід — трекер скинуто, а наступний прогін
+            // джоба продовжить від збереженого курсора
+            while (true)
             {
-                var inBatch = 0;
+                var players = await _playerRepository.GetIdsAfterAsync(progress.MailedThroughPlayerId, BatchSize,
+                    cancellationToken);
 
-                for (var index = start; index < Math.Min(start + BatchSize, ranked.Count); index++)
+                if (players.Count == 0)
                 {
-                    var contribution = ranked[index];
-                    var rank = index + 1;
+                    progress.FinishMailing(now);
 
-                    // Позначаємо ДО видачі: повторний прогін джоба після збою
-                    // всередині циклу не має видати нагороду вдруге
-                    if (!contribution.MarkRewarded(rank, now))
-                        continue;
+                    if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+                        _logger.LogWarning("Server quest {QuestKey}: finishing the mailing hit a conflict; next run retries",
+                            request.QuestKey);
 
-                    var tier = FindTier(config, rank);
-
-                    if (tier is null)
-                        continue;
-
-                    await _rewards.GrantAllAsync(
-                        contribution.PlayerId, tier.Rewards, request.QuestKey, now, cancellationToken);
-
-                    inBatch++;
-                }
-
-                if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
-                {
-                    _logger.LogWarning("Server quest {QuestKey}: batch from rank {Rank} hit a concurrency conflict; next run resumes",
-                        request.QuestKey, start + 1);
                     break;
                 }
 
-                granted += inBatch;
+                foreach (var playerId in players)
+                {
+                    var rewards = RewardsFor(config, playerId, ranked, now);
+
+                    if (rewards.Count > 0)
+                        await _mailRepository.AddLetterAsync(MailLetter.WithRewards(Guid.NewGuid(), _serverContext.ServerId,
+                            playerId, MailKind.ServerQuestReward, rewards, null, now, expiresAt), cancellationToken);
+                }
+
+                progress.AdvanceMailing(players[^1]);
+
+                if (!await _unitOfWork.TrySaveChangesAsync(cancellationToken))
+                {
+                    _logger.LogWarning("Server quest {QuestKey}: batch after {PlayerId} hit a concurrency conflict; next run resumes",
+                        request.QuestKey, players[0]);
+                    break;
+                }
+
+                mailed += players.Count;
             }
 
-            _logger.LogInformation("Server quest {QuestKey} rewarded {Count} contributors",
-                request.QuestKey, granted);
+            _logger.LogInformation("Server quest {QuestKey} mailed rewards to {Count} players", request.QuestKey, mailed);
         }
 
         /// <summary>
-        /// Перший ярус, чий поріг ≥ рангу. MaxRank = null означає «всі інші»
+        /// Нагорода для всіх плюс бонус ярусу, якщо гравець вніс. Позначка на внеску ставиться тут же:
+        /// вона йде в одну транзакцію з листом і шле гравцю realtime-сповіщення про ранг.
+        /// </summary>
+        private static List<MailReward> RewardsFor(QuestConfig config, Guid playerId,
+            Dictionary<Guid, (ServerQuestContribution Contribution, int Rank)> ranked, DateTime now)
+        {
+            var rewards = config.Rewards.Select(ToMail).ToList();
+
+            if (ranked.TryGetValue(playerId, out var entry) && entry.Contribution.MarkRewarded(entry.Rank, now)
+                && FindTier(config, entry.Rank) is { } tier)
+                rewards.AddRange(tier.Rewards.Select(ToMail));
+
+            // Той самий ресурс із двох джерел — одним рядком: гравець бачить суму, а не два однакові пункти
+            return rewards
+                .GroupBy(r => (r.Type, r.Key))
+                .Select(group => new MailReward(group.Key.Type, group.Key.Key, group.Sum(r => r.Amount)))
+                .ToList();
+        }
+
+        private static MailReward ToMail(RewardConfig reward) => new(reward.Type, reward.Key, reward.Amount);
+
+        /// <summary>
+        /// Перший ярус, чий поріг ≥ рангу. MaxRank = null означає «всі інші, хто вніс»
         /// й має стояти останнім — інакше він перехопить усіх.
         /// </summary>
         private static RewardTierConfig? FindTier(QuestConfig config, int rank)

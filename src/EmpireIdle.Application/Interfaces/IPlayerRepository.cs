@@ -11,6 +11,12 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Гравець акаунта на конкретному сервері.</summary>
         Task<Player?> GetByUserIdAsync(string userId, int serverId, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Id гравців поточного світу за зростанням, починаючи після <paramref name="after"/>.
+        /// Keyset, а не Skip: розсилка на тисячі гравців іде пачками, і зсув не плаває, коли хтось реєструється.
+        /// </summary>
+        Task<IReadOnlyList<Guid>> GetIdsAfterAsync(Guid? after, int take, CancellationToken cancellationToken = default);
+
         /// <summary>Члени клану — адресати кланового чату в момент доставки.</summary>
         Task<IReadOnlyList<Guid>> GetIdsByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
 
