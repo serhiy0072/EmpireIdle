@@ -432,6 +432,12 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("Level");
 
+                    b.Property<double?>("PlanX")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("PlanY")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(50)
