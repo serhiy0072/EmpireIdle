@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNow } from "../../hooks/useNow";
 import { cumulativeUnitLevelCost, unitStatMultiplier } from "../../lib/progression";
 import type { CatalogUnit, SpeedUpTimer } from "../../lib/queries/catalog";
@@ -45,18 +45,27 @@ interface StripProps {
 
 /** Смуга рівнів I…X під сценою: скільки юнітів кожного рівня, обраний — підсвічений. */
 export function LevelStrip({ unitType, maxLevel, ceiling, counts, selected, onSelect }: StripProps) {
+  const selectedRef = useRef<HTMLButtonElement>(null);
+
+  // На вузькому екрані смуга гортається — обраний рівень завжди в полі зору
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [selected]);
+
   return (
-    <div className="flex gap-2 overflow-x-auto px-2 pb-1 pt-2 [scrollbar-width:none]">
+    // Десять плиток уміщаються в ширину табору; на телефоні лишається видима прокрутка, щоб дістати крайні
+    <div className="flex gap-1.5 overflow-x-auto px-2 pb-2 pt-2 [scrollbar-width:thin] sm:justify-center">
       {Array.from({ length: maxLevel }, (_, index) => index + 1).map((level) => (
         <button
           key={level}
+          ref={level === selected ? selectedRef : undefined}
           type="button"
           onClick={() => onSelect(level)}
           title={level > ceiling ? `Рівень ${roman(level)} відкриється з ратушею ${level} рівня` : `Рівень ${roman(level)}`}
-          className={`flex shrink-0 flex-col items-center gap-0.5 transition ${level === selected ? "scale-110" : "opacity-90 hover:opacity-100"}`}
+          className={`flex shrink-0 flex-col items-center gap-0.5 transition ${level === selected ? "scale-110" : "opacity-80 hover:opacity-100"}`}
         >
           <span className={level === selected ? "drop-shadow-[0_0_6px_#fff]" : ""}>
-            <UnitHex unitType={unitType} level={level} size={56} dimmed={level > ceiling} />
+            <UnitHex unitType={unitType} level={level} size={46} dimmed={level > ceiling} />
           </span>
           <span className="text-xs font-semibold tabular-nums text-white [text-shadow:0_1px_2px_#000]">
             {(counts[level] ?? 0).toLocaleString("uk-UA")}
