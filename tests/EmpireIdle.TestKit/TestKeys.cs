@@ -34,8 +34,6 @@ public static class TestKeys
     public const string EssenceT2 = "hero_essence_t2";
     public const string EssenceT3 = "hero_essence_t3";
 
-    public const string Weapon = "sword_iron";
-    public const string BetterWeapon = "sword_steel";
     public const string Artifact = "dawn_necklace";
     public const string SecondArtifact = "dawn_ring";
     public const string ThirdArtifact = "dawn_crown";
@@ -56,6 +54,9 @@ public static class TestKeys
     public const string DungeonSetKey = "pit";
 
     public const string DungeonAbility = "test_slash";
+
+    public const string SmallChest = "test_chest_small";
+    public const string BigChest = "test_chest_big";
 
     public const string Terrain = "plain";
 }

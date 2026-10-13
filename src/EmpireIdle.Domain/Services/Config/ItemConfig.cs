@@ -36,15 +36,8 @@ namespace EmpireIdle.Domain.Services.Config
 
         // --- equipment ---
 
-        /// <summary>equipment: зброя чи артефакт.</summary>
+        /// <summary>equipment: вид спорядження — артефакт (зброя — частина героя, GDD §6.4).</summary>
         public EquipmentSlot? Slot { get; set; }
-
-        /// <summary>
-        /// equipment: класи героїв, яким зброя підходить. Порожньо — підходить усім.
-        /// Пара одноручних рахується одним предметом і заточується разом:
-        /// це свідоме спрощення, окремого слота для лівої руки немає.
-        /// </summary>
-        public List<string> WeaponClasses { get; set; } = new();
 
         /// <summary>
         /// equipment, лише артефакт: тип слота (ключ з Equipment.ArtifactSlots).
@@ -62,17 +55,8 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Сила унікальної властивості часткою: 0.1 — плюс десять відсотків.</summary>
         public double UniqueStatValue { get; set; }
 
-        /// <summary>
-        /// equipment: базові стати зброї. В артефактів порожні — їхні стати
-        /// випадкові й лежать на екземплярі, а не на типі.
-        /// </summary>
-        public Dictionary<string, double> BaseStats { get; set; } = new();
-
         /// <summary>equipment: ключ набору, за повний комплект якого дається бонус.</summary>
         public string? SetKey { get; set; }
-
-        /// <summary>equipment: ціна зброї в золоті; артефакти не продаються.</summary>
-        public int PriceGold { get; set; }
 
         /// <summary>
         /// Стаковий предмет можна виставити на ринок гравців. Спорядження
@@ -95,5 +79,23 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Для баночки досвіду (Type = "heroxp"): скільки досвіду вона додає в пул гравця (GDD §6.1).</summary>
         public long HeroExperience { get; set; }
+
+        /// <summary>Для прискорення (Type = "speedup"): скільки хвилин зрізає з будь-якого таймера (рішення 08.10.2026).</summary>
+        public int SpeedUpMinutes { get; set; }
+
+        /// <summary>Для банки енергії (Type = "energy"): скільки енергії данжів додає — і понад стелю.</summary>
+        public int DungeonEnergy { get; set; }
+
+        /// <summary>Для гаєчки (Type = "wrench", GDD §6.4): скільки досвіду рівня дає артефакту.</summary>
+        public int ArtifactExperience { get; set; }
+
+        /// <summary>
+        /// Для скрині зброї (Type = "weaponchest", GDD §6.4): чию зброю можна з неї качати — трійка
+        /// поточного подієвого банера. Скриня відкривається для трійки, актуальної в момент відкриття.
+        /// </summary>
+        public List<string> WeaponHeroes { get; set; } = new();
+
+        /// <summary>Для скрині зброї: скільки шматків обраної зброї дає одна скриня.</summary>
+        public int WeaponShards { get; set; }
     }
 }

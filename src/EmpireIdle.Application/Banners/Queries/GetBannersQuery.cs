@@ -17,7 +17,6 @@ namespace EmpireIdle.Application.Banners.Queries
         BannerKind Kind,
         string PityGroup,
         int PriceGems,
-        int PriceSeals,
         int RarePity,
         int UniquePity,
         string? FeaturedKey,
@@ -53,12 +52,14 @@ namespace EmpireIdle.Application.Banners.Queries
         public async Task<IReadOnlyList<BannerView>> Handle(GetBannersQuery request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow();
-            var serverLevel = await _serverRepository.GetLevelAsync(_serverContext.ServerId, cancellationToken);
+            var server = await _serverRepository.GetByIdAsync(_serverContext.ServerId, cancellationToken)
+                ?? throw new InvalidOperationException($"Server {_serverContext.ServerId} not found.");
 
-            // Банер героїв вищого тіру ще не відкрився — його не показуємо, як і банер поза датами
+            // Банер героїв вищого тіру ще не відкрився — його не показуємо, як і банер поза датами чи вікном тіру
             var active = _catalog.Config.Shop.Banners
-                .Where(b => (b.StartsAt is not { } start || now >= start) && (b.EndsAt is not { } end || now < end))
-                .Where(b => serverLevel >= b.RequiresServerLevel)
+                .Where(b => server.Level >= b.RequiresServerLevel)
+                .Where(b => b.StartsAt is not { } start || now >= start)
+                .Where(b => b.ClosesAt(server.Level, server.LevelSince) is not { } end || now < end)
                 .ToList();
 
             // Прогрес спільний для групи, тож читаємо по групі, а не по банеру
@@ -80,11 +81,10 @@ namespace EmpireIdle.Application.Banners.Queries
                     banner.Kind,
                     banner.PityGroup,
                     banner.PriceGems,
-                    banner.PriceSeals,
                     banner.RarePity,
                     banner.UniquePity,
                     banner.FeaturedKey,
-                    banner.EndsAt,
+                    banner.ClosesAt(server.Level, server.LevelSince),
                     state.RareSince,
                     state.UniqueSince,
                     state.FeaturedGuaranteed,

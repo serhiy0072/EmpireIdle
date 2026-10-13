@@ -47,11 +47,30 @@ namespace EmpireIdle.Domain.Entities
         public int StarParts { get; private set; }
 
         /// <summary>
+        /// Рівень унікальної зброї героя (GDD §6.4, рішення 08.10.2026): 0 — ще не відкрита, далі +1…+5.
+        /// Зброя — частина героя, а не предмет: її не вдягають і не продають, лише відкривають і качають.
+        /// </summary>
+        public int WeaponLevel { get; private set; }
+
+        /// <summary>Шматки зброї цього героя, ще не вкладені в рівень (зі скринь зброї й магазину).</summary>
+        public int WeaponShards { get; private set; }
+
+        /// <summary>
         /// Рівні вмінь, підняті книгами (GDD §6.1): ключ вміння → рівень. Вміння без запису —
         /// першого рівня. Знімок стану, а не довідник: перейменування вміння в конфігу
         /// лише повертає його на перший рівень, а не валить героя.
         /// </summary>
         public IReadOnlyDictionary<string, int> SkillLevels { get; private set; } = new Dictionary<string, int>();
+
+        /// <summary>Слот навчального табору (GDD §6.1), у якому стоїть герой; null — поза табором.</summary>
+        public int? CampSlot { get; private set; }
+
+        /// <summary>
+        /// Рівень, який дає табір: найменший в опорній п'ятірці. Знімок, а не обчислення на льоту, —
+        /// інакше кожен показ стату тягнув би весь ростер гравця. Оновлює TrainingCampSync,
+        /// коли змінюються рівні героїв поза табором чи склад табору.
+        /// </summary>
+        public int? CampLevel { get; private set; }
 
         public HeroState State { get; private set; }
 
@@ -66,6 +85,14 @@ namespace EmpireIdle.Domain.Entities
         /// «герой господаря» з бойової формули.
         /// </summary>
         public Guid? StationedGarrisonId { get; private set; }
+
+        /// <summary>
+        /// Марш, з яким герой у дорозі (GDD §6.1: до трьох героїв на марш). Дзеркало
+        /// StationedGarrisonId: рівно одне з двох заповнене — герой або стоїть, або йде.
+        /// Зв'язок тримає герой, а не марш: герой веде щонайбільше один марш, тож це
+        /// один-до-багатьох із ключем на боці героя, і факт «у дорозі» записано один раз.
+        /// </summary>
+        public Guid? MarchId { get; private set; }
 
         /// <summary>
         /// Лідер гарнізону. Лише він дає бонус своїм стекам і лише він
@@ -86,9 +113,6 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
-
-        /// <summary>Куплений на ринку герой не виставляється знову до цього моменту.</summary>
-        public DateTime? ResaleLockedUntil { get; private set; }
 
         public Hero(Guid id, Guid playerId, int serverId, string heroKey, Guid garrisonId, bool asLeader,
             DateTime utcNow, int nativeTier = 1) : base(id)
@@ -114,6 +138,13 @@ namespace EmpireIdle.Domain.Entities
 
         protected Hero() { } // Для EF Core
 
+        /// <summary>
+        /// Рівень, з яким герой воює й рахує стати: власний або табірний — більший із двох.
+        /// Табір лише підтягує героя й ніколи не знижує: рівень табору може впасти вже після
+        /// того, як героя поклали в слот.
+        /// </summary>
+        public int EffectiveLevel => CampSlot is null ? Level : Math.Max(Level, CampLevel ?? Level);
+
         /// <summary>Чи можна відправити героя в марш просто зараз.</summary>
         public bool IsAvailable => State == HeroState.Idle;
 
@@ -126,13 +157,14 @@ namespace EmpireIdle.Domain.Entities
         /// Лідерство складається тут же. Гарнізон лишається без лідера,
         /// поки герой не повернеться або поки не призначать іншого.
         /// </summary>
-        public void Deploy(DateTime utcNow)
+        public void Deploy(Guid marchId, DateTime utcNow)
         {
             if (State != HeroState.Idle)
                 throw new InvalidStateException($"Hero {Id} is {State} and cannot be deployed.");
 
             State = HeroState.Deployed;
             StationedGarrisonId = null;
+            MarchId = marchId;
             IsLeader = false;
             Touch(utcNow);
         }
@@ -161,6 +193,7 @@ namespace EmpireIdle.Domain.Entities
                 State = HeroState.Idle;
 
             StationedGarrisonId = garrisonId;
+            MarchId = null;
             IsLeader = leaderSlotFree;
             Touch(utcNow);
         }
@@ -170,7 +203,7 @@ namespace EmpireIdle.Domain.Entities
         /// дозволений і пораненому: поранений лідер їде зі своїм загоном,
         /// а лікувати його можна лише у власному госпіталі.
         /// </summary>
-        public void SendHome(DateTime utcNow)
+        public void SendHome(Guid marchId, DateTime utcNow)
         {
             if (StationedGarrisonId is null)
                 throw new InvalidStateException($"Hero {Id} is already on the move.");
@@ -179,7 +212,24 @@ namespace EmpireIdle.Domain.Entities
                 State = HeroState.Deployed;
 
             StationedGarrisonId = null;
+            MarchId = marchId;
             IsLeader = false;
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Миттєво переводить героя з чужого гарнізону у свій — без маршу. Лише для переїзду села:
+        /// усе військо гравця збирається вдома одразу, і дороги, на якій героя можна було б
+        /// перехопити, немає. Стан (зокрема поранення) лишається як був.
+        /// </summary>
+        /// <param name="leaderSlotFree">Чи вільний слот лідера вдома — як в Arrive.</param>
+        public void Relocate(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
+        {
+            if (StationedGarrisonId is null)
+                throw new InvalidStateException($"Hero {Id} is on the move and cannot be relocated.");
+
+            StationedGarrisonId = garrisonId;
+            IsLeader = leaderSlotFree;
             Touch(utcNow);
         }
 
@@ -250,6 +300,8 @@ namespace EmpireIdle.Domain.Entities
             if (levels < 1)
                 throw new ArgumentOutOfRangeException(nameof(levels), levels, "Levels to gain must be positive.");
 
+            EnsureOwnLevelCanGrow();
+
             if (Level + levels > maxLevel)
                 throw new RequirementNotMetException(RefusalReasons.HeroLevelCeiling,
                     $"Hero {Id} cannot go above level {maxLevel}.", HeroKey, maxLevel);
@@ -257,6 +309,17 @@ namespace EmpireIdle.Domain.Entities
             Level += levels;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>
+        /// Герой у таборі власного рівня не піднімає (Сергій, 12.10.2026): його рівень тримає табір,
+        /// а піднятий у слоті герой не повертався б у п'ятірку інструкторів. Окремим методом —
+        /// щоб викликач перевірив до списання досвіду.
+        /// </summary>
+        public void EnsureOwnLevelCanGrow()
+        {
+            if (CampSlot is not null)
+                throw new InvalidStateException(RefusalReasons.CampHeroLevelLocked, $"Hero {Id} is in the training camp.");
         }
 
         /// <summary>Скидає героя на перший рівень. Повернення досвіду рахує викликач. Повертає рівень до скидання.</summary>
@@ -299,6 +362,36 @@ namespace EmpireIdle.Domain.Entities
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }
 
+        /// <summary>Додає шматки зброї героя (скриня зброї, магазин). Рівень не піднімає — це рішення гравця.</summary>
+        public void AddWeaponShards(int count, DateTime utcNow)
+        {
+            if (count < 1)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "Weapon shards come in positive amounts.");
+
+            WeaponShards += count;
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Відкриває зброю (0 → +1) або піднімає її рівень за шматки. Ціну рівня й стелю знає конфіг,
+        /// тож їх передає викликач; шматки списуються тут же, разом із рівнем.
+        /// </summary>
+        public void UpgradeWeapon(int cost, int maxLevel, DateTime utcNow)
+        {
+            if (WeaponLevel >= maxLevel)
+                throw new RequirementNotMetException(RefusalReasons.HeroWeaponMaxed,
+                    $"Hero {Id} weapon is already +{WeaponLevel}.", maxLevel);
+
+            if (WeaponShards < cost)
+                throw new RequirementNotMetException(RefusalReasons.HeroWeaponShards,
+                    $"Hero {Id} weapon needs {cost} shards, has {WeaponShards}.", cost, WeaponShards);
+
+            WeaponShards -= cost;
+            WeaponLevel++;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
         /// <summary>Рівень вміння за книгами; без запису — перший.</summary>
         public int SkillLevel(string skillKey) => SkillLevels.GetValueOrDefault(skillKey, 1);
 
@@ -325,60 +418,43 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Виставляє героя на ринок. Як і в поході, він покидає гарнізон
-        /// і лідерство: тоді вдягання, лікування й призначення відсікаються
-        /// тими самими правилами, що й для героя в дорозі.
+        /// Ставить героя в слот табору. Що слот вільний і табір доступний, перевіряє викликач:
+        /// для цього потрібні інші герої й сам табір.
         /// </summary>
-        public void PutOnMarket(DateTime utcNow)
+        public void EnterCamp(int slot, int campLevel, DateTime utcNow)
         {
-            if (State != HeroState.Idle || StationedGarrisonId is null)
-                throw new RequirementNotMetException(RefusalReasons.MarketHeroBusy, $"Hero {Id} is {State} and cannot be listed.");
+            if (CampSlot is not null)
+                throw new RequirementNotMetException(RefusalReasons.CampHeroAlreadyIn, $"Hero {Id} is already in the camp.");
 
-            if (ResaleLockedUntil is { } until && until > utcNow)
-                throw new RequirementNotMetException(RefusalReasons.MarketResaleCooldown,
-                    $"Hero {Id} was bought recently and cannot be resold until {until:O}.", until);
-
-            State = HeroState.OnMarket;
-            StationedGarrisonId = null;
-            IsLeader = false;
+            CampSlot = slot;
+            CampLevel = campLevel;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }
 
-        /// <summary>Лот знято або строк минув — герой повертається в гарнізон продавця.</summary>
-        /// <param name="leaderSlotFree">Чи вільний лідерський слот: за час лота могли призначити іншого.</param>
-        public void TakeOffMarket(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
+        /// <summary>Виймає героя з табору: він повертається до власного рівня. Повертає звільнений слот.</summary>
+        public int LeaveCamp(DateTime utcNow)
         {
-            if (State != HeroState.OnMarket)
-                throw new InvalidStateException($"Hero {Id} is not on the market.");
+            var slot = CampSlot
+                ?? throw new RequirementNotMetException(RefusalReasons.CampHeroNotIn, $"Hero {Id} is not in the camp.");
 
-            State = HeroState.Idle;
-            StationedGarrisonId = garrisonId;
-            IsLeader = leaderSlotFree;
+            CampSlot = null;
+            CampLevel = null;
             Touch(utcNow);
             RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+
+            return slot;
         }
 
-        /// <summary>
-        /// Продаж: герой переходить до покупця й стає в його гарнізон.
-        /// Подія йде обом власникам — Power змінюється в обох.
-        /// </summary>
-        public void SellTo(Guid buyerId, Guid garrisonId, bool leaderSlotFree, DateTime resaleLockedUntil, DateTime utcNow)
+        /// <summary>Новий рівень табору для героя в слоті. Без змін — нічого не пише й не сповіщає.</summary>
+        public void SyncCampLevel(int campLevel, DateTime utcNow)
         {
-            if (State != HeroState.OnMarket)
-                throw new InvalidStateException($"Hero {Id} is not on the market.");
+            if (CampSlot is null || CampLevel == campLevel)
+                return;
 
-            var sellerId = PlayerId;
-
-            PlayerId = buyerId;
-            State = HeroState.Idle;
-            StationedGarrisonId = garrisonId;
-            IsLeader = leaderSlotFree;
-            ResaleLockedUntil = resaleLockedUntil;
+            CampLevel = campLevel;
             Touch(utcNow);
-
-            RaiseDomainEvent(new HeroChanged(sellerId, Id, utcNow));
-            RaiseDomainEvent(new HeroChanged(buyerId, Id, utcNow));
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;

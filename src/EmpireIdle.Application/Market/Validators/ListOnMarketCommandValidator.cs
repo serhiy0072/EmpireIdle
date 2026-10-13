@@ -22,15 +22,6 @@ namespace EmpireIdle.Application.Market.Validators
             When(x => x.Kind == MarketListingKind.Equipment, () =>
             {
                 RuleFor(x => x.EquipmentId).NotNull().NotEqual(Guid.Empty);
-                RuleFor(x => x.HeroId).Null();
-                RuleFor(x => x.ItemKey).Null();
-                RuleFor(x => x.Quantity).Equal(1);
-            });
-
-            When(x => x.Kind == MarketListingKind.Hero, () =>
-            {
-                RuleFor(x => x.HeroId).NotNull().NotEqual(Guid.Empty);
-                RuleFor(x => x.EquipmentId).Null();
                 RuleFor(x => x.ItemKey).Null();
                 RuleFor(x => x.Quantity).Equal(1);
             });
@@ -39,7 +30,6 @@ namespace EmpireIdle.Application.Market.Validators
             {
                 RuleFor(x => x.ItemKey).NotEmpty().MaximumLength(50);
                 RuleFor(x => x.EquipmentId).Null();
-                RuleFor(x => x.HeroId).Null();
                 RuleFor(x => x.Quantity).InclusiveBetween(1, MaxQuantity);
             });
         }

@@ -37,10 +37,12 @@ namespace EmpireIdle.Domain.Combat
             double defenderBonus,
             int woundedCapacity,
             StackBuff? attackerBuff = null,
-            DefenceBuffs? defenceBuffs = null)
+            DefenceBuffs? defenceBuffs = null,
+            IReadOnlyList<HeroCombatant>? attackerHeroes = null,
+            IReadOnlyList<HeroCombatant>? defenderHeroes = null)
         {
             var battle = _combat.Resolve(attackerArmy, defence, terrainType, seed,
-                attackerBonus, defenderBonus, attackerBuff, defenceBuffs);
+                attackerBonus, defenderBonus, attackerBuff, defenceBuffs, attackerHeroes, defenderHeroes);
 
             // Окремий сід для розподілу: якби він збігався з бойовим, послідовність
             // Random продовжилась би з місця, де її лишив CombatCalculator,

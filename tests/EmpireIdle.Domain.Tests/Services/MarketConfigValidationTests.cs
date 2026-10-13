@@ -28,12 +28,7 @@ public class MarketConfigValidationTests
         config.Market = new MarketConfig
         {
             BuildingKey = Market,
-            GoldPerPower = config.Heroes
-                .Select(h => MarketPricing.CategoryOf(h.Rank))
-                .Append("weapon")
-                .Append("artifact")
-                .Distinct()
-                .ToDictionary(key => key, _ => 10.0)
+            GoldPerPower = new Dictionary<string, double> { ["artifact"] = 10.0 }
         };
 
         return config;
@@ -69,13 +64,32 @@ public class MarketConfigValidationTests
     public void Validate_ShouldRejectATradeableItemWithoutAShopPrice()
         => Assert.Contains($"item.{Tonic}", Rejects(c => c.Shop.Items.Clear()).Message);
 
+    /// <summary>Предмет лише зі скрині тримає якір довідковою ціною (GDD §9.12).</summary>
+    [Fact]
+    public void Validate_ShouldAcceptAChestOnlyItem_WithAGemValue()
+    {
+        var config = Enabled();
+        config.Shop.Items.Clear();
+        config.Market.GemValues[Tonic] = 5;
+
+        Assert.Null(Record.Exception(() => GameConfigValidator.Validate(config)));
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectAGemValueOfAnUnknownItem()
+        => Assert.Contains("elixir", Rejects(c => c.Market.GemValues["elixir"] = 5).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectANonPositiveGemValue()
+        => Assert.Contains(Tonic, Rejects(c => c.Market.GemValues[Tonic] = 0).Message);
+
     [Fact]
     public void Validate_ShouldRejectAnEquipmentCategoryWithoutAPowerPrice()
-        => Assert.Contains("weapon", Rejects(c => c.Market.GoldPerPower.Remove("weapon")).Message);
+        => Assert.Contains("artifact", Rejects(c => c.Market.GoldPerPower.Remove("artifact")).Message);
 
     /// <summary>Спорядження торгується завжди; позначка на ньому — плутанина в конфігу.</summary>
     [Fact]
     public void Validate_ShouldRejectTheTradeableFlagOnEquipment()
-        => Assert.Contains(TestKeys.Weapon,
-            Rejects(c => c.Items.Single(i => i.Key == TestKeys.Weapon).Tradeable = true).Message);
+        => Assert.Contains(TestKeys.Artifact,
+            Rejects(c => c.Items.Single(i => i.Key == TestKeys.Artifact).Tradeable = true).Message);
 }

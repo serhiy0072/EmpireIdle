@@ -18,7 +18,7 @@ public class SummonHeroCommandTests
     private static readonly Guid PlayerId = Guid.NewGuid();
     private const int ServerId = 1;
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();

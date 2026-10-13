@@ -28,7 +28,7 @@ public class ClanStructureCommandTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IMapRepository _map = Substitute.For<IMapRepository>();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();

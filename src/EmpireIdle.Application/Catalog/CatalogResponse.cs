@@ -9,9 +9,19 @@
     /// </summary>
     /// <param name="SkillBooks">Яка книга (предмет) піднімає вміння героя якої ролі, рідкості й половини.</param>
     /// <param name="MaxSkillLevel">Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1).</param>
+    /// <param name="Lootboxes">Таблиці скринь із шансами — розкриття обов'язкове за правилами сторів.</param>
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
-    /// <param name="MaxEnhancement">Стеля заточки — після неї кнопка «Заточити» зникає.</param>
-    /// <param name="RepairGemsBase">Ремонт зброї в gems: база плюс RepairGemsPerLevel за кожен рівень заточки.</param>
+    /// <param name="MaxArtifactLevel">Стеля рівня артефакта — після неї «Посилити» зникає.</param>
+    /// <param name="ArtifactLevelExperience">
+    /// Накопичений досвід, з яким артефакт стає рівня n (індекс — рівень, від 0 до стелі): кузня рахує,
+    /// скільки «їжі» до рівня +1, +2… без власної копії формули.
+    /// </param>
+    /// <param name="MaxMastery">Стеля майстерності коваля.</param>
+    /// <param name="MasteryAttempts">
+    /// Спроба заточки з кожної поточної майстерності (індекс 0 — спроба на +1): ціна в золоті й шанс успіху —
+    /// кузня показує їх на кнопці тими самими числами, що й сервер.
+    /// </param>
+    /// <param name="ArtifactRepair">Ремонт зламаного заточкою артефакта й шанси поломки (GDD §9.12).</param>
     /// <param name="SpeedUp">
     /// Ціна прискорення таймерів. Клієнт перераховує її щосекунди разом із відліком —
     /// знімок із запиту застарівав і показував більше, ніж спише сервер.
@@ -28,20 +38,25 @@
         IReadOnlyList<CatalogUnit> Units,
         IReadOnlyList<CatalogBeast> Beasts,
         IReadOnlyList<CatalogArtifactSet> ArtifactSets,
+        IReadOnlyList<CatalogLootbox> Lootboxes,
         IReadOnlyList<string> HeroClasses,
         int MaxStars,
         int PartsPerStar,
+        IReadOnlyList<int> WeaponShardCosts,
         int MaxSkillLevel,
         IReadOnlyList<CatalogSkillBook> SkillBooks,
         double StarPartBonus,
         int SummonShards,
         int MaxTier,
         int MaxUnitLevel,
+        IReadOnlyList<int> UnitBatchSizes,
         int HealGemsPerUnit,
         IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
-        int MaxEnhancement,
-        int RepairGemsBase,
-        int RepairGemsPerLevel,
+        int MaxArtifactLevel,
+        IReadOnlyList<long> ArtifactLevelExperience,
+        int MaxMastery,
+        IReadOnlyList<CatalogMasteryAttempt> MasteryAttempts,
+        CatalogArtifactRepair ArtifactRepair,
         CatalogSpeedUp SpeedUp,
         int MapSize,
         string MainBuildingKey,
@@ -50,9 +65,10 @@
 
     /// <summary>
     /// Формула SpeedUpCalculator: ceil(Factor × хвилини^Exponent) за зрізану частину — усе понад
-    /// FloorSeconds; щонайменше 1 gem. Останні FloorSeconds не прискорюються.
+    /// FloorSeconds свого таймера (Construction, Training, UnitLevelUp, March); щонайменше 1 gem.
+    /// Таймера немає в FloorSeconds — межа нуль.
     /// </summary>
-    public record CatalogSpeedUp(int FloorSeconds, double Factor, double Exponent);
+    public record CatalogSpeedUp(IReadOnlyDictionary<string, int> FloorSeconds, double Factor, double Exponent);
 
     /// <summary>Тип звіра (GDD §5.10): з якого монстра приручається й на що діє пасивка.</summary>
     /// <param name="Effect">Production, Attack, Defense, MarchSpeed або Carry.</param>
@@ -61,6 +77,9 @@
     /// <param name="Rank">Ранг рядком: "Common", "Rare", "Unique".</param>
     /// <param name="NativeTier">Рідний тір: герой приходить у ньому й з'являється лише зі світу цього рівня (GDD §6.1).</param>
     /// <param name="Lore">Історія героя для кодексу й картки; коротший підсумок — у Description.</param>
+    /// <param name="WeaponName">Назва унікальної зброї героя (GDD §6.4); null — ще не названа.</param>
+    /// <param name="WeaponBonusPercents">Бонус зброї до статів героя у % на +1…+5 — за його рідкістю.</param>
+    /// <param name="WeaponShardPriceGems">Ціна шматка зброї в магазині; null — не продається (унікальні).</param>
     public record CatalogHero(
         string Key,
         string DisplayName,
@@ -72,7 +91,10 @@
         double Speed,
         IReadOnlyDictionary<string, double> BaseStats,
         IReadOnlyDictionary<string, double> StatGrowth,
-        IReadOnlyList<CatalogSkill> Skills);
+        IReadOnlyList<CatalogSkill> Skills,
+        string? WeaponName,
+        IReadOnlyList<double> WeaponBonusPercents,
+        int? WeaponShardPriceGems);
 
     /// <summary>Вміння героя (GDD §6.1): рівень героя відкриває, зірки стелять рівень.</summary>
     /// <param name="Half">"Attack" або "Defense" — яка книга його піднімає.</param>
@@ -115,11 +137,16 @@
         bool IgnoresLine,
         IReadOnlyList<double> LevelScale);
 
-    /// <param name="Slot">"Weapon", "Artifact" або null для стакового предмета.</param>
+    /// <param name="Slot">"Artifact" для спорядження або null для стакового предмета.</param>
     /// <param name="ArtifactSlot">Тип слота артефакта (ключ з ArtifactSlots); null — не артефакт.</param>
     /// <param name="Tradeable">Стаковий предмет можна виставити на ринок; спорядження торгується завжди.</param>
     /// <param name="TeleportScope">Для телепорта — Exact, Nearby, ClanTerritory, Random або ClanLeader (GDD §8.9); null для решти.</param>
     /// <param name="TeleportRange">Радіус ближнього телепорта в клітинах (Чебишев); null для решти.</param>
+    /// <param name="SpeedUpMinutes">Для прискорення — скільки хвилин зрізає з таймера; null для решти.</param>
+    /// <param name="WeaponHeroes">Для скрині зброї — чию зброю вона качає (поточна трійка); порожньо для решти.</param>
+    /// <param name="WeaponShards">Для скрині зброї — шматків за одну скриню; null для решти.</param>
+    /// <param name="ArtifactExperience">Для гаєчки — скільки досвіду рівня дає артефакту; null для решти.</param>
+    /// <param name="HeroExperience">Для банки досвіду — скільки досвіду додає в запас героїв; null для решти.</param>
     public record CatalogItem(
         string Key,
         string DisplayName,
@@ -127,15 +154,41 @@
         string Rarity,
         string Type,
         string? Slot,
-        IReadOnlyList<string> WeaponClasses,
-        IReadOnlyDictionary<string, double> BaseStats,
         string? SetKey,
         string? ArtifactSlot,
-        int PriceGold,
         bool Tradeable,
         bool Giftable,
         string? TeleportScope,
-        int? TeleportRange);
+        int? TeleportRange,
+        int? SpeedUpMinutes,
+        IReadOnlyList<string> WeaponHeroes,
+        int? WeaponShards,
+        int? ArtifactExperience,
+        long? HeroExperience);
+
+    /// <summary>Скриня (GDD §9.12): позиції з базовими шансами й гарантія.</summary>
+    /// <param name="Key">Ключ предмета-скрині.</param>
+    /// <param name="PityWithin">Позиція з Pity — не пізніше цього відкриття поспіль; 0 — без гарантії.</param>
+    /// <param name="Rolls">Скільки кидків таблиці дає одне відкриття.</param>
+    public record CatalogLootbox(string Key, int PityWithin, IReadOnlyList<CatalogLootboxEntry> Entries, int Rolls);
+
+    /// <summary>Позиція скрині.</summary>
+    /// <param name="Type">
+    /// Тип нагороди; "Lootbox" — вкладена скриня, "Artifact" — випадковий артефакт рідкості Key,
+    /// "RandomHero" / "RandomHeroShards" — випадковий герой або його уламки рідкості Key.
+    /// </param>
+    /// <param name="Chance">Базовий шанс у відсотках, без гарантії.</param>
+    /// <param name="Pity">Позиція, яку віддає гарантія.</param>
+    public record CatalogLootboxEntry(string Type, string? Key, int Amount, double Chance, bool Pity);
+
+    /// <summary>Одна спроба заточки коваля.</summary>
+    /// <param name="Gold">Ціна спроби в золоті; невдача її не повертає.</param>
+    /// <param name="Chance">Шанс успіху від 0 до 1.</param>
+    public record CatalogMasteryAttempt(int Gold, double Chance);
+
+    /// <summary>Ремонт артефакта: gems за рівень заточки або один ремкомплект.</summary>
+    /// <param name="BreakChances">Шанс поломки після невдалої спроби на кожну заточку, від спроби на +1.</param>
+    public record CatalogArtifactRepair(int GemsPerMastery, string KitItemKey, IReadOnlyList<double> BreakChances);
 
     /// <summary>Тип артефактного слота: намисто, корона, кільце, пояс.</summary>
     public record CatalogArtifactSlot(string Key, string DisplayName);
@@ -146,7 +199,7 @@
     /// </summary>
     /// <param name="Tier">Рівень набору: вищий — сильніші стати.</param>
     /// <param name="StatMultiplier">Множник статів за рівнем — те, що рівень означає в числах.</param>
-    /// <param name="FocusStats">Характерні стати: частіше випадають, і бонус набору в них.</param>
+    /// <param name="FocusStats">Характер набору для гравця — атакувальний чи захисний; на стати предметів не впливає.</param>
     /// <param name="Dungeon">Данж, з якого падає набір; null — набір поза данжами.</param>
     public record CatalogArtifactSet(
         string Key,

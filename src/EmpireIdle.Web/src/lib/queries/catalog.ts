@@ -11,12 +11,18 @@ export type CatalogHero = components["schemas"]["CatalogHero"];
 export type CatalogItem = components["schemas"]["CatalogItem"];
 export type CatalogResource = components["schemas"]["CatalogResource"];
 export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
+
+/** Таймер прискорення — ключ межі в каталозі (SpeedUpTimer на сервері). */
+export type SpeedUpTimer = "Construction" | "Training" | "UnitLevelUp" | "March";
 export type CatalogSkill = components["schemas"]["CatalogSkill"];
 export type CatalogUnit = components["schemas"]["CatalogUnit"];
 export type CatalogBeast = components["schemas"]["CatalogBeast"];
 export type CatalogArtifactSet = components["schemas"]["CatalogArtifactSet"];
 export type CatalogSetRarity = components["schemas"]["CatalogSetRarity"];
 export type CatalogArtifactSlot = components["schemas"]["CatalogArtifactSlot"];
+export type CatalogLootbox = components["schemas"]["CatalogLootbox"];
+export type CatalogArtifactRepair = components["schemas"]["CatalogArtifactRepair"];
+export type CatalogMasteryAttempt = components["schemas"]["CatalogMasteryAttempt"];
 
 export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
@@ -30,6 +36,8 @@ export interface Catalog {
   heroName: (key: string) => string;
   itemName: (key: string) => string;
   resourceName: (key: string) => string;
+  /** Місце ресурсу в довіднику: за ним шапка тримає сталий порядок, хоч сервер його не гарантує. */
+  resourceOrder: (key: string) => number;
   buildingName: (key: string) => string;
   unitName: (key: string) => string;
   beastName: (key: string) => string;
@@ -51,19 +59,24 @@ export interface Catalog {
   maxTier: number;
   /** Кап рівня юніта від тренування чи прокачки (§5.2 GDD). */
   maxUnitLevel: number;
+  /** Скільки юнітів будівля тренує чи качає за одну партію на цьому рівні. */
+  unitBatchSize: (buildingLevel: number) => number;
   /** Ціна лікування пораненого юніта в gems — та сама для будь-якого типу. */
   healGemsPerUnit: number;
-  /** Зброя з ціною в золоті — те, що продає кузня. */
-  weaponsForSale: CatalogItem[];
   /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
   artifactSlots: CatalogArtifactSlot[];
   /** Назва слота, у який вдягається артефакт; null — не артефакт. */
   artifactSlotName: (itemKey: string) => string | null;
-  /** Стеля заточки й прокачки спорядження. */
-  maxEnhancement: number;
-  /** Ремонт зброї в gems: база плюс надбавка за рівень заточки. */
-  repairGemsBase: number;
-  repairGemsPerLevel: number;
+  /** Стеля рівня артефакта (згодовування). */
+  maxArtifactLevel: number;
+  /** Стеля майстерності коваля. */
+  maxMastery: number;
+  /** Накопичений досвід, з яким артефакт стає рівня n (індекс — рівень). */
+  artifactLevelExperience: number[];
+  /** Ціна в золоті й шанс успіху спроби з кожної поточної майстерності (індекс 0 — спроба на +1). */
+  masteryAttempts: CatalogMasteryAttempt[];
+  /** Ціна ремонту й шанси поломки на кожну заточку. */
+  artifactRepair: CatalogArtifactRepair;
   /** Сторона світової мапи в клітинах. */
   mapSize: number;
   /** Ключ головної будівлі — її рівень показуємо як рівень гравця. */
@@ -72,12 +85,16 @@ export interface Catalog {
   artifactSets: CatalogArtifactSet[];
   /** Родина, до якої належить предмет; null — предмет поза наборами. */
   setOfItem: (itemKey: string) => CatalogArtifactSet | null;
+  /** Таблиця скрині з шансами й гарантією; null — предмет не скриня. */
+  lootbox: (itemKey: string) => CatalogLootbox | null;
   /**
    * Ціна прискорення таймера на момент `now` — та сама формула, що в SpeedUpCalculator:
-   * платиться все понад межу (floorSeconds), щонайменше 1 gem. 0 — лишилась межа,
-   * прискорювати нічого, кнопку не показуємо. Поки каталог не приїхав — ціна із запиту.
+   * платиться все понад межу свого таймера (floorSeconds[timer], немає — нуль), щонайменше 1 gem.
+   * 0 — лишилась межа, прискорювати нічого, кнопку не показуємо. Поки каталог не приїхав — ціна із запиту.
    */
-  speedUpCost: (completesAt: string, now: number, serverCost: number) => number;
+  speedUpCost: (timer: SpeedUpTimer, completesAt: string, now: number, serverCost: number) => number;
+  /** Межа таймера, нижче якої прискорення не зрізає (будівництво й тренування — 0, марш — 30 с). */
+  speedUpFloorSeconds: (timer: SpeedUpTimer) => number;
 }
 
 /**
@@ -102,9 +119,11 @@ export function useCatalog(): Catalog {
     const heroes = new Map((data?.heroes ?? []).map((hero) => [hero.key, hero]));
     const items = new Map((data?.items ?? []).map((item) => [item.key, item]));
     const resources = new Map((data?.resources ?? []).map((resource) => [resource.key, resource]));
+    const resourceIndex = new Map((data?.resources ?? []).map((resource, index) => [resource.key, index]));
     const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
     const units = new Map((data?.units ?? []).map((unit) => [unit.key, unit]));
     const beasts = new Map((data?.beasts ?? []).map((beast) => [beast.key, beast]));
+    const lootboxes = new Map((data?.lootboxes ?? []).map((box) => [box.key, box]));
     const beastsByMonster = new Map((data?.beasts ?? []).map((beast) => [beast.monsterKey, beast]));
     // SetKey предмета («dawn_rare») → родина («dawn»): так картка артефакту знає свій набір
     const familyBySetKey = new Map(
@@ -122,6 +141,7 @@ export function useCatalog(): Catalog {
       heroName: (key) => heroes.get(key)?.displayName ?? key,
       itemName: (key) => items.get(key)?.displayName ?? key,
       resourceName: (key) => resources.get(key)?.displayName ?? key,
+      resourceOrder: (key) => resourceIndex.get(key) ?? Number.MAX_SAFE_INTEGER,
       buildingName: (key) => buildings.get(key)?.displayName ?? key,
       unitName: (key) => units.get(key)?.displayName ?? key,
       beastName: (key) => beasts.get(key)?.displayName ?? key,
@@ -144,16 +164,21 @@ export function useCatalog(): Catalog {
       summonShards: data?.summonShards ?? 10,
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
+      unitBatchSize: (buildingLevel) => {
+        const sizes = data?.unitBatchSizes ?? [];
+        return sizes[Math.min(Math.max(buildingLevel, 1), sizes.length) - 1] ?? 1;
+      },
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
-      weaponsForSale: (data?.items ?? []).filter((item) => item.slot === "Weapon" && item.priceGold > 0),
       artifactSlots: data?.artifactSlots ?? [],
       artifactSlotName: (itemKey) => {
         const slot = items.get(itemKey)?.artifactSlot;
         return slot == null ? null : (data?.artifactSlots.find((s) => s.key === slot)?.displayName ?? slot);
       },
-      maxEnhancement: data?.maxEnhancement ?? 20,
-      repairGemsBase: data?.repairGemsBase ?? 20,
-      repairGemsPerLevel: data?.repairGemsPerLevel ?? 8,
+      maxArtifactLevel: data?.maxArtifactLevel ?? 20,
+      maxMastery: data?.maxMastery ?? 10,
+      artifactLevelExperience: data?.artifactLevelExperience ?? [],
+      masteryAttempts: data?.masteryAttempts ?? [],
+      artifactRepair: data?.artifactRepair ?? { gemsPerMastery: 0, kitItemKey: "repair_kit", breakChances: [] },
       mapSize: data?.mapSize ?? 500,
       mainBuildingKey: data?.mainBuildingKey ?? "townhall",
       artifactSets: data?.artifactSets ?? [],
@@ -161,11 +186,14 @@ export function useCatalog(): Catalog {
         const setKey = items.get(itemKey)?.setKey;
         return setKey == null ? null : (familyBySetKey.get(setKey) ?? null);
       },
-      speedUpCost: (completesAt, now, serverCost) => {
+      lootbox: (itemKey) => lootboxes.get(itemKey) ?? null,
+      speedUpFloorSeconds: (timer) => data?.speedUp.floorSeconds[timer] ?? 0,
+      speedUpCost: (timer, completesAt, now, serverCost) => {
         if (data === undefined) return serverCost;
 
         const { floorSeconds, factor, exponent } = data.speedUp;
-        const minutes = (new Date(completesAt).getTime() - now - floorSeconds * 1_000) / 60_000;
+        const floor = floorSeconds[timer] ?? 0;
+        const minutes = (new Date(completesAt).getTime() - now - floor * 1_000) / 60_000;
 
         return minutes <= 0 ? 0 : Math.max(1, Math.ceil(factor * Math.pow(minutes, exponent)));
       },
@@ -197,7 +225,6 @@ const STATES: Record<string, string> = {
   Idle: "Вдома",
   Deployed: "У поході",
   Wounded: "Поранений",
-  OnMarket: "На ринку",
   LevelingUp: "Качається",
 };
 
@@ -235,8 +262,7 @@ const SKILL_TARGETS: Record<string, string> = {
   all: "усьому війську",
   infantry: "піхоті",
   archer: "лучникам",
-  cavalry: "кінноті",
-  siege: "облоговим",
+  spearman: "списоносцям",
 };
 
 /** Що вміння робить на рівні level; закрите (0) показується першим рівнем — «що відкриється». */
@@ -269,4 +295,45 @@ export function skillEffect(skill: CatalogSkill, level: number): string {
   }
 
   return parts.join(" · ");
+}
+/** Рядок перегляду вміння за рівнями: що росте і значення на кожному рівні (рівень 1 — перше). */
+export interface SkillPreviewRow {
+  label: string;
+  values: string[];
+}
+
+/**
+ * Перегляд покращення, як у грі: «+2%/4%/6%…» по рівнях. Ті самі числа, що skillEffect,
+ * лише всі рівні разом — гравець бачить, що дасть наступна книга.
+ */
+export function skillPreview(skill: CatalogSkill, maxLevel: number): SkillPreviewRow[] {
+  const levels = Array.from({ length: maxLevel }, (_, index) => index + 1);
+  const rows: SkillPreviewRow[] = [];
+
+  if (skill.troops !== null && skill.troops !== undefined) {
+    const troops = skill.troops;
+    const stat = SKILL_STATS[troops.stat] ?? troops.stat;
+    rows.push({
+      label: `${stat} ${SKILL_TARGETS[troops.target] ?? troops.target}`,
+      values: levels.map((level) => `${skillValue(troops.percents, level)}%`),
+    });
+  }
+
+  if (skill.utility !== null && skill.utility !== undefined) {
+    const utility = skill.utility;
+    rows.push({
+      label: utility.effect === "MarchSpeed" ? "швидкість маршу" : utility.effect,
+      values: levels.map((level) => `${skillValue(utility.percents, level)}%`),
+    });
+  }
+
+  if (skill.battle !== null && skill.battle !== undefined && skill.battle.damageMultiplier > 0) {
+    const battle = skill.battle;
+    rows.push({
+      label: "шкода в данжі",
+      values: levels.map((level) => `×${(battle.damageMultiplier * skillValue(battle.levelScale, level)).toFixed(1)}`),
+    });
+  }
+
+  return rows;
 }

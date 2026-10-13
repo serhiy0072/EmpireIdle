@@ -100,25 +100,43 @@ export default function HeroPortrait({ heroKey, heroClass, rank, tier, size = 56
   const hair = pick(HAIRS, hash(heroKey, 2));
   const gradientId = `hero-${heroKey}`;
 
+  // Тір вище першого — значком у куті, щоб героя на сітці було видно без відкриття картки
+  const badge =
+    tier > 1 ? (
+      <span
+        className="absolute -right-1 -top-1 rounded bg-amber-400 px-1 text-[10px] font-bold leading-tight text-slate-900 ring-1 ring-amber-700"
+        title={`Тір ${tier}`}
+      >
+        T{tier}
+      </span>
+    ) : null;
+
+  const framed = (portrait: ReactElement) => (
+    <span className={`relative inline-block shrink-0 ${className}`} style={{ width: size, height: size }}>
+      {portrait}
+      {badge}
+    </span>
+  );
+
   if (sprite !== null) {
-    return (
+    return framed(
       <img
         src={sprite}
         alt=""
         width={size}
         height={size}
-        className={`rounded-lg border-2 object-cover ${className}`}
+        className="rounded-lg border-2 object-cover"
         style={{ borderColor: frame.stroke, boxShadow: `0 0 0 3px ${frame.glow}` }}
-      />
+      />,
     );
   }
 
-  return (
+  return framed(
     <svg
       viewBox="0 0 100 100"
       width={size}
       height={size}
-      className={`shrink-0 rounded-lg ${className}`}
+      className="shrink-0 rounded-lg"
       style={{ boxShadow: `0 0 0 3px ${frame.glow}` }}
       aria-hidden
     >
@@ -154,6 +172,6 @@ export default function HeroPortrait({ heroKey, heroClass, rank, tier, size = 56
 
       <rect x={1.5} y={1.5} width={97} height={97} rx={9} fill="none" stroke={frame.stroke} strokeWidth={3} />
       {rank === "Unique" && <rect x={5} y={5} width={90} height={90} rx={7} fill="none" stroke="#fde68a" strokeWidth={1} />}
-    </svg>
+    </svg>,
   );
 }

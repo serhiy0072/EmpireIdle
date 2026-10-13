@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject, type WheelEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from "react";
 
 export interface Transform {
   x: number;
@@ -193,14 +193,25 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
     pointers.current.delete(event.pointerId);
   };
 
-  const onWheel = (event: WheelEvent<HTMLDivElement>) => {
-    const point = local(event);
-    zoomAt(point.x, point.y, event.deltaY < 0 ? 1.1 : 1 / 1.1);
-  };
+  // Коліщатко — лише масштаб: React вішає wheel пасивним, і preventDefault там не діє, тож сторінка
+  // прокручувалась разом із наближенням. Нативний слухач з passive: false гасить прокрутку.
+  useEffect(() => {
+    const node = containerRef.current;
+    if (node === null) return;
+
+    const onWheel = (event: globalThis.WheelEvent) => {
+      event.preventDefault();
+      const rect = node.getBoundingClientRect();
+      zoomAt(event.clientX - rect.left, event.clientY - rect.top, event.deltaY < 0 ? 1.1 : 1 / 1.1);
+    };
+
+    node.addEventListener("wheel", onWheel, { passive: false });
+    return () => node.removeEventListener("wheel", onWheel);
+  }, [containerRef, zoomAt]);
 
   return {
     transform,
-    handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp, onWheel },
+    handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp },
     wasDragged: () => dragged.current,
     focus,
   };

@@ -6,23 +6,27 @@ import { useCatalog } from "../lib/queries/catalog";
 import { speedUpLabel } from "../lib/speedUp";
 import { useGarrison, useLevelUpUnits, useSpeedUpLevelUp, useUnitLevelCeiling } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
+import SpeedUpItemsButton from "./SpeedUpItemsButton";
 
 interface Props {
   playerId: string;
   buildingType: string;
+  /** Рівень будівлі задає ліміт партії — той самий, що й у тренування. */
+  buildingLevel: number;
 }
 
 /**
  * Прокачка вже навчених юнітів на вищий рівень (§5.2 GDD): +10%/рівень,
  * кап 10 і не вище ратуші. Юніти на прокачці зняті з гарнізону, поки не завершиться.
  */
-export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
+export default function LevelUpUnitsPanel({ playerId, buildingType, buildingLevel }: Props) {
   const now = useNow();
   const catalog = useCatalog();
   const garrison = useGarrison(playerId);
   const levelUp = useLevelUpUnits(playerId);
   const speedUp = useSpeedUpLevelUp(playerId);
   const levelCeiling = useUnitLevelCeiling(playerId);
+  const maxBatch = catalog.unitBatchSize(buildingLevel);
 
   const [targetLevels, setTargetLevels] = useState<Record<string, number>>({});
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -50,7 +54,7 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
         const unit = catalog.unit(stack.unitType);
         const maxToLevel = levelCeiling;
         const toLevel = Math.min(Math.max(targetLevels[key] ?? stack.level + 1, stack.level + 1), maxToLevel);
-        const count = Math.min(Math.max(counts[key] ?? 1, 1), stack.count);
+        const count = Math.min(Math.max(counts[key] ?? 1, 1), stack.count, maxBatch);
 
         const costLine = unit
           ? unit.cost
@@ -96,7 +100,8 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
               <input
                 type="number"
                 min={1}
-                max={stack.count}
+                max={Math.min(stack.count, maxBatch)}
+                title={`Не більше ${maxBatch} за партію`}
                 value={count}
                 onChange={(event) =>
                   setCounts((prev) => ({ ...prev, [key]: Math.max(1, Number(event.target.value)) }))
@@ -125,16 +130,19 @@ export default function LevelUpUnitsPanel({ playerId, buildingType }: Props) {
                 {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.fromLevel}→{order.toLevel}) —{" "}
                 {formatRemaining(order.completesAt, now)}
               </span>
-              {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
-                <button
-                  type="button"
-                  onClick={() => speedUp.mutate(order.id)}
-                  disabled={speedUp.isPending}
-                  className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                >
-                  {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
-                </button>
-              )}
+              <span className="flex items-center gap-2">
+                <SpeedUpItemsButton timer="UnitLevelUp" targetId={order.id} completesAt={order.completesAt} />
+                {catalog.speedUpCost("UnitLevelUp", order.completesAt, now, order.speedUpCostGems) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => speedUp.mutate(order.id)}
+                    disabled={speedUp.isPending}
+                    className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    {speedUpLabel(catalog.speedUpCost("UnitLevelUp", order.completesAt, now, order.speedUpCostGems))}
+                  </button>
+                )}
+              </span>
             </div>
           ))}
         </div>

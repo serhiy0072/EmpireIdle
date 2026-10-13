@@ -51,6 +51,11 @@ namespace EmpireIdle.Application.Dungeons.Queries
             var current = energy?.Current(settings.MaxEnergy, settings.RegenHours, now) ?? settings.MaxEnergy;
             var fullAt = energy?.FullAt(settings.MaxEnergy, settings.RegenHours, now);
 
+            // Ціна наступного поповнення — за номером поповнення цієї доби
+            var refills = energy?.RefillsToday(now) ?? 0;
+            var refillsLeft = Math.Max(0, settings.RefillPricesGems.Count - refills);
+            int? refillPrice = refillsLeft > 0 ? settings.RefillPricesGems[refills] : null;
+
             var views = settings.Dungeons
                 .Select(dungeon =>
                 {
@@ -64,7 +69,8 @@ namespace EmpireIdle.Application.Dungeons.Queries
                             _builder.PowerMultiplier(level),
                             dungeon.Reward
                                 .Select(r => new RewardLine(r.Resource, (int)Math.Round(r.Amount * _builder.RewardMultiplier(level))))
-                                .ToList()))
+                                .ToList(),
+                            _builder.HeroExperience(level)))
                         .ToList();
 
                     return new DungeonView(
@@ -87,7 +93,9 @@ namespace EmpireIdle.Application.Dungeons.Queries
                 fullAt,
                 settings.TeamSize,
                 run?.Id,
-                views);
+                views,
+                refillPrice,
+                refillsLeft);
         }
     }
 }

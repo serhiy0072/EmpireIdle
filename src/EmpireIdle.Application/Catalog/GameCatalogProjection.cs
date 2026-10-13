@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Application.Catalog
 {
@@ -80,7 +81,10 @@ namespace EmpireIdle.Application.Catalog
                                     battle.HealPercent, battle.ShieldPercent, battle.Status?.ToString(), battle.IgnoresLine,
                                     battle.LevelScale)
                                 : null))
-                        .ToList()))
+                        .ToList(),
+                    hero.WeaponName,
+                    config.HeroSettings.WeaponBonusPercents.GetValueOrDefault(hero.Rank) ?? [],
+                    config.HeroSettings.WeaponShardPriceGems.TryGetValue(hero.Rank, out var shardPrice) ? shardPrice : null))
                 .ToList();
 
             var items = config.Items
@@ -91,15 +95,17 @@ namespace EmpireIdle.Application.Catalog
                     item.Rarity.ToString(),
                     item.Type,
                     item.Slot?.ToString(),
-                    item.WeaponClasses,
-                    item.BaseStats,
                     item.SetKey,
                     item.ArtifactSlot,
-                    item.PriceGold,
                     item.Tradeable,
                     item.Giftable,
                     item.Type == "teleport" ? item.TeleportScope.ToString() : null,
-                    item.Type == "teleport" && item.TeleportScope == TeleportScope.Nearby ? item.TeleportRange : null))
+                    item.Type == "teleport" && item.TeleportScope == TeleportScope.Nearby ? item.TeleportRange : null,
+                    item.Type == "speedup" ? item.SpeedUpMinutes : null,
+                    item.WeaponHeroes,
+                    item.Type == "weaponchest" ? item.WeaponShards : null,
+                    item.Type == "wrench" ? item.ArtifactExperience : null,
+                    item.Type == "heroxp" ? item.HeroExperience : null))
                 .ToList();
 
             var resources = config.Resources
@@ -140,9 +146,15 @@ namespace EmpireIdle.Application.Catalog
                 units,
                 beasts,
                 ArtifactSets(config, Name),
+                config.Lootboxes
+                    .Select(box => new CatalogLootbox(box.Key, box.PityWithin, box.Entries
+                        .Zip(LootboxRoller.Odds(box), (entry, chance) => new CatalogLootboxEntry(entry.Type, entry.Key, entry.Amount, chance, entry.Pity))
+                        .ToList(), box.Rolls))
+                    .ToList(),
                 config.HeroSettings.Classes,
                 config.HeroSettings.MaxStars,
                 config.HeroSettings.PartsPerStar,
+                config.HeroSettings.WeaponShardCosts,
                 config.HeroSettings.MaxSkillLevel,
                 config.HeroSettings.SkillBooks
                     .Select(book => new CatalogSkillBook(book.ItemKey, book.Class, book.Rarity.ToString(), book.Half.ToString()))
@@ -151,15 +163,24 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.SummonShards,
                 config.HeroSettings.MaxTier,
                 config.MaxUnitLevel,
+                // Ліміт партії за рівнем будівлі юніта: індекс 0 — рівень 1
+                Enumerable.Range(1, config.MaxBuildingLevel)
+                    .Select(level => ProgressionCurves.UnitBatchSize(level, config.MaxBuildingLevel, config.UnitBatchMin, config.UnitBatchMax))
+                    .ToList(),
                 config.Monetization.HealGemsPerUnit,
                 config.Equipment.ArtifactSlots
                     .Select(slot => new CatalogArtifactSlot(slot.Key, Name("artifactSlot", slot.Key, slot.DisplayName)))
                     .ToList(),
-                config.Equipment.MaxEnhancement,
-                config.Equipment.RepairGemsBase,
-                config.Equipment.RepairGemsPerLevel,
+                config.Equipment.MaxLevel,
+                Enumerable.Range(0, config.Equipment.MaxLevel + 1)
+                    .Select(new ArtifactProgression(config.Equipment).ExperienceToReach)
+                    .ToList(),
+                config.Equipment.MaxMastery,
+                MasteryAttempts(config.Equipment),
+                new CatalogArtifactRepair(config.Equipment.RepairGemsPerMastery, config.Equipment.RepairKitItemKey,
+                    config.Equipment.MasteryBreakChances),
                 new CatalogSpeedUp(
-                    config.Monetization.SpeedUpFloorSeconds,
+                    config.Monetization.SpeedUpFloorSeconds.ToDictionary(pair => pair.Key.ToString(), pair => pair.Value),
                     config.Monetization.SpeedUpFactor,
                     config.Monetization.SpeedUpExponent),
                 config.Map.Width,
@@ -169,6 +190,16 @@ namespace EmpireIdle.Application.Catalog
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag
             return response with { Version = Hash(response) };
+        }
+
+        /// <summary>Ціна й шанс кожної спроби заточки — правилами коваля, без копії формули.</summary>
+        private static List<CatalogMasteryAttempt> MasteryAttempts(EquipmentConfig equipment)
+        {
+            var rules = new MasteryRules(equipment);
+
+            return Enumerable.Range(0, equipment.MaxMastery)
+                .Select(mastery => new CatalogMasteryAttempt(rules.Cost(mastery), rules.SuccessChance(mastery)))
+                .ToList();
         }
 
         /// <summary>

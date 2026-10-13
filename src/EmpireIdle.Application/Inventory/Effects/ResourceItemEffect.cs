@@ -23,7 +23,7 @@ namespace EmpireIdle.Application.Inventory.Effects
 
             // Той самий шлях, що й нагороди квестів; стелі складу немає (GDD §4.1)
             foreach (var line in context.Config.Resources)
-                village.GrantResource(line.Resource, line.Amount * context.Count, context.UtcNow);
+                village.GrantResource(line.Resource, checked(line.Amount * context.Count), context.UtcNow);
         }
     }
 }

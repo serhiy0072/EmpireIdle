@@ -47,6 +47,32 @@
     "level",
     "buildings"
   ],
+  "camp.allSlotsBought": [
+    "count"
+  ],
+  "camp.heroAlreadyIn": [],
+  "camp.heroIsReference": [
+    "count"
+  ],
+  "camp.heroLevelLocked": [],
+  "camp.heroNotIn": [],
+  "camp.slotCooling": [
+    "slot",
+    "until"
+  ],
+  "camp.slotLocked": [
+    "slot"
+  ],
+  "camp.slotReady": [
+    "slot"
+  ],
+  "camp.slotTaken": [
+    "slot"
+  ],
+  "camp.unavailable": [
+    "need",
+    "have"
+  ],
   "chat.noClan": [],
   "chat.toSelf": [],
   "chat.tooFast": [
@@ -100,12 +126,16 @@
   "common.buildingRequired": [
     "building"
   ],
+  "dungeon.energyFull": [],
   "dungeon.heroWounded": [
     "hero"
   ],
   "dungeon.levelLocked": [
     "level",
     "previous"
+  ],
+  "dungeon.refillLimit": [
+    "limit"
   ],
   "dungeon.runInProgress": [],
   "dungeon.targetUnreachable": [],
@@ -114,11 +144,16 @@
     "level"
   ],
   "equipment.broken": [],
-  "equipment.classMismatch": [
-    "weapon"
-  ],
-  "equipment.maxEnhancement": [
+  "equipment.foodEquipped": [],
+  "equipment.maxLevel": [
     "max"
+  ],
+  "equipment.maxMastery": [
+    "max"
+  ],
+  "equipment.notBroken": [],
+  "equipment.uniqueFood": [
+    "item"
   ],
   "garrison.armyCapacity": [
     "occupied",
@@ -158,7 +193,6 @@
   "hero.notOwned": [
     "hero"
   ],
-  "hero.onMarket": [],
   "hero.onTheMove": [],
   "hero.shardUpgradeLocked": [
     "rarity"
@@ -179,6 +213,19 @@
   "hero.tierLocked": [
     "tier"
   ],
+  "hero.weaponMaxed": [
+    "max"
+  ],
+  "hero.weaponNotInChest": [
+    "hero"
+  ],
+  "hero.weaponNotSold": [
+    "hero"
+  ],
+  "hero.weaponShards": [
+    "need",
+    "have"
+  ],
   "hero.worldLevelRequired": [
     "required",
     "current"
@@ -195,6 +242,9 @@
     "multiplier",
     "until"
   ],
+  "lootbox.freeNotReady": [
+    "at"
+  ],
   "mail.letterExpired": [],
   "mail.nothingToClaim": [],
   "march.camping": [],
@@ -208,17 +258,28 @@
     "state"
   ],
   "march.notCamping": [],
+  "march.overCapacity": [
+    "capacity",
+    "sent",
+    "hero"
+  ],
   "march.ownCamp": [],
   "march.ownShield": [
     "level"
   ],
   "march.ownVillage": [],
+  "march.sameRole": [
+    "heroes"
+  ],
   "march.targetFallShield": [],
   "march.targetShielded": [],
-  "market.heroAlreadyOwned": [
+  "march.tooManyHeroes": [
+    "max"
+  ],
+  "march.wrongUnits": [
+    "unit",
     "hero"
   ],
-  "market.heroBusy": [],
   "market.itemListed": [],
   "market.listingClosed": [],
   "market.listingLimit": [
@@ -283,5 +344,12 @@
   ],
   "territory.ownStructure": [],
   "village.alreadyThere": [],
+  "village.buildingOutOfBounds": [
+    "min",
+    "max"
+  ],
+  "village.buildingOverlaps": [
+    "building"
+  ],
   "village.nothingToRepair": []
 }

@@ -16,7 +16,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 10
+            "Amount": 160
           }
         ]
       },
@@ -36,7 +36,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 20
+            "Amount": 310
           }
         ]
       },
@@ -56,7 +56,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 30
+            "Amount": 470
           },
           {
             "Type": "Resource",
@@ -86,7 +86,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 40
+            "Amount": 630
           }
         ]
       },
@@ -106,7 +106,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 30
+            "Amount": 470
           },
           {
             "Type": "Equipment",
@@ -130,7 +130,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 50
+            "Amount": 780
           }
         ]
       },
@@ -150,7 +150,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 100
+            "Amount": 1560
           },
           {
             "Type": "Item",
@@ -174,7 +174,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 150
+            "Amount": 2340
           }
         ]
       },
@@ -192,7 +192,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 60
+            "Amount": 940
           }
         ]
       },
@@ -211,7 +211,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 150
+            "Amount": 2340
           }
         ]
       },
@@ -229,7 +229,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 10
+            "Amount": 50
           },
           {
             "Type": "Item",
@@ -252,7 +252,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 12
+            "Amount": 70
           },
           {
             "Type": "Item",
@@ -275,7 +275,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 15
+            "Amount": 80
           },
           {
             "Type": "Item",
@@ -298,7 +298,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 12
+            "Amount": 70
           }
         ]
       },
@@ -316,7 +316,7 @@
         "Rewards": [
           {
             "Type": "Gems",
-            "Amount": 6
+            "Amount": 30
           }
         ]
       },

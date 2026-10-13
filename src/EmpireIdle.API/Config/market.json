@@ -12,13 +12,14 @@
       "OutlierTrimShare": 0.1,
       "MedianMinAnchorShare": 0.5,
       "MedianMaxAnchorShare": 2.0,
-      "GoldPerGem": 100,
+      "GoldPerGem": 10,
+      "GemValues": {
+        "boost_production_2x_4h": 1200,
+        "boost_attack_25_1h": 600,
+        "boost_defense_25_8h": 900
+      },
       "GoldPerPower": {
-        "weapon": 10,
-        "artifact": 10,
-        "hero.Common": 10,
-        "hero.Rare": 20,
-        "hero.Unique": 40
+        "artifact": 10
       }
     }
   }

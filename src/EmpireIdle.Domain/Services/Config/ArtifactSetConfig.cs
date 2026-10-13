@@ -20,8 +20,8 @@ namespace EmpireIdle.Domain.Services.Config
         public int Tier { get; set; } = 1;
 
         /// <summary>
-        /// Характерні стати: при ролі їхня вага більша за решту пулу.
-        /// Порожньо — усі стати рівноймовірні.
+        /// Характер набору для гравця: атакувальний чи захисний. На стати предметів
+        /// не впливає — їх задають база й заточка; бонус повного набору — у SetBonuses.
         /// </summary>
         public List<string> FocusStats { get; set; } = new();
     }

@@ -81,6 +81,20 @@ export function useDungeonTurn(playerId: string) {
   });
 }
 
+/** Поповнення енергії до стелі за gems: сервер одразу віддає оновлену вітрину. */
+export function useRefillDungeonEnergy(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      api<DungeonsOverview>(`/api/dungeons/${playerId}/energy/refill`, { method: "POST", idempotent: true }),
+    onSuccess: (overview) => {
+      queryClient.setQueryData(queryKeys.dungeons(playerId), overview);
+      invalidatePlayer(queryClient, playerId, ["wallet"]);
+    },
+  });
+}
+
 export function useAbandonDungeonRun(playerId: string) {
   const queryClient = useQueryClient();
 

@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -12,11 +13,14 @@ public class SpeedUpCalculatorTests
 {
     private static readonly DateTime Now = new(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
 
+    /// <summary>Таймер із хвилинною межею — на ньому перевіряється форма кривої.</summary>
+    private const SpeedUpTimer Timer = SpeedUpTimer.March;
+
     private readonly SpeedUpCalculator _calculator = new(new MonetizationConfig
     {
         SpeedUpFactor = 1.2,
         SpeedUpExponent = 0.75,
-        SpeedUpFloorSeconds = 60
+        SpeedUpFloorSeconds = new Dictionary<SpeedUpTimer, int> { [Timer] = 60 }
     });
 
     /// <summary>
@@ -30,7 +34,7 @@ public class SpeedUpCalculatorTests
     [InlineData(4321, 640)]   // 1.2 × 4320^0.75 = 639.6 → 640
     public void GetCost_ShouldFollowTheSublinearCurve_OverTheCutPart(int minutes, int expected)
     {
-        var cost = _calculator.GetCost(Now.AddMinutes(minutes), Now);
+        var cost = _calculator.GetCost(Timer, Now.AddMinutes(minutes), Now);
 
         Assert.Equal(expected, cost);
     }
@@ -39,14 +43,14 @@ public class SpeedUpCalculatorTests
     [Fact]
     public void GetCost_ShouldBeAtLeastOneGem_JustAboveTheFloor()
     {
-        Assert.Equal(1, _calculator.GetCost(Now.AddSeconds(61), Now));
+        Assert.Equal(1, _calculator.GetCost(Timer, Now.AddSeconds(61), Now));
     }
 
     /// <summary>Колишній безкоштовний поріг (3 хв) тепер платний.</summary>
     [Fact]
     public void GetCost_ShouldCharge_ForAThreeMinuteTimer()
     {
-        Assert.True(_calculator.GetCost(Now.AddMinutes(3), Now) > 0);
+        Assert.True(_calculator.GetCost(Timer, Now.AddMinutes(3), Now) > 0);
     }
 
     /// <summary>На межі й нижче прискорювати нічого — ціни немає.</summary>
@@ -56,7 +60,7 @@ public class SpeedUpCalculatorTests
     [InlineData(0)]
     public void GetCost_ShouldBeZero_AtOrBelowTheFloor(int secondsLeft)
     {
-        Assert.Equal(0, _calculator.GetCost(Now.AddSeconds(secondsLeft), Now));
+        Assert.Equal(0, _calculator.GetCost(Timer, Now.AddSeconds(secondsLeft), Now));
     }
 
     /// <summary>Зрізається все понад межу: після прискорення лишається рівно хвилина.</summary>
@@ -65,7 +69,7 @@ public class SpeedUpCalculatorTests
     {
         var completesAt = Now.AddHours(2);
 
-        var cut = _calculator.GetCut(completesAt, Now);
+        var cut = _calculator.GetCut(Timer, completesAt, Now);
 
         Assert.Equal(Now.AddSeconds(60), completesAt - cut);
     }
@@ -74,15 +78,39 @@ public class SpeedUpCalculatorTests
     [Fact]
     public void GetCut_ShouldBeZero_ForAnOverdueTimer()
     {
-        Assert.Equal(TimeSpan.Zero, _calculator.GetCut(Now.AddMinutes(-5), Now));
+        Assert.Equal(TimeSpan.Zero, _calculator.GetCut(Timer, Now.AddMinutes(-5), Now));
     }
 
     /// <summary>Команді прискорення на межі — відмова з причиною й межею в параметрі.</summary>
     [Fact]
     public void RequireCut_ShouldRefuse_AtTheFloor()
     {
-        var refusal = Assert.Throws<InvalidStateException>(() => _calculator.RequireCut(Now.AddSeconds(45), Now));
+        var refusal = Assert.Throws<InvalidStateException>(() => _calculator.RequireCut(Timer, Now.AddSeconds(45), Now));
 
         Assert.Equal(RefusalReasons.SpeedUpAtFloor.Key, refusal.Reason);
+    }
+
+    /// <summary>
+    /// Межа своя для кожного таймера (рішення 08.10.2026): будівництво зрізається до нуля,
+    /// марш — до своїх 30 с, а таймер без запису в конфігу — теж до нуля.
+    /// </summary>
+    [Fact]
+    public void GetCut_ShouldUseTheFloorOfItsOwnTimer()
+    {
+        var calculator = new SpeedUpCalculator(new MonetizationConfig
+        {
+            SpeedUpFactor = 1.2,
+            SpeedUpExponent = 0.75,
+            SpeedUpFloorSeconds = new Dictionary<SpeedUpTimer, int>
+            {
+                [SpeedUpTimer.Construction] = 0,
+                [SpeedUpTimer.March] = 30
+            }
+        });
+        var completesAt = Now.AddMinutes(10);
+
+        Assert.Equal(TimeSpan.FromMinutes(10), calculator.GetCut(SpeedUpTimer.Construction, completesAt, Now));
+        Assert.Equal(TimeSpan.FromSeconds(570), calculator.GetCut(SpeedUpTimer.March, completesAt, Now));
+        Assert.Equal(TimeSpan.FromMinutes(10), calculator.GetCut(SpeedUpTimer.Training, completesAt, Now));
     }
 }

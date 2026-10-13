@@ -30,6 +30,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly BattleAftermath _aftermath;
         private readonly VillageStatus _status;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly HeroCombatants _combatants;
         private readonly TerritoryBonus _territoryBonus;
         private readonly CampHomecoming _campHomecoming;
         private readonly HostilityRules _hostility;
@@ -48,6 +49,7 @@ namespace EmpireIdle.Application.Marches.Services
             BattleAftermath aftermath,
             VillageStatus status,
             HeroCombatModifiers heroModifiers,
+            HeroCombatants combatants,
             TerritoryBonus territoryBonus,
             CampHomecoming campHomecoming,
             HostilityRules hostility,
@@ -65,6 +67,7 @@ namespace EmpireIdle.Application.Marches.Services
             _aftermath = aftermath;
             _status = status;
             _heroModifiers = heroModifiers;
+            _combatants = combatants;
             _territoryBonus = territoryBonus;
             _campHomecoming = campHomecoming;
             _hostility = hostility;
@@ -101,15 +104,11 @@ namespace EmpireIdle.Application.Marches.Services
 
             var defence = DefenceStacks.FromArmy(camp.GetUnits());
 
-            var campHero = camp.HeroId is Guid campHeroId
-                ? await _heroRepository.GetByIdAsync(campHeroId, cancellationToken)
-                : null;
+            var campHeroes = await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken);
 
-            var defenceBuffs = new DefenceBuffs(_heroModifiers.For(campHero), new Dictionary<Guid, StackBuff>());
+            var defenceBuffs = new DefenceBuffs(_heroModifiers.ForMarch(campHeroes), new Dictionary<Guid, StackBuff>());
 
-            var attackerHero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
+            var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                     attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
@@ -123,7 +122,9 @@ namespace EmpireIdle.Application.Marches.Services
 
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
                 attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.For(attackerHero), defenceBuffs);
+                _heroModifiers.ForMarch(attackerHeroes), defenceBuffs,
+                await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken),
+                await _combatants.ForAsync(campHeroes, attacking: false, cancellationToken));
 
             var result = outcome.Battle;
 
@@ -144,7 +145,7 @@ namespace EmpireIdle.Application.Marches.Services
                 terrain, seed, utcNow, cancellationToken);
 
             if (result.AttackerWon)
-                await RoutAsync(camp, campHome, utcNow, cancellationToken);
+                await RoutAsync(camp, campHome, campHeroes, utcNow, cancellationToken);
 
             await _logistics.TurnMarchBackAsync(march, march.GetUnits(), utcNow, cancellationToken);
 
@@ -156,9 +157,10 @@ namespace EmpireIdle.Application.Marches.Services
         /// Програний табір знімається: уцілілі й герой відступають додому маршем.
         /// Не лишилось нікого — похід просто завершується.
         /// </summary>
-        private async Task RoutAsync(March camp, Village campHome, DateTime utcNow, CancellationToken cancellationToken)
+        private async Task RoutAsync(March camp, Village campHome, IReadOnlyCollection<Hero> campHeroes, DateTime utcNow,
+            CancellationToken cancellationToken)
         {
-            if (camp.GetUnits().Count == 0 && camp.HeroId is null)
+            if (camp.GetUnits().Count == 0 && campHeroes.Count == 0)
             {
                 camp.BreakCamp(campHome.X, campHome.Y, TimeSpan.Zero, utcNow);
                 camp.Complete(utcNow);

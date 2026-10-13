@@ -36,7 +36,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
         : IRequest<DungeonRunView>, IPlayerScopedRequest;
 
     /// <param name="Artifacts">Ключі виданих артефактів — назви додає проєкція з каталогу.</param>
-    public record DungeonReward(IReadOnlyList<ResourceCost> Resources, IReadOnlyList<string> Artifacts);
+    public record DungeonReward(IReadOnlyList<ResourceCost> Resources, IReadOnlyList<string> Artifacts, long HeroExperience);
 
     internal sealed class TakeDungeonTurnCommandHandler : IRequestHandler<TakeDungeonTurnCommand, DungeonRunView>
     {
@@ -196,7 +196,8 @@ namespace EmpireIdle.Application.Dungeons.Commands
                         .Where(item => item is not null)
                         .Select(item => new ArtifactDropView(
                             item!.Key, item.DisplayName, item.Rarity.ToString().ToLowerInvariant(), item.SetKey ?? string.Empty))
-                        .ToList());
+                        .ToList(),
+                    reward.HeroExperience);
 
             return DungeonRunProjection.Project(run.Id, run.DungeonKey, run.Level, run.State, state,
                 _builder.WaveCount(run.Level), turns, view, _catalog);

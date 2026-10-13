@@ -356,5 +356,81 @@ namespace EmpireIdle.Domain.Tests.Services
                 _calculator.CalculateDefencePower(DefenceStacks.FromArmy(army), "plain"),
                 3);
         }
+
+        /// <summary>
+        /// Удача — множник 0.7…1.4 на кожну сторону: удвічі сильніший виграє за будь-якої удачі,
+        /// удвічі слабший — програє за будь-якої, між ними — можливо.
+        /// </summary>
+        [Theory]
+        [InlineData(2100, 1000, Enums.BattleVerdict.Win)]
+        [InlineData(1000, 1000, Enums.BattleVerdict.Possible)]
+        [InlineData(1900, 1000, Enums.BattleVerdict.Possible)]
+        [InlineData(500, 1000, Enums.BattleVerdict.Loss)]
+        public void Verdict_ShouldFollowTheLuckBounds(double attacker, double defender, Enums.BattleVerdict expected)
+            => Assert.Equal(expected, _calculator.Verdict(attacker, defender));
+
+        /// <summary>Шанс — тією ж удачею, що й бій: рівні сили — близько половини, вердикт «перемога» — 100%.</summary>
+        [Fact]
+        public void WinChance_ShouldMatchTheVerdicts()
+        {
+            Assert.InRange(_calculator.WinChance(1000, 1000), 0.45, 0.55);
+            Assert.Equal(1.0, _calculator.WinChance(2100, 1000));
+            Assert.Equal(0.0, _calculator.WinChance(500, 1000));
+            Assert.Equal(_calculator.WinChance(1200, 1000), _calculator.WinChance(1200, 1000));
+        }
+
+        /// <summary>Герой — окремий боєць (варіант B): його сила додається до сили військ до бонусів і удачі.</summary>
+        [Fact]
+        public void Resolve_ShouldAddTheHeroesPower_ToTheSide()
+        {
+            var without = _calculator.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 7);
+            var with = _calculator.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 7,
+                attackerHeroes: [new HeroCombatant(Guid.NewGuid(), Power: 200, Health: 1_000_000)]);
+
+            // Військо дає 200, герой — ще 200: та сама удача, удвічі більша сила
+            Assert.Equal(without.AttackerPower * 2, with.AttackerPower, precision: 6);
+            Assert.Equal(without.DefenderPower, with.DefenderPower, precision: 6);
+        }
+
+        /// <summary>Герой бере частку шкоди сторони за своєю часткою сили: слабкий — вцілів, тендітний — поранений.</summary>
+        [Fact]
+        public void Resolve_ShouldWoundAHero_WhoseShareOfDamageReachesItsHealth()
+        {
+            var sturdy = new HeroCombatant(Guid.NewGuid(), Power: 100, Health: 1_000_000);
+            var frail = new HeroCombatant(Guid.NewGuid(), Power: 100, Health: 0.001);
+
+            var result = _calculator.Resolve(Army(5), DefenceStacks.FromArmy(Army(50)), "plain", seed: 3,
+                attackerHeroes: [sturdy, frail]);
+
+            Assert.Equal([frail.HeroId], result.AttackerWoundedHeroes);
+            Assert.True(result.Wounded(frail.HeroId));
+            Assert.False(result.Wounded(sturdy.HeroId));
+        }
+
+        /// <summary>Поранення можливе й після перемоги: переможець теж отримує шкоду.</summary>
+        [Fact]
+        public void Resolve_ShouldWoundAFrailHero_EvenOnTheWinningSide()
+        {
+            var frail = new HeroCombatant(Guid.NewGuid(), Power: 10, Health: 0.001);
+
+            var result = _calculator.Resolve(Army(50), DefenceStacks.FromArmy(Army(5)), "plain", seed: 3,
+                attackerHeroes: [frail]);
+
+            Assert.True(result.AttackerWon);
+            Assert.Equal([frail.HeroId], result.AttackerWoundedHeroes);
+        }
+
+        /// <summary>Герой оборони — так само: шкода захиснику від сили нападника.</summary>
+        [Fact]
+        public void Resolve_ShouldWoundADefendingHero_ByTheDefendersDamage()
+        {
+            var leader = new HeroCombatant(Guid.NewGuid(), Power: 10, Health: 0.001);
+
+            var result = _calculator.Resolve(Army(50), DefenceStacks.FromArmy(Army(5)), "plain", seed: 3,
+                defenderHeroes: [leader]);
+
+            Assert.Equal([leader.HeroId], result.DefenderWoundedHeroes);
+            Assert.Empty(result.AttackerWoundedHeroes ?? []);
+        }
     }
 }

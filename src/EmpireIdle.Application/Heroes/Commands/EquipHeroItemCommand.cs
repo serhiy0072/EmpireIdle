@@ -1,17 +1,15 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
-    /// Вдягнути спорядження на героя. Слот визначає сам предмет: зброя —
-    /// єдиний слот зброї, артефакт — слот свого типу (намисто, корона…).
+    /// Вдягнути артефакт на героя. Слот визначає сам предмет — слот свого типу
+    /// (намисто, корона…). Зброя — частина героя, її не вдягають (GDD §6.4).
     /// </summary>
     public record EquipHeroItemCommand(Guid PlayerId, Guid HeroId, Guid EquipmentId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
@@ -30,6 +28,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
+        private readonly EquipmentFit _fit;
         private readonly ILogger<EquipHeroItemCommandHandler> _logger;
 
         public EquipHeroItemCommandHandler(
@@ -38,6 +37,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             GameCatalog catalog,
+            EquipmentFit fit,
             ILogger<EquipHeroItemCommandHandler> logger)
         {
             _heroRepository = heroRepository;
@@ -45,6 +45,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
             _catalog = catalog;
+            _fit = fit;
             _logger = logger;
         }
 
@@ -72,9 +73,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             var itemConfig = _catalog.Items.GetValueOrDefault(item.ItemKey)
                 ?? throw new EntityNotFoundException("Item", item.ItemKey);
 
-            var slotIndex = SlotIndexOf(item.Slot, itemConfig);
-
-            EnsureFits(hero.HeroKey, item.Slot, itemConfig);
+            var slotIndex = _fit.SlotIndexOf(itemConfig);
 
             var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
 
@@ -85,7 +84,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             // Той, хто стоїть у цільовому слоті, зараз буде знятий. Окремої заборони
             // дублікатів не треба: однаковий ключ — однаковий тип слота, тож другий
             // такий самий артефакт просто замінює першого
-            var occupant = equipped.FirstOrDefault(e => e.Slot == item.Slot && e.SlotIndex == slotIndex);
+            var occupant = equipped.FirstOrDefault(e => e.SlotIndex == slotIndex);
 
             // Знімаємо з попереднього носія або зі старого слота
             if (item.EquippedByHeroId is not null)
@@ -99,38 +98,6 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             _logger.LogInformation("Equipment {EquipmentId} equipped on hero {HeroId} in {Slot}[{SlotIndex}]",
                 item.Id, hero.Id, item.Slot, slotIndex);
-        }
-
-        /// <summary>
-        /// Зброя завжди в нульовому слоті, артефакт — у слоті свого типу.
-        /// Артефакт без відомого типу валідатор не пропускає, тож тут це
-        /// битий конфіг, а не помилка гравця.
-        /// </summary>
-        private int SlotIndexOf(EquipmentSlot slot, ItemConfig itemConfig)
-        {
-            if (slot == EquipmentSlot.Weapon)
-                return 0;
-
-            return _catalog.Config.Equipment.ArtifactSlotIndex(itemConfig.ArtifactSlot)
-                ?? throw new InvalidOperationException(
-                    $"Artifact '{itemConfig.Key}' has no known ArtifactSlot '{itemConfig.ArtifactSlot}'.");
-        }
-
-        /// <summary>
-        /// Зброя підходить за класом героя. Порожній список класів у конфігу
-        /// означає «підходить усім», а не «нікому»: більшість артефактів
-        /// саме такі.
-        /// </summary>
-        private void EnsureFits(string heroKey, EquipmentSlot slot, ItemConfig itemConfig)
-        {
-            if (slot != EquipmentSlot.Weapon || itemConfig.WeaponClasses.Count == 0)
-                return;
-
-            var heroClass = _catalog.FindHero(heroKey)?.Class;
-
-            if (heroClass is null || !itemConfig.WeaponClasses.Contains(heroClass))
-                throw new RequirementNotMetException(RefusalReasons.EquipmentClassMismatch,
-                    $"Weapon '{itemConfig.Key}' does not fit a {heroClass ?? "unknown"} hero.", itemConfig.DisplayName);
         }
     }
 }

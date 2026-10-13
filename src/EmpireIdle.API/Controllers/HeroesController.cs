@@ -51,6 +51,46 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Поставити героя в обраний слот навчального табору: він отримує рівень опорної п'ятірки (GDD §6.1).</summary>
+        [HttpPost("{playerId:guid}/camp/slots/{slot:int}/heroes/{heroId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PlaceInCamp(Guid playerId, int slot, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new PlaceHeroInCampCommand(playerId, heroId, slot), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Вийняти героя з табору: власний рівень повертається, слот перезаряджається.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/camp/leave")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RemoveFromCamp(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new RemoveHeroFromCampCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Зняти перезарядку слота табору за gems.</summary>
+        [HttpPost("{playerId:guid}/camp/slots/{slot:int}/skip-cooldown")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SkipCampCooldown(Guid playerId, int slot, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new SkipCampCooldownCommand(playerId, slot), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Докупити слот табору за gems.</summary>
+        [HttpPost("{playerId:guid}/camp/slots")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> BuyCampSlot(Guid playerId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new BuyCampSlotCommand(playerId), cancellationToken);
+            return NoContent();
+        }
+
         /// <summary>Заповнити наступну частинку зірки героя за його осколки.</summary>
         [HttpPost("{playerId:guid}/{heroId:guid}/star")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -58,6 +98,27 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> AdvanceStar(Guid playerId, Guid heroId, CancellationToken cancellationToken)
         {
             await _mediator.Send(new AdvanceHeroStarCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Відкрити унікальну зброю героя або підняти її рівень за шматки (GDD §6.4).</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/weapon")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpgradeWeapon(Guid playerId, Guid heroId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new UpgradeHeroWeaponCommand(playerId, heroId), cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>Відкрити скрині зброї з рюкзака: шматки йдуть на зброю цього героя (GDD §6.4).</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/weapon/chests")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> OpenWeaponChests(Guid playerId, Guid heroId, [FromBody] OpenWeaponChestsRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new OpenWeaponChestsCommand(playerId, heroId, request.ItemKey, request.Count), cancellationToken);
             return NoContent();
         }
 
@@ -142,6 +203,15 @@ namespace EmpireIdle.API.Controllers
             await _mediator.Send(new EquipHeroItemCommand(playerId, heroId, equipmentId), cancellationToken);
             return NoContent();
         }
+
+        /// <summary>«Швидке використання»: найкраще вільне спорядження в кожен слот героя.</summary>
+        [HttpPost("{playerId:guid}/{heroId:guid}/equipment/best")]
+        [ProducesResponseType(typeof(EquipBestResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<EquipBestResponse>> EquipBest(Guid playerId, Guid heroId,
+            CancellationToken cancellationToken)
+            => Ok(new EquipBestResponse(
+                await _mediator.Send(new EquipBestHeroGearCommand(playerId, heroId), cancellationToken)));
 
         /// <summary>Зняти спорядження в інвентар.</summary>
         [HttpDelete("{playerId:guid}/equipment/{equipmentId:guid}")]

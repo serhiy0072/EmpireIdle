@@ -54,8 +54,7 @@ public class GiftItemCommandTests
         var catalog = new GameCatalog(config);
 
         return new GiftItemCommandHandler(_inventory, _players, _unitOfWork,
-            new ItemGranter(_inventory, Substitute.For<IServerContext>(), Substitute.For<IRandomSource>(),
-                new ArtifactRoller(config.Equipment)),
+            new ItemGranter(_inventory, Substitute.For<IServerContext>()),
             catalog, NullLogger<GiftItemCommandHandler>.Instance);
     }
 

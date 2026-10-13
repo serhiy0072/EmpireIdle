@@ -4,7 +4,7 @@ import type { EquipmentResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import type { HeroSummary } from "../../lib/queries/heroes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
-import { statLabel } from "../../lib/statNames";
+import { statLabel, statValue } from "../../lib/statNames";
 import ItemIcon from "./ItemIcon";
 
 interface Props {
@@ -17,14 +17,13 @@ interface Props {
 
 /**
  * Екземпляр спорядження в інвентарі: одягнути на героя вдома (для артефакта —
- * ще й слот) або зняти. Заточка, ремонт і прокачка — в кузні, це інший екран.
+ * ще й слот) або зняти. Посилення й майстерність коваля — в кузні, це інший екран.
  */
 export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUnequip }: Props) {
   const catalog = useCatalog();
   const [picking, setPicking] = useState(false);
   const [heroId, setHeroId] = useState("");
 
-  const isWeapon = equipment.slot === "Weapon";
   const set = catalog.setOfItem(equipment.itemKey);
   // Артефакт сам визначає слот — показуємо його тип замість номера
   const slotName = catalog.artifactSlotName(equipment.itemKey);
@@ -36,22 +35,26 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
   const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
 
   return (
-    <div className={`rounded-xl border bg-white p-3 ${equipment.isBroken ? "border-red-300" : "border-slate-200"}`}>
+    <div className="rounded-xl border border-slate-200 bg-white p-3">
       <div className="flex gap-3">
-        <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} size={48} className={equipment.isBroken ? "grayscale" : ""} />
+        <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} size={48} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             <span className="truncate font-medium text-slate-800">
               {catalog.itemName(equipment.itemKey)}
-              {equipment.enhancementLevel > 0 && <span className="ml-1 text-amber-600">+{equipment.enhancementLevel}</span>}
+              {equipment.level > 0 && <span className="ml-1 text-amber-600">рів. {equipment.level}</span>}
+              {equipment.mastery > 0 && <span className="ml-1 text-sky-600">майст. {equipment.mastery}</span>}
             </span>
-            <span className="text-xs text-slate-500">{isWeapon ? "Зброя" : (slotName ?? "Артефакт")}</span>
+            <span className="text-xs text-slate-500">{slotName ?? "Артефакт"}</span>
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(equipment.rarity)}`}>{rarityLabel(equipment.rarity)}</span>
-            {equipment.isBroken && <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Зламано</span>}
+            <span className="rounded bg-slate-800 px-2 py-0.5 font-medium text-amber-200">
+              ⚔ {Math.round(equipment.power).toLocaleString("uk-UA")}
+            </span>
+            {equipment.isBroken && <span className="rounded bg-rose-100 px-2 py-0.5 text-rose-800">Зламано · ½ сили</span>}
             {equipment.isOnMarket && <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">На ринку</span>}
             {set !== null && (
               <Link
@@ -74,12 +77,23 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
         {Object.entries(equipment.stats).map(([stat, value]) => (
           <div key={stat} className="rounded bg-slate-50 px-2 py-1">
             <dt className="text-xs text-slate-500">{statLabel(stat)}</dt>
-            <dd className="font-medium text-slate-800">{Math.round(value)}</dd>
+            <dd className="font-medium text-slate-800">{statValue(stat, value)}</dd>
           </div>
         ))}
       </dl>
 
+      {equipment.experienceToNext != null && (
+        <p className="mt-2 text-xs text-slate-500">
+          До рівня {equipment.level + 1}: ще {equipment.experienceToNext.toLocaleString("uk-UA")} досвіду
+        </p>
+      )}
+
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        {!equipment.isOnMarket && (
+          <Link to={`/forge?item=${equipment.id}`} className={button}>
+            {equipment.isBroken ? "Відремонтувати" : "Посилити · майстерність"}
+          </Link>
+        )}
         {equipment.isOnMarket ? (
           <Link to="/market?tab=mine" className="text-xs text-amber-700 hover:underline">
             На ринку — до своїх лотів
@@ -89,19 +103,15 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
             Зняти
           </button>
         ) : (
-          !equipment.isBroken && (
-            <button
-              type="button"
-              onClick={() => setPicking((previous) => !previous)}
-              disabled={busy || candidates.length === 0}
-              className={button}
-            >
-              Одягнути
-            </button>
-          )
+          <button
+            type="button"
+            onClick={() => setPicking((previous) => !previous)}
+            disabled={busy || candidates.length === 0}
+            className={button}
+          >
+            Одягнути
+          </button>
         )}
-
-        {equipment.isBroken && <span className="text-xs text-slate-500">Полагодити можна в кузні</span>}
       </div>
 
       {picking && (
@@ -118,7 +128,7 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
             ))}
           </select>
 
-          {!isWeapon && slotName !== null && (
+          {slotName !== null && (
             <span className="text-xs text-slate-500">замінить те, що в слоті «{slotName.toLowerCase()}»</span>
           )}
 

@@ -15,7 +15,7 @@ public class EquipmentRollConfiguration : IEntityTypeConfiguration<EquipmentRoll
         builder.HasKey(r => r.Id);
         builder.Property(r => r.Id).ValueGeneratedNever();
 
-        // Журнал читається разом із предметом і в порядку прокачки
-        builder.HasIndex(r => new { r.EquipmentItemId, r.Level });
+        // Журнал читається разом із предметом і в порядку заточки
+        builder.HasIndex(r => new { r.EquipmentItemId, r.Mastery });
     }
 }

@@ -24,7 +24,7 @@ public class LeaveClanCommandTests
     private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
     private readonly IClanRequestRepository _requests = Substitute.For<IClanRequestRepository>();

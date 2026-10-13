@@ -25,7 +25,6 @@ const TABS: { key: Tab; label: string }[] = [
 const KINDS: { kind: MarketKind | null; label: string }[] = [
   { kind: null, label: "Усе" },
   { kind: MARKET_KIND.Equipment, label: "Спорядження" },
-  { kind: MARKET_KIND.Hero, label: "Герої" },
   { kind: MARKET_KIND.Item, label: "Предмети" },
 ];
 

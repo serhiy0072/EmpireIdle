@@ -20,7 +20,7 @@ public class HeroStarTests
     private static readonly DateTime Now = new(2026, 10, 6, 12, 0, 0, DateTimeKind.Utc);
     private static readonly Guid PlayerId = Guid.NewGuid();
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();

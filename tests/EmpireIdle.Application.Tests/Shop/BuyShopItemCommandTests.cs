@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Application.Shop.Commands;
+using EmpireIdle.Application.Shop.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
@@ -19,6 +20,7 @@ public class BuyShopItemCommandTests
     private static readonly DateTime Now = new(2026, 9, 22, 12, 0, 0, DateTimeKind.Utc);
     private const string Essence = "hero_essence_t2";
     private const int Price = 300;
+    private const string Chest = "chest";
 
     private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
@@ -58,18 +60,23 @@ public class BuyShopItemCommandTests
     {
         // Каталог не приймає конфіг без ратуші — беремо мінімальний із TestKit і додаємо крамницю
         var config = new GameConfigBuilder().WithResources().WithBuildings().Build();
-        config.Items = [new ItemConfig { Key = Essence, DisplayName = "Essence", Description = "", Type = "evolution" }];
+        config.Items =
+        [
+            new ItemConfig { Key = Essence, DisplayName = "Essence", Description = "", Type = "evolution" },
+            new ItemConfig { Key = Chest, DisplayName = "Chest", Description = "", Type = "lootbox" }
+        ];
+        config.Lootboxes = [new LootboxConfig { Key = Chest, Entries = [new LootboxEntryConfig { Type = "Gems", Amount = 1, Weight = 1 }] }];
         config.Shop = new ShopConfig
         {
-            Items = [new ShopItemConfig { ItemKey = Essence, PriceGems = Price, MaxPerPurchase = 3, ServerLevel = windowLevel, WindowDays = 14 }]
+            Items =
+            [
+                new ShopItemConfig { ItemKey = Essence, PriceGems = Price, MaxPerPurchase = 3, ServerLevel = windowLevel, WindowDays = 14 },
+                new ShopItemConfig { ItemKey = Chest, PriceGems = Price }
+            ]
         };
 
         return new BuyShopItemCommandHandler(
-            _players,
-            _wallets,
-            _servers,
-            _serverContext,
-            new GameCatalog(config),
+            new ShopCheckout(_players, _wallets, _servers, _serverContext, new GameCatalog(config)),
             new RewardDispatcher([_granter]),
             _unitOfWork,
             new FakeTimeProvider(Now),
@@ -116,6 +123,16 @@ public class BuyShopItemCommandTests
         Assert.Equal(RefusalReasons.ShopMaxPerPurchase.Key, refusal.Reason);
 
         Assert.Equal(1_000, _wallet.GemBalance.Value);
+    }
+
+    /// <summary>Куплена скриня відкривається одразу (GDD §9.12) — у рюкзак цим шляхом її не купити.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuseALootbox_WithoutCharging()
+    {
+        await Assert.ThrowsAsync<RequirementNotMetException>(() => Buy(Chest));
+
+        Assert.Equal(1_000, _wallet.GemBalance.Value);
+        await _granter.DidNotReceive().GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

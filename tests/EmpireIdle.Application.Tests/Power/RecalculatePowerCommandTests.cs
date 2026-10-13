@@ -21,7 +21,7 @@ public class RecalculatePowerCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IPlayerPowerRepository _powers = Substitute.For<IPlayerPowerRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
@@ -45,6 +45,7 @@ public class RecalculatePowerCommandTests
             }
         ],
         Combat = new CombatConfig(),
+        Equipment = TestKit.GameConfigBuilder.DefaultEquipment("forge"),
         HeroSettings = new HeroesConfig
         {
             MaxMarches = 3,
@@ -147,7 +148,7 @@ public class RecalculatePowerCommandTests
         var garrison = GivenGarrison(garrisonInfantry: 10);
 
         var march = new March(
-            Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 0, 0, 5, 5,
+            Guid.NewGuid(), 1, garrison.Id, 0, 0, 5, 5,
             MarchTargetType.Monster, Guid.NewGuid(),
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 },
             Now.AddHours(1), Now);
@@ -231,8 +232,8 @@ public class RecalculatePowerCommandTests
         var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroKey, Guid.NewGuid(), asLeader: true, Now);
         _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([hero]);
 
-        var sword = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, "sword", EquipmentSlot.Weapon,
-            Rarity.Common, [("Attack", 12.0)], Now);
+        var sword = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, "sword", EquipmentSlot.Artifact,
+            Rarity.Common, Now);
 
         sword.EquipTo(hero.Id, slotIndex: 0, Now);
 
@@ -242,9 +243,10 @@ public class RecalculatePowerCommandTests
 
         await Handler().Handle(new RecalculatePowerCommand(garrison.Id), CancellationToken.None);
 
+        // Звичайний артефакт рівня 0: (10 + 10) + (40 + 40) × 0.25
         Assert.Equal(140, power.HeroPower, 3);
-        Assert.Equal(12, power.EquipmentPower, 3);
-        Assert.Equal(152, power.TotalPower, 3);
+        Assert.Equal(40, power.EquipmentPower, 3);
+        Assert.Equal(180, power.TotalPower, 3);
     }
 
     /// <summary>

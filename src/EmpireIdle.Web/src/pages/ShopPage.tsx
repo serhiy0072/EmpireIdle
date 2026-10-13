@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ItemIcon from "../components/inventory/ItemIcon";
+import KeyChests from "../components/lootboxes/KeyChests";
+import { LootboxDrops, LootboxOdds, WeaponChestContents } from "../components/lootboxes/LootboxPanels";
 import { useSession } from "../hooks/useSession";
-import type { ShopItemView } from "../lib/apiTypes";
+import type { LootboxDrop, ShopItemView } from "../lib/apiTypes";
+import { useBuyLootbox, useLootboxPity } from "../lib/queries/lootboxes";
 import { useBuyShopItem, useCheckout, useShop } from "../lib/queries/shop";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
@@ -14,6 +18,9 @@ const TYPE_LABELS: Record<string, string> = {
   teleport: "Телепорт",
   scoutveil: "Захист від розвідки",
   feed: "Корм",
+  lootbox: "Скриня",
+  weaponchest: "Скриня зброї",
+  chestkey: "Ключ скрині",
 };
 
 function price(cents: number, currency: string): string {
@@ -24,16 +31,18 @@ interface OfferProps {
   offer: ShopItemView;
   gems: number;
   busy: boolean;
+  /** Лічильник гарантії скрині; undefined — не скриня або ще не приїхав. */
+  pitySince?: number;
   onBuy: (count: number) => void;
 }
 
-function Offer({ offer, gems, busy, onBuy }: OfferProps) {
+function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
   const [count, setCount] = useState(1);
   const safeCount = Math.min(offer.maxPerPurchase, Math.max(1, count));
   const total = offer.priceGems * safeCount;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3">
+    <div id={offer.itemKey} className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-3 target:ring-2 target:ring-violet-400">
       <div className="flex gap-3">
         <ItemIcon itemKey={offer.itemKey} type={offer.type} rarity={offer.rarity} size={48} />
         <div className="min-w-0 flex-1">
@@ -57,16 +66,29 @@ function Offer({ offer, gems, busy, onBuy }: OfferProps) {
 
       {offer.description !== "" && <p className="mt-2 text-sm text-slate-600">{offer.description}</p>}
 
+      {offer.type === "lootbox" && <LootboxOdds itemKey={offer.itemKey} since={pitySince} />}
+      {offer.type === "weaponchest" && <WeaponChestContents itemKey={offer.itemKey} />}
+
       <div className="mt-3 flex items-center gap-2">
         {offer.maxPerPurchase > 1 && (
-          <input
-            type="number"
-            min={1}
-            max={offer.maxPerPurchase}
-            value={safeCount}
-            onChange={(event) => setCount(Number(event.target.value))}
-            className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
-          />
+          <>
+            <input
+              type="number"
+              min={1}
+              max={offer.maxPerPurchase}
+              value={safeCount}
+              onChange={(event) => setCount(Number(event.target.value))}
+              className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+            />
+            {/* Скільки дозволяє і пропозиція, і гаманець */}
+            <button
+              type="button"
+              onClick={() => setCount(Math.max(1, Math.min(offer.maxPerPurchase, Math.floor(gems / offer.priceGems))))}
+              className="text-sm text-sky-700 hover:underline"
+            >
+              макс.
+            </button>
+          </>
         )}
         <button
           type="button"
@@ -74,7 +96,9 @@ function Offer({ offer, gems, busy, onBuy }: OfferProps) {
           disabled={busy || gems < total}
           className="ml-auto rounded-lg bg-violet-600 px-3 py-1 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
         >
-          {gems < total ? "Не вистачає 💎" : `Купити за ${total.toLocaleString("uk-UA")} 💎`}
+          {gems < total
+            ? "Не вистачає 💎"
+            : `${offer.type === "lootbox" ? "Відкрити" : "Купити"} за ${total.toLocaleString("uk-UA")} 💎`}
         </button>
       </div>
     </div>
@@ -88,7 +112,20 @@ export default function ShopPage() {
   const shop = useShop();
   const wallet = useWallet(playerId);
   const buy = useBuyShopItem(playerId);
+  const buyLootbox = useBuyLootbox(playerId);
+  const pity = useLootboxPity(playerId);
   const checkout = useCheckout(playerId);
+  const [drops, setDrops] = useState<LootboxDrop[] | null>(null);
+  // Остання куплена скриня — «ще раз» у вікні нагород купує й відкриває стільки ж
+  const [lastBuy, setLastBuy] = useState<{ itemKey: string; count: number; price: number } | null>(null);
+  const location = useLocation();
+
+  // Посилання на конкретну пропозицію (/shop#chest_supply): вітрина малюється після запиту,
+  // тож браузер сам до якоря не докрутить
+  useEffect(() => {
+    if (shop.data === undefined || location.hash === "") return;
+    document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [shop.data, location.hash]);
 
   if (shop.isPending) {
     return <p className="text-slate-500">Завантаження крамниці…</p>;
@@ -107,7 +144,30 @@ export default function ShopPage() {
         <p className="text-sm text-slate-500">💎 {gems.toLocaleString("uk-UA")}</p>
       </div>
 
-      <ErrorBanner error={buy.error ?? checkout.error} />
+      <ErrorBanner error={buy.error ?? buyLootbox.error ?? checkout.error} />
+
+      {drops !== null && (
+        <LootboxDrops
+          drops={drops}
+          onClose={() => setDrops(null)}
+          pending={buyLootbox.isPending}
+          again={
+            lastBuy === null
+              ? undefined
+              : {
+                  label: `Ще ×${lastBuy.count} · 💎 ${(lastBuy.price * lastBuy.count).toLocaleString("uk-UA")}`,
+                  disabled: gems < lastBuy.price * lastBuy.count,
+                  onClick: () =>
+                    buyLootbox.mutate(
+                      { itemKey: lastBuy.itemKey, count: lastBuy.count },
+                      { onSuccess: (result) => setDrops(result.drops) },
+                    ),
+                }
+          }
+        />
+      )}
+
+      <KeyChests playerId={playerId} />
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">За самоцвіти</h2>
@@ -117,8 +177,22 @@ export default function ShopPage() {
               key={offer.itemKey}
               offer={offer}
               gems={gems}
-              busy={buy.isPending}
-              onBuy={(count) => buy.mutate({ itemKey: offer.itemKey, count })}
+              busy={buy.isPending || buyLootbox.isPending}
+              pitySince={pity.data?.find((p) => p.lootboxKey === offer.itemKey)?.since}
+              onBuy={(count) =>
+                // Скриня з крамниці відкривається одразу — показуємо, що випало
+                offer.type === "lootbox"
+                  ? buyLootbox.mutate(
+                      { itemKey: offer.itemKey, count },
+                      {
+                        onSuccess: (result) => {
+                          setDrops(result.drops);
+                          setLastBuy({ itemKey: offer.itemKey, count, price: offer.priceGems });
+                        },
+                      },
+                    )
+                  : buy.mutate({ itemKey: offer.itemKey, count })
+              }
             />
           ))}
         </div>

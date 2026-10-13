@@ -14,12 +14,15 @@ export default function ResourceBar({ village }: Props) {
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {village.resources.filter((resource) => resource.isUnlocked).map((resource) => (
-        <span key={resource.resourceType} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
-          {catalog.resourceName(resource.resourceType)}:{" "}
-          <span className="font-medium">{resource.amount.toLocaleString("uk-UA")}</span>
-        </span>
-      ))}
+      {village.resources
+        .filter((resource) => resource.isUnlocked)
+        .sort((a, b) => catalog.resourceOrder(a.resourceType) - catalog.resourceOrder(b.resourceType))
+        .map((resource) => (
+          <span key={resource.resourceType} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
+            {catalog.resourceName(resource.resourceType)}:{" "}
+            <span className="font-medium">{resource.amount.toLocaleString("uk-UA")}</span>
+          </span>
+        ))}
     </div>
   );
 }

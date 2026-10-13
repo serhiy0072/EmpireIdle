@@ -28,7 +28,7 @@ internal sealed class MarketTestBed
     public readonly IVillageRepository Villages = Substitute.For<IVillageRepository>();
     public readonly IMarketRepository MarketRepository = Substitute.For<IMarketRepository>();
     public readonly IInventoryRepository Inventory = Substitute.For<IInventoryRepository>();
-    public readonly IHeroRepository Heroes = Substitute.For<IHeroRepository>();
+    public readonly IHeroRepository Heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     public readonly IGarrisonRepository Garrisons = Substitute.For<IGarrisonRepository>();
     public readonly IUnitOfWork UnitOfWork = Substitute.For<IUnitOfWork>();
     public readonly IServerContext ServerContext = Substitute.For<IServerContext>();
@@ -55,12 +55,7 @@ internal sealed class MarketTestBed
         {
             BuildingKey = Market,
             GoldPerGem = 100,
-            GoldPerPower = config.Heroes
-                .Select(h => MarketPricing.CategoryOf(h.Rank))
-                .Append("weapon")
-                .Append("artifact")
-                .Distinct()
-                .ToDictionary(key => key, _ => 10.0)
+            GoldPerPower = new Dictionary<string, double> { ["artifact"] = 2.5 }
         };
 
         Catalog = new GameCatalog(config);
@@ -78,18 +73,18 @@ internal sealed class MarketTestBed
 
     public MarketDesk Desk => new(MarketRepository, Pricing, new VillageStatus(Catalog), Catalog);
 
-    public MarketGoods Goods => new(Inventory, Heroes, Villages, Garrisons,
-        new ItemGranter(Inventory, ServerContext, Substitute.For<IRandomSource>(), new ArtifactRoller(Catalog.Config.Equipment)),
+    public MarketGoods Goods => new(Inventory,
+        new ItemGranter(Inventory, ServerContext),
         HeroStats, Catalog);
 
-    public MarketListingProjection Projection => new(Inventory, Heroes, Catalog);
+    public MarketListingProjection Projection => new(Inventory, Catalog);
 
     public long Gold(Village village) => village.Resources.Single(r => r.ResourceType == TestKeys.Gold).Amount;
 
-    /// <summary>Меч продавця з 10 атаки — Power 10, коридор 70–130 золота.</summary>
+    /// <summary>Меч продавця — звичайний артефакт рівня 0: Power 40 по 2.5 золота, коридор 70–130.</summary>
     public EquipmentItem GivenSword(Guid? owner = null)
     {
-        var sword = TestKit.Entities.Equipment(TestKeys.Weapon, EquipmentSlot.Weapon, owner ?? Seller, stats: [("Attack", 10.0)]);
+        var sword = TestKit.Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, owner ?? Seller);
         Inventory.GetEquipmentByIdAsync(sword.Id, Arg.Any<CancellationToken>()).Returns(sword);
 
         return sword;
@@ -115,11 +110,11 @@ internal sealed class MarketTestBed
     }
 
     /// <summary>Активний лот, як його лишило б виставлення.</summary>
-    public MarketListing GivenListing(MarketListingKind kind, Guid? equipmentId = null, Guid? heroId = null,
-        string itemKey = TestKeys.Weapon, int quantity = 1, double units = 10, int price = 100)
+    public MarketListing GivenListing(MarketListingKind kind, Guid? equipmentId = null,
+        string itemKey = TestKeys.Artifact, int quantity = 1, double units = 10, int price = 100)
     {
-        var listing = new MarketListing(Guid.NewGuid(), 1, Seller, kind, equipmentId, heroId, itemKey, quantity, units,
-            "weapon", price, taxGold: 5, Now, TimeSpan.FromHours(48));
+        var listing = new MarketListing(Guid.NewGuid(), 1, Seller, kind, equipmentId, itemKey, quantity, units,
+            "artifact", price, taxGold: 5, Now, TimeSpan.FromHours(48));
 
         MarketRepository.GetByIdAsync(listing.Id, Arg.Any<CancellationToken>()).Returns(listing);
 

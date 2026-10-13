@@ -61,6 +61,23 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Глибина пошкодження на цей момент; 0 — ціла або вже відновилась.</summary>
         public int DamageAt(DateTime utcNow) => IsDamagedAt(utcNow) ? DamageLevel : 0;
 
+        /// <summary>Центр будівлі на плані села, який обрав гравець; null — гравець не рухав, діє позиція з конфіга.</summary>
+        public double? PlanX { get; private set; }
+
+        /// <summary>Друга координата центру на плані; задається разом із PlanX.</summary>
+        public double? PlanY { get; private set; }
+
+        /// <summary>Де стоїть будівля: власна позиція гравця або, поки її немає, позиція з конфіга.</summary>
+        public (double X, double Y)? PositionOr(BuildingPosition? fallback)
+            => PlanX is { } x && PlanY is { } y ? (x, y) : fallback is null ? null : (fallback.X, fallback.Y);
+
+        /// <summary>Ставить будівлю в нову точку плану. Правила плану перевіряє село — воно бачить сусідів.</summary>
+        internal void PlaceAt(double x, double y)
+        {
+            PlanX = x;
+            PlanY = y;
+        }
+
         public Building(Guid id, Guid villageId, string type, DateTime utcNow) : base(id)
         {
             VillageId = villageId;

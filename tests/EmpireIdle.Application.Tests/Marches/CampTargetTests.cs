@@ -38,7 +38,7 @@ public class CampTargetTests
         var catalog = new GameCatalog(Config());
 
         return new MarchTargetResolver(
-            Substitute.For<IMonsterRepository>(), _villages, _garrisons, Substitute.For<IHeroRepository>(),
+            Substitute.For<IMonsterRepository>(), _villages, _garrisons, Substitute.For<IHeroRepository>().ForwardHeroLookups(),
             new MonsterArmyBuilder(catalog), new HeroCombatModifiers(catalog), catalog, new VillageStatus(catalog),
             Substitute.For<IClanStructureRepository>(), Substitute.For<IClanRepository>(),
             new ClanTerritoryRules(catalog), _marches, TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()));
@@ -72,7 +72,7 @@ public class CampTargetTests
     {
         var garrison = new Garrison(Guid.NewGuid(), owner.Id, 1);
 
-        var camp = new March(Guid.NewGuid(), 1, garrison.Id, heroId: null, owner.X, owner.Y, 40, 40,
+        var camp = new March(Guid.NewGuid(), 1, garrison.Id, owner.X, owner.Y, 40, 40,
             MarchTargetType.Village, Guid.NewGuid(),
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 2)] = 30 },
             Now.AddHours(-1), Now.AddHours(-2));

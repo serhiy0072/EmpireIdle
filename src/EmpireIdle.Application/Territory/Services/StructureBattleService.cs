@@ -30,6 +30,7 @@ namespace EmpireIdle.Application.Territory.Services
         private readonly BattleAftermath _aftermath;
         private readonly VillageStatus _status;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly HeroCombatants _combatants;
         private readonly ClanTerritoryRules _rules;
         private readonly TerritoryBonus _territoryBonus;
         private readonly ClanStructureRemover _remover;
@@ -50,6 +51,7 @@ namespace EmpireIdle.Application.Territory.Services
             BattleAftermath aftermath,
             VillageStatus status,
             HeroCombatModifiers heroModifiers,
+            HeroCombatants combatants,
             ClanTerritoryRules rules,
             TerritoryBonus territoryBonus,
             ClanStructureRemover remover,
@@ -69,6 +71,7 @@ namespace EmpireIdle.Application.Territory.Services
             _aftermath = aftermath;
             _status = status;
             _heroModifiers = heroModifiers;
+            _combatants = combatants;
             _rules = rules;
             _territoryBonus = territoryBonus;
             _remover = remover;
@@ -108,11 +111,9 @@ namespace EmpireIdle.Application.Territory.Services
 
             var defenceBuffs = new DefenceBuffs(
                 StackBuff.None,
-                stationed.Where(h => h.IsLeader).ToDictionary(h => h.PlayerId, h => _heroModifiers.For(h)));
+                stationed.GroupBy(h => h.PlayerId).ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g)));
 
-            var attackerHero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
+            var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
                     attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
@@ -123,9 +124,11 @@ namespace EmpireIdle.Application.Territory.Services
 
             var seed = _random.Next(int.MaxValue);
 
+            // Споруда без господаря: лідери учасників лише підсилюють свої конвої, б'ються герої нападу
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
                 attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.For(attackerHero), defenceBuffs);
+                _heroModifiers.ForMarch(attackerHeroes), defenceBuffs,
+                await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 
             var result = outcome.Battle;
 

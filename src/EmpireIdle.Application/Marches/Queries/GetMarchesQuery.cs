@@ -21,6 +21,8 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IMarchRepository _marchRepository;
         private readonly IMonsterRepository _monsterRepository;
+        private readonly IHeroRepository _heroRepository;
+        private readonly HeroStats _heroStats;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly SpeedUpCalculator _calculator;
@@ -30,6 +32,8 @@ namespace EmpireIdle.Application.Marches.Queries
             IGarrisonRepository garrisonRepository,
             IMarchRepository marchRepository,
             IMonsterRepository monsterRepository,
+            IHeroRepository heroRepository,
+            HeroStats heroStats,
             GameCatalog catalog,
             TimeProvider timeProvider,
             SpeedUpCalculator calculator)
@@ -38,6 +42,8 @@ namespace EmpireIdle.Application.Marches.Queries
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
             _monsterRepository = monsterRepository;
+            _heroRepository = heroRepository;
+            _heroStats = heroStats;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _calculator = calculator;
@@ -62,6 +68,8 @@ namespace EmpireIdle.Application.Marches.Queries
                 .ToDictionary(m => m.Id);
             var villageNames = await _villageRepository.GetNamesAsync(
                 TargetIds(marches, MarchTargetType.Village), cancellationToken);
+            var heroes = await _heroRepository.GetByMarchesReadOnlyAsync(
+                marches.Select(m => m.Id).ToList(), cancellationToken);
 
             // Найближче прибуття — першим: за ним гравець і стежить
             foreach (var march in marches.OrderBy(m => m.ArrivesAt))
@@ -78,12 +86,12 @@ namespace EmpireIdle.Application.Marches.Queries
                     march.TargetY,
                     march.Intent,
                     march.State,
-                    march.HeroId,
+                    _heroStats.StrongestFirst(heroes[march.Id]).Select(h => h.Id).ToList(),
                     march.DepartedAt,
                     march.LegStartedAt,
                     march.ArrivesAt,
                     march.Units.Select(u => new MarchUnitView(u.UnitType, u.Level, u.Count)).ToList(),
-                    _calculator.GetCost(march.ArrivesAt, now)));
+                    _calculator.GetCost(SpeedUpTimer.March, march.ArrivesAt, now)));
             }
 
             return views;

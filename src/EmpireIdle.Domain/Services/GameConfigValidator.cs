@@ -37,6 +37,11 @@ namespace EmpireIdle.Domain.Services
             ValidateMarket(config);
             ValidateBeasts(config);
             ValidateTeleports(config);
+            ValidateSpeedUpItems(config);
+            ValidateEnergyJars(config);
+            ValidateWeaponChests(config);
+            ValidateLootboxes(config);
+            ValidateKeyChests(config);
             ValidateLocalization(config);
             ValidateShopItems(config);
             ValidateEquipment(config);
@@ -364,16 +369,6 @@ namespace EmpireIdle.Domain.Services
             if (badTiers.Count > 0)
                 throw new InvalidOperationException(
                     $"Equipment.ArtifactSets have tiers outside 1–{tiers}: {string.Join(", ", badTiers)}.");
-
-            var pool = equipment.ArtifactStats.Select(s => s.Stat).ToHashSet();
-
-            var unknownFocus = equipment.ArtifactSets
-                .SelectMany(s => s.FocusStats.Where(stat => !pool.Contains(stat)).Select(stat => $"{s.Key}: {stat}"))
-                .ToList();
-
-            if (unknownFocus.Count > 0)
-                throw new InvalidOperationException(
-                    $"Equipment.ArtifactSets focus on stats outside ArtifactStats: {string.Join(", ", unknownFocus)}.");
         }
 
         /// <summary>
@@ -438,6 +433,148 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException("Beasts are configured, but no building gives beast slots.");
         }
 
+        /// <summary>Скриня зброї без героїв чи без шматків нічого б не відкривала (GDD §6.4).</summary>
+        private static void ValidateWeaponChests(GameConfig config)
+        {
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+
+            foreach (var chest in config.Items.Where(i => i.Type == "weaponchest"))
+            {
+                if (chest.WeaponShards < 1)
+                    throw new InvalidOperationException($"Weapon chest '{chest.Key}' needs positive WeaponShards.");
+
+                if (chest.WeaponHeroes.Count == 0 || chest.WeaponHeroes.Any(key => !heroKeys.Contains(key)))
+                    throw new InvalidOperationException($"Weapon chest '{chest.Key}' needs known WeaponHeroes.");
+            }
+        }
+
+        /// <summary>
+        /// Скрині (GDD §9.12): таблиця на кожен предмет-скриню, додатні ваги й кількості,
+        /// відомі ключі, гарантія з позиціями й вкладені скрині без циклу.
+        /// </summary>
+        /// <summary>Ключова скриня посилається на таблицю скрині й на предмет-ключ — обидва мусять існувати.</summary>
+        private static void ValidateKeyChests(GameConfig config)
+        {
+            RequireUniqueKeys(config.KeyChests.Select(c => c.LootboxKey), "KeyChests");
+
+            var boxes = config.Lootboxes.Select(b => b.Key).ToHashSet();
+            var items = config.Items.ToDictionary(i => i.Key);
+
+            foreach (var chest in config.KeyChests)
+            {
+                if (!boxes.Contains(chest.LootboxKey))
+                    throw new InvalidOperationException($"Key chest '{chest.LootboxKey}' has no table in Lootboxes.");
+
+                if (items.GetValueOrDefault(chest.KeyItemKey)?.Type != "chestkey")
+                    throw new InvalidOperationException(
+                        $"Key chest '{chest.LootboxKey}' opens with '{chest.KeyItemKey}', which is not an item of Type 'chestkey'.");
+
+                if (chest.FreePerDay < 0 || chest.FreeCooldownMinutes < 0)
+                    throw new InvalidOperationException(
+                        $"Key chest '{chest.LootboxKey}' has a negative FreePerDay or FreeCooldownMinutes.");
+            }
+        }
+
+        private static void ValidateLootboxes(GameConfig config)
+        {
+            RequireUniqueKeys(config.Lootboxes.Select(b => b.Key), "Lootboxes");
+
+            var items = config.Items.ToDictionary(i => i.Key);
+            var boxes = config.Lootboxes.ToDictionary(b => b.Key);
+
+            // Предмет-скриня без таблиці відкривався б у нікуди, таблиця без предмета — недосяжна
+            foreach (var item in config.Items.Where(i => i.Type == "lootbox" && !boxes.ContainsKey(i.Key)))
+                throw new InvalidOperationException($"Lootbox item '{item.Key}' has no table in Lootboxes.");
+
+            foreach (var box in config.Lootboxes.Where(b => items.GetValueOrDefault(b.Key)?.Type != "lootbox"))
+                throw new InvalidOperationException($"Lootbox '{box.Key}' is not an item of Type 'lootbox'.");
+
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+
+            // Випадковий герой рідкості без жодного героя цієї рідкості не видав би нічого
+            var heroRanks = config.Heroes.Select(h => h.Rank).ToHashSet();
+
+            // Випадковий артефакт береться з наборів данжів — рідкість без жодного предмета не видала б нічого
+            var artifactRarities = config.Dungeons.Dungeons
+                .SelectMany(d => Enum.GetValues<Rarity>()
+                    .Where(r => items.Values.Any(i => i.SetKey == $"{d.ArtifactSetKey}_{r.ToString().ToLowerInvariant()}")))
+                .ToHashSet();
+
+            foreach (var box in config.Lootboxes)
+            {
+                if (box.Entries.Count == 0)
+                    throw new InvalidOperationException($"Lootbox '{box.Key}' has no entries.");
+
+                var broken = box.Entries
+                    .Where(e => e.Weight <= 0 || e.Amount <= 0 || (e.IsLootbox
+                        ? e.Key is null || !boxes.ContainsKey(e.Key)
+                        : e.IsArtifact
+                            ? !Enum.TryParse<Rarity>(e.Key, ignoreCase: true, out var rarity) || !artifactRarities.Contains(rarity)
+                            : e.IsRandomHero || e.IsRandomHeroShards
+                                ? !Enum.TryParse<Rarity>(e.Key, ignoreCase: true, out var rank) || !heroRanks.Contains(rank)
+                                : IsRewardBroken(e, resourceKeys, items, heroKeys)))
+                    .Select(e => $"{e.Type} '{e.Key ?? "(no key)"}' ×{e.Amount} weight {e.Weight}")
+                    .ToList();
+
+                if (broken.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Lootbox '{box.Key}' has entries with unknown keys, keys of the wrong kind or non-positive amounts: {string.Join("; ", broken)}.");
+
+                if (box.PityWithin < 0)
+                    throw new InvalidOperationException($"Lootbox '{box.Key}' has negative PityWithin.");
+
+                if (box.Rolls < 1)
+                    throw new InvalidOperationException($"Lootbox '{box.Key}' must roll its table at least once per opening.");
+
+                // Гарантія без позиції не мала б що віддати, позиція без гарантії — обіцянка, якої ніхто не дотримає
+                if (box.PityWithin > 0 != box.Entries.Any(e => e.Pity))
+                    throw new InvalidOperationException(
+                        $"Lootbox '{box.Key}' needs both PityWithin and at least one Pity entry, or neither.");
+            }
+
+            // Вкладена скриня відкривається одразу — цикл відкривав би скрині без кінця
+            var visiting = new HashSet<string>();
+            var done = new HashSet<string>();
+
+            void Visit(string key)
+            {
+                if (done.Contains(key))
+                    return;
+
+                if (!visiting.Add(key))
+                    throw new InvalidOperationException($"Lootbox '{key}' contains itself through nested lootboxes.");
+
+                foreach (var nested in boxes[key].Entries.Where(e => e.IsLootbox))
+                    Visit(nested.Key!);
+
+                visiting.Remove(key);
+                done.Add(key);
+            }
+
+            foreach (var key in boxes.Keys)
+                Visit(key);
+        }
+
+        /// <summary>Банка без енергії нічого б не дала — предмет-пустушка в рюкзаку.</summary>
+        private static void ValidateEnergyJars(GameConfig config)
+        {
+            foreach (var jar in config.Items.Where(i => i.Type == "energy" && i.DungeonEnergy <= 0))
+                throw new InvalidOperationException($"Energy jar '{jar.Key}' needs positive DungeonEnergy.");
+        }
+
+        /// <summary>Прискорення без хвилин нічого б не зрізало — предмет-пустушка в рюкзаку.</summary>
+        private static void ValidateSpeedUpItems(GameConfig config)
+        {
+            var broken = config.Items
+                .Where(i => i.Type == "speedup" && i.SpeedUpMinutes <= 0)
+                .Select(i => i.Key)
+                .ToList();
+
+            if (broken.Count > 0)
+                throw new InvalidOperationException($"Speed-up items need positive SpeedUpMinutes: {string.Join(", ", broken)}.");
+        }
+
         /// <summary>Телепорт ближнього переїзду без радіусу не переносив би нікуди (GDD §8.9).</summary>
         private static void ValidateTeleports(GameConfig config)
         {
@@ -470,6 +607,15 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Equipment is always tradeable; Tradeable is for stack items only: {string.Join(", ", equipmentInvalid)}.");
 
+            var badValues = market.GemValues
+                .Where(value => value.Value <= 0 || config.Items.All(i => i.Key != value.Key))
+                .Select(value => value.Key)
+                .ToList();
+
+            if (badValues.Count > 0)
+                throw new InvalidOperationException(
+                    $"Market.GemValues name unknown items or non-positive prices: {string.Join(", ", badValues)}.");
+
             var pricing = new MarketPricing(config);
 
             var categories = config.Items
@@ -478,7 +624,6 @@ namespace EmpireIdle.Domain.Services
                 .Concat(config.Items
                     .Where(i => i.Slot is not null)
                     .Select(i => MarketPricing.CategoryOf(i.Slot!.Value)))
-                .Concat(config.Heroes.Select(h => MarketPricing.CategoryOf(h.Rank)))
                 .Distinct()
                 .ToList();
 
@@ -892,8 +1037,6 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"HeroSettings.EvolutionItemKeys reference unknown items: {string.Join(", ", unknownItems)}.");
 
-            // Надлишок понад стелю сузір'я стає печатками призову. Забутий ранг означав би,
-            // що дублікат зникає без сліду — саме те, чого ми уникали.
             // Зірки (GDD §6.1): ціна кожної частинки, інакше заповнення впало б на першій дірці
             if (settings.SummonShards < 1)
                 throw new InvalidOperationException("HeroSettings.SummonShards must be at least 1 — summoning would be free.");
@@ -908,6 +1051,17 @@ namespace EmpireIdle.Domain.Services
 
             if (settings.StarPartBonus < 0)
                 throw new InvalidOperationException("HeroSettings.StarPartBonus cannot be negative — a star never weakens a hero.");
+
+            // Зброя героя (GDD §6.4): бонус на кожен рівень і не спадає — інакше прокачка послаблювала б героя
+            if (settings.WeaponShardCosts.Any(cost => cost < 1))
+                throw new InvalidOperationException("HeroSettings.WeaponShardCosts must be positive — a weapon level would be free.");
+
+            foreach (var (rank, percents) in settings.WeaponBonusPercents)
+                if (percents.Count != settings.WeaponShardCosts.Count
+                    || percents.Any(p => p < 0)
+                    || percents.Zip(percents.Skip(1)).Any(pair => pair.Second < pair.First))
+                    throw new InvalidOperationException(
+                        $"HeroSettings.WeaponBonusPercents[{rank}] needs {settings.WeaponShardCosts.Count} non-decreasing, non-negative values.");
 
             var rankNames = Enum.GetNames<Rarity>().ToHashSet();
 
@@ -976,6 +1130,52 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     "HeroSettings.SkillLayouts needs a known rarity, at least the active skill in Attack "
                     + $"and no more utility skills than Defense holds: {string.Join(", ", badLayouts)}.");
+
+            // Конвої (GDD §6.1): кожна роль веде відомий тип юнітів, крива росте від першого рівня героя
+            var badRoles = settings.RoleUnits
+                .Where(r => !settings.Classes.Contains(r.Key) || !unitKeys.Contains(r.Value))
+                .Select(r => $"{r.Key} → {r.Value}")
+                .ToList();
+
+            if (badRoles.Count > 0)
+                throw new InvalidOperationException(
+                    $"HeroSettings.RoleUnits must map known classes to known units: {string.Join(", ", badRoles)}.");
+
+            if (settings.RoleUnits.Count > 0 && settings.Classes.Any(c => !settings.RoleUnits.ContainsKey(c)))
+                throw new InvalidOperationException(
+                    "HeroSettings.RoleUnits must cover every hero class — a hero without a unit type could lead nobody.");
+
+            if (settings.ConvoySize < 1)
+                throw new InvalidOperationException("HeroSettings.ConvoySize must be at least 1.");
+
+            var steps = settings.ConvoysByLevel;
+
+            if (steps.Count > 0
+                && (steps[0].Level != 1
+                    || steps.Any(s => s.Convoys < 1 || s.Level > settings.MaxLevel)
+                    || steps.Zip(steps.Skip(1)).Any(p => p.Second.Level <= p.First.Level || p.Second.Convoys < p.First.Convoys)))
+                throw new InvalidOperationException(
+                    "HeroSettings.ConvoysByLevel must start at hero level 1, rise in level up to MaxLevel "
+                    + "and never lose convoys — a hero cannot lead fewer troops as he grows.");
+
+            // Навчальний табір (GDD §6.1): опорна п'ятірка має бути, слоти — відкриватися по порядку
+            var camp = settings.TrainingCamp;
+
+            if (camp.ReferenceSize < 1)
+                throw new InvalidOperationException("HeroSettings.TrainingCamp.ReferenceSize must be at least 1.");
+
+            if (camp.FreeSlotTownHallLevels.Any(level => level < 1)
+                || camp.FreeSlotTownHallLevels.Zip(camp.FreeSlotTownHallLevels.Skip(1)).Any(pair => pair.Second < pair.First))
+                throw new InvalidOperationException(
+                    "HeroSettings.TrainingCamp.FreeSlotTownHallLevels must be town hall levels from 1 up, never decreasing — "
+                    + "a later slot cannot open before an earlier one.");
+
+            if (camp.ExtraSlotPricesGems.Any(price => price < 1))
+                throw new InvalidOperationException("HeroSettings.TrainingCamp.ExtraSlotPricesGems must all be positive.");
+
+            if (camp.SlotCooldownHours < 0 || camp.SkipCooldownGems < 1)
+                throw new InvalidOperationException(
+                    "HeroSettings.TrainingCamp needs a non-negative SlotCooldownHours and a positive SkipCooldownGems.");
 
             foreach (var hero in config.Heroes)
             {
@@ -1167,21 +1367,19 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Artifacts without a known ArtifactSlot: {string.Join(", ", slotless)}.");
 
-            if (config.Equipment.MaxEnhancement < 1)
-                throw new InvalidOperationException("Equipment.MaxEnhancement must be at least 1.");
+            if (config.Equipment.MaxLevel < 1 || config.Equipment.MaxMastery < 0)
+                throw new InvalidOperationException("Equipment.MaxLevel must be at least 1 and MaxMastery non-negative.");
 
-            if (config.Equipment.EnhancementBonusPerLevel <= 0)
-                throw new InvalidOperationException(
-                    "Equipment.EnhancementBonusPerLevel must be above zero — otherwise enhancing changes nothing.");
+
+            // Рівень качається згодовуванням (GDD §6.4): без досвіду за рідкість артефакт не вирости
+            if (config.Equipment.FeedExperience.Count == 0 || config.Equipment.FeedExperience.Values.Any(xp => xp < 1))
+                throw new InvalidOperationException("Equipment.FeedExperience needs positive experience for fed rarities.");
 
             if (!config.Buildings.Select(b => b.Key).Contains(config.Equipment.ForgeBuildingKey))
                 throw new InvalidOperationException(
                     $"Equipment.ForgeBuildingKey '{config.Equipment.ForgeBuildingKey}' is not a known building.");
 
-            if (config.Equipment.ArtifactStats.Count < config.Equipment.ArtifactBaseStats)
-                throw new InvalidOperationException(
-                    "Equipment.ArtifactStats has fewer entries than ArtifactBaseStats — "
-                    + "a new artifact could not be filled.");
+            ValidateArtifactStats(config, equipment);
 
             var setKeys = config.Items
                 .Where(i => !string.IsNullOrWhiteSpace(i.SetKey))
@@ -1221,52 +1419,104 @@ namespace EmpireIdle.Domain.Services
                     throw new InvalidOperationException($"Set bonus '{bonus.SetKey}' grants nothing.");
             }
 
-            var brokenBands = config.Equipment.ArtifactStats
-                .Where(s => s.Min > s.Max || s.UpgradeMin > s.UpgradeMax || s.Min < 0 || s.UpgradeMin < 0)
-                .Select(s => s.Stat)
-                .ToList();
-
-            if (brokenBands.Count > 0)
-                throw new InvalidOperationException(
-                    $"Equipment.ArtifactStats has invalid bands: {string.Join(", ", brokenBands)}.");
-
-            RequireUniqueKeys(config.Equipment.ArtifactStats.Select(s => s.Stat).ToList(), "Equipment.ArtifactStats");
-
-            if (config.Equipment.DoubleUpgradeChance is < 0 or > 1)
-                throw new InvalidOperationException("Equipment.DoubleUpgradeChance must be within 0..1.");
-
-            // Рівні поза стелею означають правило, яке ніколи не спрацює
-            var unreachable = config.Equipment.ArtifactStatLevels
-                .Concat(config.Equipment.ArtifactUpgradeLevels)
-                .Where(l => l < 1 || l > config.Equipment.MaxEnhancement)
-                .ToList();
-
-            if (unreachable.Count > 0)
-                throw new InvalidOperationException(
-                    $"Equipment artifact levels outside 1..{config.Equipment.MaxEnhancement}: "
-                    + string.Join(", ", unreachable));
-
-            var classes = config.HeroSettings.Classes.ToHashSet();
-
             foreach (var item in equipment)
             {
                 if (item.Slot is null)
                     throw new InvalidOperationException($"Item '{item.Key}' is equipment but has no Slot.");
-
-                var unknownClasses = item.WeaponClasses.Where(c => !classes.Contains(c)).ToList();
-
-                if (unknownClasses.Count > 0)
-                    throw new InvalidOperationException(
-                        $"Item '{item.Key}' fits unknown hero classes: {string.Join(", ", unknownClasses)}.");
-
-                // Зброя купується в кузні, артефакти падають у данжах
-                if (item.Slot == EquipmentSlot.Weapon && item.PriceGold < 1)
-                    throw new InvalidOperationException($"Weapon '{item.Key}' needs a positive PriceGold.");
-
-                if (item.Slot == EquipmentSlot.Artifact && item.BaseStats.Count > 0)
-                    throw new InvalidOperationException(
-                        $"Artifact '{item.Key}' has BaseStats — artifact stats are rolled per instance.");
             }
+        }
+
+        /// <summary>
+        /// Стати артефактів (GDD §9.12): база для кожної рідкості, що трапляється, сталі бонуси —
+        /// лише базові стати, пули — з відомих бонусів і не менше двох, ступенів стільки ж,
+        /// скільки шансів, і шанси заточки покривають усю стелю.
+        /// </summary>
+        private static void ValidateArtifactStats(GameConfig config, IReadOnlyCollection<ItemConfig> equipment)
+        {
+            var settings = config.Equipment;
+
+            var baseless = equipment
+                .Where(i => i.Slot == EquipmentSlot.Artifact && !settings.ArtifactBase.ContainsKey(i.Rarity))
+                .Select(i => i.Rarity)
+                .Distinct()
+                .ToList();
+
+            if (baseless.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactBase has no entry for rarities: {string.Join(", ", baseless)}.");
+
+            var unknownClasses = settings.ArtifactClassMultipliers.Keys
+                .Where(c => !config.HeroSettings.Classes.Contains(c))
+                .ToList();
+
+            if (unknownClasses.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactClassMultipliers name unknown hero classes: {string.Join(", ", unknownClasses)}.");
+
+            RequireUniqueKeys(settings.ArtifactBonuses.Select(b => b.Stat), "Equipment.ArtifactBonuses");
+
+            // Ступенів менше, ніж шансів, — і кидок вийде за межі списку
+            var badSteps = settings.ArtifactBonuses
+                .Where(b => b.Steps.Count != settings.BonusStepChances.Count
+                            || b.Steps.Any(v => v < 0)
+                            || b.Steps.Zip(b.Steps.Skip(1)).Any(pair => pair.Second < pair.First))
+                .Select(b => b.Stat)
+                .ToList();
+
+            if (badSteps.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactBonuses need {settings.BonusStepChances.Count} non-decreasing, non-negative steps: "
+                    + string.Join(", ", badSteps));
+
+            var bonuses = settings.ArtifactBonuses.Select(b => b.Stat).ToHashSet();
+
+            foreach (var slot in settings.ArtifactSlots)
+            {
+                if (slot.FixedBonuses.Count != 2 || slot.FixedBonuses.Distinct().Count() != 2)
+                    throw new InvalidOperationException($"Artifact slot '{slot.Key}' needs two distinct FixedBonuses.");
+
+                // Сталий бонус підсилює базу предмета — інший стат йому нема чого підсилювати
+                var badFixed = slot.FixedBonuses
+                    .Where(stat => !ArtifactStats.BaseStats.Contains(stat) || !bonuses.Contains(stat))
+                    .ToList();
+
+                if (badFixed.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Artifact slot '{slot.Key}' FixedBonuses must be configured base stats: {string.Join(", ", badFixed)}.");
+
+                var pool = slot.RandomBonuses.Select(e => e.Stat).ToList();
+
+                // Два випадкові бонуси без повтору — у пулі має бути з чого обрати другий
+                if (pool.Count < 2 || pool.Distinct().Count() != pool.Count)
+                    throw new InvalidOperationException(
+                        $"Artifact slot '{slot.Key}' needs at least two distinct RandomBonuses.");
+
+                var badPool = slot.RandomBonuses
+                    .Where(e => e.Weight <= 0 || !bonuses.Contains(e.Stat) || ArtifactStats.BaseStats.Contains(e.Stat))
+                    .Select(e => e.Stat)
+                    .ToList();
+
+                if (badPool.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Artifact slot '{slot.Key}' RandomBonuses must be configured hero bonuses with positive weight: "
+                        + string.Join(", ", badPool));
+            }
+
+            if (settings.MasterySuccessChances.Count < settings.MaxMastery)
+                throw new InvalidOperationException(
+                    $"Equipment.MasterySuccessChances lists {settings.MasterySuccessChances.Count} attempts, "
+                    + $"but MaxMastery is {settings.MaxMastery}.");
+
+            // Порожній список — поломок немає взагалі; неповний означав би тиху «останню» поломку на пізніх рангах
+            if (settings.MasteryBreakChances.Count > 0 && settings.MasteryBreakChances.Count < settings.MaxMastery)
+                throw new InvalidOperationException(
+                    $"Equipment.MasteryBreakChances lists {settings.MasteryBreakChances.Count} attempts, "
+                    + $"but MaxMastery is {settings.MaxMastery}.");
+
+            // Ремкомплект, якого немає в предметах, не видати й не витратити — ремонт лишився б лише за gems мовчки
+            if (!config.Items.Any(i => i.Key == settings.RepairKitItemKey))
+                throw new InvalidOperationException(
+                    $"Equipment.RepairKitItemKey '{settings.RepairKitItemKey}' is not a known item.");
         }
 
         /// <summary>Чи посилається нагорода на неіснуючий ключ або на ключ не того виду.</summary>
@@ -1328,8 +1578,8 @@ namespace EmpireIdle.Domain.Services
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' has no {rarity} {banner.Kind} drop — its pity could never pay out.");
 
-                if (banner.PriceGems <= 0 && banner.PriceSeals <= 0)
-                    throw new InvalidOperationException($"Banner '{banner.Key}' has no price in gems nor in seals.");
+                if (banner.PriceGems <= 0)
+                    throw new InvalidOperationException($"Banner '{banner.Key}' has no price in gems.");
 
                 // Стандартний банер — без промо за визначенням: рівні шанси на будь-кого
                 if (banner.Kind == BannerKind.Standard && banner.FeaturedKey is not null)
@@ -1398,13 +1648,6 @@ namespace EmpireIdle.Domain.Services
                             + $"{config.HeroSettings.SummonShards} shards — a pity payout must be a whole hero; "
                             + "smaller bundles go in as filler (no Kind).");
 
-                    if (drop.Kind == BannerKind.Weapon
-                        && !drop.Rewards.Any(r => string.Equals(r.Type, "Equipment", StringComparison.OrdinalIgnoreCase)
-                            && r.Key is not null
-                            && items.GetValueOrDefault(r.Key) is { Slot: EquipmentSlot.Weapon }))
-                        throw new InvalidOperationException(
-                            $"Banner '{banner.Key}' drop '{drop.Key}' is marked as a weapon drop but grants no weapon.");
-
                     // Рідкість лота — обіцянка гравцю; предмет в інвентарі несе рідкість зі свого конфіга.
                     // Розбіжність означала б «унікальний» на вітрині і «звичайний» у руках
                     foreach (var reward in drop.Rewards.Where(r =>
@@ -1418,29 +1661,27 @@ namespace EmpireIdle.Domain.Services
             }
         }
 
-        /// <summary>
-        /// Мінімальна відстань між центрами будівель на плані за будь-якою віссю.
-        /// Клієнт малює будівлю квадратом із півстороною до 6, тож два силуети
-        /// не перетинаються, коли центри рознесені щонайменше на 12.
-        /// </summary>
-        private const double MinBuildingSpacing = 12;
-
-        /// <summary>Будівлі на плані села не налазять одна на одну.</summary>
+        /// <summary>Будівлі на плані села стоять на сітці в межах муру й не налазять одна на одну (VillageLayout).</summary>
         private static void ValidateBuildingLayout(GameConfig config)
         {
             var placed = config.Buildings.Where(b => b.Position is not null).ToList();
 
+            var offPlan = placed.Where(b => !VillageLayout.IsValidSpot(b.Position!.X, b.Position.Y)).Select(b => b.Key).ToList();
+
+            if (offPlan.Count > 0)
+                throw new InvalidOperationException(
+                    $"Buildings stand off the village grid or outside the wall: {string.Join(", ", offPlan)}.");
+
             var collisions = placed
                 .SelectMany((first, index) => placed.Skip(index + 1).Select(second => (first, second)))
-                .Where(pair => Math.Max(
-                    Math.Abs(pair.first.Position!.X - pair.second.Position!.X),
-                    Math.Abs(pair.first.Position.Y - pair.second.Position.Y)) < MinBuildingSpacing)
+                .Where(pair => VillageLayout.Overlap(
+                    pair.first.Position!.X, pair.first.Position.Y, pair.second.Position!.X, pair.second.Position.Y))
                 .Select(pair => $"{pair.first.Key} ↔ {pair.second.Key}")
                 .ToList();
 
             if (collisions.Count > 0)
                 throw new InvalidOperationException(
-                    $"Buildings are placed closer than {MinBuildingSpacing} on the village plan: {string.Join(", ", collisions)}.");
+                    $"Buildings are placed closer than {VillageLayout.MinSpacing} on the village plan: {string.Join(", ", collisions)}.");
         }
     }
 }

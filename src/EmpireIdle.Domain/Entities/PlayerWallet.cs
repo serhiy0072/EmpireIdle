@@ -22,11 +22,6 @@ public class PlayerWallet : Entity
     /// <summary>Баланс gems (преміум валюта, купується за реальні гроші).</summary>
     public GemAmount GemBalance { get; private set; } = null!;
 
-    /// <summary>
-    /// Печатки призову — валюта банерів, яку не купують за гроші: приходить
-    /// компенсацією за дублікати героїв понад стелю сузір'я.
-    /// </summary>
-    public int SealBalance { get; private set; }
 
 
     /// <summary>Історія транзакцій (тільки для читання).</summary>
@@ -88,30 +83,6 @@ public class PlayerWallet : Entity
         Touch(utcNow);
     }
 
-    /// <summary>Нараховує печатки призову — за дублікат героя чи нагороду.</summary>
-    public void AddSeals(int amount, string reference, DateTime utcNow)
-    {
-        if (amount <= 0)
-            throw new ArgumentOutOfRangeException(nameof(amount), "Seal amount must be positive.");
-
-        SealBalance += amount;
-        _transactions.Add(new WalletTransaction(Guid.NewGuid(), Id, TransactionType.SealEarned, amount, reference, utcNow));
-        Touch(utcNow);
-    }
-
-    /// <summary>Витрачає печатки призову на ролл банера.</summary>
-    public void SpendSeals(int amount, string description, DateTime utcNow)
-    {
-        if (amount <= 0)
-            throw new ArgumentOutOfRangeException(nameof(amount), "Seal amount must be positive.");
-
-        if (SealBalance < amount)
-            throw new NotEnoughResourcesException("seals", amount, SealBalance);
-
-        SealBalance -= amount;
-        _transactions.Add(new WalletTransaction(Guid.NewGuid(), Id, TransactionType.SealSpend, -amount, description, utcNow));
-        Touch(utcNow);
-    }
 
     private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
 }

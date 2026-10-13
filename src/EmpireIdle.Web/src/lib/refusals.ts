@@ -67,6 +67,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "mail.nothingToClaim": () => "Тут нічого забирати — нагороду вже отримано",
   "mail.letterExpired": () => "Строк листа минув — нагорода згоріла",
   "village.nothingToRepair": () => "Ремонтувати нічого — усі будівлі цілі",
+  "village.buildingOutOfBounds": () => "Будівля має стояти всередині муру",
+  "village.buildingOverlaps": () => "Тут будівля налізе на іншу — оберіть вільне місце",
   "building.serverCeiling": ({ serverLevel, ceiling }) =>
     `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
   "building.maxLevel": ({ maxLevel }) => `Будівля вже на найвищому рівні ${maxLevel}`,
@@ -83,7 +85,11 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "scout.ownTarget": () => "Своє село й споруди свого клану розвідувати не треба",
 
   // ---------- Прискорення ----------
-  "speedup.atFloor": ({ seconds }) => `До кінця ${seconds} с або менше — прискорити вже не можна, зачекайте`,
+  // Межа 0 (будівництво, тренування): відмова означає, що таймер уже скінчився
+  "speedup.atFloor": ({ seconds }) =>
+    Number(seconds) > 0
+      ? `До кінця ${seconds} с або менше — прискорити вже не можна, зачекайте`
+      : "Уже завершено — прискорювати нічого",
 
   // ---------- Інвентар, банери, квести, крамниця ----------
   "item.strongerBoostActive": ({ multiplier, until }) =>
@@ -92,6 +98,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "item.giftNotClanmate": () => "Дарувати можна лише членам свого клану",
   "item.giftToSelf": () => "Собі подарунок не зробиш",
   "item.notEnough": ({ item, need, have }) => `Замало: «${item}» потрібно ${need}, є ${have}`,
+  "lootbox.freeNotReady": ({ at }) => `Безкоштовне відкриття буде доступне ${localTime(at)}`,
   "teleport.outsideRegion": () => "Ця клітинка поза освоєною зоною світу",
   "teleport.cellUnsuitable": () => "На цій клітинці не можна заснувати поселення",
   "teleport.cellOccupied": () => "Ця клітинка вже зайнята",
@@ -158,7 +165,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
 
   // ---------- Герої ----------
   "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
-  "hero.onMarket": () => "Герой виставлений на ринок — спершу зніміть лот",
   "hero.levelCeiling": ({ hero, ceiling }) => `${hero} уже на найвищому рівні — ${ceiling}`,
   "hero.worldLevelRequired": ({ required, current }) =>
     `Наступний тір відкриється на рівні світу ${required} (зараз ${current})`,
@@ -167,6 +173,25 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.tierLocked": ({ tier }) => `Герой ${tier} тіру з'явиться на рівні світу ${tier}`,
   "hero.notEnoughShards": ({ hero, need, have }) => `«${hero}»: потрібно ${need} осколків, зібрано ${have}`,
   "hero.maxStars": () => "Усі зірки героя вже заповнені",
+  "hero.weaponMaxed": ({ max }) => `Зброя героя вже на найвищому рівні (+${max})`,
+  "hero.weaponShards": ({ need, have }) => `Бракує шматків зброї: потрібно ${need}, є ${have}`,
+  "hero.weaponNotInChest": ({ hero }) => `Ця скриня не дає шматків зброї героя ${hero}`,
+  "hero.weaponNotSold": ({ hero }) => `Шматки зброї героя ${hero} не продаються — лише зі скринь зброї`,
+  "march.wrongUnits": ({ unit, hero }) => `Жоден герой маршу (${hero}) не веде «${unit}» — кожен веде лише юнітів своєї ролі`,
+  "march.overCapacity": ({ capacity, sent, hero }) => `${hero} веде до ${capacity} юнітів, а відправлено ${sent}`,
+  "march.sameRole": ({ heroes }) => `У марші не може бути двох героїв однієї ролі: ${heroes}`,
+  "march.tooManyHeroes": ({ max }) => `Марш веде не більше ${max} героїв`,
+  "camp.unavailable": ({ need, have }) => `Табір відкриється, коли поза ним буде ${need} героїв — зараз ${have}`,
+  "camp.slotLocked": ({ slot }) => `Слот ${slot} ще не відкрито — підніміть ратушу або купіть слот`,
+  "camp.slotTaken": ({ slot }) => `У слоті ${slot} уже стоїть герой`,
+  "camp.slotCooling": ({ slot }) => `Слот ${slot} ще перезаряджається`,
+  "camp.heroAlreadyIn": () => "Герой уже в таборі",
+  "camp.heroNotIn": () => "Героя немає в таборі",
+  "camp.heroIsReference": ({ count }) =>
+    `Герой — серед ${count} найсильніших поза табором: вони задають рівень табору, тож у табір іде слабший`,
+  "camp.heroLevelLocked": () => "Герой у таборі: його рівень тримає табір. Виведіть героя з табору, щоб піднімати власний рівень",
+  "camp.allSlotsBought": ({ count }) => `Усі ${count} додаткові слоти вже куплені`,
+  "camp.slotReady": ({ slot }) => `Слот ${slot} уже готовий`,
   "hero.skillLocked": ({ skill, level }) => `«${skill}» відкриється з ${level} рівня героя`,
   "hero.skillStarCapped": ({ stars }) => `Наступний рівень вміння відкриється на ${stars} зірці героя`,
   "hero.skillMaxed": ({ level }) => `Вміння вже на найвищому, ${level} рівні`,
@@ -175,9 +200,12 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.shardUpgradeLocked": () => "Обмін відкриється, коли всі герої цієї рідкості матимуть усі зірки",
 
   // ---------- Спорядження ----------
-  "equipment.maxEnhancement": ({ max }) => `Уже максимальне посилення +${max}`,
-  "equipment.broken": () => "Спершу відремонтуйте предмет у кузні",
-  "equipment.classMismatch": ({ weapon }) => `«${weapon}» не підходить класу цього героя`,
+  "equipment.maxLevel": ({ max }) => `Артефакт уже на найвищому, ${max} рівні`,
+  "equipment.maxMastery": ({ max }) => `Заточка вже найвища — +${max}`,
+  "equipment.broken": () => "Артефакт зламаний — спершу відремонтуйте його в кузні",
+  "equipment.notBroken": () => "Артефакт цілий — ремонтувати нічого",
+  "equipment.uniqueFood": ({ item }) => `«${item}» не згодовується`,
+  "equipment.foodEquipped": () => "Спершу зніміть предмет із героя — вдягнене не згодовується",
 
   // ---------- Ринок ----------
   "market.locked": ({ level }) => `Ринок відкриється з ратушею ${level} рівня`,
@@ -187,8 +215,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "market.notTradeable": ({ item }) => `«${item}» не продається на ринку`,
   "market.notEnoughItems": ({ item, need, have }) => `Не вистачає «${item}»: потрібно ${need}, є ${have}`,
   "market.resaleCooldown": ({ until }) => `Щойно куплене можна перепродати після ${localTime(until)}`,
-  "market.heroBusy": () => "Виставити можна лише героя, що вдома й вільний",
-  "market.heroAlreadyOwned": ({ hero }) => `${hero} уже у вашому загоні — другого такого купити не можна`,
   "market.itemListed": () => "Предмет виставлений на ринок — спершу зніміть лот",
   "market.listingClosed": () => "Лот уже продано або знято",
   "market.ownListing": () => "Це ваш власний лот",
@@ -205,6 +231,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "dungeon.heroWounded": ({ hero }) => `${hero} зараз у госпіталі — оберіть іншого героя`,
   "dungeon.runInProgress": () => "У вас уже є незавершений забіг — поверніться до нього",
   "dungeon.targetUnreachable": () => "Цю ціль зараз не дістати: спершу бийте передню лінію або того, хто провокує",
+  "dungeon.energyFull": () => "Енергія вже повна — поповнювати нічого",
+  "dungeon.refillLimit": ({ limit }) => `Сьогодні енергію вже поповнено ${limit} разів — нові поповнення з опівночі UTC`,
 
   // ---------- Звірі ----------
   "beast.penMissing": () => "Приручати нікуди: спершу відкрийте звіринець",

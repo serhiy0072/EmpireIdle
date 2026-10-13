@@ -50,6 +50,32 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public Task<List<Hero>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.Heroes
+            .Where(h => ids.Contains(h.Id))
+            .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Фільтр повторюється в пам'яті: герой, що зійшов із маршу в цій же одиниці роботи
+        /// (часткова доставка підкріплення), у базі ще числиться за маршем, а відстежений
+        /// екземпляр уже ні — і додому з колоною він не їде.
+        /// </remarks>
+        public async Task<List<Hero>> GetByMarchAsync(Guid marchId, CancellationToken cancellationToken = default)
+            => (await _context.Heroes.Where(h => h.MarchId == marchId).ToListAsync(cancellationToken))
+                .Where(h => h.MarchId == marchId)
+                .ToList();
+
+        /// <inheritdoc/>
+        public async Task<ILookup<Guid, Hero>> GetByMarchesReadOnlyAsync(IReadOnlyCollection<Guid> marchIds,
+            CancellationToken cancellationToken = default)
+            => (await _context.Heroes
+                .AsNoTracking()
+                .Where(h => h.MarchId != null && marchIds.Contains(h.MarchId.Value))
+                .ToListAsync(cancellationToken))
+            .ToLookup(h => h.MarchId!.Value);
+
+        /// <inheritdoc/>
         public Task<int> CountAvailableAsync(Guid playerId, Guid garrisonId,
             CancellationToken cancellationToken = default)
             => _context.Heroes
@@ -135,6 +161,18 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public async Task AddExperienceAsync(HeroExperiencePool pool, CancellationToken cancellationToken = default)
         {
             await _context.HeroExperience.AddAsync(pool, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task<TrainingCamp?> GetCampAsync(Guid playerId, CancellationToken cancellationToken = default)
+            // Спершу трекер — з тієї ж причини, що й пул досвіду: створений у цій транзакції табір у базі ще не видно
+            => _context.TrainingCamps.Local.FirstOrDefault(c => c.PlayerId == playerId)
+               ?? await _context.TrainingCamps.FirstOrDefaultAsync(c => c.PlayerId == playerId, cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task AddCampAsync(TrainingCamp camp, CancellationToken cancellationToken = default)
+        {
+            await _context.TrainingCamps.AddAsync(camp, cancellationToken);
         }
     }
 }

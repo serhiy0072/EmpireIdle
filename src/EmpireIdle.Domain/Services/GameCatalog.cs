@@ -32,6 +32,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Типи звірів за ключем монстра, з якого їх приручають.</summary>
         public IReadOnlyDictionary<string, BeastConfig> BeastsByMonster { get; }
 
+        /// <summary>Таблиці скринь за ключем предмета-скрині.</summary>
+        public IReadOnlyDictionary<string, LootboxConfig> Lootboxes { get; }
+
         /// <summary>Які предмети входять у кожен набір.</summary>
         public IReadOnlyDictionary<string, IReadOnlyList<string>> SetPieces { get; }
 
@@ -57,6 +60,7 @@ namespace EmpireIdle.Domain.Services
             Dungeons = config.Dungeons.Dungeons.ToDictionary(d => d.Key);
             Beasts = config.Beasts.Types.ToDictionary(b => b.Key);
             BeastsByMonster = config.Beasts.Types.ToDictionary(b => b.MonsterKey);
+            Lootboxes = config.Lootboxes.ToDictionary(b => b.Key);
             MainBuildingKey = config.Buildings.Single(b => b.IsMainBuilding).Key;
             SetPieces = config.Items
                 .Where(i => !string.IsNullOrWhiteSpace(i.SetKey))
@@ -78,6 +82,9 @@ namespace EmpireIdle.Domain.Services
 
         /// <inheritdoc cref="FindUnit"/>
         public HeroConfig? FindHero(string key) => Heroes.GetValueOrDefault(key);
+
+        /// <inheritdoc cref="FindUnit"/>
+        public LootboxConfig? FindLootbox(string key) => Lootboxes.GetValueOrDefault(key);
 
         /// <summary>
         /// Назва монстра для гравця. Рівень сюди не вклеюється: він іде окремим

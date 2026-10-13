@@ -130,6 +130,42 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
+        /// Переставляє будівлю на плані села (рішення 13.10.2026): центр — на вузлі сітки в межах муру,
+        /// і будівля не налазить на жодну іншу. Будівля без позиції в конфігу (мур) не рухається.
+        /// </summary>
+        /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
+        /// <exception cref="RequirementNotMetException">Місце поза муром, не на сітці або зайняте.</exception>
+        public void MoveBuilding(Guid buildingId, double x, double y,
+            IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow)
+        {
+            var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
+                ?? throw new EntityNotFoundException("Building", buildingId);
+
+            // Без причини для клієнта: мур на плані не перетягується, тож запит можна лише підробити
+            if (PositionOf(building, buildingConfigs) is null)
+                throw new RequirementNotMetException($"Building '{building.Type}' has no place on the village plan.");
+
+            if (!VillageLayout.IsValidSpot(x, y))
+                throw new RequirementNotMetException(RefusalReasons.VillageBuildingOutOfBounds,
+                    $"Building spot ({x}, {y}) is off the grid or outside the wall.", VillageLayout.Min, VillageLayout.Max);
+
+            var blocker = _buildings
+                .Where(other => other.Id != building.Id)
+                .FirstOrDefault(other => PositionOf(other, buildingConfigs) is { } spot
+                    && VillageLayout.Overlap(x, y, spot.X, spot.Y));
+
+            if (blocker is not null)
+                throw new RequirementNotMetException(RefusalReasons.VillageBuildingOverlaps,
+                    $"Building spot ({x}, {y}) overlaps '{blocker.Type}'.", blocker.Type);
+
+            building.PlaceAt(x, y);
+            Touch(utcNow);
+        }
+
+        private static (double X, double Y)? PositionOf(Building building, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+            => building.PositionOr(buildingConfigs.TryGetValue(building.Type, out var config) ? config.Position : null);
+
+        /// <summary>
         /// Починає апгрейд будівлі.
         ///
         /// Черги будівельників немає навмисно: 20 будівель до 30 рівня

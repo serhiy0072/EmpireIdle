@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services.Config
 {
     /// <summary>
@@ -41,6 +43,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки осколків коштує призов будь-якого героя (GDD §6.1): 10 осколків — це герой.</summary>
         public int SummonShards { get; set; } = 10;
 
+        /// <summary>
+        /// Досвід героїв у спільний запас за перемогу над монстром — полювання чи приручення (GDD §6.1):
+        /// стільки за кожен рівень монстра. 0 — монстри досвіду не дають.
+        /// </summary>
+        public long MonsterExperiencePerLevel { get; set; }
+
         /// <summary>Скільки зірок має герой.</summary>
         public int MaxStars { get; set; } = 5;
 
@@ -55,6 +63,25 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Скільки бойової міці дає кожна частинка зірки: 0.05 — +5% до всіх статів.</summary>
         public double StarPartBonus { get; set; } = 0.05;
+
+        /// <summary>
+        /// Шматки зброї на кожен рівень (GDD §6.4, §9.12): перший — відкриття (+1). Довжина списку — стеля зброї.
+        /// </summary>
+        public List<int> WeaponShardCosts { get; set; } = new();
+
+        /// <summary>
+        /// Бонус зброї до власних статів героя у відсотках за рідкістю героя: значення на +1…+5,
+        /// сумарне, не накопичувальне. Довжина кожного списку — як у WeaponShardCosts.
+        /// </summary>
+        public Dictionary<Rarity, List<double>> WeaponBonusPercents { get; set; } = new();
+
+        public int MaxWeaponLevel => WeaponShardCosts.Count;
+
+        /// <summary>
+        /// Ціна шматка зброї в магазині за gems за рідкістю героя (GDD §9.12). Рідкості без ціни
+        /// (унікальні) не продаються — їхні шматки лише зі скринь зброї.
+        /// </summary>
+        public Dictionary<Rarity, int> WeaponShardPriceGems { get; set; } = new();
 
         /// <summary>
         /// Стеля рівня вміння (GDD §6.1): 6. Зірки відкривають рівні по одному —
@@ -73,6 +100,24 @@ namespace EmpireIdle.Domain.Services.Config
         /// (мінімальні фікстури); інакше кожен герой мусить мати книги для своїх половин.
         /// </summary>
         public List<SkillBookConfig> SkillBooks { get; set; } = new();
+
+        /// <summary>
+        /// Який тип юніта веде герой кожної ролі (GDD §6.1): ключ — клас героя, значення — ключ юніта.
+        /// Порожньо — марш не обмежує тип юнітів (мінімальні фікстури).
+        /// </summary>
+        public Dictionary<string, string> RoleUnits { get; set; } = new();
+
+        /// <summary>Скільки юнітів у конвої. Заглушка до Режисера.</summary>
+        public int ConvoySize { get; set; } = 100;
+
+        /// <summary>
+        /// Скільки конвоїв веде герой за рівнем (GDD §6.1: 2 на 1 рівні, 10 на 70). Порожньо — марш
+        /// не обмежує кількість юнітів (мінімальні фікстури).
+        /// </summary>
+        public List<ConvoyStepConfig> ConvoysByLevel { get; set; } = new();
+
+        /// <summary>Навчальний табір (GDD §6.1).</summary>
+        public TrainingCampConfig TrainingCamp { get; set; } = new();
 
         /// <summary>Скільки частинок має повністю прокачаний герой.</summary>
         public int MaxStarParts => MaxStars * PartsPerStar;

@@ -17,11 +17,13 @@ namespace EmpireIdle.Domain.Services
     {
         private readonly HeroProgression _progression;
         private readonly GameCatalog _catalog;
+        private readonly ArtifactStats _artifacts;
 
         public HeroStats(HeroProgression progression, GameCatalog catalog)
         {
             _progression = progression;
             _catalog = catalog;
+            _artifacts = new ArtifactStats(catalog);
         }
 
         /// <summary>
@@ -30,27 +32,52 @@ namespace EmpireIdle.Domain.Services
         /// <param name="equipped">Спорядження саме цього героя.</param>
         public IReadOnlyDictionary<string, double> Compute(Hero hero, HeroConfig config,
             IReadOnlyCollection<EquipmentItem> equipped)
+            => ComputeAt(hero, config, equipped, hero.EffectiveLevel);
+
+        /// <summary>
+        /// Стати героя, якби він був на заданому рівні, — решта (тір, зірки, зброя, спорядження) та сама.
+        /// Так екран героя показує «було → стане» до підняття рівня.
+        /// </summary>
+        public IReadOnlyDictionary<string, double> ComputeAt(Hero hero, HeroConfig config,
+            IReadOnlyCollection<EquipmentItem> equipped, int level)
         {
             var result = new Dictionary<string, double>();
 
             foreach (var stat in config.BaseStats.Keys)
-                result[stat] = _progression.StatValue(config, stat, hero.Level, hero.Tier, hero.NativeTier, hero.StarParts);
+                result[stat] = _progression.StatValue(config, stat, level, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel);
+
+            var multiplier = _artifacts.ClassMultiplier(config.Class);
 
             foreach (var item in equipped)
             {
-                foreach (var stat in item.Stats)
-                {
-                    var value = item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.EnhancementBonusPerLevel);
-
-                    result[stat.StatKey] = result.GetValueOrDefault(stat.StatKey) + value;
-                }
+                foreach (var (stat, value) in _artifacts.Compute(item, multiplier))
+                    result[stat] = result.GetValueOrDefault(stat) + value;
             }
 
             foreach (var (stat, value) in SetBonus(equipped))
                 result[stat] = result.GetValueOrDefault(stat) + value;
 
+            // Відсотки героя — останніми: множать увесь стат, разом із наборами й базою предметів
+            foreach (var (percent, stat) in ArtifactStats.HeroPercentStats)
+            {
+                if (result.TryGetValue(percent, out var bonus) && result.ContainsKey(stat))
+                    result[stat] *= 1 + bonus / 100;
+            }
+
             return result;
         }
+
+        /// <summary>
+        /// Герої від найсильнішого (GDD §6.1): перший — обличчя маршу у звітах і на карті й першим
+        /// бере вільний слот лідера, коли марш прибуває. За рівної сили — хто прийшов раніше,
+        /// щоб порядок не стрибав. Герой, якого вже немає в довіднику, — найслабший.
+        /// </summary>
+        public List<Hero> StrongestFirst(IEnumerable<Hero> heroes)
+            => heroes
+                .OrderByDescending(h => _catalog.FindHero(h.HeroKey) is { } config ? Power(h, config) : 0)
+                .ThenBy(h => h.AcquiredAt)
+                .ThenBy(h => h.Id)
+                .ToList();
 
         /// <summary>
         /// Сила героя без спорядження: сума власних статів від рівня й тіру.
@@ -58,18 +85,27 @@ namespace EmpireIdle.Domain.Services
         /// що на ньому вдягнено, — екіп живе своїм життям і продається окремо.
         /// </summary>
         public double Power(Hero hero, HeroConfig config)
-            => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.Level, hero.Tier, hero.NativeTier, hero.StarParts));
+            => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel));
 
         /// <summary>
-        /// Сила предмета: сума його статів із заточкою. Зламаний дає нуль —
-        /// так само, як на герої, де він не додає нічого.
+        /// Сила героя з вдягненим (GDD §9.12): власна плюс сила кожного артефакта з множником
+        /// класу героя плюс бонуси повних наборів. Сума статів із Compute тут не годиться:
+        /// відсотки крита чи кулдауну не можна складати з пласкою атакою.
         /// </summary>
-        public double Power(EquipmentItem item)
-            => item.Stats.Sum(stat => item.GetStatValue(stat.StatKey, _catalog.Config.Equipment.EnhancementBonusPerLevel));
+        public double Power(Hero hero, HeroConfig config, IReadOnlyCollection<EquipmentItem> equipped)
+        {
+            var multiplier = _artifacts.ClassMultiplier(config.Class);
+
+            return Power(hero, config)
+                + equipped.Sum(item => _artifacts.Power(item, multiplier))
+                + SetBonus(equipped).Values.Sum();
+        }
+
+        /// <summary>Сила предмета самого по собі, без героя: так його оцінює ринок.</summary>
+        public double Power(EquipmentItem item) => _artifacts.Power(item);
 
         /// <summary>
-        /// Бонуси за повні набори. Зламане не рахується: воно не дає й
-        /// власних статів, тож і комплект ним не закривається.
+        /// Бонуси за повні набори з вдягненого.
         /// </summary>
         public IReadOnlyDictionary<string, double> SetBonus(IReadOnlyCollection<EquipmentItem> equipped)
         {
@@ -80,7 +116,6 @@ namespace EmpireIdle.Domain.Services
                 return result;
 
             var worn = equipped
-                .Where(e => !e.IsBroken)
                 .Select(e => e.ItemKey)
                 .ToList();
 

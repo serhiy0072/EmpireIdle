@@ -3,11 +3,16 @@ using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
+using EmpireIdle.Application.Lootboxes.Commands;
+using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.Queries;
+using EmpireIdle.Application.Speedups.Commands;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EmpireIdle.API.Controllers
 {
@@ -40,8 +45,8 @@ namespace EmpireIdle.API.Controllers
             var equipment = inventory.Equipment
                 .Select(e => new EquipmentResponse(
                     e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
-                    e.EnhancementLevel, e.EquippedByHeroId, e.SlotIndex, e.IsBroken, e.Stats,
-                    e.IsOnMarket, e.ResaleLockedUntil))
+                    e.Level, e.Experience, e.ExperienceToNext, e.FeedValue, e.Mastery, e.EquippedByHeroId, e.SlotIndex, e.Stats,
+                    e.IsBroken, e.IsOnMarket, e.ResaleLockedUntil, e.Power))
                 .ToList();
 
             var activeEffects = inventory.ActiveEffects
@@ -73,6 +78,60 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
+        /// Відкрити скрині з рюкзака (GDD §9.12): повертає, що випало. Ідемпотентна операція — потрібен
+        /// заголовок Idempotency-Key, інакше повтор запиту відкрив би ще раз.
+        /// </summary>
+        [HttpPost("{playerId:guid}/lootboxes/{itemKey}/open")]
+        [ProducesResponseType(typeof(LootboxOpening), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<LootboxOpening>> OpenLootbox(Guid playerId, string itemKey,
+            [FromQuery][Range(1, OpenLootboxCommand.MaxCount)] int count = 1, CancellationToken cancellationToken = default)
+            => Ok(await _mediator.Send(new OpenLootboxCommand(playerId, itemKey, count), cancellationToken));
+
+        /// <summary>
+        /// Відкрити ключову скриню: free=true — одне безкоштовне відкриття, коли готове; інакше count скринь
+        /// ключами, по ключу за скриню. Ідемпотентна — потрібен заголовок Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/key-chests/{chestKey}/open")]
+        [ProducesResponseType(typeof(LootboxOpening), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<LootboxOpening>> OpenKeyChest(Guid playerId, string chestKey, [FromQuery] bool free = false,
+            [FromQuery][Range(1, OpenKeyChestCommand.MaxCount)] int count = 1, CancellationToken cancellationToken = default)
+            => Ok(await _mediator.Send(new OpenKeyChestCommand(playerId, chestKey, free, count), cancellationToken));
+
+        /// <summary>Ключові скрині гравця: ключі в рюкзаку, залишок безкоштовних відкриттів і коли наступне.</summary>
+        [HttpGet("{playerId:guid}/key-chests")]
+        [ProducesResponseType(typeof(IReadOnlyList<KeyChestView>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IReadOnlyList<KeyChestView>>> GetKeyChests(Guid playerId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new GetKeyChestsQuery(playerId), cancellationToken));
+
+        /// <summary>Лічильники гарантій скринь: скільки відкриттів поспіль без позиції гарантії.</summary>
+        [HttpGet("{playerId:guid}/lootboxes/pity")]
+        [ProducesResponseType(typeof(IReadOnlyList<LootboxPityView>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IReadOnlyList<LootboxPityView>>> GetLootboxPity(Guid playerId,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new GetLootboxPityQuery(playerId), cancellationToken));
+
+        /// <summary>
+        /// Прискорити таймер предметами-прискореннями (будівництво, тренування, рівень військ, марш).
+        /// Ідемпотентна операція — потрібен заголовок Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/speedups")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SpeedUpWithItems(Guid playerId, [FromBody] SpeedUpWithItemsRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new SpeedUpWithItemsCommand(playerId, request.Timer, request.TargetId, request.Items),
+                cancellationToken);
+
+            return NoContent();
+        }
+
+        /// <summary>
         /// Подарувати предмет члену свого клану. Ідемпотентна операція — потрібен заголовок Idempotency-Key.
         /// </summary>
         [HttpPost("{playerId:guid}/gift")]
@@ -88,47 +147,45 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
-        /// <summary>Заточити зброю. Ідемпотентна операція — потрібен заголовок Idempotency-Key.</summary>
-        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/enhance")]
-        [ProducesResponseType(typeof(EnhancementResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Enhance(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
-        {
-            var outcome = await _mediator.Send(new EnhanceWeaponCommand(playerId, equipmentId), cancellationToken);
-
-            return Ok(new EnhancementResponse(outcome.ToString().ToLowerInvariant()));
-        }
-
-        /// <summary>Полагодити зламану зброю.</summary>
-        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/repair")]
+        /// <summary>
+        /// Посилити артефакт: згодувати йому спорядження й гаєчки. Ідемпотентна операція — потрібен
+        /// заголовок Idempotency-Key, інакше повтор запиту згодував би ще раз.
+        /// </summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/feed")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Repair(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> Feed(Guid playerId, Guid equipmentId, [FromBody] FeedArtifactRequest request,
+            CancellationToken cancellationToken)
         {
-            await _mediator.Send(new RepairWeaponCommand(playerId, equipmentId), cancellationToken);
+            await _mediator.Send(new FeedArtifactCommand(playerId, equipmentId, request.FoodIds, request.Wrenches),
+                cancellationToken);
             return NoContent();
         }
 
         /// <summary>
-        /// Прокачати артефакт. Ідемпотентна операція — потрібен заголовок
-        /// Idempotency-Key, інакше повтор запиту дав би другий ролл.
+        /// Заточка коваля: спроба за золото. Ідемпотентна операція — потрібен заголовок Idempotency-Key.
         /// </summary>
-        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/upgrade")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/mastery")]
+        [ProducesResponseType(typeof(ArtifactMasteryResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Upgrade(Guid playerId, Guid equipmentId, CancellationToken cancellationToken)
+        public async Task<ActionResult<ArtifactMasteryResponse>> RaiseMastery(Guid playerId, Guid equipmentId,
+            CancellationToken cancellationToken)
         {
-            await _mediator.Send(new EnhanceArtifactCommand(playerId, equipmentId), cancellationToken);
-            return NoContent();
+            var outcome = await _mediator.Send(new RaiseArtifactMasteryCommand(playerId, equipmentId), cancellationToken);
+            return Ok(new ArtifactMasteryResponse(outcome == MasteryOutcome.Success, outcome == MasteryOutcome.Broken));
         }
 
-        /// <summary>Купити зброю в кузні. Ідемпотентна операція.</summary>
-        [HttpPost("{playerId:guid}/weapons/{itemKey}")]
+        /// <summary>
+        /// Ремонт зламаного артефакта за gems чи ремкомплектом. Ідемпотентна операція — потрібен
+        /// заголовок Idempotency-Key, інакше повтор запиту заплатив би вдруге.
+        /// </summary>
+        [HttpPost("{playerId:guid}/equipment/{equipmentId:guid}/repair")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> BuyWeapon(Guid playerId, string itemKey, CancellationToken cancellationToken)
+        public async Task<IActionResult> Repair(Guid playerId, Guid equipmentId, [FromBody] RepairArtifactRequest request,
+            CancellationToken cancellationToken)
         {
-            await _mediator.Send(new BuyWeaponCommand(playerId, itemKey), cancellationToken);
+            await _mediator.Send(new RepairArtifactCommand(playerId, equipmentId, request.UseKit), cancellationToken);
             return NoContent();
         }
     }

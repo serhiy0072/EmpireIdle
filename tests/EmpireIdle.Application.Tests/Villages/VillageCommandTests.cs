@@ -276,4 +276,44 @@ public class VillageCommandTests
 
         Assert.False(farm.IsUnderConstruction);
     }
+
+    /// <summary>Каталог, де ферма й ратуша мають місця на плані села.</summary>
+    private static GameCatalog PlannedCatalog()
+    {
+        var config = Config();
+        config.Buildings.Single(b => b.Key == "townhall").Position = new BuildingPosition { X = 50, Y = 50 };
+        config.Buildings.Single(b => b.Key == "farm").Position = new BuildingPosition { X = 20, Y = 20 };
+        return new GameCatalog(config);
+    }
+
+    private MoveBuildingCommandHandler MoveHandler() => new(
+        _villages, _unitOfWork, PlannedCatalog(), new FakeTimeProvider(Now),
+        NullLogger<MoveBuildingCommandHandler>.Instance);
+
+    /// <summary>Вільне місце — будівля переїжджає, і зміна зберігається.</summary>
+    [Fact]
+    public async Task Move_ShouldPlaceTheBuildingAndSave()
+    {
+        var village = GivenVillage();
+        var farm = village.Buildings.Single(b => b.Type == "farm");
+
+        await MoveHandler().Handle(new MoveBuildingCommand(PlayerId, farm.Id, 80, 30), CancellationToken.None);
+
+        Assert.Equal((80.0, 30.0), farm.PositionOr(null));
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Місце зайняте ратушею — відмова, нічого не зберігається.</summary>
+    [Fact]
+    public async Task Move_ShouldRefuseAnOverlap_WithoutSaving()
+    {
+        var village = GivenVillage();
+        var farm = village.Buildings.Single(b => b.Type == "farm");
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            MoveHandler().Handle(new MoveBuildingCommand(PlayerId, farm.Id, 46, 54), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.VillageBuildingOverlaps.Key, refusal.Reason);
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
 }

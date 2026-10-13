@@ -26,7 +26,7 @@ public class ReinforcementReturnerTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
 
     private static GameConfig Config() => new()

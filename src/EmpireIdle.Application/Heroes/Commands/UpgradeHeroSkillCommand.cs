@@ -54,10 +54,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (hero.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
-            // Лот продається за силу на момент виставлення
-            if (hero.State == HeroState.OnMarket)
-                throw new InvalidStateException(RefusalReasons.HeroOnMarket, $"Hero {hero.Id} is on the market.");
-
             var config = _catalog.FindHero(hero.HeroKey)
                 ?? throw new EntityNotFoundException("Hero config", hero.HeroKey);
 

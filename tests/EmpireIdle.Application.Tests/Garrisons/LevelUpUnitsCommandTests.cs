@@ -22,7 +22,8 @@ public class LevelUpUnitsCommandTests
 
     private static GameConfig Config() => new()
     {
-        MaxLevelUpBatchSize = 10,
+        UnitBatchMin = 10,
+        UnitBatchMax = 10,
         MaxUnitLevel = 10,
         Buildings =
         [

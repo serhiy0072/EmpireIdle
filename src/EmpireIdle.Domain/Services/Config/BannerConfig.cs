@@ -10,7 +10,7 @@ namespace EmpireIdle.Domain.Services.Config
     /// </summary>
     public class BannerConfig
     {
-        /// <summary>Ключ конкретного банера, наприклад "dawn_2026_09".</summary>
+        /// <summary>Ключ конкретного банера, наприклад "event_world_1".</summary>
         public string Key { get; set; } = null!;
 
         public string DisplayName { get; set; } = null!;
@@ -24,8 +24,6 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Ціна одного ролла.</summary>
         public int PriceGems { get; set; }
 
-        /// <summary>Ціна ролла в печатках призову; 0 — цей банер за печатки не крутять.</summary>
-        public int PriceSeals { get; set; }
 
         /// <summary>Через скільки роллів без рідкісного він гарантований.</summary>
         public int RarePity { get; set; } = 10;
@@ -50,6 +48,30 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <inheritdoc cref="StartsAt"/>
         public DateTimeOffset? EndsAt { get; set; }
+
+        /// <summary>
+        /// Подієвий банер тіру (GDD §9.12): відкритий стільки днів від досягнення світом RequiresServerLevel
+        /// і лише на цьому рівні світу. null — банер без такого вікна.
+        /// </summary>
+        public int? WindowDays { get; set; }
+
+        /// <summary>
+        /// Коли банер закривається для світу на цьому рівні: раніший із EndsAt і кінця вікна тіру.
+        /// null — не закривається; минулий момент — уже закритий.
+        /// </summary>
+        public DateTimeOffset? ClosesAt(int serverLevel, DateTime levelSince)
+        {
+            DateTimeOffset? window = WindowDays is not { } days
+                ? null
+                : serverLevel == RequiresServerLevel
+                    ? new DateTimeOffset(DateTime.SpecifyKind(levelSince, DateTimeKind.Utc).AddDays(days))
+                    : DateTimeOffset.MinValue;
+
+            if (window is null)
+                return EndsAt;
+
+            return EndsAt is { } end && end < window ? end : window;
+        }
 
         public List<BannerDropConfig> Drops { get; set; } = new();
 

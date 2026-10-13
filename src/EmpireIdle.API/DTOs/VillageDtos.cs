@@ -17,7 +17,10 @@ public record RepairCostResponse(string Resource, int Amount);
 /// понад StorageCap виробництво зупиняється.
 /// </summary>
 public record BuildingResponse(Guid Id, string Type, int Level, DateTime LastCollectedAt, int StoredAmount, int StorageCap, DateTime? ConstructionCompletesAt, bool IsUnderConstruction, int? SpeedUpCostGems, bool IsUnlocked,
-    int DamageLevel, DateTime? DamagedUntil);
+    int DamageLevel, DateTime? DamagedUntil, double? X, double? Y);
+
+/// <summary>Нове місце центру будівлі на плані села: вузол сітки всередині муру.</summary>
+public record MoveBuildingRequest(double X, double Y);
 
 /// <summary>Ресурс на складі села.</summary>
 public record ResourceResponse(string ResourceType, long Amount, bool IsUnlocked);

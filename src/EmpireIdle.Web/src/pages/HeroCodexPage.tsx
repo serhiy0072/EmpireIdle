@@ -5,17 +5,13 @@ import HeroPortrait from "../components/heroes/HeroPortrait";
 import { useSession } from "../hooks/useSession";
 import { rankLabel, rankStyle, skillEffect, skillHalfLabel, skillKindLabel, useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
+import { CLASS_LABELS } from "../lib/heroClasses";
+import { statLabel } from "../lib/statNames";
 
 const RANK_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
 
 // Три ролі (GDD §6.1, рішення 06.10.2026): мага прибрано
-const CLASS_LABELS: Record<string, string> = {
-  warrior: "Воїн",
-  knight: "Лицар",
-  archer: "Лучник",
-};
 
-const STAT_LABELS: Record<string, string> = { Attack: "Атака", Defense: "Захист", Health: "Здоров'я" };
 
 /** Звідки береться герой (GDD §6.1): усі — з осколків, що падають із банерів і скриньок. */
 function source(summonShards: number): string {
@@ -119,7 +115,7 @@ export default function HeroCodexPage() {
                   <div className="flex flex-wrap gap-1 text-xs">
                     <span className={`rounded px-1.5 ${rankStyle(hero.rank)}`}>{rankLabel(hero.rank)}</span>
                     <span className="text-slate-500">{CLASS_LABELS[hero.class] ?? hero.class}</span>
-                    {mine !== undefined && <span className="text-emerald-700">рів. {mine.level}</span>}
+                    {mine !== undefined && <span className="text-emerald-700">рів. {mine.effectiveLevel}</span>}
                   </div>
                 </div>
               </button>
@@ -165,7 +161,7 @@ export default function HeroCodexPage() {
             <dl className="grid grid-cols-3 gap-1 text-sm">
               {Object.entries(selected.baseStats).map(([stat, value]) => (
                 <div key={stat} className="rounded bg-slate-50 px-2 py-1">
-                  <dt className="text-xs text-slate-500">{STAT_LABELS[stat] ?? stat}</dt>
+                  <dt className="text-xs text-slate-500">{statLabel(stat)}</dt>
                   <dd className="font-medium text-slate-800">
                     {value}
                     <span className="text-xs text-slate-400"> +{selected.statGrowth[stat] ?? 0}/рів.</span>

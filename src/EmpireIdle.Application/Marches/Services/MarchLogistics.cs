@@ -20,6 +20,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly GameCatalog _catalog;
         private readonly MarchCalculator _calculator;
         private readonly HeroProgression _progression;
+        private readonly HeroStats _heroStats;
         private readonly ILogger<MarchLogistics> _logger;
 
         public MarchLogistics(
@@ -28,6 +29,7 @@ namespace EmpireIdle.Application.Marches.Services
             GameCatalog catalog,
             MarchCalculator calculator,
             HeroProgression progression,
+            HeroStats heroStats,
             ILogger<MarchLogistics> logger)
         {
             _villageRepository = villageRepository;
@@ -35,8 +37,16 @@ namespace EmpireIdle.Application.Marches.Services
             _catalog = catalog;
             _calculator = calculator;
             _progression = progression;
+            _heroStats = heroStats;
             _logger = logger;
         }
+
+        /// <summary>
+        /// Герої, що йдуть із маршем, від найсильнішого (GDD §6.1): на прибутті вільний слот лідера
+        /// бере перший, тож порядок тут — правило гри, а не випадковість запиту.
+        /// </summary>
+        public async Task<List<Hero>> HeroesOnMarchAsync(March march, CancellationToken cancellationToken)
+            => _heroStats.StrongestFirst(await _heroRepository.GetByMarchAsync(march.Id, cancellationToken));
 
         /// <summary>
         /// Розвертає похід додому — або завершує, якщо повертатись нікому.
@@ -50,15 +60,10 @@ namespace EmpireIdle.Application.Marches.Services
         public async Task TurnMarchBackAsync(March march, IReadOnlyDictionary<UnitStackKey, int> survivors,
             DateTime utcNow, CancellationToken cancellationToken)
         {
-            var hero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
+            // Герой, що вже став у чужий гарнізон, з маршу знятий (Arrive) — додому з колоною не йде
+            var onTheMove = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
-            // Герой, що вже став у чужий гарнізон, додому з маршем не йде — LeaveHeroBehind
-            // зазвичай знімає його з маршу, це страховка від розсинхрону
-            var heroOnTheMove = hero is not null && hero.StationedGarrisonId is null;
-
-            if (!heroOnTheMove && (survivors.Count == 0 || survivors.Values.All(c => c <= 0)))
+            if (onTheMove.Count == 0 && (survivors.Count == 0 || survivors.Values.All(c => c <= 0)))
             {
                 // Нікого не лишилось — повертатись нікому
                 march.TurnBack(TimeSpan.Zero, utcNow);
@@ -69,7 +74,7 @@ namespace EmpireIdle.Application.Marches.Services
             // Швидкість від пасивки звіра зафіксована на марші при виході — і назад іде так само
             var backDuration = _calculator.CalculateDuration(
                 march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, survivors,
-                heroOnTheMove ? _progression.MarchSpeed(_catalog.FindHero(hero!.HeroKey)) : null) / march.SpeedMultiplier;
+                _progression.MarchSpeed(onTheMove.Select(h => _catalog.FindHero(h.HeroKey)))) / march.SpeedMultiplier;
 
             march.TurnBack(backDuration, utcNow);
         }

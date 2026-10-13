@@ -11,7 +11,8 @@ export interface BuildingScreen {
 const SCREENS: Record<string, readonly BuildingScreen[]> = {
   townhall: [{ to: "/quests", label: "Квести" }],
   barracks: [{ to: "/army", label: "Військо" }],
-  stable: [{ to: "/army", label: "Військо" }],
+  spearyard: [{ to: "/army", label: "Військо" }],
+  range: [{ to: "/army", label: "Військо" }],
   beastpen: [{ to: "/beasts", label: "Звіринець" }],
   hospital: [{ to: "/army", label: "Лазарет" }],
   heroeshall: [{ to: "/heroes", label: "Герої" }],

@@ -68,6 +68,11 @@ export default function BattleReportList({ playerId }: Props) {
                 ({report.x}, {report.y}) · сила {Math.round(report.attackerPower)} проти{" "}
                 {Math.round(report.defenderPower)}
               </p>
+              {report.heroExperience > 0 && (
+                <p className="text-xs font-medium text-amber-700">
+                  ⭐ Досвід героїв +{report.heroExperience.toLocaleString("uk-UA")}
+                </p>
+              )}
               <table className="w-full text-xs">
                 <thead className="text-slate-500">
                   <tr>

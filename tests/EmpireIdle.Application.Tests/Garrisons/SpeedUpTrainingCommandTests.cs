@@ -26,7 +26,7 @@ public class SpeedUpTrainingCommandTests
 
     private static MonetizationConfig Monetization() => new()
     {
-        SpeedUpFloorSeconds = 60,
+        SpeedUpFloorSeconds = Enum.GetValues<EmpireIdle.Domain.Enums.SpeedUpTimer>().ToDictionary(timer => timer, _ => 60),
         SpeedUpFactor = 1.2,
         SpeedUpExponent = 0.75
     };
@@ -74,6 +74,26 @@ public class SpeedUpTrainingCommandTests
         Assert.Equal(0, garrison.Units.Sum(u => u.Count));
     }
 
+    /// <summary>
+    /// Нульова межа тренування (рішення 08.10.2026): прискорення завершує партію одразу —
+    /// юніти вже в гарнізоні, черга порожня.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldTrainTheBatchAtOnce_WhenTheFloorIsZero()
+    {
+        var (garrison, _, orderId) = GivenTraining(minutesLeft: 120);
+        var monetization = Monetization();
+        monetization.SpeedUpFloorSeconds[EmpireIdle.Domain.Enums.SpeedUpTimer.Training] = 0;
+
+        var handler = new SpeedUpTrainingCommandHandler(_villages, _garrisons, _wallets, _currentPlayer, _unitOfWork,
+            new FakeTimeProvider(Now), new SpeedUpCalculator(monetization), NullLogger<SpeedUpTrainingCommandHandler>.Instance);
+
+        await handler.Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None);
+
+        Assert.Empty(garrison.TrainingOrders);
+        Assert.Equal(5, garrison.Units.Sum(u => u.Count));
+    }
+
     /// <summary>На межі прискорювати нічого: відмова з причиною, gems на місці.</summary>
     [Fact]
     public async Task Handle_ShouldRefuse_AtTheFloor()
@@ -99,7 +119,7 @@ public class SpeedUpTrainingCommandTests
     {
         var (_, wallet, orderId) = GivenTraining(minutesLeft: 120, gems: 5000);
 
-        var expected = Calculator().GetCost(Now.AddMinutes(120), Now);
+        var expected = Calculator().GetCost(EmpireIdle.Domain.Enums.SpeedUpTimer.Training, Now.AddMinutes(120), Now);
 
         await Handler().Handle(new SpeedUpTrainingCommand(PlayerId, orderId), CancellationToken.None);
 

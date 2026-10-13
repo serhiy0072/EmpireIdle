@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api, isApiError } from "../api";
-import type { EnhancementResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
+import type { ArtifactMasteryResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -40,7 +40,7 @@ export function useUseItem(playerId: string) {
     },
     onSuccess: () => {
       // Телепорт одразу повертає додому всі війська — з маршів і з чужих гарнізонів
-      invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes", "garrison", "marches", "power"]);
+      invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes", "garrison", "marches", "power", "dungeons"]);
       void queryClient.invalidateQueries({ queryKey: ["map"] });
     },
   });
@@ -57,46 +57,47 @@ export function useGiftItem(playerId: string) {
   });
 }
 
-/** Заточка коштує золота села; результат — success, failure або broken. */
-export function useEnhance(playerId: string) {
+/** Посилення артефакта: згодоване спорядження й гаєчки зникають, досвід лягає в ціль. */
+export function useFeedArtifact(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { equipmentId: string; foodIds: string[]; wrenches: Record<string, number> }) =>
+      api<void>(`/api/inventory/${playerId}/equipment/${input.equipmentId}/feed`, {
+        method: "POST",
+        body: { foodIds: input.foodIds, wrenches: input.wrenches },
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes"]),
+  });
+}
+
+/** Майстерність коваля: спроба за золото села; невдача з'їдає золото, а на пізніх заточках може зламати предмет. */
+export function useRaiseMastery(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (equipmentId: string) =>
-      api<EnhancementResponse>(`/api/inventory/${playerId}/equipment/${equipmentId}/enhance`, {
+      api<ArtifactMasteryResponse>(`/api/inventory/${playerId}/equipment/${equipmentId}/mastery`, {
         method: "POST",
         idempotent: true,
       }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes"]),
   });
 }
 
-function useEquipmentAction(playerId: string, action: "repair" | "upgrade") {
+/** Ремонт зламаного заточкою артефакта: за gems або ремкомплектом. */
+export function useRepairArtifact(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (equipmentId: string) =>
-      api<void>(`/api/inventory/${playerId}/equipment/${equipmentId}/${action}`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village"]),
-  });
-}
-
-export function useRepair(playerId: string) {
-  return useEquipmentAction(playerId, "repair");
-}
-
-export function useUpgradeArtifact(playerId: string) {
-  return useEquipmentAction(playerId, "upgrade");
-}
-
-/** Зброя з каталогу за золото села. */
-export function useBuyWeapon(playerId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (itemKey: string) =>
-      api<void>(`/api/inventory/${playerId}/weapons/${itemKey}`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village"]),
+    mutationFn: (input: { equipmentId: string; useKit: boolean }) =>
+      api<void>(`/api/inventory/${playerId}/equipment/${input.equipmentId}/repair`, {
+        method: "POST",
+        body: { useKit: input.useKit },
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "wallet", "heroes", "power"]),
   });
 }
 
@@ -122,5 +123,48 @@ export function useUnequip(playerId: string) {
     mutationFn: (equipmentId: string) =>
       api<void>(`/api/heroes/${playerId}/equipment/${equipmentId}`, { method: "DELETE", idempotent: true }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
+  });
+}
+
+/** «Швидке використання»: сервер вдягає найкраще вільне в кожен слот; відповідь — скільки вдягнуто. */
+export function useEquipBest(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (heroId: string) =>
+      api<{ equipped: number }>(`/api/heroes/${playerId}/${heroId}/equipment/best`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
+  });
+}
+
+/** «Зняти все»: по одному запиту на предмет — слотів п'ять, окрема серверна команда не варта того. */
+export function useUnequipAll(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (equipmentIds: string[]) => {
+      for (const id of equipmentIds)
+        await api<void>(`/api/heroes/${playerId}/equipment/${id}`, { method: "DELETE", idempotent: true });
+    },
+    // І після часткової невдачі: те, що встигли зняти, уже зняте
+    onSettled: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes", "power"]),
+  });
+}
+
+/** Таймер прискорення на сервері (SpeedUpTimer): число в запиті, назва — у межах каталогу. */
+export const SPEED_UP_TIMER_IDS = { Construction: 0, Training: 1, UnitLevelUp: 2, March: 3 } as const;
+
+/** Прискорити таймер предметами: хвилини складаються, надлишок понад залишок згорає. */
+export function useSpeedUpWithItems(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { timer: keyof typeof SPEED_UP_TIMER_IDS; targetId: string; items: Record<string, number> }) =>
+      api<void>(`/api/inventory/${playerId}/speedups`, {
+        method: "POST",
+        body: { timer: SPEED_UP_TIMER_IDS[input.timer], targetId: input.targetId, items: input.items },
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "garrison", "marches", "power"]),
   });
 }

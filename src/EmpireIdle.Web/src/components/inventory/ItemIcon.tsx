@@ -12,6 +12,8 @@ interface Props {
   rarity: string | number | undefined;
   size?: number;
   className?: string;
+  /** Без власного тла й рамки — коли рамку рідкості малює плитка навколо. */
+  bare?: boolean;
 }
 
 const FRAME: Record<string, { stroke: string; back: string }> = {
@@ -101,11 +103,110 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
+    // Книга вміння атаки: червона обкладинка з клинком. Стоїть до «attack|war» — інакше
+    // skill_book_warrior_* ловив би хрест атаки
+    test: /skill_book.*attack/,
+    draw: () => (
+      <g>
+        <path d="M28 24 L66 24 Q72 24 72 30 L72 78 L34 78 Q28 78 28 72 Z" fill="#dc2626" stroke="#7f1d1d" strokeWidth={2.5} />
+        <path d="M34 72 L72 72 L72 78 L34 78 Q28 78 28 72 Q28 66 34 72 Z" fill="#fef3c7" />
+        <path d="M50 32 L50 58 M43 52 L57 52" stroke="#fef3c7" strokeWidth={4} strokeLinecap="round" />
+      </g>
+    ),
+  },
+  {
+    // Книга вміння захисту: синя обкладинка зі щитом
+    test: /skill_book.*defense/,
+    draw: () => (
+      <g>
+        <path d="M28 24 L66 24 Q72 24 72 30 L72 78 L34 78 Q28 78 28 72 Z" fill="#2563eb" stroke="#1e3a8a" strokeWidth={2.5} />
+        <path d="M34 72 L72 72 L72 78 L34 78 Q28 78 28 72 Q28 66 34 72 Z" fill="#fef3c7" />
+        <path d="M50 32 L60 36 L58 50 Q55 57 50 60 Q45 57 42 50 L40 36 Z" fill="#fef3c7" />
+      </g>
+    ),
+  },
+  {
+    // Універсальний уламок героя: кристал
+    test: /shard/,
+    draw: () => (
+      <g>
+        <path d="M50 18 L70 40 L60 80 L40 80 L30 40 Z" fill="#c4b5fd" stroke="#5b21b6" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M50 18 L56 40 L50 80 L44 40 Z" fill="#ede9fe" />
+      </g>
+    ),
+  },
+  {
+    // Гаєчка — досвід рівня артефакта
+    test: /wrench/,
+    draw: () => (
+      <g>
+        <path d="M30 70 L56 44" stroke="#64748b" strokeWidth={10} strokeLinecap="round" />
+        <path d="M54 30 Q66 20 76 30 L66 36 L64 44 L72 46 L78 38 Q80 54 62 52 Z" fill="#94a3b8" stroke="#334155" strokeWidth={2.5} strokeLinejoin="round" />
+      </g>
+    ),
+  },
+  {
+    // Ремкомплект: скринька з хрестом
+    test: /repair/,
+    draw: () => (
+      <g>
+        <rect x={24} y={36} width={52} height={38} rx={5} fill="#f59e0b" stroke="#78350f" strokeWidth={2.5} />
+        <path d="M40 36 L40 28 L60 28 L60 36" fill="none" stroke="#78350f" strokeWidth={3} />
+        <path d="M50 44 L50 66 M39 55 L61 55" stroke="#fffbeb" strokeWidth={6} strokeLinecap="round" />
+      </g>
+    ),
+  },
+  {
+    // Ключ скрині: стоїть до «chest», бо chest_key_* — це самі скрині, а не ключі
+    test: /^key_/,
+    draw: () => (
+      <g>
+        <circle cx={36} cy={50} r={14} fill="none" stroke="#b45309" strokeWidth={7} />
+        <path d="M50 50 L80 50 M70 50 L70 62 M78 50 L78 58" stroke="#b45309" strokeWidth={7} strokeLinecap="round" />
+        <circle cx={36} cy={50} r={5} fill="#fde68a" />
+      </g>
+    ),
+  },
+  {
+    // Прискорення — подвійний шеврон, як у грі: тривалість пише плитка, а не іконка
+    test: /speedup/,
+    draw: () => (
+      <g>
+        <path d="M22 26 L46 50 L22 74 L34 74 L58 50 L34 26 Z" fill="#e0f2fe" stroke="#0369a1" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M46 26 L70 50 L46 74 L58 74 L82 50 L58 26 Z" fill="#bae6fd" stroke="#0369a1" strokeWidth={2.5} strokeLinejoin="round" />
+      </g>
+    ),
+  },
+  {
     test: /essence/,
     draw: () => (
       <g>
         <path d="M50 22 Q70 44 62 62 Q56 74 50 78 Q44 74 38 62 Q30 44 50 22 Z" fill="#a78bfa" stroke="#5b21b6" strokeWidth={2} />
         <path d="M50 42 Q58 52 54 62 Q52 68 50 70 Q48 68 46 62 Q42 52 50 42 Z" fill="#fef3c7" />
+      </g>
+    ),
+  },
+  {
+    // Банка досвіду: глечик із золотим сяйвом — досвід іде в спільний запас героїв
+    test: /hero_xp/,
+    draw: () => (
+      <g>
+        <rect x={40} y={20} width={20} height={8} rx={2} fill="#92400e" />
+        <path d="M38 28 L62 28 L60 36 Q74 44 72 62 Q70 80 50 80 Q30 80 28 62 Q26 44 40 36 Z" fill="#fde68a" stroke="#b45309" strokeWidth={2.5} />
+        <path d="M33 58 Q50 52 67 58 Q66 76 50 76 Q34 76 33 58 Z" fill="#f59e0b" />
+        <path d="M50 46 L53 54 L61 54 L55 59 L57 67 L50 62 L43 67 L45 59 L39 54 L47 54 Z" fill="#fffbeb" />
+      </g>
+    ),
+  },
+  {
+    // Банка енергії данжів: колба з блискавкою
+    test: /energy/,
+    draw: () => (
+      <g>
+        <rect x={42} y={18} width={16} height={8} rx={2} fill="#475569" />
+        <path d="M44 26 L56 26 L56 40 L72 70 Q74 80 64 80 L36 80 Q26 80 28 70 L44 40 Z" fill="#cffafe" stroke="#0e7490" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M34 64 L66 64 L70 72 Q70 77 64 77 L36 77 Q30 77 30 72 Z" fill="#22d3ee" />
+        <path d="M54 44 L44 60 L51 60 L46 74 L58 56 L51 56 Z" fill="#facc15" stroke="#a16207" strokeWidth={1} strokeLinejoin="round" />
       </g>
     ),
   },
@@ -184,18 +285,26 @@ const BY_TYPE: Record<string, RegExp> = {
   evolution: /essence/,
   feed: /feed/,
   scoutveil: /veil/,
+  heroxp: /hero_xp/,
+  energy: /energy/,
+  lootbox: /chest/,
+  weaponchest: /chest/,
+  universalshard: /shard/,
+  wrench: /wrench/,
+  repairkit: /repair/,
+  chestkey: /^key_/,
 };
 
-export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "" }: Props): ReactElement {
+export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false }: Props): ReactElement {
   const frame = FRAME[rarityKey(rarity)] ?? (FRAME.Common as { stroke: string; back: string });
   const key = itemKey.toLowerCase();
   const shape = SHAPES.find((candidate) => candidate.test.test(key)) ?? SHAPES.find((candidate) => candidate.test.test(BY_TYPE[type]?.source ?? ""));
 
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} className={`shrink-0 rounded-lg ${className}`} aria-hidden>
-      <rect width={100} height={100} rx={12} fill={frame.back} />
+      {!bare && <rect width={100} height={100} rx={12} fill={frame.back} />}
       {shape?.draw()}
-      <rect x={2} y={2} width={96} height={96} rx={11} fill="none" stroke={frame.stroke} strokeWidth={3} />
+      {!bare && <rect x={2} y={2} width={96} height={96} rx={11} fill="none" stroke={frame.stroke} strokeWidth={3} />}
     </svg>
   );
 }

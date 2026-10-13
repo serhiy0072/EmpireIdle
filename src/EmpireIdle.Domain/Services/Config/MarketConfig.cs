@@ -52,6 +52,12 @@ namespace EmpireIdle.Domain.Services.Config
         public double GoldPerGem { get; set; } = 100;
 
         /// <summary>
+        /// Довідкова ціна в gems для стакових предметів, яких немає в крамниці поштучно — вони лише
+        /// в скринях (GDD §9.12). Ціна крамниці, якщо вона є, важить більше.
+        /// </summary>
+        public Dictionary<string, int> GemValues { get; set; } = new();
+
+        /// <summary>
         /// Якір для спорядження й героїв: золота за одиницю Power за категорією
         /// (ключ — категорія ціни, як у MarketPricing.CategoryOf).
         /// </summary>

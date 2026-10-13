@@ -58,7 +58,7 @@ public class DueMarchesQueryTests : IAsyncLifetime
 
     /// <summary>Атака, що вже мала прибути: час настав хвилину тому.</summary>
     private static March Attack(Guid garrisonId, DateTime now)
-        => new(Guid.NewGuid(), ServerId, garrisonId, heroId: null, 1, 1, 5, 5,
+        => new(Guid.NewGuid(), ServerId, garrisonId, 1, 1, 5, 5,
             MarchTargetType.Village, Guid.NewGuid(), Army, now.AddMinutes(-1), now.AddMinutes(-20), MarchIntent.Attack);
 
     private AsyncServiceScope CreateScope(out IMarchRepository marches, out AppDbContext context)

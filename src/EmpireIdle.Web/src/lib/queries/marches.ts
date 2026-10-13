@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
 import type {
-  BattleOdds,
+  BattleVerdict,
   BattlePreviewResult,
   IncomingAttackResponse,
   MarchIntent,
@@ -36,13 +36,11 @@ export const MARCH_TARGET = {
   camp: 4,
 } as const satisfies Record<string, MarchTargetType>;
 
-/** Смуга шансів: сервер навмисно не віддає числа, лише оцінку. */
-export const BATTLE_ODDS: Record<BattleOdds, { label: string; className: string }> = {
-  0: { label: "Розгромна перевага", className: "bg-emerald-100 text-emerald-800" },
-  1: { label: "Перевага на вашому боці", className: "bg-lime-100 text-lime-800" },
-  2: { label: "Сили рівні", className: "bg-amber-100 text-amber-800" },
-  3: { label: "Ризиковано", className: "bg-orange-100 text-orange-800" },
-  4: { label: "Безнадійно", className: "bg-red-100 text-red-800" },
+/** Вердикт за межами удачі в бою: гарантована перемога, можлива чи неможлива. */
+export const BATTLE_VERDICT: Record<BattleVerdict, { label: string; className: string }> = {
+  0: { label: "Перемога", className: "bg-emerald-100 text-emerald-800" },
+  1: { label: "Перемогти можливо", className: "bg-amber-100 text-amber-800" },
+  2: { label: "Не перемогти", className: "bg-red-100 text-red-800" },
 };
 
 export function useMarches(playerId: string): UseQueryResult<MarchResponse[]> {
@@ -110,7 +108,8 @@ export function useSpeedUpMarch(playerId: string) {
   return useMutation({
     mutationFn: (marchId: string) =>
       api<void>(`/api/marches/${playerId}/${marchId}/speedup`, { method: "POST", idempotent: true }),
-    // Сервер завершує похід одразу: бій, повернення армії й героя видно в тій самій відповіді
+    // Прискорення лишає останні пів хвилини (Monetization.SpeedUpFloorSeconds.March): бій проведе
+    // сканер, а результат прийде подією BattleFinished. Тут — гаманець і новий час маршу
     onSuccess: () => {
       invalidatePlayer(queryClient, playerId, ["marches", "wallet", "garrison", "heroes", "village", "battleReports", "quests"]);
       void queryClient.invalidateQueries({ queryKey: ["map"] });

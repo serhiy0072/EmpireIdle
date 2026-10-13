@@ -12,6 +12,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>За скільки годин шкала заповнюється з нуля до стелі.</summary>
         public double RegenHours { get; set; } = 20;
 
+        /// <summary>
+        /// Ціни поповнення енергії до стелі за gems (рішення 12.10.2026): n-те поповнення доби UTC
+        /// коштує n-ту ціну, кількість цін — денний ліміт. Порожньо — поповнення вимкнене.
+        /// </summary>
+        public List<int> RefillPricesGems { get; set; } = new();
+
         /// <summary>Скільки енергії з'їдає один забіг — незалежно від рівня.</summary>
         public int EnergyPerRun { get; set; } = 10;
 
@@ -32,6 +38,12 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Множник ресурсної нагороди за рівень забігу.</summary>
         public List<double> LevelRewardMultipliers { get; set; } = [1.0, 2.0, 3.5];
+
+        /// <summary>
+        /// Досвід героїв у спільний запас гравця за успішний забіг рівня 1 (GDD §6.1);
+        /// вищі рівні множаться тим самим LevelRewardMultipliers. 0 — досвіду не дають.
+        /// </summary>
+        public long HeroExperiencePerRun { get; set; }
 
         /// <summary>
         /// Пом'якшення захисту у формулі шкоди: damage = attack × K / (K + defense).

@@ -10,8 +10,12 @@ namespace EmpireIdle.Application.Marches.EventHandlers
     /// <summary>
     /// Ворожий марш вирушив — тривога захисникам (див. DefenderAudience). Іде з outbox
     /// після коміту, тож марш уже в базі й читається тією самою проєкцією, що й запит загроз.
+    /// Прискорений марш тривожить удруге тією самою подією з новим часом: клієнт замінює
+    /// тривогу за ключем маршу й перечитує загрози.
     /// </summary>
-    public sealed class HostileMarchLaunchedHandler : INotificationHandler<DomainEventNotification<HostileMarchLaunched>>
+    public sealed class HostileMarchLaunchedHandler
+        : INotificationHandler<DomainEventNotification<HostileMarchLaunched>>,
+          INotificationHandler<DomainEventNotification<HostileMarchRetimed>>
     {
         private readonly IMarchRepository _marchRepository;
         private readonly DefenderAudience _audience;
@@ -30,19 +34,31 @@ namespace EmpireIdle.Application.Marches.EventHandlers
             _logger = logger;
         }
 
-        public async Task Handle(DomainEventNotification<HostileMarchLaunched> notification, CancellationToken cancellationToken)
+        public Task Handle(DomainEventNotification<HostileMarchLaunched> notification, CancellationToken cancellationToken)
         {
             var e = notification.DomainEvent;
-            var attack = await _marchRepository.GetIncomingAttackAsync(e.MarchId, cancellationToken);
+            return AlertAsync(e.MarchId, e.TargetType, e.TargetId, cancellationToken);
+        }
+
+        public Task Handle(DomainEventNotification<HostileMarchRetimed> notification, CancellationToken cancellationToken)
+        {
+            var e = notification.DomainEvent;
+            return AlertAsync(e.MarchId, e.TargetType, e.TargetId, cancellationToken);
+        }
+
+        private async Task AlertAsync(Guid marchId, Domain.Enums.MarchTargetType targetType, Guid targetId,
+            CancellationToken cancellationToken)
+        {
+            var attack = await _marchRepository.GetIncomingAttackAsync(marchId, cancellationToken);
 
             // Поки outbox дійшов, марш міг уже прибути чи розвернутись — тривожити пізно
             if (attack is null)
             {
-                _logger.LogInformation("Hostile march {MarchId} is no longer on its way; no alert sent.", e.MarchId);
+                _logger.LogInformation("Hostile march {MarchId} is no longer on its way; no alert sent.", marchId);
                 return;
             }
 
-            var recipients = await _audience.ResolveAsync(e.TargetType, e.TargetId, cancellationToken);
+            var recipients = await _audience.ResolveAsync(targetType, targetId, cancellationToken);
 
             if (recipients.Count > 0)
                 await _notifier.NotifyAttackIncomingAsync(recipients, attack, cancellationToken);

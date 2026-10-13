@@ -134,7 +134,7 @@ namespace EmpireIdle.Application.Power.Commands
 
                 var bare = _heroStats.Power(hero, heroConfig);
 
-                var full = _heroStats.Compute(hero, heroConfig, equipped).Values.Sum();
+                var full = _heroStats.Power(hero, heroConfig, equipped);
 
                 heroPower += bare;
 

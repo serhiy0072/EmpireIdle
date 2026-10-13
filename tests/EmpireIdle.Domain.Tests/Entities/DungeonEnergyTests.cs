@@ -125,4 +125,105 @@ public class DungeonEnergyTests
 
         Assert.Equal(Max, energy.Current(Max, RegenHours, Now.AddHours(2)));
     }
+
+    /// <summary>Банка енергії йде понад стелю: банки накопичуються, а не згорають.</summary>
+    [Fact]
+    public void AddBeyondCap_ShouldGoPastTheCap()
+    {
+        var energy = Energy(95);
+
+        energy.AddBeyondCap(50, Max, RegenHours, Now);
+
+        Assert.Equal(145, energy.Current(Max, RegenHours, Now));
+    }
+
+    /// <summary>Понад стелю шкала не росте, доки енергія не впаде нижче за неї.</summary>
+    [Fact]
+    public void Current_ShouldNotRegenerate_AboveTheCap()
+    {
+        var energy = Energy(Max);
+        energy.AddBeyondCap(50, Max, RegenHours, Now);
+
+        Assert.Equal(150, energy.Current(Max, RegenHours, Now.AddDays(2)));
+        Assert.Null(energy.FullAt(Max, RegenHours, Now));
+    }
+
+    /// <summary>Нижче стелі після банок шкала знову росте — від моменту, коли впала.</summary>
+    [Fact]
+    public void Spend_BelowTheCap_ShouldRestartTheRegeneration()
+    {
+        var energy = Energy(Max);
+        energy.AddBeyondCap(10, Max, RegenHours, Now);
+
+        energy.Spend(20, Max, RegenHours, Now.AddHours(5));
+
+        Assert.Equal(90, energy.Current(Max, RegenHours, Now.AddHours(5)));
+        Assert.Equal(95, energy.Current(Max, RegenHours, Now.AddHours(6)));
+    }
+
+    /// <summary>Доливання до стелі не зрізає енергію, що вже понад нею.</summary>
+    [Fact]
+    public void Add_ShouldNotCutEnergyAboveTheCap()
+    {
+        var energy = Energy(Max);
+        energy.AddBeyondCap(30, Max, RegenHours, Now);
+
+        energy.Add(50, Max, RegenHours, Now);
+
+        Assert.Equal(130, energy.Current(Max, RegenHours, Now));
+    }
+
+    /// <summary>Поповнення за gems доливає саме до стелі й рахує раз на добу.</summary>
+    [Fact]
+    public void RefillToCap_ShouldFillToTheCap_AndCountTheRefill()
+    {
+        var energy = Energy(20);
+
+        energy.RefillToCap(Max, RegenHours, dailyLimit: 5, Now);
+
+        Assert.Equal(Max, energy.Current(Max, RegenHours, Now));
+        Assert.Equal(1, energy.RefillsToday(Now));
+    }
+
+    /// <summary>Повна шкала — відмова: gems згоріли б даремно. І понад стелю від банок теж.</summary>
+    [Theory]
+    [InlineData(Max)]
+    [InlineData(Max + 30)]
+    public void RefillToCap_ShouldRefuse_WhenTheScaleIsFull(int amount)
+    {
+        var energy = Energy(amount);
+
+        var refusal = Assert.Throws<InvalidStateException>(() => energy.RefillToCap(Max, RegenHours, dailyLimit: 5, Now));
+
+        Assert.Equal(RefusalReasons.DungeonEnergyFull.Key, refusal.Reason);
+    }
+
+    /// <summary>Денний ліміт вичерпано — відмова до нової доби UTC.</summary>
+    [Fact]
+    public void RefillToCap_ShouldRefuse_OverTheDailyLimit()
+    {
+        var energy = Energy(0);
+        energy.RefillToCap(Max, RegenHours, dailyLimit: 1, Now);
+        energy.Spend(Max, Max, RegenHours, Now);
+
+        var refusal = Assert.Throws<RequirementNotMetException>(() =>
+            energy.RefillToCap(Max, RegenHours, dailyLimit: 1, Now.AddMinutes(1)));
+
+        Assert.Equal(RefusalReasons.DungeonRefillLimit.Key, refusal.Reason);
+    }
+
+    /// <summary>Нова доба UTC починає лічильник поповнень із нуля.</summary>
+    [Fact]
+    public void RefillsToday_ShouldResetOnANewUtcDay()
+    {
+        var energy = Energy(0);
+        energy.RefillToCap(Max, RegenHours, dailyLimit: 1, Now);
+        energy.Spend(Max, Max, RegenHours, Now);
+
+        var tomorrow = Now.Date.AddDays(1);
+        energy.RefillToCap(Max, RegenHours, dailyLimit: 1, tomorrow);
+
+        Assert.Equal(1, energy.RefillsToday(tomorrow));
+        Assert.Equal(0, energy.RefillsToday(tomorrow.AddDays(1)));
+    }
 }

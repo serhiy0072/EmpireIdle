@@ -43,7 +43,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<MarketQuoteView>> Quote(Guid playerId, [FromBody] MarketGoodsRequest request,
             CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new GetMarketQuoteQuery(playerId, request.Kind, request.EquipmentId, request.HeroId,
+            => Ok(await _mediator.Send(new GetMarketQuoteQuery(playerId, request.Kind, request.EquipmentId,
                 request.ItemKey, request.Quantity), cancellationToken));
 
         /// <summary>Виставити товар. Ідемпотентна за заголовком Idempotency-Key.</summary>
@@ -54,7 +54,7 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<MarketListingCreated>> List(Guid playerId, [FromBody] ListOnMarketRequest request,
             CancellationToken cancellationToken)
         {
-            var id = await _mediator.Send(new ListOnMarketCommand(playerId, request.Kind, request.EquipmentId, request.HeroId,
+            var id = await _mediator.Send(new ListOnMarketCommand(playerId, request.Kind, request.EquipmentId,
                 request.ItemKey, request.Quantity, request.PriceGold), cancellationToken);
 
             return Ok(new MarketListingCreated(id));

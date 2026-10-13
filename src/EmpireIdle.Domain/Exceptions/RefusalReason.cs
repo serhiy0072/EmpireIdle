@@ -116,6 +116,9 @@
         /// <summary>Предметів менше, ніж треба; need — скільки, have — скільки є.</summary>
         public static readonly RefusalReason ItemNotEnough = new("item.notEnough", "item", "need", "have");
 
+        /// <summary>Безкоштовне відкриття ключової скрині ще не готове; at — UTC у форматі ISO 8601.</summary>
+        public static readonly RefusalReason KeyChestFreeNotReady = new("lootbox.freeNotReady", "at");
+
         public static readonly RefusalReason TeleportOutsideRegion = new("teleport.outsideRegion");
 
         public static readonly RefusalReason TeleportCellUnsuitable = new("teleport.cellUnsuitable");
@@ -233,6 +236,12 @@
         /// <summary>Ремонтувати нічого — жодна будівля не пошкоджена.</summary>
         public static readonly RefusalReason VillageNothingToRepair = new("village.nothingToRepair");
 
+        /// <summary>Місце будівлі поза муром або не на сітці; min/max — межі центру за кожною віссю.</summary>
+        public static readonly RefusalReason VillageBuildingOutOfBounds = new("village.buildingOutOfBounds", "min", "max");
+
+        /// <summary>Будівля налазить на іншу; building — тип тієї, що заважає.</summary>
+        public static readonly RefusalReason VillageBuildingOverlaps = new("village.buildingOverlaps", "building");
+
         /// <summary>Ціль нещодавно впала й під щитом після падіння (GDD §2.6).</summary>
         public static readonly RefusalReason MarchTargetFallShield = new("march.targetFallShield");
 
@@ -263,9 +272,6 @@
 
         public static readonly RefusalReason HeroOnTheMove = new("hero.onTheMove");
 
-        /// <summary>Герой виставлений на ринок: спершу зніміть лот.</summary>
-        public static readonly RefusalReason HeroOnMarket = new("hero.onMarket");
-
         public static readonly RefusalReason HeroLevelCeiling = new("hero.levelCeiling", "hero", "ceiling");
 
 
@@ -277,6 +283,18 @@
 
         /// <summary>Усі зірки героя вже заповнені (GDD §6.1); parts — скільки частинок усього.</summary>
         public static readonly RefusalReason HeroMaxStars = new("hero.maxStars", "parts");
+
+        /// <summary>Зброя героя вже на стелі (GDD §6.4); max — найвищий рівень.</summary>
+        public static readonly RefusalReason HeroWeaponMaxed = new("hero.weaponMaxed", "max");
+
+        /// <summary>Бракує шматків зброї героя на наступний рівень; need — скільки треба, have — скільки є.</summary>
+        public static readonly RefusalReason HeroWeaponShards = new("hero.weaponShards", "need", "have");
+
+        /// <summary>Скриня зброї не дає шматків зброї цього героя — він не з поточної трійки; hero — ім'я.</summary>
+        public static readonly RefusalReason HeroWeaponNotInChest = new("hero.weaponNotInChest", "hero");
+
+        /// <summary>Шматки зброї цього героя не продаються — унікальні лише зі скринь; hero — ім'я.</summary>
+        public static readonly RefusalReason HeroWeaponNotSold = new("hero.weaponNotSold", "hero");
 
         /// <summary>Універсальні осколки йдуть лише в уже відкритого героя (GDD §6.1).</summary>
         public static readonly RefusalReason HeroNotOwned = new("hero.notOwned", "hero");
@@ -304,16 +322,68 @@
         /// <summary>Вміння вже на найвищому рівні; level — стеля рівня вмінь.</summary>
         public static readonly RefusalReason HeroSkillMaxed = new("hero.skillMaxed", "level");
 
+        /// <summary>Жоден герой маршу не веде цей тип юнітів (GDD §6.1); unit — тип, hero — імена героїв маршу.</summary>
+        public static readonly RefusalReason MarchWrongUnits = new("march.wrongUnits", "unit", "hero");
+
+        /// <summary>Юнітів більше, ніж конвоїв у героя; capacity — скільки він веде, sent — скільки відправлено, hero — хто.</summary>
+        public static readonly RefusalReason MarchOverCapacity = new("march.overCapacity", "capacity", "sent", "hero");
+
+        /// <summary>Двоє героїв однієї ролі в марші (GDD §6.1); heroes — хто саме.</summary>
+        public static readonly RefusalReason MarchSameRole = new("march.sameRole", "heroes");
+
+        /// <summary>Героїв більше, ніж бере марш; max — скільки можна.</summary>
+        public static readonly RefusalReason MarchTooManyHeroes = new("march.tooManyHeroes", "max");
+
+        /// <summary>Табір доступний, коли поза ним щонайменше need героїв (GDD §6.1); have — скільки зараз.</summary>
+        public static readonly RefusalReason CampUnavailable = new("camp.unavailable", "need", "have");
+
+        /// <summary>Герой в опорній п'ятірці — у табір не йде; count — розмір п'ятірки.</summary>
+        public static readonly RefusalReason CampHeroIsReference = new("camp.heroIsReference", "count");
+
+        /// <summary>Слот ще не відкрито ратушею чи купівлею; slot — його номер від 1.</summary>
+        public static readonly RefusalReason CampSlotLocked = new("camp.slotLocked", "slot");
+
+        /// <summary>У слоті вже стоїть герой — найчастіше його поставили з іншої вкладки.</summary>
+        public static readonly RefusalReason CampSlotTaken = new("camp.slotTaken", "slot");
+
+        /// <summary>Слот перезаряджається після звільнення; until — до коли.</summary>
+        public static readonly RefusalReason CampSlotCooling = new("camp.slotCooling", "slot", "until");
+
+        public static readonly RefusalReason CampHeroAlreadyIn = new("camp.heroAlreadyIn");
+
+        public static readonly RefusalReason CampHeroNotIn = new("camp.heroNotIn");
+
+        /// <summary>Герой у таборі: його рівень тримає табір, власний не піднімається.</summary>
+        public static readonly RefusalReason CampHeroLevelLocked = new("camp.heroLevelLocked");
+
+        /// <summary>Усі слоти за gems уже куплені; count — скільки їх.</summary>
+        public static readonly RefusalReason CampAllSlotsBought = new("camp.allSlotsBought", "count");
+
+        /// <summary>Слот не перезаряджається — пропускати нічого; slot — його номер від 1.</summary>
+        public static readonly RefusalReason CampSlotReady = new("camp.slotReady", "slot");
+
         /// <summary>Немає книги для цього вміння (GDD §6.1); book — назва потрібної книги.</summary>
         public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book");
 
         // ---------- Спорядження ----------
 
-        public static readonly RefusalReason EquipmentMaxEnhancement = new("equipment.maxEnhancement", "max");
+        /// <summary>Артефакт уже на стелі рівня (GDD §6.4); max — стеля.</summary>
+        public static readonly RefusalReason EquipmentMaxLevel = new("equipment.maxLevel", "max");
 
+        /// <summary>Заточка вже на стелі; max — стеля.</summary>
+        public static readonly RefusalReason EquipmentMaxMastery = new("equipment.maxMastery", "max");
+
+        /// <summary>Зламаний предмет не точиться — спершу ремонт (GDD §9.12).</summary>
         public static readonly RefusalReason EquipmentBroken = new("equipment.broken");
 
-        public static readonly RefusalReason EquipmentClassMismatch = new("equipment.classMismatch", "weapon");
+        /// <summary>Ремонтувати нічого: предмет цілий.</summary>
+        public static readonly RefusalReason EquipmentNotBroken = new("equipment.notBroken");
+
+        /// <summary>Рідкість без досвіду згодовування в конфігу не годується; item — назва.</summary>
+        public static readonly RefusalReason EquipmentUniqueFood = new("equipment.uniqueFood", "item");
+
+        /// <summary>Згодувати вдягнене не можна — спершу зняти з героя.</summary>
+        public static readonly RefusalReason EquipmentFoodEquipped = new("equipment.foodEquipped");
 
         // ---------- Ринок ----------
 
@@ -330,13 +400,6 @@
         public static readonly RefusalReason MarketNotEnoughItems = new("market.notEnoughItems", "item", "need", "have");
 
         public static readonly RefusalReason MarketResaleCooldown = new("market.resaleCooldown", "until");
-
-        /// <summary>Герой не вдома, у поході, пораненій чи на ринку.</summary>
-        public static readonly RefusalReason MarketHeroBusy = new("market.heroBusy");
-
-
-        /// <summary>Такий герой у покупця вже є — купівля обійшла б сузір'я.</summary>
-        public static readonly RefusalReason MarketHeroAlreadyOwned = new("market.heroAlreadyOwned", "hero");
 
         /// <summary>Предмет у заставі ринку.</summary>
         public static readonly RefusalReason MarketItemListed = new("market.itemListed");
@@ -371,6 +434,12 @@
 
         /// <summary>Ціль закрита передньою лінією або провокацією.</summary>
         public static readonly RefusalReason DungeonTargetUnreachable = new("dungeon.targetUnreachable");
+
+        /// <summary>Шкала енергії вже повна — поповнювати за gems нічого.</summary>
+        public static readonly RefusalReason DungeonEnergyFull = new("dungeon.energyFull");
+
+        /// <summary>Поповнень за gems на сьогодні більше немає.</summary>
+        public static readonly RefusalReason DungeonRefillLimit = new("dungeon.refillLimit", "limit");
 
         // ---------- Звірі ----------
 

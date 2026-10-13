@@ -103,7 +103,7 @@ namespace EmpireIdle.Application.Scouting.Commands
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, scouting.Speed);
 
             var march = new March(
-                Guid.NewGuid(), _serverContext.ServerId, garrison.Id, heroId: null,
+                Guid.NewGuid(), _serverContext.ServerId, garrison.Id,
                 village.X, village.Y, target.X, target.Y,
                 request.TargetType, request.TargetId,
                 NoUnits, now + duration, now,

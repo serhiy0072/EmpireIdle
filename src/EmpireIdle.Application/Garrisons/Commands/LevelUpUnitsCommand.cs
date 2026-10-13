@@ -89,9 +89,13 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             village.ChargeCost(costPerUnit, now, request.Count);
 
-            garrison.LevelUpUnits(request.UnitType, request.FromLevel, request.ToLevel, request.Count,
-                _catalog.Config.MaxLevelUpBatchSize,
-                TimerDurations.LevelUp(config, request.FromLevel, request.ToLevel, request.Count), now);
+            // Той самий ліміт партії, що й у тренування, — від рівня будівлі юніта; черга в кожної будівлі своя
+            var batch = ProgressionCurves.UnitBatchSize(trainingBuilding.Level.Value, _catalog.Config.MaxBuildingLevel,
+                _catalog.Config.UnitBatchMin, _catalog.Config.UnitBatchMax);
+            var queue = _catalog.Units.Values.Where(u => u.RequiresBuilding == config.RequiresBuilding).Select(u => u.Key).ToList();
+
+            garrison.LevelUpUnits(request.UnitType, request.FromLevel, request.ToLevel, request.Count, batch,
+                TimerDurations.LevelUp(config, request.FromLevel, request.ToLevel, request.Count), now, queue);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

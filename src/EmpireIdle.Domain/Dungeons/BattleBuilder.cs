@@ -47,6 +47,10 @@ namespace EmpireIdle.Domain.Dungeons
                 ? m
                 : _config.LevelRewardMultipliers.LastOrDefault(1.0);
 
+        /// <summary>Досвід героїв за успішний забіг цього рівня — той самий множник, що й у ресурсів.</summary>
+        public long HeroExperience(int level)
+            => (long)Math.Round(_config.HeroExperiencePerRun * RewardMultiplier(level));
+
         public BattleLine LineFor(string heroClass)
             => _config.FrontLineClasses.Contains(heroClass) ? BattleLine.Front : BattleLine.Back;
 

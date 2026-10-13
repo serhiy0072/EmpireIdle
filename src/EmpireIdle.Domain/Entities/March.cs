@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Entities
@@ -16,13 +17,6 @@ namespace EmpireIdle.Domain.Entities
 
         public int ServerId { get; private set; }
         public Guid GarrisonId { get; private set; }
-
-        /// <summary>
-        /// Герой, що веде похід. Обов'язковий для будь-якого маршу: кап
-        /// одночасних походів дорівнює кількості вільних героїв, тож марш
-        /// без героя означав би слот, узятий нізвідки.
-        /// </summary>
-        public Guid? HeroId { get; private set; }
 
         /// <summary>Звідки вийшла армія (щоб знати, куди повертатись).</summary>
         public int OriginX { get; private set; }
@@ -73,14 +67,13 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public double SpeedMultiplier { get; private set; } = 1.0;
 
-        public March(Guid id, int serverId, Guid garrisonId, Guid? heroId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
+        public March(Guid id, int serverId, Guid garrisonId, int originX, int originY, int targetX, int targetY, MarchTargetType targetType,
             Guid targetId, IReadOnlyDictionary<UnitStackKey, int> units, DateTime arrivesAt, DateTime departedAt, MarchIntent intent = MarchIntent.Attack,
             double speedMultiplier = 1.0) : base(id)
         {
             SpeedMultiplier = speedMultiplier;
             ServerId = serverId;
             GarrisonId = garrisonId;
-            HeroId = heroId;
             OriginX = originX;
             OriginY = originY;
             TargetX = targetX;
@@ -114,13 +107,13 @@ namespace EmpireIdle.Domain.Entities
         /// <param name="garrisonId">Гарнізон власника: саме туди повернуться юніти.</param>
         /// <param name="fromId">Село чи кланова споруда, з якої знято військо.</param>
         /// <param name="fromType">Що саме — село чи споруда.</param>
-        public static March ReturningHome(Guid id, int serverId, Guid garrisonId, Guid? heroId,
+        public static March ReturningHome(Guid id, int serverId, Guid garrisonId,
             int homeX, int homeY, int fromX, int fromY, Guid fromId,
             IReadOnlyDictionary<UnitStackKey, int> units, TimeSpan duration, DateTime utcNow,
             MarchTargetType fromType = MarchTargetType.Village, double speedMultiplier = 1.0)
         {
             // Origin — дім: гілка Returning у сканері веде армію саме туди
-            var march = new March(id, serverId, garrisonId, heroId, homeX, homeY, fromX, fromY,
+            var march = new March(id, serverId, garrisonId, homeX, homeY, fromX, fromY,
                 fromType, fromId, units, utcNow + duration, utcNow,
                 MarchIntent.Reinforce, speedMultiplier);
 
@@ -289,22 +282,20 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        /// <summary>
-        /// Герой лишився в чужому гарнізоні, а колона йде далі без нього.
-        /// Буває лише при частковій доставці підкріплення.
-        /// </summary>
-        public void LeaveHeroBehind(DateTime utcNow)
-        {
-            HeroId = null;
-            Touch(utcNow);
-        }
-
         /// <summary>Фіксує факт бою для сповіщення гравця.</summary>
         public void RecordBattle(Guid playerId, Guid reportId, bool won, string targetName, DateTime utcNow)
         {
             RaiseDomainEvent(new Events.BattleFought(GarrisonId, playerId, Id, reportId, won, targetName, utcNow));
             Touch(utcNow);
         }
+
+        /// <summary>
+        /// Фіксує перемогу над монстром для квестів і рейтингу. Здобич — те, що армія везе додому;
+        /// приручення здобичі не дає, тож там вона порожня.
+        /// </summary>
+        public void RecordMonsterDefeated(Guid villageId, Guid playerId, string monsterType, int monsterLevel,
+            List<ResourceCost> spoils, DateTime utcNow)
+            => RaiseDomainEvent(new MonsterDefeated(villageId, playerId, Id, monsterType, monsterLevel, spoils, utcNow));
 
         /// <summary>Прискорює прибуття (speedup за gems).</summary>
         public void ReduceTravelTime(TimeSpan reduction, DateTime utcNow)
@@ -314,6 +305,10 @@ namespace EmpireIdle.Domain.Entities
 
             ArrivesAt -= reduction;
             Touch(utcNow);
+
+            // Захисник чекає за старим часом — тривога мусить знати новий
+            if (State == MarchState.Outbound && IsHostileToPlayers)
+                RaiseDomainEvent(new HostileMarchRetimed(Id, TargetType, TargetId, ArrivesAt, utcNow));
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;

@@ -163,67 +163,108 @@
             EnsureResources();
             EnsureBuildings(TestKeys.Forge);
 
-            _config.Equipment = new EquipmentConfig
-            {
-                ArtifactSlots =
-                [
-                    new ArtifactSlotConfig { Key = "necklace", DisplayName = "Намисто" },
-                    new ArtifactSlotConfig { Key = "crown", DisplayName = "Корона" },
-                    new ArtifactSlotConfig { Key = "ring", DisplayName = "Кільце" },
-                    new ArtifactSlotConfig { Key = "belt", DisplayName = "Пояс" }
-                ],
-                MaxEnhancement = 20,
-                EnhancementBonusPerLevel = 0.1,
-                ForgeBuildingKey = TestKeys.Forge,
-                EnhanceBaseGold = 200,
-                EnhanceCostGrowth = 1.35,
-                SafeEnhancementLevel = 5,
-                SuccessDropPerLevel = 0.05,
-                MinSuccessChance = 0.25,
-                BreakChanceOnFailure = 0.2,
-                RepairGemsBase = 20, RepairGemsPerLevel = 8,
-                ArtifactBaseStats = 2,
-                ArtifactStatLevels = [4, 8],
-                ArtifactUpgradeLevels = [12, 16, 20],
-                DoubleUpgradeChance = 0.1,
-                ArtifactStats =
-                [
-                    new ArtifactStatConfig { Stat = "Attack", Min = 4, Max = 12, UpgradeMin = 1, UpgradeMax = 3 },
-                    new ArtifactStatConfig { Stat = "Defense", Min = 5, Max = 14, UpgradeMin = 1, UpgradeMax = 4 },
-                    new ArtifactStatConfig { Stat = "Health", Min = 20, Max = 60, UpgradeMin = 5, UpgradeMax = 15 }
-                ],
-                ArtifactRarityMultipliers = new Dictionary<string, double>
+            _config.Equipment = DefaultEquipment(TestKeys.Forge);
+            _config.Equipment.SetBonuses =
+            [
+                new SetBonusConfig
                 {
-                    ["Common"] = 1.0,
-                    ["Rare"] = 1.4,
-                    ["Unique"] = 2.0
-                },
-                SetBonuses =
-                [
-                    new SetBonusConfig
-                    {
-                        SetKey = TestKeys.SetKey,
-                        RequiredPieces = 4,
-                        Stats = new Dictionary<string, double> { ["Attack"] = 25 }
-                    }
-                ]
-            };
+                    SetKey = TestKeys.SetKey,
+                    RequiredPieces = 4,
+                    Stats = new Dictionary<string, double> { ["Attack"] = 25 }
+                }
+            ];
 
             _config.Items.AddRange(
             [
-                WeaponItem(TestKeys.Weapon, attack: 12, price: 500),
-                WeaponItem(TestKeys.BetterWeapon, attack: 18, price: 1000),
                 ArtifactItem(TestKeys.Artifact, TestKeys.SetKey, "necklace"),
                 ArtifactItem(TestKeys.SecondArtifact, TestKeys.SetKey, "ring"),
                 ArtifactItem(TestKeys.ThirdArtifact, TestKeys.SetKey, "crown"),
                 ArtifactItem(TestKeys.FourthArtifact, TestKeys.SetKey, "belt"),
-                ArtifactItem(TestKeys.LooseArtifact, setKey: null, "ring")
+                ArtifactItem(TestKeys.LooseArtifact, setKey: null, "ring"),
+                new ItemConfig { Key = RepairKit, Type = "repairkit", DisplayName = "Ремкомплект", Description = "r" }
             ]);
 
             tune?.Invoke(_config.Equipment);
 
             return this;
         }
+
+        /// <summary>
+        /// Правила артефактів із числами гри (GDD §9.12), без наборів: слоти з бонусами,
+        /// база, крива рівня, ступені й шанси заточки. Спільні для всіх тестових конфігів,
+        /// щоб таблиці не розходились між тестами.
+        /// </summary>
+        public static EquipmentConfig DefaultEquipment(string forgeKey)
+            => new()
+            {
+                ArtifactSlots =
+                [
+                    Slot("necklace", "Намисто", ["Attack", "UnitAttack"], ("CritChance", 25), ("AttackSpeed", 35), ("AttackPercent", 40)),
+                    Slot("crown", "Корона", ["Defense", "UnitDefense"], ("CritPower", 25), ("CooldownReduction", 10), ("SkillDamage", 30), ("Lifesteal", 30)),
+                    Slot("ring", "Кільце", ["Attack", "Defense"], ("CritChance", 25), ("BlockChance", 22), ("BlockPower", 22), ("DamageReduction", 14), ("DefensePercent", 22)),
+                    Slot("belt", "Пояс", ["UnitAttack", "UnitDefense"], ("CritPower", 25), ("UnitCritChance", 25), ("UnitHealthPercent", 25), ("HealthPercent", 25))
+                ],
+                MaxLevel = 80,
+                LevelExperienceBase = 100,
+                LevelExperienceCoefficient = 2.2,
+                LevelExperienceExponent = 1.55,
+                FeedExperience = new Dictionary<Rarity, int> { [Rarity.Common] = 100, [Rarity.Rare] = 300, [Rarity.Unique] = 1000 },
+                ArtifactBase = new Dictionary<Rarity, ArtifactBaseConfig>
+                {
+                    [Rarity.Common] = new() { Hero = 10, HeroPerLevel = 2, Unit = 40, UnitPerLevel = 8 },
+                    [Rarity.Rare] = new() { Hero = 16, HeroPerLevel = 3, Unit = 64, UnitPerLevel = 12 },
+                    [Rarity.Unique] = new() { Hero = 25, HeroPerLevel = 4, Unit = 100, UnitPerLevel = 16 }
+                },
+                HeroStatPower = 1.0,
+                UnitStatPower = 0.25,
+                ArtifactBonuses =
+                [
+                    Bonus("Attack", 0, 5, 10, 15, 20),
+                    Bonus("Defense", 0, 5, 10, 15, 20),
+                    Bonus("UnitAttack", 0, 5, 10, 15, 20),
+                    Bonus("UnitDefense", 0, 5, 10, 15, 20),
+                    Bonus("CritChance", 10, 1, 2, 3, 4),
+                    Bonus("CritPower", 2.5, 4, 8, 12, 16),
+                    Bonus("SkillDamage", 3.5, 3, 6, 9, 12),
+                    Bonus("AttackSpeed", 5, 2, 4, 6, 8),
+                    Bonus("CooldownReduction", 9, 2, 4, 6, 8),
+                    Bonus("Lifesteal", 8, 1, 2, 3, 4),
+                    Bonus("BlockChance", 8, 1, 2, 3, 4),
+                    Bonus("BlockPower", 2, 4, 8, 12, 16),
+                    Bonus("DamageReduction", 10, 1, 2, 3, 4),
+                    Bonus("AttackPercent", 3, 3, 6, 9, 12),
+                    Bonus("DefensePercent", 3, 3, 6, 9, 12),
+                    Bonus("HealthPercent", 3, 3, 6, 9, 12),
+                    Bonus("UnitCritChance", 8, 1, 2, 3, 4),
+                    Bonus("UnitHealthPercent", 3, 3, 6, 9, 12)
+                ],
+                BonusStepChances = [0.4, 0.3, 0.2, 0.1],
+                MaxMastery = 20,
+                ForgeBuildingKey = forgeKey,
+                MasteryBaseGold = 400,
+                MasteryCostGrowth = 1.33,
+                MasterySuccessChances = [1, 1, 1, 1, 1, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.27, 0.25],
+                MasteryBreakChances = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2],
+                BrokenStatShare = 0.5,
+                RepairGemsPerMastery = 50,
+                RepairKitItemKey = RepairKit
+            };
+
+        /// <summary>Ключ ремкомплекта в DefaultEquipment; сам предмет додає WithEquipment.</summary>
+        public const string RepairKit = "repair_kit";
+
+        private static ArtifactSlotConfig Slot(string key, string name, List<string> fixedBonuses,
+            params (string Stat, double Weight)[] pool)
+            => new()
+            {
+                Key = key,
+                DisplayName = name,
+                FixedBonuses = fixedBonuses,
+                RandomBonuses = pool.Select(e => new ArtifactPoolEntryConfig { Stat = e.Stat, Weight = e.Weight }).ToList()
+            };
+
+        private static ArtifactBonusConfig Bonus(string stat, double powerPerPercent, params double[] steps)
+            => new() { Stat = stat, Steps = steps.ToList(), PowerPerPercent = powerPerPercent };
 
         /// <summary>
         /// Данжі: один данж із хвилею й босом, набір артефактів на кожну
@@ -306,6 +347,51 @@
             };
 
             tune?.Invoke(_config.Dungeons);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Скрині (GDD §9.12): мала — золото чи gems без гарантії; велика — дві малі всередині,
+        /// gems або унікальний артефакт з гарантією на третьому відкритті. Артефакт береться
+        /// з набору данжу, тож секція тягне за собою WithDungeons.
+        /// </summary>
+        public GameConfigBuilder WithLootboxes(Action<List<LootboxConfig>>? tune = null)
+        {
+            if (_config.Dungeons.Dungeons.Count == 0)
+                WithDungeons();
+
+            _config.Items.AddRange(
+            [
+                new ItemConfig { Key = TestKeys.SmallChest, Type = "lootbox", DisplayName = "Мала скриня", Description = "s" },
+                new ItemConfig { Key = TestKeys.BigChest, Type = "lootbox", DisplayName = "Велика скриня", Description = "b" }
+            ]);
+
+            _config.Lootboxes =
+            [
+                new LootboxConfig
+                {
+                    Key = TestKeys.SmallChest,
+                    Entries =
+                    [
+                        new LootboxEntryConfig { Type = "Resource", Key = TestKeys.Gold, Amount = 500, Weight = 3 },
+                        new LootboxEntryConfig { Type = "Gems", Amount = 10, Weight = 1 }
+                    ]
+                },
+                new LootboxConfig
+                {
+                    Key = TestKeys.BigChest,
+                    PityWithin = 3,
+                    Entries =
+                    [
+                        new LootboxEntryConfig { Type = LootboxEntryConfig.LootboxType, Key = TestKeys.SmallChest, Amount = 2, Weight = 6 },
+                        new LootboxEntryConfig { Type = "Gems", Amount = 100, Weight = 3 },
+                        new LootboxEntryConfig { Type = LootboxEntryConfig.ArtifactType, Key = "Unique", Amount = 1, Weight = 1, Pity = true }
+                    ]
+                }
+            ];
+
+            tune?.Invoke(_config.Lootboxes);
 
             return this;
         }
@@ -417,18 +503,6 @@
                 StatGrowth = new Dictionary<string, double> { ["Attack"] = 10, ["Defense"] = 4 },
                 Skills = [.. passives ?? []]
             };
-
-        private static ItemConfig WeaponItem(string key, double attack, int price) => new()
-        {
-            Key = key,
-            Type = "equipment",
-            Slot = EquipmentSlot.Weapon,
-            WeaponClasses = ["warrior"],
-            DisplayName = $"Item {key}",
-            Description = $"Test item {key}",
-            BaseStats = new Dictionary<string, double> { ["Attack"] = attack },
-            PriceGold = price
-        };
 
         /// <summary>Набір данжу має рівно стільки частин, скільки вимагає бонус набору.</summary>
         /// <summary>Частини набору данжу — по одній на кожен тип слота.</summary>

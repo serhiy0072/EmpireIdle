@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
@@ -66,9 +67,9 @@ namespace EmpireIdle.Application.Marches.Commands
             var march = marches.FirstOrDefault(m => m.Id == request.MarchId)
                 ?? throw new EntityNotFoundException($"Active", request.MarchId);
 
-            // Останню хвилину прискорення не зрізає — бій чи повернення проведе сканер
-            var cut = _calculator.RequireCut(march.ArrivesAt, now);
-            var cost = _calculator.GetCost(march.ArrivesAt, now);
+            // Останні секунди маршу прискорення не зрізає — бій чи повернення проведе сканер
+            var cut = _calculator.RequireCut(SpeedUpTimer.March, march.ArrivesAt, now);
+            var cost = _calculator.GetCost(SpeedUpTimer.March, march.ArrivesAt, now);
 
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");

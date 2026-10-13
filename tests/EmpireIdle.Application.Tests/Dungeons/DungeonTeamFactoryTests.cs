@@ -18,7 +18,7 @@ public class DungeonTeamFactoryTests
     private static readonly Guid PlayerId = Guid.NewGuid();
 
     private readonly GameConfig _config = new GameConfigBuilder().WithUnits().WithDungeons().Build();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
 
     public DungeonTeamFactoryTests()

@@ -1,0 +1,748 @@
+{
+  "GameConfig": {
+    "Lootboxes": [
+      {
+        "Key": "chest_supply",
+        "PityWithin": 50,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "crate_mixed_large",
+            "Amount": 3,
+            "Weight": 640
+          },
+          {
+            "Type": "Item",
+            "Key": "crate_wood_5000",
+            "Amount": 6,
+            "Weight": 400
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_1k",
+            "Amount": 10,
+            "Weight": 520
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_10k",
+            "Amount": 2,
+            "Weight": 1000
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_20k",
+            "Amount": 1,
+            "Weight": 400
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_5m",
+            "Amount": 15,
+            "Weight": 320
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_1h",
+            "Amount": 2,
+            "Weight": 240
+          },
+          {
+            "Type": "Item",
+            "Key": "wrench_common",
+            "Amount": 15,
+            "Weight": 200
+          },
+          {
+            "Type": "Item",
+            "Key": "wrench_rare",
+            "Amount": 5,
+            "Weight": 120
+          },
+          {
+            "Type": "Item",
+            "Key": "dungeon_energy_10",
+            "Amount": 5,
+            "Weight": 80
+          },
+          {
+            "Type": "Item",
+            "Key": "repair_kit",
+            "Amount": 1,
+            "Weight": 60
+          },
+          {
+            "Type": "Gems",
+            "Amount": 1000,
+            "Weight": 20
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_essence_t2",
+            "Amount": 1,
+            "Weight": 1,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_essence_t3",
+            "Amount": 1,
+            "Weight": 1,
+            "Pity": true
+          }
+        ]
+      },
+      {
+        "Key": "chest_treasure",
+        "PityWithin": 20,
+        "Entries": [
+          {
+            "Type": "Lootbox",
+            "Key": "chest_supply",
+            "Amount": 1,
+            "Weight": 150
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_20k",
+            "Amount": 1,
+            "Weight": 150
+          },
+          {
+            "Type": "Artifact",
+            "Key": "Rare",
+            "Amount": 2,
+            "Weight": 230
+          },
+          {
+            "Type": "Artifact",
+            "Key": "Unique",
+            "Amount": 1,
+            "Weight": 60,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "universal_shard_rare",
+            "Amount": 1,
+            "Weight": 130
+          },
+          {
+            "Type": "Item",
+            "Key": "universal_shard_unique",
+            "Amount": 1,
+            "Weight": 25
+          },
+          {
+            "Type": "Item",
+            "Key": "repair_kit",
+            "Amount": 1,
+            "Weight": 80
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_5h",
+            "Amount": 1,
+            "Weight": 60
+          },
+          {
+            "Type": "Item",
+            "Key": "dungeon_energy_50",
+            "Amount": 1,
+            "Weight": 105
+          },
+          {
+            "Type": "Gems",
+            "Amount": 1000,
+            "Weight": 10
+          }
+        ]
+      },
+      {
+        "Key": "chest_traveler",
+        "PityWithin": 4,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "teleport",
+            "Amount": 1,
+            "Weight": 300,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "teleport_nearby",
+            "Amount": 1,
+            "Weight": 300
+          },
+          {
+            "Type": "Item",
+            "Key": "teleport_clan",
+            "Amount": 1,
+            "Weight": 200
+          },
+          {
+            "Type": "Item",
+            "Key": "teleport_leader",
+            "Amount": 1,
+            "Weight": 150
+          },
+          {
+            "Type": "Item",
+            "Key": "teleport_random",
+            "Amount": 1,
+            "Weight": 50
+          }
+        ]
+      },
+      {
+        "Key": "chest_boosts",
+        "PityWithin": 5,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "boost_production_1h",
+            "Amount": 2,
+            "Weight": 300
+          },
+          {
+            "Type": "Item",
+            "Key": "boost_attack_25_1h",
+            "Amount": 1,
+            "Weight": 250
+          },
+          {
+            "Type": "Item",
+            "Key": "boost_defense_25_8h",
+            "Amount": 1,
+            "Weight": 150
+          },
+          {
+            "Type": "Item",
+            "Key": "boost_production_2x_4h",
+            "Amount": 1,
+            "Weight": 150
+          },
+          {
+            "Type": "Item",
+            "Key": "scout_veil_24h",
+            "Amount": 1,
+            "Weight": 150,
+            "Pity": true
+          }
+        ]
+      },
+      {
+        "Key": "chest_books_common",
+        "PityWithin": 10,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_common_attack",
+            "Amount": 12,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_common_defense",
+            "Amount": 12,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_common_attack",
+            "Amount": 12,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_common_defense",
+            "Amount": 12,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_common_attack",
+            "Amount": 12,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_common_defense",
+            "Amount": 12,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_common_attack",
+            "Amount": 36,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_common_defense",
+            "Amount": 36,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_common_attack",
+            "Amount": 36,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_common_defense",
+            "Amount": 36,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_common_attack",
+            "Amount": 36,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_common_defense",
+            "Amount": 36,
+            "Weight": 15,
+            "Pity": true
+          }
+        ]
+      },
+      {
+        "Key": "chest_books_rare",
+        "PityWithin": 10,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_rare_attack",
+            "Amount": 3,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_rare_defense",
+            "Amount": 3,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_rare_attack",
+            "Amount": 3,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_rare_defense",
+            "Amount": 3,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_rare_attack",
+            "Amount": 3,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_rare_defense",
+            "Amount": 3,
+            "Weight": 35
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_rare_attack",
+            "Amount": 9,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_rare_defense",
+            "Amount": 9,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_rare_attack",
+            "Amount": 9,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_rare_defense",
+            "Amount": 9,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_rare_attack",
+            "Amount": 9,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_rare_defense",
+            "Amount": 9,
+            "Weight": 15,
+            "Pity": true
+          }
+        ]
+      },
+      {
+        "Key": "chest_books_unique",
+        "PityWithin": 8,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_unique_attack",
+            "Amount": 1,
+            "Weight": 75
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_unique_defense",
+            "Amount": 1,
+            "Weight": 75
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_unique_attack",
+            "Amount": 1,
+            "Weight": 75
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_unique_defense",
+            "Amount": 1,
+            "Weight": 75
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_unique_attack",
+            "Amount": 1,
+            "Weight": 75
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_unique_defense",
+            "Amount": 1,
+            "Weight": 75
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_unique_attack",
+            "Amount": 2,
+            "Weight": 20,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_unique_defense",
+            "Amount": 2,
+            "Weight": 20,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_unique_attack",
+            "Amount": 2,
+            "Weight": 20,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_unique_defense",
+            "Amount": 2,
+            "Weight": 20,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_unique_attack",
+            "Amount": 2,
+            "Weight": 20,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_unique_defense",
+            "Amount": 2,
+            "Weight": 20,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_unique_attack",
+            "Amount": 3,
+            "Weight": 5,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_warrior_unique_defense",
+            "Amount": 3,
+            "Weight": 5,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_unique_attack",
+            "Amount": 3,
+            "Weight": 5,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_knight_unique_defense",
+            "Amount": 3,
+            "Weight": 5,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_unique_attack",
+            "Amount": 3,
+            "Weight": 5,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "skill_book_archer_unique_defense",
+            "Amount": 3,
+            "Weight": 5,
+            "Pity": true
+          }
+        ]
+      },
+      {
+        "Key": "chest_key_rare",
+        "Rolls": 4,
+        "PityWithin": 40,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "speedup_5m",
+            "Amount": 1,
+            "Weight": 220
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_10m",
+            "Amount": 1,
+            "Weight": 70
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_1h",
+            "Amount": 1,
+            "Weight": 8
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_1k",
+            "Amount": 2,
+            "Weight": 175
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_10k",
+            "Amount": 1,
+            "Weight": 30
+          },
+          {
+            "Type": "Item",
+            "Key": "wrench_common",
+            "Amount": 3,
+            "Weight": 100
+          },
+          {
+            "Type": "Item",
+            "Key": "wrench_rare",
+            "Amount": 1,
+            "Weight": 50
+          },
+          {
+            "Type": "Item",
+            "Key": "dungeon_energy_10",
+            "Amount": 1,
+            "Weight": 80
+          },
+          {
+            "Type": "Item",
+            "Key": "crate_mixed_large",
+            "Amount": 1,
+            "Weight": 60
+          },
+          {
+            "Type": "Item",
+            "Key": "boost_production_1h",
+            "Amount": 1,
+            "Weight": 40
+          },
+          {
+            "Type": "Item",
+            "Key": "teleport_random",
+            "Amount": 1,
+            "Weight": 10
+          },
+          {
+            "Type": "Item",
+            "Key": "repair_kit",
+            "Amount": 1,
+            "Weight": 10
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Rare",
+            "Amount": 1,
+            "Weight": 105
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Rare",
+            "Amount": 2,
+            "Weight": 30
+          },
+          {
+            "Type": "RandomHero",
+            "Key": "Common",
+            "Amount": 1,
+            "Weight": 6
+          },
+          {
+            "Type": "RandomHero",
+            "Key": "Rare",
+            "Amount": 1,
+            "Weight": 6,
+            "Pity": true
+          }
+        ]
+      },
+      {
+        "Key": "chest_key_unique",
+        "Rolls": 4,
+        "PityWithin": 5,
+        "Entries": [
+          {
+            "Type": "Item",
+            "Key": "speedup_10m",
+            "Amount": 2,
+            "Weight": 160
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_1h",
+            "Amount": 1,
+            "Weight": 30
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_5h",
+            "Amount": 1,
+            "Weight": 3
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_10k",
+            "Amount": 1,
+            "Weight": 185
+          },
+          {
+            "Type": "Item",
+            "Key": "hero_xp_20k",
+            "Amount": 1,
+            "Weight": 50
+          },
+          {
+            "Type": "Item",
+            "Key": "wrench_rare",
+            "Amount": 3,
+            "Weight": 110
+          },
+          {
+            "Type": "Item",
+            "Key": "repair_kit",
+            "Amount": 1,
+            "Weight": 40
+          },
+          {
+            "Type": "Item",
+            "Key": "dungeon_energy_50",
+            "Amount": 1,
+            "Weight": 60
+          },
+          {
+            "Type": "Item",
+            "Key": "teleport_random",
+            "Amount": 1,
+            "Weight": 40
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Rare",
+            "Amount": 3,
+            "Weight": 120
+          },
+          {
+            "Type": "Item",
+            "Key": "universal_shard_rare",
+            "Amount": 3,
+            "Weight": 75
+          },
+          {
+            "Type": "RandomHero",
+            "Key": "Rare",
+            "Amount": 1,
+            "Weight": 12
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Unique",
+            "Amount": 1,
+            "Weight": 60
+          },
+          {
+            "Type": "RandomHeroShards",
+            "Key": "Unique",
+            "Amount": 2,
+            "Weight": 15,
+            "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "universal_shard_unique",
+            "Amount": 1,
+            "Weight": 40,
+            "Pity": true
+          }
+        ]
+      }
+    ],
+    "KeyChests": [
+      {
+        "LootboxKey": "chest_key_rare",
+        "KeyItemKey": "key_rare",
+        "FreePerDay": 5,
+        "FreeCooldownMinutes": 5
+      },
+      {
+        "LootboxKey": "chest_key_unique",
+        "KeyItemKey": "key_unique",
+        "FreePerDay": 1,
+        "FreeCooldownMinutes": 2880
+      }
+    ]
+  }
+}

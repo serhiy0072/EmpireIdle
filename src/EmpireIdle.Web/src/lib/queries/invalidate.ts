@@ -13,6 +13,8 @@ export type PlayerScope =
   | "battleReports"
   | "tutorial"
   | "inventory"
+  | "lootboxPity"
+  | "keyChests"
   | "beasts"
   | "banners"
   | "clan"

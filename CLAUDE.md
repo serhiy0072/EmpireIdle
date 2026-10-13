@@ -91,16 +91,6 @@ Claude тут — Software Architect і Mentor-Reviewer. Мета написат
   Виняток: хід данжу (`TakeDungeonTurnCommand`) захищено номером ходу — `expectedTurn` → 409 `StaleTurn`, не `IIdempotentRequest`.
 - Агрегати, які змінюються паралельно, мають токен `xmin`; гонки за унікальністю розв'язує індекс.
 
-## Структура
-
-- `src/EmpireIdle.Domain` — сутності, value objects, доменні сервіси, конфіг-моделі, `GameConfigValidator`
-- `src/EmpireIdle.Application` — CQRS на MediatR, FluentValidation, інтерфейси репозиторіїв
-- `src/EmpireIdle.Infrastructure` — EF Core + PostgreSQL, Identity, Hangfire, міграції
-- `src/EmpireIdle.API` — контролери, `Program.cs`, SignalR-хаб, конфіги гри в `Config/*.json`
-- `src/EmpireIdle.Web` — React + TypeScript + Vite + Tailwind + React Query
-- `tests/*` — xUnit + NSubstitute; `EmpireIdle.TestKit` — спільні фікстури (`GameConfigBuilder`)
-- `openapi/v1.json`, `realtime/events.json`, `refusals/reasons.json` — закомічені контракти API, подій і причин відмов
-
 ## Команди
 
 ```powershell

@@ -29,7 +29,7 @@ public class BattleAftermathTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
 
     private Village _allyVillage = null!;
 
@@ -53,7 +53,7 @@ public class BattleAftermathTests
         var calculator = new MarchCalculator(new TerrainGenerator(config.Map), catalog);
         var logistics = new MarchLogistics(
             _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
-            NullLogger<MarchLogistics>.Instance);
+            new HeroStats(new HeroProgression(config.HeroSettings), catalog), NullLogger<MarchLogistics>.Instance);
 
         var returner = new ReinforcementReturner(
             _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes, calculator, catalog,
@@ -107,6 +107,53 @@ public class BattleAftermathTests
 
     private static List<StackLoss> Losses(int lost)
         => [new StackLoss(AllyPlayerId, "infantry", 1, lost)];
+
+    // ---------- Герої як бійці (варіант B) ----------
+
+    /// <summary>Атака героїв маршу: бій уже порахував, кого поранила частка шкоди.</summary>
+    private async Task<(Hero Wounded, Hero Spared)> RecordAttackWith(bool attackerWon)
+    {
+        var village = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
+        var army = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
+        var march = new March(Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55, MarchTargetType.Monster, Guid.NewGuid(),
+            army, Now, Now.AddMinutes(-30));
+
+        var wounded = new Hero(Guid.NewGuid(), HostPlayerId, 1, "warrior_bran", garrison.Id, asLeader: true, Now);
+        var spared = new Hero(Guid.NewGuid(), HostPlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
+        wounded.Deploy(march.Id, Now.AddMinutes(-30));
+        spared.Deploy(march.Id, Now.AddMinutes(-30));
+        _heroes.OnMarch(march.Id, wounded, spared);
+
+        var result = new BattleResult(attackerWon, 100, 50, new Dictionary<UnitStackKey, int>(), new Dictionary<UnitStackKey, int>(),
+            AttackerWoundedHeroes: [wounded.Id]);
+        var outcome = new BattleOutcome(result, new CasualtySplit([], [], []));
+
+        await Aftermath().RecordAttackerAsync(march, village, garrison, "Вовки", 1, army, outcome, "plain", seed: 1, Now,
+            CancellationToken.None);
+
+        return (wounded, spared);
+    }
+
+    /// <summary>Поранення вирішує частка шкоди, а не результат: і перемога може поранити героя.</summary>
+    [Fact]
+    public async Task RecordAttacker_ShouldWoundOnlyTheHeroesTheBattleWounded_EvenAfterAWin()
+    {
+        var (wounded, spared) = await RecordAttackWith(attackerWon: true);
+
+        Assert.Equal(HeroState.Wounded, wounded.State);
+        Assert.NotEqual(HeroState.Wounded, spared.State);
+    }
+
+    /// <summary>Поразка більше не кладе всіх героїв маршу: вцілів той, кого шкода не дістала.</summary>
+    [Fact]
+    public async Task RecordAttacker_ShouldSpareAHero_TheLostBattleDidNotWound()
+    {
+        var (wounded, spared) = await RecordAttackWith(attackerWon: false);
+
+        Assert.Equal(HeroState.Wounded, wounded.State);
+        Assert.NotEqual(HeroState.Wounded, spared.State);
+    }
 
     // ---------- Оборона вистояла ----------
 

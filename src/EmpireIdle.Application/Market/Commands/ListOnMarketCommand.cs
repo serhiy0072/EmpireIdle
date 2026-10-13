@@ -13,14 +13,13 @@ namespace EmpireIdle.Application.Market.Commands
 {
     /// <summary>
     /// Виставити товар на ринок за фіксовану ціну в золоті (GDD §8.8).
-    /// Заповнюється поле свого виду: EquipmentId, HeroId або ItemKey з Quantity.
+    /// Заповнюється поле свого виду: EquipmentId або ItemKey з Quantity.
     /// </summary>
     /// <returns>Id створеного лота.</returns>
     public record ListOnMarketCommand(
         Guid PlayerId,
         MarketListingKind Kind,
         Guid? EquipmentId,
-        Guid? HeroId,
         string? ItemKey,
         int Quantity,
         int PriceGold) : IRequest<Guid>, IPlayerScopedRequest, IIdempotentRequest;
@@ -78,7 +77,7 @@ namespace EmpireIdle.Application.Market.Commands
                 throw new RequirementNotMetException(RefusalReasons.MarketListingLimit,
                     $"Player {request.PlayerId} already has {limit} active listings.", limit);
 
-            var goods = await _goods.AppraiseAsync(request.PlayerId, request.Kind, request.EquipmentId, request.HeroId,
+            var goods = await _goods.AppraiseAsync(request.PlayerId, request.Kind, request.EquipmentId,
                 request.ItemKey, request.Quantity, cancellationToken);
 
             var corridor = await _desk.CorridorAsync(goods.PricingKey, cancellationToken);
@@ -97,7 +96,7 @@ namespace EmpireIdle.Application.Market.Commands
             await _goods.TakeIntoCustodyAsync(request.PlayerId, goods, now, cancellationToken);
 
             var listing = new MarketListing(Guid.NewGuid(), _serverContext.ServerId, request.PlayerId, goods.Kind,
-                goods.EquipmentId, goods.HeroId, goods.ItemKey, goods.Quantity, goods.Units, goods.PricingKey,
+                goods.EquipmentId, goods.ItemKey, goods.Quantity, goods.Units, goods.PricingKey,
                 request.PriceGold, tax, now, TimeSpan.FromHours(_catalog.Config.Market.ListingHours));
 
             await _market.AddAsync(listing, cancellationToken);

@@ -88,5 +88,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
         /// <inheritdoc/>
         public void RemoveItem(PlayerItem item) => _context.PlayerItems.Remove(item);
+
+        public void RemoveEquipment(EquipmentItem equipment) => _context.EquipmentItems.Remove(equipment);
     }
 }

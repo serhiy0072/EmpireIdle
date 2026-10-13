@@ -31,7 +31,8 @@ namespace EmpireIdle.Application.Battles.Queries
                     r.Lines
                         .Select(l => new BattleReportLineView(l.UnitType, l.Sent, l.Survived, l.Wounded, l.Recoverable, l.Dead))
                         .ToList(),
-                    r.TamedBeastKey))
+                    r.TamedBeastKey,
+                    r.HeroExperience))
                 .ToList();
         }
     }

@@ -34,7 +34,7 @@ public class SendMarchCommandTests
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
     private readonly IBeastPenRepository _pens = Substitute.For<IBeastPenRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
@@ -107,9 +107,10 @@ public class SendMarchCommandTests
         }
     };
 
-    private SendMarchCommandHandler Handler()
+    private SendMarchCommandHandler Handler(Action<HeroesConfig>? tune = null)
     {
         var config = Config();
+        tune?.Invoke(config.HeroSettings);
         var catalog = new GameCatalog(config);
         var terrain = new TerrainGenerator(config.Map);
 
@@ -131,6 +132,7 @@ public class SendMarchCommandTests
             new MarchCalculator(terrain, catalog),
             targets, reinforcementRules, new StructureMarchRules(_clans),
             new HeroProgression(config.HeroSettings),
+            new HeroConvoys(config.HeroSettings),
             catalog,
             new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog),
             Effects(catalog),
@@ -160,7 +162,7 @@ public class SendMarchCommandTests
 
         var existing = Enumerable.Range(0, activeMarches)
             .Select(_ => new March(
-                Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 60, 60,
+                Guid.NewGuid(), 1, garrison.Id, 50, 50, 60, 60,
                 MarchTargetType.Monster, Guid.NewGuid(),
                 new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 1 },
                 Now.AddHours(1), Now))
@@ -179,7 +181,7 @@ public class SendMarchCommandTests
     private static SendMarchCommand Send(Guid targetId, Guid heroId, int infantry = 10,
         MarchIntent intent = MarchIntent.Attack) =>
         new(PlayerId, MarchTargetType.Monster, targetId,
-            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, heroId, intent);
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = infantry }, [heroId], intent);
 
     /// <summary>Звіринець з одним прирученим звіром — на одне місце це повний звіринець.</summary>
     private void GivenPenWith(string beastKey)
@@ -251,7 +253,7 @@ public class SendMarchCommandTests
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Handler().Handle(
             new SendMarchCommand(PlayerId, MarchTargetType.Village, village.Id,
-                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, hero.Id),
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, [hero.Id]),
             CancellationToken.None));
 
         Assert.Equal(RefusalReasons.MarchOwnVillage.Key, refusal.Reason);
@@ -321,7 +323,7 @@ public class SendMarchCommandTests
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(
                 new SendMarchCommand(PlayerId, MarchTargetType.Monster, monster.Id,
-                    new Dictionary<UnitStackKey, int>(), hero.Id),
+                    new Dictionary<UnitStackKey, int>(), [hero.Id]),
                 CancellationToken.None));
         Assert.Equal(RefusalReasons.MarchEmptyAttack.Key, refusal.Reason);
     }
@@ -390,7 +392,7 @@ public class SendMarchCommandTests
     public async Task Handle_ShouldReject_WhenNoHeroIsFree()
     {
         var (_, monster, hero) = GivenState(activeMarches: 1, availableHeroes: 0);
-        hero.Deploy(Now);
+        hero.Deploy(Guid.NewGuid(), Now);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
@@ -512,14 +514,14 @@ public class SendMarchCommandTests
 
         await Handler().Handle(
             new SendMarchCommand(PlayerId, MarchTargetType.Village, allyVillage.Id,
-                new Dictionary<UnitStackKey, int>(), hero.Id, MarchIntent.Reinforce),
+                new Dictionary<UnitStackKey, int>(), [hero.Id], MarchIntent.Reinforce),
             CancellationToken.None);
 
         Assert.Equal(Now, garrison.UpdatedAt);
         Assert.Equal(HeroState.Deployed, hero.State);
 
         await _marches.Received(1).AddAsync(
-            Arg.Is<March>(m => m.Intent == MarchIntent.Reinforce && m.HeroId == hero.Id && m.GetUnits().Count == 0),
+            Arg.Is<March>(m => m.Intent == MarchIntent.Reinforce && hero.MarchId == m.Id && m.GetUnits().Count == 0),
             Arg.Any<CancellationToken>());
     }
 
@@ -550,5 +552,72 @@ public class SendMarchCommandTests
         Assert.Equal(plain.TotalSeconds / 1.25, fast.TotalSeconds, precision: 3);
         Assert.Equal(1.25, marches[1].SpeedMultiplier, precision: 10);
         Assert.Equal(1.0, marches[0].SpeedMultiplier, precision: 10);
+    }
+
+    // ---------- Конвої (GDD §6.1) ----------
+
+    /// <summary>Герой першого рівня веде 2 конвої по 50 — сотня піхоти в марш уже не влізе.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_MoreUnitsThanTheHerosConvoysCarry()
+    {
+        var (garrison, monster, hero) = GivenState(infantry: 200);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler(ConvoysOfFifty).Handle(Send(monster.Id, hero.Id, infantry: 101), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.MarchOverCapacity.Key, refusal.Reason);
+        Assert.Equal(100, refusal.Args["capacity"]);
+        Assert.Equal(200, garrison.Units.Sum(u => u.Count));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSend_UnitsWithinTheConvoys()
+    {
+        var (_, monster, hero) = GivenState(infantry: 200);
+
+        await Handler(ConvoysOfFifty).Handle(Send(monster.Id, hero.Id, infantry: 100), CancellationToken.None);
+
+        Assert.Equal(HeroState.Deployed, hero.State);
+    }
+
+    /// <summary>До трьох героїв у марші (GDD §6.1): усі йдуть у похід, марш пам'ятає кожного.</summary>
+    [Fact]
+    public async Task Handle_ShouldSendSeveralHeroesInOneMarch()
+    {
+        var (garrison, monster, hero) = GivenState();
+        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
+        _heroes.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(second);
+
+        var command = Send(monster.Id, hero.Id) with { HeroIds = [hero.Id, second.Id] };
+
+        await Handler().Handle(command, CancellationToken.None);
+
+        Assert.Equal(HeroState.Deployed, hero.State);
+        Assert.Equal(HeroState.Deployed, second.State);
+        await _marches.Received(1).AddAsync(
+            Arg.Is<March>(m => hero.MarchId == m.Id && second.MarchId == m.Id), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Один із героїв поранений — не йде ніхто, і гарнізон не чіпається.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuseTheWholeMarch_WhenOneHeroIsUnavailable()
+    {
+        var (garrison, monster, hero) = GivenState();
+        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
+        second.Wound(Now);
+        _heroes.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(second);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(Send(monster.Id, hero.Id) with { HeroIds = [hero.Id, second.Id] }, CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.MarchHeroUnavailable.Key, refusal.Reason);
+        Assert.Equal(HeroState.Idle, hero.State);
+        Assert.Equal(100, garrison.Units.Sum(u => u.Count));
+    }
+
+    private static void ConvoysOfFifty(HeroesConfig settings)
+    {
+        settings.ConvoySize = 50;
+        settings.ConvoysByLevel = [new ConvoyStepConfig { Level = 1, Convoys = 2 }];
     }
 }

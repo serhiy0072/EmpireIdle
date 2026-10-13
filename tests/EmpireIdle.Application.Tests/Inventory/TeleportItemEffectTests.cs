@@ -27,7 +27,7 @@ public class TeleportItemEffectTests
     private readonly IMapRepository _map = Substitute.For<IMapRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
@@ -70,7 +70,7 @@ public class TeleportItemEffectTests
         _garrisons.GetHoldingReinforcementsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Garrison>());
 
         var logistics = new MarchLogistics(_villages, _heroes, catalog, calculator,
-            new HeroProgression(config.HeroSettings), NullLogger<MarchLogistics>.Instance);
+            new HeroProgression(config.HeroSettings), new HeroStats(new HeroProgression(config.HeroSettings), catalog), NullLogger<MarchLogistics>.Instance);
         var returner = new ReinforcementReturner(_garrisons, _villages, _structures, _marches, _heroes,
             calculator, catalog, new HeroProgression(config.HeroSettings), TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
         var relocator = new VillageRelocator(_map, _marches, _garrisons, _heroes, _servers, catalog, geometry,

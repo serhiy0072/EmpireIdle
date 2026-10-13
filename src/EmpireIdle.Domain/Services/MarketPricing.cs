@@ -18,10 +18,10 @@ namespace EmpireIdle.Domain.Services
 
     /// <summary>
     /// Ціни ринку (GDD §8.8): категорія товару, якір, медіана продажів
-    /// і коридор навколо неї. Категорії пишуться через крапку («hero.Rare»,
+    /// і коридор навколо неї. Категорії пишуться через крапку («weapon»,
     /// «item.teleport»): двокрапка в ключі конфіга .NET означає вкладеність.
     ///
-    /// Одиниця ціни — Power для спорядження й героїв і штука для стакових
+    /// Одиниця ціни — Power для спорядження і штука для стакових
     /// предметів. Інакше меч +15 і меч +0 мусили б продаватись у тому
     /// самому коридорі, а коридор втратив би сенс.
     ///
@@ -35,24 +35,31 @@ namespace EmpireIdle.Domain.Services
         public MarketPricing(GameConfig config)
         {
             _market = config.Market;
-            _gemPrices = config.Shop.Items
+            var shop = config.Shop.Items
                 .GroupBy(offer => offer.ItemKey)
                 .ToDictionary(g => g.Key, g => g.Min(offer => offer.PriceGems));
+
+            // Предмет зі скрині не має ціни в крамниці — якорем стає його довідкова ціна
+            _gemPrices = config.Market.GemValues
+                .Where(value => !shop.ContainsKey(value.Key))
+                .Concat(shop)
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
-        /// <summary>Категорія спорядження: зброя й артефакти мають різну ціну сили.</summary>
+        /// <summary>Категорія спорядження для ціни сили; артефакт — єдиний вид спорядження (GDD §6.4).</summary>
         public static string CategoryOf(EquipmentSlot slot)
-            => slot == EquipmentSlot.Weapon ? "weapon" : "artifact";
-
-        /// <summary>Категорія героя: унікальний герой тієї самої сили цінніший за звичайного.</summary>
-        public static string CategoryOf(Rarity heroRank) => $"hero.{heroRank}";
+            => slot switch
+            {
+                EquipmentSlot.Artifact => "artifact",
+                _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, "Unknown equipment slot.")
+            };
 
         /// <summary>Стаковий предмет — сам собі категорія.</summary>
         public static string CategoryOfItem(string itemKey) => $"item.{itemKey}";
 
         /// <summary>
         /// Абсолютний якір ціни за одиницю. Для стакових — ціна в крамниці
-        /// в gems за курсом; для сили — ціна одиниці Power з конфіга.
+        /// (або довідкова ціна предмета зі скрині) в gems за курсом; для сили — ціна одиниці Power з конфіга.
         /// null — якоря немає, і товар торгуватись не може: коридор
         /// без якоря проганяється вошем з першого ж продажу.
         /// </summary>

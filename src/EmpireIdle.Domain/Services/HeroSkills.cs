@@ -18,7 +18,7 @@ namespace EmpireIdle.Domain.Services
             _config = config;
         }
 
-        public static bool IsUnlocked(Hero hero, HeroSkillConfig skill) => hero.Level >= skill.UnlockLevel;
+        public static bool IsUnlocked(Hero hero, HeroSkillConfig skill) => hero.EffectiveLevel >= skill.UnlockLevel;
 
         /// <summary>
         /// Рівень вміння, що діє зараз; 0 — вміння ще закрите рівнем героя. Піднятий книгами рівень

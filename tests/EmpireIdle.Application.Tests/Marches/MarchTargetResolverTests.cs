@@ -34,7 +34,7 @@ public class MarchTargetResolverTests
             Substitute.For<IMonsterRepository>(),
             villages ?? Substitute.For<IVillageRepository>(),
             Substitute.For<IGarrisonRepository>(),
-            Substitute.For<IHeroRepository>(),
+            Substitute.For<IHeroRepository>().ForwardHeroLookups(),
             new MonsterArmyBuilder(catalog),
             new HeroCombatModifiers(catalog),
             catalog,

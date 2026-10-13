@@ -4,6 +4,7 @@
       "MaxEnergy": 100,
       "RegenHours": 20,
       "EnergyPerRun": 10,
+      "RefillPricesGems": [ 100, 200, 400, 800, 1600 ],
       "TeamSize": 4,
       "FrontLineClasses": [
         "warrior",
@@ -21,6 +22,7 @@
         2.0,
         3.5
       ],
+      "HeroExperiencePerRun": 12000,
       "DefenseSoftening": 120,
       "MinDamageShare": 0.1,
       "MaxRoundsPerWave": 30,

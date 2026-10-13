@@ -5,15 +5,15 @@
     },
     "LoginRewards": {
       "Daily": [
-        { "Rewards": [ { "Type": "Resource", "Key": "food", "Amount": 500 } ] },
-        { "Rewards": [ { "Type": "Resource", "Key": "wood", "Amount": 500 } ] },
-        { "Rewards": [ { "Type": "Gems", "Amount": 10 } ] },
-        { "Rewards": [ { "Type": "Resource", "Key": "iron", "Amount": 500 } ] },
-        { "Rewards": [ { "Type": "Resource", "Key": "gold", "Amount": 300 } ] },
-        { "Rewards": [ { "Type": "Gems", "Amount": 20 } ] },
-        { "Rewards": [ { "Type": "Gems", "Amount": 50 } ] }
+        { "Rewards": [ { "Type": "Gems", "Amount": 100 }, { "Type": "Resource", "Key": "food", "Amount": 500 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 } ] },
+        { "Rewards": [ { "Type": "Resource", "Key": "wood", "Amount": 500 }, { "Type": "Item", "Key": "chest_boosts", "Amount": 1 } ] },
+        { "Rewards": [ { "Type": "Gems", "Amount": 100 }, { "Type": "Item", "Key": "chest_books_common", "Amount": 1 } ] },
+        { "Rewards": [ { "Type": "Resource", "Key": "iron", "Amount": 500 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 }, { "Type": "Item", "Key": "chest_boosts", "Amount": 1 } ] },
+        { "Rewards": [ { "Type": "Resource", "Key": "gold", "Amount": 300 }, { "Type": "Item", "Key": "chest_traveler", "Amount": 1 } ] },
+        { "Rewards": [ { "Type": "Gems", "Amount": 200 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_rare", "Amount": 1 } ] },
+        { "Rewards": [ { "Type": "Gems", "Amount": 1000 }, { "Type": "Item", "Key": "chest_treasure", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_unique", "Amount": 1 } ] }
       ],
-      "Weekly": [ { "Type": "Gems", "Amount": 100 }, { "Type": "Item", "Key": "beast_feed", "Amount": 300 } ],
+      "Weekly": [ { "Type": "Gems", "Amount": 1000 }, { "Type": "Item", "Key": "beast_feed", "Amount": 300 } ],
       "Monthly": [ { "Type": "Item", "Key": "teleport", "Amount": 3 } ]
     }
   }

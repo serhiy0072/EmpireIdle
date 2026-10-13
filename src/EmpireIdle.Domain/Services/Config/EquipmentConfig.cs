@@ -1,6 +1,14 @@
+using EmpireIdle.Domain.Enums;
+
 namespace EmpireIdle.Domain.Services.Config
 {
-    /// <summary>Спільні правила спорядження: слоти, заточка, набори.</summary>
+    /// <summary>
+    /// Спільні правила артефактів (GDD §9.12): слоти, база, рівень, заточка, набори.
+    ///
+    /// Два виміри предмета: рівень 0–80 росте пласкою базою, заточка +0…+20 дає відсоткові
+    /// бонуси. База не зберігається на предметі, а рахується з цих таблиць — зміна чисел
+    /// балансу не вимагає міграції.
+    /// </summary>
     public class EquipmentConfig
     {
         /// <summary>
@@ -17,92 +25,127 @@ namespace EmpireIdle.Domain.Services.Config
             return index < 0 ? null : index;
         }
 
-        /// <summary>Стеля заточки, однакова для зброї й артефактів.</summary>
-        public int MaxEnhancement { get; set; } = 20;
+        /// <summary>Тип слота за ключем; null — такого типу немає.</summary>
+        public ArtifactSlotConfig? FindArtifactSlot(string? slotKey)
+            => ArtifactSlots.FirstOrDefault(slot => slot.Key == slotKey);
 
-        /// <summary>Приріст стата за рівень заточки, часткою.</summary>
-        public double EnhancementBonusPerLevel { get; set; } = 0.1;
+        /// <summary>Стеля рівня артефакта; рівень качається згодовуванням спорядження й гаєчок.</summary>
+        public int MaxLevel { get; set; } = 80;
 
-        /// <summary>Будівля, де кують і лагодять зброю.</summary>
+        /// <summary>
+        /// Досвід на крок до рівня n: round10(Base + Coefficient · (n − 1)^Exponent).
+        /// Стала частина робить перші рівні відчутними, степенева — розтягує пізні.
+        /// </summary>
+        public double LevelExperienceBase { get; set; } = 100;
+
+        public double LevelExperienceCoefficient { get; set; } = 2.2;
+
+        public double LevelExperienceExponent { get; set; } = 1.55;
+
+        /// <summary>
+        /// Базовий досвід, який дає згодований артефакт за рідкістю, плюс увесь вкладений у нього.
+        /// Рідкості без значення згодувати не можна.
+        /// </summary>
+        public Dictionary<Rarity, int> FeedExperience { get; set; } = new();
+
+        /// <summary>
+        /// Пласка база за рідкістю: стартові числа й приріст за рівень. Однакова для всіх
+        /// типів слотів — тип впливає лише на бонуси заточки.
+        /// </summary>
+        public Dictionary<Rarity, ArtifactBaseConfig> ArtifactBase { get; set; } = new();
+
+        /// <summary>
+        /// Множник бази за класом героя, що носить предмет: ключ — клас із HeroesConfig.Classes.
+        /// Діє і на стати героя, і на стати юнітів. Клас без запису — множник 1.
+        /// </summary>
+        public Dictionary<string, ArtifactClassMultiplierConfig> ArtifactClassMultipliers { get; set; } = new();
+
+        /// <summary>Сила за одиницю пласкої атаки й захисту героя.</summary>
+        public double HeroStatPower { get; set; } = 1.0;
+
+        /// <summary>
+        /// Сила за одиницю пласкої атаки й захисту юнітів. Їхні числа вчетверо більші, бо
+        /// додаються до всього загону, — вага зрівнює їх із героївськими.
+        /// </summary>
+        public double UnitStatPower { get; set; } = 0.25;
+
+        /// <summary>Бонуси заточки: ступені й сила кожного стату.</summary>
+        public List<ArtifactBonusConfig> ArtifactBonuses { get; set; } = new();
+
+        /// <summary>Бонус заточки за ключем стату; null — невідомий.</summary>
+        public ArtifactBonusConfig? FindArtifactBonus(string stat)
+            => ArtifactBonuses.FirstOrDefault(b => b.Stat == stat);
+
+        /// <summary>
+        /// Шанси ступенів 1–4 одного рангу заточки, у порядку ступенів: 0.4, 0.3, 0.2, 0.1.
+        /// Сума — 1.
+        /// </summary>
+        public List<double> BonusStepChances { get; set; } = new();
+
+        /// <summary>Стеля заточки: по 5 рангів на кожен із чотирьох бонусів.</summary>
+        public int MaxMastery { get; set; } = 20;
+
+        /// <summary>Будівля, де кують — без неї заточка недоступна.</summary>
         public string ForgeBuildingKey { get; set; } = "forge";
 
-        /// <summary>Вартість першого рівня заточки в золоті.</summary>
-        public int EnhanceBaseGold { get; set; } = 200;
+        /// <summary>Ціна спроби на +1 у золоті; далі — round10(база · ріст^поточна заточка).</summary>
+        public int MasteryBaseGold { get; set; } = 400;
 
-        /// <summary>Множник вартості за кожен наступний рівень.</summary>
-        public double EnhanceCostGrowth { get; set; } = 1.35;
-
-        /// <summary>
-        /// До цього рівня заточка не провалюється. Перші кроки мають бути
-        /// передбачувані: гравець спершу вчиться механіці, потім ризикує.
-        /// </summary>
-        public int SafeEnhancementLevel { get; set; } = 5;
+        /// <summary>Множник ціни за кожен наступний рівень заточки.</summary>
+        public double MasteryCostGrowth { get; set; } = 1.33;
 
         /// <summary>
-        /// Падіння шансу успіху за рівень понад безпечний, часткою.
-        /// На двадцятому рівні шанс не опускається нижче за MinSuccessChance.
+        /// Шанс успіху спроби за поточною заточкою: індекс 0 — спроба на +1.
+        /// Явний список, а не формула: так його читає й балансує Режисер.
         /// </summary>
-        public double SuccessDropPerLevel { get; set; } = 0.05;
-
-        /// <summary>Нижня межа шансу успіху.</summary>
-        public double MinSuccessChance { get; set; } = 0.25;
+        public List<double> MasterySuccessChances { get; set; } = new();
 
         /// <summary>
-        /// Шанс зламати зброю при невдалій спробі. Невдача сама по собі
-        /// не ламає: здебільшого гравець просто втрачає золото.
+        /// Шанс поломки, якщо спроба з поточної заточки невдала: індекс 0 — спроба на +1.
+        /// Кидається лише при невдачі — успіх ніколи не ламає.
         /// </summary>
-        public double BreakChanceOnFailure { get; set; } = 0.2;
+        public List<double> MasteryBreakChances { get; set; } = new();
 
-        /// <summary>Вартість ремонту як частка від вартості поточного рівня заточки.</summary>
-        /// <summary>Ремонт зламаної зброї — за gems: база плюс надбавка за кожен рівень заточки.</summary>
-        public int RepairGemsBase { get; set; } = 20;
+        /// <summary>Частка статів і сили, яку дає зламаний предмет, доки його не відремонтують.</summary>
+        public double BrokenStatShare { get; set; } = 0.5;
 
-        public int RepairGemsPerLevel { get; set; } = 8;
+        /// <summary>Ремонт за gems: стільки за кожен рівень заточки зламаного предмета.</summary>
+        public int RepairGemsPerMastery { get; set; } = 50;
 
-        /// <summary>Скільки статів артефакт має одразу.</summary>
-        public int ArtifactBaseStats { get; set; } = 2;
-
-        /// <summary>Рівні, на яких артефакт отримує новий стат.</summary>
-        public List<int> ArtifactStatLevels { get; set; } = [4, 8];
-
-        /// <summary>Рівні, на яких качаються наявні стати.</summary>
-        public List<int> ArtifactUpgradeLevels { get; set; } = [12, 16, 20];
-
-        /// <summary>Шанс прокачати два стати замість одного.</summary>
-        public double DoubleUpgradeChance { get; set; } = 0.1;
-
-        /// <summary>Пул статів артефактів.</summary>
-        public List<ArtifactStatConfig> ArtifactStats { get; set; } = new();
+        /// <summary>Ремкомплект — ремонт без gems на будь-якій заточці; ключ предмета з Items.</summary>
+        public string RepairKitItemKey { get; set; } = "repair_kit";
 
         /// <summary>Бонуси за повні набори артефактів.</summary>
         public List<SetBonusConfig> SetBonuses { get; set; } = new();
-
-        /// <summary>
-        /// Множник значень за рідкістю артефакта. Той самий стат на
-        /// unique-артефакті вартий більше, ніж на common.
-        /// </summary>
-        public Dictionary<string, double> ArtifactRarityMultipliers { get; set; } = new();
 
         /// <summary>Рівні й характер родин наборів артефактів.</summary>
         public List<ArtifactSetConfig> ArtifactSets { get; set; } = new();
 
         /// <summary>
-        /// Множник значень за рівнем набору: артефакт із важчого данжу сильніший.
-        /// Діє разом із множником рідкості. Порожньо — множник 1.0.
+        /// Множник бази за рівнем набору: артефакт із важчого данжу сильніший.
+        /// Порожньо — множник 1.0.
         /// </summary>
         public List<double> ArtifactTierMultipliers { get; set; } = new();
 
-        /// <summary>У скільки разів характерний стат імовірніший за звичайний при ролі.</summary>
-        public double ArtifactFocusWeight { get; set; } = 1.0;
-
         /// <summary>
         /// Родина набору за SetKey предмета (<c>{Key}_{рідкість}</c>);
-        /// null — предмет поза родинами, ролиться без рівня й характеру.
+        /// null — предмет поза родинами, без множника рівня.
         /// </summary>
         public ArtifactSetConfig? FindArtifactSet(string? setKey)
             => setKey is null
                 ? null
                 : ArtifactSets.FirstOrDefault(set => Enum.GetNames<Enums.Rarity>()
                     .Any(rarity => setKey == $"{set.Key}_{rarity.ToLowerInvariant()}"));
+
+        /// <summary>Рівень набору поза списком множників бере останній відомий — як і тір героя.</summary>
+        public double TierMultiplier(string? setKey)
+        {
+            var set = FindArtifactSet(setKey);
+
+            if (set is null || ArtifactTierMultipliers.Count == 0)
+                return 1.0;
+
+            return ArtifactTierMultipliers[Math.Clamp(set.Tier - 1, 0, ArtifactTierMultipliers.Count - 1)];
+        }
     }
 }

@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Heroes.Commands;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Application.Inventory.Effects;
@@ -16,22 +17,24 @@ namespace EmpireIdle.Application.Tests.Heroes;
 
 /// <summary>
 /// Досвід героїв (GDD §6.1): копиться в пулі гравця — з баночок і нагород — і витрачається
-/// на рівень обраного героя одразу, без черги. Скидання повертає вкладене мінус 1%.
+/// на рівень обраного героя одразу, без черги. Скидання повертає все вкладене.
 /// </summary>
 public class HeroExperienceTests
 {
     private static readonly DateTime Now = new(2026, 10, 6, 12, 0, 0, DateTimeKind.Utc);
     private static readonly Guid PlayerId = Guid.NewGuid();
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly HeroProgression _progression = HeroTestConfig.Progression();
+    private readonly List<Hero> _roster = [];
     private HeroExperiencePool? _pool;
 
     public HeroExperienceTests()
     {
         _serverContext.ServerId.Returns(1);
+        _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(_ => _roster.ToList());
 
         // Підміна, що поводиться як сховище: доданий пул видно наступним читанням
         _heroes.GetExperienceAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(_ => _pool);
@@ -47,6 +50,7 @@ public class HeroExperienceTests
     {
         var hero = TestKit.Entities.Hero("warrior_bran", PlayerId, level: level);
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
+        _roster.Add(hero);
         return hero;
     }
 
@@ -57,13 +61,17 @@ public class HeroExperienceTests
             _pool.Add(amount);
     }
 
+    private TrainingCampService Camps()
+        => new(_heroes, Substitute.For<IPlayerRepository>(), Substitute.For<IPlayerWalletRepository>(), _serverContext,
+            new TrainingCampRules(HeroTestConfig.Create().HeroSettings.TrainingCamp));
+
     private Task LevelUp(Hero hero, int levels)
-        => new LevelUpHeroCommandHandler(_heroes, _unitOfWork, _progression, HeroTestConfig.Catalog(), new FakeTimeProvider(Now),
+        => new LevelUpHeroCommandHandler(_heroes, _unitOfWork, _progression, HeroTestConfig.Catalog(), Camps(), new FakeTimeProvider(Now),
                 NullLogger<LevelUpHeroCommandHandler>.Instance)
             .Handle(new LevelUpHeroCommand(PlayerId, hero.Id, levels), CancellationToken.None);
 
     private Task Reset(Hero hero)
-        => new ResetHeroLevelCommandHandler(_heroes, _serverContext, _unitOfWork, _progression, new FakeTimeProvider(Now),
+        => new ResetHeroLevelCommandHandler(_heroes, _serverContext, _unitOfWork, _progression, Camps(), new FakeTimeProvider(Now),
                 NullLogger<ResetHeroLevelCommandHandler>.Instance)
             .Handle(new ResetHeroLevelCommand(PlayerId, hero.Id), CancellationToken.None);
 
@@ -105,6 +113,21 @@ public class HeroExperienceTests
         await Assert.ThrowsAsync<NotEnoughResourcesException>(() => LevelUp(hero, levels: 1));
     }
 
+    /// <summary>Герой у таборі — відмова до списання: досвід лишається в пулі.</summary>
+    [Fact]
+    public async Task LevelUp_ShouldRefuseWithoutSpending_ForAHeroInTheCamp()
+    {
+        var hero = GivenHero();
+        hero.EnterCamp(0, campLevel: 20, Now);
+        GivenExperience(1_000_000);
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() => LevelUp(hero, levels: 1));
+
+        Assert.Equal(RefusalReasons.CampHeroLevelLocked.Key, refusal.Reason);
+        Assert.Equal(1_000_000, _pool!.Amount);
+        Assert.Equal(1, hero.Level);
+    }
+
     /// <summary>Стеля одна — MaxLevel; ратуша й тір її більше не задають.</summary>
     [Fact]
     public async Task LevelUp_ShouldRefuse_AboveTheMaxLevel()
@@ -115,19 +138,6 @@ public class HeroExperienceTests
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => LevelUp(hero, levels: 1));
 
         Assert.Equal(RefusalReasons.HeroLevelCeiling.Key, refusal.Reason);
-    }
-
-    /// <summary>Герой на ринку продається за силу на момент виставлення — качати його не можна.</summary>
-    [Fact]
-    public async Task LevelUp_ShouldRefuse_AHeroOnTheMarket()
-    {
-        var hero = GivenHero();
-        hero.PutOnMarket(Now);
-        GivenExperience(1_000_000);
-
-        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() => LevelUp(hero, levels: 1));
-
-        Assert.Equal(RefusalReasons.HeroOnMarket.Key, refusal.Reason);
     }
 
     // ---------- Скидання ----------
@@ -161,7 +171,7 @@ public class HeroExperienceTests
     public async Task Reset_ShouldRefuse_AHeroOnAMarch()
     {
         var hero = GivenHero(level: 10);
-        hero.Deploy(Now);
+        hero.Deploy(Guid.NewGuid(), Now);
 
         await Assert.ThrowsAsync<InvalidStateException>(() => Reset(hero));
 

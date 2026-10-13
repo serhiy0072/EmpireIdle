@@ -7,6 +7,7 @@ import { useCatalog } from "../lib/queries/catalog";
 import { speedUpLabel } from "../lib/speedUp";
 import { useGarrison, useSpeedUpTraining, useTrainUnits, useUnitLevelCeiling } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
+import SpeedUpItemsButton from "./SpeedUpItemsButton";
 
 interface Props {
   playerId: string;
@@ -29,7 +30,7 @@ function costLabel(unit: CatalogUnit, level: number, count: number, resourceName
     .join(", ");
 }
 
-/** Тренування юнітів на конкретній будівлі (казарми, стайня…) — список доступних типів і черга. */
+/** Тренування юнітів на конкретній будівлі (казарма, двір списоносців, стрільбище) — список доступних типів і черга. */
 export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel, underConstruction }: Props) {
   const now = useNow();
   const catalog = useCatalog();
@@ -41,6 +42,7 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
   const [levels, setLevels] = useState<Record<string, number>>({});
 
   const units = catalog.unitsFor(buildingType, buildingLevel);
+  const maxBatch = catalog.unitBatchSize(buildingLevel);
   const unitKeys = new Set(units.map((unit) => unit.key));
   const queue = (garrison.data?.trainingOrders ?? []).filter((order) => unitKeys.has(order.unitType));
 
@@ -56,10 +58,12 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
         <p className="text-xs text-amber-700">Поки триває будівництво, нові партії не приймаються.</p>
       )}
 
+      <p className="text-xs text-slate-500">Партія: до {maxBatch} юнітів (росте з рівнем будівлі).</p>
+
       <ErrorBanner error={train.error ?? speedUp.error} />
 
       {units.map((unit) => {
-        const count = counts[unit.key] ?? 1;
+        const count = Math.min(counts[unit.key] ?? 1, maxBatch);
         const level = Math.min(levels[unit.key] ?? 1, levelCeiling);
         const minutes = cumulativeUnitLevelCost(unit.baseTrainMinutes, 1, level + 1, unit.levelUpCostGrowth) * count;
 
@@ -89,6 +93,8 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
               <input
                 type="number"
                 min={1}
+                max={maxBatch}
+                title={`Не більше ${maxBatch} за партію`}
                 value={count}
                 onChange={(event) =>
                   setCounts((prev) => ({ ...prev, [unit.key]: Math.max(1, Number(event.target.value)) }))
@@ -117,16 +123,19 @@ export default function TrainUnitsPanel({ playerId, buildingType, buildingLevel,
               <span>
                 {catalog.unitName(order.unitType)} ×{order.count} (рів. {order.level}) — {formatRemaining(order.completesAt, now)}
               </span>
-              {catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems) > 0 && (
-                <button
-                  type="button"
-                  onClick={() => speedUp.mutate(order.id)}
-                  disabled={speedUp.isPending}
-                  className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                >
-                  {speedUpLabel(catalog.speedUpCost(order.completesAt, now, order.speedUpCostGems))}
-                </button>
-              )}
+              <span className="flex items-center gap-2">
+                <SpeedUpItemsButton timer="Training" targetId={order.id} completesAt={order.completesAt} />
+                {catalog.speedUpCost("Training", order.completesAt, now, order.speedUpCostGems) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => speedUp.mutate(order.id)}
+                    disabled={speedUp.isPending}
+                    className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    {speedUpLabel(catalog.speedUpCost("Training", order.completesAt, now, order.speedUpCostGems))}
+                  </button>
+                )}
+              </span>
             </div>
           ))}
         </div>

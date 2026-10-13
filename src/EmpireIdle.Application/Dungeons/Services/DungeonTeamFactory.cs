@@ -57,9 +57,6 @@ namespace EmpireIdle.Application.Dungeons.Services
                 var config = _catalog.FindHero(hero.HeroKey)
                     ?? throw new EntityNotFoundException("Hero config", hero.HeroKey);
 
-                if (hero.State == HeroState.OnMarket)
-                    throw new RequirementNotMetException(RefusalReasons.HeroOnMarket, $"Hero {hero.Id} is on the market.");
-
                 // Поранити героя могли між вибором складу й стартом — наприклад, у бою маршу
                 if (hero.State == HeroState.Wounded)
                     throw new RequirementNotMetException(RefusalReasons.DungeonHeroWounded,
@@ -106,7 +103,7 @@ namespace EmpireIdle.Application.Dungeons.Services
         {
             var result = new Dictionary<DungeonStat, double>();
 
-            foreach (var item in equipped.Where(i => !i.IsBroken))
+            foreach (var item in equipped)
             {
                 var config = _catalog.FindItem(item.ItemKey);
 

@@ -25,7 +25,7 @@ public class GetGarrisonQueryTests
         Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 }],
         Monetization = new MonetizationConfig
         {
-            SpeedUpFloorSeconds = 60,
+            SpeedUpFloorSeconds = Enum.GetValues<EmpireIdle.Domain.Enums.SpeedUpTimer>().ToDictionary(timer => timer, _ => 60),
             SpeedUpFactor = 2.0,
             SpeedUpExponent = 0.75
         }
@@ -57,7 +57,7 @@ public class GetGarrisonQueryTests
             trainDuration: TimeSpan.FromMinutes(120), utcNow: Now);
 
         var order = garrison.TrainingOrders.Single();
-        var expected = Calculator().GetCost(order.CompletesAt, Now);
+        var expected = Calculator().GetCost(EmpireIdle.Domain.Enums.SpeedUpTimer.Training, order.CompletesAt, Now);
 
         var response = await Handler().Handle(new GetGarrisonQuery(PlayerId), CancellationToken.None);
 

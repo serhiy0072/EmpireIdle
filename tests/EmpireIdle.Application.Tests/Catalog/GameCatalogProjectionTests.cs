@@ -50,6 +50,81 @@ public class GameCatalogProjectionTests
             (beast.Key, beast.DisplayName, beast.MonsterKey, beast.Effect));
     }
 
+    /// <summary>Банка досвіду каже, скільки дає: сторінка героя пропонує саме стільки банок, скільки бракує.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheExperienceOfAJar_Only()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        config.Items.Add(new ItemConfig { Key = "hero_xp_1k", Type = "heroxp", DisplayName = "j", Description = "j", HeroExperience = 1000 });
+
+        var items = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).Items;
+
+        Assert.Equal(1000, items.Single(i => i.Key == "hero_xp_1k").HeroExperience);
+        Assert.Null(items.Single(i => i.Key == TestKeys.Artifact).HeroExperience);
+    }
+
+    /// <summary>Крива рівня артефакта — та сама, за якою сервер рахує рівень: від нуля до стелі.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheArtifactLevelCurve()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        var progression = new ArtifactProgression(config.Equipment);
+
+        var curve = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).ArtifactLevelExperience;
+
+        Assert.Equal(config.Equipment.MaxLevel + 1, curve.Count);
+        Assert.Equal(0, curve[0]);
+        Assert.Equal(progression.ExperienceToReach(config.Equipment.MaxLevel), curve[^1]);
+    }
+
+    /// <summary>Кнопка заточки показує ціну й шанс кожної спроби — від спроби на +1 до стелі.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheMasteryAttempts()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        var rules = new MasteryRules(config.Equipment);
+
+        var attempts = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).MasteryAttempts;
+
+        Assert.Equal(config.Equipment.MaxMastery, attempts.Count);
+        Assert.Equal((rules.Cost(0), rules.SuccessChance(0)), (attempts[0].Gold, attempts[0].Chance));
+        Assert.Equal((rules.Cost(config.Equipment.MaxMastery - 1), rules.SuccessChance(config.Equipment.MaxMastery - 1)),
+            (attempts[^1].Gold, attempts[^1].Chance));
+    }
+
+    /// <summary>Кузня показує ціну ремонту й попереджає про поломку тими самими числами, що й сервер.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheArtifactRepair()
+    {
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+
+        var repair = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).ArtifactRepair;
+
+        Assert.Equal((config.Equipment.RepairGemsPerMastery, config.Equipment.RepairKitItemKey),
+            (repair.GemsPerMastery, repair.KitItemKey));
+        Assert.Equal(config.Equipment.MasteryBreakChances, repair.BreakChances);
+    }
+
+    /// <summary>
+    /// Скрині з шансами в порядку таблиці й гарантією (GDD §9.12): розкриття шансів обов'язкове,
+    /// і клієнт показує саме те, з чим кидає сервер.
+    /// </summary>
+    [Fact]
+    public void Response_ShouldDiscloseTheLootboxOdds()
+    {
+        var catalog = new GameConfigBuilder().WithLootboxes().BuildCatalog();
+
+        var big = new GameCatalogProjection(catalog).ResponseFor(null).Lootboxes.Single(b => b.Key == TestKeys.BigChest);
+
+        Assert.Equal(3, big.PityWithin);
+        Assert.Equal(
+        [
+            new CatalogLootboxEntry("Lootbox", TestKeys.SmallChest, 2, 60, false),
+            new CatalogLootboxEntry("Gems", null, 100, 30, false),
+            new CatalogLootboxEntry("Artifact", "Unique", 1, 10, true)
+        ], big.Entries);
+    }
+
     /// <summary>
     /// Радіус ближнього телепорта доходить до клієнта — мапа каже «задалеко» ще до відмови сервера.
     /// В інших типів радіуса немає: null, а не нуль, щоб клієнт не прочитав «нуль клітин».
@@ -101,13 +176,15 @@ public class GameCatalogProjectionTests
     public void Response_ShouldCarryTheSpeedUpPricing()
     {
         var config = new GameConfigBuilder().WithHeroes().Build();
-        config.Monetization.SpeedUpFloorSeconds = 45;
+        config.Monetization.SpeedUpFloorSeconds = new Dictionary<SpeedUpTimer, int> { [SpeedUpTimer.March] = 45 };
         config.Monetization.SpeedUpFactor = 2.5;
         config.Monetization.SpeedUpExponent = 0.6;
 
         var response = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null);
 
-        Assert.Equal(new CatalogSpeedUp(45, 2.5, 0.6), response.SpeedUp);
+        Assert.Equal(new Dictionary<string, int> { ["March"] = 45 }, response.SpeedUp.FloorSeconds);
+        Assert.Equal(2.5, response.SpeedUp.Factor);
+        Assert.Equal(0.6, response.SpeedUp.Exponent);
     }
 
     /// <summary>Та сама проєкція — та сама версія: інакше ETag мінявся б щозапиту.</summary>

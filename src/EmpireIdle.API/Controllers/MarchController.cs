@@ -35,7 +35,7 @@ namespace EmpireIdle.API.Controllers
             var response = marches
                 .Select(m => new MarchResponse(
                     m.Id, m.TargetType, m.TargetId, m.TargetName, m.TargetLevel, m.TargetX, m.TargetY, m.Intent, m.State,
-                    m.HeroId, m.DepartedAt, m.LegStartedAt, m.ArrivesAt,
+                    m.HeroIds, m.DepartedAt, m.LegStartedAt, m.ArrivesAt,
                     m.Units.Select(u => new MarchUnitResponse(u.UnitType, u.Level, u.Count)).ToList(),
                     m.SpeedUpCostGems))
                 .ToList();
@@ -100,7 +100,7 @@ namespace EmpireIdle.API.Controllers
             var units = request.Units.ToDictionary(kv => UnitStackKey.Parse(kv.Key), kv => kv.Value);
 
             var marchId = await _mediator.Send(
-                new SendMarchCommand(playerId, request.TargetType, request.TargetId, units, request.HeroId, request.Intent),
+                new SendMarchCommand(playerId, request.TargetType, request.TargetId, units, request.HeroIds, request.Intent),
                 cancellationToken);
 
             return Created((string?)null, marchId);
@@ -135,8 +135,8 @@ namespace EmpireIdle.API.Controllers
         }
 
         /// <summary>
-        /// Оцінка бою до відправки. Повертає смугу шансів, не числа:
-        /// точне співвідношення сил гравцю не показується.
+        /// Оцінка бою до відправки: смуга шансів, вердикт і шанс перемоги. Сили сторін — лише проти
+        /// монстра; у чужого села їх показує розвідка, а не прев'ю.
         /// </summary>
         [HttpPost("{playerId:guid}/preview")]
         [ProducesResponseType(typeof(BattlePreviewResult), StatusCodes.Status200OK)]
@@ -148,7 +148,7 @@ namespace EmpireIdle.API.Controllers
             var units = request.Units.ToDictionary(kv => UnitStackKey.Parse(kv.Key), kv => kv.Value);
 
             var preview = await _mediator.Send(
-                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.HeroId, units),
+                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.HeroIds, units),
                 cancellationToken);
 
             return Ok(preview);

@@ -11,14 +11,14 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Сервер, на який потрапляє новий гравець при реєстрації.</summary>
         public int DefaultServerId { get; set; } = 1;
 
-        /// <summary>Максимальний розмір партії тренування.</summary>
-        public int MaxTrainingBatchSize { get; set; } = 5;
-
         /// <summary>
-        /// Максимальний розмір партії прокачки. Більший за тренувальний навмисно:
-        /// прокачка виграє пропускною здатністю, не знижкою (§5.2 GDD).
+        /// Партія тренування чи прокачки на будівлі першого рівня (рішення 12.10.2026): ліміт росте
+        /// з рівнем будівлі юніта лінійно до UnitBatchMax на MaxBuildingLevel.
         /// </summary>
-        public int MaxLevelUpBatchSize { get; set; } = 10;
+        public int UnitBatchMin { get; set; } = 30;
+
+        /// <summary>Партія тренування чи прокачки на будівлі максимального рівня.</summary>
+        public int UnitBatchMax { get; set; } = 150;
 
         /// <summary>Максимальний рівень юніта.</summary>
         public int MaxUnitLevel { get; set; } = 10;
@@ -111,5 +111,11 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Екіпірування героїв.</summary>
         public EquipmentConfig Equipment { get; set; } = new();
+
+        /// <summary>Скрині: таблиці нагород предметів із Type "lootbox" (GDD §9.12).</summary>
+        public List<LootboxConfig> Lootboxes { get; set; } = new();
+
+        /// <summary>Ключові скрині: безкоштовні відкриття на добу, понад них — ключ (рішення 12.10.2026).</summary>
+        public List<KeyChestConfig> KeyChests { get; set; } = new();
     }
 }

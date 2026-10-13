@@ -50,6 +50,40 @@ export function useUpgradeHeroSkill(playerId: string) {
   });
 }
 
+/** Навчальний табір (GDD §6.1): герой отримує рівень найслабшого з п'ятірки найсильніших поза табором. */
+export function usePlaceInCamp(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ heroId, slot }: { heroId: string; slot: number }) =>
+      api<void>(`/api/heroes/${playerId}/camp/slots/${slot}/heroes/${heroId}`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "power"]),
+  });
+}
+
+export function useRemoveFromCamp(playerId: string) {
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/camp/leave`, ["heroes", "power"]);
+}
+
+export function useSkipCampCooldown(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (slot: number) =>
+      api<void>(`/api/heroes/${playerId}/camp/slots/${slot}/skip-cooldown`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "wallet"]),
+  });
+}
+
+export function useBuyCampSlot(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api<void>(`/api/heroes/${playerId}/camp/slots`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "wallet"]),
+  });
+}
+
 /** Скидання на перший рівень: весь досвід повертається в пул. */
 export function useResetHeroLevel(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/reset-level`, ["heroes", "power"]);
@@ -81,6 +115,40 @@ export function useSummonHero(playerId: string) {
 /** Заповнити наступну частинку зірки за осколки героя (GDD §6.1). */
 export function useAdvanceHeroStar(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/star`, ["heroes", "power"]);
+}
+
+/** Зброя героя (GDD §6.4): наступний рівень за шматки, що лежать на герої. */
+export function useUpgradeWeapon(playerId: string) {
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/weapon`, ["heroes", "power"]);
+}
+
+/** Скрині зброї з рюкзака — у шматки зброї обраного героя з трійки скрині. */
+export function useOpenWeaponChests(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { heroId: string; itemKey: string; count: number }) =>
+      api<void>(`/api/heroes/${playerId}/${input.heroId}/weapon/chests`, {
+        method: "POST",
+        body: { itemKey: input.itemKey, count: input.count },
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "inventory"]),
+  });
+}
+
+/** Шматки зброї звичайного чи рідкісного героя за gems; у унікальних — лише зі скринь зброї. */
+export function useBuyWeaponShards(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { heroId: string; count: number }) =>
+      api<number>(`/api/shop/${playerId}/heroes/${input.heroId}/weapon-shards?count=${input.count}`, {
+        method: "POST",
+        idempotent: true,
+      }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["heroes", "wallet"]),
+  });
 }
 
 /** Універсальні осколки — в осколки відкритого героя 1:1. */

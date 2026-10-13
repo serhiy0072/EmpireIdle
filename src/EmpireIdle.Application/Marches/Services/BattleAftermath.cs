@@ -77,7 +77,8 @@ namespace EmpireIdle.Application.Marches.Services
             int seed,
             DateTime utcNow,
             CancellationToken cancellationToken,
-            string? tamedBeastKey = null)
+            string? tamedBeastKey = null,
+            long heroExperience = 0)
         {
             var result = outcome.Battle;
             var split = outcome.AttackerCasualties;
@@ -92,6 +93,9 @@ namespace EmpireIdle.Application.Marches.Services
 
             if (tamedBeastKey is not null)
                 report.RecordTaming(tamedBeastKey);
+
+            if (heroExperience > 0)
+                report.RecordHeroExperience(heroExperience);
 
             var armyByType = ByType(army);
             var woundedByType = ByType(split.Wounded);
@@ -115,14 +119,11 @@ namespace EmpireIdle.Application.Marches.Services
                 garrison.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-            // Провалена атака кладе героя в госпіталь. Ранить лише його:
-            // марш веде рівно один герой, а вдома ростер бою не бачив
-            if (!result.AttackerWon && march.HeroId is Guid heroId)
-            {
-                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
-
-                hero?.Wound(utcNow);
-            }
+            // Героя маршу ранить його частка шкоди (варіант B, 08.10.2026) — і після перемоги теж.
+            // Ранить лише їх: вдома ростер бою не бачив
+            foreach (var hero in await _heroRepository.GetByMarchAsync(march.Id, cancellationToken))
+                if (result.AttackerWoundedHeroes?.Contains(hero.Id) == true)
+                    hero.Wound(utcNow);
 
             march.RecordBattle(village.PlayerId, report.Id, result.AttackerWon, targetName, utcNow);
 
@@ -172,14 +173,15 @@ namespace EmpireIdle.Application.Marches.Services
 
             defenderGarrison.AdmitWounded(split.Wounded, utcNow);
 
-            // Програна оборона ранить лідера гарнізону. Решта героїв стоїть
+            // Лідера гарнізону ранить його частка шкоди (варіант B). Решта героїв стоїть
             // у резерві й у бою не була: інакше одна поразка клала б увесь зал
-            if (result.AttackerWon)
+            if (result.DefenderWoundedHeroes is { Count: > 0 } wounded)
             {
                 var leader = await _heroRepository.GetLeaderAsync(
                     defenderGarrison.Id, defenderVillage.PlayerId, cancellationToken);
 
-                leader?.Wound(utcNow);
+                if (leader is not null && wounded.Contains(leader.Id))
+                    leader.Wound(utcNow);
             }
 
             var hostStoodByType = ByType(hostStood);
@@ -355,12 +357,10 @@ namespace EmpireIdle.Application.Marches.Services
                 homeGarrison?.AddRecoverable(split.Recoverable, report.Id,
                     utcNow.AddHours(_combatConfig.RecoveryWindowHours), utcNow);
 
-            if (result.AttackerWon && camp.HeroId is Guid heroId)
-            {
-                var hero = await _heroRepository.GetByIdAsync(heroId, cancellationToken);
-
-                hero?.Wound(utcNow);
-            }
+            // Героїв табору ранить їхня частка шкоди — як і героїв маршу
+            foreach (var hero in await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken))
+                if (result.DefenderWoundedHeroes?.Contains(hero.Id) == true)
+                    hero.Wound(utcNow);
 
             report.AnnounceDefence(utcNow);
         }

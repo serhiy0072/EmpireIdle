@@ -23,10 +23,17 @@ public class GetMarchesQueryTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
     private readonly IMonsterRepository _monsters = Substitute.For<IMonsterRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
 
     private static GameConfig Config() => new()
     {
-        Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 }],
+        Buildings =
+        [
+            new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 },
+            new BuildingConfig { Key = "heroeshall" },
+            new BuildingConfig { Key = "hospital" }
+        ],
+        Resources = [new ResourceConfig { Key = "food" }],
         Monsters =
         [
             new MonsterConfig
@@ -36,9 +43,25 @@ public class GetMarchesQueryTests
                 Rewards = [new ResourceCost { Resource = "food", Amount = 500 }]
             }
         ],
+        HeroSettings = new HeroesConfig
+        {
+            BuildingKey = "heroeshall",
+            HealBuildingKey = "hospital",
+            HealCostPerLevel = [new ResourceCost { Resource = "food", Amount = 40 }],
+            Classes = ["warrior", "archer"],
+            TierGrowth = 1.1,
+            EvolutionItemKeys = [],
+            StarPartCosts = [[1, 1, 2, 2, 2, 2], [5, 5, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20], [40, 40, 40, 40, 40, 40]]
+        },
+        Items = [.. TestKit.UniversalShards.All()],
+        Heroes =
+        [
+            new HeroConfig { Key = "weak", Class = "warrior", BaseStats = new Dictionary<string, double> { ["Attack"] = 10 } },
+            new HeroConfig { Key = "strong", Class = "archer", BaseStats = new Dictionary<string, double> { ["Attack"] = 100 } }
+        ],
         Monetization = new MonetizationConfig
         {
-            SpeedUpFloorSeconds = 60,
+            SpeedUpFloorSeconds = Enum.GetValues<EmpireIdle.Domain.Enums.SpeedUpTimer>().ToDictionary(timer => timer, _ => 60),
             SpeedUpFactor = 2.0,
             SpeedUpExponent = 0.75
         }
@@ -46,8 +69,14 @@ public class GetMarchesQueryTests
 
     private static SpeedUpCalculator Calculator() => new(Config().Monetization);
 
-    private GetMarchesQueryHandler Handler() => new(
-        _villages, _garrisons, _marches, _monsters, new GameCatalog(Config()), new FakeTimeProvider(Now), Calculator());
+    private GetMarchesQueryHandler Handler()
+    {
+        var config = Config();
+        var catalog = new GameCatalog(config);
+
+        return new(_villages, _garrisons, _marches, _monsters, _heroes,
+            new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog, new FakeTimeProvider(Now), Calculator());
+    }
 
     private Garrison GivenGarrison()
     {
@@ -66,7 +95,7 @@ public class GetMarchesQueryTests
     }
 
     private static March MarchTo(Garrison garrison, MarchTargetType targetType, Guid targetId, DateTime arrivesAt) => new(
-        Guid.NewGuid(), 1, garrison.Id, Guid.NewGuid(), 50, 50, 55, 55, targetType, targetId,
+        Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55, targetType, targetId,
         new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 },
         arrivesAt, Now.AddMinutes(-10));
 
@@ -92,6 +121,30 @@ public class GetMarchesQueryTests
         Assert.Equal(3, view.TargetLevel);
         Assert.Equal(MarchState.Outbound, view.State);
         Assert.Equal(10, view.Units.Single().Count);
+    }
+
+    /// <summary>
+    /// Герої маршу — від найсильнішого: перший — обличчя маршу у звітах і на карті.
+    /// Слабший прийшов раніше, тож порядок дає саме сила, а не стаж.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldListTheMarchHeroes_StrongestFirst()
+    {
+        var garrison = GivenGarrison();
+        var march = MarchTo(garrison, MarchTargetType.Monster, Guid.NewGuid(), Now.AddMinutes(30));
+
+        var weak = new Hero(Guid.NewGuid(), PlayerId, 1, "weak", garrison.Id, asLeader: false, Now.AddHours(-2));
+        var strong = new Hero(Guid.NewGuid(), PlayerId, 1, "strong", garrison.Id, asLeader: false, Now.AddHours(-1));
+        weak.Deploy(march.Id, Now.AddMinutes(-10));
+        strong.Deploy(march.Id, Now.AddMinutes(-10));
+
+        _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns([march]);
+        _heroes.GetByMarchesReadOnlyAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new[] { weak, strong }.ToLookup(h => h.MarchId!.Value));
+
+        var views = await Handler().Handle(new GetMarchesQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal([strong.Id, weak.Id], Assert.Single(views).HeroIds);
     }
 
     /// <summary>Монстра вже вбили, а армія ще вертається: марш лишається в списку, назва — null.</summary>
@@ -128,7 +181,7 @@ public class GetMarchesQueryTests
         Assert.Equal("Neighbour", views[0].TargetName);
         Assert.Null(views[0].TargetLevel);
         Assert.Equal(0, views[0].SpeedUpCostGems);
-        Assert.Equal(Calculator().GetCost(late.ArrivesAt, Now), views[1].SpeedUpCostGems);
+        Assert.Equal(Calculator().GetCost(EmpireIdle.Domain.Enums.SpeedUpTimer.March, late.ArrivesAt, Now), views[1].SpeedUpCostGems);
         Assert.True(views[1].SpeedUpCostGems > 0, "120 хвилин мають коштувати gems, інакше тест нічого не перевіряє.");
     }
 

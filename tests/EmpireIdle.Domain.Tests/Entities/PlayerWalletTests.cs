@@ -35,8 +35,6 @@ public class PlayerWalletTests
     [Theory]
     [InlineData(TransactionType.GemPurchase, 0)]
     [InlineData(TransactionType.GemSpend, 1)]
-    [InlineData(TransactionType.SealEarned, 2)]
-    [InlineData(TransactionType.SealSpend, 3)]
     [InlineData(TransactionType.GemReward, 4)]
     public void TransactionType_ShouldKeepItsStoredValue(TransactionType type, int stored)
         => Assert.Equal(stored, (int)type);

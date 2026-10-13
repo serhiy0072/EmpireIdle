@@ -11,7 +11,7 @@ using NSubstitute;
 namespace EmpireIdle.Application.Tests.Inventory;
 
 /// <summary>
-/// Інвентар для показу збирає запит, а не контролер: описи з каталогу, стати із заточкою
+/// Інвентар для показу збирає запит, а не контролер: описи з каталогу, стати з рівнем і майстерністю
 /// за кривою з конфіга й лише діючі бусти.
 /// </summary>
 public class GetInventoryQueryTests
@@ -31,14 +31,22 @@ public class GetInventoryQueryTests
 
     private GetInventoryQueryHandler Handler()
     {
+        var config = Config();
+
+        return new GetInventoryQueryHandler(_inventory, _effects, new GameCatalog(config), new FakeTimeProvider(Now),
+            new ArtifactProgression(config.Equipment));
+    }
+
+    private static GameConfig Config()
+    {
         var config = new GameConfigBuilder().WithBuildings().Build();
-        config.Equipment.EnhancementBonusPerLevel = 0.1;
+        config.Equipment = GameConfigBuilder.DefaultEquipment(TestKeys.Forge);
         config.Items.Add(new ItemConfig
         {
             Key = "wood_crate", DisplayName = "Ящик дерева", Description = "+500 дерева", Rarity = Rarity.Rare, Type = "resource"
         });
 
-        return new GetInventoryQueryHandler(_inventory, _effects, new GameCatalog(config), new FakeTimeProvider(Now));
+        return config;
     }
 
     [Fact]
@@ -60,24 +68,49 @@ public class GetInventoryQueryTests
         Assert.Equal(("retired_item", Rarity.Common, "unknown"), (retired.DisplayName, retired.Rarity, retired.Type));
     }
 
-    /// <summary>Стати — ті самі, з якими предмет піде в бій: з заточкою, а зламаний — нулі.</summary>
+    /// <summary>
+    /// Стати — база з рівнем і сталим бонусом плюс відсотки випадкових; без множника класу,
+    /// бо предмет ще не на герої. Поруч — скільки бракує до рівня й скільки предмет дасть,
+    /// якщо його згодувати.
+    /// </summary>
     [Fact]
-    public async Task Handle_ShouldReportEnhancedStats_AndZeroForABrokenItem()
+    public async Task Handle_ShouldReportTheItemsStats_AndFeedingNumbers()
     {
-        var sword = Entities.Equipment("iron_sword", EquipmentSlot.Weapon, PlayerId, stats: ("Attack", 100.0));
-        sword.Enhance(Now);
-        sword.Enhance(Now);
+        var amulet = Entities.Equipment("amulet", EquipmentSlot.Artifact, PlayerId, bonuses: [(0, "Attack", 10), (2, "CritChance", 2)]);
+        // Кроки до 1-го й 2-го рівня — по 100: 200 досвіду дають рівень 2 рівно
+        amulet.GainExperience(200, 2, Now);
 
-        var broken = Entities.Equipment("old_sword", EquipmentSlot.Weapon, PlayerId, stats: ("Attack", 100.0));
-        broken.Break(Now);
-
-        _inventory.GetEquipmentAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([sword, broken]);
+        _inventory.GetEquipmentAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([amulet]);
 
         var view = await Handler().Handle(new GetInventoryQuery(PlayerId), CancellationToken.None);
 
-        // Дві заточки по 10% із конфіга
-        Assert.Equal(120.0, view.Equipment.Single(e => e.Id == sword.Id).Stats["Attack"], precision: 6);
-        Assert.Equal(0.0, view.Equipment.Single(e => e.Id == broken.Id).Stats["Attack"]);
+        var shown = Assert.Single(view.Equipment);
+        // (10 + 2 × 2) × 1.1; захист без бонусу; юнітів — 40 + 2 × 8
+        Assert.Equal(15.4, shown.Stats["Attack"], precision: 6);
+        Assert.Equal(14.0, shown.Stats["Defense"], precision: 6);
+        Assert.Equal(56.0, shown.Stats["UnitAttack"], precision: 6);
+        Assert.Equal(2.0, shown.Stats["CritChance"], precision: 6);
+        Assert.Equal((2, 200L, 2), (shown.Level, shown.Experience, shown.Mastery));
+        // До 3-го рівня — крок 110
+        Assert.Equal(110L, shown.ExperienceToNext);
+        // Звичайний: 100 за рідкість плюс увесь вкладений
+        Assert.Equal(300L, shown.FeedValue);
+    }
+
+    /// <summary>Сила предмета — та сама, що на ринку: без множника класу, у зламаного — урізана.</summary>
+    [Fact]
+    public async Task Handle_ShouldReportTheItemsPower_CutForABrokenOne()
+    {
+        var amulet = Entities.Equipment("amulet", EquipmentSlot.Artifact, PlayerId, bonuses: [(0, "Attack", 10), (2, "CritChance", 2)]);
+        var expected = new ArtifactStats(new GameCatalog(Config())).Power(amulet);
+        amulet.Break(Now);
+
+        _inventory.GetEquipmentAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([amulet]);
+
+        var shown = Assert.Single((await Handler().Handle(new GetInventoryQuery(PlayerId), CancellationToken.None)).Equipment);
+
+        Assert.True(expected > 0);
+        Assert.Equal(expected * 0.5, shown.Power, precision: 1);
     }
 
     [Fact]

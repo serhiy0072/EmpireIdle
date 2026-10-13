@@ -219,7 +219,7 @@ public class IncomingAttackProjectionTests : IAsyncLifetime
     {
         await using var context = CreateContext();
 
-        var march = new March(Guid.NewGuid(), ServerId, from.Garrison.Id, heroId: null,
+        var march = new March(Guid.NewGuid(), ServerId, from.Garrison.Id,
             from.Village.X, from.Village.Y, targetX, targetY, targetType, targetId, Army,
             now.AddMinutes(30), now, intent);
 

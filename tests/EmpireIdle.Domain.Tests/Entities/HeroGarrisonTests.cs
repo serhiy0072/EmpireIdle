@@ -18,7 +18,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var hero = Stationed(asLeader: true);
 
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
             Assert.Null(hero.StationedGarrisonId);
             Assert.False(hero.IsLeader);
@@ -33,7 +33,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void ReturnHome_ShouldNotRestoreLeadership_WhenTheSlotIsTaken()
         {
             var hero = Stationed(asLeader: true);
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
             hero.Arrive(Garrison, leaderSlotFree: false, Now);
 
@@ -46,7 +46,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void ReturnHome_ShouldRestoreLeadership_WhenTheSlotIsFree()
         {
             var hero = Stationed(asLeader: true);
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
             hero.Arrive(Garrison, leaderSlotFree: true, Now);
 
@@ -57,7 +57,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         public void AppointLeader_ShouldThrow_WhenTheHeroIsOnTheMove()
         {
             var hero = Stationed(asLeader: false);
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
             Assert.Throws<InvalidStateException>(() => hero.AppointLeader(Now));
         }

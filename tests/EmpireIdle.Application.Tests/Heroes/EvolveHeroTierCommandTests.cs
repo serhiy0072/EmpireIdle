@@ -17,7 +17,7 @@ public class EvolveHeroTierCommandTests
     private static readonly Guid PlayerId = Guid.NewGuid();
     private const int ServerId = 1;
 
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
@@ -52,7 +52,7 @@ public class EvolveHeroTierCommandTests
             hero.EvolveTier(3, Now);
 
         if (state == HeroState.Deployed)
-            hero.Deploy(Now);
+            hero.Deploy(Guid.NewGuid(), Now);
 
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 

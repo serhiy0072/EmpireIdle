@@ -20,7 +20,7 @@ namespace EmpireIdle.Application.Marches.Queries
         Guid PlayerId,
         MarchTargetType TargetType,
         Guid TargetId,
-        Guid HeroId,
+        IReadOnlyList<Guid> HeroIds,
         Dictionary<UnitStackKey, int> Units) : IRequest<BattlePreviewResult>, IPlayerScopedRequest;
 
     public sealed class GetBattlePreviewQueryHandler : IRequestHandler<GetBattlePreviewQuery, BattlePreviewResult>
@@ -38,6 +38,7 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly HeroCombatModifiers _heroModifiers;
         private readonly GameCatalog _catalog;
         private readonly HeroProgression _progression;
+        private readonly HeroCombatants _combatants;
 
         public GetBattlePreviewQueryHandler(
             IVillageRepository villageRepository,
@@ -52,8 +53,10 @@ namespace EmpireIdle.Application.Marches.Queries
             MarchTargetResolver targets,
             HeroCombatModifiers heroModifiers,
             GameCatalog catalog,
-            HeroProgression progression)
+            HeroProgression progression,
+            HeroCombatants combatants)
         {
+            _combatants = combatants;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _heroRepository = heroRepository;
@@ -102,31 +105,41 @@ namespace EmpireIdle.Application.Marches.Queries
             // Чужий або неіснуючий герой рахується як відсутній: прев'ю нічого
             // не міняє, відмовить SendMarchCommand. Але й підставити чужого героя
             // не можна — інакше прев'ю розкривало б його пасивки й швидкість
-            var hero = await _heroRepository.GetByIdAsync(request.HeroId, cancellationToken);
-            var attackerHero = hero?.PlayerId == request.PlayerId ? hero : null;
+            var attackerHeroes = (await _heroRepository.GetByIdsReadOnlyAsync(request.HeroIds.Distinct().ToList(), cancellationToken))
+                .Where(h => h.PlayerId == request.PlayerId)
+                .ToList();
+            var leaders = attackerHeroes.Select(h => (Hero: h, Config: _catalog.FindHero(h.HeroKey))).ToList();
 
             // Та сама формула, що й у бою — інакше прев'ю розійдеться з результатом.
-            // Герой теж той самий, якого гравець збирається відправити: без його
-            // пасивок прев'ю занижувало б силу рівно на їхню величину
-            var attackerPower = _combat.CalculatePower(attackerArmy, terrain, isAttacker: true,
-                _heroModifiers.For(attackerHero)) * attackerBonus;
+            // Герої теж ті самі, яких гравець збирається відправити: без їхніх
+            // вмінь прев'ю занижувало б силу рівно на їхню величину
+            // Герой ще й б'ється сам (варіант B): його атака додається до сили військ до бонусів
+            var heroPower = (await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken)).Sum(h => h.Power);
+
+            var attackerPower = (_combat.CalculatePower(attackerArmy, terrain, isAttacker: true,
+                _heroModifiers.ForMarch(attackerHeroes)) + heroPower) * attackerBonus;
 
             var defenderPower = _combat.CalculateDefencePower(target.Defence, terrain, target.DefenceBuffs)
                 * target.DefenceMultiplier;
 
-            // Час у дорозі теж із героєм: повільний герой гальмує колону,
+            // Час у дорозі теж із героями: повільний герой гальмує колону,
             // і прев'ю мусить показувати той самий час, що потім і буде
             var travelTime = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, attackerArmy,
-                attackerHero is null
-                    ? null
-                    : _progression.MarchSpeed(_catalog.FindHero(attackerHero.HeroKey)))
+                _progression.MarchSpeed(leaders.Select(l => l.Config)))
                 / await _effectResolver.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
-                / (attackerHero is null ? 1 : _progression.MarchSpeedMultiplier(attackerHero, _catalog.FindHero(attackerHero.HeroKey)));
+                / _progression.MarchSpeedMultiplier(leaders);
+
+            // Сили — лише проти монстра (рішення 12.10.2026): у чужого села це розвідка, а не прев'ю
+            var monster = request.TargetType == MarchTargetType.Monster;
 
             return new BattlePreviewResult(
                 _combat.EstimateOdds(attackerPower, defenderPower),
-                target.Name, target.X, target.Y, terrain, travelTime);
+                target.Name, target.X, target.Y, terrain, travelTime,
+                _combat.Verdict(attackerPower, defenderPower),
+                Math.Round(_combat.WinChance(attackerPower, defenderPower), 3),
+                monster ? Math.Round(attackerPower) : null,
+                monster ? Math.Round(defenderPower) : null);
         }
     }
 }

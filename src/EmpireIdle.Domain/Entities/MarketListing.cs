@@ -22,16 +22,13 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Екземпляр спорядження; лише для Kind = Equipment.</summary>
         public Guid? EquipmentId { get; private set; }
 
-        /// <summary>Герой; лише для Kind = Hero.</summary>
-        public Guid? HeroId { get; private set; }
-
         /// <summary>
-        /// Ключ товару з конфіга: предмета, спорядження чи героя. Зберігається
+        /// Ключ товару з конфіга: предмета чи спорядження. Зберігається
         /// для будь-якого виду, щоб вітрину можна було фільтрувати без джойнів.
         /// </summary>
         public string ItemKey { get; private set; } = null!;
 
-        /// <summary>Скільки штук у пачці; для спорядження й героя — 1.</summary>
+        /// <summary>Скільки штук у пачці; для спорядження — 1.</summary>
         public int Quantity { get; private set; }
 
         /// <summary>
@@ -65,7 +62,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
 
-        public MarketListing(Guid id, int serverId, Guid sellerId, MarketListingKind kind, Guid? equipmentId, Guid? heroId,
+        public MarketListing(Guid id, int serverId, Guid sellerId, MarketListingKind kind, Guid? equipmentId,
             string itemKey, int quantity, double units, string pricingKey, int priceGold, int taxGold,
             DateTime utcNow, TimeSpan duration) : base(id)
         {
@@ -83,7 +80,6 @@ namespace EmpireIdle.Domain.Entities
             SellerId = sellerId;
             Kind = kind;
             EquipmentId = equipmentId;
-            HeroId = heroId;
             ItemKey = itemKey;
             Quantity = quantity;
             Units = units;

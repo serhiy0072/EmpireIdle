@@ -51,6 +51,7 @@ builder.Configuration
     .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/beasts.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/lootboxes.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
@@ -65,6 +66,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Quests.Count > 0, "GameConfig.Quests is empty — check Config/quests.json.")
     .Validate(c => c.Quests.All(q => q.Objectives.Count > 0), "GameConfig has a quest without objectives.")
     .Validate(c => c.Items.Where(i => i.Type == "heroxp").All(i => i.HeroExperience > 0), "GameConfig has a hero experience jar without HeroExperience.")
+    .Validate(c => c.Items.Where(i => i.Type == "wrench").All(i => i.ArtifactExperience > 0), "GameConfig has a wrench without ArtifactExperience.")
     .Validate(c => c.Quests.Where(q => q.Scope == EmpireIdle.Domain.Enums.QuestScope.Server).All(q => q.Rewards.Count > 0),
         "GameConfig has a server quest without Rewards — every player of the world gets them by mail.")
     .Validate(c => c.Quests.SelectMany(q => q.Rewards.Concat(q.RewardTiers.SelectMany(t => t.Rewards))).All(r => r.Amount > 0), "GameConfig has a quest reward with non-positive Amount.")
@@ -80,7 +82,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.MaxBuildingLevel > 0 && c.BuildingLevelsPerTier > 0, "GameConfig.MaxBuildingLevel and BuildingLevelsPerTier must be positive.")
     .Validate(c => c.Combat.Scouting.Speed > 0, "GameConfig.Combat.Scouting.Speed must be positive.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
-    .Validate(c => c.Monetization.SpeedUpFloorSeconds >= 0, "GameConfig.Monetization.SpeedUpFloorSeconds cannot be negative.")
+    .Validate(c => c.Monetization.SpeedUpFloorSeconds.Values.All(seconds => seconds >= 0), "GameConfig.Monetization.SpeedUpFloorSeconds cannot be negative.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count == Enum.GetValues<EmpireIdle.Domain.Enums.BattleOdds>().Length - 1,
@@ -105,7 +107,24 @@ builder.Services.AddOptions<GameConfig>()
         "GameConfig.Clan.Territory.MonsterLootCashbackShare must be a share within [0; 1].")
     .Validate(c => c.Heroes.Count > 0, "GameConfig.Heroes is empty — check Config/heroes.json.")
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
-    .Validate(c => c.Equipment.ArtifactFocusWeight >= 1.0, "GameConfig.Equipment.ArtifactFocusWeight must be at least 1 — below it the focus stats would be rarer than the rest.")
+    .Validate(c => c.Equipment.LevelExperienceBase > 0 && c.Equipment.LevelExperienceCoefficient >= 0 && c.Equipment.LevelExperienceExponent > 0,
+        "GameConfig.Equipment level experience curve must be positive — otherwise a level costs nothing.")
+    .Validate(c => c.Equipment.ArtifactBase.Values.All(b => b.Hero >= 0 && b.HeroPerLevel >= 0 && b.Unit >= 0 && b.UnitPerLevel >= 0),
+        "GameConfig.Equipment.ArtifactBase cannot be negative — a level would weaken the artifact.")
+    .Validate(c => c.Equipment.ArtifactClassMultipliers.Values.All(m => m.Attack > 0 && m.Defense > 0),
+        "GameConfig.Equipment.ArtifactClassMultipliers must be positive.")
+    .Validate(c => c.Equipment.HeroStatPower >= 0 && c.Equipment.UnitStatPower >= 0 && c.Equipment.ArtifactBonuses.All(b => b.PowerPerPercent >= 0),
+        "GameConfig.Equipment power weights cannot be negative.")
+    .Validate(c => c.Equipment.BonusStepChances.Count > 0 && c.Equipment.BonusStepChances.All(p => p is >= 0 and <= 1)
+                   && Math.Abs(c.Equipment.BonusStepChances.Sum() - 1) < 1e-6,
+        "GameConfig.Equipment.BonusStepChances must be shares within [0; 1] that sum to 1.")
+    .Validate(c => c.Equipment.MasteryBaseGold > 0 && c.Equipment.MasteryCostGrowth >= 1,
+        "GameConfig.Equipment mastery cost must be positive and must not fall with mastery.")
+    .Validate(c => c.Equipment.MasterySuccessChances.All(p => p is > 0 and <= 1),
+        "GameConfig.Equipment.MasterySuccessChances must be within (0; 1] — a zero chance is a wall nobody passes.")
+    .Validate(c => c.Equipment.MasteryBreakChances.All(p => p is >= 0 and <= 1) && c.Equipment.BrokenStatShare is >= 0 and <= 1,
+        "GameConfig.Equipment.MasteryBreakChances and BrokenStatShare must be shares within [0; 1].")
+    .Validate(c => c.Equipment.RepairGemsPerMastery >= 0, "GameConfig.Equipment.RepairGemsPerMastery cannot be negative.")
     .Validate(c => c.Equipment.ArtifactTierMultipliers.All(m => m > 0), "GameConfig.Equipment.ArtifactTierMultipliers must be positive — otherwise higher-tier artifacts roll zero stats.")
     .Validate(c => c.Mail.LetterRetentionDays > 0 && c.Mail.AnnouncementRetentionDays > 0 && c.Mail.RewardRetentionDays > 0,
         "GameConfig.Mail retention must be positive.")
@@ -117,6 +136,14 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Market.MinSalesForMedian >= 1 && c.Market.OutlierTrimShare is >= 0 and < 0.5, "GameConfig.Market needs at least one sale for a median and must trim less than half of the sales on each side.")
     .Validate(c => c.Market.MedianMinAnchorShare is > 0 and <= 1 && c.Market.MedianMaxAnchorShare >= 1, "GameConfig.Market anchor band must contain the anchor itself: MedianMinAnchorShare ≤ 1 ≤ MedianMaxAnchorShare.")
     .Validate(c => c.Market.GoldPerGem > 0 && c.Market.GoldPerPower.Values.All(v => v > 0), "GameConfig.Market anchors must be positive.")
+    .Validate(c => c.HeroSettings.MonsterExperiencePerLevel >= 0, "GameConfig.HeroSettings.MonsterExperiencePerLevel must not be negative.")
+    .Validate(c => c.Dungeons.HeroExperiencePerRun >= 0, "GameConfig.Dungeons.HeroExperiencePerRun must not be negative.")
+    .Validate(c => c.UnitBatchMin >= 1 && c.UnitBatchMax >= c.UnitBatchMin,
+        "GameConfig.UnitBatchMin must be at least 1 and not above UnitBatchMax.")
+    .Validate(c => c.Combat.HeroHealthScale > 0, "GameConfig.Combat.HeroHealthScale must be positive — otherwise every hero in a battle is wounded.")
+    .Validate(c => c.Shop.Banners.All(b => b.WindowDays is null or > 0), "GameConfig.Shop.Banners WindowDays must be positive when set.")
+    .Validate(c => c.Dungeons.RefillPricesGems.All(p => p > 0) && c.Dungeons.RefillPricesGems.Zip(c.Dungeons.RefillPricesGems.Skip(1)).All(p => p.First <= p.Second),
+        "GameConfig.Dungeons.RefillPricesGems must be positive and must not fall from one refill to the next.")
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
     .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
     .ValidateOnStart();
@@ -159,8 +186,12 @@ builder.Services.AddSingleton(sp => new SettlementPlacer(sp.GetRequiredService<T
 builder.Services.AddSingleton(sp => new WorldGeometry(gameConfig.Map));
 builder.Services.AddSingleton(sp => new HeroProgression(gameConfig.HeroSettings));
 builder.Services.AddSingleton(sp => new HeroSkills(gameConfig.HeroSettings));
+builder.Services.AddSingleton(sp => new HeroConvoys(gameConfig.HeroSettings));
+builder.Services.AddSingleton(sp => new EquipmentFit(sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new TrainingCampRules(gameConfig.HeroSettings.TrainingCamp));
 builder.Services.AddSingleton(sp => new HeroCombatModifiers(sp.GetRequiredService<GameCatalog>()));
-builder.Services.AddSingleton(sp => new EnhancementRules(gameConfig.Equipment));
+builder.Services.AddSingleton(sp => new MasteryRules(gameConfig.Equipment));
+builder.Services.AddSingleton(sp => new ArtifactProgression(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new BannerRoller(gameConfig.Shop));
 builder.Services.AddSingleton(sp => new BattleEngine(gameConfig.Dungeons));

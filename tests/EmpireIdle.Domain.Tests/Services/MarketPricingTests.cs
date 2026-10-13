@@ -18,7 +18,7 @@ public class MarketPricingTests
             Market = new MarketConfig
             {
                 GoldPerGem = 100,
-                GoldPerPower = new Dictionary<string, double> { ["weapon"] = 10, ["hero.Rare"] = 30 },
+                GoldPerPower = new Dictionary<string, double> { ["artifact"] = 10, ["hero.Rare"] = 30 },
                 CorridorShare = 0.3,
                 MinSalesForMedian = 5,
                 OutlierTrimShare = 0.1,
@@ -34,11 +34,9 @@ public class MarketPricingTests
     }
 
     [Fact]
-    public void CategoryOf_ShouldSeparateWeaponsArtifactsHeroRanksAndItems()
+    public void CategoryOf_ShouldSeparateArtifactsAndItems()
     {
-        Assert.Equal("weapon", MarketPricing.CategoryOf(EquipmentSlot.Weapon));
         Assert.Equal("artifact", MarketPricing.CategoryOf(EquipmentSlot.Artifact));
-        Assert.Equal("hero.Unique", MarketPricing.CategoryOf(Rarity.Unique));
         Assert.Equal("item.boost", MarketPricing.CategoryOfItem("boost"));
     }
 
@@ -46,6 +44,16 @@ public class MarketPricingTests
     [Fact]
     public void AnchorPerUnit_ShouldConvertTheShopPriceInGems()
         => Assert.Equal(1000, Pricing().AnchorPerUnit("item.boost"));
+
+    /// <summary>Предмет лише зі скрині (GDD §9.12) тримає якір за довідковою ціною.</summary>
+    [Fact]
+    public void AnchorPerUnit_ShouldFallBackToTheGemValue_OfAChestOnlyItem()
+        => Assert.Equal(1200, Pricing(m => m.GemValues["veil"] = 12).AnchorPerUnit("item.veil"));
+
+    /// <summary>Ціна крамниці важить більше за довідкову: її бачить гравець.</summary>
+    [Fact]
+    public void AnchorPerUnit_ShouldPreferTheShopPrice_OverTheGemValue()
+        => Assert.Equal(1000, Pricing(m => m.GemValues["boost"] = 99).AnchorPerUnit("item.boost"));
 
     [Fact]
     public void AnchorPerUnit_ShouldTakeThePowerPriceOfTheCategory()
@@ -72,7 +80,7 @@ public class MarketPricingTests
     [Fact]
     public void Corridor_ShouldSpreadThirtyPercentAroundTheAnchor_WithoutAMedian()
     {
-        var corridor = Pricing().Corridor("weapon", median: null)!.Value;
+        var corridor = Pricing().Corridor("artifact", median: null)!.Value;
 
         Assert.Equal(7, corridor.MinPerUnit, 3);
         Assert.Equal(13, corridor.MaxPerUnit, 3);
@@ -81,7 +89,7 @@ public class MarketPricingTests
     [Fact]
     public void Corridor_ShouldFollowTheMedian_WithinTheAnchorBand()
     {
-        var corridor = Pricing().Corridor("weapon", median: 15)!.Value;
+        var corridor = Pricing().Corridor("artifact", median: 15)!.Value;
 
         Assert.Equal(10.5, corridor.MinPerUnit, 3);
         Assert.Equal(19.5, corridor.MaxPerUnit, 3);
@@ -91,7 +99,7 @@ public class MarketPricingTests
     [Fact]
     public void Corridor_ShouldClampAWashTradedMedianToTheAnchorBand()
     {
-        var corridor = Pricing().Corridor("weapon", median: 1000)!.Value;
+        var corridor = Pricing().Corridor("artifact", median: 1000)!.Value;
 
         Assert.Equal(14, corridor.MinPerUnit, 3);
         Assert.Equal(26, corridor.MaxPerUnit, 3);

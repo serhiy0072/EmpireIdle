@@ -27,8 +27,7 @@ public class EquipmentRewardGranterTests
         var random = Substitute.For<IRandomSource>();
         random.Next(Arg.Any<int>()).Returns(42);
 
-        var itemGranter = new ItemGranter(_inventory, serverContext, random,
-            new ArtifactRoller(catalog.Config.Equipment));
+        var itemGranter = new ItemGranter(_inventory, serverContext);
 
         _granter = new EquipmentRewardGranter(itemGranter, catalog,
             new FakeTimeProvider(TestKit.Entities.Now), NullLogger<EquipmentRewardGranter>.Instance);
@@ -37,7 +36,7 @@ public class EquipmentRewardGranterTests
     // Зброя: ролер не задіяний, тест перевіряє лише кількість екземплярів
     private static RewardContext Context(int amount) => new(
         Guid.NewGuid(),
-        new RewardConfig { Type = "Equipment", Key = TestKeys.Weapon, Amount = amount },
+        new RewardConfig { Type = "Equipment", Key = TestKeys.Artifact, Amount = amount },
         "test_quest",
         TestKit.Entities.Now);
 

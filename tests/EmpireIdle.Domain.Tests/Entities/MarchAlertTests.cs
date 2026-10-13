@@ -16,7 +16,7 @@ public class MarchAlertTests
     private static readonly Dictionary<UnitStackKey, int> Army = new() { [new UnitStackKey("infantry", 1)] = 10 };
 
     private static March Send(MarchTargetType targetType, MarchIntent intent, Guid targetId)
-        => new(Guid.NewGuid(), 1, Guid.NewGuid(), Guid.NewGuid(), 0, 0, 5, 5,
+        => new(Guid.NewGuid(), 1, Guid.NewGuid(), 0, 0, 5, 5,
             targetType, targetId, Army, Now.AddMinutes(20), Now, intent);
 
     [Theory]
@@ -33,6 +33,34 @@ public class MarchAlertTests
         Assert.Equal(targetType, launched.TargetType);
         Assert.Equal(targetId, launched.TargetId);
         Assert.Equal(Now.AddMinutes(20), launched.ArrivesAt);
+    }
+
+    /// <summary>Прискорений напад у дорозі — нова тривога з новим часом прибуття.</summary>
+    [Fact]
+    public void SpeedUp_OfAHostileMarch_ShouldRaiseHostileMarchRetimed()
+    {
+        var targetId = Guid.NewGuid();
+        var march = Send(MarchTargetType.Village, MarchIntent.Attack, targetId);
+        march.ClearDomainEvents();
+
+        march.ReduceTravelTime(TimeSpan.FromMinutes(15), Now.AddMinutes(1));
+
+        var retimed = Assert.IsType<HostileMarchRetimed>(Assert.Single(march.DomainEvents));
+        Assert.Equal((march.Id, targetId, Now.AddMinutes(5)), (retimed.MarchId, retimed.TargetId, retimed.ArrivesAt));
+    }
+
+    /// <summary>Прискорення походу на монстра чи підкріплення нікого не тривожить.</summary>
+    [Theory]
+    [InlineData(MarchTargetType.Monster, MarchIntent.Attack)]
+    [InlineData(MarchTargetType.Village, MarchIntent.Reinforce)]
+    public void SpeedUp_OfAPeacefulMarch_ShouldRaiseNothing(MarchTargetType targetType, MarchIntent intent)
+    {
+        var march = Send(targetType, intent, Guid.NewGuid());
+        march.ClearDomainEvents();
+
+        march.ReduceTravelTime(TimeSpan.FromMinutes(5), Now.AddMinutes(1));
+
+        Assert.Empty(march.DomainEvents);
     }
 
     [Fact]
@@ -56,7 +84,7 @@ public class MarchAlertTests
     [Fact]
     public void ReturningHome_ShouldRaiseNothing()
     {
-        var march = March.ReturningHome(Guid.NewGuid(), 1, Guid.NewGuid(), null, 0, 0, 5, 5, Guid.NewGuid(),
+        var march = March.ReturningHome(Guid.NewGuid(), 1, Guid.NewGuid(), 0, 0, 5, 5, Guid.NewGuid(),
             Army, TimeSpan.FromMinutes(10), Now);
 
         Assert.Empty(march.DomainEvents);

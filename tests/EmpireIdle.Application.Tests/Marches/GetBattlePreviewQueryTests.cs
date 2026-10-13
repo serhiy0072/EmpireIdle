@@ -26,8 +26,16 @@ public class GetBattlePreviewQueryTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IMonsterRepository _monsters = Substitute.For<IMonsterRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
-    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>();
+    private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
+
+    /// <summary>Спорядження в сценах немає: бійця дають власні стати героя.</summary>
+    private IInventoryRepository EmptyInventory()
+    {
+        _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
+        return _inventory;
+    }
 
     // Герой без власної швидкості ходить зі швидкістю за замовчуванням —
     // утричі повільніше за піхоту, тож його присутність видно в часі дороги
@@ -72,7 +80,8 @@ public class GetBattlePreviewQueryTests
             _villages, _garrisons, _heroes, _serverContext,
             new CombatCalculator(config.Combat, catalog), terrain, new MarchCalculator(terrain, catalog),
             TestEffects.Resolver(_effects), new FakeTimeProvider(Now), targets, heroModifiers, catalog,
-            new HeroProgression(config.HeroSettings));
+            new HeroProgression(config.HeroSettings),
+            new HeroCombatants(EmptyInventory(), new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog));
     }
 
     /// <summary>Село з піхотою, монстр поруч; повертає монстра й героя з заданим власником.</summary>
@@ -94,7 +103,7 @@ public class GetBattlePreviewQueryTests
     }
 
     private Task<BattlePreviewResult> Preview(Guid monsterId, Guid heroId) => Handler().Handle(
-        new GetBattlePreviewQuery(PlayerId, MarchTargetType.Monster, monsterId, heroId,
+        new GetBattlePreviewQuery(PlayerId, MarchTargetType.Monster, monsterId, [heroId],
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }),
         CancellationToken.None);
 
@@ -118,5 +127,18 @@ public class GetBattlePreviewQueryTests
         var withoutHero = await Preview(monster.Id, Guid.NewGuid());
 
         Assert.Equal(withoutHero.TravelTime, withForeignHero.TravelTime);
+    }
+
+    /// <summary>Проти монстра — вердикт, шанс і умовні сили обох сторін (рішення 12.10.2026).</summary>
+    [Fact]
+    public async Task Handle_ShouldShowPowersAndAVerdict_AgainstAMonster()
+    {
+        var (monster, hero) = GivenState(heroOwnerId: PlayerId);
+
+        var preview = await Preview(monster.Id, hero.Id);
+
+        Assert.True(preview.TargetPower > 0);
+        Assert.True(preview.AttackerPower > 0);
+        Assert.InRange(preview.WinChance, 0, 1);
     }
 }

@@ -19,14 +19,11 @@ internal static class HeroTestConfig
     public const string CommonHero = "warrior_bran";
     public const string UniqueHero = "mage_iselle";
 
-    public const string WarriorWeapon = "sword_iron";
-    public const string BetterWarriorWeapon = "sword_steel";
     public const string Artifact = "necklace_dawn";
     public const string SecondArtifact = "ring_ember";
 
     public const int ShardPriceGold = 100;
     public const int SummonShards = 10;
-    public const int WeaponPriceGold = 500;
     /// <summary>Номери слотів за типом — позиції в Equipment.ArtifactSlots.</summary>
     public const int NecklaceSlot = 0;
     public const int RingSlot = 2;
@@ -59,27 +56,6 @@ internal static class HeroTestConfig
             new ItemConfig { Key = "hero_essence_t2" },
             new ItemConfig { Key = "hero_essence_t3" },
 
-            // Зброя воїна: клас звужений навмисно, на ньому тримається
-            // перевірка придатності
-            new ItemConfig
-            {
-                Key = WarriorWeapon,
-                Type = "equipment",
-                Slot = EquipmentSlot.Weapon,
-                WeaponClasses = ["warrior"],
-                BaseStats = new Dictionary<string, double> { ["Attack"] = 10 },
-                PriceGold = WeaponPriceGold
-            },
-            new ItemConfig
-            {
-                Key = BetterWarriorWeapon,
-                Type = "equipment",
-                Slot = EquipmentSlot.Weapon,
-                WeaponClasses = ["warrior"],
-                BaseStats = new Dictionary<string, double> { ["Attack"] = 18 },
-                PriceGold = WeaponPriceGold * 2
-            },
-
             // Артефакти без базових статів: їхні стати випадкові й лежать
             // на екземплярі. Обидва з одного набору — на них перевіряється
             // і сет-бонус, і заборона дублікатів
@@ -98,44 +74,10 @@ internal static class HeroTestConfig
                 Slot = EquipmentSlot.Artifact,
                 ArtifactSlot = "ring",
                 SetKey = "dawn"
-            }
+            },
+            new ItemConfig { Key = TestKit.GameConfigBuilder.RepairKit, Type = "repairkit", DisplayName = "Ремкомплект" }
         ],
-        Equipment = new EquipmentConfig
-        {
-            ArtifactSlots =
-            [
-                new ArtifactSlotConfig { Key = "necklace", DisplayName = "Намисто" },
-                new ArtifactSlotConfig { Key = "crown", DisplayName = "Корона" },
-                new ArtifactSlotConfig { Key = "ring", DisplayName = "Кільце" },
-                new ArtifactSlotConfig { Key = "belt", DisplayName = "Пояс" }
-            ],
-            MaxEnhancement = 20,
-            EnhancementBonusPerLevel = 0.1,
-            ForgeBuildingKey = Forge,
-            EnhanceBaseGold = 200,
-            EnhanceCostGrowth = 1.35,
-            SafeEnhancementLevel = 5,
-            SuccessDropPerLevel = 0.05,
-            MinSuccessChance = 0.25,
-            BreakChanceOnFailure = 0.2,
-            RepairGemsBase = 20, RepairGemsPerLevel = 8,
-            ArtifactBaseStats = 2,
-            ArtifactStatLevels = [4, 8],
-            ArtifactUpgradeLevels = [12, 16, 20],
-            DoubleUpgradeChance = 0.1,
-            ArtifactStats =
-            [
-                new ArtifactStatConfig { Stat = "Attack", Min = 4, Max = 12, UpgradeMin = 1, UpgradeMax = 3 },
-                new ArtifactStatConfig { Stat = "Defense", Min = 5, Max = 14, UpgradeMin = 1, UpgradeMax = 4 },
-                new ArtifactStatConfig { Stat = "Health", Min = 20, Max = 60, UpgradeMin = 5, UpgradeMax = 15 }
-            ],
-            ArtifactRarityMultipliers = new Dictionary<string, double>
-            {
-                ["Common"] = 1.0,
-                ["Rare"] = 1.4,
-                ["Unique"] = 2.0
-            }
-        },
+        Equipment = TestKit.GameConfigBuilder.DefaultEquipment(Forge),
         HeroSettings = new HeroesConfig
         {
             BuildingKey = Hall,

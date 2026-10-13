@@ -22,7 +22,7 @@ public class MarketPricesAndQueriesTests
     public async Task Recalculate_ShouldStoreTheMedianOfRecentSales()
     {
         _bed.MarketRepository.GetSalesSinceAsync(Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
-            .Returns([("weapon", 10.0), ("weapon", 11.0), ("weapon", 12.0), ("weapon", 13.0), ("weapon", 14.0)]);
+            .Returns([("artifact", 10.0), ("artifact", 11.0), ("artifact", 12.0), ("artifact", 13.0), ("artifact", 14.0)]);
         _bed.MarketRepository.GetSnapshotsAsync(Arg.Any<CancellationToken>()).Returns([]);
 
         MarketPriceSnapshot? added = null;
@@ -31,7 +31,7 @@ public class MarketPricesAndQueriesTests
         await Recalculate().Handle(new RecalculateMarketPricesCommand(1), CancellationToken.None);
 
         Assert.NotNull(added);
-        Assert.Equal("weapon", added.PricingKey);
+        Assert.Equal("artifact", added.PricingKey);
         Assert.Equal(12, added.MedianPerUnit);
         Assert.Equal(5, added.Sales);
     }
@@ -40,7 +40,7 @@ public class MarketPricesAndQueriesTests
     [Fact]
     public async Task Recalculate_ShouldForgetAStaleMedian()
     {
-        var stale = new MarketPriceSnapshot(1, "weapon", 20, 9, MarketTestBed.Now.AddDays(-5));
+        var stale = new MarketPriceSnapshot(1, "artifact", 20, 9, MarketTestBed.Now.AddDays(-5));
 
         _bed.MarketRepository.GetSalesSinceAsync(Arg.Any<DateTime>(), Arg.Any<CancellationToken>()).Returns([]);
         _bed.MarketRepository.GetSnapshotsAsync(Arg.Any<CancellationToken>()).Returns([stale]);
@@ -51,7 +51,7 @@ public class MarketPricesAndQueriesTests
         Assert.Equal(0, stale.Sales);
     }
 
-    /// <summary>Котирування бачить той самий коридор, що й виставлення: меч Power 10 — 70–130.</summary>
+    /// <summary>Котирування бачить той самий коридор, що й виставлення: меч Power 40 — 70–130.</summary>
     [Fact]
     public async Task Quote_ShouldMatchTheListingCorridor()
     {
@@ -59,7 +59,7 @@ public class MarketPricesAndQueriesTests
         var handler = new GetMarketQuoteQueryHandler(_bed.Goods, _bed.Desk, _bed.Catalog);
 
         var quote = await handler.Handle(
-            new GetMarketQuoteQuery(_bed.Seller, MarketListingKind.Equipment, sword.Id, null, null, 1), CancellationToken.None);
+            new GetMarketQuoteQuery(_bed.Seller, MarketListingKind.Equipment, sword.Id, null, 1), CancellationToken.None);
 
         Assert.Equal(70, quote.MinPrice);
         Assert.Equal(130, quote.MaxPrice);

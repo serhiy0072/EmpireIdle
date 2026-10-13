@@ -1,11 +1,13 @@
 using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -32,11 +34,13 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly HeroCombatants _combatants;
         private readonly GameCatalog _catalog;
         private readonly TerritoryBonus _territoryBonus;
         private readonly ClanTerritoryRules _territory;
         private readonly IClanRepository _clanRepository;
         private readonly BeastTamer _tamer;
+        private readonly MonsterExperienceReward _experience;
         private readonly ILogger<MonsterBattleService> _logger;
 
         public MonsterBattleService(
@@ -52,11 +56,13 @@ namespace EmpireIdle.Application.Marches.Services
             MarchLogistics logistics,
             BattleAftermath aftermath,
             HeroCombatModifiers heroModifiers,
+            HeroCombatants combatants,
             GameCatalog catalog,
             TerritoryBonus territoryBonus,
             ClanTerritoryRules territory,
             IClanRepository clanRepository,
             BeastTamer tamer,
+            MonsterExperienceReward experience,
             ILogger<MonsterBattleService> logger)
         {
             _monsterRepository = monsterRepository;
@@ -71,11 +77,13 @@ namespace EmpireIdle.Application.Marches.Services
             _logistics = logistics;
             _aftermath = aftermath;
             _heroModifiers = heroModifiers;
+            _combatants = combatants;
             _catalog = catalog;
             _territoryBonus = territoryBonus;
             _territory = territory;
             _clanRepository = clanRepository;
             _tamer = tamer;
+            _experience = experience;
             _logger = logger;
         }
 
@@ -114,13 +122,12 @@ namespace EmpireIdle.Application.Marches.Services
 
             var woundedCapacity = _logistics.CalculateWoundedCapacity(village, garrison);
 
-            var attackerHero = march.HeroId is Guid heroId
-                ? await _heroRepository.GetByIdAsync(heroId, cancellationToken)
-                : null;
+            var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
             // Монстр ні стін, ні героїв не має, тому бік захисту йде без бонусів
             var outcome = _resolver.Resolve(attackerArmy, DefenceStacks.FromArmy(defenderArmy), terrain, seed,
-                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.For(attackerHero));
+                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.ForMarch(attackerHeroes),
+                attackerHeroes: await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 
             var result = outcome.Battle;
             var split = outcome.AttackerCasualties;
@@ -129,6 +136,7 @@ namespace EmpireIdle.Application.Marches.Services
             garrison.AdmitWounded(split.Wounded, utcNow);
 
             string? tamed = null;
+            long experience = 0;
 
             if (result.AttackerWon)
             {
@@ -138,13 +146,20 @@ namespace EmpireIdle.Application.Marches.Services
                 if (march.Intent == MarchIntent.Tame)
                     tamed = await _tamer.TameAsync(village, monster.Type, utcNow, cancellationToken);
 
-                if (tamed is null)
-                    await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken);
+                var spoils = tamed is null
+                    ? await TakeSpoilsAsync(march, monster, village.PlayerId, utcNow, cancellationToken)
+                    : [];
+
+                // Квести «полювання» й рейтинг рахують перемоги саме з цієї події
+                march.RecordMonsterDefeated(village.Id, village.PlayerId, monster.Type, monster.Level, spoils, utcNow);
+
+                // Досвід героїв — за будь-яку перемогу, і полювання, і приручення (GDD §6.1)
+                experience = await _experience.GrantAsync(village.PlayerId, monster.Level, utcNow, cancellationToken);
             }
 
             await _aftermath.RecordAttackerAsync(march, village, garrison,
                 _catalog.MonsterName(monster.Type), monster.Level,
-                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken, tamed);
+                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken, tamed, experience);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +
@@ -170,9 +185,9 @@ namespace EmpireIdle.Application.Marches.Services
 
         /// <summary>
         /// Вантажить нагороду. Здобич не з'являється в момент перемоги: вона їде з армією
-        /// й лягає на склад лише по прибутті, у межах вантажопідйомності.
+        /// й лягає на склад лише по прибутті, у межах вантажопідйомності. Повертає завантажене.
         /// </summary>
-        private async Task TakeSpoilsAsync(March march, Monster monster, Guid playerId, DateTime utcNow,
+        private async Task<List<ResourceCost>> TakeSpoilsAsync(March march, Monster monster, Guid playerId, DateTime utcNow,
             CancellationToken cancellationToken)
         {
             var rewards = _armyBuilder.BuildRewards(monster.Type, monster.Level);
@@ -192,6 +207,8 @@ namespace EmpireIdle.Application.Marches.Services
 
                 clan?.EarnPoints(_territory.CashbackFor(carried), playerId, utcNow);
             }
+
+            return carried.Select(c => new ResourceCost { Resource = c.Key, Amount = c.Value }).ToList();
         }
     }
 }

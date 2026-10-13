@@ -52,7 +52,7 @@ public class GetVillageQueryTests
         ],
         Monetization = new MonetizationConfig
         {
-            SpeedUpFloorSeconds = 60,
+            SpeedUpFloorSeconds = Enum.GetValues<EmpireIdle.Domain.Enums.SpeedUpTimer>().ToDictionary(timer => timer, _ => 60),
             SpeedUpFactor = 1.2,
             SpeedUpExponent = 0.75
         }
@@ -105,7 +105,7 @@ public class GetVillageQueryTests
 
         farm.BeginUpgrade(Catalog().Buildings["farm"], TimeSpan.FromMinutes(120), Now, ProductionBoost.None, locationMultiplier: 1.0);
 
-        var expected = Calculator().GetCost(farm.ConstructionCompletesAt!.Value, Now);
+        var expected = Calculator().GetCost(EmpireIdle.Domain.Enums.SpeedUpTimer.Construction, farm.ConstructionCompletesAt!.Value, Now);
 
         var response = await Handler().Handle(new GetVillageQuery(PlayerId), CancellationToken.None);
 

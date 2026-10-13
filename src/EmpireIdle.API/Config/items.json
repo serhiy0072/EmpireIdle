@@ -205,122 +205,190 @@
         "HeroExperience": 50000
       },
       {
-        "Key": "sword_iron",
-        "Type": "equipment",
+        "Key": "hero_xp_1k",
+        "DisplayName": "Баночка досвіду",
+        "Description": "Додає 1 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
         "Rarity": "common",
-        "DisplayName": "Залізний меч",
-        "Slot": "Weapon",
-        "WeaponClasses": [
-          "warrior"
-        ],
-        "BaseStats": {
-          "Attack": 12
-        },
-        "PriceGold": 500
+        "Type": "heroxp",
+        "HeroExperience": 1000
       },
       {
-        "Key": "lance_iron",
-        "Type": "equipment",
-        "Rarity": "common",
-        "DisplayName": "Залізний спис",
-        "Slot": "Weapon",
-        "WeaponClasses": [
-          "knight"
-        ],
-        "BaseStats": {
-          "Attack": 14
-        },
-        "PriceGold": 600
-      },
-      {
-        "Key": "bow_yew",
-        "Type": "equipment",
+        "Key": "hero_xp_10k",
+        "DisplayName": "Глечик досвіду",
+        "Description": "Додає 10 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
         "Rarity": "rare",
-        "DisplayName": "Тисовий лук",
-        "Slot": "Weapon",
-        "WeaponClasses": [
-          "archer"
-        ],
-        "BaseStats": {
-          "Attack": 11
-        },
-        "PriceGold": 500
+        "Type": "heroxp",
+        "HeroExperience": 10000
       },
       {
-        "Key": "staff_ember",
-        "Type": "equipment",
+        "Key": "hero_xp_20k",
+        "DisplayName": "Барило досвіду",
+        "Description": "Додає 20 000 досвіду в загальний запас героїв — витратите на рівень будь-якого героя",
         "Rarity": "unique",
-        "DisplayName": "Жарний посох",
-        "Slot": "Weapon",
-        "WeaponClasses": [
-          "archer",
-          "knight"
-        ],
-        "BaseStats": {
-          "Attack": 16
-        },
-        "PriceGold": 750
+        "Type": "heroxp",
+        "HeroExperience": 20000
       },
       {
-        "Key": "sword_steel",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Сталевий меч",
-        "Slot": "Weapon",
-        "WeaponClasses": [
-          "warrior"
-        ],
-        "BaseStats": {
-          "Attack": 22,
-          "Defense": 6
-        },
-        "PriceGold": 1400
+        "Key": "weapon_chest",
+        "DisplayName": "Скриня зброї I",
+        "Description": "Шматок унікальної зброї героя банера першого світу на ваш вибір: Гуннар, Елоуен або Кестрел. Відкривається з картки героя",
+        "Rarity": "unique",
+        "Type": "weaponchest",
+        "WeaponHeroes": ["warrior_gunnar", "knight_elowen", "archer_kestrel"],
+        "WeaponShards": 1
       },
       {
-        "Key": "lance_steel",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Сталевий спис",
-        "Slot": "Weapon",
-        "WeaponClasses": [
-          "knight"
-        ],
-        "BaseStats": {
-          "Attack": 24,
-          "Health": 40
-        },
-        "PriceGold": 1600
+        "Key": "weapon_chest_2",
+        "DisplayName": "Скриня зброї II",
+        "Description": "Шматок унікальної зброї героя банера другого світу на ваш вибір: Сабіна, Ваель або Ізелла. Відкривається з картки героя",
+        "Rarity": "unique",
+        "Type": "weaponchest",
+        "WeaponHeroes": ["mage_sabine", "mage_vael", "mage_iselle"],
+        "WeaponShards": 1
       },
       {
-        "Key": "bow_ash",
-        "Type": "equipment",
-        "Rarity": "rare",
-        "DisplayName": "Ясеновий лук",
-        "Slot": "Weapon",
-        "WeaponClasses": [
-          "archer"
-        ],
-        "BaseStats": {
-          "Attack": 20,
-          "Defense": 8
-        },
-        "PriceGold": 1400
+        "Key": "wrench_common",
+        "DisplayName": "Гайковий ключ",
+        "Description": "Дає артефакту 100 досвіду рівня — стільки ж, скільки згодований звичайний артефакт",
+        "Rarity": "common",
+        "Type": "wrench",
+        "ArtifactExperience": 100
       },
       {
-        "Key": "staff_oak",
-        "Type": "equipment",
+        "Key": "wrench_rare",
+        "DisplayName": "Майстерський ключ",
+        "Description": "Дає артефакту 300 досвіду рівня — стільки ж, скільки згодований рідкісний артефакт",
         "Rarity": "rare",
-        "DisplayName": "Дубовий посох",
-        "Slot": "Weapon",
-        "WeaponClasses": [
-          "archer",
-          "knight"
-        ],
-        "BaseStats": {
-          "Attack": 26,
-          "Defense": 4
-        },
-        "PriceGold": 1800
+        "Type": "wrench",
+        "ArtifactExperience": 300
+      },
+      {
+        "Key": "dungeon_energy_10",
+        "DisplayName": "Ковток енергії",
+        "Description": "Додає 10 енергії данжів — один забіг. Працює й понад повну шкалу",
+        "Rarity": "common",
+        "Type": "energy",
+        "DungeonEnergy": 10
+      },
+      {
+        "Key": "dungeon_energy_50",
+        "DisplayName": "Фляга енергії",
+        "Description": "Додає 50 енергії данжів — п'ять забігів. Працює й понад повну шкалу",
+        "Rarity": "rare",
+        "Type": "energy",
+        "DungeonEnergy": 50
+      },
+      {
+        "Key": "repair_kit",
+        "DisplayName": "Ремкомплект",
+        "Description": "Лагодить артефакт, зламаний невдалою заточкою, — на будь-якій заточці й без gems",
+        "Rarity": "rare",
+        "Type": "repairkit"
+      },
+      {
+        "Key": "chest_supply",
+        "DisplayName": "Скриня обозу",
+        "Description": "Досвід героїв, ресурси, прискорення й гаєчки — усе, що везе обоз",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_treasure",
+        "DisplayName": "Скриня скарбів",
+        "Description": "Артефакти, осколки героїв і ремкомплекти; унікальний артефакт — не пізніше 20-ї скрині",
+        "Rarity": "unique",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_traveler",
+        "DisplayName": "Скриня мандрівника",
+        "Description": "Один телепорт; повний телепорт — не пізніше 4-ї скрині",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_boosts",
+        "DisplayName": "Скриня підсилень",
+        "Description": "Бусти виробітку, атаки й захисту та завіса розвідника — не пізніше 5-ї скрині",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_common",
+        "DisplayName": "Скриня знань (звичайна)",
+        "Description": "Книги вмінь звичайних героїв — воїна, лицаря й лучника, атаки й захисту",
+        "Rarity": "common",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_rare",
+        "DisplayName": "Скриня знань (рідкісна)",
+        "Description": "Книги вмінь рідкісних героїв — воїна, лицаря й лучника, атаки й захисту",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_books_unique",
+        "DisplayName": "Скриня знань (унікальна)",
+        "Description": "Книги вмінь унікальних героїв — воїна, лицаря й лучника, атаки й захисту",
+        "Rarity": "unique",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "speedup_1m",
+        "DisplayName": "Прискорення 1 хв",
+        "Description": "Зрізає 1 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "common",
+        "Type": "speedup",
+        "SpeedUpMinutes": 1
+      },
+      {
+        "Key": "speedup_5m",
+        "DisplayName": "Прискорення 5 хв",
+        "Description": "Зрізає 5 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "common",
+        "Type": "speedup",
+        "SpeedUpMinutes": 5
+      },
+      {
+        "Key": "speedup_10m",
+        "DisplayName": "Прискорення 10 хв",
+        "Description": "Зрізає 10 хв з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "common",
+        "Type": "speedup",
+        "SpeedUpMinutes": 10
+      },
+      {
+        "Key": "speedup_1h",
+        "DisplayName": "Прискорення 1 год",
+        "Description": "Зрізає 1 год з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "rare",
+        "Type": "speedup",
+        "SpeedUpMinutes": 60
+      },
+      {
+        "Key": "speedup_5h",
+        "DisplayName": "Прискорення 5 год",
+        "Description": "Зрізає 5 год з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "rare",
+        "Type": "speedup",
+        "SpeedUpMinutes": 300
+      },
+      {
+        "Key": "speedup_8h",
+        "DisplayName": "Прискорення 8 год",
+        "Description": "Зрізає 8 год з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "unique",
+        "Type": "speedup",
+        "SpeedUpMinutes": 480
+      },
+      {
+        "Key": "speedup_12h",
+        "DisplayName": "Прискорення 12 год",
+        "Description": "Зрізає 12 год з будь-якого таймера: будівництва, тренування, підвищення рівня військ або маршу",
+        "Rarity": "unique",
+        "Type": "speedup",
+        "SpeedUpMinutes": 720
       },
       {
         "Key": "dawn_necklace_common",
@@ -1607,37 +1675,113 @@
         "Description": "Піднімає на рівень захисне вміння унікального лучника. Кожен наступний рівень відкриває ще одна зірка героя.",
         "Rarity": "unique",
         "Type": "skillbook"
+      },
+      {
+        "Key": "chest_key_rare",
+        "DisplayName": "Рідкісна скриня",
+        "Description": "Чотири нагороди: прискорення, досвід героїв, предмети, уламки й часом цілий герой",
+        "Rarity": "rare",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "chest_key_unique",
+        "DisplayName": "Унікальна скриня",
+        "Description": "Чотири нагороди, серед них — уламки унікальних героїв і універсальні уламки",
+        "Rarity": "unique",
+        "Type": "lootbox"
+      },
+      {
+        "Key": "key_rare",
+        "DisplayName": "Рідкісний ключ",
+        "Description": "Відкриває рідкісну скриню понад безкоштовні відкриття",
+        "Rarity": "rare",
+        "Type": "chestkey"
+      },
+      {
+        "Key": "key_unique",
+        "DisplayName": "Унікальний ключ",
+        "Description": "Відкриває унікальну скриню понад безкоштовне відкриття",
+        "Rarity": "unique",
+        "Type": "chestkey"
       }
     ],
     "Equipment": {
       "ArtifactSlots": [
-        { "Key": "necklace", "DisplayName": "Намисто" },
-        { "Key": "crown", "DisplayName": "Корона" },
-        { "Key": "ring", "DisplayName": "Кільце" },
-        { "Key": "belt", "DisplayName": "Пояс" }
+        {
+          "Key": "necklace",
+          "DisplayName": "Намисто",
+          "FixedBonuses": [ "Attack", "UnitAttack" ],
+          "RandomBonuses": [ { "Stat": "CritChance", "Weight": 25 }, { "Stat": "AttackSpeed", "Weight": 35 }, { "Stat": "AttackPercent", "Weight": 40 } ]
+        },
+        {
+          "Key": "crown",
+          "DisplayName": "Корона",
+          "FixedBonuses": [ "Defense", "UnitDefense" ],
+          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "CooldownReduction", "Weight": 10 }, { "Stat": "SkillDamage", "Weight": 30 }, { "Stat": "Lifesteal", "Weight": 30 } ]
+        },
+        {
+          "Key": "ring",
+          "DisplayName": "Кільце",
+          "FixedBonuses": [ "Attack", "Defense" ],
+          "RandomBonuses": [ { "Stat": "CritChance", "Weight": 25 }, { "Stat": "BlockChance", "Weight": 22 }, { "Stat": "BlockPower", "Weight": 22 }, { "Stat": "DamageReduction", "Weight": 14 }, { "Stat": "DefensePercent", "Weight": 22 } ]
+        },
+        {
+          "Key": "belt",
+          "DisplayName": "Пояс",
+          "FixedBonuses": [ "UnitAttack", "UnitDefense" ],
+          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "UnitCritChance", "Weight": 25 }, { "Stat": "UnitHealthPercent", "Weight": 25 }, { "Stat": "HealthPercent", "Weight": 25 } ]
+        }
       ],
-      "MaxEnhancement": 20,
-      "EnhancementBonusPerLevel": 0.1,
+      "MaxLevel": 80,
+      "LevelExperienceBase": 100,
+      "LevelExperienceCoefficient": 2.2,
+      "LevelExperienceExponent": 1.55,
+      "FeedExperience": {
+        "Common": 100,
+        "Rare": 300
+      },
+      "ArtifactBase": {
+        "Common": { "Hero": 10, "HeroPerLevel": 2, "Unit": 40, "UnitPerLevel": 8 },
+        "Rare": { "Hero": 16, "HeroPerLevel": 3, "Unit": 64, "UnitPerLevel": 12 },
+        "Unique": { "Hero": 25, "HeroPerLevel": 4, "Unit": 100, "UnitPerLevel": 16 }
+      },
+      "ArtifactClassMultipliers": {
+        "warrior": { "Attack": 1.0, "Defense": 1.2 },
+        "knight": { "Attack": 1.2, "Defense": 1.0 },
+        "archer": { "Attack": 1.4, "Defense": 0.8 }
+      },
+      "HeroStatPower": 1.0,
+      "UnitStatPower": 0.25,
+      "ArtifactBonuses": [
+        { "Stat": "Attack", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
+        { "Stat": "Defense", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
+        { "Stat": "UnitAttack", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
+        { "Stat": "UnitDefense", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
+        { "Stat": "CritChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 10 },
+        { "Stat": "CritPower", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2.5 },
+        { "Stat": "SkillDamage", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3.5 },
+        { "Stat": "AttackSpeed", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 5 },
+        { "Stat": "CooldownReduction", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 9 },
+        { "Stat": "Lifesteal", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
+        { "Stat": "BlockChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
+        { "Stat": "BlockPower", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2 },
+        { "Stat": "DamageReduction", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 10 },
+        { "Stat": "AttackPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
+        { "Stat": "DefensePercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
+        { "Stat": "HealthPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
+        { "Stat": "UnitCritChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
+        { "Stat": "UnitHealthPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 }
+      ],
+      "BonusStepChances": [ 0.4, 0.3, 0.2, 0.1 ],
+      "MaxMastery": 20,
       "ForgeBuildingKey": "forge",
-      "EnhanceBaseGold": 200,
-      "EnhanceCostGrowth": 1.35,
-      "SafeEnhancementLevel": 5,
-      "SuccessDropPerLevel": 0.05,
-      "MinSuccessChance": 0.25,
-      "BreakChanceOnFailure": 0.2,
-      "RepairGemsBase": 20,
-      "RepairGemsPerLevel": 8,
-      "ArtifactBaseStats": 2,
-      "ArtifactStatLevels": [
-        4,
-        8
-      ],
-      "ArtifactUpgradeLevels": [
-        12,
-        16,
-        20
-      ],
-      "DoubleUpgradeChance": 0.1,
+      "MasteryBaseGold": 400,
+      "MasteryCostGrowth": 1.33,
+      "MasterySuccessChances": [ 1, 1, 1, 1, 1, 0.95, 0.9, 0.9, 0.85, 0.85, 0.8, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4 ],
+      "MasteryBreakChances": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1, 0.1, 0.1, 0.1 ],
+      "BrokenStatShare": 0.5,
+      "RepairGemsPerMastery": 100,
+      "RepairKitItemKey": "repair_kit",
       "SetBonuses": [
         {
           "SetKey": "dawn_common",
@@ -1890,34 +2034,6 @@
           }
         }
       ],
-      "ArtifactStats": [
-        {
-          "Stat": "Attack",
-          "Min": 4,
-          "Max": 12,
-          "UpgradeMin": 1,
-          "UpgradeMax": 3
-        },
-        {
-          "Stat": "Defense",
-          "Min": 5,
-          "Max": 14,
-          "UpgradeMin": 1,
-          "UpgradeMax": 4
-        },
-        {
-          "Stat": "Health",
-          "Min": 20,
-          "Max": 60,
-          "UpgradeMin": 5,
-          "UpgradeMax": 15
-        }
-      ],
-      "ArtifactRarityMultipliers": {
-        "Common": 1.0,
-        "Rare": 1.4,
-        "Unique": 2.0
-      },
       "ArtifactTierMultipliers": [
         1.0,
         1.35,
@@ -1925,7 +2041,6 @@
         2.4,
         3.2
       ],
-      "ArtifactFocusWeight": 3.0,
       "ArtifactSets": [
         {
           "Key": "dawn",
