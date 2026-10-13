@@ -6,9 +6,7 @@ import { useCatalog } from "../lib/queries/catalog";
 import { speedUpLabel } from "../lib/speedUp";
 import { formatRemaining } from "../lib/time";
 import HospitalPanel from "./HospitalPanel";
-import LevelUpUnitsPanel from "./LevelUpUnitsPanel";
 import SpeedUpItemsButton from "./SpeedUpItemsButton";
-import TrainUnitsPanel from "./TrainUnitsPanel";
 
 interface Props {
   playerId: string;
@@ -123,13 +121,6 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         </div>
       )}
 
-      <TrainUnitsPanel
-        playerId={playerId}
-        buildingType={building.type}
-        buildingLevel={building.level}
-        underConstruction={building.isUnderConstruction}
-      />
-      <LevelUpUnitsPanel playerId={playerId} buildingType={building.type} buildingLevel={building.level} />
       {building.type === "hospital" && <HospitalPanel playerId={playerId} />}
     </div>
   );
