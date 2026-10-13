@@ -75,6 +75,12 @@ namespace EmpireIdle.Application.Heroes.Commands
                     $"The camp needs {_rules.ReferenceSize} heroes outside it, the player has {outside.Count}.",
                     _rules.ReferenceSize, outside.Count);
 
+            // Табір підтягує слабших до п'ятірки — героя з самої п'ятірки туди не ставлять (рішення 13.10.2026)
+            if (_rules.IsReference(heroes, hero))
+                throw new RequirementNotMetException(RefusalReasons.CampHeroIsReference,
+                    $"Hero {hero.Id} is one of the {_rules.ReferenceSize} strongest heroes outside the camp.",
+                    _rules.ReferenceSize);
+
             var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 

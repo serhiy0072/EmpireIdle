@@ -51,6 +51,9 @@
     "count"
   ],
   "camp.heroAlreadyIn": [],
+  "camp.heroIsReference": [
+    "count"
+  ],
   "camp.heroLevelLocked": [],
   "camp.heroNotIn": [],
   "camp.slotCooling": [

@@ -43,6 +43,13 @@ namespace EmpireIdle.Domain.Services
                 .Take(_config.ReferenceSize)
                 .ToList();
 
+        /// <summary>
+        /// Чи герой входить в опорну п'ятірку. Такого в табір не ставлять (рішення 13.10.2026):
+        /// табір підтягує слабших до п'ятірки, а не ховає саму п'ятірку.
+        /// </summary>
+        public bool IsReference(IEnumerable<Hero> heroes, Hero hero)
+            => ReferenceHeroes(heroes).Any(h => h.Id == hero.Id);
+
         /// <summary>Скільки безкоштовних слотів відкриває ратуша цього рівня.</summary>
         public int FreeSlots(int townHallLevel) => _config.FreeSlotTownHallLevels.Count(level => level <= townHallLevel);
 

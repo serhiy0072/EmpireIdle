@@ -187,6 +187,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "camp.slotCooling": ({ slot }) => `Слот ${slot} ще перезаряджається`,
   "camp.heroAlreadyIn": () => "Герой уже в таборі",
   "camp.heroNotIn": () => "Героя немає в таборі",
+  "camp.heroIsReference": ({ count }) =>
+    `Герой — серед ${count} найсильніших поза табором: вони задають рівень табору, тож у табір іде слабший`,
   "camp.heroLevelLocked": () => "Герой у таборі: його рівень тримає табір. Виведіть героя з табору, щоб піднімати власний рівень",
   "camp.allSlotsBought": ({ count }) => `Усі ${count} додаткові слоти вже куплені`,
   "camp.slotReady": ({ slot }) => `Слот ${slot} уже готовий`,

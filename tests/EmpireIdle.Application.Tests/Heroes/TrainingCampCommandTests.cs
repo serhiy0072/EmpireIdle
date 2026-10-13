@@ -150,34 +150,22 @@ public class TrainingCampCommandTests
         Assert.Equal(RefusalReasons.CampSlotLocked.Key, refusal.Reason);
     }
 
-    /// <summary>Усі першого рівня: будь-кого з п'ятірки можна поставити — його місце займе шостий.</summary>
+    /// <summary>
+    /// Героя з опорної п'ятірки в табір не ставлять, навіть коли шостий міг би його замінити
+    /// (рішення 13.10.2026): табір підтягує слабших, а не ховає п'ятірку.
+    /// </summary>
     [Fact]
-    public async Task Place_ShouldAcceptAHeroFromTheFive_WhenASixthCanReplaceIt()
-    {
-        var heroes = Enumerable.Range(0, 6).Select(_ => GivenHero(1)).ToList();
-
-        await Place(heroes[0]);
-
-        Assert.Equal(0, heroes[0].CampSlot);
-        Assert.Equal(1, heroes[0].EffectiveLevel);
-    }
-
-    /// <summary>Сильного поставили в табір — п'ятірка перерахувалась, і рівень інших у слотах упав.</summary>
-    [Fact]
-    public async Task Place_ShouldRecalculateTheOthers_WhenTheFiveChanges()
+    public async Task Place_ShouldRefuse_AHeroFromTheFive()
     {
         GivenFive();
-        var rookie = GivenHero(level: 1);
-        var sixth = GivenHero(level: 20);
-        await Place(rookie);
+        GivenHero(level: 20);
+        var weakestOfTheFive = _roster[4];
 
-        var strongest = _roster[0];
-        await Place(strongest, slot: 1);
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Place(weakestOfTheFive));
 
-        // Тепер п'ятірка: 45, 40, 35, 30, 20
-        Assert.Equal(20, rookie.EffectiveLevel);
-        Assert.Equal(50, strongest.EffectiveLevel);
-        Assert.Null(sixth.CampSlot);
+        Assert.Equal(RefusalReasons.CampHeroIsReference.Key, refusal.Reason);
+        Assert.Equal(5, refusal.Args["count"]);
+        Assert.Null(weakestOfTheFive.CampSlot);
     }
 
     // ---------- Вихід ----------

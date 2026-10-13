@@ -337,6 +337,9 @@
         /// <summary>Табір доступний, коли поза ним щонайменше need героїв (GDD §6.1); have — скільки зараз.</summary>
         public static readonly RefusalReason CampUnavailable = new("camp.unavailable", "need", "have");
 
+        /// <summary>Герой в опорній п'ятірці — у табір не йде; count — розмір п'ятірки.</summary>
+        public static readonly RefusalReason CampHeroIsReference = new("camp.heroIsReference", "count");
+
         /// <summary>Слот ще не відкрито ратушею чи купівлею; slot — його номер від 1.</summary>
         public static readonly RefusalReason CampSlotLocked = new("camp.slotLocked", "slot");
 

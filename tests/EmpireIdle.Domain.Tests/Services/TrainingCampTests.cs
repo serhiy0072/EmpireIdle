@@ -37,6 +37,16 @@ public class TrainingCampTests
         Assert.Equal(30, Rules().CampLevel(Roster(50, 45, 40, 35, 30, 2, 1)));
     }
 
+    /// <summary>Герой з опорної п'ятірки — опорний; шостий і слабші — ні.</summary>
+    [Fact]
+    public void IsReference_ShouldHoldForTheTopFiveOnly()
+    {
+        var roster = Roster(50, 45, 40, 35, 30, 2);
+
+        Assert.True(Rules().IsReference(roster, roster[4]));
+        Assert.False(Rules().IsReference(roster, roster[5]));
+    }
+
     [Fact]
     public void CampLevel_ShouldBeUnavailable_WithFewerThanFiveHeroesOutside()
         => Assert.Null(Rules().CampLevel(Roster(40, 40, 40, 40)));
