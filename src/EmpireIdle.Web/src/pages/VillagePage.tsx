@@ -57,7 +57,7 @@ export default function VillagePage() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-9rem)] flex-col gap-3">
+    <div className="flex h-full flex-col gap-3">
       <div className="flex items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">{village.data.name}</h1>
         <button

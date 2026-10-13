@@ -70,8 +70,10 @@ export default function AppLayout() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    // Екран — рівно висота вікна: шапка зверху, решта прокручується всередині. Так село
+    // займає весь залишок без підібраних на око відступів і сторінка під ним не їздить
+    <div className="flex h-dvh flex-col bg-slate-50">
+      <header className="shrink-0 border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl space-y-2 px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <ResourceBar village={village.data} />
@@ -153,12 +155,14 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6">
-        {/* key скидає впалий екран при переході: навігація лишається живою */}
-        <ErrorBoundary key={location.pathname}>
-          <Outlet />
-        </ErrorBoundary>
-      </main>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <main className="mx-auto h-full max-w-5xl px-4 py-6">
+          {/* key скидає впалий екран при переході: навігація лишається живою */}
+          <ErrorBoundary key={location.pathname}>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
+      </div>
 
       {tutorial.step !== null && (
         <TutorialOverlay step={tutorial.step} onDismiss={tutorial.dismiss} onSkip={tutorial.skip} />
