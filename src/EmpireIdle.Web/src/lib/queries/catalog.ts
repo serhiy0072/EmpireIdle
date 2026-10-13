@@ -63,6 +63,8 @@ export interface Catalog {
   maxUnitLevel: number;
   /** Скільки юнітів будівля тренує чи качає за одну партію на цьому рівні. */
   unitBatchSize: (buildingLevel: number) => number;
+  /** Скільки юнітів своїх типів вміщує будівля юнітів цього рівня (рішення 13.10.2026). */
+  unitCapacity: (buildingLevel: number) => number;
   /** Ціна лікування пораненого юніта в gems — та сама для будь-якого типу. */
   healGemsPerUnit: number;
   /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
@@ -170,6 +172,10 @@ export function useCatalog(): Catalog {
       unitBatchSize: (buildingLevel) => {
         const sizes = data?.unitBatchSizes ?? [];
         return sizes[Math.min(Math.max(buildingLevel, 1), sizes.length) - 1] ?? 1;
+      },
+      unitCapacity: (buildingLevel) => {
+        const capacities = data?.unitCapacities ?? [];
+        return capacities[Math.min(Math.max(buildingLevel, 1), capacities.length) - 1] ?? 0;
       },
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
       artifactSlots: data?.artifactSlots ?? [],

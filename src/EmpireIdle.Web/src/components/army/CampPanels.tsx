@@ -81,8 +81,8 @@ interface OrderProps {
   description: string;
   unitType: string;
   level: number;
-  /** Повна тривалість за формулою беку — від неї рахується смуга; прискорення лише посуває її вперед. */
-  totalMinutes: number;
+  /** Повна тривалість за формулою беку, секунд — від неї рахується смуга; прискорення лише посуває її вперед. */
+  totalSeconds: number;
   orderId: string;
   completesAt: string;
   speedUpCostGems: number;
@@ -97,7 +97,7 @@ export function OrderCard(props: OrderProps) {
   const now = useNow();
   const catalog = useCatalog();
   const left = Math.max(0, Date.parse(props.completesAt) - now);
-  const total = props.totalMinutes * 60_000;
+  const total = props.totalSeconds * 1_000;
   const progress = total > 0 ? Math.min(1, Math.max(0, 1 - left / total)) : 1;
   const gems = catalog.speedUpCost(props.timer, props.completesAt, now, props.speedUpCostGems);
 
@@ -188,7 +188,7 @@ export function TrainForm({ unit, level, maxBatch, blocked, pending, error, onTr
   const catalog = useCatalog();
   const [count, setCount] = useState(maxBatch);
   const amount = Math.min(count, maxBatch);
-  const minutes = cumulativeUnitLevelCost(unit.baseTrainMinutes, 1, level + 1, unit.levelUpCostGrowth) * amount;
+  const seconds = cumulativeUnitLevelCost(unit.baseTrainSeconds, 1, level + 1, unit.trainTimeGrowth) * amount;
 
   return (
     <div className="space-y-3 rounded-xl bg-[#2a4f8c] p-3 ring-1 ring-[#3d6aae]">
@@ -199,7 +199,7 @@ export function TrainForm({ unit, level, maxBatch, blocked, pending, error, onTr
       </div>
       <CountPicker value={amount} max={maxBatch} onChange={setCount} />
       <p className="text-sm text-sky-100">
-        {costLine(unit, 1, level + 1, amount, catalog.resourceName)} · ⏱ {formatDuration(minutes * 60_000)}
+        {costLine(unit, 1, level + 1, amount, catalog.resourceName)} · ⏱ {formatDuration(seconds * 1_000)}
       </p>
       {blocked !== null && <p className="text-xs text-amber-300">{blocked}</p>}
       <div className="flex justify-end">
@@ -245,7 +245,7 @@ export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending
   const [fromLevel, available] = source;
   const limit = Math.max(1, Math.min(available, maxBatch));
   const amount = Math.min(count, limit);
-  const minutes = cumulativeUnitLevelCost(unit.baseTrainMinutes, fromLevel, toLevel, unit.levelUpCostGrowth) * amount;
+  const seconds = cumulativeUnitLevelCost(unit.baseTrainSeconds, fromLevel, toLevel, unit.trainTimeGrowth) * amount;
 
   return (
     <div className="space-y-3 rounded-xl bg-[#2a4f8c] p-3 ring-1 ring-[#3d6aae]">
@@ -267,7 +267,7 @@ export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending
       </div>
       <CountPicker value={amount} max={limit} onChange={setCount} />
       <p className="text-sm text-sky-100">
-        {costLine(unit, fromLevel, toLevel, amount, catalog.resourceName)} · ⏱ {formatDuration(minutes * 60_000)}
+        {costLine(unit, fromLevel, toLevel, amount, catalog.resourceName)} · ⏱ {formatDuration(seconds * 1_000)}
       </p>
       {blocked !== null && <p className="text-xs text-amber-300">{blocked}</p>}
       <div className="flex justify-end">

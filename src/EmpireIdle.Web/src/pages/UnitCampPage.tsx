@@ -116,6 +116,13 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
   const ownUnits = new Set(catalog.unitsFor(buildingType, buildingLevel).map((candidate) => candidate.key));
   const training = garrison.data?.trainingOrders.find((order) => ownUnits.has(order.unitType));
   const levelling = garrison.data?.levelUpOrders.find((order) => ownUnits.has(order.unitType));
+  // Місткість своя в кожної будівлі: рахуються її типи в гарнізоні, на тренуванні й на прокачці (рішення 13.10.2026)
+  const capacity = catalog.unitCapacity(buildingLevel);
+  const occupied =
+    (garrison.data?.units ?? []).filter((stack) => ownUnits.has(stack.unitType)).reduce((sum, stack) => sum + stack.count, 0) +
+    (training?.count ?? 0) +
+    (levelling?.count ?? 0);
+  const free = Math.max(0, capacity - occupied);
   const maxBatch = catalog.unitBatchSize(buildingLevel);
   const frame = tierFrame(selected);
 
@@ -167,6 +174,10 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
 
       <LevelStrip unitType={unit.key} maxLevel={catalog.maxUnitLevel} ceiling={ceiling} counts={counts} selected={selected} onSelect={setSelected} />
 
+      <p className="px-3 text-right text-xs text-sky-100 [text-shadow:0_1px_2px_#000]">
+        Місткість табору: {occupied.toLocaleString("uk-UA")} / {capacity.toLocaleString("uk-UA")}
+      </p>
+
       <div className="space-y-3 bg-[#1d3b6f]/80 p-3">
         {mode === "stats" && <UnitStats unit={unit} level={selected} maxLevel={catalog.maxUnitLevel} />}
 
@@ -177,7 +188,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               description={`Тренування: ${catalog.unitName(training.unitType)} ${roman(training.level)} (${training.count.toLocaleString("uk-UA")})`}
               unitType={training.unitType}
               level={training.level}
-              totalMinutes={cumulativeUnitLevelCost(unit.baseTrainMinutes, 1, training.level + 1, unit.levelUpCostGrowth) * training.count}
+              totalSeconds={cumulativeUnitLevelCost(unit.baseTrainSeconds, 1, training.level + 1, unit.trainTimeGrowth) * training.count}
               orderId={training.id}
               completesAt={training.completesAt}
               speedUpCostGems={training.speedUpCostGems}
@@ -191,8 +202,15 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               key={selected}
               unit={unit}
               level={selected}
-              maxBatch={maxBatch}
-              blocked={locked ?? (underConstruction ? "Поки будівля покращується, нові партії не приймаються." : null)}
+              maxBatch={Math.max(1, Math.min(maxBatch, free))}
+              blocked={
+                locked ??
+                (underConstruction
+                  ? "Поки будівля покращується, нові партії не приймаються."
+                  : free === 0
+                    ? "Табір заповнений — покращте будівлю, щоб вмістити більше."
+                    : null)
+              }
               pending={train.isPending}
               error={train.error}
               onTrain={(count) => train.mutate({ unitType: unit.key, level: selected, count })}
@@ -206,8 +224,8 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               description={`Прокачка: ${catalog.unitName(levelling.unitType)} ${roman(levelling.fromLevel)} → ${roman(levelling.toLevel)} (${levelling.count.toLocaleString("uk-UA")})`}
               unitType={levelling.unitType}
               level={levelling.toLevel}
-              totalMinutes={
-                cumulativeUnitLevelCost(unit.baseTrainMinutes, levelling.fromLevel, levelling.toLevel, unit.levelUpCostGrowth) * levelling.count
+              totalSeconds={
+                cumulativeUnitLevelCost(unit.baseTrainSeconds, levelling.fromLevel, levelling.toLevel, unit.trainTimeGrowth) * levelling.count
               }
               orderId={levelling.id}
               completesAt={levelling.completesAt}
