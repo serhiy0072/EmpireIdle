@@ -183,19 +183,24 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
             <section className="space-y-2">
               <h3 className="text-sm font-semibold">Хто йде в слот #{pickingSlot + 1}</h3>
               <TileGrid>
-                {outside.map((hero) =>
-                  heroTile(
-                    hero,
-                    () => {
-                      onPlace(hero.id, pickingSlot);
-                      setPickingSlot(null);
-                    },
-                    false,
-                    hero.level,
-                  ),
-                )}
+                {/* Інструкторів у табір не ставлять (рішення 13.10.2026) — пропонуємо лише слабших за п'ятірку */}
+                {outside
+                  .filter((hero) => !camp.referenceHeroIds.includes(hero.id))
+                  .map((hero) =>
+                    heroTile(
+                      hero,
+                      () => {
+                        onPlace(hero.id, pickingSlot);
+                        setPickingSlot(null);
+                      },
+                      false,
+                      hero.level,
+                    ),
+                  )}
               </TileGrid>
-              <p className="text-xs text-sky-200/70">Якщо герой був серед інструкторів, його місце займає наступний за силою.</p>
+              <p className="text-xs text-sky-200/70">
+                Інструктори задають рівень табору, тож у слот іде лише хтось слабший за них.
+              </p>
             </section>
           )}
         </>
