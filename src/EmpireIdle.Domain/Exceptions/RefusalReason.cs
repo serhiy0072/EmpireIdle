@@ -363,7 +363,7 @@
         public static readonly RefusalReason CampSlotReady = new("camp.slotReady", "slot");
 
         /// <summary>Немає книги для цього вміння (GDD §6.1); book — назва потрібної книги.</summary>
-        public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book");
+        public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book", "need", "have");
 
         // ---------- Спорядження ----------
 

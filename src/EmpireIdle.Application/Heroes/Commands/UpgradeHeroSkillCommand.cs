@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
-    /// Піднімає вміння героя на рівень за одну книгу (GDD §6.1, рішення 08.10.2026). Книга — своєї
+    /// Піднімає вміння героя на рівень за книги (GDD §6.1; ціна за рівнем — рішення 15.10.2026). Книга — своєї
     /// ролі, рідкості й половини; вміння мусить бути відкрите рівнем героя, а наступний рівень —
     /// зірками: на N зірках доступний рівень N + 1.
     /// </summary>
@@ -81,18 +81,23 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var bookName = _catalog.FindItem(book.ItemKey)?.DisplayName ?? book.ItemKey;
             var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, book.ItemKey, cancellationToken);
+            var need = _skills.BookCost(current);
+            var have = stack?.Count ?? 0;
 
-            if (stack is null || stack.Count < 1)
+            if (stack is null || have < need)
                 throw new RequirementNotMetException(RefusalReasons.HeroSkillNoBook,
-                    $"Raising '{skill.Key}' needs a '{book.ItemKey}'.", bookName);
+                    $"Raising '{skill.Key}' needs {need} '{book.ItemKey}', the player has {have}.", bookName, need, have);
 
-            stack.Consume(1);
+            stack.Consume(need);
+
+            if (stack.Count == 0)
+                _inventoryRepository.RemoveItem(stack);
             hero.RaiseSkill(skill.Key, _skills.LevelCap(hero), settings.MaxSkillLevel, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Hero {HeroId} raised skill {SkillKey} to level {Level} with {Book}",
-                hero.Id, skill.Key, hero.SkillLevel(skill.Key), book.ItemKey);
+            _logger.LogInformation("Hero {HeroId} raised skill {SkillKey} to level {Level} with {Count} x {Book}",
+                hero.Id, skill.Key, hero.SkillLevel(skill.Key), need, book.ItemKey);
         }
     }
 }

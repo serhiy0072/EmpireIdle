@@ -10384,6 +10384,7 @@
           "maxUnitLevel",
           "partsPerStar",
           "resources",
+          "skillBookCosts",
           "skillBooks",
           "speedUp",
           "starPartBonus",
@@ -10468,6 +10469,13 @@
           "maxSkillLevel": {
             "type": "integer",
             "format": "int32"
+          },
+          "skillBookCosts": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
           },
           "skillBooks": {
             "type": "array",

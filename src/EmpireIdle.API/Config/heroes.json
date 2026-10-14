@@ -90,6 +90,7 @@
         "archer"
       ],
       "MaxSkillLevel": 6,
+      "SkillBookCosts": [ 3, 5, 7, 10, 12 ],
       "SkillLayouts": {
         "Common": {
           "Attack": 2,

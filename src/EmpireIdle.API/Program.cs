@@ -118,6 +118,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Equipment.BonusStepChances.Count > 0 && c.Equipment.BonusStepChances.All(p => p is >= 0 and <= 1)
                    && Math.Abs(c.Equipment.BonusStepChances.Sum() - 1) < 1e-6,
         "GameConfig.Equipment.BonusStepChances must be shares within [0; 1] that sum to 1.")
+    .Validate(c => c.HeroSettings.SkillBookCosts.All(cost => cost > 0),
+        "GameConfig.HeroSettings.SkillBookCosts must be positive.")
     .Validate(c => c.Equipment.MasteryStoneCosts.All(cost => cost > 0)
                    && c.Equipment.MasteryStoneCosts.Zip(c.Equipment.MasteryStoneCosts.Skip(1)).All(pair => pair.Second >= pair.First),
         "GameConfig.Equipment.MasteryStoneCosts must be positive and must not fall with mastery.")

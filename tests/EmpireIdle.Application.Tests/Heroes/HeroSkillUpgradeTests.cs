@@ -40,6 +40,7 @@ public class HeroSkillUpgradeTests
             new SkillBookConfig { ItemKey = AttackBook, Class = "warrior", Rarity = Rarity.Common, Half = SkillHalf.Attack },
             new SkillBookConfig { ItemKey = DefenseBook, Class = "warrior", Rarity = Rarity.Common, Half = SkillHalf.Defense },
         ];
+        config.HeroSettings.SkillBookCosts = [3, 5, 7, 10, 12];
 
         var hero = config.Heroes.First(h => h.Key == HeroTestConfig.CommonHero);
         hero.Skills = [Passive("fury", SkillHalf.Attack, unlockLevel: 1), Passive("wall", SkillHalf.Defense, unlockLevel: 20)];
@@ -70,17 +71,45 @@ public class HeroSkillUpgradeTests
                 _catalog, new FakeTimeProvider(Now), NullLogger<UpgradeHeroSkillCommandHandler>.Instance)
             .Handle(new UpgradeHeroSkillCommand(PlayerId, hero.Id, skillKey), CancellationToken.None);
 
+    /// <summary>З першого рівня на другий — 3 книги своєї половини (рішення 15.10.2026).</summary>
     [Fact]
-    public async Task Upgrade_ShouldRaiseTheSkill_ForOneBookOfItsHalf()
+    public async Task Upgrade_ShouldRaiseTheSkill_ForThreeBooksOfItsHalf()
     {
         var hero = GivenHero(stars: 1);
-        GivenBooks(AttackBook, 3);
+        GivenBooks(AttackBook, 5);
 
         await Upgrade(hero, "fury");
 
         Assert.Equal(2, hero.SkillLevel("fury"));
         Assert.Equal(2, _items[AttackBook].Count);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Книг менше, ніж коштує рівень: відмова з ціною й наявним, книги цілі.</summary>
+    [Fact]
+    public async Task Upgrade_ShouldRefuse_WithFewerBooksThanTheLevelCosts()
+    {
+        var hero = GivenHero(stars: 1);
+        GivenBooks(AttackBook, 2);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Upgrade(hero, "fury"));
+
+        Assert.Equal(RefusalReasons.HeroSkillNoBook.Key, refusal.Reason);
+        Assert.Equal((3, 2), ((int)refusal.Args["need"]!, (int)refusal.Args["have"]!));
+        Assert.Equal(1, hero.SkillLevel("fury"));
+        Assert.Equal(2, _items[AttackBook].Count);
+    }
+
+    /// <summary>Остання книга пішла на рівень — порожній стек прибирається з рюкзака.</summary>
+    [Fact]
+    public async Task Upgrade_ShouldRemoveTheEmptyStack()
+    {
+        var hero = GivenHero(stars: 1);
+        GivenBooks(AttackBook, 3);
+
+        await Upgrade(hero, "fury");
+
+        _inventory.Received(1).RemoveItem(_items[AttackBook]);
     }
 
     /// <summary>Книга іншої половини не підходить, навіть якщо вона є.</summary>
@@ -128,16 +157,17 @@ public class HeroSkillUpgradeTests
     public async Task Upgrade_ShouldRefuse_AtTheTopLevel()
     {
         var hero = GivenHero(stars: 5);
-        GivenBooks(AttackBook, 10);
+        GivenBooks(AttackBook, 40);
 
         for (var i = 0; i < 5; i++)
             await Upgrade(hero, "fury");
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Upgrade(hero, "fury"));
 
+        // 3 + 5 + 7 + 10 + 12 = 37 книг на шлях до шостого рівня
         Assert.Equal(RefusalReasons.HeroSkillMaxed.Key, refusal.Reason);
         Assert.Equal(6, hero.SkillLevel("fury"));
-        Assert.Equal(5, _items[AttackBook].Count);
+        Assert.Equal(3, _items[AttackBook].Count);
     }
 
     [Fact]

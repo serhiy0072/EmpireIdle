@@ -195,7 +195,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.skillLocked": ({ skill, level }) => `«${skill}» відкриється з ${level} рівня героя`,
   "hero.skillStarCapped": ({ stars }) => `Наступний рівень вміння відкриється на ${stars} зірці героя`,
   "hero.skillMaxed": ({ level }) => `Вміння вже на найвищому, ${level} рівні`,
-  "hero.skillNoBook": ({ book }) => `Потрібна «${book}»`,
+  "hero.skillNoBook": ({ book, need, have }) => `Замало книг «${book}»: потрібно ${need}, є ${have}`,
   "hero.notOwned": ({ hero }) => `Універсальні осколки йдуть лише у відкритого героя, а «${hero}» ще не призваний`,
   "hero.shardUpgradeLocked": () => "Обмін відкриється, коли всі герої цієї рідкості матимуть усі зірки",
 

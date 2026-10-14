@@ -9,6 +9,7 @@
     /// </summary>
     /// <param name="SkillBooks">Яка книга (предмет) піднімає вміння героя якої ролі, рідкості й половини.</param>
     /// <param name="MaxSkillLevel">Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1).</param>
+    /// <param name="SkillBookCosts">Скільки книг коштує підняти вміння з рівня n на n + 1 (індекс 0 — з першого).</param>
     /// <param name="Lootboxes">Таблиці скринь із шансами — розкриття обов'язкове за правилами сторів.</param>
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
     /// <param name="MaxArtifactLevel">Стеля рівня артефакта — після неї «Посилити» зникає.</param>
@@ -45,6 +46,7 @@
         int PartsPerStar,
         IReadOnlyList<int> WeaponShardCosts,
         int MaxSkillLevel,
+        IReadOnlyList<int> SkillBookCosts,
         IReadOnlyList<CatalogSkillBook> SkillBooks,
         double StarPartBonus,
         int SummonShards,

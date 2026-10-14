@@ -158,6 +158,9 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.PartsPerStar,
                 config.HeroSettings.WeaponShardCosts,
                 config.HeroSettings.MaxSkillLevel,
+                Enumerable.Range(1, Math.Max(0, config.HeroSettings.MaxSkillLevel - 1))
+                    .Select(new HeroSkills(config.HeroSettings).BookCost)
+                    .ToList(),
                 config.HeroSettings.SkillBooks
                     .Select(book => new CatalogSkillBook(book.ItemKey, book.Class, book.Rarity.ToString(), book.Half.ToString()))
                     .ToList(),

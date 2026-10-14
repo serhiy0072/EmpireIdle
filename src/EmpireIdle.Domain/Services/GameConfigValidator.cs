@@ -1119,6 +1119,12 @@ namespace EmpireIdle.Domain.Services
             if (settings.MaxSkillLevel < 1)
                 throw new InvalidOperationException("HeroSettings.MaxSkillLevel must be at least 1.");
 
+            // Ціна книг — по одній на кожен підйом: неповний список мовчки взяв би «останню» ціну
+            if (settings.SkillBookCosts.Count > 0 && settings.SkillBookCosts.Count != settings.MaxSkillLevel - 1)
+                throw new InvalidOperationException(
+                    $"HeroSettings.SkillBookCosts lists {settings.SkillBookCosts.Count} prices, "
+                    + $"but there are {settings.MaxSkillLevel - 1} skill level-ups.");
+
             var badLayouts = settings.SkillLayouts
                 .Where(l => !rankNames.Contains(l.Key)
                     || l.Value.Attack < 1 || l.Value.Defense < 0

@@ -13,7 +13,20 @@ public class HeroSkillsTests
 {
     private static readonly DateTime Now = new(2026, 10, 8, 12, 0, 0, DateTimeKind.Utc);
 
-    private static readonly HeroesConfig Settings = new() { MaxSkillLevel = 6, PartsPerStar = 6 };
+    private static readonly HeroesConfig Settings = new() { MaxSkillLevel = 6, PartsPerStar = 6, SkillBookCosts = [3, 5, 7, 10, 12] };
+
+    /// <summary>Книги за рівень (рішення 15.10.2026): 3, 5, 7, 10, 12; без списку — одна книга.</summary>
+    [Theory]
+    [InlineData(1, 3)]
+    [InlineData(2, 5)]
+    [InlineData(5, 12)]
+    [InlineData(9, 12)]
+    public void BookCost_ShouldFollowTheTable(int currentLevel, int expected)
+        => Assert.Equal(expected, new HeroSkills(Settings).BookCost(currentLevel));
+
+    [Fact]
+    public void BookCost_ShouldBeOneBook_WithoutATable()
+        => Assert.Equal(1, new HeroSkills(new HeroesConfig { MaxSkillLevel = 6 }).BookCost(3));
 
     private static HeroSkills Skills() => new(Settings);
 
