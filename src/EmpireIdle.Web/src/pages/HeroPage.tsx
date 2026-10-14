@@ -7,7 +7,7 @@ import HeroLevelUp from "../components/heroes/screen/HeroLevelUp";
 import HeroSkillsTab from "../components/heroes/screen/HeroSkillsTab";
 import HeroStatsTab from "../components/heroes/screen/HeroStatsTab";
 import { useSession } from "../hooks/useSession";
-import { sortRoster } from "../lib/heroOrder";
+import { parseRosterSort, sortRoster } from "../lib/heroOrder";
 import { rankLabel, useCatalog } from "../lib/queries/catalog";
 import {
   useAdvanceHeroStar,
@@ -67,7 +67,9 @@ export default function HeroPage() {
     return <ErrorBanner error={heroes.error} />;
   }
 
-  const roster = sortRoster(heroes.data.heroes, (key) => catalog.hero(key)?.rank);
+  // Той самий порядок, що в сітці героїв: стрілки гортають так, як гравець відсортував
+  const sort = parseRosterSort(params.get("sort"));
+  const roster = sortRoster(heroes.data.heroes, (key) => catalog.hero(key)?.rank, sort);
   const position = roster.findIndex((hero) => hero.id === heroId);
   const hero = roster[position];
   const config = hero === undefined ? null : catalog.hero(hero.heroKey);
@@ -82,7 +84,7 @@ export default function HeroPage() {
 
   const go = (step: number) => {
     const next = roster[(position + step + roster.length) % roster.length];
-    if (next !== undefined) void navigate(`/heroes/${next.id}?tab=${tab}`, { replace: true });
+    if (next !== undefined) void navigate(`/heroes/${next.id}?tab=${tab}&sort=${sort}`, { replace: true });
   };
 
   const items = inventory.data?.items ?? [];
@@ -110,7 +112,7 @@ export default function HeroPage() {
       <GameScreen
         title={
           <span className="flex items-center gap-2">
-            <Link to="/heroes" className="text-2xl leading-none text-sky-200 hover:text-white" aria-label="До ростеру">
+            <Link to={`/heroes?sort=${sort}`} className="text-2xl leading-none text-sky-200 hover:text-white" aria-label="До ростеру">
               ←
             </Link>
             {catalog.heroName(hero.heroKey)}
@@ -202,7 +204,7 @@ export default function HeroPage() {
           )}
         </div>
 
-        <GameTabs tabs={tabs} value={tab} onChange={(next) => setParams({ tab: next }, { replace: true })} />
+        <GameTabs tabs={tabs} value={tab} onChange={(next) => setParams({ tab: next, sort }, { replace: true })} />
         <GamePanel>
           {config === null ? (
             <p className="text-sm text-sky-100/80">Героя немає в довіднику.</p>

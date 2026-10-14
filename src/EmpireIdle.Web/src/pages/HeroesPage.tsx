@@ -17,7 +17,7 @@ import {
   useUpgradeUniversalShards,
 } from "../lib/queries/heroes";
 import { useInventory } from "../lib/queries/inventory";
-import { sortRoster } from "../lib/heroOrder";
+import { parseRosterSort, ROSTER_SORTS, sortRoster } from "../lib/heroOrder";
 
 type Tab = "heroes" | "camp";
 
@@ -43,6 +43,8 @@ export default function HeroesPage() {
 
   const [params, setParams] = useSearchParams();
   const tab: Tab = params.get("tab") === "camp" ? "camp" : "heroes";
+  // Порядок ростера живе в адресі: картка героя гортає стрілками в тому ж порядку
+  const sort = parseRosterSort(params.get("sort"));
 
   if (heroes.isPending) {
     return <p className="text-slate-500">Завантаження героїв…</p>;
@@ -63,7 +65,7 @@ export default function HeroesPage() {
   const failure =
     summon.error ?? upgradeShards.error ?? placeInCamp.error ?? removeFromCamp.error ?? skipCampCooldown.error ?? buyCampSlot.error ?? resetLevel.error;
 
-  const roster = sortRoster(heroes.data.heroes, (key) => catalog.hero(key)?.rank);
+  const roster = sortRoster(heroes.data.heroes, (key) => catalog.hero(key)?.rank, sort);
   const free = roster.filter((hero) => hero.state === "Idle").length;
 
   // Універсальні осколки за рідкістю (GDD §6.1): предмет-осколок має рідкість героїв, яким він підходить
@@ -90,7 +92,7 @@ export default function HeroesPage() {
           </p>
         }
       >
-        <GameTabs tabs={tabs} value={tab} onChange={(next) => setParams({ tab: next }, { replace: true })} />
+        <GameTabs tabs={tabs} value={tab} onChange={(next) => setParams({ tab: next, sort }, { replace: true })} />
         <GamePanel className="min-h-[30vh]">
           {tab === "heroes" &&
             (roster.length === 0 ? (
@@ -98,6 +100,22 @@ export default function HeroesPage() {
                 Героїв ще немає — купіть уламки звичайного героя за золото або крутіть банери.
               </p>
             ) : (
+              <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-sky-100/80">Сортувати:</span>
+                {ROSTER_SORTS.map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => setParams({ tab, sort: option.key }, { replace: true })}
+                    className={`rounded-full px-3 py-1 font-semibold ring-1 transition ${
+                      option.key === sort ? "bg-[#e8eef8] text-[#1d3b6f] ring-white" : "bg-[#2a4f8c] text-white ring-[#3d6aae] hover:bg-[#3a63a6]"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
               <TileGrid>
                 {roster.map((hero, index) => {
                   const config = catalog.hero(hero.heroKey);
@@ -106,7 +124,7 @@ export default function HeroesPage() {
                     <Tile
                       key={hero.id}
                       rarity={config?.rank}
-                      onClick={() => void navigate(`/heroes/${hero.id}`)}
+                      onClick={() => void navigate(`/heroes/${hero.id}?sort=${sort}`)}
                       title={catalog.heroName(hero.heroKey)}
                       tutorial={index === 0 ? "hero-card" : undefined}
                       dimmed={hero.state === "Wounded"}
@@ -124,6 +142,7 @@ export default function HeroesPage() {
                   );
                 })}
               </TileGrid>
+              </div>
             ))}
 
           {tab === "camp" && (
