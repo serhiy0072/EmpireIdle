@@ -943,12 +943,25 @@
               "Key": "loot_hero_xp_small",
               "DisplayName": "Мала баночка досвіду ×2",
               "Rarity": "Common",
-              "Weight": 1900,
+              "Weight": 1500,
               "Rewards": [
                 {
                   "Type": "Item",
                   "Key": "hero_xp_small",
                   "Amount": 2
+                }
+              ]
+            },
+            {
+              "Key": "loot_whetstone",
+              "DisplayName": "Камінь для заточування ×20",
+              "Rarity": "Common",
+              "Weight": 400,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "whetstone",
+                  "Amount": 20
                 }
               ]
             },
@@ -2062,12 +2075,25 @@
               "Key": "loot_hero_xp_small",
               "DisplayName": "Мала баночка досвіду ×2",
               "Rarity": "Common",
-              "Weight": 1900,
+              "Weight": 1500,
               "Rewards": [
                 {
                   "Type": "Item",
                   "Key": "hero_xp_small",
                   "Amount": 2
+                }
+              ]
+            },
+            {
+              "Key": "loot_whetstone",
+              "DisplayName": "Камінь для заточування ×20",
+              "Rarity": "Common",
+              "Weight": 400,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "whetstone",
+                  "Amount": 20
                 }
               ]
             },
@@ -3299,12 +3325,25 @@
               "Key": "loot_hero_xp_small",
               "DisplayName": "Мала баночка досвіду ×2",
               "Rarity": "Common",
-              "Weight": 1900,
+              "Weight": 1500,
               "Rewards": [
                 {
                   "Type": "Item",
                   "Key": "hero_xp_small",
                   "Amount": 2
+                }
+              ]
+            },
+            {
+              "Key": "loot_whetstone",
+              "DisplayName": "Камінь для заточування ×20",
+              "Rarity": "Common",
+              "Weight": 400,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "whetstone",
+                  "Amount": 20
                 }
               ]
             },

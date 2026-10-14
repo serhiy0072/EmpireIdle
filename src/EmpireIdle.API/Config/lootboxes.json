@@ -9,7 +9,7 @@
             "Type": "Item",
             "Key": "crate_mixed_large",
             "Amount": 3,
-            "Weight": 640
+            "Weight": 440
           },
           {
             "Type": "Item",
@@ -45,7 +45,7 @@
             "Type": "Item",
             "Key": "hero_xp_10k",
             "Amount": 2,
-            "Weight": 1000
+            "Weight": 800
           },
           {
             "Type": "Item",
@@ -107,6 +107,12 @@
             "Amount": 1,
             "Weight": 1,
             "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 25,
+            "Weight": 400
           }
         ]
       },
@@ -124,7 +130,7 @@
             "Type": "Item",
             "Key": "hero_xp_20k",
             "Amount": 1,
-            "Weight": 150
+            "Weight": 100
           },
           {
             "Type": "Artifact",
@@ -167,12 +173,18 @@
             "Type": "Item",
             "Key": "dungeon_energy_50",
             "Amount": 1,
-            "Weight": 105
+            "Weight": 55
           },
           {
             "Type": "Gems",
             "Amount": 1000,
             "Weight": 10
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 100,
+            "Weight": 100
           }
         ]
       },
@@ -553,7 +565,7 @@
             "Type": "Item",
             "Key": "speedup_5m",
             "Amount": 1,
-            "Weight": 220
+            "Weight": 170
           },
           {
             "Type": "Item",
@@ -571,7 +583,7 @@
             "Type": "Item",
             "Key": "hero_xp_1k",
             "Amount": 2,
-            "Weight": 175
+            "Weight": 125
           },
           {
             "Type": "Item",
@@ -645,6 +657,12 @@
             "Amount": 1,
             "Weight": 6,
             "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 5,
+            "Weight": 100
           }
         ]
       },
@@ -657,7 +675,7 @@
             "Type": "Item",
             "Key": "speedup_10m",
             "Amount": 2,
-            "Weight": 160
+            "Weight": 110
           },
           {
             "Type": "Item",
@@ -675,7 +693,7 @@
             "Type": "Item",
             "Key": "hero_xp_10k",
             "Amount": 1,
-            "Weight": 185
+            "Weight": 135
           },
           {
             "Type": "Item",
@@ -744,6 +762,12 @@
             "Amount": 1,
             "Weight": 40,
             "Pity": true
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 20,
+            "Weight": 100
           }
         ]
       }
