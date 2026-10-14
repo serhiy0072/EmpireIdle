@@ -1,5 +1,6 @@
 import { useState } from "react";
 import BannerCard from "../components/banners/BannerCard";
+import BannerDrops from "../components/banners/BannerDrops";
 import ErrorBanner from "../components/ErrorBanner";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
@@ -27,6 +28,8 @@ export default function BannersPage() {
   // Остання серія — розгорнуто, попередні — рядком: гравець бачить і серію, і смугу
   const [latest, setLatest] = useState<BannerDropResult[]>([]);
   const [history, setHistory] = useState<BannerDropResult[]>([]);
+  // Відкрите вікно нагород і що крутили — для кнопки «Ще»
+  const [shown, setShown] = useState<{ bannerKey: string; count: number } | null>(null);
 
   if (banners.isPending) {
     return <p className="text-slate-500">Завантаження банерів…</p>;
@@ -38,6 +41,20 @@ export default function BannersPage() {
 
   const gems = wallet.data?.gemBalance ?? 0;
   const best = latest.reduce((max, drop) => Math.max(max, drop.rarity), 0);
+
+  const rollBanner = (bannerKey: string, count: number) =>
+    roll.mutate(
+      { bannerKey, count },
+      {
+        onSuccess: (result) => {
+          setHistory((previous) => [...latest, ...previous].slice(0, HISTORY_LIMIT));
+          setLatest(result.drops);
+          setShown({ bannerKey, count });
+        },
+      },
+    );
+
+  const shownBanner = shown === null ? undefined : banners.data.find((banner) => banner.key === shown.bannerKey);
 
   return (
     <div className="space-y-4">
@@ -84,20 +101,23 @@ export default function BannersPage() {
               now={now}
               busy={roll.isPending}
               maxRolls={MAX_ROLLS_PER_REQUEST}
-              onRoll={(count) =>
-                roll.mutate(
-                  { bannerKey: banner.key, count },
-                  {
-                    onSuccess: (result) => {
-                      setHistory((previous) => [...latest, ...previous].slice(0, HISTORY_LIMIT));
-                      setLatest(result.drops);
-                    },
-                  },
-                )
-              }
+              onRoll={(count) => rollBanner(banner.key, count)}
             />
           ))}
         </div>
+      )}
+
+      {shown !== null && shownBanner !== undefined && (
+        <BannerDrops
+          drops={latest}
+          onClose={() => setShown(null)}
+          pending={roll.isPending}
+          again={{
+            label: `Ще ×${shown.count} · 💎 ${(shownBanner.priceGems * shown.count).toLocaleString("uk-UA")}`,
+            onClick: () => rollBanner(shown.bannerKey, shown.count),
+            disabled: gems < shownBanner.priceGems * shown.count,
+          }}
+        />
       )}
     </div>
   );
