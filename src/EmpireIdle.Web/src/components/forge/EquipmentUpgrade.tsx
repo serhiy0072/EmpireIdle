@@ -239,7 +239,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
 }
 
 /**
- * Майстерність коваля (GDD §6.4): спроба за золото з шансом; на пізніх заточках невдача може зламати
+ * Майстерність коваля (GDD §6.4): спроба за камені для заточування з шансом; на пізніх заточках невдача може зламати
  * предмет, і тоді його ремонтують за gems чи ремкомплектом.
  */
 export function EquipmentMastery({ playerId, selected }: Props) {
@@ -257,6 +257,9 @@ export function EquipmentMastery({ playerId, selected }: Props) {
   // Спроба на +n має шанс поломки з індексом n − 1: зараз це наступна заточка
   const breakChance = catalog.artifactRepair.breakChances[selected.mastery] ?? 0;
   const attempt = catalog.masteryAttempts[selected.mastery] ?? null;
+  // Спроба платиться каменями для заточування з рюкзака, не золотом (рішення 14.10.2026)
+  const stones = inventory.data?.items.find((item) => item.itemKey === catalog.masteryStoneItemKey)?.count ?? 0;
+  const stoneName = catalog.itemName(catalog.masteryStoneItemKey);
 
   return (
     <>
@@ -271,7 +274,7 @@ export function EquipmentMastery({ playerId, selected }: Props) {
               ? "Вдалося!"
               : mastery.data.broken
                 ? "Не вдалося — предмет зламався. Відремонтуйте його, щоб повернути повні стати й точити далі."
-                : "Не вдалося — золото витрачено, предмет цілий."}
+                : "Не вдалося — камені витрачено, предмет цілий."}
           </p>
         )}
         {selected.isBroken ? (
@@ -309,16 +312,18 @@ export function EquipmentMastery({ playerId, selected }: Props) {
             <button
               type="button"
               onClick={() => mastery.mutate(selected.id)}
-              disabled={busy}
+              disabled={busy || (attempt !== null && stones < attempt.stones)}
               className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
             >
               {attempt === null
-                ? "Спробувати за золото"
-                : `Спробувати за ${attempt.gold.toLocaleString("uk-UA")} 🪙 · шанс ${Math.round(attempt.chance * 100)}%`}
+                ? "Спробувати"
+                : `Спробувати за ${attempt.stones.toLocaleString("uk-UA")} 🪨 · шанс ${Math.round(attempt.chance * 100)}%`}
             </button>
-            {attempt !== null && (
-              <p className="text-xs text-slate-500">Невдача з'їдає золото, майстерність не падає.</p>
-            )}
+            <p className="text-xs text-slate-500">
+              {stoneName}: є {stones.toLocaleString("uk-UA")}
+              {attempt !== null && stones < attempt.stones && ` — бракує ${(attempt.stones - stones).toLocaleString("uk-UA")}`}.
+              {" "}Невдача з'їдає камені, майстерність не падає. Камені падають зі скринь і банерів.
+            </p>
           </>
         ) : (
           <p className="text-xs text-slate-500">Найвища майстерність.</p>

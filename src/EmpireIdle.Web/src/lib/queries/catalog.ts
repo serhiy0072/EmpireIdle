@@ -79,6 +79,8 @@ export interface Catalog {
   artifactLevelExperience: number[];
   /** Ціна в золоті й шанс успіху спроби з кожної поточної майстерності (індекс 0 — спроба на +1). */
   masteryAttempts: CatalogMasteryAttempt[];
+  /** Камінь для заточування — ним платять за спробу заточки (рішення 14.10.2026). */
+  masteryStoneItemKey: string;
   /** Ціна ремонту й шанси поломки на кожну заточку. */
   artifactRepair: CatalogArtifactRepair;
   /** Сторона світової мапи в клітинах. */
@@ -187,6 +189,7 @@ export function useCatalog(): Catalog {
       maxMastery: data?.maxMastery ?? 10,
       artifactLevelExperience: data?.artifactLevelExperience ?? [],
       masteryAttempts: data?.masteryAttempts ?? [],
+      masteryStoneItemKey: data?.masteryStoneItemKey ?? "whetstone",
       artifactRepair: data?.artifactRepair ?? { gemsPerMastery: 0, kitItemKey: "repair_kit", breakChances: [] },
       mapSize: data?.mapSize ?? 500,
       mainBuildingKey: data?.mainBuildingKey ?? "townhall",

@@ -146,6 +146,17 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
+    // Камінь для заточування: брусок-точило з іскрою
+    test: /whetstone/,
+    draw: () => (
+      <g>
+        <path d="M22 62 L60 30 Q66 26 72 32 L78 40 Q82 46 76 50 L38 80 Q32 84 27 78 L20 70 Q17 65 22 62 Z" fill="#94a3b8" stroke="#334155" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M30 66 L64 38" stroke="#e2e8f0" strokeWidth={3} strokeLinecap="round" />
+        <path d="M76 18 L78 26 L86 28 L78 30 L76 38 L74 30 L66 28 L74 26 Z" fill="#fde047" />
+      </g>
+    ),
+  },
+  {
     // Ремкомплект: скринька з хрестом
     test: /repair/,
     draw: () => (
@@ -292,6 +303,7 @@ const BY_TYPE: Record<string, RegExp> = {
   universalshard: /shard/,
   wrench: /wrench/,
   repairkit: /repair/,
+  whetstone: /whetstone/,
   chestkey: /^key_/,
 };
 
