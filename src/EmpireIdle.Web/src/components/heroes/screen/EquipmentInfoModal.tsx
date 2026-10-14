@@ -178,8 +178,9 @@ export default function EquipmentInfoModal({
                     dimmed={busy}
                     title={`Вдягнути: ${catalog.itemName(candidate.itemKey)} · ⚔ ${Math.round(candidate.power)}`}
                     top={candidate.level > 0 ? `Рів. ${candidate.level}` : undefined}
+                    bottomRight={candidate.mastery > 0 ? `+${candidate.mastery}` : undefined}
                   >
-                    <ItemIcon itemKey={candidate.itemKey} type="equipment" rarity={candidate.rarity} mastery={candidate.mastery} size={44} bare />
+                    <ItemIcon itemKey={candidate.itemKey} type="equipment" rarity={candidate.rarity} size={44} bare />
                   </Tile>
                 ))}
               </div>

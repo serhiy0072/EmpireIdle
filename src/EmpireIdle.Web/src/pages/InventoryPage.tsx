@@ -150,6 +150,7 @@ export default function InventoryPage() {
                       onClick={() => select({ item: piece.id })}
                       title={catalog.itemName(piece.itemKey)}
                       top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+                      bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
                       bottomLeft={
                         wearer === undefined ? undefined : (
                           <HeroPortrait
@@ -163,7 +164,7 @@ export default function InventoryPage() {
                         )
                       }
                     >
-                      <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} mastery={piece.mastery} size={56} bare />
+                      <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
                     </Tile>
                   );
                 })}

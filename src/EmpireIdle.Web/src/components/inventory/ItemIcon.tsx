@@ -14,7 +14,7 @@ interface Props {
   className?: string;
   /** Без власного тла й рамки — коли рамку рідкості малює плитка навколо. */
   bare?: boolean;
-  /** Заточка артефакта: «+N» у правому верхньому куті, 0 — без позначки. */
+  /** Заточка артефакта: «+N» у правому нижньому куті, 0 — без позначки. */
   mastery?: number;
 }
 
@@ -373,12 +373,21 @@ export default function ItemIcon({ itemKey, type, rarity, size = 48, className =
       {!bare && <rect x={2} y={2} width={96} height={96} rx={11} fill="none" stroke={frame.stroke} strokeWidth={3} />}
       {/* Заточка видна на самому значку — як на референсах, без підпису поруч */}
       {mastery > 0 && (
-        <g>
-          <rect x={mastery >= 10 ? 46 : 60} y={2} width={mastery >= 10 ? 52 : 38} height={34} rx={8} fill="#0f172a" opacity={0.85} />
-          <text x={mastery >= 10 ? 72 : 79} y={28} textAnchor="middle" fontSize={27} fontWeight={800} fill="#fde68a">
-            +{mastery}
-          </text>
-        </g>
+        <text
+          x={95}
+          y={94}
+          textAnchor="end"
+          // Розмір і вигляд — як напис «Рів. N» на плитці (12 px, білий з тінню) незалежно від розміру значка
+          fontSize={Math.max(16, 1200 / size)}
+          fontWeight={700}
+          fill="#fff"
+          stroke="#000"
+          strokeWidth={Math.max(16, 1200 / size) / 6}
+          paintOrder="stroke"
+          strokeLinejoin="round"
+        >
+          +{mastery}
+        </text>
       )}
     </svg>
   );

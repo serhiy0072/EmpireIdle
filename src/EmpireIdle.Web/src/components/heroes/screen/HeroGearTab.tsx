@@ -95,8 +95,9 @@ export default function HeroGearTab({
         }}
         title={catalog.itemName(piece.itemKey)}
         top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+        bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
       >
-        <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} mastery={piece.mastery} size={56} bare />
+        <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
       </Tile>
     );
   };
@@ -192,8 +193,9 @@ function SlotDetails({
               dimmed={disabled}
               title={`Вдягнути: ${catalog.itemName(piece.itemKey)}`}
               top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+              bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
             >
-              <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} mastery={piece.mastery} size={44} bare />
+              <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={44} bare />
             </Tile>
           ))}
         </div>
