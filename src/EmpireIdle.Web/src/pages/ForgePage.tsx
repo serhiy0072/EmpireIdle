@@ -31,7 +31,7 @@ function EquipmentRow({ equipment, wearer, selected, onSelect }: RowProps) {
         selected ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"
       }`}
     >
-      <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} size={40} />
+      <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} mastery={equipment.mastery} size={40} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium text-slate-800">{catalog.itemName(equipment.itemKey)}</div>
         <div className="flex flex-wrap gap-1 text-xs">
@@ -120,7 +120,7 @@ export default function ForgePage() {
           {selected !== null && (
             <aside className="h-fit space-y-4 rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex gap-3">
-                <ItemIcon itemKey={selected.itemKey} type="equipment" rarity={selected.rarity} size={72} />
+                <ItemIcon itemKey={selected.itemKey} type="equipment" rarity={selected.rarity} mastery={selected.mastery} size={72} />
                 <div className="min-w-0">
                   <h2 className="text-lg font-medium text-slate-800">{catalog.itemName(selected.itemKey)}</h2>
                   <div className="mt-1 flex flex-wrap gap-1 text-xs">

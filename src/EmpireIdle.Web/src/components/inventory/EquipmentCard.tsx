@@ -37,7 +37,7 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3">
       <div className="flex gap-3">
-        <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} size={48} />
+        <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} mastery={equipment.mastery} size={48} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">

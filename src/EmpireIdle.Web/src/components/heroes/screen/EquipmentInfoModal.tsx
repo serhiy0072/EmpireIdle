@@ -113,12 +113,7 @@ export default function EquipmentInfoModal({
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
             <div className="flex items-start gap-3 border-b border-sky-200 pb-3">
               <div className="relative">
-                <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={64} />
-                {piece.mastery > 0 && (
-                  <span className="absolute -right-1 -top-1 rounded bg-slate-800/85 px-1 text-xs font-semibold text-white">
-                    +{piece.mastery}
-                  </span>
-                )}
+                <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={64} mastery={piece.mastery} />
                 <span className="absolute inset-x-0 -bottom-1 text-center text-xs font-semibold text-amber-700">Рів. {piece.level}</span>
               </div>
               <div className="min-w-0 flex-1">
@@ -184,7 +179,7 @@ export default function EquipmentInfoModal({
                     title={`Вдягнути: ${catalog.itemName(candidate.itemKey)} · ⚔ ${Math.round(candidate.power)}`}
                     top={candidate.level > 0 ? `Рів. ${candidate.level}` : undefined}
                   >
-                    <ItemIcon itemKey={candidate.itemKey} type="equipment" rarity={candidate.rarity} size={44} bare />
+                    <ItemIcon itemKey={candidate.itemKey} type="equipment" rarity={candidate.rarity} mastery={candidate.mastery} size={44} bare />
                   </Tile>
                 ))}
               </div>

@@ -14,6 +14,8 @@ interface Props {
   className?: string;
   /** Без власного тла й рамки — коли рамку рідкості малює плитка навколо. */
   bare?: boolean;
+  /** Заточка артефакта: «+N» у правому верхньому куті, 0 — без позначки. */
+  mastery?: number;
 }
 
 const FRAME: Record<string, { stroke: string; back: string }> = {
@@ -359,7 +361,7 @@ const BY_TYPE: Record<string, RegExp> = {
   chestkey: /^key_/,
 };
 
-export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false }: Props): ReactElement {
+export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false, mastery = 0 }: Props): ReactElement {
   const frame = FRAME[rarityKey(rarity)] ?? (FRAME.Common as { stroke: string; back: string });
   const key = itemKey.toLowerCase();
   const shape = SHAPES.find((candidate) => candidate.test.test(key)) ?? SHAPES.find((candidate) => candidate.test.test(BY_TYPE[type]?.source ?? ""));
@@ -369,6 +371,15 @@ export default function ItemIcon({ itemKey, type, rarity, size = 48, className =
       {!bare && <rect width={100} height={100} rx={12} fill={frame.back} />}
       {shape?.draw()}
       {!bare && <rect x={2} y={2} width={96} height={96} rx={11} fill="none" stroke={frame.stroke} strokeWidth={3} />}
+      {/* Заточка видна на самому значку — як на референсах, без підпису поруч */}
+      {mastery > 0 && (
+        <g>
+          <rect x={mastery >= 10 ? 46 : 60} y={2} width={mastery >= 10 ? 52 : 38} height={34} rx={8} fill="#0f172a" opacity={0.85} />
+          <text x={mastery >= 10 ? 72 : 79} y={28} textAnchor="middle" fontSize={27} fontWeight={800} fill="#fde68a">
+            +{mastery}
+          </text>
+        </g>
+      )}
     </svg>
   );
 }

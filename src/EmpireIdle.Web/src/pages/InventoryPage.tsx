@@ -163,7 +163,7 @@ export default function InventoryPage() {
                         )
                       }
                     >
-                      <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
+                      <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} mastery={piece.mastery} size={56} bare />
                     </Tile>
                   );
                 })}
