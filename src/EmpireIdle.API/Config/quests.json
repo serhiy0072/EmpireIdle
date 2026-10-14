@@ -175,6 +175,11 @@
           {
             "Type": "Gems",
             "Amount": 2340
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 150
           }
         ]
       },
@@ -281,6 +286,11 @@
             "Type": "Item",
             "Key": "beast_feed",
             "Amount": 50
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 10
           }
         ]
       },
@@ -299,6 +309,11 @@
           {
             "Type": "Gems",
             "Amount": 70
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 10
           }
         ]
       },
