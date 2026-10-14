@@ -179,7 +179,7 @@
           {
             "Type": "Item",
             "Key": "whetstone",
-            "Amount": 150
+            "Amount": 75
           }
         ]
       },
@@ -290,7 +290,7 @@
           {
             "Type": "Item",
             "Key": "whetstone",
-            "Amount": 10
+            "Amount": 5
           }
         ]
       },
@@ -309,11 +309,6 @@
           {
             "Type": "Gems",
             "Amount": 70
-          },
-          {
-            "Type": "Item",
-            "Key": "whetstone",
-            "Amount": 10
           }
         ]
       },

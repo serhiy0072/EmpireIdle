@@ -7,7 +7,7 @@
       "Daily": [
         { "Rewards": [ { "Type": "Gems", "Amount": 100 }, { "Type": "Resource", "Key": "food", "Amount": 500 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 } ] },
         { "Rewards": [ { "Type": "Resource", "Key": "wood", "Amount": 500 }, { "Type": "Item", "Key": "chest_boosts", "Amount": 1 } ] },
-        { "Rewards": [ { "Type": "Gems", "Amount": 100 }, { "Type": "Item", "Key": "chest_books_common", "Amount": 1 }, { "Type": "Item", "Key": "whetstone", "Amount": 40 } ] },
+        { "Rewards": [ { "Type": "Gems", "Amount": 100 }, { "Type": "Item", "Key": "chest_books_common", "Amount": 1 } ] },
         { "Rewards": [ { "Type": "Resource", "Key": "iron", "Amount": 500 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 }, { "Type": "Item", "Key": "chest_boosts", "Amount": 1 } ] },
         { "Rewards": [ { "Type": "Resource", "Key": "gold", "Amount": 300 }, { "Type": "Item", "Key": "chest_traveler", "Amount": 1 } ] },
         { "Rewards": [ { "Type": "Gems", "Amount": 200 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_rare", "Amount": 1 } ] },
