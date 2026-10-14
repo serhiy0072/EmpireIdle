@@ -90,7 +90,10 @@ function SkillDetails({
   busy: boolean;
   onUpgrade: () => void;
 }) {
+  const catalog = useCatalog();
   const atMax = level >= maxLevel;
+  // Рівень коштує кілька книг своєї половини: 3, 5, 7, 10, 12 (рішення 15.10.2026)
+  const cost = catalog.skillBookCosts[level - 1] ?? 1;
   // Стеля вміння — зірки + 1: наступний рівень відкриває зірка з номером поточного рівня
   const needsStar = level > 0 && !atMax && level >= cap;
 
@@ -129,8 +132,8 @@ function SkillDetails({
       ) : (
         <div className="flex items-center justify-center gap-3">
           <span className="text-sm text-sky-100">книг: {books}</span>
-          <GameButton onClick={onUpgrade} disabled={busy || books === 0} variant="accent">
-            Покращити · 1 книга
+          <GameButton onClick={onUpgrade} disabled={busy || books < cost} variant="accent">
+            Покращити · {cost} {cost === 1 ? "книга" : cost < 5 ? "книги" : "книг"}
           </GameButton>
         </div>
       )}

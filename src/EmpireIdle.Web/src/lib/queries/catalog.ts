@@ -54,6 +54,8 @@ export interface Catalog {
   partsPerStar: number;
   /** Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1). */
   maxSkillLevel: number;
+  /** Скільки книг коштує підняти вміння з рівня n на n + 1 (індекс 0 — з першого); рішення 15.10.2026. */
+  skillBookCosts: number[];
   /** Ключ предмета-книги для вмінь цієї половини в героя такої ролі й рідкості; null — книги немає. */
   skillBook: (heroClass: string, rarity: string, half: string) => string | null;
   /** Скільки осколків коштує призов будь-якого героя. */
@@ -163,6 +165,7 @@ export function useCatalog(): Catalog {
       maxStars: data?.maxStars ?? 5,
       partsPerStar: data?.partsPerStar ?? 6,
       maxSkillLevel: data?.maxSkillLevel ?? 6,
+      skillBookCosts: data?.skillBookCosts ?? [],
       skillBook: (heroClass, rarity, half) =>
         (data?.skillBooks ?? []).find(
           (book) =>
