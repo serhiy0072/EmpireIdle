@@ -631,7 +631,7 @@
       {
         "Key": "chest_key_unique",
         "Rolls": 4,
-        "PityWithin": 5,
+        "PityWithin": 100,
         "Entries": [
           {
             "Type": "Item",
