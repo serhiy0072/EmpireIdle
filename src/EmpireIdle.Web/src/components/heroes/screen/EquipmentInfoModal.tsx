@@ -114,7 +114,10 @@ export default function EquipmentInfoModal({
             <div className="flex items-start gap-3 border-b border-sky-200 pb-3">
               <div className="relative">
                 <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={64} mastery={piece.mastery} />
-                <span className="absolute inset-x-0 -bottom-1 text-center text-xs font-semibold text-amber-700">Рів. {piece.level}</span>
+                {/* Рівень угорі, заточка внизу праворуч — як на плитках рюкзака */}
+                <span className="absolute inset-x-0 top-0.5 text-center text-xs font-bold text-white [text-shadow:0_1px_2px_#000]">
+                  Рів. {piece.level}
+                </span>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{catalog.itemName(piece.itemKey)}</p>
