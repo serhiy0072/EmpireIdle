@@ -29,8 +29,14 @@ export default function HospitalPanel({ playerId }: Props) {
   const wounded = (garrison.data?.wounded ?? []).filter((stack) => stack.count > 0);
   const recoverable = (garrison.data?.recoverable ?? []).filter((stack) => stack.count > 0);
 
+  // Порожній госпіталь теж видно: «Лазарет» на картці будівлі веде сюди, і гравець має побачити, що поранених немає
   if (wounded.length === 0 && recoverable.length === 0) {
-    return null;
+    return (
+      <div className="space-y-1 border-t border-slate-200 pt-3">
+        <h4 className="text-sm font-medium text-slate-700">Госпіталь</h4>
+        <p className="text-sm text-slate-500">Поранених немає — після боїв вони з'являться тут.</p>
+      </div>
+    );
   }
 
   return (
