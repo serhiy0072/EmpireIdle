@@ -15,7 +15,14 @@ namespace EmpireIdle.Application.Heroes.Commands
     /// <param name="FoodIds">Спорядження, яке згодовується, — воно зникає.</param>
     /// <param name="Wrenches">Ключ гаєчки → скільки штук.</param>
     public record FeedArtifactCommand(Guid PlayerId, Guid EquipmentId, IReadOnlyList<Guid> FoodIds,
-        IReadOnlyDictionary<string, int> Wrenches) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
+        IReadOnlyDictionary<string, int> Wrenches) : IRequest, IPlayerScopedRequest, IIdempotentRequest
+    {
+        /// <summary>
+        /// Скільки предметів можна згодувати за раз. Стеля рівня — 80, і до неї потрібно близько 670 звичайних,
+        /// тож ліміт лише проти сміття, а не проти гри.
+        /// </summary>
+        public const int MaxFood = 1_000;
+    }
 
     /// <summary>
     /// Обробник FeedArtifactCommand. Рівень лише збільшує пласку базу предмета — роллів тут немає.
