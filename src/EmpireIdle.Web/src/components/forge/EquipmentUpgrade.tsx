@@ -5,6 +5,9 @@ import { useFeedArtifact, useInventory, useRaiseMastery, useRepairArtifact } fro
 import { useWallet } from "../../lib/queries/wallet";
 import ErrorBanner from "../ErrorBanner";
 
+/** Скільки предметів сервер приймає за одне згодовування — FeedArtifactCommand.MaxFood. */
+const MAX_FOOD = 1_000;
+
 interface Props {
   playerId: string;
   selected: EquipmentResponse;
@@ -95,6 +98,8 @@ export function EquipmentFeed({ playerId, selected }: Props) {
       if (value <= 0) continue;
 
       if (item !== null) {
+        // Понад ліміт запиту предмети не докладаємо — далі лише гаєчки
+        if (nextFood.length >= MAX_FOOD) continue;
         nextFood.push(item.id);
         missing -= value;
       } else if (wrench !== null) {
@@ -152,6 +157,11 @@ export function EquipmentFeed({ playerId, selected }: Props) {
               </div>
             )}
 
+            {foodIds.length >= MAX_FOOD && (
+              <p className="text-xs text-amber-700">
+                За раз можна згодувати до {MAX_FOOD.toLocaleString("uk-UA")} предметів — решту докладіть наступним разом.
+              </p>
+            )}
             <div className="max-h-48 space-y-1 overflow-y-auto">
               {feedList.map(({ item, wrench }) =>
                 item !== null ? (
@@ -159,7 +169,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
                     <input
                       type="checkbox"
                       checked={foodIds.includes(item.id)}
-                      disabled={busy}
+                      disabled={busy || (foodIds.length >= MAX_FOOD && !foodIds.includes(item.id))}
                       onChange={(event) =>
                         setFoodIds((previous) =>
                           event.target.checked ? [...previous, item.id] : previous.filter((id) => id !== item.id),
