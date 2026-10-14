@@ -181,7 +181,8 @@
                 ArtifactItem(TestKeys.ThirdArtifact, TestKeys.SetKey, "crown"),
                 ArtifactItem(TestKeys.FourthArtifact, TestKeys.SetKey, "belt"),
                 ArtifactItem(TestKeys.LooseArtifact, setKey: null, "ring"),
-                new ItemConfig { Key = RepairKit, Type = "repairkit", DisplayName = "Ремкомплект", Description = "r" }
+                new ItemConfig { Key = RepairKit, Type = "repairkit", DisplayName = "Ремкомплект", Description = "r" },
+                new ItemConfig { Key = Whetstone, Type = "whetstone", DisplayName = "Камінь для заточування", Description = "w" }
             ]);
 
             tune?.Invoke(_config.Equipment);
@@ -241,17 +242,20 @@
                 BonusStepChances = [0.4, 0.3, 0.2, 0.1],
                 MaxMastery = 20,
                 ForgeBuildingKey = forgeKey,
-                MasteryBaseGold = 400,
-                MasteryCostGrowth = 1.33,
+                MasteryStoneCosts = [10, 12, 14, 17, 20, 24, 28, 33, 40, 50, 54, 58, 62, 67, 72, 77, 82, 88, 94, 100],
                 MasterySuccessChances = [1, 1, 1, 1, 1, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.27, 0.25],
                 MasteryBreakChances = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2],
                 BrokenStatShare = 0.5,
                 RepairGemsPerMastery = 50,
-                RepairKitItemKey = RepairKit
+                RepairKitItemKey = RepairKit,
+                MasteryStoneItemKey = Whetstone
             };
 
         /// <summary>Ключ ремкомплекта в DefaultEquipment; сам предмет додає WithEquipment.</summary>
         public const string RepairKit = "repair_kit";
+
+        /// <summary>Ключ каменю для заточування в DefaultEquipment; сам предмет додає WithEquipment.</summary>
+        public const string Whetstone = "whetstone";
 
         private static ArtifactSlotConfig Slot(string key, string name, List<string> fixedBonuses,
             params (string Stat, double Weight)[] pool)

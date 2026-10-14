@@ -10305,11 +10305,11 @@
       "CatalogMasteryAttempt": {
         "required": [
           "chance",
-          "gold"
+          "stones"
         ],
         "type": "object",
         "properties": {
-          "gold": {
+          "stones": {
             "type": "integer",
             "format": "int32"
           },
@@ -10375,6 +10375,7 @@
           "mainBuildingKey",
           "mapSize",
           "masteryAttempts",
+          "masteryStoneItemKey",
           "maxArtifactLevel",
           "maxMastery",
           "maxSkillLevel",
@@ -10534,6 +10535,9 @@
             "items": {
               "$ref": "#/components/schemas/CatalogMasteryAttempt"
             }
+          },
+          "masteryStoneItemKey": {
+            "type": "string"
           },
           "artifactRepair": {
             "$ref": "#/components/schemas/CatalogArtifactRepair"

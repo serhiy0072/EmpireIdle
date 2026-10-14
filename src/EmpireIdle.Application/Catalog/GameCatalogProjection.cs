@@ -183,6 +183,7 @@ namespace EmpireIdle.Application.Catalog
                     .ToList(),
                 config.Equipment.MaxMastery,
                 MasteryAttempts(config.Equipment),
+                config.Equipment.MasteryStoneItemKey,
                 new CatalogArtifactRepair(config.Equipment.RepairGemsPerMastery, config.Equipment.RepairKitItemKey,
                     config.Equipment.MasteryBreakChances),
                 new CatalogSpeedUp(

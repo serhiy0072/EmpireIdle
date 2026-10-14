@@ -457,6 +457,30 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Contains("DefenderLossLosses", error.Message);
         }
 
+        /// <summary>Заточка платиться каменем — його ключ мусить бути предметом, інакше заточка недосяжна.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAnUnknownWhetstone()
+        {
+            var config = new GameConfigBuilder().WithResources().WithBuildings().WithHeroes().WithEquipment().Build();
+            config.Equipment.MasteryStoneItemKey = "no_such_stone";
+
+            var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+
+            Assert.Contains("no_such_stone", error.Message);
+        }
+
+        /// <summary>Неповна таблиця каменів мовчки брала б останню ціну для пізніх рангів.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAShortStoneTable()
+        {
+            var config = new GameConfigBuilder().WithResources().WithBuildings().WithHeroes().WithEquipment().Build();
+            config.Equipment.MasteryStoneCosts = [10, 20];
+
+            var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+
+            Assert.Contains("MasteryStoneCosts", error.Message);
+        }
+
         /// <summary>Вітрина обіцяє унікальний артефакт, а в Items він звичайний — гравець отримав би не те, що бачив.</summary>
         [Fact]
         public void Validate_ShouldRejectABannerDrop_WhoseRarityDiffersFromTheItem()

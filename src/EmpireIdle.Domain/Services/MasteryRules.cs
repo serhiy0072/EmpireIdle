@@ -4,7 +4,7 @@ using EmpireIdle.Domain.Services.Config;
 namespace EmpireIdle.Domain.Services
 {
     /// <summary>
-    /// Заточка коваля (GDD §9.12): ціна, шанс спроби й поломка. Невдача з'їдає золото, а заточка
+    /// Заточка коваля (GDD §9.12): ціна в каменях, шанс спроби й поломка. Невдача з'їдає камені, а заточка
     /// не падає; на пізніх рангах невдача може ще й зламати предмет.
     ///
     /// Чиста функція від конфіга; кидок винесений сюди, щоб крива шансів мала одне місце
@@ -19,9 +19,13 @@ namespace EmpireIdle.Domain.Services
             _config = config;
         }
 
-        /// <summary>Ціна спроби з поточної заточки на наступну, у золоті: round10(база · ріст^поточна).</summary>
+        /// <summary>Скільки каменів для заточування коштує спроба з поточної заточки; поза списком — остання відома ціна.</summary>
         public int Cost(int currentMastery)
-            => (int)(Math.Round(_config.MasteryBaseGold * Math.Pow(_config.MasteryCostGrowth, currentMastery) / 10) * 10);
+        {
+            var costs = _config.MasteryStoneCosts;
+
+            return costs.Count == 0 ? 0 : costs[Math.Clamp(currentMastery, 0, costs.Count - 1)];
+        }
 
         /// <summary>Шанс успіху спроби з поточної заточки; поза списком — останній відомий.</summary>
         public double SuccessChance(int currentMastery)

@@ -1513,6 +1513,17 @@ namespace EmpireIdle.Domain.Services
                     $"Equipment.MasteryBreakChances lists {settings.MasteryBreakChances.Count} attempts, "
                     + $"but MaxMastery is {settings.MaxMastery}.");
 
+            // Неповна таблиця каменів мовчки взяла б «останню» ціну для пізніх рангів
+            if (settings.MasteryStoneCosts.Count < settings.MaxMastery)
+                throw new InvalidOperationException(
+                    $"Equipment.MasteryStoneCosts lists {settings.MasteryStoneCosts.Count} attempts, "
+                    + $"but MaxMastery is {settings.MaxMastery}.");
+
+            // Камінь, якого немає в предметах, не видати й не витратити — заточка стала б недосяжною
+            if (!config.Items.Any(i => i.Key == settings.MasteryStoneItemKey))
+                throw new InvalidOperationException(
+                    $"Equipment.MasteryStoneItemKey '{settings.MasteryStoneItemKey}' is not a known item.");
+
             // Ремкомплект, якого немає в предметах, не видати й не витратити — ремонт лишився б лише за gems мовчки
             if (!config.Items.Any(i => i.Key == settings.RepairKitItemKey))
                 throw new InvalidOperationException(

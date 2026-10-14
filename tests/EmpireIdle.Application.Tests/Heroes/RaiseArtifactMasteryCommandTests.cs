@@ -13,8 +13,8 @@ using NSubstitute;
 namespace EmpireIdle.Application.Tests.Heroes;
 
 /// <summary>
-/// Заточка коваля (GDD §9.12): спроба за золото в кузні. Успіх додає ранг бонусу з журналом
-/// сіду; невдача з'їдає золото, а заточка не падає; на пізніх рангах невдача може зламати предмет.
+/// Заточка коваля (GDD §9.12): спроба за камені для заточування в кузні. Успіх додає ранг бонусу з журналом
+/// сіду; невдача з'їдає камені, а заточка не падає; на пізніх рангах невдача може зламати предмет.
 /// </summary>
 public class RaiseArtifactMasteryCommandTests
 {
@@ -27,9 +27,15 @@ public class RaiseArtifactMasteryCommandTests
     private readonly IRandomSource _random = Substitute.For<IRandomSource>();
     private readonly GameConfig _config = HeroTestConfig.Create();
 
-    private Village GivenVillage(bool withForge = true, int gold = 100_000)
+    private PlayerItem? _stones;
+
+    /// <summary>Село з кузнею і камені в рюкзаку; stones: 0 — каменів немає зовсім.</summary>
+    private Village GivenVillage(bool withForge = true, int stones = 1_000)
     {
-        var village = Entities.VillageWithResources(gold, PlayerId);
+        var village = Entities.VillageWithResources(100_000, PlayerId);
+
+        _stones = stones > 0 ? new PlayerItem(Guid.NewGuid(), PlayerId, GameConfigBuilder.Whetstone, stones) : null;
+        _inventory.GetItemAsync(PlayerId, GameConfigBuilder.Whetstone, Arg.Any<CancellationToken>()).Returns(_stones);
 
         if (withForge)
             village.AddBuilding(HeroTestConfig.Forge,
@@ -62,12 +68,14 @@ public class RaiseArtifactMasteryCommandTests
                 NullLogger<RaiseArtifactMasteryCommandHandler>.Instance)
             .Handle(new RaiseArtifactMasteryCommand(PlayerId, item.Id), CancellationToken.None);
 
-    private static long Gold(Village village) => village.Resources.Single(r => r.ResourceType == "gold").Amount;
+    private int Stones() => _stones?.Count ?? 0;
+
+    private int Cost(int mastery) => new MasteryRules(_config.Equipment).Cost(mastery);
 
     [Fact]
-    public async Task Handle_ShouldRaiseMastery_AndChargeGold_OnSuccess()
+    public async Task Handle_ShouldRaiseMastery_AndChargeStones_OnSuccess()
     {
-        var village = GivenVillage();
+        GivenVillage();
         var item = GivenItem();
         _random.NextDouble().Returns(0.99);
 
@@ -76,7 +84,7 @@ public class RaiseArtifactMasteryCommandTests
         // Перші п'ять спроб певні, навіть із найгіршим кидком
         Assert.Equal(MasteryOutcome.Success, outcome);
         Assert.Equal(1, item.Mastery);
-        Assert.Equal(100_000 - 400, Gold(village));
+        Assert.Equal(1_000 - 10, Stones());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -127,11 +135,11 @@ public class RaiseArtifactMasteryCommandTests
         Assert.Empty(item.Rolls);
     }
 
-    /// <summary>Невдача до +10: золото списане й збережене, заточка та сама, предмет цілий.</summary>
+    /// <summary>Невдача до +10: камені списані й збережені, заточка та сама, предмет цілий.</summary>
     [Fact]
     public async Task Handle_ShouldKeepTheMastery_AndStillCharge_OnFailure()
     {
-        var village = GivenVillage();
+        GivenVillage();
         var item = GivenItem(mastery: 5);
         _random.NextDouble().Returns(0.99, 0.0);
 
@@ -140,7 +148,7 @@ public class RaiseArtifactMasteryCommandTests
         Assert.Equal(MasteryOutcome.Failed, outcome);
         Assert.False(item.IsBroken);
         Assert.Equal(5, item.Mastery);
-        Assert.Equal(100_000 - new MasteryRules(_config.Equipment).Cost(5), Gold(village));
+        Assert.Equal(1_000 - Cost(5), Stones());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -148,7 +156,7 @@ public class RaiseArtifactMasteryCommandTests
     [Fact]
     public async Task Handle_ShouldBreakTheItem_OnARiskyFailure()
     {
-        var village = GivenVillage(gold: 1_000_000);
+        GivenVillage();
         var item = GivenItem(mastery: 15);
         _random.NextDouble().Returns(0.99, 0.0);
 
@@ -157,22 +165,22 @@ public class RaiseArtifactMasteryCommandTests
         Assert.Equal(MasteryOutcome.Broken, outcome);
         Assert.True(item.IsBroken);
         Assert.Equal(15, item.Mastery);
-        Assert.Equal(1_000_000 - new MasteryRules(_config.Equipment).Cost(15), Gold(village));
+        Assert.Equal(1_000 - Cost(15), Stones());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    /// <summary>Зламаний не точиться — відмова до списання золота.</summary>
+    /// <summary>Зламаний не точиться — відмова до списання каменів.</summary>
     [Fact]
     public async Task Handle_ShouldRefuseABrokenItem_WithoutCharging()
     {
-        var village = GivenVillage();
+        GivenVillage();
         var item = GivenItem(mastery: 12);
         item.Break(Now);
 
         var refusal = await Assert.ThrowsAsync<InvalidStateException>(() => Raise(item));
 
         Assert.Equal(RefusalReasons.EquipmentBroken.Key, refusal.Reason);
-        Assert.Equal(100_000, Gold(village));
+        Assert.Equal(1_000, Stones());
     }
 
     [Fact]
@@ -189,37 +197,65 @@ public class RaiseArtifactMasteryCommandTests
     [Fact]
     public async Task Handle_ShouldRefuse_WithoutAForge()
     {
-        var village = GivenVillage(withForge: false);
+        GivenVillage(withForge: false);
         var item = GivenItem();
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Raise(item));
 
         Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
-        Assert.Equal(100_000, Gold(village));
+        Assert.Equal(1_000, Stones());
     }
 
+    /// <summary>Каменів менше, ніж коштує спроба: відмова з причиною, кидка немає, камені цілі.</summary>
     [Fact]
-    public async Task Handle_ShouldRefuse_WhenGoldRunsShort()
+    public async Task Handle_ShouldRefuse_WhenStonesRunShort()
     {
-        GivenVillage(gold: 100);
+        GivenVillage(stones: 9);
         var item = GivenItem();
 
-        await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Raise(item));
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Raise(item));
 
+        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.Equal(0, item.Mastery);
+        Assert.Equal(9, Stones());
     }
 
-    /// <summary>Лот у заставі ринку: відмова до списання золота.</summary>
+    /// <summary>Каменів немає зовсім — та сама відмова, а не падіння.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_WithoutStones()
+    {
+        GivenVillage(stones: 0);
+        var item = GivenItem();
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Raise(item));
+
+        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
+    }
+
+    /// <summary>Остання пачка каменів пішла на спробу — порожній стек прибирається з рюкзака.</summary>
+    [Fact]
+    public async Task Handle_ShouldRemoveTheEmptyStack()
+    {
+        GivenVillage(stones: 10);
+        var item = GivenItem();
+        _random.NextDouble().Returns(0.0);
+
+        await Raise(item);
+
+        _inventory.Received(1).RemoveItem(_stones!);
+    }
+
+    /// <summary>Лот у заставі ринку: відмова до списання каменів.</summary>
     [Fact]
     public async Task Handle_ShouldRefuse_WhileOnTheMarket_WithoutCharging()
     {
-        var village = GivenVillage();
+        GivenVillage();
         var item = GivenItem();
         item.PutOnMarket(Now);
 
         await Assert.ThrowsAsync<InvalidStateException>(() => Raise(item));
 
-        Assert.Equal(100_000, Gold(village));
+        Assert.Equal(1_000, Stones());
     }
 
     [Fact]

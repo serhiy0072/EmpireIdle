@@ -18,9 +18,10 @@
     /// </param>
     /// <param name="MaxMastery">Стеля майстерності коваля.</param>
     /// <param name="MasteryAttempts">
-    /// Спроба заточки з кожної поточної майстерності (індекс 0 — спроба на +1): ціна в золоті й шанс успіху —
+    /// Спроба заточки з кожної поточної майстерності (індекс 0 — спроба на +1): ціна в каменях і шанс успіху —
     /// кузня показує їх на кнопці тими самими числами, що й сервер.
     /// </param>
+    /// <param name="MasteryStoneItemKey">Камінь для заточування — предмет, яким платять за спробу.</param>
     /// <param name="ArtifactRepair">Ремонт зламаного заточкою артефакта й шанси поломки (GDD §9.12).</param>
     /// <param name="SpeedUp">
     /// Ціна прискорення таймерів. Клієнт перераховує її щосекунди разом із відліком —
@@ -57,6 +58,7 @@
         IReadOnlyList<long> ArtifactLevelExperience,
         int MaxMastery,
         IReadOnlyList<CatalogMasteryAttempt> MasteryAttempts,
+        string MasteryStoneItemKey,
         CatalogArtifactRepair ArtifactRepair,
         CatalogSpeedUp SpeedUp,
         int MapSize,
@@ -185,7 +187,7 @@
     /// <summary>Одна спроба заточки коваля.</summary>
     /// <param name="Gold">Ціна спроби в золоті; невдача її не повертає.</param>
     /// <param name="Chance">Шанс успіху від 0 до 1.</param>
-    public record CatalogMasteryAttempt(int Gold, double Chance);
+    public record CatalogMasteryAttempt(int Stones, double Chance);
 
     /// <summary>Ремонт артефакта: gems за рівень заточки або один ремкомплект.</summary>
     /// <param name="BreakChances">Шанс поломки після невдалої спроби на кожну заточку, від спроби на +1.</param>

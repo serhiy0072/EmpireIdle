@@ -75,7 +75,8 @@ internal static class HeroTestConfig
                 ArtifactSlot = "ring",
                 SetKey = "dawn"
             },
-            new ItemConfig { Key = TestKit.GameConfigBuilder.RepairKit, Type = "repairkit", DisplayName = "Ремкомплект" }
+            new ItemConfig { Key = TestKit.GameConfigBuilder.RepairKit, Type = "repairkit", DisplayName = "Ремкомплект" },
+            new ItemConfig { Key = TestKit.GameConfigBuilder.Whetstone, Type = "whetstone", DisplayName = "Камінь для заточування" }
         ],
         Equipment = TestKit.GameConfigBuilder.DefaultEquipment(Forge),
         HeroSettings = new HeroesConfig

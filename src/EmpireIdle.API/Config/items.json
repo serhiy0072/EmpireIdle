@@ -325,6 +325,13 @@
         "Type": "repairkit"
       },
       {
+        "Key": "whetstone",
+        "DisplayName": "Камінь для заточування",
+        "Description": "Ним платять ковалю за спробу заточки артефакта в кузні: +1 — 10 каменів, +10 — 50, +20 — 100. Невдала спроба теж забирає камені",
+        "Rarity": "common",
+        "Type": "whetstone"
+      },
+      {
         "Key": "chest_supply",
         "DisplayName": "Скриня обозу",
         "Description": "Досвід героїв, ресурси, прискорення й гаєчки — усе, що везе обоз",
@@ -1814,8 +1821,8 @@
       "BonusStepChances": [ 0.4, 0.3, 0.2, 0.1 ],
       "MaxMastery": 20,
       "ForgeBuildingKey": "forge",
-      "MasteryBaseGold": 400,
-      "MasteryCostGrowth": 1.33,
+      "MasteryStoneItemKey": "whetstone",
+      "MasteryStoneCosts": [ 10, 12, 14, 17, 20, 24, 28, 33, 40, 50, 54, 58, 62, 67, 72, 77, 82, 88, 94, 100 ],
       "MasterySuccessChances": [ 1, 1, 1, 1, 1, 0.95, 0.9, 0.9, 0.85, 0.85, 0.8, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4 ],
       "MasteryBreakChances": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1, 0.1, 0.1, 0.1 ],
       "BrokenStatShare": 0.5,
