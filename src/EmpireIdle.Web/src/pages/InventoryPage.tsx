@@ -239,6 +239,11 @@ export default function InventoryPage() {
         <div key={pickedEquipment.id} ref={(node) => node?.scrollIntoView({ behavior: "smooth", block: "nearest" })}>
           <EquipmentCard
             equipment={pickedEquipment}
+            wornKeys={
+              pickedEquipment.equippedByHeroId === null
+                ? []
+                : equipment.filter((piece) => piece.equippedByHeroId === pickedEquipment.equippedByHeroId).map((piece) => piece.itemKey)
+            }
             heroes={roster}
             busy={busy}
             onEquip={(heroId) => equip.mutate({ heroId, equipmentId: pickedEquipment.id })}

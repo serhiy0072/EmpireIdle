@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import DungeonBattle from "../components/dungeons/DungeonBattle";
 import ErrorBanner from "../components/ErrorBanner";
 import HeroPortrait from "../components/heroes/HeroPortrait";
@@ -35,7 +35,9 @@ export default function DungeonsPage() {
   const start = useStartDungeonRun(playerId);
   const refill = useRefillDungeonEnergy(playerId);
 
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  // ?dungeon=ключ відкриває данж одразу — туди веде «Де отримати» з картки артефакта
+  const [params] = useSearchParams();
+  const [selectedKey, setSelectedKey] = useState<string | null>(() => params.get("dungeon"));
   const [level, setLevel] = useState(1);
   const [team, setTeam] = useState<string[]>([]);
 

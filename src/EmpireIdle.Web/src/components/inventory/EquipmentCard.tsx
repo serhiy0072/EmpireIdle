@@ -5,10 +5,13 @@ import { useCatalog } from "../../lib/queries/catalog";
 import type { HeroSummary } from "../../lib/queries/heroes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { statLabel, statValue } from "../../lib/statNames";
+import ArtifactSetInfo from "./ArtifactSetInfo";
 import ItemIcon from "./ItemIcon";
 
 interface Props {
   equipment: EquipmentResponse;
+  /** Ключі всього, що вдягнено на того самого героя, — для лічильника й бонусу набору. */
+  wornKeys: string[];
   heroes: HeroSummary[];
   busy: boolean;
   onEquip: (heroId: string) => void;
@@ -19,7 +22,7 @@ interface Props {
  * Екземпляр спорядження в інвентарі: одягнути на героя вдома (для артефакта —
  * ще й слот) або зняти. Посилення й майстерність коваля — в кузні, це інший екран.
  */
-export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUnequip }: Props) {
+export default function EquipmentCard({ equipment, wornKeys, heroes, busy, onEquip, onUnequip }: Props) {
   const catalog = useCatalog();
   const [picking, setPicking] = useState(false);
   const [heroId, setHeroId] = useState("");
@@ -81,6 +84,10 @@ export default function EquipmentCard({ equipment, heroes, busy, onEquip, onUneq
           </div>
         ))}
       </dl>
+
+      <div className="mt-3">
+        <ArtifactSetInfo itemKey={equipment.itemKey} wornKeys={wornKeys} />
+      </div>
 
       {equipment.experienceToNext != null && (
         <p className="mt-2 text-xs text-slate-500">

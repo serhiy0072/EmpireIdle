@@ -5,6 +5,7 @@ import { rarityLabel, rarityStyle } from "../../../lib/rarity";
 import { statLabel, statValue } from "../../../lib/statNames";
 import { EquipmentFeed, EquipmentMastery } from "../../forge/EquipmentUpgrade";
 import { GameButton, Tile } from "../../game/GameUi";
+import ArtifactSetInfo from "../../inventory/ArtifactSetInfo";
 import ItemIcon from "../../inventory/ItemIcon";
 
 type View = "info" | "replace" | "feed" | "mastery";
@@ -157,6 +158,7 @@ export default function EquipmentInfoModal({
                     ))}
                   </dl>
                 </section>
+                <ArtifactSetInfo itemKey={piece.itemKey} wornKeys={worn.map((item) => item.itemKey)} />
                 <section className="space-y-1">
                   <h3 className="text-sm font-semibold">Майстерність коваля</h3>
                   <p className="rounded-lg bg-white/80 px-3 py-1.5 text-sm text-slate-600">
