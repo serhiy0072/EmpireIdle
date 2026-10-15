@@ -210,9 +210,9 @@ public class CompleteMarchCommandTests
             new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog),
             NullLogger<MonsterBattleService>.Instance);
 
-        var homecoming = new MarchHomecoming(_heroes, logistics, NullLogger<MarchHomecoming>.Instance);
+        var homecoming = new MarchHomecoming(logistics, NullLogger<MarchHomecoming>.Instance);
 
-        var relocator = new VillageRelocator(_map, _marches, _garrisons, _heroes, _serverRepository, catalog, geometry, effects,
+        var relocator = new VillageRelocator(_map, _marches, _garrisons, _serverRepository, catalog, geometry, effects,
             homecoming, returner);
 
         // Справжній випадок, а не заглушка _random: на ній пошук клітини крутився б на одній точці
@@ -235,11 +235,11 @@ public class CompleteMarchCommandTests
         _garrisons.GetHoldingReinforcementsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Garrison>());
 
         var reinforcements = new ReinforcementDelivery(
-            _garrisons, _villages, _heroes, logistics, reinforcementRules, capacities,
+            _garrisons, _villages, logistics, reinforcementRules, capacities,
             NullLogger<ReinforcementDelivery>.Instance);
 
         var structureDelivery = new StructureReinforcementDelivery(
-            _garrisons, _villages, _heroes, _clans, _structures, combat, heroModifiers, combatants, terrain, logistics, territory,
+            _garrisons, _villages, _clans, _structures, combat, heroModifiers, combatants, terrain, logistics, territory,
             NullLogger<StructureReinforcementDelivery>.Instance);
 
         var remover = new ClanStructureRemover(_structures, _garrisons, _map, returner, NullLogger<ClanStructureRemover>.Instance);
@@ -716,7 +716,7 @@ public class CompleteMarchCommandTests
     /// <summary>Герой, що вийшов із гарнізону в цей похід: у дорозі, без гарнізону.</summary>
     private Hero GivenHeroOnTheMarch(Guid garrisonId, Guid marchId)
     {
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrisonId, asLeader: true, Now.AddHours(-1));
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrisonId, Now.AddHours(-1));
         hero.Deploy(marchId, Now.AddMinutes(-30));
 
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);

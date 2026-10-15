@@ -159,7 +159,7 @@ public class SendMarchCommandTests
 
         var monster = new Monster(Guid.NewGuid(), 1, monsterType, 1, 55, 55, Now);
 
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "warrior_bran", garrison.Id, asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "warrior_bran", garrison.Id, Now);
 
         var existing = Enumerable.Range(0, activeMarches)
             .Select(_ => new March(
@@ -365,7 +365,7 @@ public class SendMarchCommandTests
     {
         var (garrison, near, hero) = GivenState();
 
-        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
+        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, Now);
         _heroes.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(second);
 
         var far = new Monster(Guid.NewGuid(), 1, "wolves", 1, 90, 90, Now);
@@ -417,7 +417,7 @@ public class SendMarchCommandTests
     {
         var (garrison, monster, _) = GivenState();
 
-        var stranger = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, "warrior_bran", garrison.Id, asLeader: false, Now);
+        var stranger = new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, "warrior_bran", garrison.Id, Now);
         _heroes.GetByIdAsync(stranger.Id, Arg.Any<CancellationToken>()).Returns(stranger);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
@@ -434,7 +434,6 @@ public class SendMarchCommandTests
 
         Assert.Equal(HeroState.Deployed, hero.State);
         Assert.Null(hero.StationedGarrisonId);
-        Assert.False(hero.IsLeader);
     }
 
     /// <summary>Стеля MaxMarches діє навіть при повному ростері.</summary>
@@ -466,7 +465,7 @@ public class SendMarchCommandTests
         var (_, monster, stationedHere) = GivenState();
 
         // Той самий герой, але стоїть в іншому гарнізоні
-        var hero = new Hero(stationedHere.Id, PlayerId, 1, "warrior_bran", Guid.NewGuid(), asLeader: false, Now);
+        var hero = new Hero(stationedHere.Id, PlayerId, 1, "warrior_bran", Guid.NewGuid(), Now);
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
@@ -586,7 +585,7 @@ public class SendMarchCommandTests
     public async Task Handle_ShouldSendSeveralHeroesInOneMarch()
     {
         var (garrison, monster, hero) = GivenState();
-        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
+        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, Now);
         _heroes.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(second);
 
         var command = Send(monster.Id, hero.Id) with { HeroIds = [hero.Id, second.Id] };
@@ -604,7 +603,7 @@ public class SendMarchCommandTests
     public async Task Handle_ShouldRefuseTheWholeMarch_WhenOneHeroIsUnavailable()
     {
         var (garrison, monster, hero) = GivenState();
-        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
+        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer_lyra", garrison.Id, Now);
         second.Wound(Now);
         _heroes.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(second);
 

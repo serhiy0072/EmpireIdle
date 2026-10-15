@@ -96,46 +96,9 @@ public class UnitOfWorkLookupTests : IAsyncLifetime
         await using var scope = CreateScope(out _);
         var heroes = scope.ServiceProvider.GetRequiredService<IHeroRepository>();
 
-        var hero = new Hero(Guid.NewGuid(), playerId, ServerId, "knight", garrisonId, asLeader: false, DateTime.UtcNow);
+        var hero = new Hero(Guid.NewGuid(), playerId, ServerId, "knight", garrisonId, DateTime.UtcNow);
         await heroes.AddAsync(hero);
 
         Assert.Same(hero, await heroes.GetByKeyAsync(playerId, "knight"));
-    }
-
-    /// <summary>Лідер, призначений у цій же транзакції, займає слот — другий не стане лідером.</summary>
-    [Fact]
-    public async Task GetLeaderAsync_ShouldSeeALeaderAddedInTheSameUnitOfWork()
-    {
-        var (playerId, garrisonId) = await SeedPlayerAsync();
-
-        await using var scope = CreateScope(out _);
-        var heroes = scope.ServiceProvider.GetRequiredService<IHeroRepository>();
-
-        var leader = new Hero(Guid.NewGuid(), playerId, ServerId, "knight", garrisonId, asLeader: true, DateTime.UtcNow);
-        await heroes.AddAsync(leader);
-
-        Assert.Same(leader, await heroes.GetLeaderAsync(garrisonId, playerId));
-    }
-
-    /// <summary>Лідерство зняли в пам'яті, ще не зберігши, — база більше не відповідає за нього.</summary>
-    [Fact]
-    public async Task GetLeaderAsync_ShouldIgnoreALeaderDismissedInTheSameUnitOfWork()
-    {
-        var (playerId, garrisonId) = await SeedPlayerAsync();
-        var leaderId = Guid.NewGuid();
-
-        await using (var seed = CreateScope(out var context))
-        {
-            context.Heroes.Add(new Hero(leaderId, playerId, ServerId, "knight", garrisonId, asLeader: true, DateTime.UtcNow));
-            await context.SaveChangesAsync();
-        }
-
-        await using var scope = CreateScope(out _);
-        var heroes = scope.ServiceProvider.GetRequiredService<IHeroRepository>();
-
-        var stored = await heroes.GetByIdAsync(leaderId);
-        stored!.DismissLeader(DateTime.UtcNow);
-
-        Assert.Null(await heroes.GetLeaderAsync(garrisonId, playerId));
     }
 }

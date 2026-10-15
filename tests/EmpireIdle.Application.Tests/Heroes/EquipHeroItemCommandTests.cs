@@ -28,7 +28,7 @@ public class EquipHeroItemCommandTests
 
     private Hero GivenHero(string heroKey = "warrior_bran")
     {
-        var hero = new Hero(Guid.NewGuid(), PlayerId, ServerId, heroKey, GarrisonId, asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, ServerId, heroKey, GarrisonId, Now);
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 
         return hero;

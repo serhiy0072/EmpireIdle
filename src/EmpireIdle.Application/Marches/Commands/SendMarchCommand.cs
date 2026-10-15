@@ -118,7 +118,7 @@ namespace EmpireIdle.Application.Marches.Commands
 
                 // Герой веде похід звідти, де стоїть. Без цієї перевірки герой
                 // із гарнізону союзника телепортувався б додому, лишивши там
-                // свій стек без лідера
+                // свій стек без героя
                 if (hero.StationedGarrisonId != garrison.Id)
                     throw new RequirementNotMetException(RefusalReasons.MarchHeroElsewhere,
                         $"Hero {hero.Id} is stationed in another garrison.");

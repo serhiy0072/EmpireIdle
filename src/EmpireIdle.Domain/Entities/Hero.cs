@@ -5,8 +5,8 @@ using EmpireIdle.Domain.Exceptions;
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
-    /// Герой гравця. Веде марш або боронить гарнізон, носить спорядження
-    /// й дає бойові модифікатори.
+    /// Герой гравця. Веде марш і боронить село (найсильніший свого класу — GarrisonDefence),
+    /// носить спорядження й дає бойові модифікатори.
     ///
     /// Прив'язаний до світу, а не до акаунта: gems спільні (§2.7), а армія,
     /// село й герої живуть у своєму сервері окремо.
@@ -95,16 +95,6 @@ namespace EmpireIdle.Domain.Entities
         public Guid? MarchId { get; private set; }
 
         /// <summary>
-        /// Лідер гарнізону. Лише він дає бонус своїм стекам і лише він
-        /// потрапляє в госпіталь при поразці — інакше зібраний ростер
-        /// множив би оборону, а одна програна битва клала б увесь зал.
-        ///
-        /// Слот один на гравця в гарнізоні, і стежить за цим частковий
-        /// унікальний індекс, а не перевірка в хендлері.
-        /// </summary>
-        public bool IsLeader { get; private set; }
-
-        /// <summary>
         /// Момент останньої мутації агрегату. Змінюється навіть тоді, коли
         /// правились лише дочірні рядки — інакше токен паралелізму на корені
         /// не спрацював би, бо EF не оновив би рядок кореня.
@@ -114,7 +104,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Concurrency token (PostgreSQL xmin).</summary>
         public uint Version { get; private set; }
 
-        public Hero(Guid id, Guid playerId, int serverId, string heroKey, Guid garrisonId, bool asLeader,
+        public Hero(Guid id, Guid playerId, int serverId, string heroKey, Guid garrisonId,
             DateTime utcNow, int nativeTier = 1) : base(id)
         {
             if (nativeTier < 1)
@@ -129,7 +119,6 @@ namespace EmpireIdle.Domain.Entities
             StarParts = 0;
             State = HeroState.Idle;
             StationedGarrisonId = garrisonId;
-            IsLeader = asLeader;
             AcquiredAt = utcNow;
             UpdatedAt = utcNow;
 
@@ -153,9 +142,6 @@ namespace EmpireIdle.Domain.Entities
         ///
         /// Кидає, а не повертає false: викликач уже зняв юнітів із гарнізону,
         /// і мовчазна відмова лишила б гарнізон порожнім без маршу.
-        ///
-        /// Лідерство складається тут же. Гарнізон лишається без лідера,
-        /// поки герой не повернеться або поки не призначать іншого.
         /// </summary>
         public void Deploy(Guid marchId, DateTime utcNow)
         {
@@ -165,7 +151,6 @@ namespace EmpireIdle.Domain.Entities
             State = HeroState.Deployed;
             StationedGarrisonId = null;
             MarchId = marchId;
-            IsLeader = false;
             Touch(utcNow);
         }
 
@@ -177,12 +162,7 @@ namespace EmpireIdle.Domain.Entities
         /// «У дорозі» визначає порожній гарнізон, а не стан: поранений
         /// у поході теж їде й теж прибуває, лишаючись пораненим.
         /// </summary>
-        /// <param name="leaderSlotFree">
-        /// Чи вільний лідерський слот саме зараз. Якщо за час походу
-        /// призначили іншого, герой стає рядовим: інакше на SaveChanges
-        /// прилетіло б порушення індексу гравцеві, який нічого не робив.
-        /// </param>
-        public void Arrive(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
+        public void Arrive(Guid garrisonId, DateTime utcNow)
         {
             // У дорозі означає порожній гарнізон: іншого способу його втратити,
             // ніж Deploy або SendHome, у героя немає — конструктор вимагає гарнізон
@@ -194,13 +174,12 @@ namespace EmpireIdle.Domain.Entities
 
             StationedGarrisonId = garrisonId;
             MarchId = null;
-            IsLeader = leaderSlotFree;
             Touch(utcNow);
         }
 
         /// <summary>
         /// Знімає героя з гарнізону в дорогу додому. На відміну від Deploy
-        /// дозволений і пораненому: поранений лідер їде зі своїм загоном,
+        /// дозволений і пораненому: поранений герой їде зі своїм загоном,
         /// а лікувати його можна лише у власному госпіталі.
         /// </summary>
         public void SendHome(Guid marchId, DateTime utcNow)
@@ -213,7 +192,6 @@ namespace EmpireIdle.Domain.Entities
 
             StationedGarrisonId = null;
             MarchId = marchId;
-            IsLeader = false;
             Touch(utcNow);
         }
 
@@ -222,35 +200,12 @@ namespace EmpireIdle.Domain.Entities
         /// усе військо гравця збирається вдома одразу, і дороги, на якій героя можна було б
         /// перехопити, немає. Стан (зокрема поранення) лишається як був.
         /// </summary>
-        /// <param name="leaderSlotFree">Чи вільний слот лідера вдома — як в Arrive.</param>
-        public void Relocate(Guid garrisonId, bool leaderSlotFree, DateTime utcNow)
+        public void Relocate(Guid garrisonId, DateTime utcNow)
         {
             if (StationedGarrisonId is null)
                 throw new InvalidStateException($"Hero {Id} is on the move and cannot be relocated.");
 
             StationedGarrisonId = garrisonId;
-            IsLeader = leaderSlotFree;
-            Touch(utcNow);
-        }
-
-        /// <summary>
-        /// Призначає лідером гарнізону, у якому герой уже стоїть.
-        /// Поранений лідером бути може: бонус дає той, хто в строю,
-        /// а перевірка стану — справа бойової формули, не призначення.
-        /// </summary>
-        public void AppointLeader(DateTime utcNow)
-        {
-            if (StationedGarrisonId is null)
-                throw new InvalidStateException($"Hero {Id} is not stationed anywhere.");
-
-            IsLeader = true;
-            Touch(utcNow);
-        }
-
-        /// <summary>Складає лідерство, лишаючись у гарнізоні.</summary>
-        public void DismissLeader(DateTime utcNow)
-        {
-            IsLeader = false;
             Touch(utcNow);
         }
 
@@ -259,12 +214,8 @@ namespace EmpireIdle.Domain.Entities
         /// будь-який бій із утратами виводив би героя з ладу, і карта
         /// зупинилась би після першої ж сутички.
         ///
-        /// Ідемпотентний: розбір бою може зачепити того самого лідера двічі,
+        /// Ідемпотентний: розбір бою може зачепити того самого героя двічі,
         /// і другий раз не має бути помилкою.
-        ///
-        /// Лідерство лишається за ним. Слот звільняє або лікування, або
-        /// явне призначення іншого — мовчазна втрата посади після поразки
-        /// виглядала б як баг.
         /// </summary>
         public void Wound(DateTime utcNow)
         {

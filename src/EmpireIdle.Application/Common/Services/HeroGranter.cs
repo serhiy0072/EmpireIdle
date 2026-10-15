@@ -58,10 +58,8 @@ namespace EmpireIdle.Application.Common.Services
                 var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
                     ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
 
-                var leader = await _heroRepository.GetLeaderAsync(garrison.Id, playerId, cancellationToken);
-
                 var hero = new Hero(Guid.NewGuid(), playerId, _serverContext.ServerId, heroKey, garrison.Id,
-                    asLeader: leader is null, utcNow, config.NativeTier);
+                    utcNow, config.NativeTier);
 
                 await _heroRepository.AddAsync(hero, cancellationToken);
 

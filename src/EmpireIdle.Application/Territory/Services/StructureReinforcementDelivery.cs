@@ -19,7 +19,6 @@ namespace EmpireIdle.Application.Territory.Services
     {
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
-        private readonly IHeroRepository _heroRepository;
         private readonly IClanRepository _clanRepository;
         private readonly IClanStructureRepository _structureRepository;
         private readonly CombatCalculator _combat;
@@ -33,7 +32,6 @@ namespace EmpireIdle.Application.Territory.Services
         public StructureReinforcementDelivery(
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
-            IHeroRepository heroRepository,
             IClanRepository clanRepository,
             IClanStructureRepository structureRepository,
             CombatCalculator combat,
@@ -46,7 +44,6 @@ namespace EmpireIdle.Application.Territory.Services
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
-            _heroRepository = heroRepository;
             _clanRepository = clanRepository;
             _structureRepository = structureRepository;
             _combat = combat;
@@ -81,7 +78,6 @@ namespace EmpireIdle.Application.Territory.Services
                 return;
             }
 
-            // Найсильніший — першим: вільний слот лідера дістається йому
             var heroes = await _logistics.HeroesOnMarchAsync(march, cancellationToken);
 
             // Сила маршу, а не кількість маршів: один сильний прискорює більше за кілька слабких
@@ -98,16 +94,8 @@ namespace EmpireIdle.Application.Territory.Services
                     _rules.GarrisonCapacity, utcNow);
 
             // Герої лишаються завжди: слота гарнізону вони не займають, а бонус тримають над своїми конвоями
-            var leaderTaken = false;
-
             foreach (var hero in heroes)
-            {
-                var leaderFree = !leaderTaken
-                    && await _heroRepository.GetLeaderAsync(structureGarrison.Id, hero.PlayerId, cancellationToken) is null;
-
-                hero.Arrive(structureGarrison.Id, leaderSlotFree: leaderFree, utcNow);
-                leaderTaken |= leaderFree;
-            }
+                hero.Arrive(structureGarrison.Id, utcNow);
 
             if (rejected.Count > 0)
             {

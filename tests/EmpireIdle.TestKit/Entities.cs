@@ -102,11 +102,11 @@ public static class Entities
 
     /// <summary>Герой заданого рівня, тіру й сузір'я.</summary>
     public static Hero Hero(string heroKey = TestKeys.CommonHero, Guid? playerId = null,
-        Guid? garrisonId = null, bool asLeader = true, int level = 1, int tier = 1,
+        Guid? garrisonId = null, int level = 1, int tier = 1,
         int stars = 0, int serverId = 1, int nativeTier = 1)
     {
         var hero = new Hero(Guid.NewGuid(), playerId ?? Guid.NewGuid(), serverId, heroKey,
-            garrisonId ?? Guid.NewGuid(), asLeader, Now, nativeTier);
+            garrisonId ?? Guid.NewGuid(), Now, nativeTier);
 
         if (level > 1)
             hero.GainLevels(level - 1, level, Now);

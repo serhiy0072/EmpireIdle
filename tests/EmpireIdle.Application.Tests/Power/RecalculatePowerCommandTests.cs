@@ -212,7 +212,7 @@ public class RecalculatePowerCommandTests
         var garrison = GivenGarrison(garrisonInfantry: 0);
         var power = GivenExistingPower();
 
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroKey, Guid.NewGuid(), asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroKey, Guid.NewGuid(), Now);
         _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([hero]);
 
         await Handler().Handle(new RecalculatePowerCommand(garrison.Id), CancellationToken.None);
@@ -229,7 +229,7 @@ public class RecalculatePowerCommandTests
         var garrison = GivenGarrison(garrisonInfantry: 0);
         var power = GivenExistingPower();
 
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroKey, Guid.NewGuid(), asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroKey, Guid.NewGuid(), Now);
         _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([hero]);
 
         var sword = new EquipmentItem(Guid.NewGuid(), PlayerId, 1, "sword", EquipmentSlot.Artifact,
@@ -259,7 +259,7 @@ public class RecalculatePowerCommandTests
         var garrison = GivenGarrison(garrisonInfantry: 0);
         var power = GivenExistingPower();
 
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroKey, Guid.NewGuid(), asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroKey, Guid.NewGuid(), Now);
         hero.Wound(Now);
         _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([hero]);
 
@@ -275,7 +275,7 @@ public class RecalculatePowerCommandTests
         var garrison = GivenGarrison(garrisonInfantry: 0);
         var power = GivenExistingPower();
 
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "retired_hero", Guid.NewGuid(), asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "retired_hero", Guid.NewGuid(), Now);
         _heroes.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([hero]);
 
         await Handler().Handle(new RecalculatePowerCommand(garrison.Id), CancellationToken.None);

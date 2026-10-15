@@ -93,7 +93,7 @@ internal sealed class MarketTestBed
     public Hero GivenHero(Guid owner, string heroKey = TestKeys.CommonHero)
     {
         var garrison = owner == Seller ? SellerGarrison : BuyerGarrison;
-        var hero = TestKit.Entities.Hero(heroKey, owner, garrison.Id, asLeader: false);
+        var hero = TestKit.Entities.Hero(heroKey, owner, garrison.Id);
 
         Heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
         Heroes.GetByKeyAsync(owner, heroKey, Arg.Any<CancellationToken>()).Returns(hero);

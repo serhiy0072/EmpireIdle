@@ -10,7 +10,7 @@ public class GarrisonDefenceTests
     private static readonly DateTime Now = new(2026, 10, 16, 12, 0, 0, DateTimeKind.Utc);
 
     private static (Hero Hero, string Class, double Power) Candidate(string heroClass, double power, int minutesAgo = 0)
-        => (new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, TestKeys.CommonHero, Guid.NewGuid(), asLeader: false, Now.AddMinutes(-minutesAgo)),
+        => (new Hero(Guid.NewGuid(), Guid.NewGuid(), 1, TestKeys.CommonHero, Guid.NewGuid(), Now.AddMinutes(-minutesAgo)),
             heroClass, power);
 
     [Fact]

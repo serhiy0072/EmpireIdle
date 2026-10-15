@@ -25,7 +25,7 @@ public class HeroCombatantsTests
     private HeroCombatants Combatants() => new(_inventory, _stats, _catalog);
 
     private static Hero Hero(string key = HeroTestConfig.CommonHero)
-        => new(Guid.NewGuid(), Guid.NewGuid(), 1, key, Guid.NewGuid(), asLeader: true, Now);
+        => new(Guid.NewGuid(), Guid.NewGuid(), 1, key, Guid.NewGuid(), Now);
 
     /// <summary>Атакує — сила з атаки, обороняється — із захисту; здоров'я — те саме.</summary>
     [Fact]
@@ -79,7 +79,7 @@ public class HeroCombatantsTests
         Assert.Equal(0, gear.Attack(Guid.NewGuid()), 6);
     }
 
-    /// <summary>Поранений не б'ється, порожнього місця лідера й невідомого героя теж немає.</summary>
+    /// <summary>Поранений не б'ється, порожнього місця й невідомого героя теж немає.</summary>
     [Fact]
     public async Task ForAsync_ShouldSkipWoundedMissingAndUnknownHeroes()
     {

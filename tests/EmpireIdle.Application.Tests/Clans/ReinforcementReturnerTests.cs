@@ -224,7 +224,7 @@ public class ReinforcementReturnerTests
     {
         var (host, owner) = Deployed(infantry: 10);
 
-        await Returner().BringAllOfPlayerHomeNowAsync(OwnerId, owner, leaderSlotFree: true, Now);
+        await Returner().BringAllOfPlayerHomeNowAsync(OwnerId, owner, Now);
 
         host.ReinforcementCount.Should().Be(0);
         owner.Units.Single().Count.Should().Be(10);
@@ -232,44 +232,21 @@ public class ReinforcementReturnerTests
         await _marches.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
-    /// <summary>
-    /// Кілька героїв повертаються в одній транзакції: лідером стає лише перший,
-    /// інакше унікальний індекс лідера зламав би збереження.
-    /// </summary>
+    /// <summary>Усі герої гравця з чужого гарнізону стають удома одразу — без маршу.</summary>
     [Fact]
-    public async Task BringAllOfPlayerHomeNow_gives_the_leader_slot_to_one_hero_only()
+    public async Task BringAllOfPlayerHomeNow_stations_every_hero_at_home()
     {
         var (host, owner) = Deployed(infantry: 10);
         var returner = Returner();
 
-        var first = new Hero(Guid.NewGuid(), OwnerId, 1, "knight", host.Id, asLeader: false, Now);
-        var second = new Hero(Guid.NewGuid(), OwnerId, 1, "archer", host.Id, asLeader: false, Now);
+        var first = new Hero(Guid.NewGuid(), OwnerId, 1, "knight", host.Id, Now);
+        var second = new Hero(Guid.NewGuid(), OwnerId, 1, "archer", host.Id, Now);
 
         _heroes.GetByGarrisonAsync(host.Id, Arg.Any<CancellationToken>()).Returns(new List<Hero> { first, second });
 
-        var slotFree = await returner.BringAllOfPlayerHomeNowAsync(OwnerId, owner, leaderSlotFree: true, Now);
+        await returner.BringAllOfPlayerHomeNowAsync(OwnerId, owner, Now);
 
-        slotFree.Should().BeFalse();
         first.StationedGarrisonId.Should().Be(owner.Id);
         second.StationedGarrisonId.Should().Be(owner.Id);
-        new[] { first.IsLeader, second.IsLeader }.Count(isLeader => isLeader).Should().Be(1);
-    }
-
-    /// <summary>Слот лідера вдома зайнятий — герої повертаються рядовими.</summary>
-    [Fact]
-    public async Task BringAllOfPlayerHomeNow_keeps_heroes_ordinary_when_home_already_has_a_leader()
-    {
-        var (host, owner) = Deployed(infantry: 10);
-        var returner = Returner();
-
-        var hero = new Hero(Guid.NewGuid(), OwnerId, 1, "knight", host.Id, asLeader: true, Now);
-
-        _heroes.GetByGarrisonAsync(host.Id, Arg.Any<CancellationToken>()).Returns(new List<Hero> { hero });
-
-        var slotFree = await returner.BringAllOfPlayerHomeNowAsync(OwnerId, owner, leaderSlotFree: false, Now);
-
-        slotFree.Should().BeFalse();
-        hero.StationedGarrisonId.Should().Be(owner.Id);
-        hero.IsLeader.Should().BeFalse();
     }
 }

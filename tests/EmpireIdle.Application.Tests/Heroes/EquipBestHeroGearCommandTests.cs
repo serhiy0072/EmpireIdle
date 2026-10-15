@@ -41,7 +41,7 @@ public class EquipBestHeroGearCommandTests
 
     private Hero GivenHero()
     {
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroTestConfig.CommonHero, GarrisonId, asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroTestConfig.CommonHero, GarrisonId, Now);
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 
         return hero;

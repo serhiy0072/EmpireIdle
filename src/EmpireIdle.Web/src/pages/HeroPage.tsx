@@ -11,7 +11,6 @@ import { parseRosterSort, sortRoster } from "../lib/heroOrder";
 import { rankLabel, useCatalog } from "../lib/queries/catalog";
 import {
   useAdvanceHeroStar,
-  useAppointLeader,
   useConvertUniversalShards,
   useEvolveHero,
   useHealHero,
@@ -47,7 +46,6 @@ export default function HeroPage() {
   const advanceStar = useAdvanceHeroStar(playerId);
   const convertShards = useConvertUniversalShards(playerId);
   const evolve = useEvolveHero(playerId);
-  const appointLeader = useAppointLeader(playerId);
   const heal = useHealHero(playerId);
   const resetLevel = useResetHeroLevel(playerId);
   const upgradeSkill = useUpgradeHeroSkill(playerId);
@@ -78,7 +76,7 @@ export default function HeroPage() {
     return <Navigate to="/heroes" replace />;
   }
 
-  const mutations = [levelUp, advanceStar, convertShards, evolve, appointLeader, heal, resetLevel, upgradeSkill, equip, unequip, unequipAll, equipBest];
+  const mutations = [levelUp, advanceStar, convertShards, evolve, heal, resetLevel, upgradeSkill, equip, unequip, unequipAll, equipBest];
   const busy = mutations.some((mutation) => mutation.isPending);
   const failure = mutations.map((mutation) => mutation.error).find((error) => error !== null) ?? null;
 
@@ -235,7 +233,6 @@ export default function HeroPage() {
               config={config}
               busy={busy}
               onEvolve={() => evolve.mutate(hero.id)}
-              onAppointLeader={() => appointLeader.mutate(hero.id)}
               onHeal={() => heal.mutate(hero.id)}
               onResetLevel={() => resetLevel.mutate(hero.id)}
             />

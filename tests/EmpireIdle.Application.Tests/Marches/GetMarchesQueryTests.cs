@@ -133,8 +133,8 @@ public class GetMarchesQueryTests
         var garrison = GivenGarrison();
         var march = MarchTo(garrison, MarchTargetType.Monster, Guid.NewGuid(), Now.AddMinutes(30));
 
-        var weak = new Hero(Guid.NewGuid(), PlayerId, 1, "weak", garrison.Id, asLeader: false, Now.AddHours(-2));
-        var strong = new Hero(Guid.NewGuid(), PlayerId, 1, "strong", garrison.Id, asLeader: false, Now.AddHours(-1));
+        var weak = new Hero(Guid.NewGuid(), PlayerId, 1, "weak", garrison.Id, Now.AddHours(-2));
+        var strong = new Hero(Guid.NewGuid(), PlayerId, 1, "strong", garrison.Id, Now.AddHours(-1));
         weak.Deploy(march.Id, Now.AddMinutes(-10));
         strong.Deploy(march.Id, Now.AddMinutes(-10));
 

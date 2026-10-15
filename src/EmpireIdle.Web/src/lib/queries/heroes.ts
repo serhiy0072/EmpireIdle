@@ -93,10 +93,6 @@ export function useEvolveHero(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/evolve`, ["heroes", "power"]);
 }
 
-export function useAppointLeader(playerId: string) {
-  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/appoint-leader`, ["heroes"]);
-}
-
 /** Лікування героя списує ресурси села. */
 export function useHealHero(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/heal`, ["heroes", "village"]);

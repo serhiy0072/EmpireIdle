@@ -17,7 +17,6 @@ namespace EmpireIdle.Application.Common.Services
         private readonly IMapRepository _mapRepository;
         private readonly IMarchRepository _marchRepository;
         private readonly IGarrisonRepository _garrisonRepository;
-        private readonly IHeroRepository _heroRepository;
         private readonly IServerRepository _serverRepository;
         private readonly GameCatalog _catalog;
         private readonly WorldGeometry _geometry;
@@ -29,7 +28,6 @@ namespace EmpireIdle.Application.Common.Services
             IMapRepository mapRepository,
             IMarchRepository marchRepository,
             IGarrisonRepository garrisonRepository,
-            IHeroRepository heroRepository,
             IServerRepository serverRepository,
             GameCatalog catalog,
             WorldGeometry geometry,
@@ -40,7 +38,6 @@ namespace EmpireIdle.Application.Common.Services
             _mapRepository = mapRepository;
             _marchRepository = marchRepository;
             _garrisonRepository = garrisonRepository;
-            _heroRepository = heroRepository;
             _serverRepository = serverRepository;
             _catalog = catalog;
             _geometry = geometry;
@@ -79,22 +76,16 @@ namespace EmpireIdle.Application.Common.Services
             if (garrison is null)
                 return;
 
-            // Слот лідера рахуємо самі: герої прибувають в одній транзакції,
-            // і незбереженого лідера база ще не бачить
-            var leaderSlotFree = await _heroRepository.GetLeaderAsync(garrison.Id, village.PlayerId, cancellationToken) is null;
-
             var marches = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
 
             foreach (var march in marches)
             {
                 march.CallHomeAtOnce(x, y, utcNow);
 
-                if (await _homecoming.ArriveAsync(march, garrison, leaderSlotFree, utcNow, cancellationToken))
-                    leaderSlotFree = false;
+                await _homecoming.ArriveAsync(march, garrison, utcNow, cancellationToken);
             }
 
-            await _reinforcements.BringAllOfPlayerHomeNowAsync(
-                village.PlayerId, garrison, leaderSlotFree, utcNow, cancellationToken);
+            await _reinforcements.BringAllOfPlayerHomeNowAsync(village.PlayerId, garrison, utcNow, cancellationToken);
         }
     }
 }

@@ -1147,9 +1147,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<bool>("IsLeader")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("Level")
                         .HasColumnType("integer");
 
@@ -1212,10 +1209,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("PlayerId", "ServerId");
-
-                    b.HasIndex("StationedGarrisonId", "PlayerId")
-                        .IsUnique()
-                        .HasFilter("\"IsLeader\" AND \"StationedGarrisonId\" IS NOT NULL");
 
                     b.ToTable("Heroes", (string)null);
                 });

@@ -218,7 +218,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// це свідоме спрощення: один бій інакше породжував би до двохсот звітів.
         /// </summary>
         /// <param name="defenceLost">
-        /// Чи впала оборона. Тільки тоді лідери союзників ідуть у госпіталь,
+        /// Чи впала оборона. Тільки тоді герої союзників ідуть у госпіталь,
         /// а вцілілі повертаються додому: виграний бій лишає контингент стояти.
         /// </param>
         public async Task AdmitAlliedWoundedAsync(IReadOnlyList<StackLoss> losses, Garrison hostGarrison,
@@ -406,7 +406,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             var stationed = await _heroRepository.GetByGarrisonAsync(hostGarrison.Id, cancellationToken);
 
-            // Герої союзників програли разом зі своїми конвоями: лідера, що брав на себе удар
+            // Герої союзників програли разом зі своїми конвоями: слота лідера, що брав на себе удар
             // замість решти, більше немає (рішення 15.10.2026)
             foreach (var ally in stationed.Where(h => h.PlayerId != hostOwnerId))
                 ally.Wound(utcNow);

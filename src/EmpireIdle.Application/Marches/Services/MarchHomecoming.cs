@@ -13,16 +13,13 @@ namespace EmpireIdle.Application.Marches.Services
     /// </summary>
     public sealed class MarchHomecoming
     {
-        private readonly IHeroRepository _heroRepository;
         private readonly MarchLogistics _logistics;
         private readonly ILogger<MarchHomecoming> _logger;
 
         public MarchHomecoming(
-            IHeroRepository heroRepository,
             MarchLogistics logistics,
             ILogger<MarchHomecoming> logger)
         {
-            _heroRepository = heroRepository;
             _logistics = logistics;
             _logger = logger;
         }
@@ -30,27 +27,10 @@ namespace EmpireIdle.Application.Marches.Services
         /// <summary>
         /// Завершує марш, що повертається, у гарнізоні <paramref name="garrison"/>.
         /// </summary>
-        /// <param name="leaderSlotFree">
-        /// Чи вільний слот лідера. null — спитати базу. Кілька героїв, що прибувають
-        /// в одній транзакції, базу питати не можуть: незбережений лідер там ще не видно,
-        /// і кожен вирішив би, що слот вільний, — тоді рахує той, хто кличе.
-        /// </param>
-        /// <returns>true, якщо герой маршу зайняв слот лідера.</returns>
-        public async Task<bool> ArriveAsync(March march, Garrison garrison, bool? leaderSlotFree, DateTime utcNow,
-            CancellationToken cancellationToken)
+        public async Task ArriveAsync(March march, Garrison garrison, DateTime utcNow, CancellationToken cancellationToken)
         {
-            var tookTheLead = false;
-
             foreach (var hero in await _logistics.HeroesOnMarchAsync(march, cancellationToken))
-            {
-                // Слот могли зайняти, поки герой ішов: тоді він стає рядовим.
-                // Лідер у гарнізоні один — вільний слот бере найсильніший герой маршу
-                var slotFree = !tookTheLead && (leaderSlotFree
-                    ?? await _heroRepository.GetLeaderAsync(garrison.Id, hero.PlayerId, cancellationToken) is null);
-
-                hero.Arrive(garrison.Id, slotFree, utcNow);
-                tookTheLead |= slotFree;
-            }
+                hero.Arrive(garrison.Id, utcNow);
 
             var survivors = march.GetUnits();
 
@@ -63,8 +43,6 @@ namespace EmpireIdle.Application.Marches.Services
 
             _logger.LogInformation("March {MarchId} returned home with {Count} units.",
                 march.Id, survivors.Values.Sum());
-
-            return tookTheLead;
         }
     }
 }

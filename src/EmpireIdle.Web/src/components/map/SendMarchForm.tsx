@@ -200,7 +200,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                 >
                   {catalog.heroName(hero.heroKey)} · рів. {hero.effectiveLevel}
                   {hero.unitType != null && ` · ${catalog.unitName(hero.unitType)} до ${hero.convoyCapacity}`}
-                  {hero.isLeader ? " · лідер" : ""}
+                  {hero.isDefender ? " · боронить село" : ""}
                 </button>
               );
             })}

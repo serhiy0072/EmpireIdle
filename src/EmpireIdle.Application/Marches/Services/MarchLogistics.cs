@@ -42,8 +42,8 @@ namespace EmpireIdle.Application.Marches.Services
         }
 
         /// <summary>
-        /// Герої, що йдуть із маршем, від найсильнішого (GDD §6.1): на прибутті вільний слот лідера
-        /// бере перший, тож порядок тут — правило гри, а не випадковість запиту.
+        /// Герої, що йдуть із маршем, від найсильнішого (GDD §6.1): перший — обличчя маршу у звітах
+        /// і на карті, тож порядок тут — правило гри, а не випадковість запиту.
         /// </summary>
         public async Task<List<Hero>> HeroesOnMarchAsync(March march, CancellationToken cancellationToken)
             => _heroStats.StrongestFirst(await _heroRepository.GetByMarchAsync(march.Id, cancellationToken));
