@@ -42,6 +42,28 @@ public class HeroCombatantsTests
         Assert.Equal(stats.GetValueOrDefault("Defense"), defending.Power);
     }
 
+    /// <summary>
+    /// Сила військам зі спорядження — UnitAttack у нападі, UnitDefense в обороні, з вагою UnitStatPower;
+    /// оберіг з відсотків стає часткою.
+    /// </summary>
+    [Fact]
+    public async Task ForAsync_ShouldTakeTroopPowerAndWard_FromTheGear()
+    {
+        var hero = Hero();
+        var necklace = EmpireIdle.TestKit.Entities.Equipment(HeroTestConfig.Artifact, Domain.Enums.EquipmentSlot.Artifact, bonuses: (0, "Ward", 16));
+        _inventory.GetEquippedAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem> { necklace });
+        var stats = _stats.Compute(hero, _catalog.Hero(hero.HeroKey), [necklace]);
+        Assert.True(stats.GetValueOrDefault(ArtifactStats.UnitAttack) > 0);
+
+        var attacking = Assert.Single(await Combatants().ForAsync([hero], attacking: true, CancellationToken.None));
+        var defending = Assert.Single(await Combatants().ForAsync([hero], attacking: false, CancellationToken.None));
+
+        var weight = _catalog.Config.Equipment.UnitStatPower;
+        Assert.Equal(stats[ArtifactStats.UnitAttack] * weight, attacking.TroopPower, 6);
+        Assert.Equal(stats[ArtifactStats.UnitDefense] * weight, defending.TroopPower, 6);
+        Assert.Equal(0.16, attacking.Ward, 6);
+    }
+
     /// <summary>Поранений не б'ється, порожнього місця лідера й невідомого героя теж немає.</summary>
     [Fact]
     public async Task ForAsync_ShouldSkipWoundedMissingAndUnknownHeroes()

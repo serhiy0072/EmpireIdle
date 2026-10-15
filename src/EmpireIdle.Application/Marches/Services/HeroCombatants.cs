@@ -37,11 +37,17 @@ namespace EmpireIdle.Application.Marches.Services
 
                 var equipped = await _inventory.GetEquippedAsync(hero.Id, cancellationToken);
                 var stats = _heroStats.Compute(hero, config, equipped);
+                var troops = stats.GetValueOrDefault(attacking ? ArtifactStats.UnitAttack : ArtifactStats.UnitDefense);
+
+                // Оберіг у відсотках, як і решта статів; стеля та сама, що й у данжі
+                var ward = Math.Min(_catalog.Config.Dungeons.MaxWard, stats.GetValueOrDefault("Ward") / 100);
 
                 combatants.Add(new HeroCombatant(
                     hero.Id,
                     stats.GetValueOrDefault(attacking ? "Attack" : "Defense"),
-                    stats.GetValueOrDefault("Health")));
+                    stats.GetValueOrDefault("Health"),
+                    troops * _catalog.Config.Equipment.UnitStatPower,
+                    ward));
             }
 
             return combatants;

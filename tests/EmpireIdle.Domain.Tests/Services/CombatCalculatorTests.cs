@@ -407,6 +407,62 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.False(result.Wounded(sturdy.HeroId));
         }
 
+        /// <summary>Сила військам зі спорядження героя додається до сторони так само, як його власна.</summary>
+        [Fact]
+        public void Resolve_ShouldAddTheHeroesTroopPower_ToTheSide()
+        {
+            var without = _calculator.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 7);
+            var with = _calculator.Resolve(_attacker, DefenceStacks.FromArmy(_defender), "plain", seed: 7,
+                attackerHeroes: [new HeroCombatant(Guid.NewGuid(), Power: 0, Health: 1_000_000, TroopPower: 200)]);
+
+            Assert.Equal(without.AttackerPower * 2, with.AttackerPower, precision: 6);
+        }
+
+        /// <summary>Сила військам — це військо, а не сам герой: шкоди героєві вона не додає.</summary>
+        [Fact]
+        public void Resolve_ShouldNotWoundAHero_ForItsTroopPower()
+        {
+            var commander = new HeroCombatant(Guid.NewGuid(), Power: 0, Health: 0.001, TroopPower: 1000);
+
+            var result = _calculator.Resolve(Army(5), DefenceStacks.FromArmy(Army(50)), "plain", seed: 3,
+                attackerHeroes: [commander]);
+
+            Assert.Empty(result.AttackerWoundedHeroes ?? []);
+        }
+
+        /// <summary>
+        /// Оберіг піднімає поріг поранення: здоров'я трохи нижче за межу — без оберегу герой поранений,
+        /// з оберегом 20% — ні. Межу шукаємо поділом навпіл: бій детермінований за сідом.
+        /// </summary>
+        [Fact]
+        public void Resolve_ShouldSpareAHero_WhoseWardLiftsTheWoundThreshold()
+        {
+            bool Wounded(double health, double ward)
+            {
+                var hero = new HeroCombatant(Guid.Empty, Power: 100, Health: health, Ward: ward);
+
+                return _calculator.Resolve(Army(5), DefenceStacks.FromArmy(Army(50)), "plain", seed: 3,
+                    attackerHeroes: [hero]).Wounded(Guid.Empty);
+            }
+
+            double low = 0, high = 1_000_000;
+
+            for (var i = 0; i < 80; i++)
+            {
+                var mid = (low + high) / 2;
+
+                if (Wounded(mid, ward: 0))
+                    low = mid;
+                else
+                    high = mid;
+            }
+
+            var health = low * 0.9;
+
+            Assert.True(Wounded(health, ward: 0));
+            Assert.False(Wounded(health, ward: 0.2));
+        }
+
         /// <summary>Поранення можливе й після перемоги: переможець теж отримує шкоду.</summary>
         [Fact]
         public void Resolve_ShouldWoundAFrailHero_EvenOnTheWinningSide()
