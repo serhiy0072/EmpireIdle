@@ -10,11 +10,11 @@
       "BaseExperience": 100,
       "ExperienceGrowth": 1.08,
       "FoodUpkeep": {
-        "PerPenLevelPerHour": 100,
-        "PerBeastPerHour": 100,
-        "PerBeastLevelPerHour": 10,
-        "HungerDefenceMultiplier": 0.5,
-        "HungerProductionMultiplier": 0.5
+        "PerPenLevelPerHour": 40,
+        "PerBeastPerHour": 120,
+        "PerBeastLevelPerHour": 6,
+        "HungerDefenceMultiplier": 0.8,
+        "HungerProductionMultiplier": 0.75
       },
       "Types": [
         {
