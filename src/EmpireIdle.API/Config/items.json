@@ -1517,6 +1517,546 @@
         "SetKey": "obsidian_unique"
       },
       {
+        "Key": "flint_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Кременю (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "flint_common"
+      },
+      {
+        "Key": "flint_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Кременю (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "flint_common"
+      },
+      {
+        "Key": "flint_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Кременю (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "flint_common"
+      },
+      {
+        "Key": "flint_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Кременю (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "flint_common"
+      },
+      {
+        "Key": "flint_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Кременю (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "flint_rare"
+      },
+      {
+        "Key": "flint_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Кременю (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "flint_rare"
+      },
+      {
+        "Key": "flint_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Кременю (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "flint_rare"
+      },
+      {
+        "Key": "flint_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Кременю (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "flint_rare"
+      },
+      {
+        "Key": "flint_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Кременю (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "flint_unique"
+      },
+      {
+        "Key": "flint_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Кременю (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "flint_unique"
+      },
+      {
+        "Key": "flint_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Кременю (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "flint_unique"
+      },
+      {
+        "Key": "flint_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Кременю (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "flint_unique"
+      },
+      {
+        "Key": "amber_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Бурштину (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "amber_common"
+      },
+      {
+        "Key": "amber_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Бурштину (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "amber_common"
+      },
+      {
+        "Key": "amber_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Бурштину (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "amber_common"
+      },
+      {
+        "Key": "amber_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Бурштину (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "amber_common"
+      },
+      {
+        "Key": "amber_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Бурштину (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "amber_rare"
+      },
+      {
+        "Key": "amber_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Бурштину (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "amber_rare"
+      },
+      {
+        "Key": "amber_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Бурштину (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "amber_rare"
+      },
+      {
+        "Key": "amber_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Бурштину (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "amber_rare"
+      },
+      {
+        "Key": "amber_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Бурштину (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "amber_unique"
+      },
+      {
+        "Key": "amber_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Бурштину (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "amber_unique"
+      },
+      {
+        "Key": "amber_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Бурштину (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "amber_unique"
+      },
+      {
+        "Key": "amber_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Бурштину (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "amber_unique"
+      },
+      {
+        "Key": "horn_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Рогу (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "horn_common"
+      },
+      {
+        "Key": "horn_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Рогу (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "horn_common"
+      },
+      {
+        "Key": "horn_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Рогу (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "horn_common"
+      },
+      {
+        "Key": "horn_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Рогу (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "horn_common"
+      },
+      {
+        "Key": "horn_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Рогу (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "horn_rare"
+      },
+      {
+        "Key": "horn_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Рогу (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "horn_rare"
+      },
+      {
+        "Key": "horn_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Рогу (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "horn_rare"
+      },
+      {
+        "Key": "horn_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Рогу (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "horn_rare"
+      },
+      {
+        "Key": "horn_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Рогу (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "horn_unique"
+      },
+      {
+        "Key": "horn_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Рогу (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "horn_unique"
+      },
+      {
+        "Key": "horn_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Рогу (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "horn_unique"
+      },
+      {
+        "Key": "horn_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Рогу (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "horn_unique"
+      },
+      {
+        "Key": "moon_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Місяця (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "moon_common"
+      },
+      {
+        "Key": "moon_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Місяця (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "moon_common"
+      },
+      {
+        "Key": "moon_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Місяця (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "moon_common"
+      },
+      {
+        "Key": "moon_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Місяця (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "moon_common"
+      },
+      {
+        "Key": "moon_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Місяця (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "moon_rare"
+      },
+      {
+        "Key": "moon_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Місяця (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "moon_rare"
+      },
+      {
+        "Key": "moon_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Місяця (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "moon_rare"
+      },
+      {
+        "Key": "moon_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Місяця (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "moon_rare"
+      },
+      {
+        "Key": "moon_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Місяця (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "moon_unique"
+      },
+      {
+        "Key": "moon_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Місяця (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "moon_unique"
+      },
+      {
+        "Key": "moon_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Місяця (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "moon_unique"
+      },
+      {
+        "Key": "moon_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Місяця (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "moon_unique"
+      },
+      {
+        "Key": "zenith_necklace_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Намисто Зеніту (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "zenith_common"
+      },
+      {
+        "Key": "zenith_ring_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Кільце Зеніту (звичайне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "zenith_common"
+      },
+      {
+        "Key": "zenith_crown_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Корона Зеніту (звичайна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "zenith_common"
+      },
+      {
+        "Key": "zenith_belt_common",
+        "Type": "equipment",
+        "Rarity": "common",
+        "DisplayName": "Пояс Зеніту (звичайний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "zenith_common"
+      },
+      {
+        "Key": "zenith_necklace_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Намисто Зеніту (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "zenith_rare"
+      },
+      {
+        "Key": "zenith_ring_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Кільце Зеніту (рідкісне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "zenith_rare"
+      },
+      {
+        "Key": "zenith_crown_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Корона Зеніту (рідкісна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "zenith_rare"
+      },
+      {
+        "Key": "zenith_belt_rare",
+        "Type": "equipment",
+        "Rarity": "rare",
+        "DisplayName": "Пояс Зеніту (рідкісний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "zenith_rare"
+      },
+      {
+        "Key": "zenith_necklace_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Намисто Зеніту (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "necklace",
+        "SetKey": "zenith_unique"
+      },
+      {
+        "Key": "zenith_ring_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Кільце Зеніту (унікальне)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "ring",
+        "SetKey": "zenith_unique"
+      },
+      {
+        "Key": "zenith_crown_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Корона Зеніту (унікальна)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "crown",
+        "SetKey": "zenith_unique"
+      },
+      {
+        "Key": "zenith_belt_unique",
+        "Type": "equipment",
+        "Rarity": "unique",
+        "DisplayName": "Пояс Зеніту (унікальний)",
+        "Slot": "Artifact",
+        "ArtifactSlot": "belt",
+        "SetKey": "zenith_unique"
+      },
+      {
         "Key": "skill_book_warrior_common_attack",
         "DisplayName": "Книга атаки воїна (звичайна)",
         "Description": "Піднімає атакувальне вміння звичайного воїна: рівень коштує 3, 5, 7, 10 і 12 книг. Кожен наступний рівень відкриває ще одна зірка героя.",
@@ -1750,253 +2290,678 @@
       "RepairKitItemKey": "repair_kit",
       "SetBonuses": [
         {
+          "SetKey": "flint_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 5
+          }
+        },
+        {
+          "SetKey": "flint_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "TroopsDefense": 5.5,
+            "DamageReduction": 1
+          }
+        },
+        {
+          "SetKey": "flint_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 7
+          }
+        },
+        {
+          "SetKey": "flint_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "TroopsDefense": 7.5,
+            "DamageReduction": 1.5
+          }
+        },
+        {
+          "SetKey": "flint_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 9
+          }
+        },
+        {
+          "SetKey": "flint_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "TroopsDefense": 10,
+            "DamageReduction": 2
+          }
+        },
+        {
+          "SetKey": "dawn_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 5
+          }
+        },
+        {
           "SetKey": "dawn_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 20,
-            "Health": 50
+            "TroopsAttack": 5.5,
+            "CritPower": 4.5
+          }
+        },
+        {
+          "SetKey": "dawn_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 7
           }
         },
         {
           "SetKey": "dawn_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 33,
-            "Health": 85
+            "TroopsAttack": 7.5,
+            "CritPower": 6
+          }
+        },
+        {
+          "SetKey": "dawn_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 9
           }
         },
         {
           "SetKey": "dawn_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 20,
-            "Defense": 55,
-            "Health": 140
+            "TroopsAttack": 10,
+            "CritPower": 7.5
+          }
+        },
+        {
+          "SetKey": "ember_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 5
           }
         },
         {
           "SetKey": "ember_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 20,
-            "Health": 50
+            "TroopsAttack": 5.5,
+            "CritChance": 1
+          }
+        },
+        {
+          "SetKey": "ember_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 7
           }
         },
         {
           "SetKey": "ember_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 33,
-            "Health": 85
+            "TroopsAttack": 7.5,
+            "CritChance": 1.5
+          }
+        },
+        {
+          "SetKey": "ember_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 9
           }
         },
         {
           "SetKey": "ember_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 55,
-            "Defense": 20,
-            "Health": 140
+            "TroopsAttack": 10,
+            "CritChance": 2
+          }
+        },
+        {
+          "SetKey": "frost_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 6.5
           }
         },
         {
           "SetKey": "frost_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 27,
-            "Health": 68
+            "Ward": 9,
+            "BlockChance": 2.5
+          }
+        },
+        {
+          "SetKey": "frost_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 8.5
           }
         },
         {
           "SetKey": "frost_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 45,
-            "Health": 115
+            "Ward": 12,
+            "BlockChance": 3
+          }
+        },
+        {
+          "SetKey": "frost_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 11
           }
         },
         {
           "SetKey": "frost_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 27,
-            "Defense": 74,
-            "Health": 189
+            "Ward": 16,
+            "BlockChance": 4
+          }
+        },
+        {
+          "SetKey": "amber_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 6.5
+          }
+        },
+        {
+          "SetKey": "amber_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Lifesteal": 3.5,
+            "DamageReduction": 2
+          }
+        },
+        {
+          "SetKey": "amber_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 8.5
+          }
+        },
+        {
+          "SetKey": "amber_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Lifesteal": 4.5,
+            "DamageReduction": 2.5
+          }
+        },
+        {
+          "SetKey": "amber_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 11
+          }
+        },
+        {
+          "SetKey": "amber_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "Lifesteal": 6,
+            "DamageReduction": 3
+          }
+        },
+        {
+          "SetKey": "tide_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 6.5
           }
         },
         {
           "SetKey": "tide_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 27,
-            "Health": 68
+            "CooldownTurns": 1,
+            "Lifesteal": 2
+          }
+        },
+        {
+          "SetKey": "tide_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 8.5
           }
         },
         {
           "SetKey": "tide_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 45,
-            "Health": 115
+            "CooldownTurns": 1,
+            "Lifesteal": 4
+          }
+        },
+        {
+          "SetKey": "tide_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 11
           }
         },
         {
           "SetKey": "tide_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 74,
-            "Defense": 27,
-            "Health": 189
+            "CooldownTurns": 1,
+            "Lifesteal": 6
           }
         },
         {
-          "SetKey": "storm_common",
-          "RequiredPieces": 4,
+          "SetKey": "horn_common",
+          "RequiredPieces": 2,
           "Stats": {
-            "Attack": 36,
-            "Health": 90
+            "AttackPercent": 7.5
           }
         },
         {
-          "SetKey": "storm_rare",
+          "SetKey": "horn_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 59,
-            "Health": 153
+            "TroopsAttack": 8.5,
+            "Ward": 5.5
           }
         },
         {
-          "SetKey": "storm_unique",
+          "SetKey": "horn_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 10
+          }
+        },
+        {
+          "SetKey": "horn_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 99,
-            "Defense": 36,
-            "Health": 252
+            "TroopsAttack": 11.5,
+            "Ward": 7.5
+          }
+        },
+        {
+          "SetKey": "horn_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 13
+          }
+        },
+        {
+          "SetKey": "horn_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "TroopsAttack": 14.5,
+            "Ward": 9.5
+          }
+        },
+        {
+          "SetKey": "thorn_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 7.5
           }
         },
         {
           "SetKey": "thorn_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 36,
-            "Health": 90
+            "TroopsAttack": 6,
+            "TroopsDefense": 6
+          }
+        },
+        {
+          "SetKey": "thorn_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 10
           }
         },
         {
           "SetKey": "thorn_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 59,
-            "Health": 153
+            "TroopsAttack": 8,
+            "TroopsDefense": 8
+          }
+        },
+        {
+          "SetKey": "thorn_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 13
           }
         },
         {
           "SetKey": "thorn_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 36,
-            "Defense": 99,
-            "Health": 252
+            "TroopsAttack": 10.5,
+            "TroopsDefense": 10.5
+          }
+        },
+        {
+          "SetKey": "storm_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 7.5
+          }
+        },
+        {
+          "SetKey": "storm_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "CritChance": 2.5,
+            "CritPower": 11
+          }
+        },
+        {
+          "SetKey": "storm_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 10
+          }
+        },
+        {
+          "SetKey": "storm_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "CritChance": 3.5,
+            "CritPower": 14.5
+          }
+        },
+        {
+          "SetKey": "storm_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 13
+          }
+        },
+        {
+          "SetKey": "storm_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "CritChance": 4.5,
+            "CritPower": 19
+          }
+        },
+        {
+          "SetKey": "ash_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 9
           }
         },
         {
           "SetKey": "ash_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 48,
-            "Health": 120
+            "Ward": 10.5,
+            "Lifesteal": 4
+          }
+        },
+        {
+          "SetKey": "ash_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 12
           }
         },
         {
           "SetKey": "ash_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 79,
-            "Health": 204
+            "Ward": 14,
+            "Lifesteal": 5.5
+          }
+        },
+        {
+          "SetKey": "ash_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 15.5
           }
         },
         {
           "SetKey": "ash_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 132,
-            "Defense": 48,
-            "Health": 336
+            "Ward": 18.5,
+            "Lifesteal": 7
+          }
+        },
+        {
+          "SetKey": "hollow_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 9
           }
         },
         {
           "SetKey": "hollow_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 48,
-            "Health": 120
+            "CooldownTurns": 1,
+            "SkillDamage": 9.5
+          }
+        },
+        {
+          "SetKey": "hollow_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 12
           }
         },
         {
           "SetKey": "hollow_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 79,
-            "Health": 204
+            "CooldownTurns": 1,
+            "SkillDamage": 15.5
+          }
+        },
+        {
+          "SetKey": "hollow_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 15.5
           }
         },
         {
           "SetKey": "hollow_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 48,
-            "Defense": 132,
-            "Health": 336
+            "CooldownTurns": 1,
+            "SkillDamage": 23
           }
         },
         {
-          "SetKey": "gale_common",
-          "RequiredPieces": 4,
+          "SetKey": "moon_common",
+          "RequiredPieces": 2,
           "Stats": {
-            "Attack": 64,
-            "Health": 160
+            "HealthPercent": 9
           }
         },
         {
-          "SetKey": "gale_rare",
+          "SetKey": "moon_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 106,
-            "Health": 272
+            "TroopsAttack": 8.5,
+            "Ward": 8.5
           }
         },
         {
-          "SetKey": "gale_unique",
+          "SetKey": "moon_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 12
+          }
+        },
+        {
+          "SetKey": "moon_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 176,
-            "Defense": 64,
-            "Health": 448
+            "TroopsAttack": 11.5,
+            "Ward": 11.5
+          }
+        },
+        {
+          "SetKey": "moon_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "HealthPercent": 15.5
+          }
+        },
+        {
+          "SetKey": "moon_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "TroopsAttack": 14.5,
+            "Ward": 14.5
+          }
+        },
+        {
+          "SetKey": "obsidian_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 10
           }
         },
         {
           "SetKey": "obsidian_common",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 64,
-            "Health": 160
+            "TroopsDefense": 9.5,
+            "DamageReduction": 3
+          }
+        },
+        {
+          "SetKey": "obsidian_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 13.5
           }
         },
         {
           "SetKey": "obsidian_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "Defense": 106,
-            "Health": 272
+            "TroopsDefense": 13,
+            "DamageReduction": 4
+          }
+        },
+        {
+          "SetKey": "obsidian_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "DefensePercent": 17.5
           }
         },
         {
           "SetKey": "obsidian_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "Attack": 64,
-            "Defense": 176,
-            "Health": 448
+            "TroopsDefense": 17,
+            "DamageReduction": 5
+          }
+        },
+        {
+          "SetKey": "zenith_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 10
+          }
+        },
+        {
+          "SetKey": "zenith_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "TroopsAttack": 9.5,
+            "TroopsDefense": 6.5
+          }
+        },
+        {
+          "SetKey": "zenith_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 13.5
+          }
+        },
+        {
+          "SetKey": "zenith_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "TroopsAttack": 13,
+            "TroopsDefense": 8.5
+          }
+        },
+        {
+          "SetKey": "zenith_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 17.5
+          }
+        },
+        {
+          "SetKey": "zenith_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "TroopsAttack": 17,
+            "TroopsDefense": 11
+          }
+        },
+        {
+          "SetKey": "gale_common",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 10
+          }
+        },
+        {
+          "SetKey": "gale_common",
+          "RequiredPieces": 4,
+          "Stats": {
+            "MarchSpeed": 11.5,
+            "TroopsAttack": 9.5
+          }
+        },
+        {
+          "SetKey": "gale_rare",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 13.5
+          }
+        },
+        {
+          "SetKey": "gale_rare",
+          "RequiredPieces": 4,
+          "Stats": {
+            "MarchSpeed": 15.5,
+            "TroopsAttack": 13
+          }
+        },
+        {
+          "SetKey": "gale_unique",
+          "RequiredPieces": 2,
+          "Stats": {
+            "AttackPercent": 17.5
+          }
+        },
+        {
+          "SetKey": "gale_unique",
+          "RequiredPieces": 4,
+          "Stats": {
+            "MarchSpeed": 20,
+            "TroopsAttack": 17
           }
         }
       ],
@@ -2009,18 +2974,33 @@
       ],
       "ArtifactSets": [
         {
-          "Key": "dawn",
-          "DisplayName": "Набір Світанку",
+          "Key": "flint",
+          "DisplayName": "Кременева Стіна",
+          "Description": "Камінь для перших сокир. Тримає піхоту, як скелю.",
           "Tier": 1,
+          "Class": "warrior",
           "FocusStats": [
             "Defense",
             "Health"
           ]
         },
         {
-          "Key": "ember",
-          "DisplayName": "Набір Жарини",
+          "Key": "dawn",
+          "DisplayName": "Варта Світанку",
+          "Description": "Перший промінь — і перший удар списа.",
           "Tier": 1,
+          "Class": "knight",
+          "FocusStats": [
+            "Attack",
+            "Health"
+          ]
+        },
+        {
+          "Key": "ember",
+          "DisplayName": "Горно Жарини",
+          "Description": "Жар першого коваля в кожній стрілі.",
+          "Tier": 1,
+          "Class": "archer",
           "FocusStats": [
             "Attack",
             "Health"
@@ -2028,26 +3008,43 @@
         },
         {
           "Key": "frost",
-          "DisplayName": "Набір Морозу",
+          "DisplayName": "Крижана Твердь",
+          "Description": "Зима, яка вирішила лишитись. Тримає героя на ногах.",
           "Tier": 2,
+          "Class": "warrior",
           "FocusStats": [
-            "Defense",
-            "Health"
+            "Health",
+            "Defense"
+          ]
+        },
+        {
+          "Key": "amber",
+          "DisplayName": "Бурштинова Присяга",
+          "Description": "Смола зберігає все, навіть тих, хто дав клятву.",
+          "Tier": 2,
+          "Class": "knight",
+          "FocusStats": [
+            "Health",
+            "Defense"
           ]
         },
         {
           "Key": "tide",
-          "DisplayName": "Набір Припливу",
+          "DisplayName": "Голос Припливу",
+          "Description": "Море повертається двічі на добу — і вміння теж.",
           "Tier": 2,
+          "Class": "archer",
           "FocusStats": [
             "Attack",
             "Health"
           ]
         },
         {
-          "Key": "storm",
-          "DisplayName": "Набір Бурі",
+          "Key": "horn",
+          "DisplayName": "Бойовий Ріг",
+          "Description": "Сурма, що кличе піхоту вперед і не дає їй упасти.",
           "Tier": 3,
+          "Class": "warrior",
           "FocusStats": [
             "Attack",
             "Health"
@@ -2055,46 +3052,89 @@
         },
         {
           "Key": "thorn",
-          "DisplayName": "Набір Терену",
+          "DisplayName": "Терновий Вінець",
+          "Description": "Гай, що сам вирішує, кого випустити. Стоїть і ранить.",
           "Tier": 3,
+          "Class": "knight",
           "FocusStats": [
             "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "storm",
+          "DisplayName": "Гнів Бурі",
+          "Description": "Блискавка не питає дозволу.",
+          "Tier": 3,
+          "Class": "archer",
+          "FocusStats": [
+            "Attack",
             "Health"
           ]
         },
         {
           "Key": "ash",
-          "DisplayName": "Набір Попелу",
+          "DisplayName": "Попіл Курганів",
+          "Description": "Попіл тут піднімається знизу — як і ті, хто його носить.",
           "Tier": 4,
+          "Class": "warrior",
+          "FocusStats": [
+            "Health",
+            "Defense"
+          ]
+        },
+        {
+          "Key": "hollow",
+          "DisplayName": "Тиша Пустки",
+          "Description": "Де кінчається звук, починається вміння.",
+          "Tier": 4,
+          "Class": "knight",
           "FocusStats": [
             "Attack",
             "Health"
           ]
         },
         {
-          "Key": "hollow",
-          "DisplayName": "Набір Пустки",
+          "Key": "moon",
+          "DisplayName": "Місячна Стежка",
+          "Description": "Вночі видно на сто кроків. Лучник бачить першим.",
           "Tier": 4,
+          "Class": "archer",
+          "FocusStats": [
+            "Health",
+            "Defense"
+          ]
+        },
+        {
+          "Key": "obsidian",
+          "DisplayName": "Обсидіановий Оплот",
+          "Description": "Скло, що пам'ятає вогонь. Остання стіна.",
+          "Tier": 5,
+          "Class": "warrior",
           "FocusStats": [
             "Defense",
+            "Health"
+          ]
+        },
+        {
+          "Key": "zenith",
+          "DisplayName": "Корона Зеніту",
+          "Description": "Опівдні немає тіні — і немає де сховатись від списів.",
+          "Tier": 5,
+          "Class": "knight",
+          "FocusStats": [
+            "Attack",
             "Health"
           ]
         },
         {
           "Key": "gale",
-          "DisplayName": "Набір Вітру",
+          "DisplayName": "Подих Перевалу",
+          "Description": "Вітер зносить зі стежки все, крім тих, хто з ним заодно.",
           "Tier": 5,
+          "Class": "archer",
           "FocusStats": [
             "Attack",
-            "Health"
-          ]
-        },
-        {
-          "Key": "obsidian",
-          "DisplayName": "Набір Обсидіану",
-          "Tier": 5,
-          "FocusStats": [
-            "Defense",
             "Health"
           ]
         }

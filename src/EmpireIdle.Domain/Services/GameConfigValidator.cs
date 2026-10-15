@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services.Config;
 
@@ -1452,6 +1453,18 @@ namespace EmpireIdle.Domain.Services
 
                 if (bonus.Stats.Count == 0)
                     throw new InvalidOperationException($"Set bonus '{bonus.SetKey}' grants nothing.");
+
+                // Стат, якого не знає жоден розрахунок, тихо нічого б не давав — як колись мертві бонуси заточки
+                var unknownStats = bonus.Stats.Keys.Where(stat => !SetBonusStats(config).Contains(stat)).ToList();
+
+                if (unknownStats.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Set bonus '{bonus.SetKey}' grants unknown stats: {string.Join(", ", unknownStats)}.");
+
+                // Перезарядка в бою данжу — цілі ходи
+                if (bonus.Stats.TryGetValue(DungeonStats.CooldownTurns, out var turns) && (turns < 1 || turns != Math.Floor(turns)))
+                    throw new InvalidOperationException(
+                        $"Set bonus '{bonus.SetKey}' shortens cooldowns by {turns} turns — it must be a whole number of turns.");
             }
 
             foreach (var item in equipment)
@@ -1466,6 +1479,18 @@ namespace EmpireIdle.Domain.Services
         /// лише базові стати, пули — з відомих бонусів і не менше двох, ступенів стільки ж,
         /// скільки шансів, і шанси заточки покривають усю стелю.
         /// </summary>
+        /// <summary>
+        /// Що може дати поріг набору: пласкі стати, відсотки героя, будь-який бонус заточки (крит, оберіг,
+        /// військам, марш…) і цілі ходи перезарядки — лише те, що справді рахує бій, марш чи сила.
+        /// </summary>
+        private static HashSet<string> SetBonusStats(GameConfig config)
+            => ArtifactStats.BaseStats
+                .Append(ArtifactStats.Health)
+                .Concat(ArtifactStats.HeroPercentStats.Keys)
+                .Concat(config.Equipment.ArtifactBonuses.Select(b => b.Stat))
+                .Append(DungeonStats.CooldownTurns)
+                .ToHashSet();
+
         private static void ValidateArtifactStats(GameConfig config, IReadOnlyCollection<ItemConfig> equipment)
         {
             var settings = config.Equipment;

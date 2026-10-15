@@ -171,4 +171,25 @@ public class ShippedConfigTests
                 $"на рівні {level} найслабший рідкісний герой мусить бути сильнішим за найсильнішого звичайного");
         }
     }
+
+    /// <summary>
+    /// Набори по класах (рішення 15.10.2026): на кожному рівні в кожного класу героїв рівно один набір,
+    /// і кожен падає зі свого данжу. Без цього якийсь клас на тірі лишився б без спорядження,
+    /// а гравцеві довелося б фармити «чужий» лут.
+    /// </summary>
+    [Fact]
+    public void ShippedArtifactSets_ShouldGiveEveryClassOneSetPerTier_FromItsOwnDungeon()
+    {
+        var config = Bind(RepositoryRoot.Find());
+        var sets = config.Equipment.ArtifactSets;
+
+        foreach (var tier in sets.Select(s => s.Tier).Distinct())
+        {
+            sets.Where(s => s.Tier == tier).Select(s => s.Class).Should().BeEquivalentTo(config.HeroSettings.Classes,
+                $"на рівні {tier} у кожного класу має бути рівно один набір");
+        }
+
+        config.Dungeons.Dungeons.Select(d => d.ArtifactSetKey).Should().BeEquivalentTo(sets.Select(s => s.Key),
+            "кожен набір падає рівно з одного данжу");
+    }
 }

@@ -43,6 +43,27 @@ public class SetBonusValidationTests
     public void Validate_ShouldRejectTwoBonusesForTheSameThreshold()
         => Assert.Contains("duplicate", Rejects(c => c.Equipment.SetBonuses.Add(Bonus(4))).Message);
 
+    /// <summary>Стат, якого не рахує жоден бій, тихо нічого б не давав.</summary>
+    [Fact]
+    public void Validate_ShouldRejectAnUnknownStat()
+        => Assert.Contains("AttackSpeed", Rejects(c => c.Equipment.SetBonuses[0].Stats["AttackSpeed"] = 5).Message);
+
+    /// <summary>Поріг може дати будь-який бонус заточки й цілі ходи перезарядки.</summary>
+    [Fact]
+    public void Validate_ShouldAcceptMasteryStatsAndCooldownTurns()
+    {
+        var config = Valid();
+        config.Equipment.SetBonuses[0].Stats = new() { ["Ward"] = 9, ["TroopsAttack"] = 5, ["CooldownTurns"] = 1, ["HealthPercent"] = 6.5 };
+
+        Assert.Null(Record.Exception(() => GameConfigValidator.Validate(config)));
+    }
+
+    [Theory]
+    [InlineData(0.5)]
+    [InlineData(0)]
+    public void Validate_ShouldRejectAFractionalOrZeroCooldownCut(double turns)
+        => Assert.Contains("whole number of turns", Rejects(c => c.Equipment.SetBonuses[0].Stats["CooldownTurns"] = turns).Message);
+
     /// <summary>
     /// Слоти рахуються по всій родині: два предмети звичайної рідкості й два унікальної
     /// в різних слотах разом дають 4 і закривають поріг 4 для кожної з рідкостей.
