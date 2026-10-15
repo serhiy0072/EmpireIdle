@@ -331,6 +331,25 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectDuplicateClasses()
             => RejectsHero(c => c.HeroSettings.Classes = ["warrior", "warrior", "archer"]);
 
+        /// <summary>Стат героя без ваги мовчки випав би із сили — вага потрібна кожному.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAHeroStatWithoutPowerWeight()
+            => RejectsHero(c =>
+            {
+                c.Heroes[0].BaseStats = new Dictionary<string, double> { ["Attack"] = 40, ["Health"] = 300 };
+                c.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0 };
+            });
+
+        [Fact]
+        public void Validate_ShouldAcceptPowerWeightsForEveryHeroStat()
+        {
+            var config = WithHeroes();
+            config.Heroes[0].BaseStats = new Dictionary<string, double> { ["Attack"] = 40, ["Health"] = 300 };
+            config.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0, ["Health"] = 0.25 };
+
+            GameConfigValidator.Validate(config);
+        }
+
         /// <summary>Тір без росту — новий тір не сильніший за старий (GDD §6.1).</summary>
         [Fact]
         public void Validate_ShouldRejectATierGrowthOfOneOrLess()

@@ -1,6 +1,8 @@
 using AwesomeAssertions;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Configuration;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -140,5 +142,33 @@ public class ShippedConfigTests
             .ToList();
 
         wrong.Should().BeEmpty("спорядження видається типом Equipment, а не Item");
+    }
+
+    /// <summary>
+    /// За рівних рівня, тіру, зірок і зброї найслабший унікальний сильніший за найсильнішого
+    /// рідкісного, а той — за найсильнішого звичайного (рішення 15.10.2026). Тір і зірки множать
+    /// усі стати однаково, а бонус зброї росте з рідкістю, тож досить перевірити власні стати —
+    /// на першому й останньому рівні, бо сила лінійна від рівня.
+    /// </summary>
+    [Fact]
+    public void ShippedHeroes_ShouldBeOrderedByRarityInPower()
+    {
+        var config = Bind(RepositoryRoot.Find());
+        var progression = new HeroProgression(config.HeroSettings);
+
+        foreach (var level in new[] { 1, config.HeroSettings.MaxLevel })
+        {
+            double Power(HeroConfig hero) => hero.BaseStats.Keys.Sum(stat => config.HeroSettings.StatPowerWeight(stat)
+                * progression.StatValue(hero, stat, level, hero.NativeTier, hero.NativeTier, starParts: 0, weaponLevel: 0));
+
+            var byRank = config.Heroes
+                .GroupBy(h => h.Rank)
+                .ToDictionary(g => g.Key, g => g.Select(Power).ToList());
+
+            byRank[Rarity.Unique].Min().Should().BeGreaterThan(byRank[Rarity.Rare].Max(),
+                $"на рівні {level} найслабший унікальний герой мусить бути сильнішим за найсильнішого рідкісного");
+            byRank[Rarity.Rare].Min().Should().BeGreaterThan(byRank[Rarity.Common].Max(),
+                $"на рівні {level} найслабший рідкісний герой мусить бути сильнішим за найсильнішого звичайного");
+        }
     }
 }

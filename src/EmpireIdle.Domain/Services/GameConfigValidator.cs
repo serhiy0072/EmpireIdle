@@ -988,6 +988,21 @@ namespace EmpireIdle.Domain.Services
 
             var classes = settings.Classes.ToHashSet();
 
+            // Стат без ваги мовчки не рахувався б у силі: новий стат у героя мусить отримати вагу
+            if (settings.StatPowerWeights.Count > 0)
+            {
+                var unweighted = config.Heroes
+                    .SelectMany(h => h.BaseStats.Keys)
+                    .Distinct()
+                    .Where(stat => !settings.StatPowerWeights.ContainsKey(stat))
+                    .ToList();
+
+                if (unweighted.Count > 0)
+                    throw new InvalidOperationException(
+                        $"HeroSettings.StatPowerWeights has no weight for {string.Join(", ", unweighted)} — "
+                        + "these stats would not count in hero power.");
+            }
+
             var unknownClasses = config.Heroes
                 .Where(h => !classes.Contains(h.Class))
                 .Select(h => $"{h.Key} → '{h.Class}'")

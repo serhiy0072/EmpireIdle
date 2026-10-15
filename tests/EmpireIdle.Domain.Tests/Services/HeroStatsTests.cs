@@ -45,6 +45,20 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Power_ShouldSumTheHerosOwnStats()
             => Assert.Equal(140, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig()), 3);
 
+        /// <summary>Кожен стат іде в силу зі своєю вагою: 100 атаки × 1 + 40 захисту × 0.5.</summary>
+        [Fact]
+        public void Power_ShouldWeighEachStat_WhenWeightsAreSet()
+        {
+            var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+            config.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0, ["Defense"] = 0.5 };
+            var catalog = new GameCatalog(config);
+            var stats = new HeroStats(new HeroProgression(config.HeroSettings), catalog);
+
+            var power = stats.Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), catalog.Hero(TestKeys.CommonHero));
+
+            Assert.Equal(120, power, 3);
+        }
+
         /// <summary>
         /// Найсильніший — першим (GDD §6.1): він обличчя маршу й бере слот лідера на прибутті.
         /// Невідомий довіднику герой — у кінці, а не виняток.

@@ -56,6 +56,11 @@
           40
         ]
       ],
+      "StatPowerWeights": {
+        "Attack": 1.0,
+        "Defense": 1.0,
+        "Health": 0.25
+      },
       "StarPartBonus": 0.05,
       "WeaponShardCosts": [5, 5, 10, 20, 40],
       "WeaponBonusPercents": {
@@ -725,14 +730,14 @@
         "Lore": "Із дев'яти вогнів академії Ізель лишили доглядати найменший — той, що гасне від протягу. Вона роздула його так, що згоріла й академія, і вісім інших вогнів. Її не судили: не лишилось нікого, хто б міг.",
         "Speed": 4,
         "BaseStats": {
-          "Attack": 105,
+          "Attack": 160,
           "Defense": 35,
-          "Health": 260
+          "Health": 350
         },
         "StatGrowth": {
-          "Attack": 13,
+          "Attack": 19,
           "Defense": 4,
-          "Health": 28
+          "Health": 38
         },
         "WeaponName": "Лук Дев'ятого Полум'я",
         "Skills": [
@@ -2767,14 +2772,14 @@
         "Lore": "Її сокіл бачить далі, ніж вона стріляє, — і це єдине, що її дратує.",
         "Speed": 6,
         "BaseStats": {
-          "Attack": 124,
+          "Attack": 136,
           "Defense": 40,
-          "Health": 390
+          "Health": 429
         },
         "StatGrowth": {
-          "Attack": 14,
+          "Attack": 16,
           "Defense": 4,
-          "Health": 42
+          "Health": 46
         },
         "WeaponName": "Соколиний лук",
         "Skills": [
@@ -2937,14 +2942,14 @@
         "Lore": "Обітниця мовчання — ціна сили, яку він узяв з мертвої академії.",
         "Speed": 4,
         "BaseStats": {
-          "Attack": 130,
+          "Attack": 150,
           "Defense": 35,
-          "Health": 325
+          "Health": 375
         },
         "StatGrowth": {
-          "Attack": 16,
+          "Attack": 18,
           "Defense": 4,
-          "Health": 35
+          "Health": 40
         },
         "WeaponName": "Безмовний спис",
         "Skills": [
@@ -3109,14 +3114,14 @@
         "Lore": "Її зима приходить у липні й іде, коли їй заманеться.",
         "Speed": 4,
         "BaseStats": {
-          "Attack": 130,
+          "Attack": 150,
           "Defense": 35,
-          "Health": 325
+          "Health": 375
         },
         "StatGrowth": {
-          "Attack": 16,
+          "Attack": 18,
           "Defense": 4,
-          "Health": 35
+          "Health": 40
         },
         "WeaponName": "Морозний клинок",
         "Skills": [

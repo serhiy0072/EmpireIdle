@@ -80,12 +80,17 @@ namespace EmpireIdle.Domain.Services
                 .ToList();
 
         /// <summary>
-        /// Сила героя без спорядження: сума власних статів від рівня й тіру.
+        /// Сила героя без спорядження: власні стати від рівня й тіру, кожен зі своєю вагою.
         /// Окремо від Compute, бо і рейтинг, і ринок оцінюють героя без того,
         /// що на ньому вдягнено, — екіп живе своїм життям і продається окремо.
         /// </summary>
         public double Power(Hero hero, HeroConfig config)
-            => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel));
+        {
+            var settings = _catalog.Config.HeroSettings;
+
+            return config.BaseStats.Keys.Sum(stat => settings.StatPowerWeight(stat)
+                * _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel));
+        }
 
         /// <summary>
         /// Сила героя з вдягненим (GDD §9.12): власна плюс сила кожного артефакта з множником
