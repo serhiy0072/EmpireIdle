@@ -340,9 +340,9 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 3,
-              "DamageMultiplier": 2.2,
+              "DamageMultiplier": 1.8,
               "Status": "DefenseDown",
-              "StatusMagnitude": 0.25,
+              "StatusMagnitude": 0.2,
               "StatusTurns": 2,
               "LevelScale": [
                 1.0,
@@ -377,17 +377,17 @@
               "Target": "Self",
               "Cooldown": 4,
               "DamageMultiplier": 0.0,
-              "ShieldPercent": 0.25,
+              "ShieldPercent": 0.18,
               "ShieldTurns": 2,
               "Status": "Taunt",
               "StatusTurns": 2,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -474,7 +474,7 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 3,
-              "DamageMultiplier": 1.8,
+              "DamageMultiplier": 1.5,
               "Status": "Poison",
               "StatusMagnitude": 0.25,
               "StatusTurns": 3,
@@ -511,15 +511,15 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 4,
-              "DamageMultiplier": 1.5,
+              "DamageMultiplier": 1.4,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -605,8 +605,11 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 3,
-              "DamageMultiplier": 2.4,
+              "Cooldown": 4,
+              "DamageMultiplier": 2.6,
+              "Status": "DefenseDown",
+              "StatusMagnitude": 0.2,
+              "StatusTurns": 2,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
@@ -639,15 +642,15 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 4,
-              "DamageMultiplier": 1.6,
+              "Cooldown": 3,
+              "DamageMultiplier": 1.5,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -754,8 +757,8 @@
             },
             "Battle": {
               "Target": "AllEnemies",
-              "Cooldown": 3,
-              "DamageMultiplier": 1.5,
+              "Cooldown": 4,
+              "DamageMultiplier": 1.6,
               "Status": "Stun",
               "StatusTurns": 1,
               "IgnoresLine": true,
@@ -792,14 +795,14 @@
               "Target": "SingleAlly",
               "Cooldown": 4,
               "DamageMultiplier": 0.0,
-              "HealPercent": 0.3,
+              "HealPercent": 0.22,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -927,9 +930,9 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 3,
-              "DamageMultiplier": 2.2,
+              "DamageMultiplier": 2,
               "Status": "DefenseDown",
-              "StatusMagnitude": 0.25,
+              "StatusMagnitude": 0.3,
               "StatusTurns": 2,
               "LevelScale": [
                 1.0,
@@ -970,11 +973,11 @@
               "StatusTurns": 2,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -1082,10 +1085,10 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 3,
-              "DamageMultiplier": 2.2,
+              "DamageMultiplier": 2.1,
               "Status": "DefenseDown",
               "StatusMagnitude": 0.25,
-              "StatusTurns": 2,
+              "StatusTurns": 3,
               "LevelScale": [
                 1.0,
                 1.2,
@@ -1117,19 +1120,19 @@
             },
             "Battle": {
               "Target": "Self",
-              "Cooldown": 4,
+              "Cooldown": 3,
               "DamageMultiplier": 0.0,
-              "ShieldPercent": 0.25,
+              "ShieldPercent": 0.2,
               "ShieldTurns": 2,
               "Status": "Taunt",
               "StatusTurns": 2,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -1237,9 +1240,9 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 3,
-              "DamageMultiplier": 2.2,
+              "DamageMultiplier": 2.4,
               "Status": "DefenseDown",
-              "StatusMagnitude": 0.25,
+              "StatusMagnitude": 0.2,
               "StatusTurns": 2,
               "LevelScale": [
                 1.0,
@@ -1272,19 +1275,19 @@
             },
             "Battle": {
               "Target": "Self",
-              "Cooldown": 4,
+              "Cooldown": 5,
               "DamageMultiplier": 0.0,
-              "ShieldPercent": 0.25,
+              "ShieldPercent": 0.2,
               "ShieldTurns": 2,
               "Status": "Taunt",
               "StatusTurns": 2,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -1391,8 +1394,8 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 3,
-              "DamageMultiplier": 2.4,
+              "Cooldown": 4,
+              "DamageMultiplier": 2.8,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
@@ -1425,15 +1428,15 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 4,
-              "DamageMultiplier": 1.6,
+              "Cooldown": 3,
+              "DamageMultiplier": 1.7,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -1540,8 +1543,8 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 3,
-              "DamageMultiplier": 2.4,
+              "Cooldown": 4,
+              "DamageMultiplier": 2.7,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
@@ -1574,15 +1577,15 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 4,
-              "DamageMultiplier": 1.6,
+              "Cooldown": 3,
+              "DamageMultiplier": 1.4,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -1690,7 +1693,7 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 3,
-              "DamageMultiplier": 1.8,
+              "DamageMultiplier": 1.9,
               "Status": "Poison",
               "StatusMagnitude": 0.3,
               "StatusTurns": 3,
@@ -1727,15 +1730,15 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 4,
-              "DamageMultiplier": 1.5,
+              "DamageMultiplier": 1.8,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -1843,7 +1846,7 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 3,
-              "DamageMultiplier": 1.8,
+              "DamageMultiplier": 1.6,
               "Status": "Poison",
               "StatusMagnitude": 0.45,
               "StatusTurns": 3,
@@ -1879,16 +1882,16 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 4,
-              "DamageMultiplier": 1.5,
+              "Cooldown": 3,
+              "DamageMultiplier": 1.4,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -2033,15 +2036,15 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 4,
-              "DamageMultiplier": 1.5,
+              "DamageMultiplier": 1.6,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -2148,8 +2151,10 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 3,
-              "DamageMultiplier": 2.3,
+              "Cooldown": 4,
+              "DamageMultiplier": 2.4,
+              "Status": "Stun",
+              "StatusTurns": 1,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
@@ -2184,14 +2189,14 @@
               "Target": "SingleAlly",
               "Cooldown": 4,
               "DamageMultiplier": 0.0,
-              "HealPercent": 0.3,
+              "HealPercent": 0.18,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -2299,7 +2304,7 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 3,
-              "DamageMultiplier": 2.3,
+              "DamageMultiplier": 2.2,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
@@ -2334,14 +2339,14 @@
               "Target": "SingleAlly",
               "Cooldown": 4,
               "DamageMultiplier": 0.0,
-              "HealPercent": 0.3,
+              "HealPercent": 0.2,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -2448,7 +2453,7 @@
             },
             "Battle": {
               "Target": "AllEnemies",
-              "Cooldown": 3,
+              "Cooldown": 4,
               "DamageMultiplier": 1.3,
               "Status": "DefenseDown",
               "StatusMagnitude": 0.25,
@@ -2486,17 +2491,17 @@
               "Target": "Self",
               "Cooldown": 4,
               "DamageMultiplier": 0.0,
-              "ShieldPercent": 0.25,
-              "ShieldTurns": 2,
+              "ShieldPercent": 0.3,
+              "ShieldTurns": 3,
               "Status": "Taunt",
               "StatusTurns": 2,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -2623,10 +2628,10 @@
             },
             "Battle": {
               "Target": "AllAllies",
-              "Cooldown": 3,
+              "Cooldown": 4,
               "DamageMultiplier": 0.0,
               "Status": "AttackUp",
-              "StatusMagnitude": 0.3,
+              "StatusMagnitude": 0.35,
               "StatusTurns": 3,
               "LevelScale": [
                 1.0,
@@ -2659,15 +2664,15 @@
             },
             "Battle": {
               "Target": "SingleEnemy",
-              "Cooldown": 4,
-              "DamageMultiplier": 1.6,
+              "Cooldown": 3,
+              "DamageMultiplier": 1.8,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -2794,8 +2799,8 @@
             },
             "Battle": {
               "Target": "AllEnemies",
-              "Cooldown": 3,
-              "DamageMultiplier": 1.4,
+              "Cooldown": 4,
+              "DamageMultiplier": 1.5,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
@@ -2829,15 +2834,15 @@
             "Battle": {
               "Target": "SingleEnemy",
               "Cooldown": 4,
-              "DamageMultiplier": 1.5,
+              "DamageMultiplier": 2,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -2964,8 +2969,8 @@
             },
             "Battle": {
               "Target": "AllEnemies",
-              "Cooldown": 3,
-              "DamageMultiplier": 1.5,
+              "Cooldown": 4,
+              "DamageMultiplier": 1.3,
               "Status": "Stun",
               "StatusTurns": 1,
               "IgnoresLine": true,
@@ -3002,14 +3007,14 @@
               "Target": "SingleAlly",
               "Cooldown": 4,
               "DamageMultiplier": 0.0,
-              "HealPercent": 0.3,
+              "HealPercent": 0.22,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
@@ -3136,10 +3141,10 @@
             },
             "Battle": {
               "Target": "AllEnemies",
-              "Cooldown": 3,
-              "DamageMultiplier": 1.5,
+              "Cooldown": 5,
+              "DamageMultiplier": 0.8,
               "Status": "Stun",
-              "StatusTurns": 1,
+              "StatusTurns": 2,
               "IgnoresLine": true,
               "LevelScale": [
                 1.0,
@@ -3174,14 +3179,14 @@
               "Target": "SingleAlly",
               "Cooldown": 4,
               "DamageMultiplier": 0.0,
-              "HealPercent": 0.3,
+              "HealPercent": 0.25,
               "LevelScale": [
                 1.0,
-                1.2,
-                1.4,
+                1.15,
+                1.3,
+                1.45,
                 1.6,
-                1.8,
-                2.0
+                1.75
               ]
             }
           },
