@@ -515,9 +515,7 @@
         "DisplayName": "Намисто Світанку (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "dawn_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.12
+        "SetKey": "dawn_unique"
       },
       {
         "Key": "dawn_ring_unique",
@@ -526,9 +524,7 @@
         "DisplayName": "Кільце Світанку (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "dawn_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.12
+        "SetKey": "dawn_unique"
       },
       {
         "Key": "dawn_crown_unique",
@@ -537,9 +533,7 @@
         "DisplayName": "Корона Світанку (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "dawn_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.12
+        "SetKey": "dawn_unique"
       },
       {
         "Key": "dawn_belt_unique",
@@ -548,9 +542,7 @@
         "DisplayName": "Пояс Світанку (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "dawn_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.12
+        "SetKey": "dawn_unique"
       },
       {
         "Key": "ember_necklace_common",
@@ -631,9 +623,7 @@
         "DisplayName": "Намисто Жарини (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "ember_unique",
-        "UniqueStat": "Lifesteal",
-        "UniqueStatValue": 0.15
+        "SetKey": "ember_unique"
       },
       {
         "Key": "ember_ring_unique",
@@ -642,9 +632,7 @@
         "DisplayName": "Кільце Жарини (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "ember_unique",
-        "UniqueStat": "Lifesteal",
-        "UniqueStatValue": 0.15
+        "SetKey": "ember_unique"
       },
       {
         "Key": "ember_crown_unique",
@@ -653,9 +641,7 @@
         "DisplayName": "Корона Жарини (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "ember_unique",
-        "UniqueStat": "Lifesteal",
-        "UniqueStatValue": 0.15
+        "SetKey": "ember_unique"
       },
       {
         "Key": "ember_belt_unique",
@@ -664,9 +650,7 @@
         "DisplayName": "Пояс Жарини (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "ember_unique",
-        "UniqueStat": "Lifesteal",
-        "UniqueStatValue": 0.15
+        "SetKey": "ember_unique"
       },
       {
         "Key": "frost_necklace_common",
@@ -747,9 +731,7 @@
         "DisplayName": "Намисто Морозу (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "frost_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.12
+        "SetKey": "frost_unique"
       },
       {
         "Key": "frost_ring_unique",
@@ -758,9 +740,7 @@
         "DisplayName": "Кільце Морозу (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "frost_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.12
+        "SetKey": "frost_unique"
       },
       {
         "Key": "frost_crown_unique",
@@ -769,9 +749,7 @@
         "DisplayName": "Корона Морозу (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "frost_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.12
+        "SetKey": "frost_unique"
       },
       {
         "Key": "frost_belt_unique",
@@ -780,9 +758,7 @@
         "DisplayName": "Пояс Морозу (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "frost_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.12
+        "SetKey": "frost_unique"
       },
       {
         "Key": "tide_necklace_common",
@@ -863,9 +839,7 @@
         "DisplayName": "Намисто Припливу (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "tide_unique",
-        "UniqueStat": "CooldownReduction",
-        "UniqueStatValue": 1
+        "SetKey": "tide_unique"
       },
       {
         "Key": "tide_ring_unique",
@@ -874,9 +848,7 @@
         "DisplayName": "Кільце Припливу (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "tide_unique",
-        "UniqueStat": "CooldownReduction",
-        "UniqueStatValue": 1
+        "SetKey": "tide_unique"
       },
       {
         "Key": "tide_crown_unique",
@@ -885,9 +857,7 @@
         "DisplayName": "Корона Припливу (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "tide_unique",
-        "UniqueStat": "CooldownReduction",
-        "UniqueStatValue": 1
+        "SetKey": "tide_unique"
       },
       {
         "Key": "tide_belt_unique",
@@ -896,9 +866,7 @@
         "DisplayName": "Пояс Припливу (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "tide_unique",
-        "UniqueStat": "CooldownReduction",
-        "UniqueStatValue": 1
+        "SetKey": "tide_unique"
       },
       {
         "Key": "storm_necklace_common",
@@ -979,9 +947,7 @@
         "DisplayName": "Намисто Бурі (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "storm_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.15
+        "SetKey": "storm_unique"
       },
       {
         "Key": "storm_ring_unique",
@@ -990,9 +956,7 @@
         "DisplayName": "Кільце Бурі (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "storm_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.15
+        "SetKey": "storm_unique"
       },
       {
         "Key": "storm_crown_unique",
@@ -1001,9 +965,7 @@
         "DisplayName": "Корона Бурі (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "storm_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.15
+        "SetKey": "storm_unique"
       },
       {
         "Key": "storm_belt_unique",
@@ -1012,9 +974,7 @@
         "DisplayName": "Пояс Бурі (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "storm_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.15
+        "SetKey": "storm_unique"
       },
       {
         "Key": "thorn_necklace_common",
@@ -1095,9 +1055,7 @@
         "DisplayName": "Намисто Терену (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "thorn_unique",
-        "UniqueStat": "Lifesteal",
-        "UniqueStatValue": 0.12
+        "SetKey": "thorn_unique"
       },
       {
         "Key": "thorn_ring_unique",
@@ -1106,9 +1064,7 @@
         "DisplayName": "Кільце Терену (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "thorn_unique",
-        "UniqueStat": "Lifesteal",
-        "UniqueStatValue": 0.12
+        "SetKey": "thorn_unique"
       },
       {
         "Key": "thorn_crown_unique",
@@ -1117,9 +1073,7 @@
         "DisplayName": "Корона Терену (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "thorn_unique",
-        "UniqueStat": "Lifesteal",
-        "UniqueStatValue": 0.12
+        "SetKey": "thorn_unique"
       },
       {
         "Key": "thorn_belt_unique",
@@ -1128,9 +1082,7 @@
         "DisplayName": "Пояс Терену (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "thorn_unique",
-        "UniqueStat": "Lifesteal",
-        "UniqueStatValue": 0.12
+        "SetKey": "thorn_unique"
       },
       {
         "Key": "ash_necklace_common",
@@ -1211,9 +1163,7 @@
         "DisplayName": "Намисто Попелу (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "ash_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.15
+        "SetKey": "ash_unique"
       },
       {
         "Key": "ash_ring_unique",
@@ -1222,9 +1172,7 @@
         "DisplayName": "Кільце Попелу (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "ash_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.15
+        "SetKey": "ash_unique"
       },
       {
         "Key": "ash_crown_unique",
@@ -1233,9 +1181,7 @@
         "DisplayName": "Корона Попелу (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "ash_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.15
+        "SetKey": "ash_unique"
       },
       {
         "Key": "ash_belt_unique",
@@ -1244,9 +1190,7 @@
         "DisplayName": "Пояс Попелу (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "ash_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.15
+        "SetKey": "ash_unique"
       },
       {
         "Key": "hollow_necklace_common",
@@ -1327,9 +1271,7 @@
         "DisplayName": "Намисто Пустки (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "hollow_unique",
-        "UniqueStat": "CooldownReduction",
-        "UniqueStatValue": 1
+        "SetKey": "hollow_unique"
       },
       {
         "Key": "hollow_ring_unique",
@@ -1338,9 +1280,7 @@
         "DisplayName": "Кільце Пустки (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "hollow_unique",
-        "UniqueStat": "CooldownReduction",
-        "UniqueStatValue": 1
+        "SetKey": "hollow_unique"
       },
       {
         "Key": "hollow_crown_unique",
@@ -1349,9 +1289,7 @@
         "DisplayName": "Корона Пустки (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "hollow_unique",
-        "UniqueStat": "CooldownReduction",
-        "UniqueStatValue": 1
+        "SetKey": "hollow_unique"
       },
       {
         "Key": "hollow_belt_unique",
@@ -1360,9 +1298,7 @@
         "DisplayName": "Пояс Пустки (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "hollow_unique",
-        "UniqueStat": "CooldownReduction",
-        "UniqueStatValue": 1
+        "SetKey": "hollow_unique"
       },
       {
         "Key": "gale_necklace_common",
@@ -1443,9 +1379,7 @@
         "DisplayName": "Намисто Вітру (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "gale_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.1
+        "SetKey": "gale_unique"
       },
       {
         "Key": "gale_ring_unique",
@@ -1454,9 +1388,7 @@
         "DisplayName": "Кільце Вітру (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "gale_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.1
+        "SetKey": "gale_unique"
       },
       {
         "Key": "gale_crown_unique",
@@ -1465,9 +1397,7 @@
         "DisplayName": "Корона Вітру (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "gale_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.1
+        "SetKey": "gale_unique"
       },
       {
         "Key": "gale_belt_unique",
@@ -1476,9 +1406,7 @@
         "DisplayName": "Пояс Вітру (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "gale_unique",
-        "UniqueStat": "CritChance",
-        "UniqueStatValue": 0.1
+        "SetKey": "gale_unique"
       },
       {
         "Key": "obsidian_necklace_common",
@@ -1559,9 +1487,7 @@
         "DisplayName": "Намисто Обсидіану (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "necklace",
-        "SetKey": "obsidian_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.18
+        "SetKey": "obsidian_unique"
       },
       {
         "Key": "obsidian_ring_unique",
@@ -1570,9 +1496,7 @@
         "DisplayName": "Кільце Обсидіану (унікальне)",
         "Slot": "Artifact",
         "ArtifactSlot": "ring",
-        "SetKey": "obsidian_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.18
+        "SetKey": "obsidian_unique"
       },
       {
         "Key": "obsidian_crown_unique",
@@ -1581,9 +1505,7 @@
         "DisplayName": "Корона Обсидіану (унікальна)",
         "Slot": "Artifact",
         "ArtifactSlot": "crown",
-        "SetKey": "obsidian_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.18
+        "SetKey": "obsidian_unique"
       },
       {
         "Key": "obsidian_belt_unique",
@@ -1592,9 +1514,7 @@
         "DisplayName": "Пояс Обсидіану (унікальний)",
         "Slot": "Artifact",
         "ArtifactSlot": "belt",
-        "SetKey": "obsidian_unique",
-        "UniqueStat": "DamageReduction",
-        "UniqueStatValue": 0.18
+        "SetKey": "obsidian_unique"
       },
       {
         "Key": "skill_book_warrior_common_attack",

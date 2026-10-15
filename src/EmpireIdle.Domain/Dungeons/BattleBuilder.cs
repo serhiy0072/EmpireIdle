@@ -7,6 +7,7 @@ namespace EmpireIdle.Domain.Dungeons
     /// Герой, уже порахований застосунком: стати з рівня, тіру й спорядження,
     /// вміння — під їхній рівень (лише відкриті й ті, що діють у данжі).
     /// </summary>
+    /// <param name="BattleStats">Данжові властивості з наборів і заточки: частками, перезарядка — цілими ходами.</param>
     public record DungeonHero(
         Guid HeroId,
         string HeroKey,
@@ -15,7 +16,7 @@ namespace EmpireIdle.Domain.Dungeons
         double Defense,
         double Health,
         double Speed,
-        IReadOnlyDictionary<DungeonStat, double> UniqueStats,
+        IReadOnlyDictionary<DungeonStat, double> BattleStats,
         IReadOnlyList<CombatSkill> Skills);
 
     /// <summary>
@@ -129,7 +130,7 @@ namespace EmpireIdle.Domain.Dungeons
             Health = Math.Round(hero.Health, 1),
             Speed = hero.Speed,
             Statuses = [],
-            UniqueStats = hero.UniqueStats.ToDictionary(p => p.Key, p => p.Value),
+            UniqueStats = hero.BattleStats.ToDictionary(p => p.Key, p => p.Value),
             Skills = hero.Skills.ToList(),
         };
     }

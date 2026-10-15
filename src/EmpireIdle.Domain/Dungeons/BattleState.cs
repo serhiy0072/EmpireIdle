@@ -83,7 +83,10 @@ namespace EmpireIdle.Domain.Dungeons
 
         public required List<BattleStatus> Statuses { get; init; }
 
-        /// <summary>Унікальні властивості з артефактів; у ворогів порожньо.</summary>
+        /// <summary>
+        /// Данжові властивості з наборів і заточки; у ворогів порожньо. Назва лишилась від унікальних
+        /// артефактів: під нею збережено незавершені забіги.
+        /// </summary>
         public required Dictionary<DungeonStat, double> UniqueStats { get; init; }
 
         public bool IsAlive => Health > 0;

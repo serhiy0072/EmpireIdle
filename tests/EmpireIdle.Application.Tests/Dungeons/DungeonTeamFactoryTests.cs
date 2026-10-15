@@ -68,6 +68,33 @@ public class DungeonTeamFactoryTests
         Assert.Equal(skill.Cooldown - 1, skill.CooldownLeft);
     }
 
+    /// <summary>
+    /// Данжові властивості — з заточки й порогів набору, у частках; перезарядка — цілими ходами.
+    /// Унікальна рідкість сама по собі нічого не додає.
+    /// </summary>
+    [Fact]
+    public async Task BuildAsync_ShouldTakeDungeonStats_FromMasteryAndSetBonuses()
+    {
+        _config.Equipment.SetBonuses[0].Stats = new Dictionary<string, double> { ["CooldownTurns"] = 1, ["Lifesteal"] = 6 };
+        var hero = HeroOnDuty(level: 1);
+        EquipmentItem[] worn =
+        [
+            Entities.Equipment(TestKeys.Artifact, EquipmentSlot.Artifact, rarity: Rarity.Unique, bonuses: (0, "CritChance", 4)),
+            Entities.Equipment(TestKeys.SecondArtifact, EquipmentSlot.Artifact),
+            Entities.Equipment(TestKeys.ThirdArtifact, EquipmentSlot.Artifact),
+            Entities.Equipment(TestKeys.FourthArtifact, EquipmentSlot.Artifact),
+        ];
+        _inventory.GetEquippedAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(worn.ToList());
+
+        var team = await Factory().BuildAsync(PlayerId, [hero.Id], CancellationToken.None);
+
+        var stats = team[0].BattleStats;
+        Assert.Equal(0.04, stats[DungeonStat.CritChance], 6);
+        Assert.Equal(0.06, stats[DungeonStat.Lifesteal], 6);
+        Assert.Equal(1, stats[DungeonStat.CooldownReduction], 6);
+        Assert.False(stats.ContainsKey(DungeonStat.DamageReduction));
+    }
+
     [Fact]
     public async Task BuildAsync_ShouldAddThePeriodic_OnceTheHeroLevelUnlocksIt()
     {
