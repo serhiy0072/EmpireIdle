@@ -11,7 +11,7 @@ interface Props {
   targetable: boolean;
   selected: boolean;
   /** Шкода за останній хід; показується сплеском над бійцем. */
-  splash: { damage: number; healed: number; critical: boolean } | null;
+  splash: { damage: number; healed: number; critical: boolean; blocked: boolean } | null;
   onSelect?: () => void;
 }
 
@@ -52,6 +52,7 @@ export default function CombatantCard({ combatant, active, targetable, selected,
         >
           {splash.healed > 0 ? `+${Math.round(splash.healed)}` : `−${Math.round(splash.damage)}`}
           {splash.critical && "!"}
+          {splash.blocked && " 🛡"}
         </span>
       )}
 

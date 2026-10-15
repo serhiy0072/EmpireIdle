@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import DungeonBattle from "../components/dungeons/DungeonBattle";
 import ErrorBanner from "../components/ErrorBanner";
+import { RoleBadge } from "../components/game/GameUi";
 import HeroPortrait from "../components/heroes/HeroPortrait";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
@@ -134,30 +135,39 @@ export default function DungeonsPage() {
 
       <div className="grid gap-4 lg:grid-cols-[2fr_3fr]">
         <div className="space-y-2">
-          {overview.dungeons.map((dungeon) => (
-            <button
-              key={dungeon.key}
-              type="button"
-              onClick={() => {
-                setSelectedKey(dungeon.key);
-                setLevel(Math.max(1, Math.min(dungeon.unlockedLevel, dungeon.clearedLevel + 1)));
-              }}
-              disabled={!dungeon.isUnlocked}
-              className={`w-full rounded-xl border p-3 text-left transition ${
-                selectedKey === dungeon.key ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"
-              } ${dungeon.isUnlocked ? "" : "opacity-50"}`}
-            >
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="font-medium text-slate-800">{dungeon.displayName}</span>
-                <span className="text-xs text-slate-500">
-                  {dungeon.isUnlocked
-                    ? `пройдено ${dungeon.clearedLevel}/${dungeon.levels.length}`
-                    : `🔒 ратуша ${dungeon.requiresMainBuildingLevel}`}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-slate-500">{dungeon.description}</p>
-            </button>
-          ))}
+          {overview.dungeons.map((dungeon) => {
+            // Кожен данж кидає набір одного класу (рішення 15.10.2026) — значок одразу каже, чий
+            const setClass = catalog.artifactSets.find((set) => set.key === dungeon.artifactSetKey)?.class ?? undefined;
+
+            return (
+              <button
+                key={dungeon.key}
+                type="button"
+                onClick={() => {
+                  setSelectedKey(dungeon.key);
+                  setLevel(Math.max(1, Math.min(dungeon.unlockedLevel, dungeon.clearedLevel + 1)));
+                }}
+                disabled={!dungeon.isUnlocked}
+                className={`w-full rounded-xl border p-3 text-left transition ${
+                  selectedKey === dungeon.key ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"
+                } ${dungeon.isUnlocked ? "" : "opacity-50"}`}
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="flex items-center gap-1.5 font-medium text-slate-800">
+                    <RoleBadge role={setClass} size={16} />
+                    {dungeon.displayName}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {dungeon.isUnlocked
+                      ? `пройдено ${dungeon.clearedLevel}/${dungeon.levels.length}`
+                      : `🔒 ратуша ${dungeon.requiresMainBuildingLevel}`}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">{dungeon.description}</p>
+                {setClass !== undefined && <p className="mt-0.5 text-xs text-slate-400">Набір для класу «{classLabel(setClass)}»</p>}
+              </button>
+            );
+          })}
         </div>
 
         {selected === null ? (
@@ -203,7 +213,8 @@ export default function DungeonsPage() {
                   to={`/inventory/sets?set=${dropSet.key}`}
                   className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
                 >
-                  <span>
+                  <span className="flex items-center gap-1.5">
+                    <RoleBadge role={dropSet.class ?? undefined} size={16} />
                     {dropSet.displayName} · рівень набору {dropSet.tier}
                   </span>
                   <span aria-hidden>→</span>

@@ -31,8 +31,10 @@ export default function EquipmentCard({ equipment, wornKeys, heroes, busy, onEqu
   // Артефакт сам визначає слот — показуємо його тип замість номера
   const slotName = catalog.artifactSlotName(equipment.itemKey);
   const wearer = equipment.equippedByHeroId === null ? null : heroes.find((hero) => hero.id === equipment.equippedByHeroId);
-  // Переодягаються лише вдома: герой у поході не кандидат
-  const candidates = heroes.filter((hero) => hero.stationedGarrisonId != null);
+  // Переодягаються лише вдома: герой у поході не кандидат. Набір — лише для свого класу (рішення 15.10.2026)
+  const candidates = heroes.filter(
+    (hero) => hero.stationedGarrisonId != null && (set?.class == null || catalog.hero(hero.heroKey)?.class === set.class),
+  );
   const chosenHero = heroId !== "" ? heroId : (candidates[0]?.id ?? "");
 
   const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";

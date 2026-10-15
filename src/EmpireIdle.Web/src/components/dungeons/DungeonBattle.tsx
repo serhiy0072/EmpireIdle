@@ -18,7 +18,7 @@ const TURN_DELAY_MS = 900;
 /** Сплеск шкоди над бійцем гасне сам — без цього він лишався б до наступного ходу. */
 const SPLASH_MS = 700;
 
-type Splash = { damage: number; healed: number; critical: boolean };
+type Splash = { damage: number; healed: number; critical: boolean; blocked: boolean };
 
 /**
  * Підсумок забігу за станом із сервера. Нічия окрема від поразки: команда
@@ -94,7 +94,8 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
             const name = `${source}${people[effect.targetIndex]?.displayName ?? "?"}`;
             if ((effect.healed ?? 0) > 0) return `${name} +${Math.round(effect.healed ?? 0)}`;
             if ((effect.shieldGained ?? 0) > 0) return `${name} щит ${Math.round(effect.shieldGained ?? 0)}`;
-            return `${name} −${Math.round(effect.damage ?? 0)}${effect.critical === true ? "!" : ""}${effect.died === true ? " †" : ""}`;
+            // Блок — з наборів і заточки: удар по герою дійшов, але ослаблений
+            return `${name} −${Math.round(effect.damage ?? 0)}${effect.critical === true ? "!" : ""}${effect.blocked === true ? " (блок)" : ""}${effect.died === true ? " †" : ""}`;
           })
           .join(", ");
 
@@ -156,6 +157,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
               damage: effect.damage ?? 0,
               healed: effect.healed ?? 0,
               critical: effect.critical === true,
+              blocked: effect.blocked === true,
             };
 
         setSplashes(fresh);

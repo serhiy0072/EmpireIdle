@@ -62,11 +62,18 @@ export default function HeroGearTab({
   const slotId = (slot: Slot) => String(slot.index);
   const wornIn = (slot: Slot) => worn.find((piece) => piece.slotIndex === slot.index) ?? null;
 
-  // Те саме правило, що EquipmentFit на сервері: вільне, ціле, не на ринку й придатне для слота
-  const candidatesFor = (slot: Slot) =>
+  // Те саме правило, що EquipmentFit на сервері: вільне, не на ринку, придатне для слота й свого класу
+  const freeFor = (slot: Slot) =>
     equipment
       .filter((piece) => piece.equippedByHeroId == null && !piece.isOnMarket)
       .filter((piece) => catalog.item(piece.itemKey)?.artifactSlot === slot.artifactKey);
+  const fitsClass = (piece: EquipmentResponse) => {
+    const setClass = catalog.setOfItem(piece.itemKey)?.class;
+    return setClass == null || setClass === config.class;
+  };
+  const candidatesFor = (slot: Slot) => freeFor(slot).filter(fitsClass);
+  // Набори інших класів цей герой не вдягне (рішення 15.10.2026) — лише кажемо, що вони є
+  const foreignFor = (slot: Slot) => freeFor(slot).filter((piece) => !fitsClass(piece)).length;
 
   const pickedSlot = slots.find((slot) => slotId(slot) === picked) ?? null;
 
@@ -156,6 +163,7 @@ export default function HeroGearTab({
         <SlotDetails
           slot={pickedSlot}
           candidates={candidatesFor(pickedSlot)}
+          foreign={foreignFor(pickedSlot)}
           disabled={busy || !atHome}
           onEquip={onEquip}
         />
@@ -168,11 +176,14 @@ export default function HeroGearTab({
 function SlotDetails({
   slot,
   candidates,
+  foreign,
   disabled,
   onEquip,
 }: {
   slot: Slot;
   candidates: EquipmentResponse[];
+  /** Скільки вільних предметів цього слота — з наборів іншого класу. */
+  foreign: number;
   disabled: boolean;
   onEquip: (equipmentId: string) => void;
 }) {
@@ -199,6 +210,9 @@ function SlotDetails({
             </Tile>
           ))}
         </div>
+      )}
+      {foreign > 0 && (
+        <p className="text-xs text-sky-200/80">Ще {foreign} — з наборів іншого класу: цей герой їх не вдягне.</p>
       )}
     </div>
   );
