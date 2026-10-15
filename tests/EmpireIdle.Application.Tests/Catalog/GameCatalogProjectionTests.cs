@@ -395,7 +395,28 @@ public class GameCatalogProjectionTests
         Assert.Equal(1, set.Dungeon?.RequiresMainBuildingLevel);
     }
 
-    /// <summary>Кожна рідкість — зі своїм бонусом і чотирма частинами; ключ збігається з SetKey предметів.</summary>
+    /// <summary>Пороги — від меншого, кожен зі своїм бонусом; клас і опис набору — як у конфігу.</summary>
+    [Fact]
+    public void Response_ShouldListThresholdsInOrder_WithTheSetsClass()
+    {
+        var config = new GameConfigBuilder().WithDungeons().Build();
+        var family = config.Equipment.ArtifactSets.Single(s => s.Key == TestKeys.DungeonSetKey);
+        family.Class = "warrior";
+        family.Description = "Яма не відпускає.";
+        config.Equipment.SetBonuses.Insert(0, new SetBonusConfig
+        {
+            SetKey = $"{TestKeys.DungeonSetKey}_common", RequiredPieces = 2, Stats = new() { ["DefensePercent"] = 5 },
+        });
+
+        var set = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).ArtifactSets.Single();
+        var common = set.Rarities.Single(r => r.Rarity == "Common");
+
+        Assert.Equal(("warrior", "Яма не відпускає."), (set.Class, set.Description));
+        Assert.Equal([2, 4], common.Thresholds.Select(t => t.RequiredPieces));
+        Assert.Equal(5, common.Thresholds[0].Bonus["DefensePercent"]);
+    }
+
+    /// <summary>Кожна рідкість — зі своїми порогами й чотирма частинами; ключ збігається з SetKey предметів.</summary>
     [Fact]
     public void Response_ShouldListEveryRarityWithItsBonusAndPieces()
     {
@@ -408,8 +429,9 @@ public class GameCatalogProjectionTests
         Assert.All(set.Rarities, rarity =>
         {
             Assert.Equal($"{TestKeys.DungeonSetKey}_{rarity.Rarity.ToLowerInvariant()}", rarity.SetKey);
-            Assert.Equal(4, rarity.RequiredPieces);
-            Assert.Equal(10, rarity.Bonus["Attack"]);
+            var threshold = Assert.Single(rarity.Thresholds);
+            Assert.Equal(4, threshold.RequiredPieces);
+            Assert.Equal(10, threshold.Bonus["Attack"]);
             Assert.Equal(4, rarity.PieceKeys.Count);
             Assert.All(rarity.PieceKeys, key => Assert.Equal(rarity.SetKey, catalog.FindItem(key)?.SetKey));
         });

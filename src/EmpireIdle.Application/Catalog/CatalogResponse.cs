@@ -206,9 +206,13 @@
     /// <param name="StatMultiplier">Множник статів за рівнем — те, що рівень означає в числах.</param>
     /// <param name="FocusStats">Характер набору для гравця — атакувальний чи захисний; на стати предметів не впливає.</param>
     /// <param name="Dungeon">Данж, з якого падає набір; null — набір поза данжами.</param>
+    /// <param name="Class">Клас героїв, що вдягають набір (рішення 15.10.2026); null — будь-який.</param>
+    /// <param name="Description">Рядок характеру набору; порожньо — без опису.</param>
     public record CatalogArtifactSet(
         string Key,
         string DisplayName,
+        string? Class,
+        string Description,
         int Tier,
         double StatMultiplier,
         IReadOnlyList<string> FocusStats,
@@ -218,16 +222,23 @@
     /// <param name="RequiresMainBuildingLevel">Рівень ратуші, з якого данж відкритий.</param>
     public record CatalogSetSource(string Key, string DisplayName, int RequiresMainBuildingLevel);
 
-    /// <summary>Набір однієї рідкості: скільки частин треба вдягнути, що дає і з яких предметів складається.</summary>
+    /// <summary>Набір однієї рідкості: пороги з бонусами й предмети, з яких він складається.</summary>
     /// <param name="Rarity">"Common", "Rare", "Unique" — як у CatalogItem.</param>
     /// <param name="SetKey">Збігається з SetKey предметів цієї рідкості.</param>
+    /// <param name="Thresholds">
+    /// Пороги від меншого (рішення 15.10.2026): 2 предмети родини — перший бонус, 4 — ще один. Предмети
+    /// рахуються по родині будь-якої рідкості, а числа порогу N — з рідкості N-го предмета від найрідкіснішого.
+    /// </param>
     /// <param name="PieceKeys">Ключі частин; назви — у Items.</param>
     public record CatalogSetRarity(
         string Rarity,
         string SetKey,
-        int RequiredPieces,
-        IReadOnlyDictionary<string, double> Bonus,
+        IReadOnlyList<CatalogSetThreshold> Thresholds,
         IReadOnlyList<string> PieceKeys);
+
+    /// <param name="RequiredPieces">Скільки предметів родини треба вдягнути.</param>
+    /// <param name="Bonus">Що дає поріг — додатково до менших порогів.</param>
+    public record CatalogSetThreshold(int RequiredPieces, IReadOnlyDictionary<string, double> Bonus);
 
     public record CatalogResource(string Key, string DisplayName, string Icon);
 

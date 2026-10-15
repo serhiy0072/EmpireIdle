@@ -9903,6 +9903,7 @@
       },
       "CatalogArtifactSet": {
         "required": [
+          "description",
           "displayName",
           "focusStats",
           "key",
@@ -9916,6 +9917,13 @@
             "type": "string"
           },
           "displayName": {
+            "type": "string"
+          },
+          "class": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
             "type": "string"
           },
           "tier": {
@@ -10510,11 +10518,10 @@
       },
       "CatalogSetRarity": {
         "required": [
-          "bonus",
           "pieceKeys",
           "rarity",
-          "requiredPieces",
-          "setKey"
+          "setKey",
+          "thresholds"
         ],
         "type": "object",
         "properties": {
@@ -10524,15 +10531,10 @@
           "setKey": {
             "type": "string"
           },
-          "requiredPieces": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "bonus": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "number",
-              "format": "double"
+          "thresholds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogSetThreshold"
             }
           },
           "pieceKeys": {
@@ -10561,6 +10563,27 @@
           "requiresMainBuildingLevel": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogSetThreshold": {
+        "required": [
+          "bonus",
+          "requiredPieces"
+        ],
+        "type": "object",
+        "properties": {
+          "requiredPieces": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bonus": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            }
           }
         },
         "additionalProperties": false

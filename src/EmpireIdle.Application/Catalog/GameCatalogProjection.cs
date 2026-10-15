@@ -232,13 +232,15 @@ namespace EmpireIdle.Application.Catalog
                         .Select(rarity =>
                         {
                             var setKey = $"{set.Key}_{rarity.ToString().ToLowerInvariant()}";
-                            var bonus = equipment.SetBonuses.FirstOrDefault(b => b.SetKey == setKey);
 
                             return new CatalogSetRarity(
                                 rarity.ToString(),
                                 setKey,
-                                bonus?.RequiredPieces ?? 0,
-                                bonus?.Stats ?? new Dictionary<string, double>(),
+                                equipment.SetBonuses
+                                    .Where(b => b.SetKey == setKey)
+                                    .OrderBy(b => b.RequiredPieces)
+                                    .Select(b => new CatalogSetThreshold(b.RequiredPieces, b.Stats))
+                                    .ToList(),
                                 config.Items
                                     .Where(item => item.SetKey == setKey)
                                     .Select(item => item.Key)
@@ -250,6 +252,8 @@ namespace EmpireIdle.Application.Catalog
                     return new CatalogArtifactSet(
                         set.Key,
                         name("artifactSet", set.Key, set.DisplayName),
+                        set.Class,
+                        set.Description,
                         set.Tier,
                         multipliers.Count == 0 ? 1.0 : multipliers[Math.Clamp(set.Tier - 1, 0, multipliers.Count - 1)],
                         set.FocusStats,

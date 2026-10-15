@@ -5,8 +5,10 @@ import ItemIcon from "../components/inventory/ItemIcon";
 import { useSession } from "../hooks/useSession";
 import { useCatalog, type CatalogArtifactSet } from "../lib/queries/catalog";
 import { useInventory } from "../lib/queries/inventory";
+import { RoleBadge } from "../components/game/GameUi";
+import { classLabel } from "../lib/heroClasses";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
-import { statLabel } from "../lib/statNames";
+import { bonusValue, isDungeonOnly, statLabel, statLabelForClass } from "../lib/statNames";
 
 /** Характер набору словами: гравцеві «Attack, Health» нічого не каже про роль. */
 function character(set: CatalogArtifactSet): { label: string; style: string } | null {
@@ -18,15 +20,17 @@ function character(set: CatalogArtifactSet): { label: string; style: string } | 
     : null;
 }
 
-function bonusText(bonus: Record<string, number>): string {
-  const lines = Object.entries(bonus).map(([stat, value]) => `${statLabel(stat)} +${Math.round(value)}`);
+function bonusText(bonus: Record<string, number>, heroClass: string | null | undefined): string {
+  const lines = Object.entries(bonus).map(
+    ([stat, value]) => `${statLabelForClass(stat, heroClass)} ${bonusValue(stat, value)}${isDungeonOnly(stat) ? " (у данжі)" : ""}`,
+  );
 
   return lines.length === 0 ? "—" : lines.join(" · ");
 }
 
 /**
- * Кодекс наборів: усі родини артефактів за рівнями данжів. Гравець бачить,
- * з якого данжу що падає, що дає повний комплект і скільки частин уже зібрано.
+ * Кодекс наборів: усі родини артефактів за рівнями данжів. Гравець бачить, для якого класу набір,
+ * з якого данжу він падає, що дають пороги 2 і 4 предмети і скільки частин уже зібрано.
  * ?set=ключ підсвічує й прокручує до потрібної родини — туди ведуть переходи
  * з вітрини данжу й картки артефакту.
  */
@@ -81,8 +85,10 @@ export default function ArtifactSetsPage() {
       </div>
 
       <p className="text-sm text-slate-600">
-        Кожен данж дає свій набір із чотирьох частин. Чим вищий рівень набору, тим сильніші стати артефактів. Бонус
-        набору діє, коли на герої вдягнено всі частини однієї рідкості.
+        Кожен данж дає набір із чотирьох частин для одного класу героїв — інший клас його не вдягне. Два предмети
+        набору дають перший бонус, чотири — ще один. Рідкість предметів можна змішувати: числа порогу беруться з
+        рідкості N-го найрідкіснішого предмета, тож 2 унікальні й 2 звичайні дають перший бонус унікальним, а другий —
+        звичайним.
       </p>
 
       {inventory.isError && <ErrorBanner error={inventory.error} />}
@@ -106,10 +112,16 @@ export default function ArtifactSetsPage() {
                     isFocused ? "border-emerald-500 ring-2 ring-emerald-200" : "border-slate-200"
                   }`}
                 >
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="font-medium text-slate-800">{set.displayName}</h3>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="flex items-center gap-1.5 font-medium text-slate-800">
+                      {set.class != null && <RoleBadge role={set.class} size={18} />}
+                      {set.displayName}
+                    </h3>
                     {role !== null && <span className={`rounded px-2 py-0.5 text-xs ${role.style}`}>{role.label}</span>}
                   </div>
+
+                  {set.class != null && <p className="text-xs text-slate-500">Для класу «{classLabel(set.class)}»</p>}
+                  {set.description !== "" && <p className="text-sm italic text-slate-600">{set.description}</p>}
 
                   {set.dungeon != null ? (
                     <p className="text-xs text-slate-500">
@@ -145,9 +157,11 @@ export default function ArtifactSetsPage() {
                             </span>
                           </div>
 
-                          <p className="mt-1 text-sm text-slate-700">
-                            {rarity.requiredPieces} частини: {bonusText(rarity.bonus)}
-                          </p>
+                          {rarity.thresholds.map((threshold) => (
+                            <p key={threshold.requiredPieces} className="mt-1 text-sm text-slate-700">
+                              {threshold.requiredPieces} предмети: {bonusText(threshold.bonus, set.class)}
+                            </p>
+                          ))}
 
                           <div className="mt-2 flex flex-wrap gap-1">
                             {rarity.pieceKeys.map((key) => {
