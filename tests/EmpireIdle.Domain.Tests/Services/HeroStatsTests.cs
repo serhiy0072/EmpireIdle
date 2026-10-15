@@ -115,6 +115,43 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Equal(30, Stats().Power(item), 3);
         }
 
+        /// <summary>Звичайний артефакт зі здоров'ям: 60 на нулі й +12 за рівень, ваги сили як у грі.</summary>
+        private static (HeroStats Stats, HeroConfig Hero) WithArtifactHealth()
+        {
+            var config = new GameConfigBuilder()
+                .WithHeroes()
+                .WithEquipment(e =>
+                {
+                    e.ArtifactClassMultipliers["warrior"] = new ArtifactClassMultiplierConfig { Attack = 1.0, Defense = 1.2 };
+                    e.ArtifactBase[Rarity.Common].HeroHealth = 60;
+                    e.ArtifactBase[Rarity.Common].HeroHealthPerLevel = 12;
+                })
+                .Build();
+            config.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0, ["Defense"] = 1.0, ["Health"] = 0.25 };
+            var catalog = new GameCatalog(config);
+
+            return (new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog.Hero(TestKeys.CommonHero));
+        }
+
+        /// <summary>
+        /// Здоров'я артефакта росте з рівнем і йде з множником захисту класу, як і сам захист:
+        /// (60 + 12 × 2) × 1.2 воїна. Без нього рана героя наставала б дедалі легше з прогресом.
+        /// </summary>
+        [Fact]
+        public void Compute_ShouldAddTheArtifactsHealthWithTheClassDefenseMultiplier()
+        {
+            var (stats, hero) = WithArtifactHealth();
+
+            var result = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), hero, [Necklace(level: 2)]);
+
+            Assert.Equal(100.8, result["Health"], 3);
+        }
+
+        /// <summary>Здоров'я предмета важить у силі як здоров'я героя: (10 + 10) + (40 + 40) × 0.25 + 60 × 0.25.</summary>
+        [Fact]
+        public void Power_ShouldWeighTheArtifactsHealthLikeTheHerosOwn()
+            => Assert.Equal(55, WithArtifactHealth().Stats.Power(Necklace()), 3);
+
         /// <summary>Відсотки крита складаються в силу за своєю вагою, а не з пласкою атакою.</summary>
         [Fact]
         public void Power_WithGear_ShouldNotSumPercentStatsAsFlatStats()

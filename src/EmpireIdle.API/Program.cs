@@ -109,7 +109,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
     .Validate(c => c.Equipment.LevelExperienceBase > 0 && c.Equipment.LevelExperienceCoefficient >= 0 && c.Equipment.LevelExperienceExponent > 0,
         "GameConfig.Equipment level experience curve must be positive — otherwise a level costs nothing.")
-    .Validate(c => c.Equipment.ArtifactBase.Values.All(b => b.Hero >= 0 && b.HeroPerLevel >= 0 && b.Unit >= 0 && b.UnitPerLevel >= 0),
+    .Validate(c => c.Equipment.ArtifactBase.Values.All(b => b.Hero >= 0 && b.HeroPerLevel >= 0 && b.HeroHealth >= 0
+            && b.HeroHealthPerLevel >= 0 && b.Unit >= 0 && b.UnitPerLevel >= 0),
         "GameConfig.Equipment.ArtifactBase cannot be negative — a level would weaken the artifact.")
     .Validate(c => c.Equipment.ArtifactClassMultipliers.Values.All(m => m.Attack > 0 && m.Defense > 0),
         "GameConfig.Equipment.ArtifactClassMultipliers must be positive.")

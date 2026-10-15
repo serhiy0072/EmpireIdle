@@ -1787,9 +1787,9 @@
         "Rare": 300
       },
       "ArtifactBase": {
-        "Common": { "Hero": 10, "HeroPerLevel": 2, "Unit": 40, "UnitPerLevel": 8 },
-        "Rare": { "Hero": 16, "HeroPerLevel": 3, "Unit": 64, "UnitPerLevel": 12 },
-        "Unique": { "Hero": 25, "HeroPerLevel": 4, "Unit": 100, "UnitPerLevel": 16 }
+        "Common": { "Hero": 10, "HeroPerLevel": 2, "HeroHealth": 60, "HeroHealthPerLevel": 12, "Unit": 40, "UnitPerLevel": 8 },
+        "Rare": { "Hero": 16, "HeroPerLevel": 3, "HeroHealth": 96, "HeroHealthPerLevel": 18, "Unit": 64, "UnitPerLevel": 12 },
+        "Unique": { "Hero": 25, "HeroPerLevel": 4, "HeroHealth": 150, "HeroHealthPerLevel": 24, "Unit": 100, "UnitPerLevel": 16 }
       },
       "ArtifactClassMultipliers": {
         "warrior": { "Attack": 1.0, "Defense": 1.2 },
