@@ -24,6 +24,7 @@ namespace EmpireIdle.Application.Territory.Services
         private readonly IClanStructureRepository _structureRepository;
         private readonly CombatCalculator _combat;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly HeroCombatants _combatants;
         private readonly TerrainGenerator _terrain;
         private readonly MarchLogistics _logistics;
         private readonly ClanTerritoryRules _rules;
@@ -37,6 +38,7 @@ namespace EmpireIdle.Application.Territory.Services
             IClanStructureRepository structureRepository,
             CombatCalculator combat,
             HeroCombatModifiers heroModifiers,
+            HeroCombatants combatants,
             TerrainGenerator terrain,
             MarchLogistics logistics,
             ClanTerritoryRules rules,
@@ -49,6 +51,7 @@ namespace EmpireIdle.Application.Territory.Services
             _structureRepository = structureRepository;
             _combat = combat;
             _heroModifiers = heroModifiers;
+            _combatants = combatants;
             _terrain = terrain;
             _logistics = logistics;
             _rules = rules;
@@ -83,7 +86,7 @@ namespace EmpireIdle.Application.Territory.Services
 
             // Сила маршу, а не кількість маршів: один сильний прискорює більше за кілька слабких
             var power = _combat.CalculatePower(units, _terrain.GetTerrainType(march.ServerId, structure.X, structure.Y),
-                isAttacker: true, _heroModifiers.ForMarch(heroes));
+                isAttacker: true, _heroModifiers.ForMarch(heroes, await _combatants.GearAsync(heroes, cancellationToken)));
 
             var accelerated = structure.Accelerate(_rules.BuildShareFor(power), _rules.MaxBuildShare, utcNow);
 

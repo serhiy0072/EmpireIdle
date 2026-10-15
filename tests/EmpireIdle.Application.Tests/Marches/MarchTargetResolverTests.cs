@@ -37,6 +37,7 @@ public class MarchTargetResolverTests
             Substitute.For<IHeroRepository>().ForwardHeroLookups(),
             new MonsterArmyBuilder(catalog),
             new HeroCombatModifiers(catalog),
+            TestCombatants.WithoutGear(catalog),
             catalog,
             new VillageStatus(catalog),
             Substitute.For<IClanStructureRepository>(),

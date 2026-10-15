@@ -72,7 +72,7 @@ public class GetBattlePreviewQueryTests
         _serverContext.ServerId.Returns(1);
 
         var targets = new MarchTargetResolver(
-            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog,
+            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, TestCombatants.WithoutGear(catalog), catalog,
             new VillageStatus(catalog), Substitute.For<IClanStructureRepository>(), Substitute.For<IClanRepository>(),
             new ClanTerritoryRules(catalog), Substitute.For<IMarchRepository>(), TestEffects.Resolver(_effects));
 

@@ -109,9 +109,11 @@ namespace EmpireIdle.Application.Territory.Services
             // Господаря немає: лідер кожного учасника діє лише на свій стек
             var stationed = await _heroRepository.GetByGarrisonAsync(defenderGarrison.Id, cancellationToken);
 
+            var stationedGear = await _combatants.GearAsync(stationed, cancellationToken);
+
             var defenceBuffs = new DefenceBuffs(
                 StackBuff.None,
-                stationed.GroupBy(h => h.PlayerId).ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g)));
+                stationed.GroupBy(h => h.PlayerId).ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g, stationedGear)));
 
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
@@ -127,7 +129,7 @@ namespace EmpireIdle.Application.Territory.Services
             // Споруда без господаря: лідери учасників лише підсилюють свої конвої, б'ються герої нападу
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
                 attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.ForMarch(attackerHeroes), defenceBuffs,
+                _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken)), defenceBuffs,
                 await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 
             var result = outcome.Battle;

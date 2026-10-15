@@ -106,7 +106,9 @@ namespace EmpireIdle.Application.Marches.Services
 
             var campHeroes = await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken);
 
-            var defenceBuffs = new DefenceBuffs(_heroModifiers.ForMarch(campHeroes), new Dictionary<Guid, StackBuff>());
+            var defenceBuffs = new DefenceBuffs(
+                _heroModifiers.ForMarch(campHeroes, await _combatants.GearAsync(campHeroes, cancellationToken)),
+                new Dictionary<Guid, StackBuff>());
 
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
@@ -122,7 +124,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
                 attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.ForMarch(attackerHeroes), defenceBuffs,
+                _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken)), defenceBuffs,
                 await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken),
                 await _combatants.ForAsync(campHeroes, attacking: false, cancellationToken));
 

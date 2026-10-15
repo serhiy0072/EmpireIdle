@@ -237,7 +237,7 @@ public class CompleteMarchCommandTests
             NullLogger<ReinforcementDelivery>.Instance);
 
         var structureDelivery = new StructureReinforcementDelivery(
-            _garrisons, _villages, _heroes, _clans, _structures, combat, heroModifiers, terrain, logistics, territory,
+            _garrisons, _villages, _heroes, _clans, _structures, combat, heroModifiers, combatants, terrain, logistics, territory,
             NullLogger<StructureReinforcementDelivery>.Instance);
 
         var remover = new ClanStructureRemover(_structures, _garrisons, _map, returner, NullLogger<ClanStructureRemover>.Instance);
@@ -248,7 +248,7 @@ public class CompleteMarchCommandTests
             NullLogger<StructureBattleService>.Instance);
 
         var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, heroModifiers,
-            catalog, status, _structures, _clans, territory, _marches, effects);
+            combatants, catalog, status, _structures, _clans, territory, _marches, effects);
 
         var campBattle = new CampBattleService(
             _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,

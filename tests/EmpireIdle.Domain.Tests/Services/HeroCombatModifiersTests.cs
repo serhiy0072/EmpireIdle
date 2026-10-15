@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -79,7 +80,7 @@ namespace EmpireIdle.Domain.Tests.Services
                 Battle = new SkillBattleConfig { Cooldown = 3, DamageMultiplier = 2, LevelScale = [1, 1, 1, 1, 1, 1] },
             };
 
-            var buff = Modifiers(active).For(TestKit.Entities.Hero(TestKeys.CommonHero));
+            var buff = Modifiers(active).For(TestKit.Entities.Hero(TestKeys.CommonHero), HeroGear.None);
 
             Assert.Equal(1.05, buff.Attack("infantry"), 3);
         }
@@ -94,7 +95,7 @@ namespace EmpireIdle.Domain.Tests.Services
                 Utility = new SkillUtilityConfig { Effect = SkillUtilityConfig.MarchSpeed, Percents = [5, 10, 15, 20, 25, 30] },
             };
 
-            var buff = Modifiers(swift).For(TestKit.Entities.Hero(TestKeys.CommonHero));
+            var buff = Modifiers(swift).For(TestKit.Entities.Hero(TestKeys.CommonHero), HeroGear.None);
 
             Assert.Equal(1.0, buff.Attack("infantry"), 3);
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
@@ -107,7 +108,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 20);
             hero.Wound(Now);
 
-            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero);
+            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero, HeroGear.None);
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
@@ -115,7 +116,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldReturnNothing_WhenThereIsNoHero()
         {
-            var buff = Modifiers(Shieldwall).For(null);
+            var buff = Modifiers(Shieldwall).For(null, HeroGear.None);
 
             Assert.Equal(1.0, buff.Attack("infantry"), 3);
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
@@ -124,7 +125,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void For_ShouldReturnNothing_WhenTheHeroHasNoSkills()
         {
-            var buff = Modifiers(Shieldwall).For(TestKit.Entities.Hero(TestKeys.PlainHero));
+            var buff = Modifiers(Shieldwall).For(TestKit.Entities.Hero(TestKeys.PlainHero), HeroGear.None);
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
@@ -136,7 +137,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 20);
             hero.Deploy(Guid.NewGuid(), Now);
 
-            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero);
+            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero, HeroGear.None);
 
             Assert.Equal(1.10, buff.Defense("infantry"), 3);
         }
@@ -148,7 +149,7 @@ namespace EmpireIdle.Domain.Tests.Services
             hero.Deploy(Guid.NewGuid(), Now);
             hero.Wound(Now);
 
-            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero);
+            var buff = Modifiers(Shieldwall, HoldTheLine).For(hero, HeroGear.None);
 
             Assert.Equal(1.0, buff.Defense("infantry"), 3);
         }
@@ -167,7 +168,7 @@ namespace EmpireIdle.Domain.Tests.Services
         [Fact]
         public void ForMarch_ShouldTurnAnAllTargetIntoTheHerosOwnConvoys()
         {
-            var buff = MarchModifiers(HoldTheLine).ForMarch([TestKit.Entities.Hero(TestKeys.CommonHero, level: 20)]);
+            var buff = MarchModifiers(HoldTheLine).ForMarch([TestKit.Entities.Hero(TestKeys.CommonHero, level: 20)], HeroGear.None);
 
             Assert.Equal(1.04, buff.Defense(TestKeys.Infantry), 3);
             Assert.Equal(1.0, buff.Defense("archer"), 3);
@@ -179,16 +180,61 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var archers = TestKit.Passives.Defence(percent: 7, target: "archer");
 
-            var buff = MarchModifiers(archers).ForMarch([TestKit.Entities.Hero(TestKeys.CommonHero)]);
+            var buff = MarchModifiers(archers).ForMarch([TestKit.Entities.Hero(TestKeys.CommonHero)], HeroGear.None);
 
             Assert.Equal(1.0, buff.Defense("archer"), 3);
+        }
+
+        // ---------- Спорядження (рішення 15.10.2026: бонус військам — юнітам класу героя) ----------
+
+        private static HeroGear Gear(Hero hero, double attack = 0, double defense = 0)
+            => new(new Dictionary<Guid, IReadOnlyDictionary<string, double>>
+            {
+                [hero.Id] = new Dictionary<string, double> { [HeroGear.TroopsAttack] = attack, [HeroGear.TroopsDefense] = defense },
+            });
+
+        /// <summary>Лідер гарнізону: бонус спорядження — лише його типу юнітів, а не всій обороні.</summary>
+        [Fact]
+        public void For_ShouldGiveTheGearBonus_OnlyToTheHerosClassUnits()
+        {
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero);
+
+            var buff = MarchModifiers().For(hero, Gear(hero, attack: 10, defense: 6));
+
+            Assert.Equal(1.10, buff.Attack(TestKeys.Infantry), 3);
+            Assert.Equal(1.06, buff.Defense(TestKeys.Infantry), 3);
+            Assert.Equal(1.0, buff.Attack(TestKeys.Archer), 3);
+        }
+
+        /// <summary>У марші бонус спорядження складається з бонусом вмінь на тих самих конвоях.</summary>
+        [Fact]
+        public void ForMarch_ShouldAddTheGearBonus_ToTheSkillBonus()
+        {
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 20);
+
+            var buff = MarchModifiers(HoldTheLine).ForMarch([hero], Gear(hero, defense: 5));
+
+            Assert.Equal(1.09, buff.Defense(TestKeys.Infantry), 3);
+            Assert.Equal(1.0, buff.Defense(TestKeys.Archer), 3);
+        }
+
+        /// <summary>Поранений не дає й бонусу спорядження.</summary>
+        [Fact]
+        public void For_ShouldDropTheGearBonus_WhenTheHeroIsWounded()
+        {
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero);
+            hero.Wound(Now);
+
+            var buff = MarchModifiers().For(hero, Gear(hero, attack: 10));
+
+            Assert.Equal(1.0, buff.Attack(TestKeys.Infantry), 3);
         }
 
         /// <summary>Лідер гарнізону, на відміну від маршу, підсилює всю оборону — For лишає ціль як є.</summary>
         [Fact]
         public void For_ShouldKeepTheAllTarget_ForAGarrisonLeader()
         {
-            var buff = MarchModifiers(HoldTheLine).For(TestKit.Entities.Hero(TestKeys.CommonHero, level: 20));
+            var buff = MarchModifiers(HoldTheLine).For(TestKit.Entities.Hero(TestKeys.CommonHero, level: 20), HeroGear.None);
 
             Assert.Equal(1.04, buff.Defense("archer"), 3);
         }

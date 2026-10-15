@@ -52,5 +52,26 @@ namespace EmpireIdle.Application.Marches.Services
 
             return combatants;
         }
+
+        /// <summary>
+        /// Підсумкові стати героїв зі спорядженням — для бонусів військам (HeroCombatModifiers).
+        /// Поранених пропускає: бонус від них однаково гасне.
+        /// </summary>
+        public async Task<HeroGear> GearAsync(IEnumerable<Hero?> heroes, CancellationToken cancellationToken)
+        {
+            var stats = new Dictionary<Guid, IReadOnlyDictionary<string, double>>();
+
+            foreach (var hero in heroes)
+            {
+                if (hero is null || hero.State == HeroState.Wounded || stats.ContainsKey(hero.Id)
+                    || _catalog.FindHero(hero.HeroKey) is not { } config)
+                    continue;
+
+                var equipped = await _inventory.GetEquippedAsync(hero.Id, cancellationToken);
+                stats[hero.Id] = _heroStats.Compute(hero, config, equipped);
+            }
+
+            return stats.Count == 0 ? HeroGear.None : new HeroGear(stats);
+        }
     }
 }

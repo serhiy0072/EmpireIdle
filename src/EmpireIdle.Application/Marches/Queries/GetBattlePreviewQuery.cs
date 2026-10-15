@@ -117,7 +117,7 @@ namespace EmpireIdle.Application.Marches.Queries
             var heroPower = (await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken)).Sum(h => h.Power);
 
             var attackerPower = (_combat.CalculatePower(attackerArmy, terrain, isAttacker: true,
-                _heroModifiers.ForMarch(attackerHeroes)) + heroPower) * attackerBonus;
+                _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken))) + heroPower) * attackerBonus;
 
             var defenderPower = _combat.CalculateDefencePower(target.Defence, terrain, target.DefenceBuffs)
                 * target.DefenceMultiplier;

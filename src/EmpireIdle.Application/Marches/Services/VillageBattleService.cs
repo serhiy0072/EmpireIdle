@@ -134,19 +134,21 @@ namespace EmpireIdle.Application.Marches.Services
 
             var hostLeader = stationed.FirstOrDefault(h => h.IsLeader && h.PlayerId == targetVillage.PlayerId);
 
+            var stationedGear = await _combatants.GearAsync(stationed, cancellationToken);
+
             var defenceBuffs = new DefenceBuffs(
-                _heroModifiers.For(hostLeader),
+                _heroModifiers.For(hostLeader, stationedGear),
                 // Союзник прийшов із кількома героями — кожен підсилює власні конвої (GDD §6.1)
                 stationed
                     .Where(h => h.PlayerId != targetVillage.PlayerId)
                     .GroupBy(h => h.PlayerId)
-                    .ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g)));
+                    .ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g, stationedGear)));
 
             // Героїв маршу читаємо тут, до RecordAttackerAsync: саме там їх ранить
             // поразка, і вміння мусять бути зняті, поки вони ще в строю
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
-            var attackerBuff = _heroModifiers.ForMarch(attackerHeroes);
+            var attackerBuff = _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken));
 
             // Кланова територія підсилює обидві сторони, кожну — своя
             var attackerBonus = await _effectResolver.GetMultiplierAsync(

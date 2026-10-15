@@ -29,12 +29,12 @@ namespace EmpireIdle.Domain.Combat
         }
 
         /// <summary>
-        /// Бонуси, які цей герой дає своєму стеку. Так діє лідер гарнізону: його бонус —
-        /// на всю оборону, з ціллю кожного вміння як є.
+        /// Бонуси, які цей герой дає своєму стеку. Так діє лідер гарнізону: бонус вмінь —
+        /// на всю оборону, з ціллю кожного вміння як є; бонус спорядження — юнітам його класу.
         /// </summary>
-        public StackBuff For(Hero? hero)
+        public StackBuff For(Hero? hero, HeroGear gear)
         {
-            var (attack, defense) = Percents(hero);
+            var (attack, defense) = Percents(hero, gear);
 
             return attack.Count == 0 && defense.Count == 0 ? StackBuff.None : new StackBuff(attack, defense);
         }
@@ -44,14 +44,14 @@ namespace EmpireIdle.Domain.Combat
         /// і його бойові вміння діють лише на них — ціль «усе військо» стає «мої конвої»,
         /// а ціль чужого типу юнітів у марші нічого не дає. Без ролей у конфігу — як For для кожного.
         /// </summary>
-        public StackBuff ForMarch(IEnumerable<Hero?> heroes)
+        public StackBuff ForMarch(IEnumerable<Hero?> heroes, HeroGear gear)
         {
             var attack = new Dictionary<string, double>();
             var defense = new Dictionary<string, double>();
 
             foreach (var hero in heroes)
             {
-                var (heroAttack, heroDefense) = Percents(hero);
+                var (heroAttack, heroDefense) = Percents(hero, gear);
                 var own = hero is null ? null : _convoys.UnitOf(_catalog.FindHero(hero.HeroKey));
 
                 Merge(attack, heroAttack, own);
@@ -73,8 +73,8 @@ namespace EmpireIdle.Domain.Combat
             }
         }
 
-        /// <summary>Сирі відсотки відкритих бойових вмінь героя за ціллю.</summary>
-        private (Dictionary<string, double> Attack, Dictionary<string, double> Defense) Percents(Hero? hero)
+        /// <summary>Сирі відсотки відкритих бойових вмінь і спорядження героя за ціллю.</summary>
+        private (Dictionary<string, double> Attack, Dictionary<string, double> Defense) Percents(Hero? hero, HeroGear gear)
         {
             var attack = new Dictionary<string, double>();
             var defense = new Dictionary<string, double>();
@@ -84,8 +84,17 @@ namespace EmpireIdle.Domain.Combat
             if (hero is null || hero.State == HeroState.Wounded)
                 return (attack, defense);
 
-            if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config) || config.Skills.Count == 0)
+            if (!_catalog.Heroes.TryGetValue(hero.HeroKey, out var config))
                 return (attack, defense);
+
+            // Спорядження підсилює юнітів класу героя (рішення 15.10.2026); без ролей у конфігу — усе військо
+            var ownUnit = _convoys.UnitOf(config) ?? AllUnits;
+
+            if (gear.Attack(hero.Id) is var gearAttack and > 0)
+                attack[ownUnit] = gearAttack;
+
+            if (gear.Defense(hero.Id) is var gearDefense and > 0)
+                defense[ownUnit] = gearDefense;
 
             // Бонус війську дає кожне відкрите бойове вміння — і пасивка, і активне з періодичним:
             // ті в данжі б'ють самі, а в армійському бою черги ходів немає (GDD §6.1)
