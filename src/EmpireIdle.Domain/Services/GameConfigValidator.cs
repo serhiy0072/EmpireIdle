@@ -1316,6 +1316,11 @@ namespace EmpireIdle.Domain.Services
                     if (battle.ShieldPercent > 0 && battle.ShieldTurns < (battle.Target == AbilityTarget.Self ? 2 : 1))
                         throw new InvalidOperationException($"{name} shield vanishes before it can absorb anything — raise ShieldTurns.");
 
+                    // Отрута — частка атаки виконавця: понад одну атаку за хід вона б'є сильніше за сам удар
+                    if (battle.Status == BattleStatusKind.Poison && battle.StatusMagnitude is <= 0 or > 1)
+                        throw new InvalidOperationException(
+                            $"{name} poison is {battle.StatusMagnitude} of the caster's attack — it needs a share in (0, 1].");
+
                     RequireLevels(battle.LevelScale, settings, $"{name} Battle.LevelScale", allowZero: false);
                 }
             }

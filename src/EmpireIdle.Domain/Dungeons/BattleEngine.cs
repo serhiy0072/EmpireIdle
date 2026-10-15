@@ -378,8 +378,10 @@ namespace EmpireIdle.Domain.Dungeons
             var health = Math.Max(0, target.Health - damage);
             var statuses = target.Statuses;
 
+            // Отрута — частка атаки на момент накладання: пласке число було б надто сильним
+            // на старті й нічого не важило б на пізніх рівнях
             if (status is { } kind && health > 0)
-                statuses = Apply(statuses, kind, statusMagnitude, statusTurns);
+                statuses = Apply(statuses, kind, kind == BattleStatusKind.Poison ? Math.Round(attack * statusMagnitude, 1) : statusMagnitude, statusTurns);
 
             combatants[targetIndex] = target with
             {

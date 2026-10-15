@@ -476,7 +476,7 @@
               "Cooldown": 3,
               "DamageMultiplier": 1.8,
               "Status": "Poison",
-              "StatusMagnitude": 45,
+              "StatusMagnitude": 0.25,
               "StatusTurns": 3,
               "IgnoresLine": true,
               "LevelScale": [
@@ -1692,7 +1692,7 @@
               "Cooldown": 3,
               "DamageMultiplier": 1.8,
               "Status": "Poison",
-              "StatusMagnitude": 45,
+              "StatusMagnitude": 0.3,
               "StatusTurns": 3,
               "IgnoresLine": true,
               "LevelScale": [
@@ -1845,7 +1845,7 @@
               "Cooldown": 3,
               "DamageMultiplier": 1.8,
               "Status": "Poison",
-              "StatusMagnitude": 45,
+              "StatusMagnitude": 0.45,
               "StatusTurns": 3,
               "IgnoresLine": true,
               "LevelScale": [
@@ -1998,7 +1998,7 @@
               "Cooldown": 3,
               "DamageMultiplier": 1.8,
               "Status": "Poison",
-              "StatusMagnitude": 45,
+              "StatusMagnitude": 0.35,
               "StatusTurns": 3,
               "IgnoresLine": true,
               "LevelScale": [

@@ -35,7 +35,10 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Стан, який накладає вміння. null — жодного.</summary>
         public BattleStatusKind? Status { get; set; }
 
-        /// <summary>Сила стану: шкода отрути за хід або частка множника для бафів.</summary>
+        /// <summary>
+        /// Сила стану. Для отрути — частка атаки виконавця на момент накладання, яку отрута
+        /// знімає щоходу; для бафів і дебафів — частка множника.
+        /// </summary>
         public double StatusMagnitude { get; set; }
 
         /// <summary>Скільки ходів тримається стан.</summary>

@@ -504,13 +504,29 @@ public class BattleEngineTests
         Assert.Empty(result.State.Combatants[0].Statuses);
     }
 
+    /// <summary>Отрута знімає щоходу частку атаки того, хто її наклав, а не пласке число.</summary>
+    [Fact]
+    public void Execute_Poison_ShouldBiteAShareOfTheCastersAttack()
+    {
+        var venom = Strike("venom", multiplier: 1.0) with
+        {
+            Status = BattleStatusKind.Poison, StatusMagnitude = 0.25, StatusTurns = 3,
+        };
+        var state = State(Hero(0, attack: 200, skills: venom), Enemy(1, health: 5000));
+
+        var result = Engine().Execute(state, 0, new BattleAction("venom", 1));
+
+        var poison = Assert.Single(result.State.Combatants[1].Statuses, s => s.Kind == BattleStatusKind.Poison);
+        Assert.Equal(50, poison.Magnitude);
+    }
+
     /// <summary>Повторне накладання оновлює тривалість, а не складає ефекти.</summary>
     [Fact]
     public void Execute_ShouldRefreshAStatus_InsteadOfStacking()
     {
         var venom = Strike("venom", multiplier: 1.0) with
         {
-            Status = BattleStatusKind.Poison, StatusMagnitude = 30, StatusTurns = 3,
+            Status = BattleStatusKind.Poison, StatusMagnitude = 0.3, StatusTurns = 3,
         };
         var state = State(Hero(0, skills: venom), Enemy(1, health: 5000));
         var engine = Engine();
