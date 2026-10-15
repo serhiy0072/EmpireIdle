@@ -1677,13 +1677,13 @@
           "Key": "necklace",
           "DisplayName": "Намисто",
           "FixedBonuses": [ "Attack", "UnitAttack" ],
-          "RandomBonuses": [ { "Stat": "CritChance", "Weight": 25 }, { "Stat": "AttackSpeed", "Weight": 35 }, { "Stat": "AttackPercent", "Weight": 40 } ]
+          "RandomBonuses": [ { "Stat": "CritChance", "Weight": 25 }, { "Stat": "MarchSpeed", "Weight": 35 }, { "Stat": "AttackPercent", "Weight": 40 } ]
         },
         {
           "Key": "crown",
           "DisplayName": "Корона",
           "FixedBonuses": [ "Defense", "UnitDefense" ],
-          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "CooldownReduction", "Weight": 10 }, { "Stat": "SkillDamage", "Weight": 30 }, { "Stat": "Lifesteal", "Weight": 30 } ]
+          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "Ward", "Weight": 10 }, { "Stat": "SkillDamage", "Weight": 30 }, { "Stat": "Lifesteal", "Weight": 30 } ]
         },
         {
           "Key": "ring",
@@ -1695,7 +1695,7 @@
           "Key": "belt",
           "DisplayName": "Пояс",
           "FixedBonuses": [ "UnitAttack", "UnitDefense" ],
-          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "UnitCritChance", "Weight": 25 }, { "Stat": "UnitHealthPercent", "Weight": 25 }, { "Stat": "HealthPercent", "Weight": 25 } ]
+          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "TroopsAttack", "Weight": 25 }, { "Stat": "TroopsDefense", "Weight": 25 }, { "Stat": "HealthPercent", "Weight": 25 } ]
         }
       ],
       "MaxLevel": 80,
@@ -1726,8 +1726,8 @@
         { "Stat": "CritChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 10 },
         { "Stat": "CritPower", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2.5 },
         { "Stat": "SkillDamage", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3.5 },
-        { "Stat": "AttackSpeed", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 5 },
-        { "Stat": "CooldownReduction", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 9 },
+        { "Stat": "MarchSpeed", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2.5 },
+        { "Stat": "Ward", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
         { "Stat": "Lifesteal", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
         { "Stat": "BlockChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
         { "Stat": "BlockPower", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2 },
@@ -1735,8 +1735,8 @@
         { "Stat": "AttackPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
         { "Stat": "DefensePercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
         { "Stat": "HealthPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
-        { "Stat": "UnitCritChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
-        { "Stat": "UnitHealthPercent", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 }
+        { "Stat": "TroopsAttack", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 4.5 },
+        { "Stat": "TroopsDefense", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 4.5 }
       ],
       "BonusStepChances": [ 0.4, 0.3, 0.2, 0.1 ],
       "MaxMastery": 20,

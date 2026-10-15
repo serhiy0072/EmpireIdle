@@ -200,10 +200,10 @@
             {
                 ArtifactSlots =
                 [
-                    Slot("necklace", "Намисто", ["Attack", "UnitAttack"], ("CritChance", 25), ("AttackSpeed", 35), ("AttackPercent", 40)),
-                    Slot("crown", "Корона", ["Defense", "UnitDefense"], ("CritPower", 25), ("CooldownReduction", 10), ("SkillDamage", 30), ("Lifesteal", 30)),
+                    Slot("necklace", "Намисто", ["Attack", "UnitAttack"], ("CritChance", 25), ("MarchSpeed", 35), ("AttackPercent", 40)),
+                    Slot("crown", "Корона", ["Defense", "UnitDefense"], ("CritPower", 25), ("Ward", 10), ("SkillDamage", 30), ("Lifesteal", 30)),
                     Slot("ring", "Кільце", ["Attack", "Defense"], ("CritChance", 25), ("BlockChance", 22), ("BlockPower", 22), ("DamageReduction", 14), ("DefensePercent", 22)),
-                    Slot("belt", "Пояс", ["UnitAttack", "UnitDefense"], ("CritPower", 25), ("UnitCritChance", 25), ("UnitHealthPercent", 25), ("HealthPercent", 25))
+                    Slot("belt", "Пояс", ["UnitAttack", "UnitDefense"], ("CritPower", 25), ("TroopsAttack", 25), ("TroopsDefense", 25), ("HealthPercent", 25))
                 ],
                 MaxLevel = 80,
                 LevelExperienceBase = 100,
@@ -227,8 +227,8 @@
                     Bonus("CritChance", 10, 1, 2, 3, 4),
                     Bonus("CritPower", 2.5, 4, 8, 12, 16),
                     Bonus("SkillDamage", 3.5, 3, 6, 9, 12),
-                    Bonus("AttackSpeed", 5, 2, 4, 6, 8),
-                    Bonus("CooldownReduction", 9, 2, 4, 6, 8),
+                    Bonus("MarchSpeed", 2.5, 4, 8, 12, 16),
+                    Bonus("Ward", 3, 3, 6, 9, 12),
                     Bonus("Lifesteal", 8, 1, 2, 3, 4),
                     Bonus("BlockChance", 8, 1, 2, 3, 4),
                     Bonus("BlockPower", 2, 4, 8, 12, 16),
@@ -236,8 +236,8 @@
                     Bonus("AttackPercent", 3, 3, 6, 9, 12),
                     Bonus("DefensePercent", 3, 3, 6, 9, 12),
                     Bonus("HealthPercent", 3, 3, 6, 9, 12),
-                    Bonus("UnitCritChance", 8, 1, 2, 3, 4),
-                    Bonus("UnitHealthPercent", 3, 3, 6, 9, 12)
+                    Bonus("TroopsAttack", 4.5, 2, 4, 6, 8),
+                    Bonus("TroopsDefense", 4.5, 2, 4, 6, 8)
                 ],
                 BonusStepChances = [0.4, 0.3, 0.2, 0.1],
                 MaxMastery = 20,

@@ -8,8 +8,8 @@ const STAT_LABELS: Record<string, string> = {
   CritChance: "Шанс криту",
   CritPower: "Сила криту",
   SkillDamage: "Шкода вмінь",
-  AttackSpeed: "Швидкість атаки",
-  CooldownReduction: "Зменшення кулдауну",
+  MarchSpeed: "Швидкість маршу",
+  Ward: "Оберіг",
   Lifesteal: "Вампіризм",
   BlockChance: "Шанс блоку",
   BlockPower: "Сила блоку",
@@ -17,8 +17,8 @@ const STAT_LABELS: Record<string, string> = {
   AttackPercent: "Атака героя",
   DefensePercent: "Захист героя",
   HealthPercent: "Здоров'я героя",
-  UnitCritChance: "Шанс криту юнітів",
-  UnitHealthPercent: "Здоров'я юнітів",
+  TroopsAttack: "Атака військ класу",
+  TroopsDefense: "Захист військ класу",
 };
 
 /** Пласкі стати артефакта — числом; решта бонусів заточки — відсотками (GDD §9.12). */
