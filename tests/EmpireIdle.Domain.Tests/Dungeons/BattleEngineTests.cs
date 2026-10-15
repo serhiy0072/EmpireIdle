@@ -393,6 +393,25 @@ public class BattleEngineTests
         Assert.Equal(2, skill.CooldownLeft);
     }
 
+    /// <summary>Баф і дебаф ростуть із рівнем вміння, як шкода; отрута — ні, вона йде від атаки.</summary>
+    [Theory]
+    [InlineData(BattleStatusKind.AttackUp, 0.6)]
+    [InlineData(BattleStatusKind.DefenseUp, 0.6)]
+    [InlineData(BattleStatusKind.DefenseDown, 0.6)]
+    [InlineData(BattleStatusKind.Poison, 0.3)]
+    public void Prepare_ShouldScaleBuffsAndDebuffsByLevel(BattleStatusKind status, double expected)
+    {
+        var battle = new SkillBattleConfig
+        {
+            Target = AbilityTarget.SingleEnemy, Cooldown = 3, DamageMultiplier = 1.0,
+            Status = status, StatusMagnitude = 0.3, StatusTurns = 2,
+        };
+
+        var skill = CombatSkill.Prepare("smash", SkillKind.Active, battle, levelScale: 2.0);
+
+        Assert.Equal(expected, skill.StatusMagnitude, 6);
+    }
+
     // ---------- Підтримка ----------
 
     [Fact]

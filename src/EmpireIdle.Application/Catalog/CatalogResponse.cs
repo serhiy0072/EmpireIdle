@@ -131,7 +131,7 @@
     public record CatalogSkillUtility(string Effect, IReadOnlyList<double> Percents);
 
     /// <param name="Cooldown">Раз на скільки власних ходів героя вміння готове.</param>
-    /// <param name="LevelScale">Множник шкоди, лікування й щита на кожному рівні вміння.</param>
+    /// <param name="LevelScale">Множник шкоди, лікування, щита й сили бафів і дебафів на кожному рівні вміння.</param>
     public record CatalogSkillBattle(
         string Target,
         int Cooldown,

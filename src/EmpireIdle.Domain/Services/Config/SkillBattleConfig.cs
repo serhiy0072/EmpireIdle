@@ -48,7 +48,7 @@ namespace EmpireIdle.Domain.Services.Config
         public bool IgnoresLine { get; set; }
 
         /// <summary>
-        /// Множник шкоди, лікування й щита на кожному рівні вміння, від першого:
+        /// Множник шкоди, лікування, щита й сили бафів і дебафів на кожному рівні вміння, від першого:
         /// [1.0, 1.2, …, 2.0] — це «100–200% шкоди залежно від рівня».
         /// </summary>
         public List<double> LevelScale { get; set; } = new();
