@@ -181,7 +181,9 @@ public class CompleteMarchCommandTests
 
         // Спорядження в цих сценах немає: бійця дають власні стати героя
         _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
+        _inventory.GetEquippedByHeroesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
         var combatants = new HeroCombatants(_inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
+        var defenders = new GarrisonDefenders(_heroes, _inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
 
         var logistics = new MarchLogistics(
             _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
@@ -223,7 +225,7 @@ public class CompleteMarchCommandTests
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
             resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, heroModifiers, combatants, cityFallService, territoryBonus, new HostilityRules(_clans),
+            status, plunder, heroModifiers, combatants, defenders, cityFallService, territoryBonus, new HostilityRules(_clans),
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
@@ -248,7 +250,7 @@ public class CompleteMarchCommandTests
             NullLogger<StructureBattleService>.Instance);
 
         var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, heroModifiers,
-            combatants, catalog, status, _structures, _clans, territory, _marches, effects);
+            combatants, defenders, catalog, status, _structures, _clans, territory, _marches, effects);
 
         var campBattle = new CampBattleService(
             _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,

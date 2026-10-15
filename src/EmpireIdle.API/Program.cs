@@ -160,6 +160,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => new[] { c.Dungeons.MaxCritChance, c.Dungeons.MaxLifesteal, c.Dungeons.MaxDamageReduction, c.Dungeons.MaxBlockChance,
             c.Dungeons.BaseBlockPower, c.Dungeons.MaxBlockPower, c.Dungeons.MaxWard }.All(v => v is >= 0 and < 1),
         "GameConfig.Dungeons stat caps and BaseBlockPower must be shares in [0, 1) — a cap of 1 would make a hero immortal or always critical.")
+    .Validate(c => c.HeroSettings.GarrisonDefenders > 0, "GameConfig.HeroSettings.GarrisonDefenders must be positive — a village always has heroes to defend it.")
     .Validate(c => c.HeroSettings.MaxGearMarchSpeedPercent >= 0, "GameConfig.HeroSettings.MaxGearMarchSpeedPercent must not be negative — gear cannot slow a march.")
     .Validate(c => c.Dungeons.WardTurns > 0, "GameConfig.Dungeons.WardTurns must be positive — a ward shield has to last at least one turn.")
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")

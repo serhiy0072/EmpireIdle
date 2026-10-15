@@ -29,15 +29,17 @@ public class MarchTargetResolverTests
     private static MarchTargetResolver Resolver(IVillageRepository? villages = null, IActiveEffectRepository? effects = null)
     {
         var catalog = new GameCatalog(Config());
+        var heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
 
         return new MarchTargetResolver(
             Substitute.For<IMonsterRepository>(),
             villages ?? Substitute.For<IVillageRepository>(),
             Substitute.For<IGarrisonRepository>(),
-            Substitute.For<IHeroRepository>().ForwardHeroLookups(),
+            heroes,
             new MonsterArmyBuilder(catalog),
             new HeroCombatModifiers(catalog),
             TestCombatants.WithoutGear(catalog),
+            TestCombatants.Defenders(heroes, catalog),
             catalog,
             new VillageStatus(catalog),
             Substitute.For<IClanStructureRepository>(),

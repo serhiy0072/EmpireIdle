@@ -104,9 +104,9 @@ public class HeroSkillsTests
         Assert.Equal(1.0, progression.MarchSpeedMultiplier(TestKit.Entities.Hero(), HeroWith()), 6);
     }
 
-    private static Combat.HeroGear SpeedGear(params (Domain.Entities.Hero Hero, double Percent)[] heroes)
+    private static Domain.Combat.HeroGear SpeedGear(params (Domain.Entities.Hero Hero, double Percent)[] heroes)
         => new(heroes.ToDictionary(h => h.Hero.Id,
-            h => (IReadOnlyDictionary<string, double>)new Dictionary<string, double> { [Combat.HeroGear.MarchSpeed] = h.Percent }));
+            h => (IReadOnlyDictionary<string, double>)new Dictionary<string, double> { [Domain.Combat.HeroGear.MarchSpeed] = h.Percent }));
 
     /// <summary>Спорядження героїв маршу складається з небойовими вміннями: 5% вміння + 10% + 8% спорядження.</summary>
     [Fact]

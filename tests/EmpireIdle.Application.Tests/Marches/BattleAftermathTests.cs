@@ -155,6 +155,39 @@ public class BattleAftermathTests
         Assert.NotEqual(HeroState.Wounded, spared.State);
     }
 
+    /// <summary>
+    /// Захисника ранить його частка шкоди, навіть коли він у марші (рішення 15.10.2026: марш на оборону
+    /// не впливає); чужого героя з тим самим id-списком розбір оборони не чіпає.
+    /// </summary>
+    [Fact]
+    public async Task RecordDefender_ShouldWoundTheDefendersTheBattleWounded_EvenOnAMarch()
+    {
+        var village = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
+        var attackerVillage = new Village(Guid.NewGuid(), AllyPlayerId, "Raider", ["food"], 60, 60);
+        var march = new March(Guid.NewGuid(), 1, Guid.NewGuid(), 60, 60, 50, 50, MarchTargetType.Village, village.Id,
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, Now, Now.AddMinutes(-30));
+
+        var away = new Hero(Guid.NewGuid(), HostPlayerId, 1, "warrior_bran", garrison.Id, asLeader: false, Now);
+        away.Deploy(Guid.NewGuid(), Now.AddMinutes(-10));
+        var spared = new Hero(Guid.NewGuid(), HostPlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
+        var stranger = new Hero(Guid.NewGuid(), AllyPlayerId, 1, "archer_lyra", Guid.NewGuid(), asLeader: false, Now);
+        _heroes.GetByIdAsync(away.Id, Arg.Any<CancellationToken>()).Returns(away);
+        _heroes.GetByIdAsync(spared.Id, Arg.Any<CancellationToken>()).Returns(spared);
+        _heroes.GetByIdAsync(stranger.Id, Arg.Any<CancellationToken>()).Returns(stranger);
+
+        var result = new BattleResult(true, 100, 50, new Dictionary<UnitStackKey, int>(), new Dictionary<UnitStackKey, int>(),
+            DefenderWoundedHeroes: [away.Id, stranger.Id]);
+
+        await Aftermath().RecordDefenderAsync(march, village, garrison, attackerVillage, [], [], result, "plain", seed: 1,
+            Now, CancellationToken.None);
+
+        Assert.Equal(HeroState.Wounded, away.State);
+        Assert.NotNull(away.MarchId);
+        Assert.NotEqual(HeroState.Wounded, spared.State);
+        Assert.NotEqual(HeroState.Wounded, stranger.State);
+    }
+
     // ---------- Оборона вистояла ----------
 
     [Fact]

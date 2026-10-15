@@ -186,5 +186,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// Небойові вміння сюди не входять — у них своя крива.
         /// </summary>
         public double MaxGearMarchSpeedPercent { get; set; } = 50;
+
+        /// <summary>
+        /// Скільки героїв боронить село (рішення 15.10.2026): найсильніший кожного класу, без лідера.
+        /// Три — по одному на клас.
+        /// </summary>
+        public int GarrisonDefenders { get; set; } = 3;
     }
 }
