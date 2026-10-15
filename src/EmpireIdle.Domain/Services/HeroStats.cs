@@ -103,7 +103,44 @@ namespace EmpireIdle.Domain.Services
 
             return Power(hero, config)
                 + equipped.Sum(item => _artifacts.Power(item, multiplier))
-                + SetBonus(equipped).Values.Sum();
+                + SetPower(hero, config, equipped);
+        }
+
+        /// <summary>
+        /// Сила бонусів наборів за тими самими вагами, що й решта (рішення 15.10.2026): пласкі стати —
+        /// за вагою стата, відсоток до стата героя — за реальним приростом цього стата, решта — за
+        /// PowerPerPercent. Сира сума складала б здоров'я з атакою один до одного й відсотки з числами.
+        /// </summary>
+        private double SetPower(Hero hero, HeroConfig config, IReadOnlyCollection<EquipmentItem> equipped)
+        {
+            var bonuses = SetBonus(equipped);
+
+            if (bonuses.Count == 0)
+                return 0;
+
+            var settings = _catalog.Config.HeroSettings;
+            var equipment = _catalog.Config.Equipment;
+            var multiplier = _artifacts.ClassMultiplier(config.Class);
+            var power = 0.0;
+
+            foreach (var (stat, value) in bonuses)
+            {
+                if (ArtifactStats.HeroPercentStats.TryGetValue(stat, out var target))
+                {
+                    // Відсоток множить увесь стат: власний героя й пласкі з предметів і наборів
+                    var flat = _progression.StatValue(config, target, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel)
+                        + equipped.Sum(item => _artifacts.Compute(item, multiplier).GetValueOrDefault(target))
+                        + bonuses.GetValueOrDefault(target);
+
+                    power += flat * value / 100 * settings.StatPowerWeight(target) * equipment.HeroStatPower;
+                }
+                else if (stat is ArtifactStats.Attack or ArtifactStats.Defense or ArtifactStats.Health)
+                    power += value * settings.StatPowerWeight(stat) * equipment.HeroStatPower;
+                else
+                    power += value * (equipment.FindArtifactBonus(stat)?.PowerPerPercent ?? 0);
+            }
+
+            return Math.Round(power, 2);
         }
 
         /// <summary>Сила предмета самого по собі, без героя: так його оцінює ринок.</summary>

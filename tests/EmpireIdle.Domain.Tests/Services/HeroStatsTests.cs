@@ -362,6 +362,35 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Empty(bonus);
         }
 
+        /// <summary>
+        /// Бонус набору важить у силі за вагами, а не сирою сумою: 100 здоров'я × 0.25 = 25, а +10% атаки —
+        /// це 10% від усієї пласкої атаки: (100 героя + 4 × 10 предметів) × 0.1 = 14.
+        /// </summary>
+        [Fact]
+        public void Power_ShouldWeighTheSetBonus_LikeTheStatsItGives()
+        {
+            var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+            config.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0, ["Defense"] = 1.0, ["Health"] = 0.25 };
+            config.Equipment.SetBonuses[0].Stats = new Dictionary<string, double> { ["Health"] = 100, ["AttackPercent"] = 10 };
+            var catalog = new GameCatalog(config);
+            var stats = new HeroStats(new HeroProgression(config.HeroSettings), catalog);
+            var artifacts = new ArtifactStats(catalog);
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 1);
+            var heroConfig = catalog.Hero(TestKeys.CommonHero);
+            EquipmentItem[] set =
+            [
+                SetPiece(TestKeys.Artifact),
+                SetPiece(TestKeys.SecondArtifact),
+                SetPiece(TestKeys.ThirdArtifact),
+                SetPiece(TestKeys.FourthArtifact)
+            ];
+            var withoutSet = stats.Power(hero, heroConfig) + set.Sum(item => artifacts.Power(item, artifacts.ClassMultiplier(heroConfig.Class)));
+
+            var power = stats.Power(hero, heroConfig, set);
+
+            Assert.Equal(withoutSet + 25 + 14, power, 3);
+        }
+
         /// <summary>Повний набір входить у підсумкові стати, а не живе окремо.</summary>
         [Fact]
         public void Compute_ShouldIncludeTheSetBonus()
