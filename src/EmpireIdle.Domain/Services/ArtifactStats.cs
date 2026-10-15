@@ -48,8 +48,7 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>
         /// Стати предмета: пласка база (Attack, Defense, UnitAttack, UnitDefense, Health) і відсотки
-        /// випадкових бонусів під своїми ключами. Здоров'я йде з множником захисту класу: міцніший
-        /// клас і тримає удар краще.
+        /// випадкових бонусів під своїми ключами. Здоров'я однакове для всіх класів.
         /// </summary>
         /// <param name="multiplier">Множник класу героя, що носить предмет; null — предмет сам по собі.</param>
         public IReadOnlyDictionary<string, double> Compute(EquipmentItem item, ArtifactClassMultiplierConfig? multiplier = null)
@@ -73,8 +72,10 @@ namespace EmpireIdle.Domain.Services
 
                 var health = (basis.HeroHealth + basis.HeroHealthPerLevel * item.Level) * tier;
 
+                // Без множника класу: атака й захист у класів у сумі рівні (2.2), а здоров'я з одним
+                // лише множником захисту зробило б той самий предмет сильнішим на воїні, ніж на лучнику
                 if (health > 0)
-                    result[Health] = Round(health * defense * share);
+                    result[Health] = Round(health * share);
             }
 
             foreach (var stat in item.Stats.Where(s => !BaseStats.Contains(s.StatKey)))

@@ -134,17 +134,38 @@ namespace EmpireIdle.Domain.Tests.Services
         }
 
         /// <summary>
-        /// Здоров'я артефакта росте з рівнем і йде з множником захисту класу, як і сам захист:
-        /// (60 + 12 × 2) × 1.2 воїна. Без нього рана героя наставала б дедалі легше з прогресом.
+        /// Здоров'я артефакта росте з рівнем, а множник класу на нього не діє: 60 + 12 × 2 і на воїні.
+        /// Без нього рана героя наставала б дедалі легше з прогресом.
         /// </summary>
         [Fact]
-        public void Compute_ShouldAddTheArtifactsHealthWithTheClassDefenseMultiplier()
+        public void Compute_ShouldAddTheArtifactsHealthWithoutTheClassMultiplier()
         {
             var (stats, hero) = WithArtifactHealth();
 
             var result = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), hero, [Necklace(level: 2)]);
 
-            Assert.Equal(100.8, result["Health"], 3);
+            Assert.Equal(84, result["Health"], 3);
+        }
+
+        /// <summary>
+        /// Той самий предмет дає однакову силу будь-якому класу: атака й захист класів у сумі рівні,
+        /// а здоров'я від класу не залежить. Інакше рідкісний воїн обганяв би унікального лучника.
+        /// </summary>
+        [Fact]
+        public void Power_ShouldNotDependOnTheHerosClass_ForTheSameItem()
+        {
+            var config = new GameConfigBuilder().WithHeroes().WithEquipment(e =>
+            {
+                e.ArtifactBase[Rarity.Common].HeroHealth = 60;
+                e.ArtifactBase[Rarity.Common].HeroHealthPerLevel = 12;
+            }).Build();
+            var artifacts = new ArtifactStats(new GameCatalog(config));
+            var item = Necklace(level: 10);
+
+            var warrior = artifacts.Power(item, new ArtifactClassMultiplierConfig { Attack = 1.0, Defense = 1.2 });
+            var archer = artifacts.Power(item, new ArtifactClassMultiplierConfig { Attack = 1.4, Defense = 0.8 });
+
+            Assert.Equal(warrior, archer, 3);
         }
 
         /// <summary>Здоров'я предмета важить у силі як здоров'я героя: (10 + 10) + (40 + 40) × 0.25 + 60 × 0.25.</summary>
