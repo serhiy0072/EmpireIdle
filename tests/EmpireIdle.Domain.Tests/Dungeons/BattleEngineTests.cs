@@ -291,14 +291,19 @@ public class BattleEngineTests
         Assert.Equal(1, SkillOf(result.State, 0, "strike").CooldownLeft);
     }
 
-    /// <summary>Артефакт на перезарядку скорочує її після удару, але не нижче «щоходу».</summary>
+    /// <summary>
+    /// Артефакт на перезарядку скорочує її після удару, але не нижче одного ходу очікування:
+    /// між двома застосуваннями лишається звичайний удар. Вміння з перезарядкою 1 і так б'є щоходу.
+    /// </summary>
     [Theory]
-    [InlineData(1, 1)]
-    [InlineData(5, 0)]
-    public void Execute_CooldownReduction_ShouldShortenTheRecharge(double reduction, int expected)
+    [InlineData(3, 1, 1)]
+    [InlineData(4, 1, 2)]
+    [InlineData(3, 5, 1)]
+    [InlineData(1, 2, 0)]
+    public void Execute_CooldownReduction_ShouldShortenTheRecharge(int cooldown, double reduction, int expected)
     {
         var hero = Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.CooldownReduction] = reduction },
-            skills: Strike(cooldown: 3));
+            skills: Strike(cooldown: cooldown));
 
         var result = Engine().Execute(State(hero, Enemy(1, health: 5000)), 0, new BattleAction("strike", 1));
 

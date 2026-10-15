@@ -314,15 +314,19 @@ namespace EmpireIdle.Domain.Dungeons
 
         /// <summary>
         /// Повна перезарядка після спрацювання: з перезарядкою N уміння знову готове через N ходів героя.
-        /// Артефакт на перезарядку скорочує лише активне — періодичне й так б'є без участі гравця.
+        /// Артефакт на перезарядку скорочує лише активне — періодичне й так б'є без участі гравця —
+        /// і не нижче одного ходу очікування: між двома застосуваннями лишається звичайний удар,
+        /// інакше кілька таких артефактів дали б активне вміння щоходу.
         /// </summary>
         private static int FullCooldown(CombatSkill skill, Combatant actor)
         {
+            var full = Math.Max(0, skill.Cooldown - 1);
+
             var reduction = skill.Kind == SkillKind.Active
                 ? (int)Math.Round(actor.UniqueStats.GetValueOrDefault(DungeonStat.CooldownReduction))
                 : 0;
 
-            return Math.Max(0, skill.Cooldown - 1 - reduction);
+            return Math.Max(Math.Min(1, full), full - reduction);
         }
 
         /// <summary>
