@@ -418,6 +418,20 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Equal(without.AttackerPower * 2, with.AttackerPower, precision: 6);
         }
 
+        /// <summary>Внесок героїв, яким рахує і бій, і прев'ю: власна сила плюс сила військам; від'ємне — нуль.</summary>
+        [Fact]
+        public void HeroPower_ShouldSumOwnAndTroopPower()
+        {
+            HeroCombatant[] heroes =
+            [
+                new(Guid.NewGuid(), Power: 100, Health: 1, TroopPower: 25),
+                new(Guid.NewGuid(), Power: -5, Health: 1, TroopPower: 10),
+            ];
+
+            Assert.Equal(135, CombatCalculator.HeroPower(heroes), 6);
+            Assert.Equal(0, CombatCalculator.HeroPower(null), 6);
+        }
+
         /// <summary>Сила військам — це військо, а не сам герой: шкоди героєві вона не додає.</summary>
         [Fact]
         public void Resolve_ShouldNotWoundAHero_ForItsTroopPower()

@@ -114,7 +114,7 @@ namespace EmpireIdle.Application.Marches.Queries
             // Герої теж ті самі, яких гравець збирається відправити: без їхніх
             // вмінь прев'ю занижувало б силу рівно на їхню величину
             // Герой ще й б'ється сам (варіант B): його атака додається до сили військ до бонусів
-            var heroPower = (await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken)).Sum(h => h.Power);
+            var heroPower = CombatCalculator.HeroPower(await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
             var gear = await _combatants.GearAsync(attackerHeroes, cancellationToken);
 
             var attackerPower = (_combat.CalculatePower(attackerArmy, terrain, isAttacker: true,

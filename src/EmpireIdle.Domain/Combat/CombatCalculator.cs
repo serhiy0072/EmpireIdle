@@ -79,7 +79,11 @@ namespace EmpireIdle.Domain.Combat
                 WoundedHeroes(defenderHeroes, defenderBase, attackerPower * defenderLossRatio));
         }
 
-        private static double HeroPower(IReadOnlyList<HeroCombatant>? heroes)
+        /// <summary>
+        /// Внесок героїв у силу сторони: власна сила плюс сила військам зі спорядження.
+        /// Публічний — прев'ю мусить рахувати героїв тією самою формулою, що й бій.
+        /// </summary>
+        public static double HeroPower(IReadOnlyList<HeroCombatant>? heroes)
             => heroes?.Sum(h => Math.Max(0, h.Power) + Math.Max(0, h.TroopPower)) ?? 0;
 
         /// <summary>
