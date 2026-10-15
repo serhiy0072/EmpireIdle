@@ -1,4 +1,5 @@
 
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services.Config;
@@ -132,11 +133,17 @@ namespace EmpireIdle.Domain.Services
             => 1 + _skills.UtilityPercent(hero, config, SkillUtilityConfig.MarchSpeed) / 100;
 
         /// <summary>
-        /// Множник швидкості маршу кількох героїв: небойові вміння діють на весь марш (GDD §6.1),
-        /// тож відсотки героїв складаються.
+        /// Множник швидкості маршу кількох героїв: небойові вміння й спорядження діють на весь марш
+        /// (GDD §6.1, рішення 15.10.2026), тож відсотки героїв складаються. Частка спорядження —
+        /// не вище MaxGearMarchSpeedPercent: інакше три герої в наборах вітру стискали б карту.
         /// </summary>
-        public double MarchSpeedMultiplier(IEnumerable<(Hero Hero, HeroConfig? Config)> heroes)
-            => 1 + heroes.Sum(h => _skills.UtilityPercent(h.Hero, h.Config, SkillUtilityConfig.MarchSpeed)) / 100;
+        public double MarchSpeedMultiplier(IReadOnlyCollection<(Hero Hero, HeroConfig? Config)> heroes, HeroGear gear)
+        {
+            var skills = heroes.Sum(h => _skills.UtilityPercent(h.Hero, h.Config, SkillUtilityConfig.MarchSpeed));
+            var equipment = Math.Min(_config.MaxGearMarchSpeedPercent, heroes.Sum(h => gear.Speed(h.Hero.Id)));
+
+            return 1 + (skills + equipment) / 100;
+        }
 
         /// <summary>Колона йде за найповільнішим героєм; null — героїв немає, швидкість дають юніти.</summary>
         public double? MarchSpeed(IEnumerable<HeroConfig?> heroes)

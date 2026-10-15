@@ -43,6 +43,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly ReinforcementRules _reinforcementRules;
         private readonly StructureMarchRules _structureMarches;
         private readonly HeroProgression _progression;
+        private readonly HeroCombatants _combatants;
         private readonly HeroConvoys _convoys;
         private readonly GameCatalog _catalog;
         private readonly BeastTamer _tamer;
@@ -62,6 +63,7 @@ namespace EmpireIdle.Application.Marches.Commands
             ReinforcementRules reinforcementRules,
             StructureMarchRules structureMarches,
             HeroProgression progression,
+            HeroCombatants combatants,
             HeroConvoys convoys,
             GameCatalog catalog,
             BeastTamer tamer,
@@ -80,6 +82,7 @@ namespace EmpireIdle.Application.Marches.Commands
             _reinforcementRules = reinforcementRules;
             _structureMarches = structureMarches;
             _progression = progression;
+            _combatants = combatants;
             _convoys = convoys;
             _catalog = catalog;
             _tamer = tamer;
@@ -189,7 +192,7 @@ namespace EmpireIdle.Application.Marches.Commands
             // Пасивка звіра й небойові вміння героїв пришвидшують марш; множник фіксується
             // на марші й діє на зворотній дорозі
             var speed = await _effects.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
-                * _progression.MarchSpeedMultiplier(leaders);
+                * _progression.MarchSpeedMultiplier(leaders, await _combatants.GearAsync(heroes, cancellationToken));
 
             var duration = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, request.Units,

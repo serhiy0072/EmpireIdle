@@ -180,5 +180,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// найшвидших юнітів, щоб герой без явного стата колону не гальмував.
         /// </summary>
         public double DefaultMarchSpeed { get; set; } = 6.0;
+
+        /// <summary>
+        /// Стеля прискорення маршу зі спорядження героїв у відсотках, сумарно на марш (рішення 15.10.2026).
+        /// Небойові вміння сюди не входять — у них своя крива.
+        /// </summary>
+        public double MaxGearMarchSpeedPercent { get; set; } = 50;
     }
 }

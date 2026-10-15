@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -26,6 +27,7 @@ namespace EmpireIdle.Application.Clans.Services
         private readonly MarchCalculator _calculator;
         private readonly GameCatalog _catalog;
         private readonly HeroProgression _progression;
+        private readonly HeroCombatants _combatants;
         private readonly EffectResolver _effects;
         private readonly ILogger<ReinforcementReturner> _logger;
 
@@ -38,6 +40,7 @@ namespace EmpireIdle.Application.Clans.Services
             MarchCalculator calculator,
             GameCatalog catalog,
             HeroProgression progression,
+            HeroCombatants combatants,
             EffectResolver effects,
             ILogger<ReinforcementReturner> logger)
         {
@@ -49,6 +52,7 @@ namespace EmpireIdle.Application.Clans.Services
             _calculator = calculator;
             _catalog = catalog;
             _progression = progression;
+            _combatants = combatants;
             _effects = effects;
             _logger = logger;
         }
@@ -200,7 +204,7 @@ namespace EmpireIdle.Application.Clans.Services
             // Пасивка швидкості власника (GDD §5.10) і небойові вміння героїв діють і на дорогу додому:
             // це теж його марш. Фіксуємо на марші, як і при відправці, — щоб час не плив, коли пасивка скінчиться
             var speed = await _effects.GetMultiplierAsync(ownerPlayerId, EffectTarget.MarchSpeed, utcNow, cancellationToken)
-                * _progression.MarchSpeedMultiplier(leaders);
+                * _progression.MarchSpeedMultiplier(leaders, await _combatants.GearAsync(heroes, cancellationToken));
 
             // Колона йде за найповільнішим, і герої в цьому рахунку нарівні з юнітами
             var duration = _calculator.CalculateDuration(

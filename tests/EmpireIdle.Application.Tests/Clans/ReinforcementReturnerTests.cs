@@ -58,7 +58,7 @@ public class ReinforcementReturnerTests
             _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes,
             new MarchCalculator(new TerrainGenerator(config.Map), catalog),
             catalog,
-            new HeroProgression(config.HeroSettings),
+            new HeroProgression(config.HeroSettings), TestCombatants.WithoutGear(catalog),
             TestEffects.Resolver(_effects),
             NullLogger<ReinforcementReturner>.Instance);
     }

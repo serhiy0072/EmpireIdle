@@ -57,7 +57,7 @@ public class BattleAftermathTests
 
         var returner = new ReinforcementReturner(
             _garrisons, _villages, Substitute.For<IClanStructureRepository>(), _marches, _heroes, calculator, catalog,
-            new HeroProgression(config.HeroSettings),
+            new HeroProgression(config.HeroSettings), TestCombatants.WithoutGear(catalog),
             TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
 
         return new BattleAftermath(

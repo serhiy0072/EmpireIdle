@@ -54,8 +54,9 @@ namespace EmpireIdle.Application.Marches.Services
         }
 
         /// <summary>
-        /// Підсумкові стати героїв зі спорядженням — для бонусів військам (HeroCombatModifiers).
-        /// Поранених пропускає: бонус від них однаково гасне.
+        /// Підсумкові стати героїв зі спорядженням — для бонусів військам (HeroCombatModifiers)
+        /// і швидкості маршу. Поранених не пропускає: бонус військам гасить сам HeroCombatModifiers,
+        /// а дорогу додому поранений іде зі своїм спорядженням.
         /// </summary>
         public async Task<HeroGear> GearAsync(IEnumerable<Hero?> heroes, CancellationToken cancellationToken)
         {
@@ -63,8 +64,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             foreach (var hero in heroes)
             {
-                if (hero is null || hero.State == HeroState.Wounded || stats.ContainsKey(hero.Id)
-                    || _catalog.FindHero(hero.HeroKey) is not { } config)
+                if (hero is null || stats.ContainsKey(hero.Id) || _catalog.FindHero(hero.HeroKey) is not { } config)
                     continue;
 
                 var equipped = await _inventory.GetEquippedAsync(hero.Id, cancellationToken);

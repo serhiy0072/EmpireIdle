@@ -192,7 +192,7 @@ public class CompleteMarchCommandTests
 
         var returner = new ReinforcementReturner(
             _garrisons, _villages, _structures, _marches, _heroes, calculator, catalog,
-            new HeroProgression(config.HeroSettings),
+            new HeroProgression(config.HeroSettings), TestCombatants.WithoutGear(catalog),
             TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
 
         var aftermath = new BattleAftermath(
