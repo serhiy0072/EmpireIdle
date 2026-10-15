@@ -385,6 +385,9 @@
         /// <summary>Згодувати вдягнене не можна — спершу зняти з героя.</summary>
         public static readonly RefusalReason EquipmentFoodEquipped = new("equipment.foodEquipped");
 
+        /// <summary>Набір лише для свого класу героїв (рішення 15.10.2026); set — назва набору, class — його клас.</summary>
+        public static readonly RefusalReason EquipmentWrongClass = new("equipment.wrongClass", "set", "class");
+
         // ---------- Ринок ----------
 
         /// <summary>Ринок ще під туманом; level — рівень ратуші, з якого він відкриється.</summary>

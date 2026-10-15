@@ -331,6 +331,11 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectDuplicateClasses()
             => RejectsHero(c => c.HeroSettings.Classes = ["warrior", "warrior", "archer"]);
 
+        /// <summary>Набір для класу, якого немає, не вдягнув би ніхто.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAnArtifactSetForAnUnknownClass()
+            => RejectsHero(c => c.Equipment.ArtifactSets.Add(new ArtifactSetConfig { Key = "arcane", DisplayName = "Набір Чар", Class = "paladin" }));
+
         /// <summary>Стат героя без ваги мовчки випав би із сили — вага потрібна кожному.</summary>
         [Fact]
         public void Validate_ShouldRejectAHeroStatWithoutPowerWeight()

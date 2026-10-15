@@ -73,6 +73,18 @@ namespace EmpireIdle.Application.Heroes.Commands
             var itemConfig = _catalog.Items.GetValueOrDefault(item.ItemKey)
                 ?? throw new EntityNotFoundException("Item", item.ItemKey);
 
+            var heroConfig = _catalog.FindHero(hero.HeroKey)
+                ?? throw new EntityNotFoundException("HeroConfig", hero.HeroKey);
+
+            // Набір лише для свого класу — до будь-яких змін, щоб чужий не зняв навіть того, що стоїть у слоті
+            if (!_fit.FitsClass(itemConfig, heroConfig.Class))
+            {
+                var set = _catalog.Config.Equipment.FindArtifactSet(itemConfig.SetKey)!;
+
+                throw new RequirementNotMetException(RefusalReasons.EquipmentWrongClass,
+                    $"Set '{set.Key}' is for {set.Class}, hero {hero.Id} is {heroConfig.Class}.", set.DisplayName, set.Class!);
+            }
+
             var slotIndex = _fit.SlotIndexOf(itemConfig);
 
             var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);

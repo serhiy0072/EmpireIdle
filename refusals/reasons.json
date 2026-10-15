@@ -155,6 +155,10 @@
   "equipment.uniqueFood": [
     "item"
   ],
+  "equipment.wrongClass": [
+    "set",
+    "class"
+  ],
   "garrison.armyCapacity": [
     "occupied",
     "capacity",

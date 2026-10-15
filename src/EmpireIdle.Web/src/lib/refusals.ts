@@ -6,6 +6,8 @@
  * файлу, тож новий ключ без тексту тут не пройде typecheck.
  */
 
+import { classLabel } from "./heroClasses";
+
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
 type RefusalArgs = Record<string, string | number>;
@@ -206,6 +208,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "equipment.notBroken": () => "Артефакт цілий — ремонтувати нічого",
   "equipment.uniqueFood": ({ item }) => `«${item}» не згодовується`,
   "equipment.foodEquipped": () => "Спершу зніміть предмет із героя — вдягнене не згодовується",
+  "equipment.wrongClass": ({ set, class: heroClass }) => `«${set}» — лише для класу «${classLabel(String(heroClass))}»`,
 
   // ---------- Ринок ----------
   "market.locked": ({ level }) => `Ринок відкриється з ратушею ${level} рівня`,

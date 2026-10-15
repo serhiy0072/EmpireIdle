@@ -28,6 +28,10 @@ namespace EmpireIdle.Domain.Services
                ?? throw new InvalidOperationException(
                    $"Artifact '{itemConfig.Key}' has no known ArtifactSlot '{itemConfig.ArtifactSlot}'.");
 
+        /// <summary>Набір предмета для свого класу, або предмет поза класовими наборами.</summary>
+        public bool FitsClass(ItemConfig itemConfig, string heroClass)
+            => _catalog.Config.Equipment.FindArtifactSet(itemConfig.SetKey)?.Class is not { } setClass || setClass == heroClass;
+
         /// <summary>
         /// Чи кращий кандидат за те, що вже стоїть на герої цього класу: вища рідкість, далі більша сила
         /// під клас героя. Зламаний рахується зі своєю урізаною силою — і все одно може виявитися кращим.
@@ -47,7 +51,8 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Найкраще вільне для кожного слота героя цього класу: не вдягнене й не виставлене на ринок.
+        /// Найкраще вільне для кожного слота героя цього класу: не вдягнене, не виставлене на ринок
+        /// і з набору свого класу.
         /// Порядок той самий, що в <see cref="IsBetter"/>; за рівної сили — вищий рівень і заточка.
         /// Ключ — номер слота артефакта.
         /// </summary>
@@ -58,7 +63,7 @@ namespace EmpireIdle.Domain.Services
             return owned
                 .Where(e => e.EquippedByHeroId is null && !e.IsOnMarket)
                 .Select(e => (Item: e, Config: _catalog.FindItem(e.ItemKey)))
-                .Where(pair => pair.Config is not null)
+                .Where(pair => pair.Config is not null && FitsClass(pair.Config, heroClass))
                 .GroupBy(pair => SlotIndexOf(pair.Config!))
                 .ToDictionary(
                     group => group.Key,

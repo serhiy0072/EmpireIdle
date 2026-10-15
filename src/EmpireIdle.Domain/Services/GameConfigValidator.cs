@@ -1012,6 +1012,16 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Heroes reference unknown classes: {string.Join(", ", unknownClasses)}.");
 
+            // Набір для класу з друкарською помилкою не вдягнув би ніхто
+            var badSetClasses = config.Equipment.ArtifactSets
+                .Where(s => s.Class is not null && !classes.Contains(s.Class))
+                .Select(s => $"{s.Key} → '{s.Class}'")
+                .ToList();
+
+            if (badSetClasses.Count > 0)
+                throw new InvalidOperationException(
+                    $"Equipment.ArtifactSets reference unknown hero classes: {string.Join(", ", badSetClasses)}.");
+
             var buildingKeys = config.Buildings.Select(b => b.Key).ToHashSet();
 
             if (!buildingKeys.Contains(settings.BuildingKey ?? string.Empty))

@@ -24,5 +24,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// не впливає — їх задають база й заточка; бонус повного набору — у SetBonuses.
         /// </summary>
         public List<string> FocusStats { get; set; } = new();
+
+        /// <summary>
+        /// Клас героїв, що носять набір (рішення 15.10.2026): чужий клас його не вдягне, як колись зброю.
+        /// null — набір для всіх (мінімальні фікстури).
+        /// </summary>
+        public string? Class { get; set; }
     }
 }
