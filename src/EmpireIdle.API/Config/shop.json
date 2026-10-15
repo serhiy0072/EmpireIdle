@@ -93,12 +93,12 @@
         },
         {
           "ItemKey": "key_rare",
-          "PriceGems": 500,
+          "PriceGems": 1000,
           "MaxPerPurchase": 100
         },
         {
           "ItemKey": "key_unique",
-          "PriceGems": 1000,
+          "PriceGems": 5000,
           "MaxPerPurchase": 100
         },
         {
