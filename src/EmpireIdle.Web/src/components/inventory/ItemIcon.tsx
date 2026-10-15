@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { rarityKey } from "../../lib/rarity";
+import { artifactArtFor, drawArtifact } from "./artifactArt";
 
 /**
  * Іконка предмета: процедурний SVG за ключем і типом, рамка за рідкістю.
@@ -364,11 +365,20 @@ const BY_TYPE: Record<string, RegExp> = {
 export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false, mastery = 0 }: Props): ReactElement {
   const frame = FRAME[rarityKey(rarity)] ?? (FRAME.Common as { stroke: string; back: string });
   const key = itemKey.toLowerCase();
-  const shape = SHAPES.find((candidate) => candidate.test.test(key)) ?? SHAPES.find((candidate) => candidate.test.test(BY_TYPE[type]?.source ?? ""));
+  // Артефакти мають свій арт за набором; решта — загальні форми за ключем і типом
+  const art = artifactArtFor(key);
+  const artifact = art === null ? drawArtifact(key) : null;
+  const shape =
+    art !== null || artifact !== null
+      ? undefined
+      : (SHAPES.find((candidate) => candidate.test.test(key)) ??
+        SHAPES.find((candidate) => candidate.test.test(BY_TYPE[type]?.source ?? "")));
 
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} className={`shrink-0 rounded-lg ${className}`} aria-hidden>
       {!bare && <rect width={100} height={100} rx={12} fill={frame.back} />}
+      {art !== null && <image href={art} x={6} y={6} width={88} height={88} preserveAspectRatio="xMidYMid meet" />}
+      {artifact}
       {shape?.draw()}
       {!bare && <rect x={2} y={2} width={96} height={96} rx={11} fill="none" stroke={frame.stroke} strokeWidth={3} />}
       {/* Заточка видна на самому значку — як на референсах, без підпису поруч */}
