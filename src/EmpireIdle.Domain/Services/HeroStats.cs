@@ -147,27 +147,32 @@ namespace EmpireIdle.Domain.Services
         public double Power(EquipmentItem item) => _artifacts.Power(item);
 
         /// <summary>
-        /// Бонуси за повні набори з вдягненого.
+        /// Бонуси наборів із вдягненого за порогами (рішення 15.10.2026): предмети рахуються по родині
+        /// будь-якої рідкості, поріг N дає свій бонус, щойно вдягнено N предметів родини, а числа бере
+        /// з рідкості N-го предмета, якщо розкласти їх від найрідкіснішого. Так 2 унікальні + 2 звичайні
+        /// дають поріг 2 унікальний, а поріг 4 — звичайний; при трьох предметах діє лише поріг 2.
         /// </summary>
         public IReadOnlyDictionary<string, double> SetBonus(IReadOnlyCollection<EquipmentItem> equipped)
         {
             var result = new Dictionary<string, double>();
-            var equipment = _catalog.Config.Equipment;
+            var bonuses = _catalog.Config.Equipment.SetBonuses;
 
-            if (equipment.SetBonuses.Count == 0)
+            if (bonuses.Count == 0)
                 return result;
 
             var worn = equipped
-                .Select(e => e.ItemKey)
-                .ToList();
+                .Select(e => _catalog.FindItem(e.ItemKey)?.SetKey)
+                .OfType<string>()
+                .Select(EquipmentConfig.SplitSetKey)
+                .GroupBy(piece => piece.Family)
+                .ToDictionary(g => g.Key, g => g.Select(piece => piece.Rarity).OrderByDescending(r => r).ToList());
 
-            foreach (var bonus in equipment.SetBonuses)
+            foreach (var bonus in bonuses)
             {
-                var pieces = _catalog.SetPieces.GetValueOrDefault(bonus.SetKey, []);
+                var (family, rarity) = EquipmentConfig.SplitSetKey(bonus.SetKey);
 
-                var count = worn.Count(pieces.Contains);
-
-                if (count < bonus.RequiredPieces)
+                if (!worn.TryGetValue(family, out var rarities) || rarities.Count < bonus.RequiredPieces
+                    || rarities[bonus.RequiredPieces - 1] != rarity)
                     continue;
 
                 foreach (var (stat, value) in bonus.Stats)

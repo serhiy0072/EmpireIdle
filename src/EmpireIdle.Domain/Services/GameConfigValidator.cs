@@ -1422,7 +1422,8 @@ namespace EmpireIdle.Domain.Services
                 .Select(i => i.SetKey!)
                 .ToHashSet();
 
-            RequireUniqueKeys(config.Equipment.SetBonuses.Select(b => b.SetKey).ToList(), "Equipment.SetBonuses");
+            // Поріг набору — пара «SetKey + кількість»: у рідкості по одному бонусу на 2 і на 4 предмети
+            RequireUniqueKeys(config.Equipment.SetBonuses.Select(b => $"{b.SetKey}@{b.RequiredPieces}").ToList(), "Equipment.SetBonuses");
 
             foreach (var bonus in config.Equipment.SetBonuses)
             {
@@ -1430,18 +1431,16 @@ namespace EmpireIdle.Domain.Services
                     throw new InvalidOperationException(
                         $"Set bonus '{bonus.SetKey}' has no items — nobody could ever collect it.");
 
-                var pieces = config.Items.Count(i => i.SetKey == bonus.SetKey);
-
-                // Комплект, більший за кількість предметів або за кількість
-                // слотів, недосяжний: правило є, спрацювати не може
-                if (bonus.RequiredPieces < 1 || bonus.RequiredPieces > pieces)
+                // Пороги — 2 і 4 предмети (рішення 15.10.2026): третій предмет нового не додає
+                if (bonus.RequiredPieces is not (2 or 4))
                     throw new InvalidOperationException(
-                        $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces but only {pieces} exist.");
+                        $"Set bonus '{bonus.SetKey}' needs {bonus.RequiredPieces} pieces — thresholds are 2 or 4.");
 
-                // Герой носить по одному артефакту кожного типу: частини одного
-                // слота не вдягнути разом, тож рахуються лише різні слоти
+                // Предмети рахуються по родині будь-якої рідкості, а герой носить по одному артефакту
+                // кожного типу: поріг, більший за кількість різних слотів родини, не спрацює ніколи
+                var family = EquipmentConfig.SplitSetKey(bonus.SetKey).Family;
                 var wearable = config.Items
-                    .Where(i => i.SetKey == bonus.SetKey)
+                    .Where(i => i.SetKey is not null && EquipmentConfig.SplitSetKey(i.SetKey).Family == family)
                     .Select(i => i.ArtifactSlot)
                     .Distinct()
                     .Count();

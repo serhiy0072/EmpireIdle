@@ -140,8 +140,24 @@ namespace EmpireIdle.Domain.Services.Config
         public ArtifactSetConfig? FindArtifactSet(string? setKey)
             => setKey is null
                 ? null
-                : ArtifactSets.FirstOrDefault(set => Enum.GetNames<Enums.Rarity>()
-                    .Any(rarity => setKey == $"{set.Key}_{rarity.ToLowerInvariant()}"));
+                : ArtifactSets.FirstOrDefault(set => set.Key == SplitSetKey(setKey).Family);
+
+        /// <summary>
+        /// Родина й рідкість із SetKey (<c>{родина}_{рідкість}</c>): пороги набору рахуються по родині,
+        /// а рідкість обирає числа. Ключ без суфікса рідкості — сам собі родина, без рідкості.
+        /// </summary>
+        public static (string Family, Enums.Rarity? Rarity) SplitSetKey(string setKey)
+        {
+            foreach (var rarity in Enum.GetValues<Enums.Rarity>())
+            {
+                var suffix = $"_{rarity.ToString().ToLowerInvariant()}";
+
+                if (setKey.EndsWith(suffix, StringComparison.Ordinal) && setKey.Length > suffix.Length)
+                    return (setKey[..^suffix.Length], rarity);
+            }
+
+            return (setKey, null);
+        }
 
         /// <summary>Рівень набору поза списком множників бере останній відомий — як і тір героя.</summary>
         public double TierMultiplier(string? setKey)

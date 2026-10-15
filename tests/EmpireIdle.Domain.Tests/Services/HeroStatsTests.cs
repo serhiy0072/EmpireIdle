@@ -316,10 +316,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void SetBonus_ShouldGiveNothing_WhenNothingIsEquipped()
             => Assert.Empty(Stats().SetBonus([]));
 
-        /// <summary>
-        /// Три з чотирьох не дають нічого. Саме це й робить набір метою,
-        /// а не побічним ефектом збирання найсильніших артефактів.
-        /// </summary>
+        /// <summary>Три з чотирьох не дають порогу 4, а порогу 2 в цьому наборі немає.</summary>
         [Fact]
         public void SetBonus_ShouldGiveNothing_BelowTheFullSet()
         {
@@ -360,6 +357,72 @@ namespace EmpireIdle.Domain.Tests.Services
             ]);
 
             Assert.Empty(bonus);
+        }
+
+        /// <summary>
+        /// Родина «amber» у трьох рідкостях з порогами 2 і 4: числа порогу — це рідкість у тисячах
+        /// (звичайна 1, рідкісна 2, унікальна 3) плюс поріг, щоб з атаки було видно, що спрацювало.
+        /// </summary>
+        private static HeroStats AmberStats()
+        {
+            var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+            config.Equipment.ArtifactSets.Add(new ArtifactSetConfig { Key = "amber", DisplayName = "Набір Бурштину" });
+
+            foreach (var rarity in Enum.GetValues<Rarity>())
+            {
+                var setKey = $"amber_{rarity.ToString().ToLowerInvariant()}";
+
+                foreach (var slot in new[] { "necklace", "ring", "crown", "belt" })
+                    config.Items.Add(new ItemConfig { Key = $"{setKey}_{slot}", Type = "equipment", Slot = EquipmentSlot.Artifact, ArtifactSlot = slot, SetKey = setKey });
+
+                foreach (var pieces in new[] { 2, 4 })
+                    config.Equipment.SetBonuses.Add(new SetBonusConfig { SetKey = setKey, RequiredPieces = pieces, Stats = new() { ["Attack"] = (int)rarity * 1000 + pieces } });
+            }
+
+            return new HeroStats(new HeroProgression(config.HeroSettings), new GameCatalog(config));
+        }
+
+        private static EquipmentItem Amber(Rarity rarity, string slot)
+            => SetPiece($"amber_{rarity.ToString().ToLowerInvariant()}_{slot}");
+
+        /// <summary>Три предмети родини — лише поріг 2: третій нового не додає.</summary>
+        [Fact]
+        public void SetBonus_ShouldGiveTheTwoPieceBonus_OnThreePieces()
+        {
+            var bonus = AmberStats().SetBonus([Amber(Rarity.Rare, "necklace"), Amber(Rarity.Rare, "ring"), Amber(Rarity.Rare, "crown")]);
+
+            Assert.Equal(2002, bonus["Attack"], 3);
+        }
+
+        [Fact]
+        public void SetBonus_ShouldGiveNothing_OnASinglePiece()
+            => Assert.Empty(AmberStats().SetBonus([Amber(Rarity.Unique, "necklace")]));
+
+        /// <summary>
+        /// Родина рахується незалежно від рідкості, а поріг N бере рідкість N-го предмета від найрідкіснішого:
+        /// 2 унікальні + 2 звичайні = поріг 2 унікальний (3002) і поріг 4 звичайний (1004).
+        /// </summary>
+        [Fact]
+        public void SetBonus_ShouldTakeEachThresholdsRarity_FromItsNthRarestPiece()
+        {
+            var bonus = AmberStats().SetBonus(
+            [
+                Amber(Rarity.Common, "necklace"),
+                Amber(Rarity.Unique, "ring"),
+                Amber(Rarity.Common, "crown"),
+                Amber(Rarity.Unique, "belt")
+            ]);
+
+            Assert.Equal(3002 + 1004, bonus["Attack"], 3);
+        }
+
+        /// <summary>Унікальний + звичайний: другий за рідкістю — звичайний, тож і поріг 2 звичайний.</summary>
+        [Fact]
+        public void SetBonus_ShouldGiveTheLowerRarity_WhenTheNthPieceIsLower()
+        {
+            var bonus = AmberStats().SetBonus([Amber(Rarity.Unique, "necklace"), Amber(Rarity.Common, "ring")]);
+
+            Assert.Equal(1002, bonus["Attack"], 3);
         }
 
         /// <summary>
