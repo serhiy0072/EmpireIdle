@@ -264,10 +264,13 @@ namespace EmpireIdle.Domain.Dungeons
                 _ => targetIndex is { } single ? [single] : [],
             };
 
+            // Шкода вмінь підсилює і активне, і періодичне — обидва йдуть сюди; звичайний удар — ні
+            var multiplier = ability.DamageMultiplier * (1 + actor.UniqueStats.GetValueOrDefault(DungeonStat.SkillDamage));
+
             foreach (var target in targets)
             {
                 if (ability.DamageMultiplier > 0)
-                    Strike(combatants, actorIndex, target, ability.DamageMultiplier, effects, random, ability.Status, ability.StatusMagnitude, ability.StatusTurns);
+                    Strike(combatants, actorIndex, target, multiplier, effects, random, ability.Status, ability.StatusMagnitude, ability.StatusTurns);
                 else
                     Support(combatants, actorIndex, target, ability, effects);
             }
@@ -368,13 +371,20 @@ namespace EmpireIdle.Domain.Dungeons
                 _config.MinDamageShare,
                 _config.DefenseSoftening / (_config.DefenseSoftening + defense));
 
-            var critChance = _config.BaseCritChance + actor.UniqueStats.GetValueOrDefault(DungeonStat.CritChance);
+            var critChance = Math.Min(_config.MaxCritChance, _config.BaseCritChance + actor.UniqueStats.GetValueOrDefault(DungeonStat.CritChance));
             var critical = random.NextDouble() < critChance;
 
             if (critical)
-                raw *= _config.CritMultiplier;
+                raw *= _config.CritMultiplier + actor.UniqueStats.GetValueOrDefault(DungeonStat.CritPower);
 
-            raw *= 1 - Math.Min(0.8, target.UniqueStats.GetValueOrDefault(DungeonStat.DamageReduction));
+            // Блок кидається лише в того, хто має шанс: бої без блоку зберігають ту саму послідовність кидків
+            var blockChance = Math.Min(_config.MaxBlockChance, target.UniqueStats.GetValueOrDefault(DungeonStat.BlockChance));
+            var blocked = blockChance > 0 && random.NextDouble() < blockChance;
+
+            if (blocked)
+                raw *= 1 - Math.Min(_config.MaxBlockPower, _config.BaseBlockPower + target.UniqueStats.GetValueOrDefault(DungeonStat.BlockPower));
+
+            raw *= 1 - Math.Min(_config.MaxDamageReduction, target.UniqueStats.GetValueOrDefault(DungeonStat.DamageReduction));
 
             var absorbed = Math.Min(target.ShieldPoints, raw);
             var damage = Math.Round(raw - absorbed, 1);
@@ -394,7 +404,7 @@ namespace EmpireIdle.Domain.Dungeons
                 Statuses = statuses,
             };
 
-            var lifesteal = actor.UniqueStats.GetValueOrDefault(DungeonStat.Lifesteal);
+            var lifesteal = Math.Min(_config.MaxLifesteal, actor.UniqueStats.GetValueOrDefault(DungeonStat.Lifesteal));
             var healed = 0.0;
 
             if (lifesteal > 0 && damage > 0)
@@ -411,6 +421,7 @@ namespace EmpireIdle.Domain.Dungeons
                 TargetIndex = targetIndex,
                 Damage = damage,
                 Critical = critical,
+                Blocked = blocked,
                 ShieldAbsorbed = Math.Round(absorbed, 1),
                 StatusApplied = health > 0 ? status : null,
                 Died = health <= 0,

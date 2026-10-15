@@ -590,6 +590,105 @@ public class BattleEngineTests
         Assert.True(hitTough > hitPlain);
     }
 
+    // ---------- Стати наборів і заточки ----------
+
+    /// <summary>Конфіг, у якому кожен удар критичний і кожен блок спрацьовує: кидок не заважає рахувати.</summary>
+    private static DungeonsConfig Certain()
+    {
+        var config = Config();
+        config.BaseCritChance = 0.999;
+        config.MaxCritChance = 0.999;
+        config.MaxBlockChance = 0.999;
+
+        return config;
+    }
+
+    private static Dictionary<DungeonStat, double> With(DungeonStat stat, double value) => new() { [stat] = value };
+
+    /// <summary>Сила криту додається до множника: 1.6 + 0.4 = 2.0 замість 1.6.</summary>
+    [Fact]
+    public void Execute_CritPower_ShouldRaiseTheCriticalMultiplier()
+    {
+        var engine = Engine(Certain());
+        var plain = engine.Execute(State(Hero(0), Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+        var strong = engine.Execute(State(Hero(0, unique: With(DungeonStat.CritPower, 0.4)), Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+
+        Assert.True(plain.Critical);
+        Assert.Equal(plain.Damage * 2.0 / 1.6, strong.Damage, 0);
+    }
+
+    /// <summary>Шанс криту понад стелю не допомагає: зі стелею 0 критів немає навіть зі 100% з наборів.</summary>
+    [Fact]
+    public void Execute_CritChance_ShouldNotExceedTheCap()
+    {
+        var config = Config();
+        config.MaxCritChance = 0;
+
+        var effect = Engine(config).Execute(State(Hero(0, unique: With(DungeonStat.CritChance, 1)), Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+
+        Assert.False(effect.Critical);
+    }
+
+    /// <summary>Шкода вмінь підсилює вміння, але не звичайний удар.</summary>
+    [Fact]
+    public void Execute_SkillDamage_ShouldRaiseOnlySkillHits()
+    {
+        var engine = Engine();
+        var skilled = Hero(0, unique: With(DungeonStat.SkillDamage, 0.5), skills: Strike());
+
+        var plainSkill = engine.Execute(State(Hero(0, skills: Strike()), Enemy(1)), 0, new BattleAction("strike", 1)).Log.Effects[0];
+        var boostedSkill = engine.Execute(State(skilled, Enemy(1)), 0, new BattleAction("strike", 1)).Log.Effects[0];
+        var plainStrike = engine.Execute(State(Hero(0), Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+        var boostedStrike = engine.Execute(State(skilled, Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+
+        Assert.Equal(plainSkill.Damage * 1.5, boostedSkill.Damage, 0);
+        Assert.Equal(plainStrike.Damage, boostedStrike.Damage);
+    }
+
+    /// <summary>Блок гасить базові 30% плюс силу блоку: 0.3 + 0.2 = половина удару.</summary>
+    [Fact]
+    public void Execute_Block_ShouldSoftenTheHit_AndBeLogged()
+    {
+        var config = Certain();
+        config.BaseCritChance = 0;
+        var engine = Engine(config);
+
+        var plain = engine.Execute(State(Hero(0), Enemy(1)), 1, new BattleAction(null, 0)).Log.Effects[0];
+        var blocker = Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.BlockChance] = 1, [DungeonStat.BlockPower] = 0.2 });
+        var blocked = engine.Execute(State(blocker, Enemy(1)), 1, new BattleAction(null, 0)).Log.Effects[0];
+
+        Assert.False(plain.Blocked);
+        Assert.True(blocked.Blocked);
+        Assert.Equal(plain.Damage * 0.5, blocked.Damage, 0);
+    }
+
+    /// <summary>Сила блоку понад стелю не робить героя невразливим: стеля 0.8 лишає п'яту частину удару.</summary>
+    [Fact]
+    public void Execute_BlockPower_ShouldNotExceedTheCap()
+    {
+        var config = Certain();
+        config.BaseCritChance = 0;
+        var engine = Engine(config);
+
+        var plain = engine.Execute(State(Hero(0), Enemy(1)), 1, new BattleAction(null, 0)).Log.Effects[0];
+        var wall = Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.BlockChance] = 1, [DungeonStat.BlockPower] = 5 });
+        var blocked = engine.Execute(State(wall, Enemy(1)), 1, new BattleAction(null, 0)).Log.Effects[0];
+
+        Assert.Equal(plain.Damage * 0.2, blocked.Damage, 0);
+    }
+
+    /// <summary>Вампіризм понад стелю лікує лише на стелю: 30% від завданої шкоди.</summary>
+    [Fact]
+    public void Execute_Lifesteal_ShouldNotExceedTheCap()
+    {
+        var vampire = Hero(0, unique: With(DungeonStat.Lifesteal, 0.9)) with { Health = 100 };
+
+        var result = Engine().Execute(State(vampire, Enemy(1)), 0, new BattleAction(null, 1));
+
+        var damage = result.Log.Effects[0].Damage;
+        Assert.Equal(Math.Round(damage * 0.3, 1), result.Log.Effects.Single(e => e.Healed > 0).Healed);
+    }
+
     // ---------- Детермінізм ----------
 
     /// <summary>Той самий стан і сід дають той самий хід — інакше бій не відтворити з журналу.</summary>

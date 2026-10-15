@@ -14812,6 +14812,7 @@
       },
       "TurnEffect": {
         "required": [
+          "blocked",
           "critical",
           "damage",
           "died",
@@ -14831,6 +14832,9 @@
             "format": "double"
           },
           "critical": {
+            "type": "boolean"
+          },
+          "blocked": {
             "type": "boolean"
           },
           "healed": {

@@ -17,6 +17,11 @@ namespace EmpireIdle.Domain.Dungeons
             ["CritChance"] = DungeonStat.CritChance,
             ["Lifesteal"] = DungeonStat.Lifesteal,
             ["DamageReduction"] = DungeonStat.DamageReduction,
+            ["CritPower"] = DungeonStat.CritPower,
+            ["SkillDamage"] = DungeonStat.SkillDamage,
+            ["BlockChance"] = DungeonStat.BlockChance,
+            ["BlockPower"] = DungeonStat.BlockPower,
+            ["Ward"] = DungeonStat.Ward,
         };
 
         /// <summary>Лише ненульові властивості: у бою відсутня й нульова означають одне.</summary>

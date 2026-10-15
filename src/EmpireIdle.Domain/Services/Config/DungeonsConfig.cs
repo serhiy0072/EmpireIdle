@@ -60,8 +60,32 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Шанс критичного удару без артефактів.</summary>
         public double BaseCritChance { get; set; } = 0.05;
 
-        /// <summary>Множник шкоди на криті.</summary>
+        /// <summary>Множник шкоди на криті без сили криту з наборів і заточки.</summary>
         public double CritMultiplier { get; set; } = 1.6;
+
+        /// <summary>Стеля шансу криту разом із базовим: більше — і бій вирішує кидок, а не склад.</summary>
+        public double MaxCritChance { get; set; } = 0.6;
+
+        /// <summary>Стеля вампіризму: частка завданої шкоди, що повертається здоров'ям.</summary>
+        public double MaxLifesteal { get; set; } = 0.3;
+
+        /// <summary>Стеля зменшення отриманої шкоди.</summary>
+        public double MaxDamageReduction { get; set; } = 0.8;
+
+        /// <summary>Стеля шансу блоку.</summary>
+        public double MaxBlockChance { get; set; } = 0.4;
+
+        /// <summary>Скільки шкоди гасить блок без сили блоку: 0.3 — удар слабшає на 30%.</summary>
+        public double BaseBlockPower { get; set; } = 0.3;
+
+        /// <summary>Стеля сили блоку разом із базовою.</summary>
+        public double MaxBlockPower { get; set; } = 0.8;
+
+        /// <summary>Стеля оберегу: щит на старті забігу часткою максимального здоров'я.</summary>
+        public double MaxWard { get; set; } = 0.5;
+
+        /// <summary>Скільки власних ходів героя живе щит оберегу.</summary>
+        public int WardTurns { get; set; } = 2;
 
         /// <summary>Самі данжі.</summary>
         public List<DungeonConfig> Dungeons { get; set; } = new();
