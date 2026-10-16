@@ -9,8 +9,8 @@ using Npgsql;
 namespace EmpireIdle.Api.Tests.Schema;
 
 /// <summary>
-/// Data-міграція наборів по класах (рішення 15.10.2026) на справжніх рядках: мертві бонуси заточки
-/// стають новими з перерахунком ступенів, а набір чужого класу знімається з героя в рюкзак.
+/// Data-міграція наборів по класах (рішення 15.10.2026) на справжніх рядках: бонуси заточки переходять
+/// на нові ступені (16.10.2026), а набір чужого класу знімається з героя в рюкзак.
 /// Окрема база в тому самому контейнері — решта колекції не пережила б відкату міграцій.
 /// </summary>
 [Collection("postgres")]
@@ -47,9 +47,9 @@ public class ClassLockedArtifactSetsMigrationTests
 
         var speed = await InsertStatAsync(context, loose, "AttackSpeed", 6);
         var cooldown = await InsertStatAsync(context, loose, "CooldownReduction", 4);
-        var crit = await InsertStatAsync(context, own, "UnitCritChance", 3);
+        var unitCrit = await InsertStatAsync(context, own, "UnitCritChance", 3);
         var health = await InsertStatAsync(context, own, "UnitHealthPercent", 9);
-        var kept = await InsertStatAsync(context, own, "CritChance", 2);
+        var crit = await InsertStatAsync(context, foreign, "CritChance", 2);
 
         await migrator.MigrateAsync(Migration);
 
@@ -59,14 +59,17 @@ public class ClassLockedArtifactSetsMigrationTests
         Assert.Equal(iselle, items[ownByOddKey].EquippedByHeroId);
 
         var stats = (await ReadStatsAsync(context)).ToDictionary(r => r.Id);
-        Assert.Equal(("MarchSpeed", 12.0), (stats[speed].StatKey, stats[speed].Value));
-        Assert.Equal(("Ward", 6.0), (stats[cooldown].StatKey, stats[cooldown].Value));
-        Assert.Equal(("TroopsAttack", 6.0), (stats[crit].StatKey, stats[crit].Value));
+        Assert.Equal(("AttackSpeed", 12.0), (stats[speed].StatKey, stats[speed].Value));
+        Assert.Equal(("CooldownReduction", 4.0), (stats[cooldown].StatKey, stats[cooldown].Value));
+        Assert.Equal(("CritChance", 14.25), (stats[unitCrit].StatKey, stats[unitCrit].Value));
         Assert.Equal(("TroopsDefense", 6.0), (stats[health].StatKey, stats[health].Value));
-        Assert.Equal(("CritChance", 2.0), (stats[kept].StatKey, stats[kept].Value));
+        Assert.Equal(("CritChance", 9.5), (stats[crit].StatKey, stats[crit].Value));
     }
 
-    /// <summary>Відкат повертає старі ключі й значення статів, щоб попередня версія коду їх знайшла.</summary>
+    /// <summary>
+    /// Відкат повертає старі ключі й значення статів, щоб попередня версія коду їх знайшла; колишній крит
+    /// юнітів лишається критом героя — після злиття їх не розрізнити.
+    /// </summary>
     [Fact]
     public async Task Down_ShouldRestoreTheOldStats()
     {
@@ -79,12 +82,16 @@ public class ClassLockedArtifactSetsMigrationTests
 
         var item = await InsertItemAsync(context, "frost_crown_common", equippedBy: null, slotIndex: 0);
         var health = await InsertStatAsync(context, item, "UnitHealthPercent", 9);
+        var crit = await InsertStatAsync(context, item, "CritChance", 2);
+        var speed = await InsertStatAsync(context, item, "AttackSpeed", 6);
 
         await migrator.MigrateAsync(Migration);
         await migrator.MigrateAsync(Before);
 
-        var stat = (await ReadStatsAsync(context)).Single(s => s.Id == health);
-        Assert.Equal(("UnitHealthPercent", 9.0), (stat.StatKey, stat.Value));
+        var stats = (await ReadStatsAsync(context)).ToDictionary(r => r.Id);
+        Assert.Equal(("UnitHealthPercent", 9.0), (stats[health].StatKey, stats[health].Value));
+        Assert.Equal(("CritChance", 2.0), (stats[crit].StatKey, stats[crit].Value));
+        Assert.Equal(("AttackSpeed", 6.0), (stats[speed].StatKey, stats[speed].Value));
     }
 
     private async Task<string> CreateDatabaseAsync()

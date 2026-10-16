@@ -8,6 +8,8 @@ const STAT_LABELS: Record<string, string> = {
   CritChance: "Шанс криту",
   CritPower: "Сила криту",
   SkillDamage: "Шкода вмінь",
+  AttackSpeed: "Швидкість атаки",
+  CooldownReduction: "Скорочення перезарядки",
   MarchSpeed: "Швидкість маршу",
   Ward: "Оберіг",
   Lifesteal: "Вампіризм",
@@ -35,6 +37,8 @@ const DUNGEON_ONLY = new Set([
   "BlockChance",
   "BlockPower",
   "CooldownTurns",
+  "AttackSpeed",
+  "CooldownReduction",
 ]);
 
 /** Підказки до незвичних статів — при наведенні. */
@@ -47,6 +51,8 @@ const STAT_HINTS: Record<string, string> = {
   TroopsDefense: "Захист юнітів класу героя в марші й обороні",
   MarchSpeed: "Наскільки швидше йде марш, який веде герой",
   CooldownTurns: "На стільки ходів раніше знову готове активне вміння в данжі",
+  AttackSpeed: "Більше ударів за секунду — запрацює з новим боєм данжів і арени",
+  CooldownReduction: "Вміння готові частіше — запрацює з новим боєм данжів і арени",
 };
 
 /** Пласкі стати артефакта — числом; решта бонусів заточки — відсотками (GDD §9.12). */

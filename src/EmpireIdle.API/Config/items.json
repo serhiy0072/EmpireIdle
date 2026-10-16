@@ -2217,13 +2217,13 @@
           "Key": "necklace",
           "DisplayName": "Намисто",
           "FixedBonuses": [ "Attack", "UnitAttack" ],
-          "RandomBonuses": [ { "Stat": "CritChance", "Weight": 25 }, { "Stat": "MarchSpeed", "Weight": 35 }, { "Stat": "AttackPercent", "Weight": 40 } ]
+          "RandomBonuses": [ { "Stat": "CritChance", "Weight": 25 }, { "Stat": "AttackSpeed", "Weight": 35 }, { "Stat": "AttackPercent", "Weight": 40 } ]
         },
         {
           "Key": "crown",
           "DisplayName": "Корона",
           "FixedBonuses": [ "Defense", "UnitDefense" ],
-          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "Ward", "Weight": 10 }, { "Stat": "SkillDamage", "Weight": 30 }, { "Stat": "Lifesteal", "Weight": 30 } ]
+          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "CooldownReduction", "Weight": 10 }, { "Stat": "SkillDamage", "Weight": 30 }, { "Stat": "Lifesteal", "Weight": 30 } ]
         },
         {
           "Key": "ring",
@@ -2235,7 +2235,7 @@
           "Key": "belt",
           "DisplayName": "Пояс",
           "FixedBonuses": [ "UnitAttack", "UnitDefense" ],
-          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "TroopsAttack", "Weight": 25 }, { "Stat": "TroopsDefense", "Weight": 25 }, { "Stat": "HealthPercent", "Weight": 25 } ]
+          "RandomBonuses": [ { "Stat": "CritPower", "Weight": 25 }, { "Stat": "CritChance", "Weight": 25 }, { "Stat": "TroopsDefense", "Weight": 25 }, { "Stat": "HealthPercent", "Weight": 25 } ]
         }
       ],
       "MaxLevel": 80,
@@ -2263,10 +2263,11 @@
         { "Stat": "Defense", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
         { "Stat": "UnitAttack", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
         { "Stat": "UnitDefense", "Steps": [ 5, 10, 15, 20 ], "PowerPerPercent": 0 },
-        { "Stat": "CritChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 10 },
+        { "Stat": "CritChance", "Steps": [ 5, 9, 14, 20 ], "PowerPerPercent": 2 },
         { "Stat": "CritPower", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2.5 },
         { "Stat": "SkillDamage", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3.5 },
-        { "Stat": "MarchSpeed", "Steps": [ 4, 8, 12, 16 ], "PowerPerPercent": 2.5 },
+        { "Stat": "AttackSpeed", "Steps": [ 5, 8, 11, 15 ], "PowerPerPercent": 2.5 },
+        { "Stat": "CooldownReduction", "Steps": [ 2, 4, 6, 8 ], "PowerPerPercent": 9 },
         { "Stat": "Ward", "Steps": [ 3, 6, 9, 12 ], "PowerPerPercent": 3 },
         { "Stat": "Lifesteal", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
         { "Stat": "BlockChance", "Steps": [ 1, 2, 3, 4 ], "PowerPerPercent": 8 },
@@ -2930,7 +2931,7 @@
           "SetKey": "gale_common",
           "RequiredPieces": 4,
           "Stats": {
-            "MarchSpeed": 11.5,
+            "AttackSpeed": 11.5,
             "TroopsAttack": 9.5
           }
         },
@@ -2945,7 +2946,7 @@
           "SetKey": "gale_rare",
           "RequiredPieces": 4,
           "Stats": {
-            "MarchSpeed": 15.5,
+            "AttackSpeed": 15.5,
             "TroopsAttack": 13
           }
         },
@@ -2960,7 +2961,7 @@
           "SetKey": "gale_unique",
           "RequiredPieces": 4,
           "Stats": {
-            "MarchSpeed": 20,
+            "AttackSpeed": 20,
             "TroopsAttack": 17
           }
         }

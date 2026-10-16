@@ -126,7 +126,7 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.InRange(counts[4], 0.085, 0.115);
         }
 
-        /// <summary>Вага 10 проти 25/30/30: оберіг третім бонусом корони — близько 10,5%.</summary>
+        /// <summary>Вага 10 проти 25/30/30: перезарядка третім бонусом корони — близько 10,5%.</summary>
         [Fact]
         public void RollRank_ShouldRespectThePoolWeights()
         {
@@ -134,7 +134,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var item = Sharpened("crown", mastery: 2);
 
             var share = Enumerable.Range(0, draws)
-                .Count(seed => Roller().RollRank("crown", item.Mastery, item.Stats, seed).Stat == "Ward")
+                .Count(seed => Roller().RollRank("crown", item.Mastery, item.Stats, seed).Stat == "CooldownReduction")
                 / (double)draws;
 
             Assert.InRange(share, 0.09, 0.12);

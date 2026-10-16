@@ -46,7 +46,7 @@ public class SetBonusValidationTests
     /// <summary>Стат, якого не рахує жоден бій, тихо нічого б не давав.</summary>
     [Fact]
     public void Validate_ShouldRejectAnUnknownStat()
-        => Assert.Contains("AttackSpeed", Rejects(c => c.Equipment.SetBonuses[0].Stats["AttackSpeed"] = 5).Message);
+        => Assert.Contains("UnitCritChance", Rejects(c => c.Equipment.SetBonuses[0].Stats["UnitCritChance"] = 5).Message);
 
     /// <summary>Поріг може дати будь-який бонус заточки й цілі ходи перезарядки.</summary>
     [Fact]

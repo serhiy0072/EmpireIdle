@@ -87,12 +87,12 @@ namespace EmpireIdle.Domain.Tests.Services
 
         /// <summary>
         /// Рівень 2 і бонуси: атака 14 × 1.1, захист 14, атака юнітів 56 × 1.05, захист юнітів 56,
-        /// плюс 2% крита по 10 сили: 29.4 + 114.8 × 0.25 + 20.
+        /// плюс 10% крита по 2 сили: 29.4 + 114.8 × 0.25 + 20.
         /// </summary>
         [Fact]
         public void Power_ShouldCountTheLevelTheFixedBoostsAndTheRandomBonuses()
         {
-            var item = Necklace(level: 2, (0, "Attack", 10), (1, "UnitAttack", 5), (2, "CritChance", 2));
+            var item = Necklace(level: 2, (0, "Attack", 10), (1, "UnitAttack", 5), (2, "CritChance", 10));
 
             Assert.Equal(78.1, Stats().Power(item), 3);
         }
@@ -105,11 +105,11 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Power_WithGear_ShouldAddTheItemPowerWithTheClassMultiplier()
             => Assert.Equal(184, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), [Necklace()]), 3);
 
-        /// <summary>Зламаний дає половину сили: (20 + 80 × 0.25 + 2% крита × 10) / 2.</summary>
+        /// <summary>Зламаний дає половину сили: (20 + 80 × 0.25 + 10% крита × 2) / 2.</summary>
         [Fact]
         public void Power_ShouldHalve_ForABrokenItem()
         {
-            var item = Necklace(0, (2, "CritChance", 2));
+            var item = Necklace(0, (2, "CritChance", 10));
             item.Break(TestKit.Entities.Now);
 
             Assert.Equal(30, Stats().Power(item), 3);
@@ -179,7 +179,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var plain = Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [Necklace()]);
             var critical = Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(),
-                [Necklace(0, (2, "CritChance", 3))]);
+                [Necklace(0, (2, "CritChance", 15))]);
 
             Assert.Equal(30, critical - plain, 3);
         }

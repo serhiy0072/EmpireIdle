@@ -200,10 +200,10 @@
             {
                 ArtifactSlots =
                 [
-                    Slot("necklace", "Намисто", ["Attack", "UnitAttack"], ("CritChance", 25), ("MarchSpeed", 35), ("AttackPercent", 40)),
-                    Slot("crown", "Корона", ["Defense", "UnitDefense"], ("CritPower", 25), ("Ward", 10), ("SkillDamage", 30), ("Lifesteal", 30)),
+                    Slot("necklace", "Намисто", ["Attack", "UnitAttack"], ("CritChance", 25), ("AttackSpeed", 35), ("AttackPercent", 40)),
+                    Slot("crown", "Корона", ["Defense", "UnitDefense"], ("CritPower", 25), ("CooldownReduction", 10), ("SkillDamage", 30), ("Lifesteal", 30)),
                     Slot("ring", "Кільце", ["Attack", "Defense"], ("CritChance", 25), ("BlockChance", 22), ("BlockPower", 22), ("DamageReduction", 14), ("DefensePercent", 22)),
-                    Slot("belt", "Пояс", ["UnitAttack", "UnitDefense"], ("CritPower", 25), ("TroopsAttack", 25), ("TroopsDefense", 25), ("HealthPercent", 25))
+                    Slot("belt", "Пояс", ["UnitAttack", "UnitDefense"], ("CritPower", 25), ("CritChance", 25), ("TroopsDefense", 25), ("HealthPercent", 25))
                 ],
                 MaxLevel = 80,
                 LevelExperienceBase = 100,
@@ -224,10 +224,11 @@
                     Bonus("Defense", 0, 5, 10, 15, 20),
                     Bonus("UnitAttack", 0, 5, 10, 15, 20),
                     Bonus("UnitDefense", 0, 5, 10, 15, 20),
-                    Bonus("CritChance", 10, 1, 2, 3, 4),
+                    Bonus("CritChance", 2, 5, 9, 14, 20),
                     Bonus("CritPower", 2.5, 4, 8, 12, 16),
                     Bonus("SkillDamage", 3.5, 3, 6, 9, 12),
-                    Bonus("MarchSpeed", 2.5, 4, 8, 12, 16),
+                    Bonus("AttackSpeed", 2.5, 5, 8, 11, 15),
+                    Bonus("CooldownReduction", 9, 2, 4, 6, 8),
                     Bonus("Ward", 3, 3, 6, 9, 12),
                     Bonus("Lifesteal", 8, 1, 2, 3, 4),
                     Bonus("BlockChance", 8, 1, 2, 3, 4),

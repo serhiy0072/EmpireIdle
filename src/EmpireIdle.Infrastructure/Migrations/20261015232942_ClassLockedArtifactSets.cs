@@ -8,14 +8,15 @@ namespace EmpireIdle.Infrastructure.Migrations
     public partial class ClassLockedArtifactSets : Migration
     {
         /// <summary>
-        /// Мертві бонуси заточки замінено (рішення 15.10.2026): старий стат → новий і множник ступенів.
-        /// Ступені нових бонусів пропорційні старим, тож сума ступенів на предметі переводиться множенням.
+        /// Нові ступені заточки (рішення 16.10.2026): старий стат → новий і множник ступенів. Значення на
+        /// предметі — сума випалих ступенів, тож переводиться множенням на середнє відношення нових до старих.
+        /// Порядок важливий: CritChance множиться раніше, ніж до нього додається колишній крит юнітів.
         /// </summary>
-        private static readonly (string From, string To, double Factor)[] RenamedStats =
+        private static readonly (string From, string To, double Factor)[] RescaledStats =
         [
-            ("AttackSpeed", "MarchSpeed", 2.0),            // 2/4/6/8 → 4/8/12/16
-            ("CooldownReduction", "Ward", 1.5),            // 2/4/6/8 → 3/6/9/12
-            ("UnitCritChance", "TroopsAttack", 2.0),       // 1/2/3/4 → 2/4/6/8
+            ("AttackSpeed", "AttackSpeed", 2.0),            // 2/4/6/8 → 5/8/11/15
+            ("CritChance", "CritChance", 4.75),             // 1/2/3/4 → 5/9/14/20
+            ("UnitCritChance", "CritChance", 4.75),         // крит юнітів стає критом героя
             ("UnitHealthPercent", "TroopsDefense", 2.0 / 3) // 3/6/9/12 → 2/4/6/8
         ];
 
@@ -37,11 +38,8 @@ namespace EmpireIdle.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            foreach (var (from, to, factor) in RenamedStats)
-                migrationBuilder.Sql($@"
-                    UPDATE ""EquipmentStats""
-                    SET ""StatKey"" = '{to}', ""Value"" = round((""Value"" * {factor.ToString(System.Globalization.CultureInfo.InvariantCulture)})::numeric, 2)
-                    WHERE ""StatKey"" = '{from}';");
+            foreach (var (from, to, factor) in RescaledStats)
+                Rescale(migrationBuilder, from, to, factor);
 
             // Набір вдягає лише свій клас (рішення 15.10.2026): чуже знімаємо в рюкзак — предмет лишається гравцеві
             migrationBuilder.Sql($@"
@@ -59,12 +57,17 @@ namespace EmpireIdle.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Зняте з героїв назад не вдягнути — хто що носив, уже не відомо; повертаємо лише ключі статів
-            foreach (var (from, to, factor) in RenamedStats)
-                migrationBuilder.Sql($@"
-                    UPDATE ""EquipmentStats""
-                    SET ""StatKey"" = '{from}', ""Value"" = round((""Value"" / {factor.ToString(System.Globalization.CultureInfo.InvariantCulture)})::numeric, 2)
-                    WHERE ""StatKey"" = '{to}';");
+            // Зняте з героїв назад не вдягнути — хто що носив, уже не відомо; повертаємо лише стати.
+            // Колишній крит юнітів злився з критом героя й лишається ним: розрізнити їх уже нічим
+            Rescale(migrationBuilder, "TroopsDefense", "UnitHealthPercent", 1.5);
+            Rescale(migrationBuilder, "CritChance", "CritChance", 1 / 4.75);
+            Rescale(migrationBuilder, "AttackSpeed", "AttackSpeed", 0.5);
         }
+
+        private static void Rescale(MigrationBuilder migrationBuilder, string from, string to, double factor)
+            => migrationBuilder.Sql($@"
+                UPDATE ""EquipmentStats""
+                SET ""StatKey"" = '{to}', ""Value"" = round((""Value"" * {factor.ToString("R", System.Globalization.CultureInfo.InvariantCulture)})::numeric, 2)
+                WHERE ""StatKey"" = '{from}';");
     }
 }
