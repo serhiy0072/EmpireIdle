@@ -57,8 +57,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Стеля раундів на хвилю: нічия завершує забіг, щоб бій не висів вічно.</summary>
         public int MaxRoundsPerWave { get; set; } = 30;
 
-        /// <summary>Шанс критичного удару без артефактів.</summary>
-        public double BaseCritChance { get; set; } = 0.05;
+        /// <summary>
+        /// Прихований шанс криту без артефактів (рішення 16.10.2026: 10%). Діє й поза данжем —
+        /// у силі героя в марші (HeroCrit).
+        /// </summary>
+        public double BaseCritChance { get; set; } = 0.1;
 
         /// <summary>Множник шкоди на криті без сили криту з наборів і заточки.</summary>
         public double CritMultiplier { get; set; } = 1.6;

@@ -42,9 +42,14 @@ namespace EmpireIdle.Application.Marches.Services
                 // Оберіг у відсотках, як і решта статів; стеля та сама, що й у данжі
                 var ward = Math.Min(_catalog.Config.Dungeons.MaxWard, stats.GetValueOrDefault("Ward") / 100);
 
+                // Крит — це удар: множить атаку, а захист лишає як є
+                var power = attacking
+                    ? stats.GetValueOrDefault("Attack") * HeroCrit.DamageMultiplier(stats, _catalog.Config.Dungeons)
+                    : stats.GetValueOrDefault("Defense");
+
                 combatants.Add(new HeroCombatant(
                     hero.Id,
-                    stats.GetValueOrDefault(attacking ? "Attack" : "Defense"),
+                    power,
                     stats.GetValueOrDefault("Health"),
                     troops * _catalog.Config.Equipment.UnitStatPower,
                     ward));

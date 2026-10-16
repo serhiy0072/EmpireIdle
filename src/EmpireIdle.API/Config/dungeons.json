@@ -26,7 +26,7 @@
       "DefenseSoftening": 120,
       "MinDamageShare": 0.1,
       "MaxRoundsPerWave": 30,
-      "BaseCritChance": 0.05,
+      "BaseCritChance": 0.1,
       "CritMultiplier": 1.6,
       "Dungeons": [
         {
