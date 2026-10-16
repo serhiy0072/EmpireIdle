@@ -115,10 +115,9 @@ namespace EmpireIdle.Application.Marches.Queries
             // вмінь прев'ю занижувало б силу рівно на їхню величину
             // Герой ще й б'ється сам (варіант B): його атака додається до сили військ до бонусів
             var heroPower = CombatCalculator.HeroPower(await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
-            var gear = await _combatants.GearAsync(attackerHeroes, cancellationToken);
 
             var attackerPower = (_combat.CalculatePower(attackerArmy, terrain, isAttacker: true,
-                _heroModifiers.ForMarch(attackerHeroes, gear)) + heroPower) * attackerBonus;
+                _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken))) + heroPower) * attackerBonus;
 
             var defenderPower = _combat.CalculateDefencePower(target.Defence, terrain, target.DefenceBuffs)
                 * target.DefenceMultiplier;
@@ -129,7 +128,7 @@ namespace EmpireIdle.Application.Marches.Queries
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, attackerArmy,
                 _progression.MarchSpeed(leaders.Select(l => l.Config)))
                 / await _effectResolver.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
-                / _progression.MarchSpeedMultiplier(leaders, gear);
+                / _progression.MarchSpeedMultiplier(leaders);
 
             // Сили — лише проти монстра (рішення 12.10.2026): у чужого села це розвідка, а не прев'ю
             var monster = request.TargetType == MarchTargetType.Monster;

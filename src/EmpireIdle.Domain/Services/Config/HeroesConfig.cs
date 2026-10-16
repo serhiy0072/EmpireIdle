@@ -182,12 +182,6 @@ namespace EmpireIdle.Domain.Services.Config
         public double DefaultMarchSpeed { get; set; } = 6.0;
 
         /// <summary>
-        /// Стеля прискорення маршу зі спорядження героїв у відсотках, сумарно на марш (рішення 15.10.2026).
-        /// Небойові вміння сюди не входять — у них своя крива.
-        /// </summary>
-        public double MaxGearMarchSpeedPercent { get; set; } = 50;
-
-        /// <summary>
         /// Скільки героїв боронить село (рішення 15.10.2026): найсильніший кожного класу, без лідера.
         /// Три — по одному на клас.
         /// </summary>

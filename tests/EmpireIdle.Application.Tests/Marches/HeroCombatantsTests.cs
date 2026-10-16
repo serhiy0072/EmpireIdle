@@ -64,19 +64,21 @@ public class HeroCombatantsTests
         Assert.Equal(0.16, attacking.Ward, 6);
     }
 
-    /// <summary>Бонуси зі спорядження — з підсумкових статів героя; порожнє місце нічого не дає.</summary>
+    /// <summary>Бонус військам зі спорядження — з підсумкових статів героя; поранений нічого не дає.</summary>
     [Fact]
     public async Task GearAsync_ShouldReadTroopBonuses_FromTheHerosGear()
     {
         var hero = Hero();
+        var wounded = Hero();
+        wounded.Wound(Now);
         var belt = EmpireIdle.TestKit.Entities.Equipment(HeroTestConfig.Artifact, Domain.Enums.EquipmentSlot.Artifact, bonuses: (0, "TroopsAttack", 8));
         _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem> { belt });
 
-        var gear = await Combatants().GearAsync([hero, null], CancellationToken.None);
+        var gear = await Combatants().GearAsync([hero, wounded, null], CancellationToken.None);
 
         Assert.Equal(8, gear.Attack(hero.Id), 6);
         Assert.Equal(0, gear.Defense(hero.Id), 6);
-        Assert.Equal(0, gear.Attack(Guid.NewGuid()), 6);
+        Assert.Equal(0, gear.Attack(wounded.Id), 6);
     }
 
     /// <summary>Поранений не б'ється, порожнього місця й невідомого героя теж немає.</summary>

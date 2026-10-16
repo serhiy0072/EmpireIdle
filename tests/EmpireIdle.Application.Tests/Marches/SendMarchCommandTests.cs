@@ -132,7 +132,6 @@ public class SendMarchCommandTests
             new MarchCalculator(terrain, catalog),
             targets, reinforcementRules, new StructureMarchRules(_clans),
             new HeroProgression(config.HeroSettings),
-            TestCombatants.WithoutGear(catalog),
             new HeroConvoys(config.HeroSettings),
             catalog,
             new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog),

@@ -1,16 +1,14 @@
 namespace EmpireIdle.Domain.Combat
 {
     /// <summary>
-    /// Бонуси армії зі спорядження героїв (рішення 15.10.2026): «TroopsAttack» і «TroopsDefense»
-    /// з порогів наборів і заточки — відсотки юнітам типу класу героя, «MarchSpeed» — відсоток швидкості
-    /// маршу, який герой веде. Підсумкові стати героя рахує застосунок (йому потрібен інвентар),
-    /// а домен лише читає звідси відсотки.
+    /// Бонуси військам зі спорядження героїв (рішення 15.10.2026): «TroopsAttack» і «TroopsDefense»
+    /// з порогів наборів і заточки — відсотки юнітам типу класу героя. Підсумкові стати героя
+    /// рахує застосунок (йому потрібен інвентар), а HeroCombatModifiers лише кладе їх у бонус стека.
     /// </summary>
     public sealed class HeroGear
     {
         public const string TroopsAttack = "TroopsAttack";
         public const string TroopsDefense = "TroopsDefense";
-        public const string MarchSpeed = "MarchSpeed";
 
         /// <summary>Без спорядження: бонуси дають лише вміння.</summary>
         public static readonly HeroGear None = new(new Dictionary<Guid, IReadOnlyDictionary<string, double>>());
@@ -28,9 +26,6 @@ namespace EmpireIdle.Domain.Combat
 
         /// <summary>Відсоток захисту військам цього героя.</summary>
         public double Defense(Guid heroId) => Stat(heroId, TroopsDefense);
-
-        /// <summary>Відсоток швидкості маршу від спорядження цього героя.</summary>
-        public double Speed(Guid heroId) => Stat(heroId, MarchSpeed);
 
         private double Stat(Guid heroId, string stat)
             => _stats.TryGetValue(heroId, out var stats) ? stats.GetValueOrDefault(stat) : 0;
