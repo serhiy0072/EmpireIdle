@@ -240,6 +240,11 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   // ---------- Одномоментний бій ----------
   "squad.heroWounded": ({ hero }) => `${hero} зараз у госпіталі — замініть героя в загоні`,
 
+  // ---------- Вежа ----------
+  "tower.townHallRequired": ({ level }) => `Тисячна вежа відкривається з ратушею ${level} рівня`,
+  "tower.floorClosed": ({ floor, next }) => `Поверх ${floor} уже закритий — на вас чекає поверх ${next}`,
+  "tower.conquered": () => "Вежу підкорено: усі поверхи пройдено",
+
   // ---------- Звірі ----------
   "beast.penMissing": () => "Приручати нікуди: спершу відкрийте звіринець",
   "beast.penFull": ({ capacity }) =>

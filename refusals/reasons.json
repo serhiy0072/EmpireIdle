@@ -352,6 +352,14 @@
     "have"
   ],
   "territory.ownStructure": [],
+  "tower.conquered": [],
+  "tower.floorClosed": [
+    "floor",
+    "next"
+  ],
+  "tower.townHallRequired": [
+    "level"
+  ],
   "village.alreadyThere": [],
   "village.buildingOutOfBounds": [
     "min",

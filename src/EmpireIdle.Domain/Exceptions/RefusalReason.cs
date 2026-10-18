@@ -449,6 +449,17 @@
         /// <summary>Герой загону в госпіталі — поранити його могли між вибором складу й боєм.</summary>
         public static readonly RefusalReason SquadHeroWounded = new("squad.heroWounded", "hero");
 
+        // ---------- Вежа ----------
+
+        /// <summary>Вежа ще закрита ратушею.</summary>
+        public static readonly RefusalReason TowerTownHallRequired = new("tower.townHallRequired", "level");
+
+        /// <summary>Штурмують не той поверх — найчастіше вежу відкрито у двох вкладках і поверх уже пройдено.</summary>
+        public static readonly RefusalReason TowerFloorClosed = new("tower.floorClosed", "floor", "next");
+
+        /// <summary>Усі поверхи пройдено.</summary>
+        public static readonly RefusalReason TowerConquered = new("tower.conquered");
+
         // ---------- Звірі ----------
 
         /// <summary>Звіринець ще не відкритий: приручати нікуди.</summary>
