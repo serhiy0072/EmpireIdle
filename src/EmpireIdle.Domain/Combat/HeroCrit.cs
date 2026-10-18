@@ -14,11 +14,14 @@ namespace EmpireIdle.Domain.Combat
 
         /// <param name="heroStats">Підсумкові стати героя (HeroStats.Compute) — відсотки, як у конфігу.</param>
         public static double DamageMultiplier(IReadOnlyDictionary<string, double> heroStats, DungeonsConfig config)
-        {
-            var chance = Math.Min(config.MaxCritChance, config.BaseCritChance + heroStats.GetValueOrDefault(CritChance) / 100);
-            var multiplier = config.CritMultiplier + heroStats.GetValueOrDefault(CritPower) / 100;
+            => 1 + Chance(heroStats, config) * (Multiplier(heroStats, config) - 1);
 
-            return 1 + chance * (multiplier - 1);
-        }
+        /// <summary>Шанс криту часткою: прихована база плюс стат героя, не вище стелі.</summary>
+        public static double Chance(IReadOnlyDictionary<string, double> heroStats, DungeonsConfig config)
+            => Math.Min(config.MaxCritChance, config.BaseCritChance + heroStats.GetValueOrDefault(CritChance) / 100);
+
+        /// <summary>У скільки разів крит сильніший за звичайний удар.</summary>
+        public static double Multiplier(IReadOnlyDictionary<string, double> heroStats, DungeonsConfig config)
+            => config.CritMultiplier + heroStats.GetValueOrDefault(CritPower) / 100;
     }
 }
