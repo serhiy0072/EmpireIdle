@@ -47,6 +47,7 @@ builder.Configuration
     .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/battle.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/market.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
@@ -163,6 +164,24 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.HeroSettings.GarrisonDefenders > 0, "GameConfig.HeroSettings.GarrisonDefenders must be positive — a village always has heroes to defend it.")
     .Validate(c => c.Dungeons.WardTurns > 0, "GameConfig.Dungeons.WardTurns must be positive — a ward shield has to last at least one turn.")
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
+    .Validate(c => c.RealtimeBattle.TickMilliseconds > 0 && c.RealtimeBattle.MaxBattleSeconds * 1000 >= c.RealtimeBattle.TickMilliseconds,
+        "GameConfig.RealtimeBattle needs a positive tick that fits into MaxBattleSeconds.")
+    .Validate(c => c.RealtimeBattle.MeleeApproachSeconds >= 0 && c.RealtimeBattle.RangedApproachSeconds >= 0
+            && c.RealtimeBattle.MeleeApproachSeconds < c.RealtimeBattle.MaxBattleSeconds && c.RealtimeBattle.RangedApproachSeconds < c.RealtimeBattle.MaxBattleSeconds,
+        "GameConfig.RealtimeBattle approach times must be non-negative and shorter than the battle.")
+    .Validate(c => c.RealtimeBattle.DefensePerHalfDamage > 0, "GameConfig.RealtimeBattle.DefensePerHalfDamage must be positive — otherwise any defense blocks every hit.")
+    .Validate(c => new[] { c.RealtimeBattle.HeroHealthScale, c.RealtimeBattle.ConvoyAttackScale, c.RealtimeBattle.ConvoyHealthScale, c.RealtimeBattle.ConvoyDefenseScale }.All(v => v > 0),
+        "GameConfig.RealtimeBattle hero and convoy scales must be positive — a fighter without health or attack never ends a battle.")
+    .Validate(c => c.RealtimeBattle.HeroAttackIntervals.Values.Concat(c.RealtimeBattle.UnitAttackIntervals.Values).All(v => v > 0),
+        "GameConfig.RealtimeBattle attack intervals must be positive.")
+    .Validate(c => c.RealtimeBattle.TypeAdvantageMultiplier >= 1, "GameConfig.RealtimeBattle.TypeAdvantageMultiplier must be at least 1 — below it the advantage turns into a weakness.")
+    .Validate(c => c.RealtimeBattle.SecondsPerTurn > 0 && c.RealtimeBattle.WardSeconds > 0,
+        "GameConfig.RealtimeBattle.SecondsPerTurn and WardSeconds must be positive.")
+    .Validate(c => new[] { c.RealtimeBattle.FirstCastShare, c.RealtimeBattle.AoeShare }.All(v => v is > 0 and <= 1),
+        "GameConfig.RealtimeBattle.FirstCastShare and AoeShare must be shares in (0, 1].")
+    .Validate(c => new[] { c.RealtimeBattle.CooldownReductionPerTurn, c.RealtimeBattle.MaxCooldownReduction }.All(v => v is >= 0 and < 1) && c.RealtimeBattle.MaxAttackSpeed >= 0,
+        "GameConfig.RealtimeBattle cooldown reduction must be a share in [0, 1) — a full one would cast skills every tick.")
+    .Validate(c => c.RealtimeBattle.SquadSize > 0, "GameConfig.RealtimeBattle.SquadSize must be positive.")
     .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
     .ValidateOnStart();
 

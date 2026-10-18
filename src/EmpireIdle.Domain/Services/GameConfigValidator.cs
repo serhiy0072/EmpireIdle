@@ -34,6 +34,7 @@ namespace EmpireIdle.Domain.Services
             ValidateHeroes(config);
             ValidateLossBands(config);
             ValidateDungeons(config);
+            ValidateRealtimeBattle(config);
             ValidateUnlockThresholds(config);
             ValidateMarket(config);
             ValidateBeasts(config);
@@ -684,6 +685,44 @@ namespace EmpireIdle.Domain.Services
                 .Concat(config.Equipment.ArtifactSets.Select(s => $"artifactSet.{s.Key}"))
                 .Concat(config.Equipment.ArtifactSlots.Select(s => $"artifactSlot.{s.Key}"))
                 .ToHashSet();
+
+        /// <summary>
+        /// Одномоментний бій: кожен клас героя і кожен тип юнітів, що веде герой, має свій темп удару,
+        /// а перевага типів посилається лише на відомі юніти й не б'є сама себе. Порожні словники
+        /// пропускає — так само, як RoleUnits у героях.
+        /// </summary>
+        private static void ValidateRealtimeBattle(GameConfig config)
+        {
+            var battle = config.RealtimeBattle;
+            var unitKeys = config.Units.Select(u => u.Key).ToHashSet();
+
+            if (battle.HeroAttackIntervals.Count > 0)
+            {
+                var missing = config.HeroSettings.Classes.Where(c => !battle.HeroAttackIntervals.ContainsKey(c)).ToList();
+
+                if (missing.Count > 0)
+                    throw new InvalidOperationException(
+                        $"RealtimeBattle.HeroAttackIntervals misses hero classes: {string.Join(", ", missing)}.");
+            }
+
+            if (battle.UnitAttackIntervals.Count > 0)
+            {
+                var missing = config.HeroSettings.RoleUnits.Values.Distinct().Where(u => !battle.UnitAttackIntervals.ContainsKey(u)).ToList();
+
+                if (missing.Count > 0)
+                    throw new InvalidOperationException(
+                        $"RealtimeBattle.UnitAttackIntervals misses unit types that heroes lead: {string.Join(", ", missing)}.");
+            }
+
+            var badAdvantages = battle.TypeAdvantages
+                .Where(a => a.Key == a.Value || !unitKeys.Contains(a.Key) || !unitKeys.Contains(a.Value))
+                .Select(a => $"{a.Key} → {a.Value}")
+                .ToList();
+
+            if (badAdvantages.Count > 0)
+                throw new InvalidOperationException(
+                    $"RealtimeBattle.TypeAdvantages must link two different known units: {string.Join(", ", badAdvantages)}.");
+        }
 
         /// <summary>
         /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна

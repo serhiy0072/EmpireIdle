@@ -49,6 +49,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Данжі: покроковий бій, енергія, набори артефактів.</summary>
         public DungeonsConfig Dungeons { get; set; } = new();
 
+        /// <summary>Одномоментний бій арени й вежі: тики, формула захисту, перевага типів.</summary>
+        public RealtimeBattleConfig RealtimeBattle { get; set; } = new();
+
         /// <summary>Ринок гравців: податок, строки, коридор ціни.</summary>
         public MarketConfig Market { get; set; } = new();
 
