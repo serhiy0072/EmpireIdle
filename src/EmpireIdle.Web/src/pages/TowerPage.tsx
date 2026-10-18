@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import BattleReplayPlayer from "../components/battle/BattleReplayPlayer";
 import SquadPicker from "../components/battle/SquadPicker";
 import ErrorBanner from "../components/ErrorBanner";
 import { GameButton, GamePanel, GameScreen, GameTabs } from "../components/game/GameUi";
@@ -39,6 +40,7 @@ export default function TowerPage() {
   const [chosen, setChosen] = useState<(string | null)[] | null>(null);
   const lanes = chosen ?? loadSquad(storageKey, SQUAD_SIZE, ready);
   const [result, setResult] = useState<TowerStormResult | null>(null);
+  const [watching, setWatching] = useState(false);
 
   if (tower.isPending) return <p className="text-slate-500">Підіймаємося сходами…</p>;
   if (tower.isError) return <ErrorBanner error={tower.error} />;
@@ -55,7 +57,15 @@ export default function TowerPage() {
   const attack = () => {
     if (next == null) return;
 
-    storm.mutate({ floor: next.number, lanes }, { onSuccess: setResult });
+    storm.mutate(
+      { floor: next.number, lanes },
+      {
+        onSuccess: (outcome) => {
+          setResult(outcome);
+          setWatching(true);
+        },
+      },
+    );
   };
 
   return (
@@ -100,7 +110,12 @@ export default function TowerPage() {
                 : "Бафів немає: бусти крамниці й звірі підсилюють загін у вежі"}
             </p>
 
-            {result !== null && (
+            {result !== null && watching && (
+              // Ключ — номер поверху й момент: новий штурм починає відтворення з нуля
+              <BattleReplayPlayer key={`${result.floor}-${storm.submittedAt}`} replay={result.battle} onFinished={() => setWatching(false)} />
+            )}
+
+            {result !== null && !watching && (
               <div
                 className={`space-y-2 rounded-xl p-3 text-center ring-1 ${result.victory ? "bg-emerald-900/50 ring-emerald-300" : "bg-rose-900/50 ring-rose-300"}`}
               >
@@ -127,7 +142,7 @@ export default function TowerPage() {
               <p className="text-center text-base font-semibold text-amber-300">Вежу підкорено — усі поверхи пройдено!</p>
             )}
 
-            {next != null && view.unlocked && (
+            {next != null && view.unlocked && !watching && (
               <div className="space-y-2">
                 <SquadPicker heroes={ready} lanes={lanes} onChange={changeSquad} />
                 <ErrorBanner error={storm.error} />
