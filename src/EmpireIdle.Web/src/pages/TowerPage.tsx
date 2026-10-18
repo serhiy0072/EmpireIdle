@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import BattleReplayPlayer from "../components/battle/BattleReplayPlayer";
+import BattleSummary from "../components/battle/BattleSummary";
 import SquadPicker from "../components/battle/SquadPicker";
 import ErrorBanner from "../components/ErrorBanner";
 import { GameButton, GamePanel, GameScreen, GameTabs } from "../components/game/GameUi";
@@ -130,9 +131,15 @@ export default function TowerPage() {
                   // Бій сталий для того самого складу: повтор без змін дасть той самий результат
                   <p className="text-sm text-rose-100">Змініть склад чи розстановку або прокачайте героїв — той самий загін програє так само.</p>
                 )}
-                <GameButton variant="secondary" onClick={() => setResult(null)}>
-                  Далі
-                </GameButton>
+                <BattleSummary replay={result.battle} />
+                <div className="flex justify-center gap-2">
+                  <GameButton variant="secondary" onClick={() => setWatching(true)}>
+                    Повтор
+                  </GameButton>
+                  <GameButton variant="secondary" onClick={() => setResult(null)}>
+                    Далі
+                  </GameButton>
+                </div>
               </div>
             )}
 
