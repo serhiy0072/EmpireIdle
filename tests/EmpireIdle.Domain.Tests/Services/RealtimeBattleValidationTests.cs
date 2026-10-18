@@ -67,6 +67,28 @@ public class RealtimeBattleValidationTests
         Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
     }
 
+    /// <summary>Конвой без здоров'я падав би з першого удару.</summary>
+    [Fact]
+    public void LedUnitWithoutHealth_ShouldFail()
+    {
+        var config = Valid();
+        config.Units.Single(u => u.Key == TestKeys.Archer).Stats.Remove("Health");
+
+        Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+    }
+
+    /// <summary>Юніт, якого не веде жоден герой, у бій не виходить — здоров'я йому не потрібне.</summary>
+    [Fact]
+    public void UnledUnitWithoutHealth_ShouldPass()
+    {
+        var config = Valid();
+        config.HeroSettings.RoleUnits["knight"] = TestKeys.Infantry;
+        config.RealtimeBattle.UnitAttackIntervals.Remove(TestKeys.Cavalry);
+        config.Units.Single(u => u.Key == TestKeys.Cavalry).Stats.Remove("Health");
+
+        GameConfigValidator.Validate(config);
+    }
+
     [Fact]
     public void AdvantageOverUnknownUnit_ShouldFail()
     {

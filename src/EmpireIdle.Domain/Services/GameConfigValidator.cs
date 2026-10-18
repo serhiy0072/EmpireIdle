@@ -691,6 +691,8 @@ namespace EmpireIdle.Domain.Services
         /// а перевага типів посилається лише на відомі юніти й не б'є сама себе. Порожні словники
         /// пропускає — так само, як RoleUnits у героях.
         /// </summary>
+        private const string UnitHealthStat = "Health";
+
         private static void ValidateRealtimeBattle(GameConfig config)
         {
             var battle = config.RealtimeBattle;
@@ -712,6 +714,16 @@ namespace EmpireIdle.Domain.Services
                 if (missing.Count > 0)
                     throw new InvalidOperationException(
                         $"RealtimeBattle.UnitAttackIntervals misses unit types that heroes lead: {string.Join(", ", missing)}.");
+
+                // Здоров'я юнітів читає лише цей бій: марш рахує втрати від захисту, тож без стата конвой падав би з першого удару
+                var fragile = config.Units
+                    .Where(u => config.HeroSettings.RoleUnits.ContainsValue(u.Key) && u.Stats.GetValueOrDefault(UnitHealthStat) <= 0)
+                    .Select(u => u.Key)
+                    .ToList();
+
+                if (fragile.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Units that heroes lead need a positive {UnitHealthStat} stat for the realtime battle: {string.Join(", ", fragile)}.");
             }
 
             var badAdvantages = battle.TypeAdvantages

@@ -485,6 +485,7 @@
             {
                 ["Attack"] = attack,
                 ["Defense"] = defence,
+                ["Health"] = defence,
                 ["Speed"] = speed
             },
             Cost = [new ResourceCost { Resource = TestKeys.Food, Amount = 10 }]
