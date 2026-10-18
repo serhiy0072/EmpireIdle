@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import SquadPicker from "../components/battle/SquadPicker";
 import ErrorBanner from "../components/ErrorBanner";
-import { GamePanel, GameScreen, GameTabs } from "../components/game/GameUi";
-import { TowerFloorPanel, TowerLeaderboardPanel, TowerStrip } from "../components/tower/TowerPanels";
+import { GameButton, GamePanel, GameScreen, GameTabs } from "../components/game/GameUi";
+import { RewardLine, TowerFloorPanel, TowerLeaderboardPanel, TowerStrip } from "../components/tower/TowerPanels";
 import { useSession } from "../hooks/useSession";
-import { useTower, useTowerLeaderboard } from "../lib/queries/tower";
+import type { TowerStormResult } from "../lib/apiTypes";
+import { useHeroes } from "../lib/queries/heroes";
+import { useStormTowerFloor, useTower, useTowerLeaderboard } from "../lib/queries/tower";
+import { loadSquad, saveSquad } from "../lib/squad";
 
 type Tab = "tower" | "rating";
+
+/** Розмір загону — той самий, що RealtimeBattle.SquadSize на сервері; сервер однаково перевірить. */
+const SQUAD_SIZE = 5;
 
 /** Множник бафа як відсоток надбавки: 1.25 → «+25%». */
 function buffLabel(multiplier: number): string {
@@ -23,12 +30,33 @@ export default function TowerPage() {
 
   const tower = useTower(playerId);
   const leaderboard = useTowerLeaderboard(playerId, tab === "rating");
+  const heroes = useHeroes(playerId);
+  const storm = useStormTowerFloor(playerId);
+
+  // Загін вежі запам'ятовується між візитами: гравець штурмує поверх за поверхом тим самим складом
+  const storageKey = `tower-squad:${playerId}`;
+  const ready = useMemo(() => (heroes.data?.heroes ?? []).filter((hero) => hero.state !== "Wounded"), [heroes.data?.heroes]);
+  const [chosen, setChosen] = useState<(string | null)[] | null>(null);
+  const lanes = chosen ?? loadSquad(storageKey, SQUAD_SIZE, ready);
+  const [result, setResult] = useState<TowerStormResult | null>(null);
 
   if (tower.isPending) return <p className="text-slate-500">Підіймаємося сходами…</p>;
   if (tower.isError) return <ErrorBanner error={tower.error} />;
 
   const view = tower.data;
   const buffed = view.attackBuff > 1 || view.defenseBuff > 1;
+  const next = view.next;
+
+  const changeSquad = (updated: (string | null)[]) => {
+    setChosen(updated);
+    saveSquad(storageKey, updated);
+  };
+
+  const attack = () => {
+    if (next == null) return;
+
+    storm.mutate({ floor: next.number, lanes }, { onSuccess: setResult });
+  };
 
   return (
     <GameScreen
@@ -72,10 +100,43 @@ export default function TowerPage() {
                 : "Бафів немає: бусти крамниці й звірі підсилюють загін у вежі"}
             </p>
 
-            {view.next != null ? (
-              <TowerFloorPanel floor={view.next} />
+            {result !== null && (
+              <div
+                className={`space-y-2 rounded-xl p-3 text-center ring-1 ${result.victory ? "bg-emerald-900/50 ring-emerald-300" : "bg-rose-900/50 ring-rose-300"}`}
+              >
+                <p className="text-base font-semibold">
+                  {result.victory ? `Поверх ${result.floor} пройдено!` : `Поверх ${result.floor} вистояв`}
+                </p>
+                {result.victory ? (
+                  <p className="text-sm">
+                    <RewardLine rewards={result.rewards} />
+                  </p>
+                ) : (
+                  // Бій сталий для того самого складу: повтор без змін дасть той самий результат
+                  <p className="text-sm text-rose-100">Змініть склад чи розстановку або прокачайте героїв — той самий загін програє так само.</p>
+                )}
+                <GameButton variant="secondary" onClick={() => setResult(null)}>
+                  Далі
+                </GameButton>
+              </div>
+            )}
+
+            {next != null ? (
+              <TowerFloorPanel floor={next} />
             ) : (
               <p className="text-center text-base font-semibold text-amber-300">Вежу підкорено — усі поверхи пройдено!</p>
+            )}
+
+            {next != null && view.unlocked && (
+              <div className="space-y-2">
+                <SquadPicker heroes={ready} lanes={lanes} onChange={changeSquad} />
+                <ErrorBanner error={storm.error} />
+                <div className="flex justify-end">
+                  <GameButton variant="accent" onClick={attack} disabled={storm.isPending || lanes.every((id) => id === null)}>
+                    {storm.isPending ? "Бій…" : `Штурм поверху ${next.number}`}
+                  </GameButton>
+                </div>
+              </div>
             )}
 
             {view.upcoming.length > 0 && <TowerStrip floors={view.upcoming} />}
