@@ -3,6 +3,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.Tower;
 using Microsoft.Extensions.Configuration;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -191,5 +192,25 @@ public class ShippedConfigTests
 
         config.Dungeons.Dungeons.Select(d => d.ArtifactSetKey).Should().BeEquivalentTo(sets.Select(s => s.Key),
             "кожен набір падає рівно з одного данжу");
+    }
+
+    /// <summary>
+    /// Поверхи вежі будуються з номера, тож помилка в кривій чи шаблонах вилізла б лише на якомусь
+    /// далекому поверсі. Тут будуються всі — і кожен загін стоїть у бою з бійцями, що мають здоров'я й темп.
+    /// </summary>
+    [Fact]
+    public void ShippedTower_ShouldBuildEveryFloor()
+    {
+        var config = Bind(RepositoryRoot.Find());
+        var floors = new TowerFloors(new GameCatalog(config));
+
+        for (var number = 1; number <= config.Tower.MaxFloor; number++)
+        {
+            var squad = floors.Squad(floors.Describe(number));
+
+            squad.Should().NotBeEmpty($"поверх {number} без ворога пройшовся б сам");
+            squad.SelectMany(m => m.Convoys.Select(c => c.Led).Prepend(m.Hero))
+                .Should().OnlyContain(f => f.MaxHealth > 0 && f.Attack > 0 && f.AttackInterval > 0, $"на поверсі {number} кожен боєць має битись");
+        }
     }
 }
