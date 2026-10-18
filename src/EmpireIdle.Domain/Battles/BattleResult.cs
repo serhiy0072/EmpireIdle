@@ -6,8 +6,17 @@ namespace EmpireIdle.Domain.Battles
         Hit,
         Death,
 
-        /// <summary>Вампіризм повернув здоров'я; Amount — скільки саме.</summary>
-        Heal
+        /// <summary>Вампіризм чи вміння повернули здоров'я; Amount — скільки саме.</summary>
+        Heal,
+
+        /// <summary>Герой застосував уміння; Detail — його номер у FighterInfo.Skills.</summary>
+        Cast,
+
+        /// <summary>Вміння дало щит; Amount — його розмір.</summary>
+        Shield,
+
+        /// <summary>На бійця ліг стан; Detail — BattleStatusKind, Amount — скільки секунд.</summary>
+        Status
     }
 
     /// <summary>Подробиці удару для відтворення.</summary>
@@ -25,18 +34,28 @@ namespace EmpireIdle.Domain.Battles
         Crit = 4,
 
         /// <summary>Ціль заблокувала частину удару.</summary>
-        Blocked = 8
+        Blocked = 8,
+
+        /// <summary>Удар уміння, а не звичайна атака.</summary>
+        Skill = 16,
+
+        /// <summary>Отрута: Source і Target — сам отруєний.</summary>
+        Poison = 32
     }
 
     /// <param name="Tick">Номер тику, з першого.</param>
     /// <param name="Source">Індекс бійця, що вдарив; для смерті — той самий, що й Target.</param>
     /// <param name="Amount">Шкода удару; для смерті — 0.</param>
-    public readonly record struct BattleEvent(int Tick, BattleEventKind Kind, int Source, int Target, double Amount, HitFlags Flags = HitFlags.None);
+    /// <param name="Detail">Номер уміння для Cast, вид стану для Status; інакше 0.</param>
+    public readonly record struct BattleEvent(int Tick, BattleEventKind Kind, int Source, int Target, double Amount,
+        HitFlags Flags = HitFlags.None, int Detail = 0);
 
     /// <summary>Боєць на полі — те, що треба клієнту, щоб розставити фігурки.</summary>
     /// <param name="Leader">Індекс героя для конвою; null — це сам герой.</param>
     /// <param name="Ward">Щит оберегу на старті бою; живе RealtimeBattle.WardSeconds.</param>
-    public sealed record FighterInfo(int Index, BattleSide Side, int Lane, int? Leader, string? UnitType, double MaxHealth, double Ward);
+    /// <param name="Skills">Ключі вмінь героя за номером, на який посилається Cast; у конвою — порожньо.</param>
+    public sealed record FighterInfo(int Index, BattleSide Side, int Lane, int? Leader, string? UnitType, double MaxHealth, double Ward,
+        IReadOnlyList<string> Skills);
 
     /// <summary>Підсумок бою: переможець, тривалість і повний лог для відтворення.</summary>
     /// <param name="Ticks">Скільки тиків тривав бій.</param>
