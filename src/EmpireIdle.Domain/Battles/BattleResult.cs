@@ -4,7 +4,10 @@ namespace EmpireIdle.Domain.Battles
     public enum BattleEventKind
     {
         Hit,
-        Death
+        Death,
+
+        /// <summary>Вампіризм повернув здоров'я; Amount — скільки саме.</summary>
+        Heal
     }
 
     /// <summary>Подробиці удару для відтворення.</summary>
@@ -17,7 +20,12 @@ namespace EmpireIdle.Domain.Battles
         Advantage = 1,
 
         /// <summary>Тип цілі сильніший за тип нападника.</summary>
-        Disadvantage = 2
+        Disadvantage = 2,
+
+        Crit = 4,
+
+        /// <summary>Ціль заблокувала частину удару.</summary>
+        Blocked = 8
     }
 
     /// <param name="Tick">Номер тику, з першого.</param>
@@ -27,7 +35,8 @@ namespace EmpireIdle.Domain.Battles
 
     /// <summary>Боєць на полі — те, що треба клієнту, щоб розставити фігурки.</summary>
     /// <param name="Leader">Індекс героя для конвою; null — це сам герой.</param>
-    public sealed record FighterInfo(int Index, BattleSide Side, int Lane, int? Leader, string? UnitType, double MaxHealth);
+    /// <param name="Ward">Щит оберегу на старті бою; живе RealtimeBattle.WardSeconds.</param>
+    public sealed record FighterInfo(int Index, BattleSide Side, int Lane, int? Leader, string? UnitType, double MaxHealth, double Ward);
 
     /// <summary>Підсумок бою: переможець, тривалість і повний лог для відтворення.</summary>
     /// <param name="Ticks">Скільки тиків тривав бій.</param>

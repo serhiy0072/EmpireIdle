@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Domain.Battles
@@ -7,8 +8,8 @@ namespace EmpireIdle.Domain.Battles
     /// одна сторона не ляже. Сервер рахує бій до кінця одним викликом, клієнт лише програє лог.
     ///
     /// Удари тику рахуються від стану на його початку й застосовуються разом: інакше дзеркальний бій
-    /// вигравала б сторона, яку обробляють першою. Бійці йдуть сталим порядком індексів, тож той самий
-    /// загін проти того самого ворога завжди дає той самий результат.
+    /// вигравала б сторона, яку обробляють першою. Бійці йдуть сталим порядком індексів, а крит і блок
+    /// кидає один DeterministicRandom, тож той самий сід із тим самим загоном дає той самий бій.
     /// </summary>
     public sealed class RealtimeBattleEngine
     {
@@ -22,9 +23,10 @@ namespace EmpireIdle.Domain.Battles
             _config = config;
         }
 
-        public BattleResult Run(BattleSetup setup)
+        public BattleResult Run(BattleSetup setup, int seed)
         {
             var fighters = Arrange(setup);
+            var random = new DeterministicRandom(seed);
             var events = new List<BattleEvent>();
             var hits = new List<(Fighter Source, Fighter Target, double Damage, HitFlags Flags)>();
 
@@ -41,14 +43,21 @@ namespace EmpireIdle.Domain.Battles
                 foreach (var fighter in fighters)
                 {
                     if (fighter.Alive && Swings(fighter, tick * seconds, seconds) && Target(fighter, fighters) is { } target)
-                        hits.Add(Strike(fighter, target));
+                        hits.Add(Strike(fighter, target, random));
                 }
+
+                var warded = tick * seconds <= _config.WardSeconds + Epsilon;
 
                 foreach (var (source, target, damage, flags) in hits)
                 {
-                    target.Health -= damage;
+                    // Щит оберегу поглинає першим, поки не вичерпається чи не мине його час
+                    var absorbed = warded ? Math.Min(target.Shield, damage) : 0;
+                    target.Shield -= absorbed;
+                    target.Health -= damage - absorbed;
                     events.Add(new BattleEvent(tick, BattleEventKind.Hit, source.Index, target.Index, damage, flags));
                 }
+
+                Heal(hits, tick, events);
 
                 Bury(fighters, tick, events);
                 winner = Winner(fighters);
@@ -57,7 +66,7 @@ namespace EmpireIdle.Domain.Battles
             return new BattleResult(
                 winner ?? BattleSide.Defender,
                 tick,
-                fighters.Select(f => new FighterInfo(f.Index, f.Side, f.Lane, f.Leader, f.UnitType, f.MaxHealth)).ToList(),
+                fighters.Select(f => new FighterInfo(f.Index, f.Side, f.Lane, f.Leader, f.UnitType, f.MaxHealth, f.Ward)).ToList(),
                 fighters.Select(f => Math.Max(0, f.Health)).ToList(),
                 events);
         }
@@ -122,14 +131,50 @@ namespace EmpireIdle.Domain.Battles
         /// Удар: захист гасить частку A / (A + D / DefensePerHalfDamage) від атаки — удвічі більший захист
         /// пропускає половину. Перевага типів множить уже результат.
         /// </summary>
-        private (Fighter, Fighter, double, HitFlags) Strike(Fighter source, Fighter target)
+        private (Fighter, Fighter, double, HitFlags) Strike(Fighter source, Fighter target, DeterministicRandom random)
         {
             var attack = source.Stats.Attack;
             var defense = Math.Max(0, target.Stats.Defense);
             var share = attack <= 0 ? 0 : attack / (attack + defense / _config.DefensePerHalfDamage);
             var (advantage, flags) = Advantage(source.UnitType, target.UnitType);
+            var damage = attack * share * advantage;
 
-            return (source, target, attack * share * advantage, flags);
+            // Крит і блок множать уже пробиту частку (рішення 18.10.2026): крит — завжди рівно свій множник.
+            // Кидок — лише в того, хто має шанс, інакше конвої з'їдали б потік і зсували всі кидки героїв
+            if (source.Stats.CritChance > 0 && random.NextDouble() < source.Stats.CritChance)
+            {
+                damage *= source.Stats.CritMultiplier;
+                flags |= HitFlags.Crit;
+            }
+
+            if (target.Stats.BlockChance > 0 && random.NextDouble() < target.Stats.BlockChance)
+            {
+                damage *= 1 - target.Stats.BlockPower;
+                flags |= HitFlags.Blocked;
+            }
+
+            return (source, target, damage * (1 - target.Stats.DamageReduction), flags);
+        }
+
+        /// <summary>
+        /// Вампіризм лікує часткою завданої шкоди — після всіх ударів тику, тож лікування не рятує того,
+        /// кого в цьому ж тику вже поклали, і не залежить від порядку ударів.
+        /// </summary>
+        private static void Heal(List<(Fighter Source, Fighter Target, double Damage, HitFlags Flags)> hits, int tick, List<BattleEvent> events)
+        {
+            foreach (var (source, _, damage, _) in hits)
+            {
+                if (source.Stats.Lifesteal <= 0 || source.Health <= 0)
+                    continue;
+
+                var healed = Math.Min(source.MaxHealth - source.Health, damage * source.Stats.Lifesteal);
+
+                if (healed <= 0)
+                    continue;
+
+                source.Health += healed;
+                events.Add(new BattleEvent(tick, BattleEventKind.Heal, source.Index, source.Index, healed));
+            }
         }
 
         private (double Multiplier, HitFlags Flags) Advantage(string? attacker, string? defender)
@@ -220,10 +265,12 @@ namespace EmpireIdle.Domain.Battles
             public bool Melee => FrontLine;
             public double Approach { get; } = approach;
             public double MaxHealth { get; } = stats.MaxHealth;
+            public double Ward { get; } = stats.MaxHealth * stats.Ward;
             public FighterStats? Leaderless { get; } = leaderless;
 
             public FighterStats Stats { get; set; } = stats;
             public double Health { get; set; } = stats.MaxHealth;
+            public double Shield { get; set; } = stats.MaxHealth * stats.Ward;
             public bool Alive { get; set; } = true;
             public bool Engaged { get; set; }
             public double Progress { get; set; }
