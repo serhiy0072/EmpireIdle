@@ -12,5 +12,11 @@ namespace EmpireIdle.Application.Interfaces
         Task<TowerProgress?> GetProgressReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default);
 
         Task AddProgressAsync(TowerProgress progress, CancellationToken cancellationToken = default);
+
+        /// <summary>Топ сервера: найвищий пройдений поверх, за рівності — хто дійшов раніше. Без жодного поверху в топ не потрапляють.</summary>
+        Task<List<TowerProgress>> GetTopAsync(int count, CancellationToken cancellationToken = default);
+
+        /// <summary>Місце прогресу в рейтингу сервера: скільки гравців стоять вище плюс один.</summary>
+        Task<int> GetRankAsync(TowerProgress progress, CancellationToken cancellationToken = default);
     }
 }
