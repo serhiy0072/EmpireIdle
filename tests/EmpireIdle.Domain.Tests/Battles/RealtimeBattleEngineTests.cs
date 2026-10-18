@@ -263,6 +263,9 @@ public class RealtimeBattleEngineTests
         Assert.Equal(165, bare.Ticks);
         Assert.Equal(185, warded.Ticks);
         Assert.Equal(100, warded.Fighters[1].Ward);
+
+        // Перший удар щит ковтає цілком — здоров'я після нього те саме, другий іде в здоров'я на 20
+        Assert.Equal([1000.0, 980], warded.Events.Where(e => e.Kind == BattleEventKind.Hit && e.Source == 0).Take(2).Select(e => e.Health));
     }
 
     /// <summary>Щит живе WardSeconds: удар після цього йде повз нього, навіть якщо щит не вичерпано.</summary>
@@ -296,7 +299,7 @@ public class RealtimeBattleEngineTests
 
         var result = Run([ArcherHero(0, vampire)], [ArcherHero(0, Stats(attack: 300))]);
 
-        Assert.Contains(new BattleEvent(5, BattleEventKind.Heal, 0, 0, 50), result.Events);
+        Assert.Contains(new BattleEvent(5, BattleEventKind.Heal, 0, 0, 50, Health: 750), result.Events);
         Assert.DoesNotContain(result.Events, e => e.Kind == BattleEventKind.Heal && e.Tick < 5);
     }
 

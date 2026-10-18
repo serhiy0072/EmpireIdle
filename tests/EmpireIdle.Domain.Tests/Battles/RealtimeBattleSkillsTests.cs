@@ -120,7 +120,7 @@ public class RealtimeBattleSkillsTests
         // Лучник захисту на 5-му тику б'є воїна на найближчій доріжці на 300
         var result = Run(attackers, [Archer(0, Stats(attack: 300))]);
 
-        Assert.Contains(new BattleEvent(25, BattleEventKind.Heal, 1, 0, 100), result.Events);
+        Assert.Contains(new BattleEvent(25, BattleEventKind.Heal, 1, 0, 100, Health: 800), result.Events);
     }
 
     /// <summary>

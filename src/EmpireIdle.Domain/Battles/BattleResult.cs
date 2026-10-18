@@ -47,8 +47,12 @@ namespace EmpireIdle.Domain.Battles
     /// <param name="Source">Індекс бійця, що вдарив; для смерті — той самий, що й Target.</param>
     /// <param name="Amount">Шкода удару; для смерті — 0.</param>
     /// <param name="Detail">Номер уміння для Cast, вид стану для Status; інакше 0.</param>
+    /// <param name="Health">
+    /// Здоров'я цілі одразу після удару чи лікування — щит поглинає частину удару, і клієнт без цього
+    /// не відтворив би смужку здоров'я; для решти подій — 0.
+    /// </param>
     public readonly record struct BattleEvent(int Tick, BattleEventKind Kind, int Source, int Target, double Amount,
-        HitFlags Flags = HitFlags.None, int Detail = 0);
+        HitFlags Flags = HitFlags.None, int Detail = 0, double Health = 0);
 
     /// <summary>Боєць на полі — те, що треба клієнту, щоб розставити фігурки.</summary>
     /// <param name="Leader">Індекс героя для конвою; null — це сам герой.</param>

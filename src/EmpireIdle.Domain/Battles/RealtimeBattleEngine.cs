@@ -269,13 +269,13 @@ namespace EmpireIdle.Domain.Battles
             foreach (var (fighter, damage) in round.Poisons)
             {
                 Damage(fighter, damage, time);
-                events.Add(new BattleEvent(tick, BattleEventKind.Hit, fighter.Index, fighter.Index, damage, HitFlags.Poison));
+                events.Add(new BattleEvent(tick, BattleEventKind.Hit, fighter.Index, fighter.Index, damage, HitFlags.Poison, Health: Math.Max(0, fighter.Health)));
             }
 
             foreach (var hit in round.Hits)
             {
                 Damage(hit.Target, hit.Damage, time);
-                events.Add(new BattleEvent(tick, BattleEventKind.Hit, hit.Source.Index, hit.Target.Index, hit.Damage, hit.Flags));
+                events.Add(new BattleEvent(tick, BattleEventKind.Hit, hit.Source.Index, hit.Target.Index, hit.Damage, hit.Flags, Health: Math.Max(0, hit.Target.Health)));
             }
 
             foreach (var hit in round.Hits)
@@ -305,7 +305,7 @@ namespace EmpireIdle.Domain.Battles
                     continue;
 
                 hit.Source.Health += healed;
-                events.Add(new BattleEvent(tick, BattleEventKind.Heal, hit.Source.Index, hit.Source.Index, healed));
+                events.Add(new BattleEvent(tick, BattleEventKind.Heal, hit.Source.Index, hit.Source.Index, healed, Health: hit.Source.Health));
             }
         }
 
@@ -329,7 +329,7 @@ namespace EmpireIdle.Domain.Battles
             if (skill.HealPercent > 0 && Math.Min(target.MaxHealth - target.Health, target.MaxHealth * skill.HealPercent) is var healed and > 0)
             {
                 target.Health += healed;
-                events.Add(new BattleEvent(tick, BattleEventKind.Heal, caster.Index, target.Index, healed));
+                events.Add(new BattleEvent(tick, BattleEventKind.Heal, caster.Index, target.Index, healed, Health: target.Health));
             }
 
             if (skill.ShieldPercent > 0)

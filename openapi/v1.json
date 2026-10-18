@@ -9680,6 +9680,7 @@
           "amounts",
           "details",
           "flags",
+          "healths",
           "kinds",
           "sources",
           "targets",
@@ -9734,6 +9735,13 @@
             "items": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          "healths": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
             }
           }
         },

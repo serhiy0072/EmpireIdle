@@ -32,7 +32,8 @@ namespace EmpireIdle.Application.Battles.ReadModels
                     result.Events.Select(e => e.Target).ToList(),
                     result.Events.Select(e => Round(e.Amount)).ToList(),
                     result.Events.Select(e => (int)e.Flags).ToList(),
-                    result.Events.Select(e => e.Detail).ToList()));
+                    result.Events.Select(e => e.Detail).ToList(),
+                    result.Events.Select(e => Round(e.Health)).ToList()));
 
         /// <summary>Десяті частки: цифри шкоди на екрані цілі, а повна точність лише роздуває лог.</summary>
         private static double Round(double value) => Math.Round(value, 1);
@@ -49,6 +50,8 @@ namespace EmpireIdle.Application.Battles.ReadModels
     /// Події бою колонками. Kinds: 0 — удар, 1 — смерть, 2 — лікування, 3 — вміння (Details — його номер у Skills),
     /// 4 — щит, 5 — стан (Details — вид стану: 0 отрута, 1 оглушення, 2 атака+, 3 захист+, 4 захист−, 5 щит, 6 провокація;
     /// Amounts — секунди). Flags — бітова маска удару: 1 перевага типу, 2 слабкість, 4 крит, 8 блок, 16 вміння, 32 отрута.
+    /// Healths — здоров'я цілі після удару чи лікування: смужка ставиться на нього, а не віднімає Amounts,
+    /// бо частину удару міг поглинути щит.
     /// </summary>
     public record BattleReplayEvents(
         IReadOnlyList<int> Ticks,
@@ -57,5 +60,6 @@ namespace EmpireIdle.Application.Battles.ReadModels
         IReadOnlyList<int> Targets,
         IReadOnlyList<double> Amounts,
         IReadOnlyList<int> Flags,
-        IReadOnlyList<int> Details);
+        IReadOnlyList<int> Details,
+        IReadOnlyList<double> Healths);
 }
