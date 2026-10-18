@@ -52,6 +52,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Одномоментний бій арени й вежі: тики, формула захисту, перевага типів.</summary>
         public RealtimeBattleConfig RealtimeBattle { get; set; } = new();
 
+        /// <summary>«Тисячна вежа»: крива ворога, склади, нагороди поверхів.</summary>
+        public TowerConfig Tower { get; set; } = new();
+
         /// <summary>Ринок гравців: податок, строки, коридор ціни.</summary>
         public MarketConfig Market { get; set; } = new();
 

@@ -35,6 +35,7 @@ namespace EmpireIdle.Domain.Services
             ValidateLossBands(config);
             ValidateDungeons(config);
             ValidateRealtimeBattle(config);
+            ValidateTower(config);
             ValidateUnlockThresholds(config);
             ValidateMarket(config);
             ValidateBeasts(config);
@@ -743,6 +744,105 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
+        /// «Тисячна вежа»: крива ворога покриває всі поверхи й не слабшає вгору, склади стоять із відомих
+        /// класів і влазять у загін, для кожного класу складу на кожному ступені рідкості є шаблон героя,
+        /// а нагороди посилаються на справжні ресурси й предмети. Без опорних точок вежу не налаштовано — пропускає.
+        /// </summary>
+        private static void ValidateTower(GameConfig config)
+        {
+            var tower = config.Tower;
+
+            if (tower.Anchors.Count == 0)
+                return;
+
+            var anchors = tower.Anchors;
+
+            if (anchors[0].Floor != 1 || anchors[^1].Floor != tower.MaxFloor || anchors.Zip(anchors.Skip(1)).Any(p => p.Second.Floor <= p.First.Floor))
+                throw new InvalidOperationException($"Tower.Anchors must rise from floor 1 to MaxFloor {tower.MaxFloor}.");
+
+            var maxSkill = Math.Max(1, config.HeroSettings.MaxSkillLevel);
+
+            if (anchors.Any(a => a.HeroLevel < 1 || a.HeroLevel > config.HeroSettings.MaxLevel || a.UnitLevel < 1 || a.UnitLevel > config.MaxUnitLevel
+                    || a.SkillLevel < 1 || a.SkillLevel > maxSkill || a.StatMultiplier <= 0))
+                throw new InvalidOperationException(
+                    $"Tower.Anchors need hero levels 1–{config.HeroSettings.MaxLevel}, unit levels 1–{config.MaxUnitLevel}, skill levels 1–{maxSkill} and positive multipliers.");
+
+            if (anchors.Zip(anchors.Skip(1)).Any(p => p.Second.HeroLevel < p.First.HeroLevel || p.Second.UnitLevel < p.First.UnitLevel
+                    || p.Second.SkillLevel < p.First.SkillLevel || p.Second.StatMultiplier < p.First.StatMultiplier))
+                throw new InvalidOperationException("Tower.Anchors must not weaken the enemy on a higher floor.");
+
+            RequireSteps(tower.SetSteps.Select(s => s.FromFloor).ToList(), "Tower.SetSteps");
+
+            if (tower.SetSteps.Any(s => s.Multiplier <= 0))
+                throw new InvalidOperationException("Tower.SetSteps multipliers must be positive.");
+
+            RequireUniqueKeys(tower.Archetypes.Select(a => a.Key), "Tower.Archetypes");
+            var squadSize = config.RealtimeBattle.SquadSize;
+
+            var badArchetypes = tower.Archetypes
+                .Where(a => a.Classes.Count == 0 || a.Classes.Count > squadSize || a.Classes.Any(c => !config.HeroSettings.Classes.Contains(c)))
+                .Select(a => a.Key)
+                .ToList();
+
+            if (tower.Archetypes.Count == 0 || badArchetypes.Count > 0)
+                throw new InvalidOperationException(
+                    $"Tower.Archetypes need 1–{squadSize} known hero classes each: {string.Join(", ", badArchetypes)}.");
+
+            if (tower.Archetypes.FirstOrDefault(a => a.Key == tower.BossArchetype) is not { } boss || tower.BossLane < 0 || tower.BossLane >= boss.Classes.Count)
+                throw new InvalidOperationException($"Tower.BossArchetype '{tower.BossArchetype}' must exist and have a hero on BossLane {tower.BossLane}.");
+
+            RequireSteps(tower.HeroRarities.Select(s => s.FromFloor).ToList(), "Tower.HeroRarities");
+
+            var classes = tower.Archetypes.SelectMany(a => a.Classes).Distinct().ToList();
+
+            var noTemplate = tower.HeroRarities
+                .SelectMany(step => classes
+                    .Where(c => !config.Heroes.Any(h => h.Class == c && step.Rarities.Contains(h.Rank)))
+                    .Select(c => $"{c} from floor {step.FromFloor}"))
+                .ToList();
+
+            if (noTemplate.Count > 0)
+                throw new InvalidOperationException($"Tower has no enemy hero template for: {string.Join(", ", noTemplate)}.");
+
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+
+            if (!resourceKeys.Contains(tower.GoldResource))
+                throw new InvalidOperationException($"Tower.GoldResource '{tower.GoldResource}' is not a known resource.");
+
+            RequireUniqueKeys(tower.Milestones.Select(m => m.Every.ToString()), "Tower.Milestones");
+
+            var items = config.Items.ToDictionary(i => i.Key);
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+
+            foreach (var milestone in tower.Milestones)
+            {
+                if (milestone.Every < 1)
+                    throw new InvalidOperationException("Tower.Milestones need a positive Every.");
+
+                RequireSteps(milestone.Stages.Select(s => s.FromFloor).ToList(), $"Tower.Milestones[{milestone.Every}].Stages");
+
+                // Вежа видає нагороди диспетчером пошти: gems, ресурси й предмети, інше він не вміє
+                var broken = milestone.Stages
+                    .SelectMany(s => s.Options.Count == 0 ? [[]] : s.Options)
+                    .Where(option => option.Count == 0 || option.Any(r => r.Amount <= 0
+                        || r.Type?.ToLowerInvariant() is not ("gems" or "resource" or "item")
+                        || IsRewardBroken(r, resourceKeys, items, heroKeys)))
+                    .ToList();
+
+                if (broken.Count > 0)
+                    throw new InvalidOperationException(
+                        $"Tower milestone every {milestone.Every} has an empty option or a reward that is not gems, a known resource or a known item.");
+            }
+        }
+
+        /// <summary>Ступені «з поверху»: перший — з першого, далі строго вгору.</summary>
+        private static void RequireSteps(IReadOnlyList<int> fromFloors, string section)
+        {
+            if (fromFloors.Count == 0 || fromFloors[0] != 1 || fromFloors.Zip(fromFloors.Skip(1)).Any(p => p.Second <= p.First))
+                throw new InvalidOperationException($"{section} must start at floor 1 and rise strictly.");
+        }
+
+        /// <summary>
         /// Жоден поріг відкриття не вищий за ратушу, яку взагалі можна
         /// збудувати (MaxBuildingLevel). Інакше вміст
         /// недосяжний назавжди, а гравець бачить замок, який не відімкнеться.
@@ -760,6 +860,7 @@ namespace EmpireIdle.Domain.Services
                 .Concat(config.Dungeons.Dungeons
                     .Where(d => d.RequiresMainBuildingLevel > ceiling)
                     .Select(d => $"dungeon {d.Key} ({d.RequiresMainBuildingLevel})"))
+                .Concat(config.Tower.RequiresMainBuildingLevel > ceiling ? [$"tower ({config.Tower.RequiresMainBuildingLevel})"] : [])
                 .ToList();
 
             if (unreachable.Count > 0)
