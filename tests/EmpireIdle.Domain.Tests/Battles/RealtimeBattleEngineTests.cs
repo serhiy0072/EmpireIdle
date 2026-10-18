@@ -300,6 +300,17 @@ public class RealtimeBattleEngineTests
         Assert.DoesNotContain(result.Events, e => e.Kind == BattleEventKind.Heal && e.Tick < 5);
     }
 
+    /// <summary>Лог знає, чий кожен боєць: і герой, і його конвої несуть ключ героя.</summary>
+    [Fact]
+    public void Run_ShouldTagFightersWithTheirHeroKey()
+    {
+        var hero = new SquadMember(0, "archer", Archer, Stats(), [Convoy(Archer, Stats())], HeroKey: "finn");
+
+        var result = Run([hero], [ArcherHero(0, Stats())]);
+
+        Assert.Equal(["finn", "finn", null], result.Fighters.Select(f => f.HeroKey));
+    }
+
     [Fact]
     public void Run_ShouldRefuseTwoHeroesOnOneLane()
         => Assert.Throws<ArgumentException>(() => Run([ArcherHero(1, Stats()), WarriorHero(1, Stats())], [ArcherHero(0, Stats())]));

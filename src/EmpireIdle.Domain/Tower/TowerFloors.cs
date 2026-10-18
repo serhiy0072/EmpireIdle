@@ -89,7 +89,8 @@ namespace EmpireIdle.Domain.Tower
                     _catalog.Config.HeroSettings.RoleUnits.GetValueOrDefault(hero.Class),
                     HeroFighterStats.From(stats, hero.Class, battle, caps),
                     convoys,
-                    Skills(hero, floor.HeroLevel, floor.SkillLevel));
+                    Skills(hero, floor.HeroLevel, floor.SkillLevel),
+                    hero.Key);
             }).ToList();
         }
 

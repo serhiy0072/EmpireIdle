@@ -14,8 +14,9 @@ namespace EmpireIdle.Domain.Battles
     /// <param name="HeroClass">Клас героя: фронт чи тил, ближній чи дальній бій.</param>
     /// <param name="UnitType">Тип юнітів ролі героя — для переваги типів; null — без переваги.</param>
     /// <param name="Skills">Відкриті вміння героя з вшитим рівнем (CombatSkill.Prepare); пасивки бій пропускає.</param>
+    /// <param name="HeroKey">Ключ героя з heroes.json — щоб клієнт намалював, хто є хто.</param>
     public sealed record SquadMember(int Lane, string HeroClass, string? UnitType, FighterStats Hero, IReadOnlyList<Convoy> Convoys,
-        IReadOnlyList<CombatSkill>? Skills = null);
+        IReadOnlyList<CombatSkill>? Skills = null, string? HeroKey = null);
 
     /// <summary>Обидва загони на старті бою.</summary>
     public sealed record BattleSetup(IReadOnlyList<SquadMember> Attackers, IReadOnlyList<SquadMember> Defenders);

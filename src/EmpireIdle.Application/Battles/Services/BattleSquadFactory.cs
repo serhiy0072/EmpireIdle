@@ -112,7 +112,8 @@ namespace EmpireIdle.Application.Battles.Services
                 unitType,
                 HeroFighterStats.From(stats, config.Class, _catalog.Config.RealtimeBattle, _catalog.Config.Dungeons),
                 _convoys.Build(leader, pool),
-                Skills(hero, config));
+                Skills(hero, config),
+                hero.HeroKey);
         }
 
         /// <summary>Юніти вдома — ті, що не в марші й не в госпіталі; бій їх не витрачає.</summary>

@@ -62,7 +62,7 @@ namespace EmpireIdle.Domain.Battles
                 winner ?? BattleSide.Defender,
                 tick,
                 fighters.Select(f => new FighterInfo(f.Index, f.Side, f.Lane, f.Leader, f.UnitType, f.MaxHealth, f.Ward,
-                    f.Skills.Select(s => s.Skill.Key).ToList())).ToList(),
+                    f.Skills.Select(s => s.Skill.Key).ToList(), f.HeroKey)).ToList(),
                 fighters.Select(f => Math.Max(0, f.Health)).ToList(),
                 events);
         }
@@ -434,6 +434,7 @@ namespace EmpireIdle.Domain.Battles
                 var hero = new Fighter(fighters.Count, side, member.Lane, null, member.UnitType, front, approach, member.Hero, null)
                 {
                     ShieldUntil = _config.WardSeconds,
+                    HeroKey = member.HeroKey,
                 };
 
                 foreach (var skill in (member.Skills ?? []).Where(s => s.Kind != SkillKind.Passive))
@@ -445,7 +446,10 @@ namespace EmpireIdle.Domain.Battles
                 fighters.Add(hero);
 
                 foreach (var convoy in member.Convoys)
-                    fighters.Add(new Fighter(fighters.Count, side, member.Lane, hero.Index, convoy.UnitType, front, approach, convoy.Led, convoy.Leaderless));
+                    fighters.Add(new Fighter(fighters.Count, side, member.Lane, hero.Index, convoy.UnitType, front, approach, convoy.Led, convoy.Leaderless)
+                    {
+                        HeroKey = member.HeroKey,
+                    });
             }
         }
 
@@ -492,6 +496,7 @@ namespace EmpireIdle.Domain.Battles
             public FighterStats? Leaderless { get; } = leaderless;
             public List<SkillTimer> Skills { get; } = [];
             public Dictionary<BattleStatusKind, Status> Statuses { get; } = [];
+            public string? HeroKey { get; init; }
 
             public FighterStats Stats { get; set; } = stats;
             public double Health { get; set; } = stats.MaxHealth;
