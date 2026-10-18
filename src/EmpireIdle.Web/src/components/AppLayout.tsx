@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { to: "/heroes", label: "Герої" },
   { to: "/beasts", label: "Звіринець" },
   { to: "/dungeons", label: "Данжі" },
+  { to: "/tower", label: "Вежа" },
   { to: "/inventory", label: "Інвентар" },
   { to: "/forge", label: "Кузня" },
   { to: "/banners", label: "Банери" },

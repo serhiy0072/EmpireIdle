@@ -22,6 +22,7 @@ import QuestsPage from "../pages/QuestsPage";
 import RatingPage from "../pages/RatingPage";
 import RegisterPage from "../pages/RegisterPage";
 import ShopPage from "../pages/ShopPage";
+import TowerPage from "../pages/TowerPage";
 import VillagePage from "../pages/VillagePage";
 
 /**
@@ -49,6 +50,7 @@ export default function AppRoutes() {
             <Route path="/heroes/codex" element={<HeroCodexPage />} />
             <Route path="/heroes/:heroId" element={<HeroPage />} />
             <Route path="/dungeons" element={<DungeonsPage />} />
+            <Route path="/tower" element={<TowerPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/inventory/sets" element={<ArtifactSetsPage />} />
             <Route path="/beasts" element={<BeastPenPage />} />
