@@ -444,6 +444,11 @@
         /// <summary>Поповнень за gems на сьогодні більше немає.</summary>
         public static readonly RefusalReason DungeonRefillLimit = new("dungeon.refillLimit", "limit");
 
+        // ---------- Одномоментний бій (арена, вежа) ----------
+
+        /// <summary>Герой загону в госпіталі — поранити його могли між вибором складу й боєм.</summary>
+        public static readonly RefusalReason SquadHeroWounded = new("squad.heroWounded", "hero");
+
         // ---------- Звірі ----------
 
         /// <summary>Звіринець ще не відкритий: приручати нікуди.</summary>

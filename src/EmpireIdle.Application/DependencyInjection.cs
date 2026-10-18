@@ -1,3 +1,4 @@
+﻿using EmpireIdle.Application.Battles.Services;
 using EmpireIdle.Application.Catalog;
 using EmpireIdle.Application.Chat.Services;
 using EmpireIdle.Application.Clans.Services;
@@ -109,6 +110,7 @@ namespace EmpireIdle.Application
             services.AddScoped<LootboxOpener>();
             services.AddScoped<ShopCheckout>();
             services.AddScoped<DungeonTeamFactory>();
+            services.AddScoped<BattleSquadFactory>();
             services.AddScoped<DungeonRewarder>();
             services.AddScoped<MarketGoods>();
             services.AddScoped<MarketDesk>();

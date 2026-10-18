@@ -237,6 +237,9 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "dungeon.energyFull": () => "Енергія вже повна — поповнювати нічого",
   "dungeon.refillLimit": ({ limit }) => `Сьогодні енергію вже поповнено ${limit} разів — нові поповнення з опівночі UTC`,
 
+  // ---------- Одномоментний бій ----------
+  "squad.heroWounded": ({ hero }) => `${hero} зараз у госпіталі — замініть героя в загоні`,
+
   // ---------- Звірі ----------
   "beast.penMissing": () => "Приручати нікуди: спершу відкрийте звіринець",
   "beast.penFull": ({ capacity }) =>
