@@ -2397,6 +2397,40 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("StructureFalls", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.TowerProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("HighestFloor")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ReachedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.HasIndex("ServerId", "HighestFloor", "ReachedAt")
+                        .IsDescending(false, true, false);
+
+                    b.ToTable("TowerProgress", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.TrainingCamp", b =>
                 {
                     b.Property<Guid>("Id")
