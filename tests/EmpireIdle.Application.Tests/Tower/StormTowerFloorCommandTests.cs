@@ -117,7 +117,7 @@ public class StormTowerFloorCommandTests
         var result = await Handler().Handle(Storm(1), CancellationToken.None);
 
         Assert.True(result.Victory);
-        Assert.Equal(BattleSide.Attacker, result.Battle.Winner);
+        Assert.True(result.Battle.AttackerWon);
         Assert.Equal(["Resource:210", "Gems:5"], result.Rewards.Select(r => $"{r.Type}:{r.Amount}"));
 
         await _tower.Received(1).AddProgressAsync(Arg.Is<TowerProgress>(p => p.HighestFloor == 1 && p.PlayerId == PlayerId && p.ServerId == 1),
@@ -184,6 +184,8 @@ public class StormTowerFloorCommandTests
         var first = await Handler().Handle(command, CancellationToken.None);
         var second = await Handler().Handle(command, CancellationToken.None);
 
-        Assert.Equal(first.Battle.Events, second.Battle.Events);
+        Assert.Equal(first.Battle.Events.Ticks, second.Battle.Events.Ticks);
+        Assert.Equal(first.Battle.Events.Amounts, second.Battle.Events.Amounts);
+        Assert.Equal(first.Battle.Events.Targets, second.Battle.Events.Targets);
     }
 }

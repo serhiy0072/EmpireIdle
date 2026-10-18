@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Battles.ReadModels;
 using EmpireIdle.Application.Battles.Services;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
@@ -22,7 +23,8 @@ namespace EmpireIdle.Application.Tower.Commands
         : IRequest<TowerStormResult>, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <param name="Rewards">Видана нагорода; після поразки — порожньо.</param>
-    public record TowerStormResult(bool Victory, int Floor, IReadOnlyList<RewardConfig> Rewards, BattleResult Battle);
+    /// <param name="Battle">Лог бою для відтворення.</param>
+    public record TowerStormResult(bool Victory, int Floor, IReadOnlyList<RewardConfig> Rewards, BattleReplay Battle);
 
     internal sealed class StormTowerFloorCommandHandler : IRequestHandler<StormTowerFloorCommand, TowerStormResult>
     {
@@ -97,7 +99,7 @@ namespace EmpireIdle.Application.Tower.Commands
                 _logger.LogInformation("Player {PlayerId} fell on tower floor {Floor} after {Ticks} ticks",
                     request.PlayerId, request.Floor, battle.Ticks);
 
-                return new TowerStormResult(false, request.Floor, [], battle);
+                return new TowerStormResult(false, request.Floor, [], Replay(battle));
             }
 
             progress.Clear(request.Floor, settings.MaxFloor, now);
@@ -112,7 +114,9 @@ namespace EmpireIdle.Application.Tower.Commands
             _logger.LogInformation("Player {PlayerId} cleared tower floor {Floor} in {Ticks} ticks",
                 request.PlayerId, request.Floor, battle.Ticks);
 
-            return new TowerStormResult(true, request.Floor, rewards, battle);
+            return new TowerStormResult(true, request.Floor, rewards, Replay(battle));
         }
+
+        private BattleReplay Replay(BattleResult battle) => BattleReplay.From(battle, _catalog.Config.RealtimeBattle.TickMilliseconds);
     }
 }
