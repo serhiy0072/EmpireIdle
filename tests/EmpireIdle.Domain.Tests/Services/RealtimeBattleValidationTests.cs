@@ -90,6 +90,15 @@ public class RealtimeBattleValidationTests
     }
 
     [Fact]
+    public void UnknownFrontLineClass_ShouldFail()
+    {
+        var config = Valid();
+        config.RealtimeBattle.FrontLineClasses = ["warrior", "paladin"];
+
+        Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+    }
+
+    [Fact]
     public void AdvantageOverUnknownUnit_ShouldFail()
     {
         var config = Valid();

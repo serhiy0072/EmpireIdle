@@ -726,6 +726,12 @@ namespace EmpireIdle.Domain.Services
                         $"Units that heroes lead need a positive {UnitHealthStat} stat for the realtime battle: {string.Join(", ", fragile)}.");
             }
 
+            var unknownFront = battle.FrontLineClasses.Where(c => !config.HeroSettings.Classes.Contains(c)).ToList();
+
+            if (config.HeroSettings.Classes.Count > 0 && unknownFront.Count > 0)
+                throw new InvalidOperationException(
+                    $"RealtimeBattle.FrontLineClasses lists unknown hero classes: {string.Join(", ", unknownFront)}.");
+
             var badAdvantages = battle.TypeAdvantages
                 .Where(a => a.Key == a.Value || !unitKeys.Contains(a.Key) || !unitKeys.Contains(a.Value))
                 .Select(a => $"{a.Key} → {a.Value}")

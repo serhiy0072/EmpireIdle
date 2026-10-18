@@ -3,6 +3,10 @@
     "RealtimeBattle": {
       "TickMilliseconds": 100,
       "MaxBattleSeconds": 90,
+      "FrontLineClasses": [
+        "warrior",
+        "knight"
+      ],
       "MeleeApproachSeconds": 1.5,
       "RangedApproachSeconds": 0.5,
       "DefensePerHalfDamage": 2,

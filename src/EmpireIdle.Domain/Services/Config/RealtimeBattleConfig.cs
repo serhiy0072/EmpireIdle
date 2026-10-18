@@ -14,6 +14,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Стеля тривалості бою, секунд: хто не переміг до неї — програв нападник.</summary>
         public int MaxBattleSeconds { get; set; } = 90;
 
+        /// <summary>
+        /// Класи героїв, що стоять у фронті й б'ють зблизька; решта — тил і стріляють. Конвої стоять
+        /// і б'ють так само, як їхній герой.
+        /// </summary>
+        public List<string> FrontLineClasses { get; set; } = new();
+
         /// <summary>Скільки секунд ближній боєць іде до ворога, перш ніж бити.</summary>
         public double MeleeApproachSeconds { get; set; } = 1.5;
 
