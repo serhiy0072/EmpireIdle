@@ -199,15 +199,13 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                   art={art}
                   x={position.x}
                   y={position.y}
-                  label={
-                    locked
-                      ? `🔒 Ратуша ${gateLevel}`
-                      : // Функціональна будівля рівнів не має (GDD §3.1) — лише назва
-                        catalog.building(building.type)?.upgradable === false
-                        ? catalog.buildingName(building.type)
-                        : `${catalog.buildingName(building.type)} · ${building.level}`
-                  }
+                  name={catalog.buildingName(building.type)}
+                  // Функціональна будівля рівнів не має (GDD §3.1) — лише назва
+                  level={catalog.building(building.type)?.upgradable === false ? null : building.level}
+                  gateLevel={locked ? gateLevel : null}
+                  resource={catalog.building(building.type)?.producesResource ?? null}
                   bubble={collectable ? compact(building.storedAmount) : null}
+                  zoom={transform.k}
                   onSelect={tap(() => onSelect(building.id))}
                   onCollect={tap(() => onCollect(building.id))}
                 />
