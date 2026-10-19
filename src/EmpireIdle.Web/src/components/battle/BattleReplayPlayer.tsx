@@ -49,7 +49,15 @@ function layout(replay: BattleReplay, width: number): Spot[] {
   });
 }
 
-function draw(context: CanvasRenderingContext2D, width: number, replay: BattleReplay, playback: Playback, spots: Spot[], catalog: Catalog) {
+function draw(
+  context: CanvasRenderingContext2D,
+  width: number,
+  replay: BattleReplay,
+  playback: Playback,
+  spots: Spot[],
+  catalog: Catalog,
+  bossLane: number | null,
+) {
   context.clearRect(0, 0, width, HEIGHT);
 
   const ground = context.createLinearGradient(0, 0, width, 0);
@@ -64,6 +72,8 @@ function draw(context: CanvasRenderingContext2D, width: number, replay: BattleRe
     if (spot === undefined || playback.alive[index] !== true) return;
 
     const hero = fighter.leader == null;
+    const boss = hero && !fighter.attacker && fighter.lane === bossLane;
+    const radius = boss ? 18 : 13;
     const share = Math.max(0, (playback.health[index] ?? 0) / Math.max(1, fighter.maxHealth));
     const color = fighter.attacker ? (hero ? "#38bdf8" : "#7dd3fc") : hero ? "#f43f5e" : "#fda4af";
 
@@ -73,8 +83,11 @@ function draw(context: CanvasRenderingContext2D, width: number, replay: BattleRe
 
     if (hero) {
       context.beginPath();
-      context.arc(spot.x, spot.y, 13, 0, Math.PI * 2);
+      context.arc(spot.x, spot.y, radius, 0, Math.PI * 2);
       context.fill();
+      // Бос — більший і в золотій обвідці: гравець одразу бачить, хто тут головний
+      context.strokeStyle = boss ? "#facc15" : "#0f172a";
+      context.lineWidth = boss ? 3 : 1.5;
       context.stroke();
       context.fillStyle = "#0f172a";
       context.font = "bold 11px sans-serif";
@@ -87,8 +100,8 @@ function draw(context: CanvasRenderingContext2D, width: number, replay: BattleRe
     }
 
     // Смужка здоров'я над бійцем
-    const barWidth = hero ? 30 : 10;
-    const barY = spot.y - (hero ? 20 : 9);
+    const barWidth = boss ? 40 : hero ? 30 : 10;
+    const barY = spot.y - (hero ? radius + 7 : 9);
     context.fillStyle = "#0f172a";
     context.fillRect(spot.x - barWidth / 2, barY, barWidth, 3);
     context.fillStyle = share > 0.5 ? "#4ade80" : share > 0.25 ? "#facc15" : "#ef4444";
@@ -113,6 +126,8 @@ function draw(context: CanvasRenderingContext2D, width: number, replay: BattleRe
 
 interface Props {
   replay: BattleReplay;
+  /** Доріжка боса поверху — його фігурку видно здалеку; null — боса немає. */
+  bossLane?: number | null;
   /** Відтворення скінчилось чи його пропустили — показати результат. */
   onFinished: () => void;
 }
@@ -121,7 +136,7 @@ interface Props {
  * Відтворення бою, порахованого сервером. Програвач нічого не вирішує: лише йде логом за часом,
  * ставить здоров'я з логу й малює. x2 і «Пропустити» міняють лише швидкість показу.
  */
-export default function BattleReplayPlayer({ replay, onFinished }: Props): ReactElement {
+export default function BattleReplayPlayer({ replay, bossLane = null, onFinished }: Props): ReactElement {
   const catalog = useCatalog();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const playbackRef = useRef<Playback>(startPlayback(replay));
@@ -160,7 +175,7 @@ export default function BattleReplayPlayer({ replay, onFinished }: Props): React
       last = now;
 
       advance(playback, replay, Math.min(replay.ticks, playback.tick + (elapsed / replay.tickMilliseconds) * speedRef.current));
-      draw(context, width, replay, playback, spots, catalog);
+      draw(context, width, replay, playback, spots, catalog, bossLane);
 
       // Картки — React-станом, але не частіше за десять разів на секунду
       if (now - lastCards > 100) {
@@ -179,7 +194,7 @@ export default function BattleReplayPlayer({ replay, onFinished }: Props): React
     frame = requestAnimationFrame(step);
 
     return () => cancelAnimationFrame(frame);
-  }, [replay, catalog]);
+  }, [replay, catalog, bossLane]);
 
   const changeSpeed = () => {
     const next = speed === 1 ? 2 : 1;

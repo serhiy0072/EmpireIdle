@@ -41,6 +41,8 @@ export default function TowerPage() {
   const [chosen, setChosen] = useState<(string | null)[] | null>(null);
   const lanes = chosen ?? loadSquad(storageKey, SQUAD_SIZE, ready);
   const [result, setResult] = useState<TowerStormResult | null>(null);
+  // Бос береться з поверху на момент штурму: після перемоги вежа вже показує наступний
+  const [bossLane, setBossLane] = useState<number | null>(null);
   const [watching, setWatching] = useState(false);
 
   if (tower.isPending) return <p className="text-slate-500">Підіймаємося сходами…</p>;
@@ -58,11 +60,14 @@ export default function TowerPage() {
   const attack = () => {
     if (next == null) return;
 
+    const boss = next.enemies.find((enemy) => enemy.boss)?.lane ?? null;
+
     storm.mutate(
       { floor: next.number, lanes },
       {
         onSuccess: (outcome) => {
           setResult(outcome);
+          setBossLane(boss);
           setWatching(true);
         },
       },
@@ -113,7 +118,7 @@ export default function TowerPage() {
 
             {result !== null && watching && (
               // Ключ — номер поверху й момент: новий штурм починає відтворення з нуля
-              <BattleReplayPlayer key={`${result.floor}-${storm.submittedAt}`} replay={result.battle} onFinished={() => setWatching(false)} />
+              <BattleReplayPlayer key={`${result.floor}-${storm.submittedAt}`} replay={result.battle} bossLane={bossLane} onFinished={() => setWatching(false)} />
             )}
 
             {result !== null && !watching && (
