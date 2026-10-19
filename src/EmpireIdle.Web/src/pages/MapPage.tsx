@@ -125,7 +125,7 @@ export default function MapPage() {
     home !== null &&
     Math.max(Math.abs(selected.x - home.x), Math.abs(selected.y - home.y)) > teleportRange;
 
-  const panelOpen = target !== null || selected !== null;
+  const panelOpen = selected !== null;
 
   return (
     // Мапа — на весь екран; панелі лежать поверх поля, як HUD гри
@@ -216,9 +216,7 @@ export default function MapPage() {
             >
               ✕
             </button>
-            {target !== null ? (
-              <SendMarchForm playerId={playerId} target={target} onSent={() => setTarget(null)} onCancel={() => setTarget(null)} />
-            ) : cell.isPending ? (
+            {cell.isPending ? (
               <p className="p-4 text-sm text-slate-500">Дивимось…</p>
             ) : cell.isError ? (
               <div className="p-4">
@@ -299,6 +297,10 @@ export default function MapPage() {
           )
         )}
       </aside>
+
+      {target !== null && (
+        <SendMarchForm playerId={playerId} target={target} onSent={() => setTarget(null)} onCancel={() => setTarget(null)} />
+      )}
 
       {reports && (
         <div
