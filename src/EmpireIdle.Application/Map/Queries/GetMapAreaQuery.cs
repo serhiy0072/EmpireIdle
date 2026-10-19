@@ -26,7 +26,7 @@ namespace EmpireIdle.Application.Map.Queries
 
     public sealed class GetMapAreaQueryHandler : IRequestHandler<GetMapAreaQuery, MapAreaView>
     {
-        public const int MaxRadius = 25; // 51×51 клітин — щоб не вивантажити пів світу
+        public const int MaxRadius = 40; // 81×81 клітин: мапу можна віддалити, але не вивантажити пів світу
 
         private readonly IMapRepository _mapRepository;
         private readonly IMonsterRepository _monsterRepository;

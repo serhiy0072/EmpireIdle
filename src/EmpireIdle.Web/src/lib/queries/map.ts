@@ -3,9 +3,9 @@ import { api } from "../api";
 import type { MapAreaResponse, MapCellDetailsResponse } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 
-/** Межі радіуса ділянки: нижня — щоб не смикати сервер на кожен крок, верхня — стеля API (51×51). */
+/** Межі радіуса ділянки: нижня — щоб не смикати сервер на кожен крок, верхня — стеля API (81×81). */
 export const MAP_RADIUS_MIN = 8;
-export const MAP_RADIUS_MAX = 25;
+export const MAP_RADIUS_MAX = 40;
 
 /** Що показує камера: центр і скільки клітин довкола вміщає кадр. */
 export interface MapView {
