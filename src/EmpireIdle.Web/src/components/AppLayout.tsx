@@ -19,6 +19,7 @@ import ErrorBoundary from "./ErrorBoundary";
 import PowerBadge from "./PowerBadge";
 import ResourceBar from "./ResourceBar";
 import BottomNav from "./shell/BottomNav";
+import ChatTicker from "./shell/ChatTicker";
 
 /** Назви мов їхніми ж мовами — так гравець упізнає свою, навіть не розуміючи поточної. */
 const LANGUAGE_NAMES: Record<string, string> = { uk: "Українська", en: "English" };
@@ -139,7 +140,15 @@ export default function AppLayout() {
         </main>
       </div>
 
-      <BottomNav attention={attention} />
+      <div className="relative">
+        {/* Чат — напівпрозора смужка над панеллю; на самому чаті вона не потрібна */}
+        {location.pathname !== "/chat" && (
+          <div className="pointer-events-none absolute bottom-full left-2 z-30">
+            <ChatTicker playerId={playerId} />
+          </div>
+        )}
+        <BottomNav attention={attention} />
+      </div>
 
       {tutorial.step !== null && (
         <TutorialOverlay step={tutorial.step} onDismiss={tutorial.dismiss} onSkip={tutorial.skip} />

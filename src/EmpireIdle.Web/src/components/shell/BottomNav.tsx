@@ -3,7 +3,8 @@ import { NavIcon } from "./icons";
 
 /**
  * Розділи панелі — усі на виду, без меню «Ще»; на них же вказує навчання (data-tutorial="nav:…").
- * Військо, звіринець, данжі й ринок відкриваються з їхніх будівель у селі (рішення 19.10.2026).
+ * Військо, звіринець, данжі й ринок відкриваються з їхніх будівель у селі (рішення 19.10.2026),
+ * чат — смужкою над панеллю (ChatTicker).
  */
 const SECTIONS = [
   { to: "/", label: "Село", icon: "village" },
@@ -12,7 +13,6 @@ const SECTIONS = [
   { to: "/quests", label: "Квести", icon: "quests" },
   { to: "/inventory", label: "Рюкзак", icon: "inventory" },
   { to: "/clan", label: "Клан", icon: "clan" },
-  { to: "/chat", label: "Чат", icon: "chat" },
   { to: "/mail", label: "Скринька", icon: "mail" },
   { to: "/rating", label: "Рейтинг", icon: "rating" },
 ] as const;

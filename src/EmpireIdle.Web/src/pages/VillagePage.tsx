@@ -109,7 +109,8 @@ export default function VillagePage() {
       )}
 
       {selected !== null && !editing && (
-        <div className="absolute inset-x-3 bottom-3 max-w-sm">
+        // Над смужкою чату, щоб вона не перекривала картку
+        <div className="absolute inset-x-3 bottom-20 max-w-sm">
           {selected.isUnlocked ? (
             <BuildingCard
               playerId={playerId}
