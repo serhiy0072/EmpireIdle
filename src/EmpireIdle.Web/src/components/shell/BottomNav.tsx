@@ -2,28 +2,24 @@ import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { NavIcon } from "./icons";
 
-/** Головні розділи — завжди на панелі; на них же вказує навчання (data-tutorial="nav:…"). */
+/**
+ * Головні розділи — завжди на панелі; на них же вказує навчання (data-tutorial="nav:…").
+ * Військо, звіринець, данжі й ринок відкриваються з їхніх будівель у селі (рішення 19.10.2026).
+ */
 const MAIN = [
   { to: "/", label: "Село", icon: "village" },
-  { to: "/army", label: "Військо", icon: "army" },
   { to: "/heroes", label: "Герої", icon: "heroes" },
-  { to: "/map", label: "Мапа", icon: "map" },
   { to: "/tower", label: "Вежа", icon: "tower" },
   { to: "/quests", label: "Квести", icon: "quests" },
   { to: "/inventory", label: "Рюкзак", icon: "inventory" },
+  { to: "/clan", label: "Клан", icon: "clan" },
+  { to: "/chat", label: "Чат", icon: "chat" },
 ] as const;
 
 /** Решта — у меню «Ще», щоб панель не розповзалась на телефоні. */
 const MORE = [
-  { to: "/beasts", label: "Звіринець", emoji: "🐺" },
-  { to: "/dungeons", label: "Данжі", emoji: "🕳️" },
-  { to: "/banners", label: "Банери", emoji: "🚩" },
-  { to: "/shop", label: "Крамниця", emoji: "🛒" },
-  { to: "/market", label: "Ринок", emoji: "⚖️" },
-  { to: "/clan", label: "Клан", emoji: "🛡️" },
-  { to: "/rating", label: "Рейтинг", emoji: "🏆" },
-  { to: "/chat", label: "Чат", emoji: "💬" },
   { to: "/mail", label: "Скринька", emoji: "✉️" },
+  { to: "/rating", label: "Рейтинг", emoji: "🏆" },
 ] as const;
 
 interface Props {
@@ -33,7 +29,8 @@ interface Props {
 
 /**
  * Нижня панель розділів, як у мобільних стратегіях (рішення 19.10.2026): значки з підписом,
- * активний розділ піднятий і світліший. «Ще» відкриває сітку решти розділів над панеллю.
+ * активний розділ піднятий і світліший. «Ще» відкриває сітку решти розділів над панеллю,
+ * а мапа світу — окрема кругла кнопка в правому куті.
  */
 export default function BottomNav({ attention }: Props) {
   const location = useLocation();
@@ -58,10 +55,10 @@ export default function BottomNav({ attention }: Props) {
     }`;
 
   return (
-    <nav className="shrink-0 border-t-2 border-[#5b85c4] bg-gradient-to-b from-[#1d3b6f] to-[#0f2147] [text-shadow:0_1px_1px_#0008]">
-      <div className="relative mx-auto flex max-w-3xl items-end gap-1 px-1">
+    <nav className="relative shrink-0 border-t-2 border-[#5b85c4] bg-gradient-to-b from-[#1d3b6f] to-[#0f2147] [text-shadow:0_1px_1px_#0008]">
+      <div className="relative mx-auto flex max-w-3xl items-end gap-1 pl-1 pr-20 sm:px-1">
         {more && (
-          <div className="absolute bottom-full right-1 z-50 mb-3 grid w-[min(22rem,calc(100vw-1rem))] grid-cols-3 gap-2 rounded-2xl bg-[#1d3b6f] p-3 shadow-2xl ring-2 ring-[#5b85c4]">
+          <div className="absolute bottom-full right-1 z-50 mb-3 grid w-[min(15rem,calc(100vw-1rem))] grid-cols-2 gap-2 rounded-2xl bg-[#1d3b6f] p-3 shadow-2xl ring-2 ring-[#5b85c4]">
             {MORE.map((item) => (
               <NavLink
                 key={item.to}
@@ -111,6 +108,21 @@ export default function BottomNav({ attention }: Props) {
           <span className="w-full truncate text-center">Ще</span>
         </button>
       </div>
+      {/* Мапа світу — кругла кнопка в правому куті екрана */}
+      <NavLink
+        to="/map"
+        data-tutorial="nav:/map"
+        onClick={() => setMore(false)}
+        aria-label="Мапа світу"
+        className={({ isActive }) =>
+          `absolute bottom-1.5 right-3 z-10 flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-full bg-gradient-to-b text-[10px] font-bold text-white shadow-lg ring-4 ${
+            isActive ? "from-amber-300 to-amber-600 ring-amber-200" : "from-[#5b85c4] to-[#24467f] ring-[#5b85c4] hover:brightness-110"
+          }`
+        }
+      >
+        <NavIcon name="map" size={30} />
+        Мапа
+      </NavLink>
     </nav>
   );
 }

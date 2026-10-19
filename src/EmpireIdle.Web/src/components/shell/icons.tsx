@@ -68,6 +68,22 @@ const NAV: Record<string, ReactElement> = {
       <rect x={13} y={13} width={6} height={5} rx={1} fill="#facc15" />
     </g>
   ),
+  clan: (
+    <g stroke={OUTLINE} strokeWidth={1.5} strokeLinejoin="round">
+      <path d="M16 3 L27 7 V15 C27 22 22 26 16 29 C10 26 5 22 5 15 V7 Z" fill="#3b82f6" />
+      <path d="M16 3 V29 C10 26 5 22 5 15 V7 Z" fill="#60a5fa" />
+      <path d="M16 10 L18 14.5 L23 15 L19.3 18.2 L20.4 23 L16 20.4 L11.6 23 L12.7 18.2 L9 15 L14 14.5 Z" fill="#facc15" />
+    </g>
+  ),
+  chat: (
+    <g stroke={OUTLINE} strokeWidth={1.5} strokeLinejoin="round">
+      <path d="M4 6 H24 C25 6 26 7 26 8 V18 C26 19 25 20 24 20 H12 L7 25 V20 H6 C5 20 4 19 4 18 Z" fill="#e2e8f0" />
+      <path d="M28 12 V22 C28 23 27 24 26 24 H25 V28 L21 24 H14" fill="#38bdf8" />
+      <circle cx={10} cy={13} r={1.4} fill={OUTLINE} />
+      <circle cx={15} cy={13} r={1.4} fill={OUTLINE} />
+      <circle cx={20} cy={13} r={1.4} fill={OUTLINE} />
+    </g>
+  ),
   more: (
     <g stroke={OUTLINE} strokeWidth={1.5}>
       <rect x={4} y={4} width={10} height={10} rx={2.5} fill="#facc15" />
