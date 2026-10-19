@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import ErrorBanner from "../components/ErrorBanner";
 import { useSession } from "../hooks/useSession";
 import RewardLetter from "../components/mail/RewardLetter";
+import ScoutReportLetter from "../components/mail/ScoutReportLetter";
 import { useCatalog } from "../lib/queries/catalog";
 import { useResolveRequest } from "../lib/queries/clans";
 import {
@@ -257,6 +258,8 @@ export default function MailPage() {
                 />
               ) : letter.kind === "CityFall" ? (
                 <CityFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
+              ) : letter.kind === "ScoutReport" ? (
+                <ScoutReportLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
               ) : letter.kind === "StructureFall" ? (
                 <StructureFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
               ) : (

@@ -6,7 +6,6 @@ import BattleReportList from "../components/map/BattleReportList";
 import CellDetails from "../components/map/CellDetails";
 import type { MapMarch } from "../components/map/MarchAnimation";
 import MarchList from "../components/map/MarchList";
-import ScoutReportList from "../components/map/ScoutReportList";
 import SendMarchForm from "../components/map/SendMarchForm";
 import WorldMap from "../components/map/WorldMap";
 import { useSession } from "../hooks/useSession";
@@ -323,13 +322,10 @@ export default function MapPage() {
               </button>
             </div>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+              {/* Звіти розвідки лежать у скриньці — тут лише бої */}
               <section className="space-y-2">
                 <h3 className="text-sm font-semibold">Бої</h3>
                 <BattleReportList playerId={playerId} />
-              </section>
-              <section className="space-y-2">
-                <h3 className="text-sm font-semibold">Розвідка</h3>
-                <ScoutReportList playerId={playerId} />
               </section>
             </div>
           </div>
