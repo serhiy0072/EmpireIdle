@@ -101,14 +101,14 @@ export function useRecallCamp(playerId: string) {
   });
 }
 
-/** Прискорення платить gems; бій відбудеться найближчим проходом сканера. */
+/** Прискорення зрізає обраний відсоток залишку дороги за сталу ціну; бій відбудеться найближчим проходом сканера. */
 export function useSpeedUpMarch(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (marchId: string) =>
-      api<void>(`/api/marches/${playerId}/${marchId}/speedup`, { method: "POST", idempotent: true }),
-    // Прискорення лишає останні пів хвилини (Monetization.SpeedUpFloorSeconds.March): бій проведе
+    mutationFn: ({ marchId, percent }: { marchId: string; percent: number }) =>
+      api<void>(`/api/marches/${playerId}/${marchId}/speedup`, { method: "POST", body: { percent }, idempotent: true }),
+    // Прискорення не зрізає останні пів хвилини (Monetization.SpeedUpFloorSeconds.March): бій проведе
     // сканер, а результат прийде подією BattleFinished. Тут — гаманець і новий час маршу
     onSuccess: () => {
       invalidatePlayer(queryClient, playerId, ["marches", "wallet", "garrison", "heroes", "village", "battleReports", "quests"]);

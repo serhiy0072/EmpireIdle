@@ -103,6 +103,8 @@ export interface Catalog {
   speedUpCost: (timer: SpeedUpTimer, completesAt: string, now: number, serverCost: number) => number;
   /** Межа таймера, нижче якої прискорення не зрізає (будівництво й тренування — 0, марш — 30 с). */
   speedUpFloorSeconds: (timer: SpeedUpTimer) => number;
+  /** Варіанти прискорення маршу: частка залишку дороги за сталу ціну, від меншої. */
+  marchSpeedUps: { percent: number; gems: number }[];
 }
 
 /**
@@ -203,6 +205,7 @@ export function useCatalog(): Catalog {
       },
       lootbox: (itemKey) => lootboxes.get(itemKey) ?? null,
       speedUpFloorSeconds: (timer) => data?.speedUp.floorSeconds[timer] ?? 0,
+      marchSpeedUps: data?.speedUp.marchOptions ?? [],
       speedUpCost: (timer, completesAt, now, serverCost) => {
         if (data === undefined) return serverCost;
 
