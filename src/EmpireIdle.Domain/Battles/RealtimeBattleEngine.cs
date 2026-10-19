@@ -40,6 +40,9 @@ namespace EmpireIdle.Domain.Battles
             foreach (var fighter in fighters.Where(f => f.Melee))
                 fighter.FacingLine = EnemyFront(fighter, fighters);
 
+            foreach (var order in (setup.AttackerCasts ?? []).OrderBy(c => c.Tick))
+                fighters.FirstOrDefault(f => f.IsHero && f.Side == BattleSide.Attacker && f.Lane == order.Lane)?.Orders.Enqueue(order.Tick);
+
             var maxTicks = _config.MaxBattleSeconds * 1000 / _config.TickMilliseconds;
             BattleSide? winner = null;
             var tick = 0;
@@ -54,7 +57,10 @@ namespace EmpireIdle.Domain.Battles
                     Expire(fighter, time);
 
                 foreach (var fighter in fighters.Where(f => f.Alive))
-                    Act(fighter, fighters, time, random, round);
+                    Act(fighter, fighters, tick, random, round);
+
+                foreach (var (fighter, skill) in round.Readies)
+                    events.Add(new BattleEvent(tick, BattleEventKind.Ready, fighter.Index, fighter.Index, 0, Detail: skill));
 
                 Resolve(round, tick, time, events);
                 Bury(fighters, tick, events);
@@ -77,8 +83,10 @@ namespace EmpireIdle.Domain.Battles
         /// Дії бійця в тику від стану на його початку: отрута, удар за таймером, готові вміння.
         /// Оглушений не б'є й не чаклує — готове вміння чекає кінця оглушення.
         /// </summary>
-        private void Act(Fighter fighter, List<Fighter> fighters, double time, DeterministicRandom random, Round round)
+        private void Act(Fighter fighter, List<Fighter> fighters, int tick, DeterministicRandom random, Round round)
         {
+            var time = tick * TickSeconds;
+
             if (fighter.Statuses.TryGetValue(BattleStatusKind.Poison, out var poison) && time + Epsilon >= poison.NextTick)
             {
                 round.Poisons.Add((fighter, poison.Magnitude));
@@ -93,11 +101,30 @@ namespace EmpireIdle.Domain.Battles
 
             for (var i = 0; i < fighter.Skills.Count; i++)
             {
-                if (time + Epsilon < fighter.Skills[i].NextCast)
+                var timer = fighter.Skills[i];
+
+                if (time + Epsilon < timer.NextCast)
                     continue;
 
-                if (Cast(fighter, fighter.Skills[i].Skill, i, fighters, time, random, round))
-                    fighter.Skills[i] = fighter.Skills[i] with { NextCast = time + fighter.Skills[i].Skill.Cooldown };
+                // Ручне вміння готове — повідомляє раз і чекає наказу; наказ раніше готовності чекає її
+                if (timer.Manual)
+                {
+                    if (!timer.Announced)
+                        round.Readies.Add((fighter, i));
+
+                    fighter.Skills[i] = timer = timer with { Announced = true };
+
+                    if (fighter.Orders.Count == 0 || fighter.Orders.Peek() > tick)
+                        continue;
+                }
+
+                if (!Cast(fighter, timer.Skill, i, fighters, time, random, round))
+                    continue;
+
+                fighter.Skills[i] = timer with { NextCast = time + timer.Skill.Cooldown, Announced = false };
+
+                if (timer.Manual)
+                    fighter.Orders.Dequeue();
             }
         }
 
@@ -488,13 +515,13 @@ namespace EmpireIdle.Domain.Battles
         {
             var fighters = new List<Fighter>();
 
-            Place(setup.Attackers, BattleSide.Attacker, fighters);
-            Place(setup.Defenders, BattleSide.Defender, fighters);
+            Place(setup.Attackers, BattleSide.Attacker, fighters, manual: setup.AttackerCasts is not null);
+            Place(setup.Defenders, BattleSide.Defender, fighters, manual: false);
 
             return fighters;
         }
 
-        private void Place(IReadOnlyList<SquadMember> squad, BattleSide side, List<Fighter> fighters)
+        private void Place(IReadOnlyList<SquadMember> squad, BattleSide side, List<Fighter> fighters, bool manual)
         {
             if (squad.Count > _config.SquadSize)
                 throw new ArgumentException($"A squad takes at most {_config.SquadSize} heroes, {side} has {squad.Count}.");
@@ -516,7 +543,7 @@ namespace EmpireIdle.Domain.Battles
                 foreach (var skill in (member.Skills ?? []).Where(s => s.Kind != SkillKind.Passive))
                 {
                     var battleSkill = BattleSkill.From(skill, member.Hero.CooldownMultiplier, _config);
-                    hero.Skills.Add(new SkillTimer(battleSkill, battleSkill.Cooldown * _config.FirstCastShare));
+                    hero.Skills.Add(new SkillTimer(battleSkill, battleSkill.Cooldown * _config.FirstCastShare, manual && skill.Kind == SkillKind.Active));
                 }
 
                 fighters.Add(hero);
@@ -536,9 +563,11 @@ namespace EmpireIdle.Domain.Battles
             public List<(Fighter Caster, Fighter Target, BattleSkill Skill)> Supports { get; } = [];
             public List<(Fighter Target, double Damage)> Poisons { get; } = [];
             public List<(Fighter Caster, int Skill)> Casts { get; } = [];
+            public List<(Fighter Hero, int Skill)> Readies { get; } = [];
 
             public void Clear()
             {
+                Readies.Clear();
                 Hits.Clear();
                 Supports.Clear();
                 Poisons.Clear();
@@ -549,7 +578,9 @@ namespace EmpireIdle.Domain.Battles
         /// <param name="Attack">Атака нападника в момент удару — від неї сила отрути.</param>
         private sealed record Hit(Fighter Source, Fighter Target, double Damage, HitFlags Flags, BattleSkill? Skill, double Attack);
 
-        private sealed record SkillTimer(BattleSkill Skill, double NextCast);
+        /// <param name="Manual">Активне вміння ручного бою: готове — чекає наказу гравця.</param>
+        /// <param name="Announced">Про готовність уже сказано подією Ready.</param>
+        private sealed record SkillTimer(BattleSkill Skill, double NextCast, bool Manual = false, bool Announced = false);
 
         /// <param name="NextTick">Коли отрута вдарить наступного разу — раз на секунду.</param>
         private sealed record Status(double Magnitude, double Until, double NextTick);
@@ -574,6 +605,9 @@ namespace EmpireIdle.Domain.Battles
             public double Ward { get; } = stats.MaxHealth * stats.Ward;
             public FighterStats? Leaderless { get; } = leaderless;
             public List<SkillTimer> Skills { get; } = [];
+
+            /// <summary>Тики наказів гравця на активне вміння — по черзі, найраніший першим.</summary>
+            public Queue<int> Orders { get; } = new();
             public Dictionary<BattleStatusKind, Status> Statuses { get; } = [];
             public string? HeroKey { get; init; }
 

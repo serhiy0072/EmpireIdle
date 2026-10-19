@@ -18,6 +18,14 @@ namespace EmpireIdle.Domain.Battles
     public sealed record SquadMember(int Lane, string HeroClass, string? UnitType, FighterStats Hero, IReadOnlyList<Convoy> Convoys,
         IReadOnlyList<CombatSkill>? Skills = null, string? HeroKey = null);
 
+    /// <summary>Наказ гравця в ручному бою: герой на доріжці Lane застосовує активне вміння на тику Tick.</summary>
+    public sealed record ManualCast(int Tick, int Lane);
+
     /// <summary>Обидва загони на старті бою.</summary>
-    public sealed record BattleSetup(IReadOnlyList<SquadMember> Attackers, IReadOnlyList<SquadMember> Defenders);
+    /// <param name="AttackerCasts">
+    /// Ручний бій нападника (рішення 19.10.2026): активні вміння його героїв не спрацьовують самі, лише за цими
+    /// наказами. null — авто, усі вміння за перезарядкою. Періодичні вміння й захисник — завжди авто.
+    /// </param>
+    public sealed record BattleSetup(IReadOnlyList<SquadMember> Attackers, IReadOnlyList<SquadMember> Defenders,
+        IReadOnlyList<ManualCast>? AttackerCasts = null);
 }

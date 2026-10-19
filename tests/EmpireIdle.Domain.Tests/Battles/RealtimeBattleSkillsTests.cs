@@ -80,6 +80,53 @@ public class RealtimeBattleSkillsTests
         Assert.Equal(["skill_SingleEnemy_"], result.Fighters[0].Skills);
     }
 
+    private BattleResult RunManual(SquadMember[] attackers, SquadMember[] defenders, params ManualCast[] casts)
+        => _engine.Run(new BattleSetup(attackers, defenders, casts), seed: 1);
+
+    /// <summary>Ручний бій: готове активне вміння не спрацьовує саме — лише повідомляє, що готове.</summary>
+    [Fact]
+    public void Run_ShouldHoldTheActiveSkill_InAManualBattle()
+    {
+        var result = RunManual([Archer(0, Stats(attack: 50), [Skill(AbilityTarget.SingleEnemy, damage: 2)])], [Archer(0, Stats())]);
+
+        Assert.Empty(Events(result, BattleEventKind.Cast, 0));
+        Assert.Equal([25], Events(result, BattleEventKind.Ready, 0).Select(e => e.Tick));
+    }
+
+    /// <summary>Наказ гравця кастує в свій тик, і перезарядка відлічується від нього.</summary>
+    [Fact]
+    public void Run_ShouldCastOnTheOrder_AndCoolDownFromIt()
+    {
+        var result = RunManual([Archer(0, Stats(attack: 50), [Skill(AbilityTarget.SingleEnemy, damage: 2)])], [Archer(0, Stats())],
+            new ManualCast(40, 0));
+
+        Assert.Equal([40], Events(result, BattleEventKind.Cast, 0).Select(e => e.Tick));
+        Assert.Equal([25, 90], Events(result, BattleEventKind.Ready, 0).Select(e => e.Tick));
+    }
+
+    /// <summary>Наказ раніше готовності не пропадає: вміння спрацює, щойно перезарядиться.</summary>
+    [Fact]
+    public void Run_ShouldKeepAnEarlyOrder_UntilTheSkillIsReady()
+    {
+        var result = RunManual([Archer(0, Stats(attack: 50), [Skill(AbilityTarget.SingleEnemy, damage: 2)])], [Archer(0, Stats())],
+            new ManualCast(10, 0));
+
+        Assert.Equal([25], Events(result, BattleEventKind.Cast, 0).Select(e => e.Tick));
+    }
+
+    /// <summary>Вручну — лише активні: періодичне вміння гравця й усі вміння ворога б'ють самі.</summary>
+    [Fact]
+    public void Run_ShouldKeepPeriodicAndEnemySkillsAutomatic_InAManualBattle()
+    {
+        var periodic = Skill(AbilityTarget.SingleEnemy, damage: 1, kind: SkillKind.Periodic);
+
+        var result = RunManual([Archer(0, Stats(attack: 50), [periodic])], [Archer(0, Stats(attack: 50), [Skill(AbilityTarget.SingleEnemy, damage: 1)])]);
+
+        Assert.Equal(25, Events(result, BattleEventKind.Cast, 0)[0].Tick);
+        Assert.Equal(25, Events(result, BattleEventKind.Cast, 1)[0].Tick);
+        Assert.Empty(result.Events.Where(e => e.Kind == BattleEventKind.Ready));
+    }
+
     /// <summary>Вміння на тил б'є ворожого стрільця на далекій доріжці, хоч найближчий — воїн навпроти.</summary>
     [Fact]
     public void Run_ShouldAimTheSkillAtTheBackLine()
