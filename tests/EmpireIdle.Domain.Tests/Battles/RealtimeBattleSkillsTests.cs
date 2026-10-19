@@ -16,7 +16,8 @@ public class RealtimeBattleSkillsTests
     {
         TickMilliseconds = 100,
         MaxBattleSeconds = 90,
-        FrontLineClasses = ["warrior", "knight"],
+        HeroLines = new() { ["warrior"] = 0, ["knight"] = 1, ["archer"] = 2 },
+        RangedClasses = ["archer"],
         MeleeApproachSeconds = 1.5,
         RangedApproachSeconds = 0.5,
         DefensePerHalfDamage = 2,

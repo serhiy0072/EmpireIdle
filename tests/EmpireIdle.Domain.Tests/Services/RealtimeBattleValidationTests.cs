@@ -22,6 +22,8 @@ public class RealtimeBattleValidationTests
         var battle = config.RealtimeBattle;
         battle.HeroAttackIntervals = new() { ["warrior"] = 1.25, ["knight"] = 1.0, ["archer"] = 1.3, ["mage"] = 1.3 };
         battle.UnitAttackIntervals = new() { [TestKeys.Infantry] = 1.25, [TestKeys.Cavalry] = 1.0, [TestKeys.Archer] = 1.4 };
+        battle.HeroLines = new() { ["warrior"] = 0, ["knight"] = 1, ["archer"] = 2, ["mage"] = 2 };
+        battle.RangedClasses = ["archer", "mage"];
         battle.TypeAdvantages = new()
         {
             [TestKeys.Infantry] = TestKeys.Archer,
@@ -90,10 +92,29 @@ public class RealtimeBattleValidationTests
     }
 
     [Fact]
-    public void UnknownFrontLineClass_ShouldFail()
+    public void UnknownLineClass_ShouldFail()
     {
         var config = Valid();
-        config.RealtimeBattle.FrontLineClasses = ["warrior", "paladin"];
+        config.RealtimeBattle.HeroLines["paladin"] = 0;
+
+        Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+    }
+
+    [Fact]
+    public void UnknownRangedClass_ShouldFail()
+    {
+        var config = Valid();
+        config.RealtimeBattle.RangedClasses = ["archer", "paladin"];
+
+        Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+    }
+
+    /// <summary>Клас без лінії став би у фронт мовчки — валідатор вимагає явної.</summary>
+    [Fact]
+    public void ClassWithoutLine_ShouldFail()
+    {
+        var config = Valid();
+        config.RealtimeBattle.HeroLines.Remove("knight");
 
         Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
     }

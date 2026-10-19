@@ -52,7 +52,8 @@ public class StormTowerFloorCommandTests
             hero.BaseStats["Health"] = 500;
 
         var battle = _config.RealtimeBattle;
-        battle.FrontLineClasses = ["warrior"];
+        battle.HeroLines = new() { ["warrior"] = 0, ["knight"] = 1, ["archer"] = 2, ["mage"] = 2 };
+        battle.RangedClasses = ["archer", "mage"];
         battle.HeroAttackIntervals = new() { ["warrior"] = 1.25, ["knight"] = 1.0, ["archer"] = 1.3, ["mage"] = 1.3 };
         battle.UnitAttackIntervals = new() { [TestKeys.Infantry] = 1.25, [TestKeys.Cavalry] = 1.0, [TestKeys.Archer] = 1.4 };
 

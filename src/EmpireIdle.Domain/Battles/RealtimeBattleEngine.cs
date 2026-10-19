@@ -143,16 +143,19 @@ namespace EmpireIdle.Domain.Battles
                 .FirstOrDefault();
 
         /// <summary>
-        /// Нова ціль — на найближчій доріжці; ближній бій дістає лише фронт, поки там хтось стоїть.
-        /// У загоні спершу конвої, найслабший першим, — вони прикривають героя; лише герой-лучник
-        /// цілить героя першим.
+        /// Нова ціль — на найближчій доріжці; ближній бій дістає лише найпередню живу лінію ворога:
+        /// спершу воїнів, за ними лицарів, далі стрільців. У загоні спершу конвої, найслабший першим, —
+        /// вони прикривають героя; лише герой-лучник цілить героя першим.
         /// </summary>
         private static Fighter? Pick(Fighter fighter, List<Fighter> fighters, bool ignoreLines)
         {
             var enemies = fighters.Where(f => f.Alive && f.Side != fighter.Side).ToList();
 
-            if (!ignoreLines && enemies.Any(f => f.FrontLine))
-                enemies = enemies.Where(f => f.FrontLine).ToList();
+            if (!ignoreLines && enemies.Count > 0)
+            {
+                var front = enemies.Min(f => f.Line);
+                enemies = enemies.Where(f => f.Line == front).ToList();
+            }
 
             if (enemies.Count == 0)
                 return null;
@@ -429,9 +432,10 @@ namespace EmpireIdle.Domain.Battles
 
             foreach (var member in squad)
             {
-                var front = _config.FrontLineClasses.Contains(member.HeroClass);
-                var approach = front ? _config.MeleeApproachSeconds : _config.RangedApproachSeconds;
-                var hero = new Fighter(fighters.Count, side, member.Lane, null, member.UnitType, front, approach, member.Hero, null)
+                var line = _config.HeroLines.GetValueOrDefault(member.HeroClass);
+                var melee = !_config.RangedClasses.Contains(member.HeroClass);
+                var approach = melee ? _config.MeleeApproachSeconds : _config.RangedApproachSeconds;
+                var hero = new Fighter(fighters.Count, side, member.Lane, null, member.UnitType, line, melee, approach, member.Hero, null)
                 {
                     ShieldUntil = _config.WardSeconds,
                     HeroKey = member.HeroKey,
@@ -446,7 +450,7 @@ namespace EmpireIdle.Domain.Battles
                 fighters.Add(hero);
 
                 foreach (var convoy in member.Convoys)
-                    fighters.Add(new Fighter(fighters.Count, side, member.Lane, hero.Index, convoy.UnitType, front, approach, convoy.Led, convoy.Leaderless)
+                    fighters.Add(new Fighter(fighters.Count, side, member.Lane, hero.Index, convoy.UnitType, line, melee, approach, convoy.Led, convoy.Leaderless)
                     {
                         HeroKey = member.HeroKey,
                     });
@@ -479,7 +483,7 @@ namespace EmpireIdle.Domain.Battles
         private sealed record Status(double Magnitude, double Until, double NextTick);
 
         /// <summary>Стан бійця під час бою. Конвой стоїть і б'є так само, як його герой.</summary>
-        private sealed class Fighter(int index, BattleSide side, int lane, int? leader, string? unitType, bool frontLine,
+        private sealed class Fighter(int index, BattleSide side, int lane, int? leader, string? unitType, int line, bool melee,
             double approach, FighterStats stats, FighterStats? leaderless)
         {
             public int Index { get; } = index;
@@ -488,8 +492,8 @@ namespace EmpireIdle.Domain.Battles
             public int? Leader { get; } = leader;
             public bool IsHero => Leader is null;
             public string? UnitType { get; } = unitType;
-            public bool FrontLine { get; } = frontLine;
-            public bool Melee => FrontLine;
+            public int Line { get; } = line;
+            public bool Melee { get; } = melee;
             public double Approach { get; } = approach;
             public double MaxHealth { get; } = stats.MaxHealth;
             public double Ward { get; } = stats.MaxHealth * stats.Ward;

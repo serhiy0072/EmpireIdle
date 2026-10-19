@@ -15,10 +15,14 @@ namespace EmpireIdle.Domain.Services.Config
         public int MaxBattleSeconds { get; set; } = 90;
 
         /// <summary>
-        /// Класи героїв, що стоять у фронті й б'ють зблизька; решта — тил і стріляють. Конвої стоять
+        /// Лінія кожного класу героя, 0 — фронт (рішення 19.10.2026: воїни лоб у лоб, за ними лицарі,
+        /// далі стрільці). Ближній бій дістає лише найпередню живу лінію ворога. Конвої стоять
         /// і б'ють так само, як їхній герой.
         /// </summary>
-        public List<string> FrontLineClasses { get; set; } = new();
+        public Dictionary<string, int> HeroLines { get; set; } = new();
+
+        /// <summary>Класи, що стріляють здалеку: б'ють будь-яку лінію й не йдуть до ворога.</summary>
+        public List<string> RangedClasses { get; set; } = new();
 
         /// <summary>Скільки секунд ближній боєць іде до ворога, перш ніж бити.</summary>
         public double MeleeApproachSeconds { get; set; } = 1.5;

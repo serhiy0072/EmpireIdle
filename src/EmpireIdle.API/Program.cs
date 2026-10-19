@@ -185,6 +185,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => new[] { c.RealtimeBattle.CooldownReductionPerTurn, c.RealtimeBattle.MaxCooldownReduction }.All(v => v is >= 0 and < 1) && c.RealtimeBattle.MaxAttackSpeed >= 0,
         "GameConfig.RealtimeBattle cooldown reduction must be a share in [0, 1) — a full one would cast skills every tick.")
     .Validate(c => c.RealtimeBattle.SquadSize > 0, "GameConfig.RealtimeBattle.SquadSize must be positive.")
+    .Validate(c => c.RealtimeBattle.HeroLines.Values.All(line => line >= 0), "GameConfig.RealtimeBattle.HeroLines counts lines from 0 — the front.")
     .Validate(c => c.Tower.MaxFloor >= 1 && c.Tower.RequiresMainBuildingLevel >= 1, "GameConfig.Tower needs at least one floor and a town hall level from 1.")
     .Validate(c => c.Tower.BossEvery >= 1 && c.Tower.BossHealthScale >= 1, "GameConfig.Tower.BossEvery must be positive and BossHealthScale at least 1 — a boss is never weaker than a plain hero.")
     .Validate(c => c.Tower.GoldBase >= 0 && c.Tower.GoldPerFloor >= 0, "GameConfig.Tower gold per floor cannot be negative.")

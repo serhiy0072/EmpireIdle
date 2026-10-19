@@ -16,7 +16,8 @@ public class RealtimeBattleEngineTests
     {
         TickMilliseconds = 100,
         MaxBattleSeconds = 90,
-        FrontLineClasses = ["warrior", "knight"],
+        HeroLines = new() { ["warrior"] = 0, ["knight"] = 1, ["archer"] = 2 },
+        RangedClasses = ["archer"],
         MeleeApproachSeconds = 1.5,
         RangedApproachSeconds = 0.5,
         DefensePerHalfDamage = 2,
@@ -35,6 +36,9 @@ public class RealtimeBattleEngineTests
 
     private static SquadMember WarriorHero(int lane, FighterStats stats, params Convoy[] convoys)
         => new(lane, "warrior", Infantry, stats, convoys);
+
+    private static SquadMember KnightHero(int lane, FighterStats stats, params Convoy[] convoys)
+        => new(lane, "knight", "spearman", stats, convoys);
 
     private static Convoy Convoy(string unitType, FighterStats led, FighterStats? leaderless = null)
         => new(unitType, 100, led, leaderless ?? led);
@@ -139,6 +143,43 @@ public class RealtimeBattleEngineTests
 
         // 0 — нападник; 1, 2 — лучник і його конвой; 3 — воїн, 4 і 5 — його конвої
         Assert.Equal(5, HitsBy(result, 0)[0].Target);
+    }
+
+    /// <summary>
+    /// Лицарі стоять за воїнами: ближній іде повз лицаря на своїй доріжці до воїна на далекій,
+    /// бо фронт — це воїни, поки хоч один живий.
+    /// </summary>
+    [Fact]
+    public void Run_ShouldSendMeleePastTheMiddleLine_WhileWarriorsStand()
+    {
+        var defenders = new[] { KnightHero(0, Stats()), WarriorHero(4, Stats()) };
+
+        var result = Run([WarriorHero(0, Stats(attack: 1))], defenders);
+
+        Assert.All(HitsBy(result, 0), hit => Assert.Equal(2, hit.Target));
+    }
+
+    /// <summary>Фронт упав — ближній бере середню лінію, а стрільці лишаються на потім.</summary>
+    [Fact]
+    public void Run_ShouldSendMeleeAtTheKnights_OnceTheWarriorsFall()
+    {
+        var defenders = new[] { ArcherHero(0, Stats()), KnightHero(3, Stats()), WarriorHero(4, Stats(health: 1)) };
+
+        var result = Run([WarriorHero(0, Stats(attack: 10))], defenders);
+
+        // 0 — нападник; 1 — лучник, 2 — лицар, 3 — воїн
+        Assert.Equal([3, 2, 2], HitsBy(result, 0).Take(3).Select(e => e.Target));
+    }
+
+    /// <summary>Лицар — ближній боєць другої лінії: так само йде до ворожого фронту, а не стріляє.</summary>
+    [Fact]
+    public void Run_ShouldLetKnightsWalkToTheFront()
+    {
+        var defenders = new[] { ArcherHero(0, Stats()), WarriorHero(4, Stats()) };
+
+        var result = Run([KnightHero(0, Stats(attack: 1))], defenders);
+
+        Assert.Equal((15, 2), (HitsBy(result, 0)[0].Tick, HitsBy(result, 0)[0].Target));
     }
 
     /// <summary>Герой-лучник — снайпер: на найближчій доріжці першим цілить героя.</summary>
@@ -276,7 +317,8 @@ public class RealtimeBattleEngineTests
         {
             TickMilliseconds = 100,
             MaxBattleSeconds = 90,
-            FrontLineClasses = ["warrior"],
+            HeroLines = new() { ["warrior"] = 0, ["knight"] = 1, ["archer"] = 2 },
+            RangedClasses = ["archer"],
             MeleeApproachSeconds = 1.5,
             RangedApproachSeconds = 0.5,
             DefensePerHalfDamage = 2,
