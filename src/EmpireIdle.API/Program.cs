@@ -399,6 +399,7 @@ if (!builder.Environment.IsEnvironment("Testing"))
 
     builder.Services.AddHangfireServer();
     builder.Services.AddHostedService<RecurringJobScheduler>();
+    builder.Services.AddHostedService<MarchArrivalLoop>();
 }
 
 // Раннер створює scope на кожен активний світ — без нього
