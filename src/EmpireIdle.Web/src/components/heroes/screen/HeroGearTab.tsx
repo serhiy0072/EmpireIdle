@@ -78,6 +78,18 @@ export default function HeroGearTab({
 
   const pickedSlot = slots.find((slot) => slotId(slot) === picked) ?? null;
 
+  // Вікно вдягненого гортає слоти по порядку; заміна лишає його на тому ж слоті
+  const wornBySlot = [...worn].sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0));
+  const stepSlot = (delta: number) => {
+    const index = wornBySlot.findIndex((piece) => piece.slotIndex === infoSlot);
+    const next = wornBySlot[(index + delta + wornBySlot.length) % wornBySlot.length];
+    if (next?.slotIndex != null) setInfoSlot(next.slotIndex);
+  };
+  const slotCandidates = (piece: EquipmentResponse) => {
+    const slot = slots.find((candidate) => candidate.index === piece.slotIndex);
+    return slot === undefined ? [] : candidatesFor(slot);
+  };
+
   const slotTile = (slot: Slot) => {
     const piece = wornIn(slot);
 
@@ -145,18 +157,52 @@ export default function HeroGearTab({
 
       {infoSlot !== null && (
         <EquipmentInfoModal
+          key={wornBySlot.find((piece) => piece.slotIndex === infoSlot)?.id}
           playerId={playerId}
-          worn={[...worn].sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))}
-          slotIndex={infoSlot}
-          onSlot={setInfoSlot}
-          candidatesFor={(piece) => {
-            const slot = slots.find((candidate) => candidate.index === piece.slotIndex);
-            return slot === undefined ? [] : candidatesFor(slot);
+          piece={wornBySlot.find((piece) => piece.slotIndex === infoSlot)}
+          wornKeys={worn.map((item) => item.itemKey)}
+          onStep={wornBySlot.length > 1 ? stepSlot : null}
+          actions={(piece, choose) => (
+            <>
+              <GameButton
+                onClick={() => {
+                  onUnequip(piece.id);
+                  setInfoSlot(null);
+                }}
+                disabled={busy || !atHome}
+                variant="accent"
+              >
+                Зняти
+              </GameButton>
+              <GameButton onClick={choose} disabled={busy || !atHome || slotCandidates(piece).length === 0}>
+                Замінити
+              </GameButton>
+            </>
+          )}
+          choice={{
+            title: "Замінити спорядження",
+            render: (piece, done) => (
+              <div className="grid grid-cols-5 gap-2">
+                {slotCandidates(piece).map((candidate) => (
+                  <Tile
+                    key={candidate.id}
+                    rarity={candidate.rarity}
+                    onClick={() => {
+                      onEquip(candidate.id);
+                      done();
+                    }}
+                    dimmed={busy}
+                    title={`Вдягнути: ${catalog.itemName(candidate.itemKey)} · ⚔ ${Math.round(candidate.power)}`}
+                    top={candidate.level > 0 ? `Рів. ${candidate.level}` : undefined}
+                    bottomRight={candidate.mastery > 0 ? `+${candidate.mastery}` : undefined}
+                  >
+                    <ItemIcon itemKey={candidate.itemKey} type="equipment" rarity={candidate.rarity} size={44} bare />
+                  </Tile>
+                ))}
+              </div>
+            ),
           }}
-          locked={!atHome}
-          busy={busy}
-          onEquip={onEquip}
-          onUnequip={onUnequip}
+          note={!atHome && <p className="text-xs text-amber-700">Герой у поході: зняти чи замінити можна вдома, качати — вже зараз.</p>}
           onClose={() => setInfoSlot(null)}
         />
       )}

@@ -1,55 +1,51 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { EquipmentResponse } from "../../../lib/apiTypes";
 import { useCatalog } from "../../../lib/queries/catalog";
 import { rarityLabel, rarityStyle } from "../../../lib/rarity";
 import { statLabel, statValue } from "../../../lib/statNames";
 import { EquipmentFeed, EquipmentMastery } from "../../forge/EquipmentUpgrade";
-import { GameButton, Tile } from "../../game/GameUi";
+import { GameButton } from "../../game/GameUi";
 import ArtifactSetInfo from "../../inventory/ArtifactSetInfo";
 import ItemIcon from "../../inventory/ItemIcon";
 
-type View = "info" | "replace" | "feed" | "mastery";
+type View = "info" | "choice" | "feed" | "mastery";
 
-const TITLES: Record<View, string> = {
+const TITLES: Record<Exclude<View, "choice">, string> = {
   info: "Інформація про спорядження",
-  replace: "Замінити спорядження",
   feed: "Посилення",
   mastery: "Майстерність коваля",
 };
 
+/** Вид вибору поверх головного: заміна в слоті героя чи герой, на якого вдягнути. */
+export interface EquipmentChoice {
+  title: string;
+  /** done повертає на головний вид. */
+  render: (piece: EquipmentResponse, done: () => void) => ReactNode;
+}
+
 interface Props {
   playerId: string;
-  /** Вдягнене героєм у порядку слотів — стрілки гортають між ним. */
-  worn: EquipmentResponse[];
-  /** Слот, який показує вікно: після заміни в ньому з'являється новий предмет, і вікно лишається відкритим. */
-  slotIndex: number;
-  onSlot: (slotIndex: number) => void;
-  /** Вільне, що підходить у слот показаного предмета. */
-  candidatesFor: (piece: EquipmentResponse) => EquipmentResponse[];
-  /** Герой у поході: переодягати не можна, качати — можна. */
-  locked: boolean;
-  busy: boolean;
-  onEquip: (equipmentId: string) => void;
-  onUnequip: (equipmentId: string) => void;
+  /** Показаний предмет; undefined — його вже немає (зняли чи продали), і вікно нічого не малює. */
+  piece: EquipmentResponse | undefined;
+  /** Вдягнене на того самого героя — для лічильника набору. */
+  wornKeys: string[];
+  /** Гортання сусідніх предметів стрілками; null — стрілок немає. */
+  onStep: ((delta: number) => void) | null;
+  /** Кнопки біля предмета на головному виді; choose відкриває вид вибору. */
+  actions: (piece: EquipmentResponse, choose: () => void) => ReactNode;
+  choice: EquipmentChoice;
+  /** Підказка під показниками, як-от «герой у поході». */
+  note?: ReactNode;
   onClose: () => void;
 }
 
 /**
- * Вікно спорядження героя (референс 13.10.2026): предмет, його показники й майстерність, зняти чи замінити,
+ * Вікно спорядження (референс 13.10.2026): предмет, його показники й майстерність, дії з ним,
  * а «Посилити» й «Майстерність коваля» відкривають прокачку тут же — без переходу в Кузню.
+ * Те саме вікно — і з героя, і з рюкзака; різняться лише дії й вид вибору. Батько ставить key={piece.id}:
+ * інший предмет відкривається з головного виду.
  */
-export default function EquipmentInfoModal({
-  playerId,
-  worn,
-  slotIndex,
-  onSlot,
-  candidatesFor,
-  locked,
-  busy,
-  onEquip,
-  onUnequip,
-  onClose,
-}: Props) {
+export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, actions, choice, note, onClose }: Props) {
   const catalog = useCatalog();
   const [view, setView] = useState<View>("info");
 
@@ -61,38 +57,28 @@ export default function EquipmentInfoModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const index = worn.findIndex((piece) => piece.slotIndex === slotIndex);
-  const piece = worn[index];
-
-  // Слот спорожнів — вікну більше нічого показувати
   if (piece === undefined) return null;
 
-  const step = (delta: number) => {
-    const next = worn[(index + delta + worn.length) % worn.length];
-    if (next?.slotIndex != null) {
-      onSlot(next.slotIndex);
-      setView("info");
-    }
-  };
-
-  const candidates = candidatesFor(piece);
+  // Виставлене на ринок не прокачується — спершу зняти лот
+  const upgradable = !piece.isOnMarket;
+  const title = view === "choice" ? choice.title : TITLES[view];
   const arrow = "absolute top-1/2 -translate-y-1/2 rounded-full bg-sky-100/90 px-3 py-2 text-xl font-bold text-sky-700 shadow hover:bg-white";
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={TITLES[view]}
+      aria-label={title}
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4"
     >
       <div onClick={(event) => event.stopPropagation()} className="relative w-full max-w-md">
-        {worn.length > 1 && (
+        {onStep !== null && (
           <>
-            <button type="button" aria-label="Попереднє" onClick={() => step(-1)} className={`${arrow} -left-14`}>
+            <button type="button" aria-label="Попереднє" onClick={() => onStep(-1)} className={`${arrow} -left-14`}>
               ‹
             </button>
-            <button type="button" aria-label="Наступне" onClick={() => step(1)} className={`${arrow} -right-14`}>
+            <button type="button" aria-label="Наступне" onClick={() => onStep(1)} className={`${arrow} -right-14`}>
               ›
             </button>
           </>
@@ -105,7 +91,7 @@ export default function EquipmentInfoModal({
                 ←
               </button>
             )}
-            <h2 className="flex-1 text-center text-lg font-semibold">{TITLES[view]}</h2>
+            <h2 className="flex-1 text-center text-lg font-semibold">{title}</h2>
             <button type="button" aria-label="Закрити" onClick={onClose} className="text-xl font-bold hover:text-sky-100">
               ✕
             </button>
@@ -126,23 +112,7 @@ export default function EquipmentInfoModal({
                 <p className="mt-1 text-sm text-slate-600">⚔ {Math.round(piece.power).toLocaleString("uk-UA")}</p>
                 {piece.isBroken && <p className="text-xs text-rose-700">Зламано: дає половину статів</p>}
               </div>
-              {view === "info" && (
-                <div className="flex shrink-0 flex-col gap-1">
-                  <GameButton
-                    onClick={() => {
-                      onUnequip(piece.id);
-                      onClose();
-                    }}
-                    disabled={busy || locked}
-                    variant="accent"
-                  >
-                    Зняти
-                  </GameButton>
-                  <GameButton onClick={() => setView("replace")} disabled={busy || locked || candidates.length === 0}>
-                    Замінити
-                  </GameButton>
-                </div>
-              )}
+              {view === "info" && <div className="flex shrink-0 flex-col gap-1">{actions(piece, () => setView("choice"))}</div>}
             </div>
 
             {view === "info" && (
@@ -158,7 +128,7 @@ export default function EquipmentInfoModal({
                     ))}
                   </dl>
                 </section>
-                <ArtifactSetInfo itemKey={piece.itemKey} wornKeys={worn.map((item) => item.itemKey)} />
+                <ArtifactSetInfo itemKey={piece.itemKey} wornKeys={wornKeys} />
                 <section className="space-y-1">
                   <h3 className="text-sm font-semibold">Майстерність коваля</h3>
                   <p className="rounded-lg bg-white/80 px-3 py-1.5 text-sm text-slate-600">
@@ -166,30 +136,12 @@ export default function EquipmentInfoModal({
                     {piece.experienceToNext != null && ` · до рівня ${piece.level + 1} — ${piece.experienceToNext} досвіду`}
                   </p>
                 </section>
-                {locked && <p className="text-xs text-amber-700">Герой у поході: зняти чи замінити можна вдома, качати — вже зараз.</p>}
+                {note}
+                {!upgradable && <p className="text-xs text-amber-700">Предмет на ринку: прокачати можна, знявши лот.</p>}
               </>
             )}
 
-            {view === "replace" && (
-              <div className="grid grid-cols-5 gap-2">
-                {candidates.map((candidate) => (
-                  <Tile
-                    key={candidate.id}
-                    rarity={candidate.rarity}
-                    onClick={() => {
-                      onEquip(candidate.id);
-                      setView("info");
-                    }}
-                    dimmed={busy}
-                    title={`Вдягнути: ${catalog.itemName(candidate.itemKey)} · ⚔ ${Math.round(candidate.power)}`}
-                    top={candidate.level > 0 ? `Рів. ${candidate.level}` : undefined}
-                    bottomRight={candidate.mastery > 0 ? `+${candidate.mastery}` : undefined}
-                  >
-                    <ItemIcon itemKey={candidate.itemKey} type="equipment" rarity={candidate.rarity} size={44} bare />
-                  </Tile>
-                ))}
-              </div>
-            )}
+            {view === "choice" && choice.render(piece, () => setView("info"))}
 
             {view === "feed" && (
               <section className="space-y-2">
@@ -206,8 +158,10 @@ export default function EquipmentInfoModal({
 
           {view === "info" && (
             <div className="grid grid-cols-2 gap-3 border-t border-sky-200 p-4">
-              <GameButton onClick={() => setView("mastery")}>Майстерність коваля</GameButton>
-              <GameButton onClick={() => setView("feed")} variant="accent">
+              <GameButton onClick={() => setView("mastery")} disabled={!upgradable}>
+                Майстерність коваля
+              </GameButton>
+              <GameButton onClick={() => setView("feed")} variant="accent" disabled={!upgradable}>
                 Посилити
               </GameButton>
             </div>
