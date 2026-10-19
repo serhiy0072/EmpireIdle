@@ -84,6 +84,23 @@ const NAV: Record<string, ReactElement> = {
       <circle cx={20} cy={13} r={1.4} fill={OUTLINE} />
     </g>
   ),
+  mail: (
+    <g stroke={OUTLINE} strokeWidth={1.5} strokeLinejoin="round">
+      <rect x={3} y={8} width={26} height={18} rx={2} fill="#fef3c7" />
+      <path d="M3 9 L16 19 L29 9" fill="#fde68a" />
+      <path d="M3 26 L12 17 M29 26 L20 17" fill="none" />
+      <circle cx={16} cy={19} r={3} fill="#ef4444" />
+    </g>
+  ),
+  rating: (
+    <g stroke={OUTLINE} strokeWidth={1.5} strokeLinejoin="round">
+      <path d="M9 4 H23 V11 C23 16 20 19 16 19 C12 19 9 16 9 11 Z" fill="#facc15" />
+      <path d="M9 7 H4 C4 12 6 14 9.5 14 M23 7 H28 C28 12 26 14 22.5 14" fill="none" stroke="#ca8a04" strokeWidth={2} />
+      <path d="M14 19 H18 V24 H14 Z" fill="#eab308" />
+      <path d="M9 24 H23 V28 H9 Z" fill="#92400e" />
+      <path d="M16 7 L17.2 10 L20 10.2 L17.8 12 L18.5 15 L16 13.4 L13.5 15 L14.2 12 L12 10.2 L14.8 10 Z" fill="#fef9c3" />
+    </g>
+  ),
   more: (
     <g stroke={OUTLINE} strokeWidth={1.5}>
       <rect x={4} y={4} width={10} height={10} rx={2.5} fill="#facc15" />
