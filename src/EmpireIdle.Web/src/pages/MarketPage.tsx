@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MarketTabs from "../components/shell/MarketTabs";
 import { useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ListingCard from "../components/market/ListingCard";
@@ -64,7 +65,8 @@ export default function MarketPage() {
   if (!market.isOpen) {
     return (
       <div className="space-y-2">
-        <h1 className="text-xl font-medium text-slate-800">Ринок</h1>
+        <MarketTabs />
+        <h1 className="text-xl font-medium text-slate-800">Ринок гравців</h1>
         <p className="text-sm text-slate-600">
           {market.opensAtTownHall != null
             ? `Ринок відкриється, коли ратуша досягне ${market.opensAtTownHall} рівня.`
@@ -80,8 +82,9 @@ export default function MarketPage() {
 
   return (
     <div className="space-y-4">
+      <MarketTabs />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Ринок</h1>
+        <h1 className="text-xl font-medium text-slate-800">Ринок гравців</h1>
         <p className="text-sm text-slate-500">
           Лотів {market.activeListings}/{market.listingLimit} · податок {Math.round(market.taxShare * 100)}% · строк{" "}
           {market.listingHours} год

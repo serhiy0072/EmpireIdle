@@ -35,8 +35,6 @@ const ROCK_GOLD = faces("#d6c7a1", "#b39b6b", "#8a7446");
 const ROCK_IRON = faces("#cbd5e1", "#94a3b8", "#64748b");
 const GOLD = faces("#fef08a", "#facc15", "#ca8a04");
 const IRON = faces("#e2e8f0", "#94a3b8", "#475569");
-const TENT = faces("#fecaca", "#ef4444", "#b91c1c");
-const TENT_STRIPE = faces("#fef2f2", "#fecaca", "#fca5a5");
 const HAY = faces("#fef3c7", "#fcd34d", "#d97706");
 const BRICK = faces("#fca5a5", "#dc2626", "#991b1b");
 
@@ -311,29 +309,6 @@ const heroeshall: Art = (cx, cy, s, tier) => {
   };
 };
 
-const lootshop: Art = (cx, cy, s, tier) => {
-  const h = 34 * s;
-  return {
-    foot: 4,
-    height: h + 18,
-    node: (
-      <g>
-        <Box cx={cx} cy={cy} hx={4.2} hy={4.2} h={2} faces={WOOD} />
-        <Pyramid cx={cx} cy={cy} hx={4} hy={4} z={2} h={h} faces={TENT} />
-        {/* Смуги намету */}
-        <Pyramid cx={cx - 1.4} cy={cy + 1.4} hx={0.9} hy={0.9} z={2} h={h * 0.62} faces={TENT_STRIPE} />
-        <Pyramid cx={cx + 1.4} cy={cy + 1.4} hx={0.9} hy={0.9} z={2} h={h * 0.62} faces={TENT_STRIPE} />
-        <Door cx={cx} cy={cy} hx={4} hy={4} z={2} side="left" h={12} color="#7f1d1d" arched />
-        <Flag x={cx} y={cy} z={h + 2} h={18} color={TIER_FLAG[tier]} />
-        <Crate x={cx + 5} y={cy + 2} />
-        <Barrel x={cx + 5} y={cy} />
-        {tier >= 1 && <Box cx={cx - 5} cy={cy + 2} hx={0.6} hy={0.6} h={3} faces={GOLD} />}
-        <Lantern x={cx - 4.8} y={cy + 4.8} h={10} />
-      </g>
-    ),
-  };
-};
-
 const hospital: Art = (cx, cy, s, tier) => {
   const h = 20 * s;
   const cross = faces("#ef4444", "#dc2626", "#b91c1c");
@@ -600,7 +575,6 @@ const ART: Record<string, Art> = {
   barracks,
   bank,
   heroeshall,
-  lootshop,
   hospital,
   market,
   spearyard,

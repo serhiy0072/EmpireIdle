@@ -16,13 +16,10 @@ const SCREENS: Record<string, readonly BuildingScreen[]> = {
   beastpen: [{ to: "/beasts", label: "Звіринець" }],
   hospital: [{ to: "/army", label: "Лазарет" }],
   heroeshall: [{ to: "/heroes", label: "Герої" }],
-  lootshop: [{ to: "/banners", label: "Банери" }],
   forge: [{ to: "/inventory?tab=equipment", label: "Спорядження" }],
   warehouse: [{ to: "/inventory", label: "Інвентар" }],
-  market: [
-    { to: "/market", label: "Ринок гравців" },
-    { to: "/shop", label: "Крамниця" },
-  ],
+  // Одна будівля на всю торгівлю: крамниця, банери й ринок гравців — вкладки (MarketTabs)
+  market: [{ to: "/shop", label: "Ринок" }],
   embassy: [{ to: "/clan", label: "Клан" }],
   scouttower: [
     { to: "/map", label: "Мапа світу" },

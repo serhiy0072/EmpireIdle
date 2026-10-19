@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import MarketTabs from "../components/shell/MarketTabs";
 import { useLocation } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import ItemIcon from "../components/inventory/ItemIcon";
@@ -139,6 +140,7 @@ export default function ShopPage() {
 
   return (
     <div className="space-y-6">
+      <MarketTabs />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Крамниця</h1>
         <p className="text-sm text-slate-500">💎 {gems.toLocaleString("uk-UA")}</p>

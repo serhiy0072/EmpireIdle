@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MarketTabs from "../components/shell/MarketTabs";
 import BannerCard from "../components/banners/BannerCard";
 import BannerDrops from "../components/banners/BannerDrops";
 import ErrorBanner from "../components/ErrorBanner";
@@ -58,6 +59,7 @@ export default function BannersPage() {
 
   return (
     <div className="space-y-4">
+      <MarketTabs />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Банери</h1>
         <p className="text-sm text-slate-500">
