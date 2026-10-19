@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import { classLabel } from "../../lib/heroClasses";
 import { useCatalog } from "../../lib/queries/catalog";
 import type { HeroSummary } from "../../lib/queries/heroes";
+import { strongestSquad } from "../../lib/squad";
 import { GameButton } from "../game/GameUi";
 import HeroPortrait from "../heroes/HeroPortrait";
 
@@ -13,8 +14,8 @@ interface Props {
 
 /**
  * Загін за доріжками: клік по герою ставить його на першу вільну доріжку, клік по доріжці — знімає.
- * Воїни й лицарі стоять у фронті, лучники стріляють із тилу — розстановка доріжок важить, бо ціль
- * шукається на найближчій доріжці.
+ * Глибину ставить клас — воїни у фронті, лицарі за ними, лучники в тилу; доріжка важить, бо ціль
+ * шукається на найближчій. «Найсильніші» ставлять фронт на центральні доріжки.
  */
 export default function SquadPicker({ heroes, lanes, onChange }: Props): ReactElement {
   const catalog = useCatalog();
@@ -35,7 +36,7 @@ export default function SquadPicker({ heroes, lanes, onChange }: Props): ReactEl
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">Загін</h3>
-        <GameButton variant="secondary" onClick={() => onChange(lanes.map((_, lane) => strongest[lane]?.id ?? null))}>
+        <GameButton variant="secondary" onClick={() => onChange(strongestSquad(heroes, lanes.length, (hero) => catalog.hero(hero.heroKey)?.class))}>
           Найсильніші
         </GameButton>
       </div>
