@@ -165,10 +165,7 @@ namespace EmpireIdle.Application.Lootboxes.Services
             return pity;
         }
 
-        /// <summary>
-        /// Предмети наборів заданої рідкості з данжів, уже відкритих гравцеві за ратушею. Жоден ще
-        /// не відкритий — набір найпершого данжу: скриня не має видати порожнечу новачкові.
-        /// </summary>
+        /// <summary>Предмети наборів заданої рідкості за ратушею гравця (ArtifactPool) — раз на рідкість за запит.</summary>
         private async Task<IReadOnlyList<string>> ArtifactPiecesAsync(Session session, Rarity rarity,
             CancellationToken cancellationToken)
         {
@@ -183,27 +180,7 @@ namespace EmpireIdle.Application.Lootboxes.Services
                 session.MainLevel = village.Buildings.FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)?.Level.Value ?? 0;
             }
 
-            var suffix = rarity.ToString().ToLowerInvariant();
-
-            // Валідатор гарантує, що бодай один данж має набір цієї рідкості
-            var dungeons = _catalog.Dungeons.Values
-                .Where(d => _catalog.SetPieces.ContainsKey($"{d.ArtifactSetKey}_{suffix}"))
-                .ToList();
-
-            var open = dungeons.Where(d => d.RequiresMainBuildingLevel <= session.MainLevel).ToList();
-
-            if (open.Count == 0)
-            {
-                var first = dungeons.Min(d => d.RequiresMainBuildingLevel);
-                open = dungeons.Where(d => d.RequiresMainBuildingLevel == first).ToList();
-            }
-
-            // Сортування — щоб порядок у JSON не впливав на те, що дає той самий кидок
-            var pieces = open
-                .SelectMany(d => _catalog.SetPieces[$"{d.ArtifactSetKey}_{suffix}"])
-                .Distinct()
-                .OrderBy(key => key, StringComparer.Ordinal)
-                .ToList();
+            var pieces = ArtifactPool.Pieces(_catalog, rarity, session.MainLevel.Value);
 
             session.Pieces[rarity] = pieces;
             return pieces;

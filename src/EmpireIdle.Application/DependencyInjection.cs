@@ -107,6 +107,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IRewardGranter, EquipmentRewardGranter>();
             services.AddScoped<IRewardGranter, HeroExperienceRewardGranter>();
             services.AddScoped<IRewardGranter, HeroShardsRewardGranter>();
+            services.AddScoped<IRewardGranter, ArtifactRewardGranter>();
             services.AddScoped<RewardDispatcher>();
             services.AddScoped<LootboxOpener>();
             services.AddScoped<ShopCheckout>();
