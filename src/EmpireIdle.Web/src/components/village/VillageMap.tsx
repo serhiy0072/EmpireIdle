@@ -41,8 +41,9 @@ interface Drag {
 
 export default function VillageMap({ buildings, catalog, selectedId, onSelect, onCollect, editing = false, onMove }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { transform, handlers, wasDragged } = usePanZoom(containerRef, WORLD);
+  const { transform, handlers, wasDragged, moving } = usePanZoom(containerRef, WORLD);
   const [drag, setDrag] = useState<Drag | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const wall = buildings.find((building) => building.type === WALL_KEY) ?? null;
   const wallLocked = wall !== null && !wall.isUnlocked;
@@ -156,6 +157,8 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
               <g
                 key={building.id}
                 onPointerDown={startDrag(building.id, position)}
+                onPointerEnter={() => setHoveredId(building.id)}
+                onPointerLeave={() => setHoveredId((id) => (id === building.id ? null : id))}
                 className={editing ? "cursor-grab" : undefined}
                 opacity={drag?.id === building.id ? 0.75 : 1}
               >
@@ -206,6 +209,8 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                   resource={catalog.building(building.type)?.producesResource ?? null}
                   bubble={collectable ? compact(building.storedAmount) : null}
                   zoom={transform.k}
+                  // Таблички — лише поки камера рухається або на будівлю навели; статичне село без написів
+                  labelled={moving || building.id === hoveredId}
                   onSelect={tap(() => onSelect(building.id))}
                   onCollect={tap(() => onCollect(building.id))}
                 />
