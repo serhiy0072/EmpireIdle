@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import BattleReplayPlayer from "../components/battle/BattleReplayPlayer";
 import BattleSummary from "../components/battle/BattleSummary";
 import SquadPicker from "../components/battle/SquadPicker";
@@ -6,7 +6,7 @@ import ErrorBanner from "../components/ErrorBanner";
 import { GameButton, GamePanel, GameScreen, GameTabs } from "../components/game/GameUi";
 import { RewardLine, TowerFloorPanel, TowerLeaderboardPanel, TowerStrip } from "../components/tower/TowerPanels";
 import { useSession } from "../hooks/useSession";
-import type { TowerStormResult } from "../lib/apiTypes";
+import type { TowerFloorView, TowerStormResult } from "../lib/apiTypes";
 import { useHeroes } from "../lib/queries/heroes";
 import { useStormTowerFloor, useTower, useTowerLeaderboard } from "../lib/queries/tower";
 import { loadSquad, saveSquad } from "../lib/squad";
@@ -50,34 +50,56 @@ export default function TowerPage() {
   // Бос береться з поверху на момент штурму: після перемоги вежа вже показує наступний
   const [bossLane, setBossLane] = useState<number | null>(null);
   const [watching, setWatching] = useState(false);
+  // Автоштурм: після кожної перемоги — наступний поверх, до першої поразки
+  const [auto, setAuto] = useState(false);
+  const next = tower.data?.next ?? null;
+  // Вежу підкорено — автоштурму далі нікуди йти
+  const autoRunning = auto && next != null;
+
+  const stormFloor = (floor: TowerFloorView) => {
+    const boss = floor.enemies.find((enemy) => enemy.boss)?.lane ?? null;
+
+    storm.mutate(
+      { floor: floor.number, lanes },
+      {
+        onSuccess: (outcome) => {
+          setResult(outcome);
+          setBossLane(boss);
+          setWatching(true);
+          if (!outcome.victory) setAuto(false);
+        },
+        onError: () => setAuto(false),
+      },
+    );
+  };
+
+  const continueAuto = useEffectEvent((floor: TowerFloorView) => stormFloor(floor));
+
+  // Наступний штурм — коли відтворення скінчилось і вежа вже показує наступний поверх
+  useEffect(() => {
+    if (!autoRunning || watching || storm.isPending || result === null || !result.victory) return;
+    if (next.number !== result.floor + 1) return;
+
+    continueAuto(next);
+  }, [autoRunning, watching, storm.isPending, result, next]);
 
   if (tower.isPending) return <p className="text-slate-500">Підіймаємося сходами…</p>;
   if (tower.isError) return <ErrorBanner error={tower.error} />;
 
   const view = tower.data;
   const buffed = view.attackBuff > 1 || view.defenseBuff > 1;
-  const next = view.next;
+  const canStorm = !storm.isPending && lanes.some((id) => id !== null);
 
   const changeSquad = (updated: (string | null)[]) => {
     setChosen(updated);
     saveSquad(storageKey, updated);
   };
 
-  const attack = () => {
+  const startAuto = () => {
     if (next == null) return;
 
-    const boss = next.enemies.find((enemy) => enemy.boss)?.lane ?? null;
-
-    storm.mutate(
-      { floor: next.number, lanes },
-      {
-        onSuccess: (outcome) => {
-          setResult(outcome);
-          setBossLane(boss);
-          setWatching(true);
-        },
-      },
-    );
+    setAuto(true);
+    stormFloor(next);
   };
 
   return (
@@ -122,6 +144,15 @@ export default function TowerPage() {
                 : "Бафів немає: бусти крамниці й звірі підсилюють загін у вежі"}
             </p>
 
+            {autoRunning && (
+              <div className="flex items-center justify-between rounded-lg bg-amber-900/40 px-3 py-1.5 text-sm ring-1 ring-amber-300">
+                <span>Автоштурм — до першої поразки</span>
+                <GameButton variant="secondary" onClick={() => setAuto(false)}>
+                  Зупинити
+                </GameButton>
+              </div>
+            )}
+
             {result !== null && watching && (
               // Ключ — номер поверху й момент: новий штурм починає відтворення з нуля
               <BattleReplayPlayer key={`${result.floor}-${storm.submittedAt}`} replay={result.battle} bossLane={bossLane} onFinished={() => setWatching(false)} />
@@ -161,8 +192,11 @@ export default function TowerPage() {
               <div className="space-y-2">
                 <SquadPicker heroes={ready} lanes={lanes} onChange={changeSquad} />
                 <ErrorBanner error={storm.error} />
-                <div className="flex justify-end">
-                  <GameButton variant="accent" onClick={attack} disabled={storm.isPending || lanes.every((id) => id === null)}>
+                <div className="flex justify-end gap-2">
+                  <GameButton variant="secondary" onClick={startAuto} disabled={!canStorm || autoRunning}>
+                    Авто до поразки
+                  </GameButton>
+                  <GameButton variant="accent" onClick={() => stormFloor(next)} disabled={!canStorm || autoRunning}>
                     {storm.isPending ? "Бій…" : `Штурм поверху ${next.number}`}
                   </GameButton>
                 </div>
