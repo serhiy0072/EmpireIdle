@@ -169,9 +169,10 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
     .Validate(c => c.RealtimeBattle.TickMilliseconds > 0 && c.RealtimeBattle.MaxBattleSeconds * 1000 >= c.RealtimeBattle.TickMilliseconds,
         "GameConfig.RealtimeBattle needs a positive tick that fits into MaxBattleSeconds.")
-    .Validate(c => c.RealtimeBattle.MeleeApproachSeconds >= 0 && c.RealtimeBattle.RangedApproachSeconds >= 0
-            && c.RealtimeBattle.MeleeApproachSeconds < c.RealtimeBattle.MaxBattleSeconds && c.RealtimeBattle.RangedApproachSeconds < c.RealtimeBattle.MaxBattleSeconds,
-        "GameConfig.RealtimeBattle approach times must be non-negative and shorter than the battle.")
+    .Validate(c => c.RealtimeBattle.MeleeApproachSeconds >= 0 && c.RealtimeBattle.RangedApproachSeconds >= 0 && c.RealtimeBattle.LineAdvanceSeconds >= 0
+            && c.RealtimeBattle.MeleeApproachSeconds < c.RealtimeBattle.MaxBattleSeconds && c.RealtimeBattle.RangedApproachSeconds < c.RealtimeBattle.MaxBattleSeconds
+            && c.RealtimeBattle.LineAdvanceSeconds < c.RealtimeBattle.MaxBattleSeconds,
+        "GameConfig.RealtimeBattle approach and line advance times must be non-negative and shorter than the battle.")
     .Validate(c => c.RealtimeBattle.DefensePerHalfDamage > 0, "GameConfig.RealtimeBattle.DefensePerHalfDamage must be positive — otherwise any defense blocks every hit.")
     .Validate(c => new[] { c.RealtimeBattle.HeroHealthScale, c.RealtimeBattle.ConvoyAttackScale, c.RealtimeBattle.ConvoyHealthScale, c.RealtimeBattle.ConvoyDefenseScale }.All(v => v > 0),
         "GameConfig.RealtimeBattle hero and convoy scales must be positive — a fighter without health or attack never ends a battle.")

@@ -27,6 +27,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки секунд ближній боєць іде до ворога, перш ніж бити.</summary>
         public double MeleeApproachSeconds { get; set; } = 1.5;
 
+        /// <summary>
+        /// Скільки секунд ближні бійці йдуть до наступної ворожої лінії, коли попередню прорвано
+        /// (рішення 19.10.2026: 1 с); весь цей час не б'ють і не кастують уміння по ворогу.
+        /// </summary>
+        public double LineAdvanceSeconds { get; set; } = 1;
+
         /// <summary>Скільки секунд дальній боєць цілиться перед першим пострілом.</summary>
         public double RangedApproachSeconds { get; set; } = 0.5;
 

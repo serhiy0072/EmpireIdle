@@ -37,6 +37,9 @@ namespace EmpireIdle.Domain.Battles
             var events = new List<BattleEvent>();
             var round = new Round();
 
+            foreach (var fighter in fighters.Where(f => f.Melee))
+                fighter.FacingLine = EnemyFront(fighter, fighters);
+
             var maxTicks = _config.MaxBattleSeconds * 1000 / _config.TickMilliseconds;
             BattleSide? winner = null;
             var tick = 0;
@@ -56,6 +59,9 @@ namespace EmpireIdle.Domain.Battles
                 Resolve(round, tick, time, events);
                 Bury(fighters, tick, events);
                 winner = Winner(fighters);
+
+                if (winner is null)
+                    Advance(fighters, tick, time, events);
             }
 
             return new BattleResult(
@@ -90,7 +96,7 @@ namespace EmpireIdle.Domain.Battles
                 if (time + Epsilon < fighter.Skills[i].NextCast)
                     continue;
 
-                if (Cast(fighter, fighter.Skills[i].Skill, i, fighters, random, round))
+                if (Cast(fighter, fighter.Skills[i].Skill, i, fighters, time, random, round))
                     fighter.Skills[i] = fighter.Skills[i] with { NextCast = time + fighter.Skills[i].Skill.Cooldown };
             }
         }
@@ -101,15 +107,22 @@ namespace EmpireIdle.Domain.Battles
         /// </summary>
         private bool Swings(Fighter fighter, double time)
         {
-            if (time + Epsilon < fighter.Approach)
+            // Між лініями таймер тече далі, але не накопичує більше одного удару: дійшов — б'є, щойно готовий
+            if (Walking(fighter, time))
+            {
+                if (fighter.Engaged)
+                    fighter.Progress = Math.Min(1, fighter.Progress + TickSeconds / fighter.Stats.AttackInterval);
+
                 return false;
+            }
 
             if (!fighter.Engaged)
             {
                 fighter.Engaged = true;
                 fighter.Progress = 1;
             }
-            else
+            // Удар, що дозрів під час ходу, лягає щойно дійшов — без надлишку, який зсунув би наступний
+            else if (fighter.Progress + Epsilon < 1)
                 fighter.Progress += TickSeconds / fighter.Stats.AttackInterval;
 
             if (fighter.Progress + Epsilon < 1)
@@ -176,9 +189,13 @@ namespace EmpireIdle.Domain.Battles
         /// зачіпає загін цілі — героя й конвої — часткою AoeShare; масове по своїх — усіх героїв
         /// і власні конвої. Немає кого зачепити — вміння чекає наступного тику, а не згорає.
         /// </summary>
-        private bool Cast(Fighter caster, BattleSkill skill, int index, List<Fighter> fighters, DeterministicRandom random, Round round)
+        private bool Cast(Fighter caster, BattleSkill skill, int index, List<Fighter> fighters, double time, DeterministicRandom random, Round round)
         {
             var allies = fighters.Where(f => f.Alive && f.Side == caster.Side).ToList();
+
+            // По ворогу ближній кастує лише тих, хто перед ним: поки йде, вміння чекає
+            if (caster.Melee && Walking(caster, time) && skill.Target is AbilityTarget.SingleEnemy or AbilityTarget.AllEnemies)
+                return false;
 
             var targets = skill.Target switch
             {
@@ -397,6 +414,33 @@ namespace EmpireIdle.Domain.Battles
                 convoy.Stats = convoy.Leaderless!;
         }
 
+        /// <summary>
+        /// Ворожу лінію прорвано: ближні бійці йдуть до наступної LineAdvanceSeconds і весь цей час не б'ють.
+        /// Іде лише сторона, що прорвала, — та, чий фронт упав, стоїть, і на неї наступають. Стрільці не рухаються.
+        /// </summary>
+        private void Advance(List<Fighter> fighters, int tick, double time, List<BattleEvent> events)
+        {
+            foreach (var fighter in fighters.Where(f => f.Alive && f.Melee))
+            {
+                var front = EnemyFront(fighter, fighters);
+
+                if (front is null || front <= fighter.FacingLine)
+                    continue;
+
+                fighter.FacingLine = front;
+                fighter.Approach = time + _config.LineAdvanceSeconds;
+                fighter.Target = null;
+                events.Add(new BattleEvent(tick, BattleEventKind.Advance, fighter.Index, fighter.Index, _config.LineAdvanceSeconds, Detail: front.Value));
+            }
+        }
+
+        /// <summary>Найпередня жива лінія ворога; null — ворогів не лишилось.</summary>
+        private static int? EnemyFront(Fighter fighter, List<Fighter> fighters)
+            => fighters.Where(f => f.Alive && f.Side != fighter.Side).Select(f => (int?)f.Line).Min();
+
+        /// <summary>Ближній ще йде до ворога — ні удару, ні вміння по ворогу.</summary>
+        private static bool Walking(Fighter fighter, double time) => time + Epsilon < fighter.Approach;
+
         /// <summary>Переможець — хто лишився на полі. Полягли обидва в одному тику — нападник не дотиснув.</summary>
         private static BattleSide? Winner(List<Fighter> fighters)
         {
@@ -494,7 +538,10 @@ namespace EmpireIdle.Domain.Battles
             public string? UnitType { get; } = unitType;
             public int Line { get; } = line;
             public bool Melee { get; } = melee;
-            public double Approach { get; } = approach;
+            public double Approach { get; set; } = approach;
+
+            /// <summary>Ворожа лінія, до якої дійшов ближній боєць; ближча за неї впала — він іде далі.</summary>
+            public int? FacingLine { get; set; }
             public double MaxHealth { get; } = stats.MaxHealth;
             public double Ward { get; } = stats.MaxHealth * stats.Ward;
             public FighterStats? Leaderless { get; } = leaderless;

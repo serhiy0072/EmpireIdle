@@ -12,6 +12,7 @@
         "archer"
       ],
       "MeleeApproachSeconds": 1.5,
+      "LineAdvanceSeconds": 1,
       "RangedApproachSeconds": 0.5,
       "DefensePerHalfDamage": 2,
       "HeroHealthScale": 4,

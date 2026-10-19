@@ -180,6 +180,56 @@ public class RealtimeBattleEngineTests
         Assert.Equal([3, 2, 2], HitsBy(result, 0).Take(3).Select(e => e.Target));
     }
 
+    /// <summary>
+    /// Прорвали фронт — ближній іде секунду до наступної лінії: удар, що мав бути на 20-му тику,
+    /// лягає на 25-му, коли боєць дійшов.
+    /// </summary>
+    [Fact]
+    public void Run_ShouldWalkToTheNextLine_AfterBreakingTheFront()
+    {
+        var defenders = new[] { WarriorHero(0, Stats(health: 1)), KnightHero(1, Stats()) };
+
+        var result = Run([WarriorHero(0, Stats(attack: 10, interval: 0.5))], defenders);
+
+        Assert.Equal([15, 25, 30], HitsBy(result, 0).Take(3).Select(e => e.Tick));
+        Assert.Contains(new BattleEvent(15, BattleEventKind.Advance, 0, 0, 1, Detail: 1), result.Events);
+    }
+
+    /// <summary>Повільний боєць за секунду ходу не втрачає й не виграє удару: таймер тече, але не понад один.</summary>
+    [Fact]
+    public void Run_ShouldKeepTheAttackTimer_WhileWalking()
+    {
+        var defenders = new[] { WarriorHero(0, Stats(health: 1)), KnightHero(1, Stats()) };
+
+        var result = Run([WarriorHero(0, Stats(attack: 10, interval: 2))], defenders);
+
+        Assert.Equal([15, 35], HitsBy(result, 0).Take(2).Select(e => e.Tick));
+    }
+
+    /// <summary>Іде лише сторона, що прорвала: лицар, чий фронт упав, б'є далі без паузи.</summary>
+    [Fact]
+    public void Run_ShouldNotMoveTheSideWhoseFrontFell()
+    {
+        var attackers = new[] { WarriorHero(0, Stats(health: 1)), KnightHero(1, Stats(attack: 1, interval: 1)) };
+
+        var result = Run(attackers, [WarriorHero(0, Stats(attack: 10))]);
+
+        Assert.Equal([15, 25, 35], HitsBy(result, 1).Take(3).Select(e => e.Tick));
+        Assert.DoesNotContain(result.Events, e => e.Kind == BattleEventKind.Advance && e.Source == 1);
+    }
+
+    /// <summary>Стрільцям не треба рухатися: прорив лінії не збиває їм темп.</summary>
+    [Fact]
+    public void Run_ShouldNotMoveArchers()
+    {
+        var defenders = new[] { WarriorHero(0, Stats(health: 1)), KnightHero(1, Stats()) };
+
+        var result = Run([ArcherHero(0, Stats(attack: 10, interval: 0.5))], defenders);
+
+        Assert.Equal([5, 10, 15], HitsBy(result, 0).Take(3).Select(e => e.Tick));
+        Assert.DoesNotContain(result.Events, e => e.Kind == BattleEventKind.Advance);
+    }
+
     /// <summary>Лицар — ближній боєць другої лінії: так само йде до ворожого фронту, а не стріляє.</summary>
     [Fact]
     public void Run_ShouldLetKnightsWalkToTheFront()

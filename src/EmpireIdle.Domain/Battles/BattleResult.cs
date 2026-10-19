@@ -16,7 +16,13 @@ namespace EmpireIdle.Domain.Battles
         Shield,
 
         /// <summary>На бійця ліг стан; Detail — BattleStatusKind, Amount — скільки секунд.</summary>
-        Status
+        Status,
+
+        /// <summary>
+        /// Ворожу лінію прорвано — ближній боєць іде до наступної; Detail — номер лінії, на яку йде,
+        /// Amount — скільки секунд іде.
+        /// </summary>
+        Advance
     }
 
     /// <summary>Подробиці удару для відтворення.</summary>
