@@ -333,6 +333,28 @@ const hospital: Art = (cx, cy, s, tier) => {
   };
 };
 
+/** Їдальня (рішення 20.10.2026): довга зала з димарем, надворі столи з казанами. Рівнів немає — tier не росте. */
+const messhall: Art = (cx, cy) => ({
+  foot: 5,
+  height: 26,
+  node: (
+    <g>
+      <Box cx={cx} cy={cy} hx={5.5} hy={5.5} h={1} faces={ROOF_SLATE} />
+      <Box cx={cx - 0.8} cy={cy - 1} hx={4.2} hy={2.6} h={9} z={1} faces={WOOD} />
+      <Gable cx={cx - 0.8} cy={cy - 1} hx={4.6} hy={3} z={10} h={6} faces={ROOF_RED} />
+      <Box cx={cx + 2} cy={cy - 2} hx={0.6} hy={0.6} h={9} z={10} faces={BRICK} />
+      <Cylinder cx={cx + 2} cy={cy - 2} r={0.7} z={20} h={2} faces={WHITE} />
+      {[-2.5, 1].map((dx) => (
+        <g key={dx}>
+          <Box cx={cx + dx} cy={cy + 3.4} hx={1.4} hy={0.6} h={2} z={1} faces={WOOD} />
+          <Cylinder cx={cx + dx} cy={cy + 3.4} r={0.45} z={3} h={1} faces={DARK} />
+        </g>
+      ))}
+      <Lantern x={cx + 3.5} y={cy + 1.5} h={9} />
+    </g>
+  ),
+});
+
 const market: Art = (cx, cy, _s, tier) => {
   const stalls = [
     { dx: -2.5, dy: -2.5, roof: ROOF_RED, goods: GOLD },
@@ -577,6 +599,7 @@ const ART: Record<string, Art> = {
   heroeshall,
   hospital,
   market,
+  messhall,
   spearyard,
   range,
   embassy,

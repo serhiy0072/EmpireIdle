@@ -87,7 +87,7 @@ export default function VillagePage() {
       <div className="absolute inset-x-3 top-16 mx-auto max-w-xl space-y-2 empty:hidden">
         <ErrorBanner error={failure} />
 
-        {village.data.isHungry && <HungerBanner />}
+        {village.data.isHungry && <HungerBanner kind="village" />}
 
         {village.data.damage != null && (
           <DamageBanner

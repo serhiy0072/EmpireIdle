@@ -9,6 +9,7 @@ const GENITIVE: Record<string, string> = {
   stone: "каменю",
   iron: "заліза",
   food: "м'яса",
+  fodder: "корму",
   gems: "самоцвітів",
   "dungeon-energy": "енергії данжів",
   heroExperience: "досвіду героїв",

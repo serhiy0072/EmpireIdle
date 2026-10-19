@@ -49,15 +49,15 @@ export default function BeastPenPage() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Звіринець</h1>
         <p className="text-sm text-slate-600">
-          Видів {pen.data.beasts.length} з {pen.data.capacity} · корму {feedLeft.toLocaleString("uk-UA")}
-          {pen.data.foodUpkeepPerHour > 0 && (
-            <> · їсть {pen.data.foodUpkeepPerHour.toLocaleString("uk-UA")} їжі/год</>
+          Видів {pen.data.beasts.length} з {pen.data.capacity} · ласощів {feedLeft.toLocaleString("uk-UA")}
+          {pen.data.fodderUpkeepPerHour > 0 && (
+            <> · їсть {pen.data.fodderUpkeepPerHour.toLocaleString("uk-UA")} корму/год</>
           )}
         </p>
       </div>
 
       {/* Звіринець їсть зі складу й незібраного виробітку ферм (рішення 13.10.2026) */}
-      {pen.data.isHungry && <HungerBanner />}
+      {pen.data.isHungry && <HungerBanner kind="beasts" />}
 
       <ErrorBanner error={feed.error ?? activate.error} />
 
@@ -193,7 +193,7 @@ function BeastCard({ beast, name, now, feedLeft, busy, onFeed, onActivate }: Car
             disabled={busy}
             className="w-full rounded-lg bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            Активувати за {passive.activationFood.toLocaleString("uk-UA")} їжі
+            Активувати за {passive.activationFodder.toLocaleString("uk-UA")} корму
           </button>
         )}
       </div>
