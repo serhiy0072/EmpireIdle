@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { useAttention } from "../hooks/useAttention";
 import { useSession } from "../hooks/useSession";
 import { logout } from "../lib/auth";
 import { seedAccount } from "../lib/dev";
 import { appendChatEvent } from "../lib/queries/chat";
-import { useMailUnread } from "../lib/queries/mail";
 import { DEFAULT_LANGUAGE, useChangeLanguage, useDailyCheckIn, usePlayerSettings } from "../lib/queries/player";
 import { useVillage } from "../lib/queries/village";
 import { onGameEvent } from "../lib/realtime/connection";
@@ -32,7 +32,7 @@ export default function AppLayout() {
   const wallet = useWallet(playerId);
   const tutorial = useTutorial(playerId);
   const settings = usePlayerSettings(playerId);
-  const mailUnread = useMailUnread(playerId);
+  const attention = useAttention(playerId);
   const changeLanguage = useChangeLanguage(playerId);
   const language = settings.data?.language ?? DEFAULT_LANGUAGE;
   const [menu, setMenu] = useState(false);
@@ -139,7 +139,7 @@ export default function AppLayout() {
         </main>
       </div>
 
-      <BottomNav mailUnread={mailUnread.data ?? 0} />
+      <BottomNav attention={attention} />
 
       {tutorial.step !== null && (
         <TutorialOverlay step={tutorial.step} onDismiss={tutorial.dismiss} onSkip={tutorial.skip} />

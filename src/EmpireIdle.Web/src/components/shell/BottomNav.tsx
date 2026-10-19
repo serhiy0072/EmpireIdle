@@ -27,24 +27,30 @@ const MORE = [
 ] as const;
 
 interface Props {
-  mailUnread: number;
+  /** Скільки чекає в кожному розділі (шлях → кількість), з useAttention. */
+  attention: Record<string, number>;
 }
 
 /**
  * Нижня панель розділів, як у мобільних стратегіях (рішення 19.10.2026): значки з підписом,
  * активний розділ піднятий і світліший. «Ще» відкриває сітку решти розділів над панеллю.
  */
-export default function BottomNav({ mailUnread }: Props) {
+export default function BottomNav({ attention }: Props) {
   const location = useLocation();
   const [more, setMore] = useState(false);
 
   const inMore = MORE.some((item) => location.pathname.startsWith(item.to));
+  // Червона крапка з кількістю — щось чекає, щоб його забрали; гасне, щойно забрано
   const badge = (count: number) =>
     count > 0 && (
-      <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-4 text-white ring-1 ring-white">
-        {count}
+      <span className="absolute -right-1.5 -top-1 flex">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60" />
+        <span className="relative min-w-4 rounded-full bg-rose-500 px-1 text-center text-[10px] font-bold leading-4 text-white shadow ring-1 ring-white">
+          {count > 99 ? "99+" : count}
+        </span>
       </span>
     );
+  const waitingInMore = MORE.reduce((sum, item) => sum + (attention[item.to] ?? 0), 0);
 
   const tab = (active: boolean) =>
     `relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-t-xl px-1 pb-1.5 pt-1 text-[11px] font-semibold transition ${
@@ -70,7 +76,7 @@ export default function BottomNav({ mailUnread }: Props) {
               >
                 <span className="text-2xl">{item.emoji}</span>
                 {item.label}
-                {item.to === "/mail" && badge(mailUnread)}
+                {badge(attention[item.to] ?? 0)}
               </NavLink>
             ))}
           </div>
@@ -85,7 +91,10 @@ export default function BottomNav({ mailUnread }: Props) {
             onClick={() => setMore(false)}
             className={({ isActive }) => tab(isActive)}
           >
-            <NavIcon name={item.icon} />
+            <span className="relative">
+              <NavIcon name={item.icon} />
+              {badge(attention[item.to] ?? 0)}
+            </span>
             <span className="w-full truncate text-center">{item.label}</span>
           </NavLink>
         ))}
@@ -97,7 +106,7 @@ export default function BottomNav({ mailUnread }: Props) {
         >
           <span className="relative">
             <NavIcon name="more" />
-            {badge(mailUnread)}
+            {badge(waitingInMore)}
           </span>
           <span className="w-full truncate text-center">Ще</span>
         </button>
