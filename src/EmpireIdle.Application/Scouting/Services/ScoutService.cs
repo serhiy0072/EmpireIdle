@@ -28,6 +28,8 @@ namespace EmpireIdle.Application.Scouting.Services
         private readonly PlunderCalculator _plunder;
         private readonly EffectResolver _effectResolver;
         private readonly WorldGeometry _geometry;
+        private readonly MarchCalculator _calculator;
+        private readonly GameCatalog _catalog;
         private readonly ILogger<ScoutService> _logger;
 
         public ScoutService(
@@ -42,6 +44,8 @@ namespace EmpireIdle.Application.Scouting.Services
             PlunderCalculator plunder,
             EffectResolver effectResolver,
             WorldGeometry geometry,
+            MarchCalculator calculator,
+            GameCatalog catalog,
             ILogger<ScoutService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -55,6 +59,8 @@ namespace EmpireIdle.Application.Scouting.Services
             _plunder = plunder;
             _effectResolver = effectResolver;
             _geometry = geometry;
+            _calculator = calculator;
+            _catalog = catalog;
             _logger = logger;
         }
 
@@ -73,7 +79,11 @@ namespace EmpireIdle.Application.Scouting.Services
                 _ => await ScoutStructureAsync(march, scouter, terrain, utcNow, cancellationToken)
             };
 
-            march.FinishScouting(utcNow);
+            // Назад — тією ж дорогою й власною швидкістю розвідників, як і туди
+            var returnDuration = _calculator.CalculateDuration(
+                march.ServerId, march.TargetX, march.TargetY, march.OriginX, march.OriginY, _catalog.Config.Combat.Scouting.Speed);
+
+            march.FinishScouting(returnDuration, utcNow);
 
             await _reports.AddAsync(report, cancellationToken);
 

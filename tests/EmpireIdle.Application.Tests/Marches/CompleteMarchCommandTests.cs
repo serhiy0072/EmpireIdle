@@ -259,7 +259,7 @@ public class CompleteMarchCommandTests
             new HostilityRules(_clans), NullLogger<CampBattleService>.Instance);
 
         var scouts = new ScoutService(_garrisons, _villages, _structures, _serverRepository, _scoutReports,
-            targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry,
+            targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry, calculator, catalog,
             NullLogger<ScoutService>.Instance);
 
         return new CompleteMarchCommandHandler(
@@ -1058,7 +1058,7 @@ public class CompleteMarchCommandTests
 
     /// <summary>
     /// Розвідники дивляться й звітують: сила оборони — та сама, що в бою, здобич — понад
-    /// захищений запас. Нічого в цілі не змінюється, і назад розвідники не йдуть.
+    /// захищений запас. Нічого в цілі не змінюється, а розвідники йдуть додому.
     /// </summary>
     [Fact]
     public async Task Handle_ShouldReportTheDefenceAndLoot_WhenScoutsArrive()
@@ -1079,7 +1079,9 @@ public class CompleteMarchCommandTests
         Assert.Equal(10, targetGarrison.Units.Sum(u => u.Count));
         await _reports.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
 
-        Assert.Equal(MarchState.Completed, march.State);
+        Assert.Equal(MarchState.Returning, march.State);
+        Assert.Equal(Now, march.LegStartedAt);
+        Assert.True(march.ArrivesAt > Now, "Розвідники мають іти додому, а не з'являтися вдома миттєво.");
         var filed = Assert.Single(report.DomainEvents.OfType<ScoutReportFiled>());
         Assert.Equal((PlayerId, report.Id, target.Name, ScoutOutcome.Success), (filed.PlayerId, filed.ReportId, filed.TargetName, filed.Outcome));
         await _notifier.DidNotReceiveWithAnyArgs().NotifyScoutReportReadyAsync(default, default, default!, default!, default);

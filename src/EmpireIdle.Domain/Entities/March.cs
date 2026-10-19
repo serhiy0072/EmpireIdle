@@ -239,15 +239,17 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Розвідники дійшли й подивились: звіт складено на місці, назад вони не йдуть —
-        /// ні юнітів, ні героя в марші немає.
+        /// Розвідники дійшли й подивились: звіт складено на місці, і загін іде додому — на мапі видно
+        /// і дорогу туди, і назад. Юнітів і героя в марші немає, тож удома вони нічого не приносять.
         /// </summary>
-        public void FinishScouting(DateTime utcNow)
+        public void FinishScouting(TimeSpan returnDuration, DateTime utcNow)
         {
             if (Intent != MarchIntent.Scout || State != MarchState.Outbound)
                 throw new InvalidStateException($"March {Id} is not an outbound scout march.");
 
-            State = MarchState.Completed;
+            State = MarchState.Returning;
+            ArrivesAt = utcNow + returnDuration;
+            LegStartedAt = utcNow;
 
             Touch(utcNow);
         }
