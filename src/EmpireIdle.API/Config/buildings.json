@@ -211,16 +211,6 @@
         "UpgradeCostGrowth": 1.28
       },
       {
-        "Key": "lootshop",
-        "DisplayName": "Торгова лавка",
-        "Upgradable": false,
-        "RequiresMainBuildingLevel": 3,
-        "Position": {
-          "X": 68.0,
-          "Y": 26.0
-        }
-      },
-      {
         "Key": "hospital",
         "DisplayName": "Госпіталь",
         "RequiresMainBuildingLevel": 3,
@@ -250,7 +240,7 @@
         "Key": "market",
         "DisplayName": "Ринок",
         "Upgradable": false,
-        "RequiresMainBuildingLevel": 4,
+        "RequiresMainBuildingLevel": 3,
         "Position": {
           "X": 68.0,
           "Y": 42.0
