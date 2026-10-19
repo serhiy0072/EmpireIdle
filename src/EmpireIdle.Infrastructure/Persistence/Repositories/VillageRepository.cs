@@ -65,6 +65,19 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsDueAutoCollectAsync(DateTime dueBefore, int batchSize,
+            CancellationToken cancellationToken = default)
+            => await _context.Villages
+                .AsNoTracking()
+                .Where(v => v.AutoCollectedAt == null || v.AutoCollectedAt <= dueBefore)
+                // Нові села першими, далі найдавніше зібрані: при великій пачці ніхто не чекає вічно
+                .OrderBy(v => v.AutoCollectedAt == null ? 0 : 1)
+                .ThenBy(v => v.AutoCollectedAt)
+                .Take(batchSize)
+                .Select(v => v.Id)
+                .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public async Task<IReadOnlyList<Guid>> GetIdsDueFoodUpkeepAsync(IReadOnlyCollection<string> penTypes,
             DateTime dueBefore, int batchSize, CancellationToken cancellationToken = default)
             => await _context.Villages

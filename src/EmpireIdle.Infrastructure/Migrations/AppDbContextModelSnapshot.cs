@@ -2575,6 +2575,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("AutoCollectedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("DefeatStreak")
                         .HasColumnType("integer");
 

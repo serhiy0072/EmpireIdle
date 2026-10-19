@@ -61,6 +61,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>До якого моменту звіринець уже нагодовано; null — ще жодного разу (рішення 13.10.2026).</summary>
         public DateTime? FoodUpkeepAt { get; private set; }
 
+        /// <summary>Коли село востаннє зібрали автоматично; null — ще жодного разу.</summary>
+        public DateTime? AutoCollectedAt { get; private set; }
+
         /// <summary>Остання оплата їжі не вдалась: захист і видобуток (крім їжі) знижені, доки їжі знову не вистачить.</summary>
         public bool IsHungry { get; private set; }
 
@@ -317,6 +320,21 @@ namespace EmpireIdle.Domain.Entities
             }
 
             return new CollectionSummary(collected);
+        }
+
+        /// <summary>
+        /// Регулярний автозбір (рішення 19.10.2026): усе вироблене саме переходить на склад,
+        /// без кнопки «Зібрати». Те саме ядро, що й «Зібрати все», — квести на збір рахуються так само.
+        /// </summary>
+        public CollectionSummary AutoCollect(IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        {
+            var summary = CollectAll(buildingConfigs, utcNow, boost, locationMultiplier);
+
+            AutoCollectedAt = utcNow;
+            Touch(utcNow);
+
+            return summary;
         }
 
         /// <summary>

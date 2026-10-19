@@ -34,6 +34,10 @@ namespace EmpireIdle.API.Jobs
 
             await _runner.ForEachServerAsync(nameof(RemoveExpiredClanHelpCommand), (mediator, _, ct) => mediator.Send(new RemoveExpiredClanHelpCommand(), ct), cancellationToken);
 
+            // Автозбір: вироблене саме переходить на склад (рішення 19.10.2026)
+            await _runner.ForEachItemAsync(nameof(AutoCollectVillageCommand), (mediator, ct) => mediator.Send(new GetVillageIdsDueAutoCollectQuery(), ct),
+                (mediator, id, ct) => mediator.Send(new AutoCollectVillageCommand(id), ct), cancellationToken);
+
             // Прибуття походів — у MarchArrivalLoop: хвилина очікування для них задовга
 
             await _runner.ForEachServerAsync(nameof(PurgeExpiredRecoverableCommand), (mediator, _, ct) => mediator.Send(new PurgeExpiredRecoverableCommand(), ct), cancellationToken);
