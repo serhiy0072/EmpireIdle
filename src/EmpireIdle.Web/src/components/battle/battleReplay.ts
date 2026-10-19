@@ -16,6 +16,14 @@ export interface Floater {
   born: number;
 }
 
+/** Перехід бійця між ворожими лініями — номери ліній, до яких він стоїть лицем, і тики ходу. */
+export interface March {
+  from: number;
+  to: number;
+  start: number;
+  end: number;
+}
+
 /**
  * Стан відтворення на поточний тик. Тримається поза React: кадр малюється 60 разів на секунду,
  * а перерендер компонента на кожен кадр поклав би сторінку.
@@ -29,6 +37,8 @@ export interface Playback {
   lastCast: Map<number, number>;
   /** Ручний бій: герой → номер готового вміння, що чекає натискання. */
   ready: Map<number, number>;
+  /** Ближній боєць іде до наступної ворожої лінії: з якої на яку і в які тики. */
+  marches: Map<number, March>;
   floaters: Floater[];
 }
 
@@ -40,6 +50,7 @@ export function startPlayback(replay: BattleReplay): Playback {
     alive: replay.fighters.map(() => true),
     lastCast: new Map(),
     ready: new Map(),
+    marches: new Map(),
     floaters: [],
   };
 }
@@ -76,6 +87,14 @@ export function advance(playback: Playback, replay: BattleReplay, toTick: number
     }
 
     if (kind === EventKind.Ready) playback.ready.set(source, detail);
+
+    if (kind === EventKind.Advance)
+      playback.marches.set(source, {
+        from: playback.marches.get(source)?.to ?? 0,
+        to: detail,
+        start: tick,
+        end: tick + (amount * 1000) / replay.tickMilliseconds,
+      });
 
     // Числа — лише там, де вони щось кажуть: удари по героях, крити й лікування
     const crit = (flags & HitFlag.Crit) !== 0;
@@ -135,4 +154,13 @@ export function skillClock(timeline: { tick: number; ready: boolean }[], tick: n
   }
 
   return waiting ? { remaining: 0, total: 1, ready: true } : null;
+}
+
+/** Скільки ворожих ліній боєць пройшов на тику — дробове число посеред ходу. */
+export function marchedLines(march: March | undefined, tick: number): number {
+  if (march === undefined) return 0;
+  if (tick >= march.end) return march.to;
+
+  const share = Math.max(0, (tick - march.start) / Math.max(1, march.end - march.start));
+  return march.from + (march.to - march.from) * share;
 }

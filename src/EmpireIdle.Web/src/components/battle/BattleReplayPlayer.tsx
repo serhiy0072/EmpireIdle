@@ -5,7 +5,7 @@ import { classLabel } from "../../lib/heroClasses";
 import { useCatalog, type Catalog } from "../../lib/queries/catalog";
 import { GameButton } from "../game/GameUi";
 import BattleHeroBar from "./BattleHeroBar";
-import { advance, startPlayback, type Playback } from "./battleReplay";
+import { advance, marchedLines, startPlayback, type Playback } from "./battleReplay";
 
 const HEIGHT = 320;
 const LANES = 5;
@@ -22,6 +22,14 @@ const FLOAT_TICKS = 8;
 interface Spot {
   x: number;
   y: number;
+}
+
+/** Скільки частин ширини відділяє ворожу лінію line від ворожого фронту; дробова — посеред ходу. */
+function lineShift(line: number): number {
+  const at = (index: number) => LINE_OFFSETS[Math.min(index, LINE_OFFSETS.length - 1)] ?? 0;
+  const whole = Math.floor(line);
+
+  return at(whole) + (at(whole + 1) - at(whole)) * (line - whole) - at(0);
 }
 
 /**
@@ -65,8 +73,18 @@ function draw(
   context.fillStyle = ground;
   context.fillRect(0, 0, width, HEIGHT);
 
+  // Прорвали ворожу лінію — ідуть до наступної: зсув на відстань між ворожими лініями
+  const position = (index: number): Spot | undefined => {
+    const base = spots[index];
+    const fighter = replay.fighters[index];
+    if (base === undefined || fighter === undefined) return undefined;
+
+    const lines = marchedLines(playback.marches.get(index), playback.tick);
+    return { x: base.x + lineShift(lines) * width * (fighter.attacker ? 1 : -1), y: base.y };
+  };
+
   replay.fighters.forEach((fighter, index) => {
-    const spot = spots[index];
+    const spot = position(index);
     if (spot === undefined || playback.alive[index] !== true) return;
 
     const hero = fighter.leader == null;
@@ -110,7 +128,7 @@ function draw(
 
   for (const floater of playback.floaters) {
     const age = playback.tick - floater.born;
-    const spot = spots[floater.fighter];
+    const spot = position(floater.fighter);
     if (spot === undefined || age < 0 || age > FLOAT_TICKS) continue;
 
     context.globalAlpha = 1 - age / FLOAT_TICKS;
