@@ -1,9 +1,16 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
-import type { CollectAllResponse, VillageResponse } from "../apiTypes";
+import type { VillageResponse } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer, type PlayerScope } from "./invalidate";
 import { refetchAtDue } from "./polling";
+
+/** Крок автозбору на сервері (GetVillageIdsDueAutoCollectQuery.Interval). */
+const AUTO_COLLECT_MS = 60_000;
+
+const atDue = refetchAtDue<VillageResponse>((village) =>
+  village.buildings.flatMap((building) => [building.constructionCompletesAt, building.damagedUntil]),
+);
 
 /** Той самий ключ інвалідує подія BuildingCollected — збір у сусідній вкладці оновить цей екран. */
 export function useVillage(playerId: string): UseQueryResult<VillageResponse> {
@@ -12,15 +19,17 @@ export function useVillage(playerId: string): UseQueryResult<VillageResponse> {
     queryFn: () => api<VillageResponse>(`/api/village/${playerId}`),
     // Подія UpgradeCompleted може не дійти (обрив хабу) — дедлайн будівництва перепитуємо й самі
     // Так само момент самовідновлення: після нього темп і серія інші
-    refetchInterval: refetchAtDue<VillageResponse>((village) =>
-      village.buildings.flatMap((building) => [building.constructionCompletesAt, building.damagedUntil]),
-    ),
+    // Автозбір щохвилини поповнює склад на сервері — ресурси в шапці перечитуємо не рідше
+    refetchInterval: (query) => {
+      const due = atDue(query);
+      return due === false ? AUTO_COLLECT_MS : Math.min(due, AUTO_COLLECT_MS);
+    },
   });
 }
 
 function useBuildingAction(
   playerId: string,
-  action: "collect" | "upgrade" | "speedup",
+  action: "upgrade" | "speedup",
   scopes: readonly PlayerScope[],
 ) {
   const queryClient = useQueryClient();
@@ -31,10 +40,6 @@ function useBuildingAction(
     // Сервер порахує сам: свій підрахунок розійшовся б із виробітком по секундах
     onSuccess: () => invalidatePlayer(queryClient, playerId, scopes),
   });
-}
-
-export function useCollectBuilding(playerId: string) {
-  return useBuildingAction(playerId, "collect", ["village"]);
 }
 
 export function useUpgradeBuilding(playerId: string) {
@@ -82,13 +87,3 @@ export function useRepairVillage(playerId: string) {
   });
 }
 
-/** Зібрати все одразу: один запит замість кліку по кожній будівлі. */
-export function useCollectAll(playerId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () =>
-      api<CollectAllResponse>(`/api/village/${playerId}/collect-all`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["village"]),
-  });
-}

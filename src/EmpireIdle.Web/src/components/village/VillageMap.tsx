@@ -13,18 +13,11 @@ import VillageTerrain from "./VillageTerrain";
 /** Стіна — периметр, а не будівля на плані. Прапорця в конфізі немає, тож ключ. */
 const WALL_KEY = "wall";
 
-function compact(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
-  return value.toString();
-}
-
 interface Props {
   buildings: BuildingResponse[];
   catalog: Catalog;
   selectedId: string | null;
   onSelect: (buildingId: string) => void;
-  onCollect: (buildingId: string) => void;
   /** Режим «Перебудувати»: будівлі перетягуються мишею по сітці замість камери. */
   editing?: boolean;
   /** Будівлю відпущено на допустимому новому місці. */
@@ -39,7 +32,7 @@ interface Drag {
   valid: boolean;
 }
 
-export default function VillageMap({ buildings, catalog, selectedId, onSelect, onCollect, editing = false, onMove }: Props) {
+export default function VillageMap({ buildings, catalog, selectedId, onSelect, editing = false, onMove }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { transform, handlers, wasDragged, moving } = usePanZoom(containerRef, WORLD);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -189,11 +182,9 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
 
             <VillageTerrain part="front" />
 
-            {/* Підписи й бульбашки поверх усього — ніщо їх не перекриває */}
+            {/* Підписи поверх усього — ніщо їх не перекриває */}
             {placed.map(({ building, position, art }) => {
               const locked = !building.isUnlocked;
-              const collectable =
-                !locked && !building.isUnderConstruction && building.storageCap > 0 && building.storedAmount > 0;
               const gateLevel = catalog.building(building.type)?.requiresMainBuildingLevel ?? 0;
 
               return (
@@ -206,13 +197,10 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
                   // Функціональна будівля рівнів не має (GDD §3.1) — лише назва
                   level={catalog.building(building.type)?.upgradable === false ? null : building.level}
                   gateLevel={locked ? gateLevel : null}
-                  resource={catalog.building(building.type)?.producesResource ?? null}
-                  bubble={collectable ? compact(building.storedAmount) : null}
                   zoom={transform.k}
                   // Таблички — лише поки камера рухається або на будівлю навели; статичне село без написів
                   labelled={moving || building.id === hoveredId}
                   onSelect={tap(() => onSelect(building.id))}
-                  onCollect={tap(() => onCollect(building.id))}
                 />
               );
             })}

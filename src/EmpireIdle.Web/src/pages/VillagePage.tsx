@@ -9,8 +9,6 @@ import VillageMap from "../components/village/VillageMap";
 import { useSession } from "../hooks/useSession";
 import { useCatalog } from "../lib/queries/catalog";
 import {
-  useCollectAll,
-  useCollectBuilding,
   useMoveBuilding,
   useRepairVillage,
   useSpeedUpBuilding,
@@ -18,7 +16,7 @@ import {
   useVillage,
 } from "../lib/queries/village";
 
-type VillageAction = "collect" | "upgrade" | "speedUp" | "collectAll" | "repair" | "move";
+type VillageAction = "upgrade" | "speedUp" | "repair" | "move";
 
 export default function VillagePage() {
   const session = useSession();
@@ -26,10 +24,8 @@ export default function VillagePage() {
   const catalog = useCatalog();
 
   const village = useVillage(playerId);
-  const collect = useCollectBuilding(playerId);
   const upgrade = useUpgradeBuilding(playerId);
   const speedUp = useSpeedUpBuilding(playerId);
-  const collectAll = useCollectAll(playerId);
   const repair = useRepairVillage(playerId);
   const move = useMoveBuilding(playerId);
 
@@ -47,9 +43,8 @@ export default function VillagePage() {
     return <ErrorBanner error={village.error} />;
   }
 
-  const busy =
-    collect.isPending || upgrade.isPending || speedUp.isPending || collectAll.isPending || repair.isPending;
-  const actions = { collect, upgrade, speedUp, collectAll, repair, move };
+  const busy = upgrade.isPending || speedUp.isPending || repair.isPending;
+  const actions = { upgrade, speedUp, repair, move };
   const failure = lastAction === null ? null : actions[lastAction].error;
 
   const run = (action: VillageAction, perform: () => void) => {
@@ -58,9 +53,6 @@ export default function VillagePage() {
   };
 
   const selected = village.data.buildings.find((building) => building.id === selectedId) ?? null;
-  const collectable = village.data.buildings.some(
-    (building) => building.isUnlocked && building.storedAmount > 0,
-  );
 
   return (
     <div className="relative h-full">
@@ -69,7 +61,6 @@ export default function VillagePage() {
         catalog={catalog}
         selectedId={selectedId}
         onSelect={setSelectedId}
-        onCollect={(buildingId) => run("collect", () => collect.mutate(buildingId))}
         editing={editing}
         onMove={(buildingId, x, y) => run("move", () => move.mutate({ buildingId, x, y }))}
       />
@@ -89,9 +80,6 @@ export default function VillagePage() {
             variant={editing ? "accent" : "secondary"}
           >
             {editing ? "Готово" : "Перебудувати"}
-          </GameButton>
-          <GameButton onClick={() => run("collectAll", () => collectAll.mutate())} disabled={busy || !collectable}>
-            Зібрати все
           </GameButton>
         </div>
       </div>
@@ -127,7 +115,6 @@ export default function VillagePage() {
               playerId={playerId}
               building={selected}
               busy={busy}
-              onCollect={() => run("collect", () => collect.mutate(selected.id))}
               onUpgrade={() => run("upgrade", () => upgrade.mutate(selected.id))}
               onSpeedUp={() => run("speedUp", () => speedUp.mutate(selected.id))}
             />

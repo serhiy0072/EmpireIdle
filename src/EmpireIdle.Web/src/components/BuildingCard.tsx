@@ -13,22 +13,19 @@ interface Props {
   playerId: string;
   building: BuildingResponse;
   busy: boolean;
-  onCollect: () => void;
   onUpgrade: () => void;
   onSpeedUp: () => void;
 }
 
-export default function BuildingCard({ playerId, building, busy, onCollect, onUpgrade, onSpeedUp }: Props) {
+export default function BuildingCard({ playerId, building, busy, onUpgrade, onSpeedUp }: Props) {
   const now = useNow();
 
   const catalog = useCatalog();
 
-  // Сховище й збір є лише в будівель, що щось виробляють: ратуші чи казармам бар "0 / 0" ні до чого
-  const produces = catalog.building(building.type)?.producesResource != null;
+  // Виробниче — збирається на склад само щохвилини (рішення 19.10.2026), кнопки «Зібрати» немає
+  const resource = catalog.building(building.type)?.producesResource ?? null;
   // Функціональна будівля (ринок, кузня…) рівнів не має — ні підпису рівня, ні кнопки апгрейду (GDD §3.1)
   const upgradable = catalog.building(building.type)?.upgradable !== false;
-  const fill = building.storageCap > 0 ? Math.min(1, building.storedAmount / building.storageCap) : 0;
-  const full = building.storageCap > 0 && building.storedAmount >= building.storageCap;
   const screens = screensFor(building.type);
 
   // null — ціна невідома (показуємо просто дію), 0 — лишилась межа прискорення, кнопки немає
@@ -63,19 +60,10 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         </Link>
       ))}
 
-      {produces && (
-        <div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              className={`h-full ${full ? "bg-amber-500" : "bg-emerald-500"}`}
-              style={{ width: `${fill * 100}%` }}
-            />
-          </div>
-          <p className="mt-1 text-xs text-slate-500">
-            {building.storedAmount.toLocaleString("uk-UA")} / {building.storageCap.toLocaleString("uk-UA")}
-            {full && " — сховище заповнене, виробіток стоїть"}
-          </p>
-        </div>
+      {resource !== null && (
+        <p className="text-xs text-slate-500">
+          Добуває {catalog.resourceName(resource).toLowerCase()} — усе вироблене щохвилини саме йде на склад.
+        </p>
       )}
 
       {building.isUnderConstruction && building.constructionCompletesAt !== null && building.constructionCompletesAt !== undefined ? (
@@ -97,17 +85,6 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
         </div>
       ) : (
         <div className="flex gap-2">
-          {produces && (
-            <button
-              type="button"
-              data-tutorial="collect"
-              onClick={onCollect}
-              disabled={busy || building.storedAmount === 0}
-              className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
-              Зібрати
-            </button>
-          )}
           {upgradable && (
             <button
               type="button"
