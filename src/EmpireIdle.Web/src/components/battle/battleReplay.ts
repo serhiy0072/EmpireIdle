@@ -28,8 +28,6 @@ export interface Playback {
   /** Тик останнього вміння героя — для спалаху картки. */
   lastCast: Map<number, number>;
   floaters: Floater[];
-  /** Герої, що впали з моменту, коли їх востаннє забрали для банера. */
-  fallen: number[];
 }
 
 export function startPlayback(replay: BattleReplay): Playback {
@@ -40,7 +38,6 @@ export function startPlayback(replay: BattleReplay): Playback {
     alive: replay.fighters.map(() => true),
     lastCast: new Map(),
     floaters: [],
-    fallen: [],
   };
 }
 
@@ -65,10 +62,7 @@ export function advance(playback: Playback, replay: BattleReplay, toTick: number
 
     if (kind === EventKind.Hit || kind === EventKind.Heal) playback.health[target] = events.healths[i] ?? 0;
 
-    if (kind === EventKind.Death) {
-      playback.alive[target] = false;
-      if (heroes(target)) playback.fallen.push(target);
-    }
+    if (kind === EventKind.Death) playback.alive[target] = false;
 
     if (kind === EventKind.Cast) playback.lastCast.set(events.sources[i] ?? 0, tick);
 

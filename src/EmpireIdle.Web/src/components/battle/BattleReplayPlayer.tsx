@@ -133,7 +133,6 @@ export default function BattleReplayPlayer({ replay, onFinished }: Props): React
     tick: 0,
     casts: new Map<number, number>(),
   }));
-  const [banner, setBanner] = useState<string | null>(null);
 
   useEffect(() => {
     finishedRef.current = onFinished;
@@ -163,14 +162,10 @@ export default function BattleReplayPlayer({ replay, onFinished }: Props): React
       advance(playback, replay, Math.min(replay.ticks, playback.tick + (elapsed / replay.tickMilliseconds) * speedRef.current));
       draw(context, width, replay, playback, spots, catalog);
 
-      // Картки й банер — React-станом, але не частіше за десять разів на секунду
+      // Картки — React-станом, але не частіше за десять разів на секунду
       if (now - lastCards > 100) {
         lastCards = now;
         setCards({ health: [...playback.health], tick: playback.tick, casts: new Map(playback.lastCast) });
-
-        const fallen = playback.fallen.splice(0);
-        const name = fallen.map((index) => catalog.heroName(replay.fighters[index]?.heroKey ?? "")).at(-1);
-        if (name !== undefined) setBanner(`Ліквідовано: ${name}`);
       }
 
       if (playback.tick >= replay.ticks && playback.next >= replay.events.ticks.length) {
@@ -199,11 +194,6 @@ export default function BattleReplayPlayer({ replay, onFinished }: Props): React
     <div className="space-y-2">
       <div className="relative">
         <canvas ref={canvasRef} className="block w-full rounded-xl ring-1 ring-white/20" style={{ height: HEIGHT }} />
-        {banner !== null && (
-          <p className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded bg-black/60 px-3 py-1 text-sm font-semibold text-rose-200">
-            {banner}
-          </p>
-        )}
         <p className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs">{seconds} с</p>
       </div>
 
