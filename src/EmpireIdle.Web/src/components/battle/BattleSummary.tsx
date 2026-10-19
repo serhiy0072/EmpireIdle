@@ -13,7 +13,8 @@ interface HeroLine {
 
 /**
  * Підсумок по героях гравця з логу: скільки завдав разом зі своїми конвоями, скільки прийняв сам
- * і скільки вилікував. Найкращий — за завданою шкодою: так гравець бачить, хто тягнув бій.
+ * і скільки вилікував. Рахується різниця здоров'я цілі, а не сила удару: удар понад смерть,
+ * щит і лікування понад максимум нічого не змінили. Найкращий — за завданою шкодою.
  */
 function summarize(replay: BattleReplay): HeroLine[] {
   const lines = new Map<number, HeroLine>();
@@ -27,25 +28,33 @@ function summarize(replay: BattleReplay): HeroLine[] {
     return fighter?.leader ?? index;
   };
 
+  const health = replay.fighters.map((fighter) => fighter.maxHealth);
+
   replay.events.kinds.forEach((kind, i) => {
+    if (kind !== EventKind.Hit && kind !== EventKind.Heal) return;
+
     const source = replay.events.sources[i] ?? 0;
     const target = replay.events.targets[i] ?? 0;
-    const amount = replay.events.amounts[i] ?? 0;
-
-    if (kind === EventKind.Hit && source !== target) {
-      const dealer = lines.get(heroOf(source));
-      if (dealer !== undefined) dealer.dealt += amount;
-    }
-
-    if (kind === EventKind.Hit) {
-      const victim = lines.get(target);
-      if (victim !== undefined) victim.taken += amount;
-    }
+    const before = health[target] ?? 0;
+    const after = replay.events.healths[i] ?? before;
+    health[target] = after;
 
     if (kind === EventKind.Heal) {
       const healer = lines.get(heroOf(source));
-      if (healer !== undefined) healer.healed += amount;
+      if (healer !== undefined) healer.healed += Math.max(0, after - before);
+      return;
     }
+
+    const lost = Math.max(0, before - after);
+
+    // Отрута пише героя і джерелом, і ціллю — це прийнята шкода, а не завдана
+    if (source !== target) {
+      const dealer = lines.get(heroOf(source));
+      if (dealer !== undefined) dealer.dealt += lost;
+    }
+
+    const victim = lines.get(target);
+    if (victim !== undefined) victim.taken += lost;
   });
 
   return [...lines.values()];
