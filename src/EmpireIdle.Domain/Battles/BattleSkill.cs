@@ -21,7 +21,8 @@ namespace EmpireIdle.Domain.Battles
         BattleStatusKind? Status,
         double StatusMagnitude,
         double StatusSeconds,
-        bool IgnoresLine)
+        bool IgnoresLine,
+        SkillFocus Focus = SkillFocus.Nearest)
     {
         /// <param name="cooldownMultiplier">FighterStats.CooldownMultiplier героя: 0.8 — на 20% швидше.</param>
         public static BattleSkill From(CombatSkill skill, double cooldownMultiplier, RealtimeBattleConfig config)
@@ -40,7 +41,8 @@ namespace EmpireIdle.Domain.Battles
                 skill.Status,
                 skill.StatusMagnitude,
                 skill.StatusTurns * config.SecondsPerTurn,
-                skill.IgnoresLine);
+                skill.IgnoresLine,
+                skill.Focus);
         }
     }
 }

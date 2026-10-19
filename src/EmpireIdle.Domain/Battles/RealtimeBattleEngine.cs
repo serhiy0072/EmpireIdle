@@ -199,8 +199,8 @@ namespace EmpireIdle.Domain.Battles
 
             var targets = skill.Target switch
             {
-                AbilityTarget.SingleEnemy => Pick(caster, fighters, skill.IgnoresLine || !caster.Melee) is { } enemy ? [enemy] : [],
-                AbilityTarget.AllEnemies => Pick(caster, fighters, skill.IgnoresLine || !caster.Melee) is { } primary
+                AbilityTarget.SingleEnemy => Focus(caster, skill, fighters) is { } enemy ? [enemy] : [],
+                AbilityTarget.AllEnemies => Focus(caster, skill, fighters) is { } primary
                     ? fighters.Where(f => f.Alive && f.Side != caster.Side && f.Lane == primary.Lane).ToList()
                     : [],
                 AbilityTarget.Self => [caster],
@@ -224,6 +224,34 @@ namespace EmpireIdle.Domain.Battles
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Перша ціль уміння по ворогу за його Focus: обрана лінія (на найближчій доріжці, героя першим)
+        /// чи найсильніший герой. Обраної лінії вже немає — як звичайний удар.
+        /// </summary>
+        private Fighter? Focus(Fighter caster, BattleSkill skill, List<Fighter> fighters)
+        {
+            var enemies = fighters.Where(f => f.Alive && f.Side != caster.Side).ToList();
+
+            var focused = skill.Focus switch
+            {
+                SkillFocus.FrontLine => InLine(enemies, 0),
+                SkillFocus.MiddleLine => InLine(enemies, 1),
+                SkillFocus.BackLine => InLine(enemies, _config.HeroLines.Values.DefaultIfEmpty().Max()),
+                SkillFocus.Strongest => enemies.Where(f => f.IsHero).OrderByDescending(Attack).ThenBy(f => f.Index).FirstOrDefault(),
+                _ => null
+            };
+
+            return focused ?? Pick(caster, fighters, skill.IgnoresLine || !caster.Melee);
+
+            Fighter? InLine(List<Fighter> candidates, int line)
+                => candidates
+                    .Where(f => f.Line == line)
+                    .OrderBy(f => Math.Abs(f.Lane - caster.Lane))
+                    .ThenBy(f => !f.IsHero)
+                    .ThenBy(f => f.Index)
+                    .FirstOrDefault();
         }
 
         /// <summary>

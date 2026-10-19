@@ -34,7 +34,8 @@ public class RealtimeBattleSkillsTests
         => FighterStats.Plain(attack, 0, health, interval);
 
     private static CombatSkill Skill(AbilityTarget target, int cooldown = 2, double damage = 0, SkillKind kind = SkillKind.Active,
-        double heal = 0, double shield = 0, int shieldTurns = 0, BattleStatusKind? status = null, double magnitude = 0, int statusTurns = 0)
+        double heal = 0, double shield = 0, int shieldTurns = 0, BattleStatusKind? status = null, double magnitude = 0, int statusTurns = 0,
+        SkillFocus focus = SkillFocus.Nearest)
         => CombatSkill.Prepare($"skill_{target}_{status}", kind, new SkillBattleConfig
         {
             Target = target,
@@ -45,13 +46,21 @@ public class RealtimeBattleSkillsTests
             ShieldTurns = shieldTurns,
             Status = status,
             StatusMagnitude = magnitude,
-            StatusTurns = statusTurns
+            StatusTurns = statusTurns,
+            Focus = focus
         }, levelScale: 1);
 
     private static SquadMember Archer(int lane, FighterStats stats, CombatSkill[]? skills = null, params Convoy[] convoys)
         => new(lane, "archer", "archer", stats, convoys, skills);
 
+    private static SquadMember Warrior(int lane, FighterStats stats) => new(lane, "warrior", "infantry", stats, []);
+
+    private static SquadMember Knight(int lane, FighterStats stats) => new(lane, "knight", "spearman", stats, []);
+
     private static Convoy Convoy(FighterStats stats) => new("archer", 100, stats, stats);
+
+    private static int SkillTarget(BattleResult result, int source)
+        => Events(result, BattleEventKind.Hit, source).First(e => e.Flags.HasFlag(HitFlags.Skill)).Target;
 
     private BattleResult Run(SquadMember[] attackers, SquadMember[] defenders) => _engine.Run(new BattleSetup(attackers, defenders), seed: 1);
 
@@ -69,6 +78,47 @@ public class RealtimeBattleSkillsTests
         var skillHit = Events(result, BattleEventKind.Hit, 0).First(e => e.Flags.HasFlag(HitFlags.Skill));
         Assert.Equal((25, 100.0), (skillHit.Tick, skillHit.Amount));
         Assert.Equal(["skill_SingleEnemy_"], result.Fighters[0].Skills);
+    }
+
+    /// <summary>Вміння на тил б'є ворожого стрільця на далекій доріжці, хоч найближчий — воїн навпроти.</summary>
+    [Fact]
+    public void Run_ShouldAimTheSkillAtTheBackLine()
+    {
+        var result = Run([Archer(0, Stats(attack: 50), [Skill(AbilityTarget.SingleEnemy, damage: 1, focus: SkillFocus.BackLine)])],
+            [Warrior(0, Stats()), Archer(4, Stats())]);
+
+        // 0 — нападник; 1 — воїн, 2 — стрілець
+        Assert.Equal(2, SkillTarget(result, 0));
+    }
+
+    /// <summary>Вміння на середню лінію дістає лицаря за спинами воїнів.</summary>
+    [Fact]
+    public void Run_ShouldAimTheSkillAtTheMiddleLine()
+    {
+        var result = Run([Archer(0, Stats(attack: 50), [Skill(AbilityTarget.SingleEnemy, damage: 1, focus: SkillFocus.MiddleLine)])],
+            [Warrior(0, Stats()), Knight(3, Stats())]);
+
+        Assert.Equal(2, SkillTarget(result, 0));
+    }
+
+    /// <summary>«Найсильніший» — герой з найбільшою атакою, хоч би де стояв.</summary>
+    [Fact]
+    public void Run_ShouldAimTheSkillAtTheStrongestHero()
+    {
+        var result = Run([Archer(0, Stats(attack: 50), [Skill(AbilityTarget.SingleEnemy, damage: 1, focus: SkillFocus.Strongest)])],
+            [Warrior(0, Stats(attack: 10)), Warrior(4, Stats(attack: 99))]);
+
+        Assert.Equal(2, SkillTarget(result, 0));
+    }
+
+    /// <summary>Обраної лінії немає — вміння б'є найближчого, а не згорає.</summary>
+    [Fact]
+    public void Run_ShouldFallBackToTheNearest_WhenTheLineIsGone()
+    {
+        var result = Run([Archer(0, Stats(attack: 50), [Skill(AbilityTarget.SingleEnemy, damage: 1, focus: SkillFocus.MiddleLine)])],
+            [Warrior(0, Stats()), Archer(4, Stats())]);
+
+        Assert.Equal(1, SkillTarget(result, 0));
     }
 
     /// <summary>Скорочення перезарядки на 20% — і для першого спрацювання, і для наступних; шкода вмінь множить удар.</summary>

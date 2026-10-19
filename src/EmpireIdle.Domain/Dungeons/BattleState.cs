@@ -139,6 +139,9 @@ namespace EmpireIdle.Domain.Dungeons
 
         public bool IgnoresLine { get; init; }
 
+        /// <summary>Кого бере першим одномоментний бій; покроковий данж цілиться по-своєму.</summary>
+        public SkillFocus Focus { get; init; }
+
         public bool Ready => CooldownLeft <= 0;
 
         /// <summary>
@@ -163,6 +166,7 @@ namespace EmpireIdle.Domain.Dungeons
                 : battle.StatusMagnitude,
             StatusTurns = battle.StatusTurns,
             IgnoresLine = battle.IgnoresLine,
+            Focus = battle.Focus,
         };
     }
 }
