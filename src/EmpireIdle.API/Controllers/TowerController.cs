@@ -1,7 +1,9 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Battles.ReadModels;
 using EmpireIdle.Application.Tower.Commands;
 using EmpireIdle.Application.Tower.Queries;
 using EmpireIdle.Application.Tower.ReadModels;
+using EmpireIdle.Domain.Battles;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +39,21 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TowerStormResult>> Storm(
             Guid playerId, [FromBody] StormTowerFloorRequest request, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new StormTowerFloorCommand(playerId, request.Floor, request.Lanes), cancellationToken));
+            => Ok(await _mediator.Send(new StormTowerFloorCommand(playerId, request.Floor, request.Lanes, Casts(request.Casts)),
+                cancellationToken));
+
+        /// <summary>
+        /// Ручний бій: бій із наказами гравця від початку, без збереження. Кожне натискання вміння — новий
+        /// перегляд; результат зараховує штурм із тими самими наказами.
+        /// </summary>
+        [HttpPost("{playerId:guid}/preview")]
+        [ProducesResponseType(typeof(BattleReplay), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<BattleReplay>> Preview(
+            Guid playerId, [FromBody] PreviewTowerFloorRequest request, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new PreviewTowerFloorQuery(playerId, request.Floor, request.Lanes, Casts(request.Casts) ?? []),
+                cancellationToken));
 
         /// <summary>Рейтинг вежі на сервері й власний рядок гравця.</summary>
         [HttpGet("{playerId:guid}/leaderboard")]
@@ -45,5 +61,7 @@ namespace EmpireIdle.API.Controllers
         public async Task<ActionResult<TowerLeaderboard>> GetLeaderboard(Guid playerId, [FromQuery] int count = 100,
             CancellationToken cancellationToken = default)
             => Ok(await _mediator.Send(new GetTowerLeaderboardQuery(playerId, count), cancellationToken));
+
+        private static List<ManualCast>? Casts(List<ManualCastRequest>? casts) => casts?.Select(c => new ManualCast(c.Tick, c.Lane)).ToList();
     }
 }

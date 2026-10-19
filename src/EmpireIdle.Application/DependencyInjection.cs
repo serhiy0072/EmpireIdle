@@ -23,6 +23,7 @@ using EmpireIdle.Application.Scouting.Services;
 using EmpireIdle.Application.Shop.Services;
 using EmpireIdle.Application.Speedups.Services;
 using EmpireIdle.Application.Territory.Services;
+using EmpireIdle.Application.Tower.Services;
 using EmpireIdle.Domain.Events;
 using FluentValidation;
 using MediatR;
@@ -111,6 +112,7 @@ namespace EmpireIdle.Application
             services.AddScoped<ShopCheckout>();
             services.AddScoped<DungeonTeamFactory>();
             services.AddScoped<BattleSquadFactory>();
+            services.AddScoped<TowerBattle>();
             services.AddScoped<DungeonRewarder>();
             services.AddScoped<MarketGoods>();
             services.AddScoped<MarketDesk>();

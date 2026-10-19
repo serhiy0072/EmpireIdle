@@ -3,6 +3,8 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Application.Tower.Commands;
+using EmpireIdle.Application.Tower.Queries;
+using EmpireIdle.Application.Tower.Services;
 using EmpireIdle.Domain.Battles;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
@@ -90,17 +92,35 @@ public class StormTowerFloorCommandTests
     private StormTowerFloorCommandHandler Handler()
     {
         var catalog = new GameCatalog(_config);
-        var progression = new HeroProgression(_config.HeroSettings);
-        var effects = TestEffects.Resolver(Substitute.For<IActiveEffectRepository>(), catalog: catalog);
+
+        return new StormTowerFloorCommandHandler(_tower, Battles(catalog), new TowerRewards(_config.Tower),
+            new RewardDispatcher([_gold, _gems]), catalog, Server(), _unitOfWork,
+            new FakeTimeProvider(Entities.Now), NullLogger<StormTowerFloorCommandHandler>.Instance);
+    }
+
+    private PreviewTowerFloorQueryHandler Preview()
+    {
+        var catalog = new GameCatalog(_config);
+
+        return new PreviewTowerFloorQueryHandler(_tower, Battles(catalog), catalog, Server(), new FakeTimeProvider(Entities.Now));
+    }
+
+    private static IServerContext Server()
+    {
         var serverContext = Substitute.For<IServerContext>();
         serverContext.ServerId.Returns(1);
+        return serverContext;
+    }
+
+    private TowerBattle Battles(GameCatalog catalog)
+    {
+        var progression = new HeroProgression(_config.HeroSettings);
+        var effects = TestEffects.Resolver(Substitute.For<IActiveEffectRepository>(), catalog: catalog);
 
         var squads = new BattleSquadFactory(_heroes, _inventory, _villages, _garrisons, catalog, new HeroStats(progression, catalog),
             new HeroSkills(_config.HeroSettings), new HeroCombatModifiers(catalog), effects);
 
-        return new StormTowerFloorCommandHandler(_tower, _villages, squads, new TowerFloors(catalog), new TowerRewards(_config.Tower),
-            new RealtimeBattleEngine(_config.RealtimeBattle), new RewardDispatcher([_gold, _gems]), catalog, serverContext, _unitOfWork,
-            new FakeTimeProvider(Entities.Now), NullLogger<StormTowerFloorCommandHandler>.Instance);
+        return new TowerBattle(_villages, squads, new TowerFloors(catalog), new RealtimeBattleEngine(_config.RealtimeBattle), catalog);
     }
 
     private StormTowerFloorCommand Storm(int floor)
@@ -188,5 +208,36 @@ public class StormTowerFloorCommandTests
         Assert.Equal(first.Battle.Events.Ticks, second.Battle.Events.Ticks);
         Assert.Equal(first.Battle.Events.Amounts, second.Battle.Events.Amounts);
         Assert.Equal(first.Battle.Events.Targets, second.Battle.Events.Targets);
+    }
+
+    /// <summary>
+    /// Перегляд ручного бою — той самий бій, що зарахує штурм із тими самими наказами, але без прогресу,
+    /// нагороди й збереження.
+    /// </summary>
+    [Fact]
+    public async Task Preview_ShouldFightTheStormsBattle_WithoutSavingAnything()
+    {
+        var storm = Storm(1);
+        ManualCast[] casts = [new(30, 0)];
+
+        var preview = await Preview().Handle(new PreviewTowerFloorQuery(PlayerId, 1, storm.Lanes, casts), CancellationToken.None);
+        var result = await Handler().Handle(storm with { Casts = casts }, CancellationToken.None);
+
+        Assert.Equal(result.Battle.Events.Ticks, preview.Events.Ticks);
+        Assert.Equal(result.Battle.Events.Amounts, preview.Events.Amounts);
+        await _gold.Received(1).GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Закритий поверх не переглядають так само, як не штурмують.</summary>
+    [Fact]
+    public async Task Preview_ShouldRefuseAClosedFloor()
+    {
+        var storm = Storm(2);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(
+            () => Preview().Handle(new PreviewTowerFloorQuery(PlayerId, 2, storm.Lanes, []), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.TowerFloorClosed.Key, refusal.Reason);
     }
 }
