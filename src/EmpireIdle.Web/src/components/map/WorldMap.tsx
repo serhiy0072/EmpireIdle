@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { usePanZoom } from "../../hooks/usePanZoom";
 import type { MapAreaResponse } from "../../lib/apiTypes";
 import { at, project, toPath, UNIT_X, UNIT_Y } from "../../lib/iso";
@@ -70,8 +70,16 @@ function minScaleFor(viewport: { width: number; height: number }): number {
 const ZOOM_MIN = 0.2;
 const ZOOM_MAX = 6;
 
-/** Понад цей радіус дрібні деталі тайлів не малюємо: тисячі дерев не потрібні на огляді регіону. */
-const DETAIL_RADIUS = 16;
+/** Села й споруди більші за клітину — головне на мапі має читатися з першого погляду. */
+const SETTLEMENT_SCALE = 1.7;
+const MONSTER_SCALE = 1.35;
+
+/** Масштаб навколо центру клітини: збільшена фігура стоїть на своєму місці. */
+function grown(x: number, y: number, scale: number): string {
+  const origin = cellOrigin(x, y);
+  const p = project(origin.x, origin.y);
+  return `translate(${p.x} ${p.y}) scale(${scale}) translate(${-p.x} ${-p.y})`;
+}
 
 /** Межі ділянки в пікселях проєкції — кадр для першого показу й для «Додому». */
 function boundsOf(center: { x: number; y: number }, radius: number) {
@@ -220,14 +228,67 @@ export default function WorldMap({
       : area.occupants.filter(
           (o) => o.occupantType === "ClanStructure" && o.clanId === ownClanId && !isStructureBuilding(o, now),
         );
-  const loadedRadius = Math.round((area.maxX - area.minX) / 2);
-  const detailed = loadedRadius <= DETAIL_RADIUS;
-
   const tap = (x: number, y: number) => () => {
     if (!wasDragged()) onSelect(x, y);
   };
 
-  const showLabels = transform !== null && transform.k > 1.1;
+  // Клік по землі чи деталі — одним обробником на шар: клітину каже data-cell, тож шари не залежать від обробників
+  const pick = (event: MouseEvent<SVGGElement>) => {
+    const key = (event.target as Element).closest("[data-cell]")?.getAttribute("data-cell");
+    if (key == null || wasDragged()) return;
+
+    const [x, y] = key.split(":").map(Number);
+    if (x !== undefined && y !== undefined) onSelect(x, y);
+  };
+
+  // Земля й деталі — тисячі вузлів: будуються раз на ділянку, а не на кожен кадр панорамування
+  const ground = useMemo(
+    () =>
+      terrain.map((cell) => (
+        <path
+          key={`g${cell.x}:${cell.y}`}
+          data-cell={`${cell.x}:${cell.y}`}
+          d={tilePath(cell.x, cell.y)}
+          fill={groundFill(cell.type)}
+          // Обведення кольором самої землі ховає шви між ромбами: суцільна місцевість, а не сітка
+          stroke={groundFill(cell.type)}
+          strokeWidth={0.6}
+          className="cursor-pointer"
+        />
+      )),
+    [terrain],
+  );
+
+  const details = useMemo(
+    () =>
+      terrain.map((cell) => {
+        const occupant = occupants.get(`${cell.x}:${cell.y}`);
+        const isHome = cell.x === home.x && cell.y === home.y;
+        const detail = occupant === undefined ? tileDetail(cell.type, cell.x, cell.y) : null;
+
+        if (occupant === undefined && detail === null) return null;
+
+        return (
+          <g
+            key={`d${cell.x}:${cell.y}`}
+            data-cell={`${cell.x}:${cell.y}`}
+            className="cursor-pointer"
+            transform={
+              occupant === undefined
+                ? undefined
+                : grown(cell.x, cell.y, occupant.occupantType === "Monster" ? MONSTER_SCALE : SETTLEMENT_SCALE)
+            }
+          >
+            {occupant === undefined ? detail : occupantArt(occupant, isHome, ownClanId, now)}
+          </g>
+        );
+      }),
+    [terrain, occupants, home, ownClanId, now],
+  );
+
+  const showLabels = transform !== null && transform.k > 0.55;
+  // Підписи не дрібнішають з віддаленням: на екрані щонайменше їхній звичайний розмір
+  const labelScale = transform === null ? 1 : Math.max(1, 1.3 / transform.k);
   const inside = (x: number, y: number) => x >= area.minX && x <= area.maxX && y >= area.minY && y <= area.maxY;
 
   return (
@@ -236,7 +297,7 @@ export default function WorldMap({
       {...handlers}
       role="img"
       aria-label="Мапа світу"
-      className="relative aspect-square w-full touch-none select-none overflow-hidden rounded-xl bg-gradient-to-b from-sky-200 to-sky-50 lg:aspect-auto lg:h-[640px]"
+      className="relative h-full w-full touch-none select-none overflow-hidden bg-[#bfd9a0]"
     >
       {transform !== null && (
         <svg className="absolute inset-0 h-full w-full">
@@ -248,17 +309,7 @@ export default function WorldMap({
             />
 
             {/* Основи всіх клітин — одним шаром, деталі окремо, інакше дерево далекої клітини лягало б поверх ближчої основи */}
-            {terrain.map((cell) => (
-              <path
-                key={`g${cell.x}:${cell.y}`}
-                d={tilePath(cell.x, cell.y)}
-                fill={groundFill(cell.type)}
-                stroke="rgba(15, 23, 42, 0.06)"
-                strokeWidth={0.5}
-                className="cursor-pointer"
-                onClick={tap(cell.x, cell.y)}
-              />
-            ))}
+            <g onClick={pick}>{ground}</g>
 
             {coverage.map((structure) => (
               <path
@@ -272,19 +323,7 @@ export default function WorldMap({
               />
             ))}
 
-            {terrain.map((cell) => {
-              const occupant = occupants.get(`${cell.x}:${cell.y}`);
-              const isHome = cell.x === home.x && cell.y === home.y;
-              const detail = occupant === undefined && detailed ? tileDetail(cell.type, cell.x, cell.y) : null;
-
-              if (occupant === undefined && detail === null) return null;
-
-              return (
-                <g key={`d${cell.x}:${cell.y}`} className="cursor-pointer" onClick={tap(cell.x, cell.y)}>
-                  {occupant === undefined ? detail : occupantArt(occupant, isHome, ownClanId, now)}
-                </g>
-              );
-            })}
+            <g onClick={pick}>{details}</g>
 
             {camps
               .filter((camp) => inside(camp.x, camp.y))
@@ -315,7 +354,11 @@ export default function WorldMap({
                 const width = text.length * 5.5 + 12;
 
                 return (
-                  <g key={`l${occupant.x}:${occupant.y}`} transform={`translate(${p.x} ${p.y + 14})`} pointerEvents="none">
+                  <g
+                    key={`l${occupant.x}:${occupant.y}`}
+                    transform={`translate(${p.x} ${p.y + 14}) scale(${labelScale})`}
+                    pointerEvents="none"
+                  >
                     <rect x={-width / 2} y={-8} width={width} height={14} rx={7} fill="rgba(15, 23, 42, 0.7)" />
                     <text textAnchor="middle" y={3} fontSize={9} fontWeight={600} fill="white">
                       {text}
@@ -332,7 +375,7 @@ export default function WorldMap({
                 const width = text.length * 5.5 + 12;
 
                 return (
-                  <g key={`tl${camp.x}:${camp.y}`} transform={`translate(${p.x} ${p.y + 28})`} pointerEvents="none">
+                  <g key={`tl${camp.x}:${camp.y}`} transform={`translate(${p.x} ${p.y + 28}) scale(${labelScale})`} pointerEvents="none">
                     <rect x={-width / 2} y={-8} width={width} height={14} rx={7} fill="rgba(136, 19, 55, 0.75)" />
                     <text textAnchor="middle" y={3} fontSize={9} fontWeight={600} fill="white">
                       {text}
