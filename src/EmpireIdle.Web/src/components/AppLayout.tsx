@@ -36,6 +36,8 @@ export default function AppLayout() {
   const changeLanguage = useChangeLanguage(playerId);
   const language = settings.data?.language ?? DEFAULT_LANGUAGE;
   const [menu, setMenu] = useState(false);
+  // Село й мапа — поле на весь екран між HUD і панеллю, без полів сторінки
+  const fullBleed = location.pathname === "/" || location.pathname === "/map";
 
   useDailyCheckIn(playerId);
 
@@ -129,7 +131,7 @@ export default function AppLayout() {
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <main className="mx-auto h-full max-w-5xl px-4 py-4">
+        <main className={fullBleed ? "h-full" : "mx-auto h-full max-w-5xl px-4 py-4"}>
           {/* key скидає впалий екран при переході: навігація лишається живою */}
           <ErrorBoundary key={location.pathname}>
             <Outlet />

@@ -2,6 +2,7 @@ import { useState } from "react";
 import BuildingCard from "../components/BuildingCard";
 import HungerBanner from "../components/HungerBanner";
 import ErrorBanner from "../components/ErrorBanner";
+import { GameButton } from "../components/game/GameUi";
 import LockedBuildingCard from "../components/LockedBuildingCard";
 import DamageBanner from "../components/village/DamageBanner";
 import VillageMap from "../components/village/VillageMap";
@@ -62,82 +63,79 @@ export default function VillagePage() {
   );
 
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="flex items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">{village.data.name}</h1>
+    <div className="relative h-full">
+      <VillageMap
+        buildings={village.data.buildings}
+        catalog={catalog}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onCollect={(buildingId) => run("collect", () => collect.mutate(buildingId))}
+        editing={editing}
+        onMove={(buildingId, x, y) => run("move", () => move.mutate({ buildingId, x, y }))}
+      />
+
+      {/* Табличка села й дії — поверх поля, як у HUD гри */}
+      <div className="pointer-events-none absolute inset-x-3 top-3 flex flex-wrap items-start gap-2">
+        <h1 className="rounded-xl bg-gradient-to-b from-[#24467f] to-[#16305e] px-4 py-1.5 text-base font-semibold text-white shadow-lg ring-2 ring-[#5b85c4] [text-shadow:0_1px_1px_#0008]">
+          {village.data.name}
+        </h1>
         <div className="flex-1" />
-        <button
-          type="button"
-          onClick={() => {
-            setEditing(!editing);
-            setSelectedId(null);
-          }}
-          className={`rounded-lg px-3 py-1 text-sm font-medium ${
-            editing ? "bg-amber-500 text-white hover:bg-amber-600" : "border border-slate-300 text-slate-700 hover:bg-slate-50"
-          }`}
-        >
-          {editing ? "Готово" : "Перебудувати"}
-        </button>
-        <button
-          type="button"
-          onClick={() => run("collectAll", () => collectAll.mutate())}
-          disabled={busy || !collectable}
-          className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-        >
-          Зібрати все
-        </button>
+        <div className="pointer-events-auto flex gap-2">
+          <GameButton
+            onClick={() => {
+              setEditing(!editing);
+              setSelectedId(null);
+            }}
+            variant={editing ? "accent" : "secondary"}
+          >
+            {editing ? "Готово" : "Перебудувати"}
+          </GameButton>
+          <GameButton onClick={() => run("collectAll", () => collectAll.mutate())} disabled={busy || !collectable}>
+            Зібрати все
+          </GameButton>
+        </div>
       </div>
 
-      <ErrorBanner error={failure} />
+      <div className="absolute inset-x-3 top-16 mx-auto max-w-xl space-y-2 empty:hidden">
+        <ErrorBanner error={failure} />
 
-      {village.data.isHungry && <HungerBanner />}
+        {village.data.isHungry && <HungerBanner />}
 
-      {village.data.damage != null && (
-        <DamageBanner
-          damage={village.data.damage}
-          damagedNames={village.data.buildings
-            .filter((building) => building.damageLevel > 0)
-            .map((building) => catalog.buildingName(building.type))}
-          resourceName={catalog.resourceName}
-          busy={busy}
-          onRepair={() => run("repair", () => repair.mutate())}
-        />
+        {village.data.damage != null && (
+          <DamageBanner
+            damage={village.data.damage}
+            damagedNames={village.data.buildings
+              .filter((building) => building.damageLevel > 0)
+              .map((building) => catalog.buildingName(building.type))}
+            resourceName={catalog.resourceName}
+            busy={busy}
+            onRepair={() => run("repair", () => repair.mutate())}
+          />
+        )}
+      </div>
+
+      {editing && (
+        <p className="pointer-events-none absolute inset-x-0 bottom-3 mx-auto w-fit rounded-lg bg-amber-100/95 px-3 py-1 text-sm text-amber-900 shadow">
+          Перетягніть будівлю на вільне місце всередині муру
+        </p>
       )}
 
-      <div className="relative min-h-0 flex-1">
-        <VillageMap
-          buildings={village.data.buildings}
-          catalog={catalog}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          onCollect={(buildingId) => run("collect", () => collect.mutate(buildingId))}
-          editing={editing}
-          onMove={(buildingId, x, y) => run("move", () => move.mutate({ buildingId, x, y }))}
-        />
-
-        {editing && (
-          <p className="pointer-events-none absolute inset-x-0 top-3 mx-auto w-fit rounded-lg bg-amber-100/95 px-3 py-1 text-sm text-amber-900 shadow">
-            Перетягніть будівлю на вільне місце всередині муру
-          </p>
-        )}
-
-        {selected !== null && !editing && (
-          <div className="absolute inset-x-3 bottom-3 max-w-sm">
-            {selected.isUnlocked ? (
-              <BuildingCard
-                playerId={playerId}
-                building={selected}
-                busy={busy}
-                onCollect={() => run("collect", () => collect.mutate(selected.id))}
-                onUpgrade={() => run("upgrade", () => upgrade.mutate(selected.id))}
-                onSpeedUp={() => run("speedUp", () => speedUp.mutate(selected.id))}
-              />
-            ) : (
-              <LockedBuildingCard building={selected} />
-            )}
-          </div>
-        )}
-      </div>
+      {selected !== null && !editing && (
+        <div className="absolute inset-x-3 bottom-3 max-w-sm">
+          {selected.isUnlocked ? (
+            <BuildingCard
+              playerId={playerId}
+              building={selected}
+              busy={busy}
+              onCollect={() => run("collect", () => collect.mutate(selected.id))}
+              onUpgrade={() => run("upgrade", () => upgrade.mutate(selected.id))}
+              onSpeedUp={() => run("speedUp", () => speedUp.mutate(selected.id))}
+            />
+          ) : (
+            <LockedBuildingCard building={selected} />
+          )}
+        </div>
+      )}
     </div>
   );
 }

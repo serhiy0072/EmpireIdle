@@ -122,8 +122,8 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, o
     <div
       ref={containerRef}
       {...handlers}
-      className={`relative h-full w-full touch-none select-none overflow-hidden rounded-xl bg-gradient-to-b from-sky-200 to-sky-50 ${
-        editing ? "ring-4 ring-amber-400" : ""
+      className={`relative h-full w-full touch-none select-none overflow-hidden bg-gradient-to-b from-sky-200 to-sky-50 ${
+        editing ? "ring-4 ring-inset ring-amber-400" : ""
       }`}
     >
       {transform !== null && (
