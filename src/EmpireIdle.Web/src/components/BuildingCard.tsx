@@ -7,6 +7,7 @@ import { speedUpLabel } from "../lib/speedUp";
 import { formatRemaining } from "../lib/time";
 import HospitalPanel from "./HospitalPanel";
 import SpeedUpItemsButton from "./SpeedUpItemsButton";
+import TroopsPanel from "./TroopsPanel";
 
 interface Props {
   playerId: string;
@@ -120,6 +121,8 @@ export default function BuildingCard({ playerId, building, busy, onCollect, onUp
           )}
         </div>
       )}
+
+      <TroopsPanel playerId={playerId} buildingType={building.type} />
 
       {building.type === "hospital" && <HospitalPanel playerId={playerId} />}
     </div>
