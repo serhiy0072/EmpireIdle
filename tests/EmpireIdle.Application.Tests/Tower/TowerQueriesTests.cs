@@ -49,9 +49,7 @@ public class TowerQueriesTests
             BossArchetype = "duel",
             BossLane = 1,
             HeroRarities = [new TowerRarityStepConfig { FromFloor = 1, Rarities = [Rarity.Common, Rarity.Unique] }],
-            GoldResource = TestKeys.Gold,
-            GoldBase = 0,
-            GoldPerFloor = 10
+            Milestones = [new TowerMilestoneConfig { Every = 1, Stages = [new TowerRewardStageConfig { Options = [[new RewardConfig { Type = "Gems", Amount = 20 }]] }] }]
         };
 
         _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(Entities.VillageWithTownhall(townhallLevel: 3));
@@ -90,7 +88,7 @@ public class TowerQueriesTests
         Assert.Equal("Без набору", view.Next.SetName);
         Assert.Equal(Enumerable.Range(1, 10), view.Upcoming.Select(f => f.Number));
         Assert.True(view.Upcoming[9].IsBoss);
-        Assert.Equal(10, view.Next.Rewards.Single().Amount);
+        Assert.Equal(20, view.Next.Rewards.Single().Amount);
     }
 
     /// <summary>Біля вершини стрічка коротшає, а місце в рейтингу вже є.</summary>

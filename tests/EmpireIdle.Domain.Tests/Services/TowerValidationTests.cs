@@ -10,7 +10,7 @@ public class TowerValidationTests
 {
     private static GameConfig Valid()
     {
-        var config = new GameConfigBuilder().WithHeroes().Build();
+        var config = new GameConfigBuilder().WithHeroes().WithEquipment().WithDungeons().Build();
 
         config.Tower = new TowerConfig
         {
@@ -29,7 +29,6 @@ public class TowerValidationTests
             BossArchetype = "duel",
             BossLane = 1,
             HeroRarities = [new TowerRarityStepConfig { FromFloor = 1, Rarities = [Rarity.Common, Rarity.Unique] }],
-            GoldResource = TestKeys.Gold,
             Milestones =
             [
                 new TowerMilestoneConfig { Every = 1, Stages = [Stage(1, new RewardConfig { Type = "Gems", Amount = 5 })] },
@@ -132,11 +131,27 @@ public class TowerValidationTests
         Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
     }
 
+    /// <summary>Вежа платить досвідом героїв і випадковими артефактами рідкості з наборів данжів.</summary>
     [Fact]
-    public void UnknownGoldResource_ShouldFail()
+    public void MilestoneWithHeroExperienceAndArtifacts_ShouldPass()
     {
         var config = Valid();
-        config.Tower.GoldResource = "silver";
+        config.Tower.Milestones[1].Stages[0].Options[0] =
+        [
+            new RewardConfig { Type = "HeroExperience", Amount = 1000 },
+            new RewardConfig { Type = "Artifact", Key = "Rare", Amount = 1 }
+        ];
+
+        GameConfigValidator.Validate(config);
+    }
+
+    [Theory]
+    [InlineData("Legendary")]
+    [InlineData(null)]
+    public void MilestoneWithAnArtifactOfNoRarity_ShouldFail(string? rarity)
+    {
+        var config = Valid();
+        config.Tower.Milestones[1].Stages[0].Options[0][0] = new RewardConfig { Type = "Artifact", Key = rarity, Amount = 1 };
 
         Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
     }

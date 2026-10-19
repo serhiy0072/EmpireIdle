@@ -35,66 +35,49 @@
         { "FromFloor": 100, "Rarities": [ "Rare" ] },
         { "FromFloor": 400, "Rarities": [ "Rare", "Unique" ] }
       ],
-      "GoldResource": "gold",
-      "GoldBase": 200,
-      "GoldPerFloor": 10,
       "Milestones": [
         {
           "Every": 1,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Gems", "Amount": 5 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Gems", "Amount": 20 }, { "Type": "HeroExperience", "Amount": 1000 } ] ] },
+            { "FromFloor": 100, "Options": [ [ { "Type": "Gems", "Amount": 20 }, { "Type": "HeroExperience", "Amount": 3000 } ] ] },
+            { "FromFloor": 300, "Options": [ [ { "Type": "Gems", "Amount": 20 }, { "Type": "HeroExperience", "Amount": 6000 } ] ] },
+            { "FromFloor": 600, "Options": [ [ { "Type": "Gems", "Amount": 20 }, { "Type": "HeroExperience", "Amount": 10000 } ] ] }
           ]
         },
         {
           "Every": 5,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Gems", "Amount": 20 }, { "Type": "Item", "Key": "hero_xp_1k", "Amount": 1 } ] ] },
-            { "FromFloor": 200, "Options": [ [ { "Type": "Gems", "Amount": 20 }, { "Type": "Item", "Key": "hero_xp_10k", "Amount": 1 } ] ] },
-            { "FromFloor": 600, "Options": [ [ { "Type": "Gems", "Amount": 20 }, { "Type": "Item", "Key": "hero_xp_20k", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Item", "Key": "hero_xp_1k", "Amount": 2 } ] ] },
+            { "FromFloor": 200, "Options": [ [ { "Type": "Item", "Key": "hero_xp_10k", "Amount": 1 } ] ] },
+            { "FromFloor": 600, "Options": [ [ { "Type": "Item", "Key": "hero_xp_20k", "Amount": 1 } ] ] }
           ]
         },
         {
           "Every": 10,
           "Stages": [
-            {
-              "FromFloor": 1,
-              "Options": [
-                [ { "Type": "Gems", "Amount": 50 }, { "Type": "Item", "Key": "universal_shard_common", "Amount": 1 } ],
-                [ { "Type": "Gems", "Amount": 50 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 } ]
-              ]
-            },
-            {
-              "FromFloor": 300,
-              "Options": [
-                [ { "Type": "Gems", "Amount": 50 }, { "Type": "Item", "Key": "universal_shard_rare", "Amount": 1 } ],
-                [ { "Type": "Gems", "Amount": 50 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 } ]
-              ]
-            },
-            {
-              "FromFloor": 700,
-              "Options": [
-                [ { "Type": "Gems", "Amount": 50 }, { "Type": "Item", "Key": "universal_shard_unique", "Amount": 1 } ],
-                [ { "Type": "Gems", "Amount": 50 }, { "Type": "Item", "Key": "chest_supply", "Amount": 1 } ]
-              ]
-            }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Common", "Amount": 1 } ] ] },
+            { "FromFloor": 100, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 } ] ] },
+            { "FromFloor": 400, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 } ] ] }
           ]
         },
         {
           "Every": 50,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Gems", "Amount": 100 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 } ] ] },
+            { "FromFloor": 300, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 } ] ] }
           ]
         },
         {
           "Every": 100,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Gems", "Amount": 200 }, { "Type": "Item", "Key": "key_rare", "Amount": 2 }, { "Type": "Item", "Key": "hero_essence_t2", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 2 }, { "Type": "Item", "Key": "hero_essence_t2", "Amount": 1 } ] ] }
           ]
         },
         {
           "Every": 250,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Gems", "Amount": 300 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "hero_essence_t3", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 2 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "hero_essence_t3", "Amount": 1 } ] ] }
           ]
         }
       ]

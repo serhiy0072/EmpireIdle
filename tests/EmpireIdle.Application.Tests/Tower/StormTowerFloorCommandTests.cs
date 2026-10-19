@@ -35,7 +35,6 @@ public class StormTowerFloorCommandTests
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
-    private readonly IRewardGranter _gold = Granter("Resource");
     private readonly IRewardGranter _gems = Granter("Gems");
 
     public StormTowerFloorCommandTests()
@@ -74,7 +73,6 @@ public class StormTowerFloorCommandTests
             BossArchetype = "lone",
             BossLane = 0,
             HeroRarities = [new TowerRarityStepConfig { FromFloor = 1, Rarities = [Rarity.Common] }],
-            GoldResource = TestKeys.Gold,
             Milestones = [new TowerMilestoneConfig { Every = 1, Stages = [new TowerRewardStageConfig { Options = [[new RewardConfig { Type = "Gems", Amount = 5 }]] }] }]
         };
 
@@ -94,7 +92,7 @@ public class StormTowerFloorCommandTests
         var catalog = new GameCatalog(_config);
 
         return new StormTowerFloorCommandHandler(_tower, Battles(catalog), new TowerRewards(_config.Tower),
-            new RewardDispatcher([_gold, _gems]), catalog, Server(), _unitOfWork,
+            new RewardDispatcher([_gems]), catalog, Server(), _unitOfWork,
             new FakeTimeProvider(Entities.Now), NullLogger<StormTowerFloorCommandHandler>.Instance);
     }
 
@@ -139,12 +137,11 @@ public class StormTowerFloorCommandTests
 
         Assert.True(result.Victory);
         Assert.True(result.Battle.AttackerWon);
-        Assert.Equal(["Resource:210", "Gems:5"], result.Rewards.Select(r => $"{r.Type}:{r.Amount}"));
+        Assert.Equal(["Gems:5"], result.Rewards.Select(r => $"{r.Type}:{r.Amount}"));
 
         await _tower.Received(1).AddProgressAsync(Arg.Is<TowerProgress>(p => p.HighestFloor == 1 && p.PlayerId == PlayerId && p.ServerId == 1),
             Arg.Any<CancellationToken>());
-        await _gold.Received(1).GrantAsync(Arg.Is<RewardContext>(c => c.Reward.Amount == 210 && c.Reference == "tower:1"), Arg.Any<CancellationToken>());
-        await _gems.Received(1).GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+        await _gems.Received(1).GrantAsync(Arg.Is<RewardContext>(c => c.Reward.Amount == 5 && c.Reference == "tower:1"), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -173,7 +170,7 @@ public class StormTowerFloorCommandTests
         Assert.False(result.Victory);
         Assert.Empty(result.Rewards);
         await _tower.DidNotReceiveWithAnyArgs().AddProgressAsync(default!, default);
-        await _gold.DidNotReceiveWithAnyArgs().GrantAsync(default!, default);
+        await _gems.DidNotReceiveWithAnyArgs().GrantAsync(default!, default);
         await _unitOfWork.DidNotReceiveWithAnyArgs().SaveChangesAsync(default);
     }
 
@@ -225,7 +222,7 @@ public class StormTowerFloorCommandTests
 
         Assert.Equal(result.Battle.Events.Ticks, preview.Events.Ticks);
         Assert.Equal(result.Battle.Events.Amounts, preview.Events.Amounts);
-        await _gold.Received(1).GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+        await _gems.Received(1).GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

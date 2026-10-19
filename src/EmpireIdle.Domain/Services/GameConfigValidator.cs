@@ -818,13 +818,16 @@ namespace EmpireIdle.Domain.Services
 
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
 
-            if (!resourceKeys.Contains(tower.GoldResource))
-                throw new InvalidOperationException($"Tower.GoldResource '{tower.GoldResource}' is not a known resource.");
-
             RequireUniqueKeys(tower.Milestones.Select(m => m.Every.ToString()), "Tower.Milestones");
 
             var items = config.Items.ToDictionary(i => i.Key);
             var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+
+            // Артефакт рідкості береться з наборів данжів — рідкість без жодного предмета не видала б нічого
+            var artifactRarities = config.Dungeons.Dungeons
+                .SelectMany(d => Enum.GetValues<Rarity>()
+                    .Where(r => items.Values.Any(i => i.SetKey == $"{d.ArtifactSetKey}_{r.ToString().ToLowerInvariant()}")))
+                .ToHashSet();
 
             foreach (var milestone in tower.Milestones)
             {
@@ -833,17 +836,21 @@ namespace EmpireIdle.Domain.Services
 
                 RequireSteps(milestone.Stages.Select(s => s.FromFloor).ToList(), $"Tower.Milestones[{milestone.Every}].Stages");
 
-                // Вежа видає нагороди диспетчером пошти: gems, ресурси й предмети, інше він не вміє
+                // Вежа платить gems, ресурсами, предметами, досвідом героїв і випадковими артефактами рідкості
                 var broken = milestone.Stages
                     .SelectMany(s => s.Options.Count == 0 ? [[]] : s.Options)
-                    .Where(option => option.Count == 0 || option.Any(r => r.Amount <= 0
-                        || r.Type?.ToLowerInvariant() is not ("gems" or "resource" or "item")
-                        || IsRewardBroken(r, resourceKeys, items, heroKeys)))
+                    .Where(option => option.Count == 0 || option.Any(r => r.Amount <= 0 || r.Type?.ToLowerInvariant() switch
+                    {
+                        "gems" or "resource" or "item" => IsRewardBroken(r, resourceKeys, items, heroKeys),
+                        "heroexperience" => false,
+                        "artifact" => !Enum.TryParse<Rarity>(r.Key, ignoreCase: true, out var rarity) || !artifactRarities.Contains(rarity),
+                        _ => true
+                    }))
                     .ToList();
 
                 if (broken.Count > 0)
                     throw new InvalidOperationException(
-                        $"Tower milestone every {milestone.Every} has an empty option or a reward that is not gems, a known resource or a known item.");
+                        $"Tower milestone every {milestone.Every} has an empty option or a reward that is not gems, a known resource or item, hero experience or an artifact of a rarity some dungeon drops.");
             }
         }
 

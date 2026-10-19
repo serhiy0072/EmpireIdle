@@ -42,17 +42,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Рідкості героїв-ворогів ступенями з поверхом: вище — рідкісніші шаблони.</summary>
         public List<TowerRarityStepConfig> HeroRarities { get; set; } = new();
 
-        /// <summary>Ресурс, яким платить кожен поверх.</summary>
-        public string GoldResource { get; set; } = "gold";
-
-        /// <summary>Золото поверху: GoldBase + GoldPerFloor × номер.</summary>
-        public int GoldBase { get; set; } = 200;
-
-        public int GoldPerFloor { get; set; } = 10;
-
         /// <summary>
-        /// Нагорода понад золото: з віх, що ділять номер поверху, діє та, у якої найбільший Every —
-        /// вища віха замінює нижчу. Віха з Every 1 — нагорода звичайного поверху.
+        /// Нагорода поверху (рішення 19.10.2026: без золота — gems, досвід, баночки й артефакти). Віха з Every 1 —
+        /// основа кожного поверху; з решти віх, що ділять номер, до неї додається та, у якої найбільший Every.
         /// </summary>
         public List<TowerMilestoneConfig> Milestones { get; set; } = new();
     }

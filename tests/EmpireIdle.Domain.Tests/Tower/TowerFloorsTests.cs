@@ -55,8 +55,7 @@ public class TowerFloorsTests
             BossArchetype = "duel",
             BossLane = 1,
             BossHealthScale = 2.5,
-            HeroRarities = [new TowerRarityStepConfig { FromFloor = 1, Rarities = [Rarity.Common, Rarity.Unique] }],
-            GoldResource = TestKeys.Gold
+            HeroRarities = [new TowerRarityStepConfig { FromFloor = 1, Rarities = [Rarity.Common, Rarity.Unique] }]
         };
 
         _floors = new TowerFloors(new GameCatalog(_config));
