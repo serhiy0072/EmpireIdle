@@ -16,9 +16,15 @@ type Tab = "tower" | "rating";
 /** Розмір загону — той самий, що RealtimeBattle.SquadSize на сервері; сервер однаково перевірить. */
 const SQUAD_SIZE = 5;
 
-/** Множник бафа як відсоток надбавки: 1.25 → «+25%». */
-function buffLabel(multiplier: number): string {
-  return `+${Math.round((multiplier - 1) * 100)}%`;
+/** Бафи, що діють, як «атака +25%, захист +10%»; нульовий баф не показується. */
+function buffLabel(attack: number, defense: number): string {
+  const percent = (multiplier: number) => Math.round((multiplier - 1) * 100);
+  const parts: string[] = [];
+
+  if (attack > 1) parts.push(`атака +${percent(attack)}%`);
+  if (defense > 1) parts.push(`захист +${percent(defense)}%`);
+
+  return parts.join(", ");
 }
 
 /**
@@ -112,7 +118,7 @@ export default function TowerPage() {
             {/* Бафи міста й звірів діють у вежі — гравець бачить їх до бою, а не після */}
             <p className="text-xs text-sky-200">
               {buffed
-                ? `Діють бафи: атака ${buffLabel(view.attackBuff)}, захист ${buffLabel(view.defenseBuff)}`
+                ? `Діють бафи: ${buffLabel(view.attackBuff, view.defenseBuff)}`
                 : "Бафів немає: бусти крамниці й звірі підсилюють загін у вежі"}
             </p>
 
@@ -137,10 +143,7 @@ export default function TowerPage() {
                   <p className="text-sm text-rose-100">Змініть склад чи розстановку або прокачайте героїв — той самий загін програє так само.</p>
                 )}
                 <BattleSummary replay={result.battle} />
-                <div className="flex justify-center gap-2">
-                  <GameButton variant="secondary" onClick={() => setWatching(true)}>
-                    Повтор
-                  </GameButton>
+                <div className="flex justify-center">
                   <GameButton variant="secondary" onClick={() => setResult(null)}>
                     Далі
                   </GameButton>
