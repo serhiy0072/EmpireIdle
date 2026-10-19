@@ -138,22 +138,31 @@ export function skillTimeline(replay: BattleReplay, hero: number, skill: number)
 }
 
 /**
- * Відлік на тику з лінії часу вміння: від попереднього спрацювання (чи старту бою) до наступного
- * спрацювання чи готовності. null — до кінця бою вміння більше не спрацює.
+ * Відлік на тику з лінії часу вміння. Після спрацювання — повна перезарядка (cooldown, у тиках), навіть
+ * якщо бій скінчиться раніше; до першого спрацювання — до першої позначки. null — відліку немає.
  */
-export function skillClock(timeline: { tick: number; ready: boolean }[], tick: number): SkillClock | null {
-  let start = 0;
+export function skillClock(timeline: { tick: number; ready: boolean }[], tick: number, cooldown: number): SkillClock | null {
+  let cast: number | null = null;
+  let next: number | null = null;
   // Готовність без спрацювання після неї — уміння чекає натискання
   let waiting = false;
 
   for (const mark of timeline) {
-    if (mark.tick > tick) return waiting ? { remaining: 0, total: 1, ready: true } : { remaining: mark.tick - tick, total: Math.max(1, mark.tick - start), ready: false };
+    if (mark.tick > tick) {
+      next = mark.tick;
+      break;
+    }
 
     waiting = mark.ready;
-    if (!mark.ready) start = mark.tick;
+    if (!mark.ready) cast = mark.tick;
   }
 
-  return waiting ? { remaining: 0, total: 1, ready: true } : null;
+  if (waiting) return { remaining: 0, total: 1, ready: true };
+
+  const end = cast === null ? next : cast + cooldown;
+  if (end === null || end <= tick) return null;
+
+  return { remaining: end - tick, total: Math.max(1, end - (cast ?? 0)), ready: false };
 }
 
 /** Скільки ворожих ліній боєць пройшов на тику — дробове число посеред ходу. */

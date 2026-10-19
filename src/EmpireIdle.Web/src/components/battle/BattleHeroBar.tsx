@@ -29,7 +29,9 @@ export default function BattleHeroBar({ replay, tick, health, manual, onCast }: 
           const config = catalog.hero(fighter.heroKey ?? "");
           const active = fighter.skills.findIndex((key) => config?.skills.find((skill) => skill.key === key)?.kind === "Active");
 
-          return { fighter, config, timeline: active < 0 ? [] : skillTimeline(replay, fighter.index, active) };
+          const cooldown = Math.round(((fighter.skillCooldowns[active] ?? 0) * 1000) / replay.tickMilliseconds);
+
+          return { fighter, config, cooldown, timeline: active < 0 ? [] : skillTimeline(replay, fighter.index, active) };
         }),
     [replay, catalog],
   );
@@ -38,10 +40,10 @@ export default function BattleHeroBar({ replay, tick, health, manual, onCast }: 
 
   return (
     <ol className="grid grid-cols-5 gap-2">
-      {heroes.map(({ fighter, config, timeline }) => {
+      {heroes.map(({ fighter, config, cooldown, timeline }) => {
         const share = Math.max(0, (health[fighter.index] ?? 0) / Math.max(1, fighter.maxHealth));
         const dead = share <= 0;
-        const clock = dead ? null : skillClock(timeline, tick);
+        const clock = dead ? null : skillClock(timeline, tick, cooldown);
         const ready = manual && clock?.ready === true;
         const cooling = clock !== null && !clock.ready ? clock.remaining / clock.total : 0;
 
