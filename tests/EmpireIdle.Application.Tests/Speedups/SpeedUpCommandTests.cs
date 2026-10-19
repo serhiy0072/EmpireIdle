@@ -257,10 +257,28 @@ public class SpeedUpCommandTests
         return march;
     }
 
-    private SpeedUpMarchCommandHandler MarchHandler() => new(
+    private SpeedUpMarchCommandHandler MarchHandler(SpeedUpCalculator? calculator = null) => new(
         _villages, _garrisons, _marches, _wallets, _currentPlayer, _unitOfWork,
-        new FakeTimeProvider(Now), Calculator(),
+        new FakeTimeProvider(Now), calculator ?? Calculator(),
         NullLogger<SpeedUpMarchCommandHandler>.Instance);
+
+    /// <summary>Без межі марш прискорюють повторно, кожного разу від залишку: 10 хв → 1 хв → 6 с.</summary>
+    [Fact]
+    public async Task SpeedUpMarch_ShouldCutAgain_FromWhatIsLeft()
+    {
+        var march = GivenMarch(Now.AddMinutes(10));
+        var wallet = GivenWallet(2000);
+        var monetization = Config().Monetization;
+        monetization.SpeedUpFloorSeconds[EmpireIdle.Domain.Enums.SpeedUpTimer.March] = 0;
+        var handler = MarchHandler(new SpeedUpCalculator(monetization));
+
+        await handler.Handle(new SpeedUpMarchCommand(PlayerId, march.Id, 90), CancellationToken.None);
+        Assert.Equal(Now.AddMinutes(1), march.ArrivesAt);
+
+        await handler.Handle(new SpeedUpMarchCommand(PlayerId, march.Id, 90), CancellationToken.None);
+        Assert.Equal(Now.AddSeconds(6), march.ArrivesAt);
+        Assert.Equal(400, wallet.GemBalance.Value);
+    }
 
     /// <summary>Варіант зрізає свою частку залишку дороги: 2 години на 50% — лишається година.</summary>
     [Fact]
