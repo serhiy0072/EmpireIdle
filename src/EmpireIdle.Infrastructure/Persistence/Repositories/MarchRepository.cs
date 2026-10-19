@@ -27,6 +27,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public Task<bool> HasOutboundScoutAsync(Guid garrisonId, Guid targetId, CancellationToken cancellationToken = default)
+            => _context.Marches.AnyAsync(m => m.GarrisonId == garrisonId && m.TargetId == targetId
+                && m.Intent == MarchIntent.Scout && m.State == MarchState.Outbound, cancellationToken);
+
+        /// <inheritdoc/>
         public Task<List<March>> GetDueAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
             => _context.Marches
             .AsNoTracking()

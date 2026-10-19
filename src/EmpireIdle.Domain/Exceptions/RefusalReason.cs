@@ -94,6 +94,9 @@
         /// <summary>Своє село й споруди свого клану розвідувати нема сенсу.</summary>
         public static readonly RefusalReason ScoutOwnTarget = new("scout.ownTarget");
 
+        /// <summary>На цю ціль уже йдуть твої розвідники — одночасно лише одна розвідка на ціль.</summary>
+        public static readonly RefusalReason ScoutAlreadyUnderway = new("scout.alreadyUnderway");
+
         // ---------- Прискорення ----------
 
         /// <summary>До кінця таймера лишилось не більше межі: прискорювати нічого, треба дочекатись; seconds — межа.</summary>

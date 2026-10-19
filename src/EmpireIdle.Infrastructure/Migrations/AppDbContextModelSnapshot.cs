@@ -1555,6 +1555,10 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasIndex("GarrisonId");
 
+                    b.HasIndex("GarrisonId", "TargetId")
+                        .IsUnique()
+                        .HasFilter("\"Intent\" = 3 AND \"State\" = 1");
+
                     b.HasIndex("ServerId", "ArrivesAt")
                         .HasFilter("\"State\" <> 3 AND \"State\" <> 4");
 

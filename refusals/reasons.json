@@ -320,6 +320,7 @@
     "level"
   ],
   "reinforce.targetShielded": [],
+  "scout.alreadyUnderway": [],
   "scout.blocked": [],
   "scout.ownTarget": [],
   "shop.maxPerPurchase": [

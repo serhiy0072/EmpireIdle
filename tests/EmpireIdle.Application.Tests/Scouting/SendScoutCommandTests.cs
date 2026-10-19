@@ -141,6 +141,23 @@ public class SendScoutCommandTests
         Assert.Equal(RefusalReasons.ScoutOwnTarget.Key, refusal.Reason);
     }
 
+    /// <summary>Поки одні розвідники йдуть до цілі, другі на неї не виходять.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_WhenScoutsAreAlreadyOnTheWay()
+    {
+        var home = GivenVillage(PlayerId, 10, 10, withTower: true);
+        var target = GivenVillage(Guid.NewGuid(), 30, 10, withTower: false);
+        var garrison = await _garrisons.GetByVillageIdAsync(home.Id, CancellationToken.None);
+
+        _marches.HasOutboundScoutAsync(garrison!.Id, target.Id, Arg.Any<CancellationToken>()).Returns(true);
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
+            Handler().Handle(new SendScoutCommand(PlayerId, MarchTargetType.Village, target.Id), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.ScoutAlreadyUnderway.Key, refusal.Reason);
+        await _marches.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
+    }
+
     /// <summary>Завіса діє вже зараз — розвідники не йдуть, а строк завіси не розкривається.</summary>
     [Fact]
     public async Task Handle_ShouldRefuse_WhenTheTargetIsVeiled()

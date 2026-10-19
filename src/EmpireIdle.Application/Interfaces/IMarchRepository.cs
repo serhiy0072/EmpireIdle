@@ -10,6 +10,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Активні походи гарнізону (у дорозі або на зворотному шляху).</summary>
         Task<List<March>> GetActiveByGarrisonAsync(Guid garrisonId, CancellationToken cancellationToken = default);
 
+        /// <summary>Чи йдуть розвідники гарнізону до цілі зараз (звіт ще не складено).</summary>
+        Task<bool> HasOutboundScoutAsync(Guid garrisonId, Guid targetId, CancellationToken cancellationToken = default);
+
         /// <summary>Походи, чий час прибуття настав (не більше <paramref name="batchSize"/>).</summary>
         Task<List<March>> GetDueAsync(DateTime utcNow, int batchSize, CancellationToken cancellationToken = default);
 
