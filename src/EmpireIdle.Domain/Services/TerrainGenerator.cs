@@ -32,10 +32,34 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException("Map config must contain at least one terrain with positive weight.");
         }
 
-        /// <summary>Повний опис місцевості клітини (тип + прохідність + вартість руху).</summary>
+        /// <summary>
+        /// Повний опис місцевості клітини (тип + прохідність + вартість руху). Місцевість лежить плямами:
+        /// карта ділиться на ділянки TerrainPatchSize×TerrainPatchSize з центром у випадковій клітині,
+        /// і клітина бере тип найближчого центру — ліси, озера й гори замість шахівниці. Тип центру —
+        /// зважений кидок, тож частки типів на великій карті ті самі, що ваги в конфізі.
+        /// </summary>
         public TerrainConfig GetTerrain(int serverId, int x, int y)
         {
-            var roll = Hash(serverId, x, y) % _totalWeight;
+            var size = _config.TerrainPatchSize;
+            var patchX = FloorDiv(x, size);
+            var patchY = FloorDiv(y, size);
+            var nearest = (X: patchX, Y: patchY);
+            var best = long.MaxValue;
+
+            // Найближчий центр — серед своєї ділянки й восьми сусідніх: далі центрів ближчих не буває
+            for (var dx = -1; dx <= 1; dx++)
+                for (var dy = -1; dy <= 1; dy++)
+                {
+                    var (cx, cy) = (patchX + dx, patchY + dy);
+                    var siteX = cx * size + Hash(serverId, cx, cy, salt: 1) % size;
+                    var siteY = cy * size + Hash(serverId, cx, cy, salt: 2) % size;
+                    var distance = (long)(siteX - x) * (siteX - x) + (long)(siteY - y) * (siteY - y);
+
+                    if (distance < best)
+                        (best, nearest) = (distance, (cx, cy));
+                }
+
+            var roll = Hash(serverId, nearest.X, nearest.Y, salt: 0) % _totalWeight;
 
             foreach (var (terrain, cumulativeWeight) in _distribution)
                 if (roll < cumulativeWeight)
@@ -43,6 +67,8 @@ namespace EmpireIdle.Domain.Services
 
             return _distribution[^1].Terrain; // недосяжно: roll завжди < _totalWeight
         }
+
+        private static int FloorDiv(int value, int divisor) => (int)Math.Floor(value / (double)divisor);
 
         /// <summary>Ключ типу місцевості клітини.</summary>
         public string GetTerrainType(int serverId, int x, int y)
@@ -58,20 +84,22 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>
         /// Змішує координати й сід у псевдовипадкове невід'ємне число.
-        /// Прості множники — щоб сусідні клітини не давали схожих результатів.
+        /// Прості множники — щоб сусідні клітини не давали схожих результатів; salt розводить незалежні
+        /// кидки для тієї самої точки (тип ділянки й зсув її центру).
         /// </summary>
-        private int Hash(int serverId, int x, int y)
+        private int Hash(int serverId, int x, int y, int salt)
         {
             unchecked
             {
                 var h = _config.TerrainSeed;
                 h = h * 31 + serverId;
+                h = h * 1000003 + salt;
                 h = h * 486187739 + x;
                 h = h * (int)2654435761 + y;
                 h ^= h >> 13;
                 h *= 1274126177;
                 h ^= h >> 16;
-                return h & 0x7FFFFFFF; 
+                return h & 0x7FFFFFFF;
             }
         }
     }

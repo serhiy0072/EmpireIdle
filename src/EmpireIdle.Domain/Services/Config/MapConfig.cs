@@ -16,6 +16,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Сід генерації терейну — той самий сід дає ту саму карту.</summary>
         public int TerrainSeed { get; set; }
 
+        /// <summary>
+        /// Сторона ділянки, з якої росте одна пляма місцевості (ліс, озеро, гори), у клітинах.
+        /// 1 — кожна клітина сама по собі, як шахівниця.
+        /// </summary>
+        public int TerrainPatchSize { get; set; } = 1;
+
         /// <summary>Типи місцевості з їхніми вагами та властивостями.</summary>
         public List<TerrainConfig> Terrains { get; set; } = new();
 

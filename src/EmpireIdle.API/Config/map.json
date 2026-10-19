@@ -4,6 +4,7 @@
       "Width": 500,
       "Height": 500,
       "TerrainSeed": 20260922,
+      "TerrainPatchSize": 5,
       "CellsPerMonster": 90,
       "FullyOpenAtLevel": 3,
       "Geometry": {
