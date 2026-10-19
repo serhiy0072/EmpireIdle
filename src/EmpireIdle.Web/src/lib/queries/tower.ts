@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
-import type { TowerLeaderboard, TowerStormResult, TowerView } from "../apiTypes";
+import type { BattleReplay, ManualCast, TowerLeaderboard, TowerStormResult, TowerView } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 
@@ -31,11 +31,22 @@ export function useStormTowerFloor(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { floor: number; lanes: (string | null)[] }) =>
+    mutationFn: (input: { floor: number; lanes: (string | null)[]; casts?: ManualCast[] | null }) =>
       api<TowerStormResult>(`/api/tower/${playerId}/storm`, { method: "POST", body: input, idempotent: true }),
     onSuccess: (result) => {
       if (result.victory)
         invalidatePlayer(queryClient, playerId, ["tower", "towerLeaderboard", "village", "wallet", "inventory"]);
     },
+  });
+}
+
+/**
+ * Ручний бій: сервер рахує бій з усіма наказами від початку й нічого не зберігає. Кожне натискання вміння —
+ * новий перегляд; зарахує бій лише штурм із тими самими наказами.
+ */
+export function usePreviewTowerFloor(playerId: string) {
+  return useMutation({
+    mutationFn: (input: { floor: number; lanes: (string | null)[]; casts: ManualCast[] }) =>
+      api<BattleReplay>(`/api/tower/${playerId}/preview`, { method: "POST", body: input }),
   });
 }

@@ -91,5 +91,6 @@ export type TowerLeaderboard = components["schemas"]["TowerLeaderboard"];
 export type TowerLeaderboardEntry = components["schemas"]["TowerLeaderboardEntry"];
 export type TowerStormResult = components["schemas"]["TowerStormResult"];
 export type BattleReplay = components["schemas"]["BattleReplay"];
+export type ManualCast = components["schemas"]["ManualCastRequest"];
 export type BattleReplayFighter = components["schemas"]["BattleReplayFighter"];
 export type BattleReplayEvents = components["schemas"]["BattleReplayEvents"];
