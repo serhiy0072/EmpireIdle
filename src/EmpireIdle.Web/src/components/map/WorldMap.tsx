@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { usePanZoom } from "../../hooks/usePanZoom";
 import type { MapAreaResponse } from "../../lib/apiTypes";
 import { at, project, toPath, UNIT_X, UNIT_Y } from "../../lib/iso";
+import MapPopup from "./MapPopup";
 import MarchAnimation, { type MapMarch } from "./MarchAnimation";
 import { MAP_RADIUS_MAX, MAP_RADIUS_MIN, type MapView } from "../../lib/queries/map";
 import {
@@ -38,6 +39,8 @@ interface Props {
   /** Гравець: його табори — жовті, чужі — червоні. */
   playerId: string;
   onSelect: (x: number, y: number) => void;
+  /** Вікно дій над обраною клітиною: стоїть біля неї й їде разом із мапою; null — не показувати. */
+  popup: ReactNode;
   /** Камера показує інші клітини — час завантажити ділянку під них. */
   onViewChange: (view: MapView) => void;
 }
@@ -138,6 +141,7 @@ export default function WorldMap({
   coverageRadius,
   playerId,
   onSelect,
+  popup,
   onViewChange,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -291,6 +295,16 @@ export default function WorldMap({
   const labelScale = transform === null ? 1 : Math.max(1, 1.3 / transform.k);
   const inside = (x: number, y: number) => x >= area.minX && x <= area.maxX && y >= area.minY && y <= area.maxY;
 
+  // Центр обраної клітини на екрані — туди ставимо вікно дій
+  const anchor =
+    transform === null || selected === null
+      ? null
+      : (() => {
+          const origin = cellOrigin(selected.x, selected.y);
+          const p = project(origin.x, origin.y);
+          return { x: transform.x + p.x * transform.k, y: transform.y + p.y * transform.k };
+        })();
+
   return (
     <div
       ref={containerRef}
@@ -386,6 +400,7 @@ export default function WorldMap({
           </g>
         </svg>
       )}
+      {anchor !== null && popup != null && <MapPopup anchor={anchor}>{popup}</MapPopup>}
     </div>
   );
 }
