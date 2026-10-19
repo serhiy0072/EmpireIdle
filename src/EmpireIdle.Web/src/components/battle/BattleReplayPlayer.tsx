@@ -124,6 +124,25 @@ function draw(
   context.globalAlpha = 1;
 }
 
+/** Ключ сховища для швидкості показу: гравець обрав x2 — наступний бій іде так само. */
+const SPEED_KEY = "battle-replay-speed";
+
+function loadSpeed(): number {
+  try {
+    return localStorage.getItem(SPEED_KEY) === "2" ? 2 : 1;
+  } catch {
+    return 1;
+  }
+}
+
+function saveSpeed(speed: number): void {
+  try {
+    localStorage.setItem(SPEED_KEY, String(speed));
+  } catch {
+    // Без сховища швидкість просто не запам'ятається
+  }
+}
+
 interface Props {
   replay: BattleReplay;
   /** Доріжка боса поверху — його фігурку видно здалеку; null — боса немає. */
@@ -140,9 +159,9 @@ export default function BattleReplayPlayer({ replay, bossLane = null, onFinished
   const catalog = useCatalog();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const playbackRef = useRef<Playback>(startPlayback(replay));
-  const speedRef = useRef(1);
+  const [speed, setSpeed] = useState(loadSpeed);
+  const speedRef = useRef(speed);
   const finishedRef = useRef(onFinished);
-  const [speed, setSpeed] = useState(1);
   const [cards, setCards] = useState(() => ({
     health: replay.fighters.map((fighter) => fighter.maxHealth),
     tick: 0,
@@ -200,6 +219,7 @@ export default function BattleReplayPlayer({ replay, bossLane = null, onFinished
     const next = speed === 1 ? 2 : 1;
     speedRef.current = next;
     setSpeed(next);
+    saveSpeed(next);
   };
 
   const heroes = replay.fighters.filter((fighter) => fighter.attacker && fighter.leader == null);
