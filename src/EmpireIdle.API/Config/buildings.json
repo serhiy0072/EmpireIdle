@@ -237,6 +237,16 @@
         "UpgradeCostGrowth": 1.28
       },
       {
+        "Key": "messhall",
+        "DisplayName": "Їдальня",
+        "Upgradable": false,
+        "RequiresMainBuildingLevel": 4,
+        "Position": {
+          "X": 38.0,
+          "Y": 58.0
+        }
+      },
+      {
         "Key": "market",
         "DisplayName": "Ринок",
         "Upgradable": false,
@@ -412,7 +422,7 @@
             "Amount": 400
           },
           {
-            "Resource": "food",
+            "Resource": "fodder",
             "Amount": 300
           }
         ],

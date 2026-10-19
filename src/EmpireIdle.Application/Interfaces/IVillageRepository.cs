@@ -29,7 +29,7 @@ namespace EmpireIdle.Application.Interfaces
         /// Id сіл зі звіринцем (будівлею одного з penTypes), які годували востаннє не пізніше dueBefore
         /// або ще жодного разу. Без сутностей: кожне село годується у власному scope.
         /// </summary>
-        Task<IReadOnlyList<Guid>> GetIdsDueFoodUpkeepAsync(IReadOnlyCollection<string> penTypes, DateTime dueBefore,
+        Task<IReadOnlyList<Guid>> GetIdsDueProvisionsAsync(IReadOnlyCollection<string> eaterTypes, DateTime dueBefore,
             int batchSize, CancellationToken cancellationToken = default);
 
         /// <summary>Скільки сіл у поточному світі.</summary>

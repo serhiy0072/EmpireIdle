@@ -1,0 +1,11 @@
+{
+  "GameConfig": {
+    "Provisions": {
+      "MessHallBuildingKey": "messhall",
+      "MealResource": "food",
+      "MealPerBuildingLevelPerHour": 15,
+      "HungerProductionMultiplier": 0.75,
+      "HungerDefenceMultiplier": 0.8
+    }
+  }
+}

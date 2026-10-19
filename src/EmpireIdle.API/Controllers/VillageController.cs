@@ -42,7 +42,8 @@ namespace EmpireIdle.API.Controllers
                     ? null
                     : new VillageDamageResponse(village.Damage.DefeatStreak, village.Damage.DefeatsToEvict,
                         village.Damage.RepairCost.Select(c => new RepairCostResponse(c.Resource, c.Amount)).ToList()),
-                village.IsHungry);
+                village.IsHungry,
+                village.MealPerHour);
 
             return Ok(response);
         }

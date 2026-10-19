@@ -9,12 +9,11 @@
       "FeedItemKey": "beast_feed",
       "BaseExperience": 100,
       "ExperienceGrowth": 1.08,
-      "FoodUpkeep": {
+      "UpkeepResource": "fodder",
+      "FodderUpkeep": {
         "PerPenLevelPerHour": 40,
         "PerBeastPerHour": 120,
-        "PerBeastLevelPerHour": 6,
-        "HungerDefenceMultiplier": 0.8,
-        "HungerProductionMultiplier": 0.75
+        "PerBeastLevelPerHour": 6
       },
       "Types": [
         {
@@ -27,7 +26,7 @@
           "BonusPerLevel": 0.002,
           "DurationMinutes": 120,
           "CooldownMinutes": 480,
-          "ActivationFood": 1500
+          "ActivationFodder": 1500
         },
         {
           "Key": "boar",
@@ -39,7 +38,7 @@
           "BonusPerLevel": 0.002,
           "DurationMinutes": 120,
           "CooldownMinutes": 480,
-          "ActivationFood": 1500
+          "ActivationFodder": 1500
         },
         {
           "Key": "bear",
@@ -51,7 +50,7 @@
           "BonusPerLevel": 0.002,
           "DurationMinutes": 240,
           "CooldownMinutes": 720,
-          "ActivationFood": 3000
+          "ActivationFodder": 3000
         },
         {
           "Key": "warg",
@@ -63,7 +62,7 @@
           "BonusPerLevel": 0.002,
           "DurationMinutes": 120,
           "CooldownMinutes": 480,
-          "ActivationFood": 5000
+          "ActivationFodder": 5000
         },
         {
           "Key": "griffin",
@@ -75,7 +74,7 @@
           "BonusPerLevel": 0.002,
           "DurationMinutes": 120,
           "CooldownMinutes": 480,
-          "ActivationFood": 8000
+          "ActivationFodder": 8000
         }
       ]
     }

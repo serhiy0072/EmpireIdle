@@ -16,8 +16,8 @@ namespace EmpireIdle.API.Jobs
 
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
         public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachItemAsync(
-            nameof(PayFoodUpkeepCommand),
-            (mediator, ct) => mediator.Send(new GetVillageIdsDueFoodUpkeepQuery(), ct),
-            (mediator, villageId, ct) => mediator.Send(new PayFoodUpkeepCommand(villageId), ct), cancellationToken);
+            nameof(PayProvisionsCommand),
+            (mediator, ct) => mediator.Send(new GetVillageIdsDueProvisionsQuery(), ct),
+            (mediator, villageId, ct) => mediator.Send(new PayProvisionsCommand(villageId), ct), cancellationToken);
     }
 }

@@ -55,6 +55,7 @@ builder.Configuration
     .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/beasts.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/provisions.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/lootboxes.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
 
@@ -158,10 +159,12 @@ builder.Services.AddOptions<GameConfig>()
         "GameConfig.UnitBatchMin must be at least 1 and not above UnitBatchMax.")
     .Validate(c => c.UnitCapacityMin >= c.UnitBatchMax && c.UnitCapacityMax >= c.UnitCapacityMin,
         "GameConfig.UnitCapacityMin must hold a full batch and not exceed UnitCapacityMax.")
-    .Validate(c => c.Beasts.FoodUpkeep is { PerPenLevelPerHour: >= 0, PerBeastPerHour: >= 0, PerBeastLevelPerHour: >= 0 }
-            && c.Beasts.FoodUpkeep.HungerDefenceMultiplier is > 0 and <= 1
-            && c.Beasts.FoodUpkeep.HungerProductionMultiplier is > 0 and <= 1,
-        "GameConfig.Beasts.FoodUpkeep needs non-negative rates and hunger multipliers in (0, 1].")
+    .Validate(c => c.Beasts.FodderUpkeep is { PerPenLevelPerHour: >= 0, PerBeastPerHour: >= 0, PerBeastLevelPerHour: >= 0 },
+        "GameConfig.Beasts.FodderUpkeep needs non-negative rates.")
+    .Validate(c => c.Provisions.MealPerBuildingLevelPerHour >= 0
+            && c.Provisions.HungerDefenceMultiplier is > 0 and <= 1
+            && c.Provisions.HungerProductionMultiplier is > 0 and <= 1,
+        "GameConfig.Provisions needs a non-negative meal rate and hunger multipliers in (0, 1].")
     .Validate(c => c.Combat.HeroHealthScale > 0, "GameConfig.Combat.HeroHealthScale must be positive — otherwise every hero in a battle is wounded.")
     .Validate(c => c.Shop.Banners.All(b => b.WindowDays is null or > 0), "GameConfig.Shop.Banners WindowDays must be positive when set.")
     .Validate(c => c.Dungeons.RefillPricesGems.All(p => p > 0) && c.Dungeons.RefillPricesGems.Zip(c.Dungeons.RefillPricesGems.Skip(1)).All(p => p.First <= p.Second),

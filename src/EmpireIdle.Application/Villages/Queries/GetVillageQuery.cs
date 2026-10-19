@@ -127,7 +127,7 @@ namespace EmpireIdle.Application.Villages.Queries
                 : null;
 
             return new VillageView(village.Id, village.Name, village.X, village.Y, buildings, resources,
-                village.IsShieldedAt(now) ? village.ShieldUntil : null, damage, village.IsHungry);
+                village.IsShieldedAt(now) ? village.ShieldUntil : null, damage, village.IsHungry, _status.MealPerHour(village));
         }
     }
 }

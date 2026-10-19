@@ -2578,6 +2578,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime?>("AutoCollectedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("BeastsHungry")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("DefeatStreak")
                         .HasColumnType("integer");
 

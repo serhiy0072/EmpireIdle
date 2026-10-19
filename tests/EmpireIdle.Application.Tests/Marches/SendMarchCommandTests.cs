@@ -78,9 +78,12 @@ public class SendMarchCommandTests
             }
         ],
         Items = [new ItemConfig { Key = "beast_feed", DisplayName = "Корм", Description = "Корм", Type = "feed" }],
+        // Звірі платять їжею — ресурс мусить бути в конфізі
+        Resources = [new ResourceConfig { Key = "food", DisplayName = "М'ясо" }],
         // Кажани не приручаються: звіра для них немає
         Beasts = new BeastsConfig
         {
+            UpkeepResource = EmpireIdle.TestKit.TestKeys.Food,
             PityWins = 10,
             MaxRank = 5,
             LevelsPerRank = 10,
@@ -92,12 +95,12 @@ public class SendMarchCommandTests
                 new BeastConfig
                 {
                     Key = "wolf", MonsterKey = "wolves", TameChance = 0.2, Effect = EffectTarget.MarchSpeed,
-                    BaseBonus = 0.25, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                    BaseBonus = 0.25, DurationMinutes = 120, CooldownMinutes = 480, ActivationFodder = 100
                 },
                 new BeastConfig
                 {
                     Key = "boar", MonsterKey = "boars", TameChance = 0.2, Effect = EffectTarget.Production,
-                    BaseBonus = 0.15, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                    BaseBonus = 0.15, DurationMinutes = 120, CooldownMinutes = 480, ActivationFodder = 100
                 }
             ]
         },

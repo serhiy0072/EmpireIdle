@@ -74,6 +74,8 @@ public class CompleteMarchCommandTests
 
     private static GameConfig BaseConfig(bool cityFall) => new()
     {
+        // Звірі платять їжею — ресурс мусить бути в конфізі
+        Resources = [new ResourceConfig { Key = "food", DisplayName = "М'ясо" }],
         Buildings =
         [
             new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 },
@@ -85,6 +87,7 @@ public class CompleteMarchCommandTests
         Items = [new ItemConfig { Key = "beast_feed", DisplayName = "Корм", Description = "Корм", Type = "feed" }],
         Beasts = new BeastsConfig
         {
+            UpkeepResource = EmpireIdle.TestKit.TestKeys.Food,
             PityWins = 10,
             MaxRank = 2,
             LevelsPerRank = 10,
@@ -96,7 +99,7 @@ public class CompleteMarchCommandTests
                 new BeastConfig
                 {
                     Key = "wolf", MonsterKey = "wolves", TameChance = 0.2, Effect = EffectTarget.Carry,
-                    BaseBonus = 0.5, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                    BaseBonus = 0.5, DurationMinutes = 120, CooldownMinutes = 480, ActivationFodder = 100
                 }
             ]
         },

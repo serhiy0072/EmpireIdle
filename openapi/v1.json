@@ -10129,7 +10129,7 @@
       },
       "BeastPassiveResponse": {
         "required": [
-          "activationFood",
+          "activationFodder",
           "bonus",
           "cooldownMinutes",
           "durationMinutes",
@@ -10152,7 +10152,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "activationFood": {
+          "activationFodder": {
             "type": "integer",
             "format": "int32"
           },
@@ -10173,7 +10173,7 @@
         "required": [
           "beasts",
           "capacity",
-          "foodUpkeepPerHour",
+          "fodderUpkeepPerHour",
           "isHungry",
           "taming"
         ],
@@ -10195,7 +10195,7 @@
               "$ref": "#/components/schemas/BeastTamingResponse"
             }
           },
-          "foodUpkeepPerHour": {
+          "fodderUpkeepPerHour": {
             "type": "integer",
             "format": "int32"
           },
@@ -15905,6 +15905,7 @@
           "buildings",
           "id",
           "isHungry",
+          "mealPerHour",
           "name",
           "resources",
           "x",
@@ -15949,6 +15950,10 @@
           },
           "isHungry": {
             "type": "boolean"
+          },
+          "mealPerHour": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

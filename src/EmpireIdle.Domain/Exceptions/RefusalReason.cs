@@ -97,6 +97,11 @@
         /// <summary>На цю ціль уже йдуть твої розвідники — одночасно лише одна розвідка на ціль.</summary>
         public static readonly RefusalReason ScoutAlreadyUnderway = new("scout.alreadyUnderway");
 
+        // ---------- Звірі ----------
+
+        /// <summary>Звіринцю не вистачило корму: поки звірі голодні, пасивки не активуються.</summary>
+        public static readonly RefusalReason BeastsHungry = new("beasts.hungry");
+
         // ---------- Прискорення ----------
 
         /// <summary>До кінця таймера лишилось не більше межі: прискорювати нічого, треба дочекатись; seconds — межа.</summary>

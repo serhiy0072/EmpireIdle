@@ -7,16 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Beasts.Commands
 {
     /// <summary>
-    /// Годує звіринець одного села за час від минулого годування (рішення 13.10.2026). Одиниця роботи
-    /// джоба: конфлікт паралелізму коштує це село, а не весь прогін.
+    /// Сплачує провізію одного села за час від минулої оплати (рішення 13.10.2026, 20.10.2026): Їдальня
+    /// їсть м'ясо, звіринець — корм. Одиниця роботи джоба: конфлікт паралелізму коштує це село, а не весь прогін.
     /// </summary>
-    public record PayFoodUpkeepCommand(Guid VillageId) : IRequest;
+    public record PayProvisionsCommand(Guid VillageId) : IRequest;
 
-    public sealed class PayFoodUpkeepCommandHandler : IRequestHandler<PayFoodUpkeepCommand>
+    public sealed class PayProvisionsCommandHandler : IRequestHandler<PayProvisionsCommand>
     {
-        /// <summary>Їжа — ресурс, який їдять звірі; так само, як і в активації звіра.</summary>
-        private const string FoodResource = "food";
-
         private readonly IVillageRepository _villageRepository;
         private readonly IBeastPenRepository _beastPens;
         private readonly IServerRepository _serverRepository;
@@ -27,9 +24,9 @@ namespace EmpireIdle.Application.Beasts.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
-        private readonly ILogger<PayFoodUpkeepCommandHandler> _logger;
+        private readonly ILogger<PayProvisionsCommandHandler> _logger;
 
-        public PayFoodUpkeepCommandHandler(
+        public PayProvisionsCommandHandler(
             IVillageRepository villageRepository,
             IBeastPenRepository beastPens,
             IServerRepository serverRepository,
@@ -40,7 +37,7 @@ namespace EmpireIdle.Application.Beasts.Commands
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
             TimeProvider timeProvider,
-            ILogger<PayFoodUpkeepCommandHandler> logger)
+            ILogger<PayProvisionsCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _beastPens = beastPens;
@@ -55,7 +52,7 @@ namespace EmpireIdle.Application.Beasts.Commands
             _logger = logger;
         }
 
-        public async Task Handle(PayFoodUpkeepCommand request, CancellationToken cancellationToken)
+        public async Task Handle(PayProvisionsCommand request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
@@ -65,29 +62,32 @@ namespace EmpireIdle.Application.Beasts.Commands
                 return;
 
             var pen = await _beastPens.GetByPlayerReadOnlyAsync(village.PlayerId, cancellationToken);
-            var hourly = _catalog.Config.Beasts.FoodUpkeep.HourlyUpkeep(
+            var fodderPerHour = _catalog.Config.Beasts.FodderUpkeep.HourlyUpkeep(
                 _capacities.BeastPenLevel(village, _status),
                 pen?.Beasts.Select(b => b.Level) ?? []);
+            var mealPerHour = _status.MealPerHour(village);
 
-            // Перше годування лише ставить відлік: до нього звіринець нічого не їв
-            var since = village.FoodUpkeepAt ?? now;
-            var amount = (int)Math.Floor(hourly * Math.Max(0, (now - since).TotalHours));
+            // Перша оплата лише ставить відлік: до неї ні Їдальня, ні звіринець нічого не їли
+            var hours = Math.Max(0, (now - (village.FoodUpkeepAt ?? now)).TotalHours);
 
-            // Буфери ферм і голодний темп фіксуються, тож потрібні буст і кільце, як при зборі
+            // Буфери й голодний темп фіксуються, тож потрібні буст і кільце, як при зборі
             var boost = await _effectResolver.GetProductionBoostAsync(village.PlayerId, now, cancellationToken);
             var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
             var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
-            var wasHungry = village.IsHungry;
+            var (wasHungry, beastsWereHungry) = (village.IsHungry, village.BeastsHungry);
 
-            var missing = village.PayFoodUpkeep(amount, FoodResource,
-                _catalog.Config.Beasts.FoodUpkeep.HungerProductionMultiplier, _catalog.Buildings, now, boost,
-                locationMultiplier);
+            var provisions = _catalog.Config.Provisions;
+            var missingMeal = village.PayFoodUpkeep((int)Math.Floor(mealPerHour * hours), provisions.MealResource,
+                provisions.HungerProductionMultiplier, _catalog.Buildings, now, boost, locationMultiplier);
+            var missingFodder = village.PayBeastUpkeep((int)Math.Floor(fodderPerHour * hours),
+                _catalog.Config.Beasts.UpkeepResource, _catalog.Buildings, now, boost, locationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            if (village.IsHungry != wasHungry)
-                _logger.LogInformation("Village {VillageId} is {State}: beast pen ate {Amount} food, {Missing} missing",
-                    village.Id, village.IsHungry ? "hungry" : "fed again", amount, missing);
+            if (village.IsHungry != wasHungry || village.BeastsHungry != beastsWereHungry)
+                _logger.LogInformation(
+                    "Village {VillageId}: hungry {Hungry} ({MissingMeal} meat missing), beasts hungry {BeastsHungry} ({MissingFodder} fodder missing)",
+                    village.Id, village.IsHungry, missingMeal, village.BeastsHungry, missingFodder);
         }
     }
 }

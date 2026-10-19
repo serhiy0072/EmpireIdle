@@ -129,5 +129,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Ключові скрині: безкоштовні відкриття на добу, понад них — ключ (рішення 12.10.2026).</summary>
         public List<KeyChestConfig> KeyChests { get; set; } = new();
+
+        /// <summary>Провізія: Їдальня їсть м'ясо, нестача — голод села (рішення 20.10.2026).</summary>
+        public ProvisionsConfig Provisions { get; set; } = new();
     }
 }

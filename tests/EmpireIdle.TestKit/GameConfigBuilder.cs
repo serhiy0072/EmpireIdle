@@ -440,6 +440,8 @@
                 MaxRank = 5,
                 LevelsPerRank = 10,
                 FeedItemKey = TestKeys.BeastFeed,
+                // Фікстури платять за звірів тим самим ресурсом, що й за решту: окремий корм не потрібен
+                UpkeepResource = TestKeys.Food,
                 BaseExperience = 100,
                 ExperienceGrowth = 1.25,
                 Types =
@@ -448,7 +450,7 @@
                     {
                         Key = TestKeys.Beast, DisplayName = "Вовк", MonsterKey = TestKeys.BeastMonster, TameChance = 0.2,
                         Effect = EffectTarget.Attack, BaseBonus = 0.15, BonusPerLevel = 0.01,
-                        DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                        DurationMinutes = 120, CooldownMinutes = 480, ActivationFodder = 100
                     }
                 ]
             };

@@ -12,17 +12,14 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Beasts.Commands
 {
     /// <summary>
-    /// Увімкнути пасивку звіра (GDD §5.10): коштує їжі зі складу, діє обмежений час,
-    /// потім перезаряджається. Прискорити перезарядку за gems не можна.
+    /// Увімкнути пасивку звіра (GDD §5.10): коштує корму зі складу, діє обмежений час,
+    /// потім перезаряджається. Голодні звірі не активуються. Прискорити перезарядку за gems не можна.
     /// </summary>
     public record ActivateBeastCommand(Guid PlayerId, string BeastKey)
         : IRequest<BeastActivatedView>, IPlayerScopedRequest, IIdempotentRequest;
 
     internal sealed class ActivateBeastCommandHandler : IRequestHandler<ActivateBeastCommand, BeastActivatedView>
     {
-        /// <summary>Чим платять за активацію — їжею зі складу, стоком для запасів без стелі.</summary>
-        private const string ActivationResource = "food";
-
         private readonly IBeastPenRepository _pens;
         private readonly IVillageRepository _villages;
         private readonly IServerRepository _servers;
@@ -61,6 +58,10 @@ namespace EmpireIdle.Application.Beasts.Commands
             var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
+            // Звіринцю бракує корму — звірі голодні й не працюють, доки їх не нагодують (рішення 20.10.2026)
+            if (village.BeastsHungry)
+                throw new InvalidStateException(RefusalReasons.BeastsHungry, "The beasts are hungry: the pen ran out of fodder.");
+
             // Вікно звіра зберігається одне: нова активація затирає попередню. Тож виробіток
             // за старим вікном фіксуємо до того, як воно зникне, — так само, як для буста крамниці
             if (config.Effect == EffectTarget.Production)
@@ -69,7 +70,7 @@ namespace EmpireIdle.Application.Beasts.Commands
             pen.Activate(request.BeastKey, EffectOf, TimeSpan.FromMinutes(config.DurationMinutes),
                 TimeSpan.FromMinutes(config.CooldownMinutes), now);
 
-            village.ChargeCost([new ResourceCost { Resource = ActivationResource, Amount = config.ActivationFood }], now);
+            village.ChargeCost([new ResourceCost { Resource = _catalog.Config.Beasts.UpkeepResource, Amount = config.ActivationFodder }], now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

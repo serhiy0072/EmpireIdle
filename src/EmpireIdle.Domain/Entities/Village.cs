@@ -58,14 +58,20 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
-        /// <summary>До якого моменту звіринець уже нагодовано; null — ще жодного разу (рішення 13.10.2026).</summary>
+        /// <summary>
+        /// До якого моменту провізію вже сплачено — м'ясо Їдальні й корм звіринця (рішення 13.10.2026,
+        /// 20.10.2026); null — ще жодного разу.
+        /// </summary>
         public DateTime? FoodUpkeepAt { get; private set; }
 
         /// <summary>Коли село востаннє зібрали автоматично; null — ще жодного разу.</summary>
         public DateTime? AutoCollectedAt { get; private set; }
 
-        /// <summary>Остання оплата їжі не вдалась: захист і видобуток (крім їжі) знижені, доки їжі знову не вистачить.</summary>
+        /// <summary>Остання оплата м'яса не вдалась: захист і видобуток (крім м'яса) знижені, доки його знову не вистачить.</summary>
         public bool IsHungry { get; private set; }
+
+        /// <summary>Звіринцю не вистачило корму: пасивки не активуються, доки корму знову не вистачить. Село від цього не страждає.</summary>
+        public bool BeastsHungry { get; private set; }
 
         #endregion
 
@@ -387,27 +393,16 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Годує звіринець (рішення 13.10.2026): amount їжі береться спершу зі складу, потім із
-        /// незібраного виробітку будівель, що дають їжу. Не вистачило — село голодує, і будівлі,
+        /// Село їсть (рішення 13.10.2026; м'ясо Їдальні — 20.10.2026): amount береться спершу зі складу, потім із
+        /// незібраного виробітку будівель, що дають цей ресурс. Не вистачило — село голодує, і будівлі,
         /// що дають інші ресурси, переходять на голодний темп; вистачило — голод минає.
         /// </summary>
-        /// <returns>Скільки їжі не вистачило; 0 — звіринець ситий.</returns>
+        /// <returns>Скільки не вистачило; 0 — село сите.</returns>
         public int PayFoodUpkeep(int amount, string foodResource, double hungerProductionMultiplier,
             IReadOnlyDictionary<string, BuildingConfig> buildingConfigs, DateTime utcNow, ProductionBoost boost,
             double locationMultiplier)
         {
-            var store = _resources.FirstOrDefault(r => r.ResourceType == foodResource);
-            var fromStore = (int)Math.Min(Math.Max(amount, 0), store?.Amount ?? 0);
-            store?.Subtract(fromStore);
-            var missing = Math.Max(amount, 0) - fromStore;
-
-            foreach (var building in _buildings.Where(b => missing > 0 && IsProducing(b, buildingConfigs)
-                         && buildingConfigs[b.Type].ProducesResource == foodResource))
-            {
-                building.Materialize(buildingConfigs[building.Type], utcNow, boost, locationMultiplier);
-                missing -= building.Plunder(missing);
-            }
-
+            var missing = Consume(amount, foodResource, buildingConfigs, utcNow, boost, locationMultiplier);
             var hungry = missing > 0;
 
             if (hungry != IsHungry)
@@ -427,6 +422,41 @@ namespace EmpireIdle.Domain.Entities
 
             FoodUpkeepAt = utcNow;
             Touch(utcNow);
+            return missing;
+        }
+
+        /// <summary>
+        /// Годує звіринець кормом (рішення 20.10.2026): так само спершу склад, потім буфери будівель корму.
+        /// Не вистачило — голодні лише звірі: пасивки не активуються, а видобуток і захист села не змінюються.
+        /// </summary>
+        /// <returns>Скільки корму не вистачило; 0 — звірі ситі.</returns>
+        public int PayBeastUpkeep(int amount, string fodderResource, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        {
+            var missing = Consume(amount, fodderResource, buildingConfigs, utcNow, boost, locationMultiplier);
+
+            BeastsHungry = missing > 0;
+            FoodUpkeepAt = utcNow;
+            Touch(utcNow);
+            return missing;
+        }
+
+        /// <summary>Списує amount ресурсу: склад, потім незібрані буфери його виробників. Повертає нестачу.</summary>
+        private int Consume(int amount, string resourceKey, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            DateTime utcNow, ProductionBoost boost, double locationMultiplier)
+        {
+            var store = _resources.FirstOrDefault(r => r.ResourceType == resourceKey);
+            var fromStore = (int)Math.Min(Math.Max(amount, 0), store?.Amount ?? 0);
+            store?.Subtract(fromStore);
+            var missing = Math.Max(amount, 0) - fromStore;
+
+            foreach (var building in _buildings.Where(b => missing > 0 && IsProducing(b, buildingConfigs)
+                         && buildingConfigs[b.Type].ProducesResource == resourceKey))
+            {
+                building.Materialize(buildingConfigs[building.Type], utcNow, boost, locationMultiplier);
+                missing -= building.Plunder(missing);
+            }
+
             return missing;
         }
 

@@ -40,8 +40,11 @@ namespace EmpireIdle.Domain.Services.Config
 
         public List<BeastConfig> Types { get; set; } = new();
 
-        /// <summary>Скільки їжі з'їдає звіринець і що робить голод (рішення 13.10.2026).</summary>
-        public FoodUpkeepConfig FoodUpkeep { get; set; } = new();
+        /// <summary>Ресурс, яким платять за утримання й активацію звірів — корм (рішення 20.10.2026).</summary>
+        public string UpkeepResource { get; set; } = "fodder";
+
+        /// <summary>Скільки корму з'їдає звіринець (рішення 13.10.2026).</summary>
+        public BeastUpkeepConfig FodderUpkeep { get; set; } = new();
     }
 
     /// <summary>Тип звіра. Приручається з монстра одного типу — і лише з нього.</summary>
@@ -75,7 +78,7 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Перезарядка від моменту активації; не коротша за дію.</summary>
         public int CooldownMinutes { get; set; }
 
-        /// <summary>Скільки їжі зі складу коштує активація — стік для запасів без стелі.</summary>
-        public int ActivationFood { get; set; }
+        /// <summary>Скільки корму (UpkeepResource) зі складу коштує активація — стік для запасів без стелі.</summary>
+        public int ActivationFodder { get; set; }
     }
 }

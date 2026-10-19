@@ -13,13 +13,11 @@ namespace EmpireIdle.Domain.Tests.Entities
         private const double Hunger = 0.5;
         private static readonly DateTime Now = TestKit.Entities.Now;
 
-        private static readonly FoodUpkeepConfig Upkeep = new()
+        private static readonly BeastUpkeepConfig Upkeep = new()
         {
             PerPenLevelPerHour = 100,
             PerBeastPerHour = 100,
-            PerBeastLevelPerHour = 10,
-            HungerDefenceMultiplier = 0.5,
-            HungerProductionMultiplier = Hunger
+            PerBeastLevelPerHour = 10
         };
 
         /// <summary>Село з фермою й лісопилкою; на складі по 1000 кожного ресурсу.</summary>
@@ -122,13 +120,41 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(1.0, sawmill.HungerProductionMultiplier);
         }
 
+        /// <summary>Звірам бракує корму — голодні лише вони: видобуток села не сповільнюється.</summary>
+        [Fact]
+        public void PayBeastUpkeep_ShouldStarveOnlyTheBeasts()
+        {
+            var (village, configs) = Arrange();
+            var sawmill = village.Buildings.Single(b => b.Type == Sawmill);
+
+            var missing = village.PayBeastUpkeep(5000, TestKeys.Wood, configs, Now, ProductionBoost.None, 1.0);
+
+            Assert.True(missing > 0);
+            Assert.True(village.BeastsHungry);
+            Assert.False(village.IsHungry);
+            Assert.Equal(1.0, sawmill.HungerProductionMultiplier);
+            Assert.Equal(Now, village.FoodUpkeepAt);
+        }
+
+        /// <summary>Корму знову досить — звірі ситі.</summary>
+        [Fact]
+        public void PayBeastUpkeep_ShouldFeedTheBeasts_OnceThereIsEnough()
+        {
+            var (village, configs) = Arrange();
+            village.PayBeastUpkeep(5000, TestKeys.Wood, configs, Now, ProductionBoost.None, 1.0);
+
+            village.PayBeastUpkeep(0, TestKeys.Wood, configs, Now.AddMinutes(10), ProductionBoost.None, 1.0);
+
+            Assert.False(village.BeastsHungry);
+        }
+
         /// <summary>Голодне село захищається вдвічі гірше.</summary>
         [Fact]
         public void DefenceMultiplier_ShouldHalve_ForAHungryVillage()
         {
             var (village, configs) = Arrange();
             var config = new GameConfigBuilder().WithBuildings().Build();
-            config.Beasts.FoodUpkeep = Upkeep;
+            config.Provisions = new ProvisionsConfig { HungerDefenceMultiplier = 0.5, HungerProductionMultiplier = Hunger };
             var status = new VillageStatus(new GameCatalog(config));
             var fed = status.DefenceMultiplier(village, Now);
 

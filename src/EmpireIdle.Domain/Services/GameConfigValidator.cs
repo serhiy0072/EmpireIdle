@@ -39,6 +39,7 @@ namespace EmpireIdle.Domain.Services
             ValidateUnlockThresholds(config);
             ValidateMarket(config);
             ValidateBeasts(config);
+            ValidateProvisions(config);
             ValidateTeleports(config);
             ValidateSpeedUpItems(config);
             ValidateEnergyJars(config);
@@ -418,14 +419,17 @@ namespace EmpireIdle.Domain.Services
                 .Where(b => b.Effect is not (EffectTarget.Production or EffectTarget.Attack or EffectTarget.Defense
                                 or EffectTarget.MarchSpeed or EffectTarget.Carry)
                             || b.BaseBonus <= 0 || b.BonusPerLevel < 0 || b.DurationMinutes <= 0
-                            || b.CooldownMinutes < b.DurationMinutes || b.ActivationFood <= 0)
+                            || b.CooldownMinutes < b.DurationMinutes || b.ActivationFodder <= 0)
                 .Select(b => b.Key)
                 .ToList();
 
             if (brokenPassives.Count > 0)
                 throw new InvalidOperationException(
                     "Beast passives need a multiplier effect, a positive bonus, a duration, a cooldown no shorter "
-                    + $"than the duration and a food price: {string.Join(", ", brokenPassives)}.");
+                    + $"than the duration and a fodder price: {string.Join(", ", brokenPassives)}.");
+
+            if (config.Resources.All(r => r.Key != beasts.UpkeepResource))
+                throw new InvalidOperationException($"Beasts.UpkeepResource '{beasts.UpkeepResource}' must be a resource.");
 
             // Корм — стаковий предмет: спорядження поштучне й годувати ним не можна
             if (config.Items.FirstOrDefault(i => i.Key == beasts.FeedItemKey) is not { Slot: null })
@@ -434,6 +438,27 @@ namespace EmpireIdle.Domain.Services
 
             if (!config.Buildings.Any(b => b.BeastCapacityPerLevel > 0))
                 throw new InvalidOperationException("Beasts are configured, but no building gives beast slots.");
+        }
+
+        /// <summary>Їдальня — будівля без рівнів, а м'ясо, яке вона їсть, — ресурс, що його хтось виробляє.</summary>
+        private static void ValidateProvisions(GameConfig config)
+        {
+            var provisions = config.Provisions;
+
+            // Без Їдальні село нічого не їсть — і ресурс їжі не має значення
+            if (provisions.MessHallBuildingKey is not { } messHall)
+                return;
+
+            if (config.Resources.All(r => r.Key != provisions.MealResource))
+                throw new InvalidOperationException($"Provisions.MealResource '{provisions.MealResource}' must be a resource.");
+
+            if (config.Buildings.FirstOrDefault(b => b.Key == messHall) is not { Upgradable: false })
+                throw new InvalidOperationException(
+                    $"Provisions.MessHallBuildingKey '{messHall}' must be a building without levels.");
+
+            if (config.Buildings.All(b => b.ProducesResource != provisions.MealResource))
+                throw new InvalidOperationException(
+                    $"Provisions.MealResource '{provisions.MealResource}' is eaten by the mess hall, but nothing produces it.");
         }
 
         /// <summary>Скриня зброї без героїв чи без шматків нічого б не відкривала (GDD §6.4).</summary>

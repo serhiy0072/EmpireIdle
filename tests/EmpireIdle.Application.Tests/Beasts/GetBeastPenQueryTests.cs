@@ -65,11 +65,11 @@ public class GetBeastPenQueryTests
         Assert.Equal(1, view.Taming.Single().Misses);
     }
 
-    /// <summary>Екран бачить, скільки їжі за годину з'їдає звіринець: 100 за рівень, 100 за звіра, 10 за його рівень.</summary>
+    /// <summary>Екран бачить, скільки корму за годину з'їдає звіринець: 100 за рівень, 100 за звіра, 10 за його рівень.</summary>
     [Fact]
-    public async Task Handle_ShouldShowTheHourlyFoodUpkeep()
+    public async Task Handle_ShouldShowTheHourlyFodderUpkeep()
     {
-        _catalog.Config.Beasts.FoodUpkeep = new FoodUpkeepConfig { PerPenLevelPerHour = 100, PerBeastPerHour = 100, PerBeastLevelPerHour = 10 };
+        _catalog.Config.Beasts.FodderUpkeep = new BeastUpkeepConfig { PerPenLevelPerHour = 100, PerBeastPerHour = 100, PerBeastLevelPerHour = 10 };
         GivenVillageWithPen();
         var pen = new BeastPen(Guid.NewGuid(), PlayerId, 1, Now);
         pen.ResolveTaming(TestKeys.Beast, rolled: true, pityWins: 10, capacity: 1, maxRank: 5, Now);
@@ -77,7 +77,7 @@ public class GetBeastPenQueryTests
 
         var view = await Handler().Handle(new GetBeastPenQuery(PlayerId), CancellationToken.None);
 
-        Assert.Equal(210, view.FoodUpkeepPerHour);
+        Assert.Equal(210, view.FodderUpkeepPerHour);
         Assert.False(view.IsHungry);
     }
 
