@@ -134,16 +134,23 @@ const RESOURCES: Record<string, ReactElement> = {
       <path d="M12 8 L14 14" stroke="#64748b" />
     </g>
   ),
+  // М'ясо (ключ food, рішення 20.10.2026): окіст із кісткою
   food: (
     <g stroke={OUTLINE} strokeWidth={1.5} strokeLinejoin="round">
-      <path d="M16 29 V8" stroke="#a16207" strokeWidth={2} />
-      {[9, 14, 19].map((y) => (
-        <g key={y}>
-          <ellipse cx={12.5} cy={y} rx={3.5} ry={2} transform={`rotate(-35 12.5 ${y})`} fill="#facc15" />
-          <ellipse cx={19.5} cy={y} rx={3.5} ry={2} transform={`rotate(35 19.5 ${y})`} fill="#facc15" />
-        </g>
-      ))}
-      <ellipse cx={16} cy={5} rx={2} ry={3} fill="#facc15" />
+      <path d="M20 5 C27 5 29 13 25 18 C22 22 15 23 12 20 C9 17 11 9 14 7 C16 5.5 18 5 20 5 Z" fill="#dc2626" />
+      <path d="M17 9 C20 8 24 10 24 13" fill="none" stroke="#fca5a5" strokeWidth={2} />
+      <path d="M13 19 L7 25" stroke="#f8fafc" strokeWidth={3.5} strokeLinecap="round" />
+      <circle cx={5.5} cy={25} r={2.4} fill="#f8fafc" />
+      <circle cx={7.5} cy={27.5} r={2.4} fill="#f8fafc" />
+    </g>
+  ),
+  // Корм звірів: мішок із зерном
+  fodder: (
+    <g stroke={OUTLINE} strokeWidth={1.5} strokeLinejoin="round">
+      <path d="M10 8 L22 8 L24 12 C28 16 28 26 24 28 H8 C4 26 4 16 8 12 Z" fill="#d6b77a" />
+      <path d="M10 8 L13 4 L16 7 L19 4 L22 8" fill="#a16207" />
+      <path d="M9 12 H23" />
+      <ellipse cx={16} cy={20} rx={4} ry={3} fill="#facc15" />
     </g>
   ),
 };

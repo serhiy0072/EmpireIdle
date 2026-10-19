@@ -72,6 +72,7 @@
           "resource.wood": "Wood",
           "resource.iron": "Iron",
           "resource.food": "Meat",
+          "resource.fodder": "Fodder",
           "unit.infantry": "Infantry",
           "unit.archer": "Archer",
           "unit.spearman": "Spearmen",

@@ -36,7 +36,7 @@
           "X": 48.0,
           "Y": 12.0
         },
-        "StoresResources": [ "wood", "iron", "food" ],
+        "StoresResources": [ "wood", "iron", "food", "fodder" ],
         "Cost": [
           {
             "Resource": "wood",
@@ -392,9 +392,9 @@
         ],
         "BaseBuildMinutes": 4,
         "BuildTimeGrowth": 1.30,
-        "ProducesResource": "food",
-        "BaseProductionPerMinute": 10,
-        "BaseStorage": 1800,
+        "ProducesResource": "fodder",
+        "BaseProductionPerMinute": 7,
+        "BaseStorage": 1260,
         "UpgradeCostGrowth": 1.28
       },
       {

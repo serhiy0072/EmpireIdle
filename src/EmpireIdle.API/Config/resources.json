@@ -24,6 +24,12 @@
         "DisplayName": "М'ясо",
         "Icon": "food.svg",
         "RequiresMainBuildingLevel": 3
+      },
+      {
+        "Key": "fodder",
+        "DisplayName": "Корм",
+        "Icon": "fodder.svg",
+        "RequiresMainBuildingLevel": 7
       }
     ]
   }
