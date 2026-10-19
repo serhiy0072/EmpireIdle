@@ -3,6 +3,7 @@ import type { EquipmentResponse, InventoryItemResponse } from "../../../lib/apiT
 import { useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
 import { GameButton, Tile } from "../../game/GameUi";
+import ArtifactHover from "../../inventory/ArtifactHover";
 import ItemIcon from "../../inventory/ItemIcon";
 import HeroPortrait from "../HeroPortrait";
 import EquipmentInfoModal from "./EquipmentInfoModal";
@@ -93,19 +94,20 @@ export default function HeroGearTab({
         {candidatesFor(slot).length > 0 && <span className="mt-0.5 h-2 w-2 rounded-full bg-emerald-400" />}
       </button>
     ) : (
-      <Tile
-        rarity={piece.rarity}
-        selected={infoSlot === slot.index}
-        onClick={() => {
-          setPicked(null);
-          setInfoSlot(slot.index);
-        }}
-        title={catalog.itemName(piece.itemKey)}
-        top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
-        bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
-      >
-        <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
-      </Tile>
+      <ArtifactHover artifact={piece} wornKeys={worn.map((item) => item.itemKey)}>
+        <Tile
+          rarity={piece.rarity}
+          selected={infoSlot === slot.index}
+          onClick={() => {
+            setPicked(null);
+            setInfoSlot(slot.index);
+          }}
+          top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+          bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
+        >
+          <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
+        </Tile>
+      </ArtifactHover>
     );
   };
 
@@ -163,6 +165,7 @@ export default function HeroGearTab({
         <SlotDetails
           slot={pickedSlot}
           candidates={candidatesFor(pickedSlot)}
+          wornKeys={worn.map((item) => item.itemKey)}
           foreign={foreignFor(pickedSlot)}
           disabled={busy || !atHome}
           onEquip={onEquip}
@@ -176,19 +179,20 @@ export default function HeroGearTab({
 function SlotDetails({
   slot,
   candidates,
+  wornKeys,
   foreign,
   disabled,
   onEquip,
 }: {
   slot: Slot;
   candidates: EquipmentResponse[];
+  /** Вдягнене героєм — підказка показує, скільки предметів набору вже на ньому. */
+  wornKeys: string[];
   /** Скільки вільних предметів цього слота — з наборів іншого класу. */
   foreign: number;
   disabled: boolean;
   onEquip: (equipmentId: string) => void;
 }) {
-  const catalog = useCatalog();
-
   return (
     <div className="space-y-3 rounded-xl bg-[#16305e]/80 p-3 ring-1 ring-[#335c9a]">
       <p className="text-sm font-semibold">
@@ -197,17 +201,17 @@ function SlotDetails({
       {candidates.length > 0 && (
         <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
           {candidates.map((piece) => (
-            <Tile
-              key={piece.id}
-              rarity={piece.rarity}
-              onClick={() => onEquip(piece.id)}
-              dimmed={disabled}
-              title={`Вдягнути: ${catalog.itemName(piece.itemKey)}`}
-              top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
-              bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
-            >
-              <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={44} bare />
-            </Tile>
+            <ArtifactHover key={piece.id} artifact={piece} wornKeys={wornKeys}>
+              <Tile
+                rarity={piece.rarity}
+                onClick={() => onEquip(piece.id)}
+                dimmed={disabled}
+                top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+                bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
+              >
+                <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={44} bare />
+              </Tile>
+            </ArtifactHover>
           ))}
         </div>
       )}

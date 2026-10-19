@@ -6,6 +6,7 @@ import HeroPortrait from "../components/heroes/HeroPortrait";
 import ActiveEffects from "../components/inventory/ActiveEffects";
 import EquipmentCard from "../components/inventory/EquipmentCard";
 import ItemCard from "../components/inventory/ItemCard";
+import ArtifactHover from "../components/inventory/ArtifactHover";
 import ItemIcon from "../components/inventory/ItemIcon";
 import LootboxCard from "../components/lootboxes/LootboxCard";
 import { LootboxDrops, WeaponChestContents } from "../components/lootboxes/LootboxPanels";
@@ -142,13 +143,18 @@ export default function InventoryPage() {
                   const wearer = roster.find((hero) => hero.id === piece.equippedByHeroId);
                   const wearerConfig = wearer === undefined ? null : catalog.hero(wearer.heroKey);
 
+                  // Вдягнене тим самим героєм — для лічильника набору в підказці
+                  const wornKeys =
+                    piece.equippedByHeroId == null
+                      ? []
+                      : equipment.filter((other) => other.equippedByHeroId === piece.equippedByHeroId).map((other) => other.itemKey);
+
                   return (
+                    <ArtifactHover key={piece.id} artifact={piece} wornKeys={wornKeys}>
                     <Tile
-                      key={piece.id}
                       rarity={piece.rarity}
                       selected={piece.id === selected}
                       onClick={() => select({ item: piece.id })}
-                      title={catalog.itemName(piece.itemKey)}
                       top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
                       bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
                       bottomLeft={
@@ -166,6 +172,7 @@ export default function InventoryPage() {
                     >
                       <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
                     </Tile>
+                    </ArtifactHover>
                   );
                 })}
               </TileGrid>

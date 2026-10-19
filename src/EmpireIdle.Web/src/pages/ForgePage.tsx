@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import { EquipmentFeed, EquipmentMastery } from "../components/forge/EquipmentUpgrade";
+import ArtifactHover from "../components/inventory/ArtifactHover";
 import ItemIcon from "../components/inventory/ItemIcon";
 import { useSession } from "../hooks/useSession";
 import type { EquipmentResponse } from "../lib/apiTypes";
@@ -16,11 +17,13 @@ const RARITY_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
 interface RowProps {
   equipment: EquipmentResponse;
   wearer: string | null;
+  /** Вдягнене тим самим героєм — для лічильника набору в підказці. */
+  wornKeys: string[];
   selected: boolean;
   onSelect: () => void;
 }
 
-function EquipmentRow({ equipment, wearer, selected, onSelect }: RowProps) {
+function EquipmentRow({ equipment, wearer, wornKeys, selected, onSelect }: RowProps) {
   const catalog = useCatalog();
 
   return (
@@ -31,7 +34,9 @@ function EquipmentRow({ equipment, wearer, selected, onSelect }: RowProps) {
         selected ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"
       }`}
     >
-      <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} mastery={equipment.mastery} size={40} />
+      <ArtifactHover artifact={equipment} wornKeys={wornKeys}>
+        <ItemIcon itemKey={equipment.itemKey} type="equipment" rarity={equipment.rarity} mastery={equipment.mastery} size={40} />
+      </ArtifactHover>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium text-slate-800">{catalog.itemName(equipment.itemKey)}</div>
         <div className="flex flex-wrap gap-1 text-xs">
@@ -111,6 +116,11 @@ export default function ForgePage() {
                 key={item.id}
                 equipment={item}
                 wearer={heroName(item.equippedByHeroId)}
+                wornKeys={
+                  item.equippedByHeroId == null
+                    ? []
+                    : equipment.filter((other) => other.equippedByHeroId === item.equippedByHeroId).map((other) => other.itemKey)
+                }
                 selected={selected?.id === item.id}
                 onSelect={() => select(item.id)}
               />
