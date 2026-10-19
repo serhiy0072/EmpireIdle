@@ -21,7 +21,7 @@
       },
       {
         "Key": "food",
-        "DisplayName": "Їжа",
+        "DisplayName": "М'ясо",
         "Icon": "food.svg",
         "RequiresMainBuildingLevel": 3
       }

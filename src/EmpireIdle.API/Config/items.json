@@ -32,8 +32,8 @@
       },
       {
         "Key": "crate_food_5000",
-        "DisplayName": "Ящик їжі",
-        "Description": "Миттєво додає 5000 їжі",
+        "DisplayName": "Ящик м'яса",
+        "Description": "Миттєво додає 5000 м'яса",
         "Rarity": "common",
         "Type": "resources",
         "Resources": [
@@ -193,8 +193,8 @@
       },
       {
         "Key": "beast_feed",
-        "DisplayName": "Корм для звірів",
-        "Description": "Годуйте прирученого звіра в звіринці — він набирає рівень, і його пасивка сильнішає",
+        "DisplayName": "Ласощі для звірів",
+        "Description": "Пригостіть прирученого звіра в звіринці — він набирає рівень, і його пасивка сильнішає",
         "Rarity": "common",
         "Type": "feed"
       },

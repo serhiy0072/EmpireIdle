@@ -295,7 +295,7 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
-    // Корм для звірів: миска з кісткою
+    // Ласощі для звірів: миска з кісткою
     test: /feed/,
     draw: () => (
       <g>

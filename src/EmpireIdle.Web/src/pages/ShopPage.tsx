@@ -18,7 +18,7 @@ const TYPE_LABELS: Record<string, string> = {
   resources: "Ресурси",
   teleport: "Телепорт",
   scoutveil: "Захист від розвідки",
-  feed: "Корм",
+  feed: "Ласощі",
   lootbox: "Скриня",
   weaponchest: "Скриня зброї",
   chestkey: "Ключ скрині",

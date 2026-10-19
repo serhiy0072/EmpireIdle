@@ -251,7 +251,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "beast.penFull": ({ capacity }) =>
     `Звіринець повний: усі ${capacity} місць зайняті іншими звірами. Підніміть рівень звіринця`,
   "beast.notTameable": () => "Цього монстра не приручити",
-  "beast.notEnoughFeed": ({ need, have }) => `Корму не вистачає: потрібно ${need}, є ${have}`,
+  "beast.notEnoughFeed": ({ need, have }) => `Ласощів не вистачає: потрібно ${need}, є ${have}`,
   "beast.levelCapped": ({ level }) =>
     `Звір досяг стелі рівня ${level} для свого рангу — підніміть ранг, приручивши ще одного такого звіра`,
   "beast.onCooldown": ({ readyAt }) =>
