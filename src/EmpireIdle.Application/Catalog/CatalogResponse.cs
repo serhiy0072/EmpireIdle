@@ -71,9 +71,13 @@
     /// <summary>
     /// Формула SpeedUpCalculator: ceil(Factor × хвилини^Exponent) за зрізану частину — усе понад
     /// FloorSeconds свого таймера (Construction, Training, UnitLevelUp, March); щонайменше 1 gem.
-    /// Таймера немає в FloorSeconds — межа нуль.
+    /// Таймера немає в FloorSeconds — межа нуль. Марш прискорюється не формулою, а варіантами MarchOptions.
     /// </summary>
-    public record CatalogSpeedUp(IReadOnlyDictionary<string, int> FloorSeconds, double Factor, double Exponent);
+    public record CatalogSpeedUp(IReadOnlyDictionary<string, int> FloorSeconds, double Factor, double Exponent,
+        IReadOnlyList<CatalogMarchSpeedUp> MarchOptions);
+
+    /// <summary>Варіант прискорення маршу: зрізає Percent відсотків залишку дороги за Gems.</summary>
+    public record CatalogMarchSpeedUp(int Percent, int Gems);
 
     /// <summary>Тип звіра (GDD §5.10): з якого монстра приручається й на що діє пасивка.</summary>
     /// <param name="Effect">Production, Attack, Defense, MarchSpeed або Carry.</param>

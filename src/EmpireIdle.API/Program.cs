@@ -88,6 +88,10 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Combat.Scouting.Speed > 0, "GameConfig.Combat.Scouting.Speed must be positive.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .Validate(c => c.Monetization.SpeedUpFloorSeconds.Values.All(seconds => seconds >= 0), "GameConfig.Monetization.SpeedUpFloorSeconds cannot be negative.")
+    .Validate(c => c.Monetization.MarchSpeedUps.Count > 0
+        && c.Monetization.MarchSpeedUps.All(o => o.Percent is >= 1 and <= 99 && o.Gems > 0)
+        && c.Monetization.MarchSpeedUps.Select(o => o.Percent).Distinct().Count() == c.Monetization.MarchSpeedUps.Count,
+        "GameConfig.Monetization.MarchSpeedUps must list distinct percents of 1–99 with a positive gem price.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and <= 1, "GameConfig.Monetization.SpeedUpExponent must be above 0 and at most 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count == Enum.GetValues<EmpireIdle.Domain.Enums.BattleOdds>().Length - 1,

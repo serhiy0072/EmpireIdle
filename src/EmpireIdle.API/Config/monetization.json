@@ -9,7 +9,12 @@
         "UnitLevelUp": 0,
         "March": 30
       },
-      "HealGemsPerUnit": 30
+      "HealGemsPerUnit": 30,
+      "MarchSpeedUps": [
+        { "Percent": 50, "Gems": 200 },
+        { "Percent": 75, "Gems": 500 },
+        { "Percent": 90, "Gems": 800 }
+      ]
     }
   }
 }

@@ -55,7 +55,8 @@ public class SpeedUpCommandTests
         {
             SpeedUpFloorSeconds = Enum.GetValues<EmpireIdle.Domain.Enums.SpeedUpTimer>().ToDictionary(timer => timer, _ => 60),
             SpeedUpFactor = 1.2,
-            SpeedUpExponent = 0.75
+            SpeedUpExponent = 0.75,
+            MarchSpeedUps = [new MarchSpeedUpConfig { Percent = 50, Gems = 200 }, new MarchSpeedUpConfig { Percent = 90, Gems = 800 }]
         }
     };
 
@@ -235,7 +236,67 @@ public class SpeedUpCommandTests
             NullLogger<SpeedUpMarchCommandHandler>.Instance);
 
         await Assert.ThrowsAsync<EntityNotFoundException>(() =>
-            handler.Handle(new SpeedUpMarchCommand(PlayerId, Guid.NewGuid()), CancellationToken.None));
+            handler.Handle(new SpeedUpMarchCommand(PlayerId, Guid.NewGuid(), 50), CancellationToken.None));
+    }
+
+    private March GivenMarch(DateTime arrivesAt)
+    {
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
+
+        var march = new March(
+            Guid.NewGuid(), 1, garrison.Id, 0, 0, 10, 10,
+            MarchTargetType.Monster, Guid.NewGuid(),
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 },
+            arrivesAt, Now);
+
+        _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
+        _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);
+        _marches.GetActiveByGarrisonAsync(garrison.Id, Arg.Any<CancellationToken>()).Returns([march]);
+
+        return march;
+    }
+
+    private SpeedUpMarchCommandHandler MarchHandler() => new(
+        _villages, _garrisons, _marches, _wallets, _currentPlayer, _unitOfWork,
+        new FakeTimeProvider(Now), Calculator(),
+        NullLogger<SpeedUpMarchCommandHandler>.Instance);
+
+    /// <summary>Варіант зрізає свою частку залишку дороги: 2 години на 50% — лишається година.</summary>
+    [Fact]
+    public async Task SpeedUpMarch_ShouldCutTheChosenShareOfTheRoad()
+    {
+        var march = GivenMarch(Now.AddHours(2));
+        GivenWallet();
+
+        await MarchHandler().Handle(new SpeedUpMarchCommand(PlayerId, march.Id, 50), CancellationToken.None);
+
+        Assert.Equal(Now.AddHours(1), march.ArrivesAt);
+    }
+
+    /// <summary>Межа маршу лишається: 5 хвилин на 90% дали б 30 с, але останню хвилину прискорення не зрізає.</summary>
+    [Fact]
+    public async Task SpeedUpMarch_ShouldStopAtTheFloor()
+    {
+        var march = GivenMarch(Now.AddMinutes(5));
+        GivenWallet();
+
+        await MarchHandler().Handle(new SpeedUpMarchCommand(PlayerId, march.Id, 90), CancellationToken.None);
+
+        Assert.Equal(Now.AddSeconds(60), march.ArrivesAt);
+    }
+
+    /// <summary>На межі зрізати нічого — відмова, а не покупка за сталу ціну.</summary>
+    [Fact]
+    public async Task SpeedUpMarch_ShouldRefuse_AtTheFloor()
+    {
+        var march = GivenMarch(Now.AddSeconds(50));
+        GivenWallet();
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
+            MarchHandler().Handle(new SpeedUpMarchCommand(PlayerId, march.Id, 50), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.SpeedUpAtFloor.Key, refusal.Reason);
     }
 
     /// <summary>
@@ -243,7 +304,7 @@ public class SpeedUpCommandTests
     /// бій чи повернення проведе сканер — тим самим обробником, що завжди.
     /// </summary>
     [Fact]
-    public async Task SpeedUpMarch_ShouldMoveArrivalToTheFloor()
+    public async Task SpeedUpMarch_ShouldMoveArrivalToTheFloor_OnTheDeepestOption()
     {
         var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
@@ -265,8 +326,9 @@ public class SpeedUpCommandTests
             new FakeTimeProvider(Now), Calculator(),
             NullLogger<SpeedUpMarchCommandHandler>.Instance);
 
-        await handler.Handle(new SpeedUpMarchCommand(PlayerId, march.Id), CancellationToken.None);
+        await handler.Handle(new SpeedUpMarchCommand(PlayerId, march.Id, 90), CancellationToken.None);
 
-        Assert.Equal(Now.AddSeconds(60), march.ArrivesAt);
+        // 2 години на 90% — 12 хвилин дороги лишається
+        Assert.Equal(Now.AddMinutes(12), march.ArrivesAt);
     }
 }

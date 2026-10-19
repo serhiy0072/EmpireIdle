@@ -9,13 +9,13 @@ using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Marches.Commands
 {
-    /// <summary>Прискорити марш за gems: до прибуття лишається межа прискорення.</summary>
-    public record SpeedUpMarchCommand(Guid PlayerId, Guid MarchId)
+    /// <summary>Прискорити марш за gems: зрізати Percent відсотків залишку дороги (варіант із конфіга).</summary>
+    public record SpeedUpMarchCommand(Guid PlayerId, Guid MarchId, int Percent)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>
-    /// Обробник SpeedUpMarchCommand: списує gems і підтягує час прибуття
-    /// до межі прискорення. Сам бій відбудеться найближчим проходом сканера.
+    /// Обробник SpeedUpMarchCommand: списує сталу ціну варіанта й зрізає його частку залишку дороги,
+    /// не нижче межі прискорення. Сам бій відбудеться найближчим проходом сканера.
     /// </summary>
     public sealed class SpeedUpMarchCommandHandler : IRequestHandler<SpeedUpMarchCommand>
     {
@@ -67,9 +67,11 @@ namespace EmpireIdle.Application.Marches.Commands
             var march = marches.FirstOrDefault(m => m.Id == request.MarchId)
                 ?? throw new EntityNotFoundException($"Active", request.MarchId);
 
-            // Останні секунди маршу прискорення не зрізає — бій чи повернення проведе сканер
-            var cut = _calculator.RequireCut(SpeedUpTimer.March, march.ArrivesAt, now);
-            var cost = _calculator.GetCost(SpeedUpTimer.March, march.ArrivesAt, now);
+            // Варіант перевірив валідатор; останні секунди маршу прискорення не зрізає — бій чи повернення проведе сканер
+            var option = _calculator.MarchOption(request.Percent)
+                ?? throw new InvalidOperationException($"Unknown march speed-up option {request.Percent}%.");
+            var cut = _calculator.RequireMarchCut(option.Percent, march.ArrivesAt, now);
+            var cost = option.Gems;
 
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
@@ -83,8 +85,8 @@ namespace EmpireIdle.Application.Marches.Commands
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Player {PlayerId} sped up march {MarchId} for {Cost} gems",
-                request.PlayerId, request.MarchId, cost);
+            _logger.LogInformation("Player {PlayerId} sped up march {MarchId} by {Percent}% for {Cost} gems",
+                request.PlayerId, request.MarchId, option.Percent, cost);
         }
     }
 }

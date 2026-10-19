@@ -18,5 +18,21 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Показник степеня, не більше 1. &lt;1 робить довгі таймери відносно дешевшими, 1 — ціна за годину стала.</summary>
         public double SpeedUpExponent { get; set; } = 0.75;
+
+        /// <summary>
+        /// Прискорення маршу (рішення 19.10.2026): кожен варіант зрізає свою частку залишку дороги
+        /// за сталу ціну — замість формули від часу.
+        /// </summary>
+        public List<MarchSpeedUpConfig> MarchSpeedUps { get; set; } = new();
+    }
+
+    /// <summary>Варіант прискорення маршу.</summary>
+    public class MarchSpeedUpConfig
+    {
+        /// <summary>Скільки відсотків залишку дороги зрізає, 1–99.</summary>
+        public int Percent { get; set; }
+
+        /// <summary>Ціна в gems.</summary>
+        public int Gems { get; set; }
     }
 }

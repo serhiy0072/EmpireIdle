@@ -6414,6 +6414,25 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeedUpMarchRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeedUpMarchRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeedUpMarchRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "No Content"
@@ -10734,6 +10753,24 @@
         },
         "additionalProperties": false
       },
+      "CatalogMarchSpeedUp": {
+        "required": [
+          "gems",
+          "percent"
+        ],
+        "type": "object",
+        "properties": {
+          "percent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogMasteryAttempt": {
         "required": [
           "chance",
@@ -11235,7 +11272,8 @@
         "required": [
           "exponent",
           "factor",
-          "floorSeconds"
+          "floorSeconds",
+          "marchOptions"
         ],
         "type": "object",
         "properties": {
@@ -11253,6 +11291,12 @@
           "exponent": {
             "type": "number",
             "format": "double"
+          },
+          "marchOptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogMarchSpeedUp"
+            }
           }
         },
         "additionalProperties": false
@@ -13853,7 +13897,6 @@
           "id",
           "intent",
           "legStartedAt",
-          "speedUpCostGems",
           "state",
           "targetId",
           "targetType",
@@ -13921,10 +13964,6 @@
             "items": {
               "$ref": "#/components/schemas/MarchUnitResponse"
             }
-          },
-          "speedUpCostGems": {
-            "type": "integer",
-            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -15053,6 +15092,19 @@
           },
           "currency": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SpeedUpMarchRequest": {
+        "required": [
+          "percent"
+        ],
+        "type": "object",
+        "properties": {
+          "percent": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

@@ -192,7 +192,11 @@ namespace EmpireIdle.Application.Catalog
                 new CatalogSpeedUp(
                     config.Monetization.SpeedUpFloorSeconds.ToDictionary(pair => pair.Key.ToString(), pair => pair.Value),
                     config.Monetization.SpeedUpFactor,
-                    config.Monetization.SpeedUpExponent),
+                    config.Monetization.SpeedUpExponent,
+                    config.Monetization.MarchSpeedUps
+                        .OrderBy(option => option.Percent)
+                        .Select(option => new CatalogMarchSpeedUp(option.Percent, option.Gems))
+                        .ToList()),
                 config.Map.Width,
                 catalog.MainBuildingKey,
                 language,

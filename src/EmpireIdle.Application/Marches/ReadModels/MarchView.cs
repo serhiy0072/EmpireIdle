@@ -21,8 +21,7 @@ namespace EmpireIdle.Application.Marches.ReadModels
         DateTime DepartedAt,
         DateTime LegStartedAt,
         DateTime ArrivesAt,
-        List<MarchUnitView> Units,
-        int SpeedUpCostGems);
+        List<MarchUnitView> Units);
 
     /// <summary>Загін у поході: тип, рівень і скільки ще живих.</summary>
     public record MarchUnitView(string UnitType, int Level, int Count);

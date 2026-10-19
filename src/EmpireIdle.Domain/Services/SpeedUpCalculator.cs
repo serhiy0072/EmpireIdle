@@ -50,6 +50,32 @@ namespace EmpireIdle.Domain.Services
             return cut;
         }
 
+        /// <summary>Варіант прискорення маршу за відсотком; null — такого варіанта в конфізі немає.</summary>
+        public MarchSpeedUpConfig? MarchOption(int percent)
+            => _config.MarchSpeedUps.FirstOrDefault(option => option.Percent == percent);
+
+        /// <summary>
+        /// Скільки дороги зрізає прискорення маршу на percent відсотків залишку. Межа маршу лишається:
+        /// останні секунди не зрізаються, і коли зрізати нічого — це відмова, а не безкоштовна покупка.
+        /// </summary>
+        public TimeSpan RequireMarchCut(int percent, DateTime arrivesAt, DateTime now)
+        {
+            var remaining = arrivesAt - now;
+            var left = remaining * (1 - percent / 100.0);
+            var floor = Floor(SpeedUpTimer.March);
+            var cut = remaining - (left > floor ? left : floor);
+
+            if (cut <= TimeSpan.Zero)
+            {
+                var floorSeconds = (int)floor.TotalSeconds;
+
+                throw new InvalidStateException(RefusalReasons.SpeedUpAtFloor,
+                    $"Less than {floorSeconds} s remain; there is nothing to speed up.", floorSeconds);
+            }
+
+            return cut;
+        }
+
         /// <summary>
         /// Ціна прискорення в gems за зрізану частину. Крива сублінійна: подвоєння часу
         /// дає приблизно +68% ціни, тож довгі таймери лишаються в межах одного пакета.
