@@ -1,7 +1,7 @@
 import type { BattleReplay } from "../../lib/apiTypes";
 
 /** Види подій логу — ті самі числа, що BattleEventKind на сервері. */
-export const EventKind = { Hit: 0, Death: 1, Heal: 2, Cast: 3, Shield: 4, Status: 5 } as const;
+export const EventKind = { Hit: 0, Death: 1, Heal: 2, Cast: 3, Shield: 4, Status: 5, Advance: 6, Ready: 7 } as const;
 
 /** Біти HitFlags на сервері. */
 export const HitFlag = { Advantage: 1, Disadvantage: 2, Crit: 4, Blocked: 8, Skill: 16, Poison: 32 } as const;
@@ -27,6 +27,8 @@ export interface Playback {
   alive: boolean[];
   /** Тик останнього вміння героя — для спалаху картки. */
   lastCast: Map<number, number>;
+  /** Ручний бій: герой → номер готового вміння, що чекає натискання. */
+  ready: Map<number, number>;
   floaters: Floater[];
 }
 
@@ -37,6 +39,7 @@ export function startPlayback(replay: BattleReplay): Playback {
     health: replay.fighters.map((fighter) => fighter.maxHealth),
     alive: replay.fighters.map(() => true),
     lastCast: new Map(),
+    ready: new Map(),
     floaters: [],
   };
 }
@@ -64,7 +67,15 @@ export function advance(playback: Playback, replay: BattleReplay, toTick: number
 
     if (kind === EventKind.Death) playback.alive[target] = false;
 
-    if (kind === EventKind.Cast) playback.lastCast.set(events.sources[i] ?? 0, tick);
+    const source = events.sources[i] ?? 0;
+    const detail = events.details[i] ?? 0;
+
+    if (kind === EventKind.Cast) {
+      playback.lastCast.set(source, tick);
+      if (playback.ready.get(source) === detail) playback.ready.delete(source);
+    }
+
+    if (kind === EventKind.Ready) playback.ready.set(source, detail);
 
     // Числа — лише там, де вони щось кажуть: удари по героях, крити й лікування
     const crit = (flags & HitFlag.Crit) !== 0;
@@ -85,4 +96,43 @@ export function advance(playback: Playback, replay: BattleReplay, toTick: number
 
   if (playback.floaters.length > MAX_FLOATERS) playback.floaters.splice(0, playback.floaters.length - MAX_FLOATERS);
   playback.tick = toTick;
+}
+
+/** Відлік уміння героя на тику: скільки тиків лишилось і з якого повного відліку; ready — чекає натискання. */
+export interface SkillClock {
+  remaining: number;
+  total: number;
+  ready: boolean;
+}
+
+/** Тики, на яких уміння героя спрацювало (Cast) чи стало готовим у ручному бою (Ready), — по зростанню. */
+export function skillTimeline(replay: BattleReplay, hero: number, skill: number): { tick: number; ready: boolean }[] {
+  const events = replay.events;
+  const timeline: { tick: number; ready: boolean }[] = [];
+
+  events.kinds.forEach((kind, i) => {
+    if ((kind === EventKind.Cast || kind === EventKind.Ready) && events.sources[i] === hero && events.details[i] === skill)
+      timeline.push({ tick: events.ticks[i] ?? 0, ready: kind === EventKind.Ready });
+  });
+
+  return timeline;
+}
+
+/**
+ * Відлік на тику з лінії часу вміння: від попереднього спрацювання (чи старту бою) до наступного
+ * спрацювання чи готовності. null — до кінця бою вміння більше не спрацює.
+ */
+export function skillClock(timeline: { tick: number; ready: boolean }[], tick: number): SkillClock | null {
+  let start = 0;
+  // Готовність без спрацювання після неї — уміння чекає натискання
+  let waiting = false;
+
+  for (const mark of timeline) {
+    if (mark.tick > tick) return waiting ? { remaining: 0, total: 1, ready: true } : { remaining: mark.tick - tick, total: Math.max(1, mark.tick - start), ready: false };
+
+    waiting = mark.ready;
+    if (!mark.ready) start = mark.tick;
+  }
+
+  return waiting ? { remaining: 0, total: 1, ready: true } : null;
 }

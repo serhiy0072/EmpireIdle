@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import type { BattleReplay } from "../../lib/apiTypes";
+import { loadAutoSkills, loadSpeed, saveAutoSkills, saveSpeed } from "../../lib/battleSettings";
 import { classLabel } from "../../lib/heroClasses";
 import { useCatalog, type Catalog } from "../../lib/queries/catalog";
 import { GameButton } from "../game/GameUi";
-import HeroPortrait from "../heroes/HeroPortrait";
+import BattleHeroBar from "./BattleHeroBar";
 import { advance, startPlayback, type Playback } from "./battleReplay";
 
 const HEIGHT = 320;
@@ -17,9 +18,6 @@ const LINE_OFFSETS = [0.07, 0.2, 0.33];
 
 /** Скільки тиків число висить над бійцем. */
 const FLOAT_TICKS = 8;
-
-/** Скільки тиків картка героя світиться після вміння. */
-const CAST_TICKS = 6;
 
 interface Spot {
   x: number;
@@ -124,53 +122,70 @@ function draw(
   context.globalAlpha = 1;
 }
 
-/** Ключ сховища для швидкості показу: гравець обрав x2 — наступний бій іде так само. */
-const SPEED_KEY = "battle-replay-speed";
-
-function loadSpeed(): number {
-  try {
-    return localStorage.getItem(SPEED_KEY) === "2" ? 2 : 1;
-  } catch {
-    return 1;
-  }
-}
-
-function saveSpeed(speed: number): void {
-  try {
-    localStorage.setItem(SPEED_KEY, String(speed));
-  } catch {
-    // Без сховища швидкість просто не запам'ятається
-  }
-}
-
 interface Props {
   replay: BattleReplay;
   /** Доріжка боса поверху — його фігурку видно здалеку; null — боса немає. */
   bossLane?: number | null;
+  /**
+   * Ручний бій: натискання готового героя — наказ на доріжку й тик, у відповідь — бій, перерахований
+   * з усіма наказами. До тику наказу бій той самий, тож показ іде далі з того ж місця. null — авто.
+   */
+  onCast?: ((lane: number, tick: number) => Promise<BattleReplay>) | null;
   /** Відтворення скінчилось чи його пропустили — показати результат. */
   onFinished: () => void;
 }
 
 /**
  * Відтворення бою, порахованого сервером. Програвач нічого не вирішує: лише йде логом за часом,
- * ставить здоров'я з логу й малює. x2 і «Пропустити» міняють лише швидкість показу.
+ * ставить здоров'я з логу й малює. x2 і «Пропустити» міняють лише швидкість показу; «Авто» в ручному
+ * бою натискає готові вміння саме, а вимкнене — чекає гравця.
  */
-export default function BattleReplayPlayer({ replay, bossLane = null, onFinished }: Props): ReactElement {
+export default function BattleReplayPlayer({ replay: initial, bossLane = null, onCast = null, onFinished }: Props): ReactElement {
   const catalog = useCatalog();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const playbackRef = useRef<Playback>(startPlayback(replay));
+  const replayRef = useRef(initial);
+  const playbackRef = useRef<Playback>(startPlayback(initial));
+  // Поки сервер перераховує бій після наказу, показ стоїть: інакше він забіг би за тик наказу
+  const pausedRef = useRef(false);
+  const [replay, setReplay] = useState(initial);
   const [speed, setSpeed] = useState(loadSpeed);
   const speedRef = useRef(speed);
+  const [auto, setAuto] = useState(loadAutoSkills);
+  const autoRef = useRef(auto);
   const finishedRef = useRef(onFinished);
+  const castRef = useRef(onCast);
+  const orderRef = useRef<(hero: number) => void>(() => {});
   const [cards, setCards] = useState(() => ({
-    health: replay.fighters.map((fighter) => fighter.maxHealth),
+    health: initial.fighters.map((fighter) => fighter.maxHealth),
     tick: 0,
-    casts: new Map<number, number>(),
   }));
+
+  const manual = onCast !== null;
+
+  /** Наказ на наступний тик — події до нього вже показані, і перерахований бій до нього той самий. */
+  const order = async (hero: number) => {
+    const handler = castRef.current;
+    const fighter = replayRef.current.fighters[hero];
+    if (handler === null || fighter === undefined || pausedRef.current) return;
+
+    pausedRef.current = true;
+
+    try {
+      const next = await handler(fighter.lane, Math.floor(playbackRef.current.tick) + 1);
+      replayRef.current = next;
+      setReplay(next);
+    } catch {
+      // Наказ не дійшов — бій іде далі, як був; помилку покаже сторінка
+    } finally {
+      pausedRef.current = false;
+    }
+  };
 
   useEffect(() => {
     finishedRef.current = onFinished;
-  }, [onFinished]);
+    castRef.current = onCast;
+    orderRef.current = (hero) => void order(hero);
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -183,7 +198,7 @@ export default function BattleReplayPlayer({ replay, bossLane = null, onFinished
     canvas.height = HEIGHT * ratio;
     context.scale(ratio, ratio);
 
-    const spots = layout(replay, width);
+    const spots = layout(replayRef.current, width);
     const playback = playbackRef.current;
     let last = performance.now();
     let lastCards = 0;
@@ -192,17 +207,22 @@ export default function BattleReplayPlayer({ replay, bossLane = null, onFinished
     const step = (now: number) => {
       const elapsed = now - last;
       last = now;
+      const current = replayRef.current;
 
-      advance(playback, replay, Math.min(replay.ticks, playback.tick + (elapsed / replay.tickMilliseconds) * speedRef.current));
-      draw(context, width, replay, playback, spots, catalog, bossLane);
+      if (!pausedRef.current) advance(playback, current, Math.min(current.ticks, playback.tick + (elapsed / current.tickMilliseconds) * speedRef.current));
+      draw(context, width, current, playback, spots, catalog, bossLane);
+
+      // Авто в ручному бою — готове вміння натискається саме, щойно настало
+      const waiting = playback.ready.keys().next();
+      if (castRef.current !== null && autoRef.current && !pausedRef.current && !waiting.done) orderRef.current(waiting.value);
 
       // Картки — React-станом, але не частіше за десять разів на секунду
       if (now - lastCards > 100) {
         lastCards = now;
-        setCards({ health: [...playback.health], tick: playback.tick, casts: new Map(playback.lastCast) });
+        setCards({ health: [...playback.health], tick: playback.tick });
       }
 
-      if (playback.tick >= replay.ticks && playback.next >= replay.events.ticks.length) {
+      if (!pausedRef.current && playback.tick >= current.ticks && playback.next >= current.events.ticks.length) {
         finishedRef.current();
         return;
       }
@@ -213,7 +233,7 @@ export default function BattleReplayPlayer({ replay, bossLane = null, onFinished
     frame = requestAnimationFrame(step);
 
     return () => cancelAnimationFrame(frame);
-  }, [replay, catalog, bossLane]);
+  }, [catalog, bossLane]);
 
   const changeSpeed = () => {
     const next = speed === 1 ? 2 : 1;
@@ -222,7 +242,12 @@ export default function BattleReplayPlayer({ replay, bossLane = null, onFinished
     saveSpeed(next);
   };
 
-  const heroes = replay.fighters.filter((fighter) => fighter.attacker && fighter.leader == null);
+  const changeAuto = () => {
+    autoRef.current = !auto;
+    setAuto(!auto);
+    saveAutoSkills(!auto);
+  };
+
   const seconds = Math.floor((cards.tick * replay.tickMilliseconds) / 1000);
 
   return (
@@ -232,31 +257,14 @@ export default function BattleReplayPlayer({ replay, bossLane = null, onFinished
         <p className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs">{seconds} с</p>
       </div>
 
-      <ol className="grid grid-cols-5 gap-2">
-        {heroes.map((fighter) => {
-          const config = catalog.hero(fighter.heroKey ?? "");
-          const share = Math.max(0, (cards.health[fighter.index] ?? 0) / Math.max(1, fighter.maxHealth));
-          const cast = cards.casts.get(fighter.index);
-          const casting = cast !== undefined && cards.tick - cast < CAST_TICKS;
-
-          return (
-            <li
-              key={fighter.index}
-              className={`flex flex-col items-center gap-1 rounded-lg bg-white/5 p-1 text-[11px] ${share <= 0 ? "opacity-40 grayscale" : ""} ${casting ? "ring-2 ring-amber-300" : ""}`}
-            >
-              <HeroPortrait heroKey={fighter.heroKey ?? ""} heroClass={config?.class} rank={config?.rank} tier={config?.nativeTier ?? 1} size={36} />
-              <span className="w-full truncate text-center">{catalog.heroName(fighter.heroKey ?? "")}</span>
-              <span className="h-1.5 w-full rounded bg-slate-900">
-                <span className="block h-full rounded bg-emerald-400" style={{ width: `${share * 100}%` }} />
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+      <BattleHeroBar replay={replay} tick={cards.tick} health={cards.health} manual={manual && !auto} onCast={(hero) => void order(hero)} />
 
       <div className="flex justify-end gap-2">
-        <GameButton variant="secondary" onClick={changeSpeed}>
-          x{speed === 1 ? 2 : 1}
+        <GameButton variant={auto ? "accent" : "secondary"} onClick={changeAuto}>
+          Авто
+        </GameButton>
+        <GameButton variant={speed === 2 ? "accent" : "secondary"} onClick={changeSpeed}>
+          x2
         </GameButton>
         <GameButton variant="secondary" onClick={onFinished}>
           Пропустити
