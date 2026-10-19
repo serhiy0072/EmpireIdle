@@ -13546,6 +13546,9 @@
           "structureFall": {
             "$ref": "#/components/schemas/StructureFallLetterView"
           },
+          "scoutReport": {
+            "$ref": "#/components/schemas/ScoutReportView"
+          },
           "rewards": {
             "type": "array",
             "items": {
@@ -14850,6 +14853,64 @@
         "additionalProperties": false
       },
       "ScoutReportResponse": {
+        "required": [
+          "createdAt",
+          "id",
+          "lootable",
+          "outcome",
+          "targetId",
+          "targetName",
+          "targetType",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetType": {
+            "$ref": "#/components/schemas/MarchTargetType"
+          },
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetName": {
+            "type": "string"
+          },
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "defencePower": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "lootable": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScoutReportView": {
         "required": [
           "createdAt",
           "id",

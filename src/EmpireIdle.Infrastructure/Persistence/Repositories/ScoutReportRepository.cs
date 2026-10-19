@@ -24,5 +24,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(take)
                 .ToListAsync(cancellationToken);
+
+        public Task<List<ScoutReport>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => _context.ScoutReports
+                .AsNoTracking()
+                .Include(r => r.Resources)
+                .Where(r => ids.Contains(r.Id))
+                .ToListAsync(cancellationToken);
     }
 }

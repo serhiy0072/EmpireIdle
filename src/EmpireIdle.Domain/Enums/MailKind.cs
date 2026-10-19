@@ -26,6 +26,9 @@ namespace EmpireIdle.Domain.Enums
         StructureFall = 6,
 
         /// <summary>Нагорода за серверний квест: кожному гравцю світу, топу — з бонусом (GDD §8.4).</summary>
-        ServerQuestReward = 7
+        ServerQuestReward = 7,
+
+        /// <summary>Звіт розвідки; ReferenceId — ScoutReport.</summary>
+        ScoutReport = 8
     }
 }
