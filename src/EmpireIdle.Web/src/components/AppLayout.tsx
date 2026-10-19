@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import { useSession } from "../hooks/useSession";
 import { logout } from "../lib/auth";
 import { seedAccount } from "../lib/dev";
@@ -18,25 +18,7 @@ import ErrorBanner from "./ErrorBanner";
 import ErrorBoundary from "./ErrorBoundary";
 import PowerBadge from "./PowerBadge";
 import ResourceBar from "./ResourceBar";
-
-const NAV_ITEMS = [
-  { to: "/", label: "Село" },
-  { to: "/army", label: "Військо" },
-  { to: "/heroes", label: "Герої" },
-  { to: "/beasts", label: "Звіринець" },
-  { to: "/dungeons", label: "Данжі" },
-  { to: "/tower", label: "Вежа" },
-  { to: "/inventory", label: "Інвентар" },
-  { to: "/banners", label: "Банери" },
-  { to: "/shop", label: "Крамниця" },
-  { to: "/market", label: "Ринок" },
-  { to: "/clan", label: "Клан" },
-  { to: "/map", label: "Мапа" },
-  { to: "/quests", label: "Квести" },
-  { to: "/rating", label: "Рейтинг" },
-  { to: "/chat", label: "Чат" },
-  { to: "/mail", label: "Скринька" },
-] as const;
+import BottomNav from "./shell/BottomNav";
 
 /** Назви мов їхніми ж мовами — так гравець упізнає свою, навіть не розуміючи поточної. */
 const LANGUAGE_NAMES: Record<string, string> = { uk: "Українська", en: "English" };
@@ -53,6 +35,7 @@ export default function AppLayout() {
   const mailUnread = useMailUnread(playerId);
   const changeLanguage = useChangeLanguage(playerId);
   const language = settings.data?.language ?? DEFAULT_LANGUAGE;
+  const [menu, setMenu] = useState(false);
 
   useDailyCheckIn(playerId);
 
@@ -70,99 +53,91 @@ export default function AppLayout() {
   });
 
   return (
-    // Екран — рівно висота вікна: шапка зверху, решта прокручується всередині. Так село
-    // займає весь залишок без підібраних на око відступів і сторінка під ним не їздить
-    <div className="flex h-dvh flex-col bg-slate-50">
-      <header className="shrink-0 border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-5xl space-y-2 px-4 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <ResourceBar village={village.data} />
+    // Екран — рівно висота вікна: HUD зверху, панель розділів знизу, між ними прокручується екран.
+    // Так село займає весь залишок без підібраних на око відступів і сторінка під ним не їздить
+    <div className="flex h-dvh flex-col bg-gradient-to-b from-[#cfdcf0] to-[#e8eef8]">
+      <header className="relative z-40 shrink-0 border-b-2 border-[#5b85c4] bg-gradient-to-b from-[#24467f] to-[#16305e] text-white shadow-lg">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-3 py-2">
+          <PowerBadge playerId={playerId} village={village.data} />
+          <ResourceBar village={village.data} />
 
-            <div className="flex items-center gap-2">
-              {isShieldActive(village.data?.shieldUntil) && (
-                <span
-                  className="rounded-full bg-emerald-100 px-3 py-1 text-sm text-emerald-800"
-                  title="Щит після падіння міста: вас не можуть атакувати. Ваш напад на гравця його знімає."
-                >
-                  🛡 до {shieldUntilLabel(village.data?.shieldUntil)}
-                </span>
-              )}
-              <PowerBadge playerId={playerId} village={village.data} />
-              <span className="rounded-full bg-violet-100 px-3 py-1 text-sm text-violet-800">
-                💎 <span className="font-medium">{wallet.data === undefined ? "…" : wallet.data.gemBalance.toLocaleString("uk-UA")}</span>
+          <div className="ml-auto flex items-center gap-1.5">
+            {isShieldActive(village.data?.shieldUntil) && (
+              <span
+                className="rounded-full bg-emerald-500/80 px-2.5 py-0.5 text-sm font-semibold ring-1 ring-emerald-200"
+                title="Щит після падіння міста: вас не можуть атакувати. Ваш напад на гравця його знімає."
+              >
+                🛡 до {shieldUntilLabel(village.data?.shieldUntil)}
               </span>
+            )}
+            <span className="rounded-full bg-gradient-to-b from-violet-400 to-violet-700 px-3 py-0.5 text-sm font-semibold tabular-nums ring-1 ring-violet-200">
+              💎 {wallet.data === undefined ? "…" : wallet.data.gemBalance.toLocaleString("uk-UA")}
+            </span>
 
-              {import.meta.env.DEV && (
-                <button
-                  type="button"
-                  onClick={() => seed.mutate()}
-                  disabled={seed.isPending}
-                  className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-800 hover:bg-amber-100 disabled:opacity-50"
-                >
-                  {seed.isPending ? "Наливаємо…" : "Сід"}
-                </button>
-              )}
-
-              {(settings.data?.languages.length ?? 0) > 1 && (
-                <select
-                  value={language}
-                  onChange={(event) => changeLanguage.mutate(event.target.value)}
-                  disabled={changeLanguage.isPending}
-                  aria-label="Мова"
-                  className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700"
-                >
-                  {settings.data?.languages.map((code) => (
-                    <option key={code} value={code}>
-                      {LANGUAGE_NAMES[code] ?? code}
-                    </option>
-                  ))}
-                </select>
-              )}
-
+            <div className="relative">
               <button
                 type="button"
-                onClick={logout}
-                className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-100"
+                onClick={() => setMenu((open) => !open)}
+                aria-expanded={menu}
+                aria-label="Налаштування"
+                className="rounded-full bg-black/30 px-2 py-0.5 text-lg ring-1 ring-white/15 hover:bg-black/40"
               >
-                Вийти
+                ⚙
               </button>
+              {menu && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-48 space-y-2 rounded-xl bg-[#1d3b6f] p-3 shadow-2xl ring-2 ring-[#5b85c4]">
+                  {(settings.data?.languages.length ?? 0) > 1 && (
+                    <select
+                      value={language}
+                      onChange={(event) => changeLanguage.mutate(event.target.value)}
+                      disabled={changeLanguage.isPending}
+                      aria-label="Мова"
+                      className="w-full rounded-lg bg-white px-2 py-1 text-sm text-slate-700"
+                    >
+                      {settings.data?.languages.map((code) => (
+                        <option key={code} value={code}>
+                          {LANGUAGE_NAMES[code] ?? code}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  {import.meta.env.DEV && (
+                    <button
+                      type="button"
+                      onClick={() => seed.mutate()}
+                      disabled={seed.isPending}
+                      className="w-full rounded-lg bg-amber-500 px-3 py-1 text-sm font-semibold hover:bg-amber-400 disabled:opacity-50"
+                    >
+                      {seed.isPending ? "Наливаємо…" : "Сід"}
+                    </button>
+                  )}
+
+                  <button type="button" onClick={logout} className="w-full rounded-lg bg-white/10 px-3 py-1 text-sm hover:bg-white/20">
+                    Вийти
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          <nav className="flex flex-wrap gap-1">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                data-tutorial={`nav:${item.to}`}
-                end
-                className={({ isActive }) =>
-                  `rounded-lg px-3 py-1 text-sm ${isActive ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"}`
-                }
-              >
-                {item.label}
-                {item.to === "/mail" && (mailUnread.data ?? 0) > 0 && (
-                  <span className="ml-1 rounded-full bg-emerald-600 px-1.5 text-xs font-medium text-white">
-                    {mailUnread.data}
-                  </span>
-                )}
-              </NavLink>
-            ))}
-          </nav>
-
+        <div className="mx-auto max-w-5xl space-y-2 px-3 empty:hidden">
           <AttackAlertBanner />
           <ErrorBanner error={seed.error} />
         </div>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <main className="mx-auto h-full max-w-5xl px-4 py-6">
+        <main className="mx-auto h-full max-w-5xl px-4 py-4">
           {/* key скидає впалий екран при переході: навігація лишається живою */}
           <ErrorBoundary key={location.pathname}>
             <Outlet />
           </ErrorBoundary>
         </main>
       </div>
+
+      <BottomNav mailUnread={mailUnread.data ?? 0} />
 
       {tutorial.step !== null && (
         <TutorialOverlay step={tutorial.step} onDismiss={tutorial.dismiss} onSkip={tutorial.skip} />
