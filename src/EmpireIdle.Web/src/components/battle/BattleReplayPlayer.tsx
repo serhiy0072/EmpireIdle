@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import type { BattleReplay, BattleReplayFighter } from "../../lib/apiTypes";
+import type { BattleReplay } from "../../lib/apiTypes";
 import { classLabel } from "../../lib/heroClasses";
 import { useCatalog, type Catalog } from "../../lib/queries/catalog";
 import { GameButton } from "../game/GameUi";
@@ -8,6 +8,12 @@ import { advance, startPlayback, type Playback } from "./battleReplay";
 
 const HEIGHT = 320;
 const LANES = 5;
+
+/** Поле над першою й під останньою доріжкою: там піднімаються числа шкоди й висять смужки здоров'я. */
+const PADDING = 24;
+
+/** Відступ лінії від центру поля частками ширини: фронт лоб у лоб, за ним середня, далі тил. */
+const LINE_OFFSETS = [0.07, 0.2, 0.33];
 
 /** Скільки тиків число висить над бійцем. */
 const FLOAT_TICKS = 8;
@@ -20,32 +26,26 @@ interface Spot {
   y: number;
 }
 
-/** Лучники стріляють із тилу, решта стоїть у фронті — так само розставляє й сервер. */
-function isFront(fighter: BattleReplayFighter, catalog: Catalog): boolean {
-  return catalog.hero(fighter.heroKey ?? "")?.class !== "archer";
-}
-
 /**
- * Місця бійців на полі: нападник ліворуч, захисник праворуч, доріжка — рядок. Герой стоїть на лінії,
- * його конвої — купкою позаду, по два в стовпчику.
+ * Місця бійців на полі: нападник ліворуч, захисник праворуч, доріжка — рядок. Глибину дає лінія
+ * з логу — сервер знає, хто де стоїть. Герой стоїть на своїй лінії, його конвої — купкою позаду.
  */
-function layout(replay: BattleReplay, width: number, catalog: Catalog): Spot[] {
-  const row = HEIGHT / LANES;
+function layout(replay: BattleReplay, width: number): Spot[] {
+  const row = (HEIGHT - PADDING * 2) / LANES;
   const convoyIndex = new Map<number, number>();
 
   return replay.fighters.map((fighter) => {
-    const owner = fighter.leader == null ? fighter : (replay.fighters[fighter.leader] ?? fighter);
     const side = fighter.attacker ? -1 : 1;
-    const line = isFront(owner, catalog) ? 0.12 : 0.3;
-    const heroX = width / 2 + side * width * line;
-    const y = row * (fighter.lane + 0.5);
+    const offset = LINE_OFFSETS[Math.min(fighter.line, LINE_OFFSETS.length - 1)] ?? 0;
+    const heroX = width / 2 + side * width * offset;
+    const y = PADDING + row * (fighter.lane + 0.5);
 
     if (fighter.leader == null) return { x: heroX, y };
 
     const order = convoyIndex.get(fighter.leader) ?? 0;
     convoyIndex.set(fighter.leader, order + 1);
 
-    return { x: heroX + side * (22 + Math.floor(order / 2) * 13), y: y + (order % 2 === 0 ? -7 : 7) };
+    return { x: heroX + side * (18 + Math.floor(order / 2) * 10), y: y + (order % 2 === 0 ? -7 : 7) };
   });
 }
 
@@ -149,7 +149,7 @@ export default function BattleReplayPlayer({ replay, onFinished }: Props): React
     canvas.height = HEIGHT * ratio;
     context.scale(ratio, ratio);
 
-    const spots = layout(replay, width, catalog);
+    const spots = layout(replay, width);
     const playback = playbackRef.current;
     let last = performance.now();
     let lastCards = 0;
