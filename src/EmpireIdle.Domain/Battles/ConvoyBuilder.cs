@@ -35,22 +35,30 @@ namespace EmpireIdle.Domain.Battles
 
         private RealtimeBattleConfig Battle => _catalog.Config.RealtimeBattle;
 
-        /// <summary>Конвої героя з юнітів пулу; пул зменшується на взяте.</summary>
-        public IReadOnlyList<Convoy> Build(ConvoyLeader leader, UnitPool pool)
+        /// <summary>
+        /// Конвої загону з юнітів пулу — список на кожного героя в тому ж порядку; пул зменшується на взяте.
+        /// Герої однієї ролі набирають по черзі, по конвою за коло: кожен отримує перший конвой,
+        /// перш ніж хтось отримає другий, — інакше перший у загоні забирав би все військо.
+        /// </summary>
+        public IReadOnlyList<IReadOnlyList<Convoy>> Build(IReadOnlyList<ConvoyLeader> leaders, UnitPool pool)
         {
-            if (Slots(leader) is not { } slots)
-                return [];
+            var slots = leaders.Select(Slots).ToList();
+            var convoys = leaders.Select(_ => new List<Convoy>()).ToList();
+            var rounds = slots.Select(s => s?.Count ?? 0).DefaultIfEmpty().Max();
 
-            var convoys = new List<Convoy>();
-
-            for (var i = 0; i < slots.Count; i++)
+            for (var round = 0; round < rounds; round++)
             {
-                var units = pool.Take(slots.UnitType, _catalog.Config.HeroSettings.ConvoySize);
+                for (var i = 0; i < leaders.Count; i++)
+                {
+                    // Порожній конвой означає, що юніти скінчились: далі цей герой не набирає
+                    if (slots[i] is not { } slot || round >= slot.Count || convoys[i].Count < round)
+                        continue;
 
-                if (units.Count == 0)
-                    break;
+                    var units = pool.Take(slot.UnitType, _catalog.Config.HeroSettings.ConvoySize);
 
-                convoys.Add(Convoy(slots.UnitType, units, leader, slots.Count));
+                    if (units.Count > 0)
+                        convoys[i].Add(Convoy(slot.UnitType, units, leaders[i], slot.Count));
+                }
             }
 
             return convoys;

@@ -62,7 +62,7 @@ namespace EmpireIdle.Application.Battles.Services
             var heroes = (await _heroes.GetByIdsReadOnlyAsync(ids, cancellationToken)).ToDictionary(h => h.Id);
             var pool = await PoolAsync(playerId, cancellationToken);
             var (attack, defense) = withBuffs ? await BuffsAsync(playerId, utcNow, cancellationToken) : (1.0, 1.0);
-            var squad = new List<SquadMember>();
+            var members = new List<(SquadMember Member, ConvoyLeader Leader)>();
 
             for (var lane = 0; lane < lanes.Count; lane++)
             {
@@ -78,18 +78,23 @@ namespace EmpireIdle.Application.Battles.Services
                     throw new RequirementNotMetException(RefusalReasons.SquadHeroWounded,
                         $"Hero {hero.Id} is wounded and cannot fight.", config.DisplayName);
 
-                var member = await MemberAsync(hero, config, lane, pool, cancellationToken);
-                squad.Add(member with
-                {
-                    Hero = Buff(member.Hero, attack, defense),
-                    Convoys = member.Convoys.Select(c => c with { Led = Buff(c.Led, attack, defense), Leaderless = Buff(c.Leaderless, attack, defense) }).ToList()
-                });
+                members.Add(await MemberAsync(hero, config, lane, cancellationToken));
             }
 
-            return squad;
+            // Військо ділиться на весь загін разом — по конвою за коло, а не хто перший у списку
+            var convoys = _convoys.Build(members.Select(m => m.Leader).ToList(), pool);
+
+            return members
+                .Select((m, i) => m.Member with
+                {
+                    Hero = Buff(m.Member.Hero, attack, defense),
+                    Convoys = convoys[i].Select(c => c with { Led = Buff(c.Led, attack, defense), Leaderless = Buff(c.Leaderless, attack, defense) }).ToList()
+                })
+                .ToList();
         }
 
-        private async Task<SquadMember> MemberAsync(Hero hero, HeroConfig config, int lane, UnitPool pool, CancellationToken cancellationToken)
+        private async Task<(SquadMember Member, ConvoyLeader Leader)> MemberAsync(Hero hero, HeroConfig config, int lane,
+            CancellationToken cancellationToken)
         {
             var equipped = await _inventory.GetEquippedAsync(hero.Id, cancellationToken);
             var stats = _heroStats.Compute(hero, config, equipped);
@@ -106,14 +111,16 @@ namespace EmpireIdle.Application.Battles.Services
                 stats.GetValueOrDefault(ArtifactStats.UnitAttack),
                 stats.GetValueOrDefault(ArtifactStats.UnitDefense));
 
-            return new SquadMember(
+            var member = new SquadMember(
                 lane,
                 config.Class,
                 unitType,
                 HeroFighterStats.From(stats, config.Class, _catalog.Config.RealtimeBattle, _catalog.Config.Dungeons),
-                _convoys.Build(leader, pool),
+                [],
                 Skills(hero, config),
                 hero.HeroKey);
+
+            return (member, leader);
         }
 
         /// <summary>Юніти вдома — ті, що не в марші й не в госпіталі; бій їх не витрачає.</summary>

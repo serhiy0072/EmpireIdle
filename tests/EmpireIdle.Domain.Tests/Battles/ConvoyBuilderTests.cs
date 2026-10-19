@@ -44,7 +44,7 @@ public class ConvoyBuilderTests
     [Fact]
     public void Build_ShouldTurnAFullConvoyIntoFighterStats()
     {
-        var convoy = Assert.Single(_builder.Build(new ConvoyLeader("warrior", 1), Pool((TestKeys.Infantry, 1, 100))));
+        var convoy = Assert.Single(_builder.Build([new ConvoyLeader("warrior", 1)], Pool((TestKeys.Infantry, 1, 100)))[0]);
 
         Assert.Equal((TestKeys.Infantry, 100), (convoy.UnitType, convoy.Units));
         Assert.Equal(1000 * 0.15, convoy.Led.Attack, 6);
@@ -58,7 +58,7 @@ public class ConvoyBuilderTests
     [Fact]
     public void Build_ShouldFillConvoysInTurn_AndLeaveThePartialOneWeaker()
     {
-        var convoys = _builder.Build(new ConvoyLeader("warrior", 10), Pool((TestKeys.Infantry, 1, 250)));
+        var convoys = _builder.Build([new ConvoyLeader("warrior", 10)], Pool((TestKeys.Infantry, 1, 250)))[0];
 
         Assert.Equal([100, 100, 50], convoys.Select(c => c.Units));
         Assert.Equal(convoys[0].Led.Attack / 2, convoys[2].Led.Attack, 6);
@@ -68,13 +68,13 @@ public class ConvoyBuilderTests
     /// <summary>Юнітів немає — у бій не виходить жоден конвой.</summary>
     [Fact]
     public void Build_ShouldSkipEmptyConvoys()
-        => Assert.Empty(_builder.Build(new ConvoyLeader("warrior", 10), Pool((TestKeys.Archer, 1, 300))));
+        => Assert.Empty(_builder.Build([new ConvoyLeader("warrior", 10)], Pool((TestKeys.Archer, 1, 300)))[0]);
 
     /// <summary>Перший конвой бере найвищий рівень; захист — середній множник рівнів у конвої.</summary>
     [Fact]
     public void Build_ShouldTakeTheHighestLevelsFirst()
     {
-        var convoys = _builder.Build(new ConvoyLeader("warrior", 1), Pool((TestKeys.Infantry, 1, 100), (TestKeys.Infantry, 3, 50), (TestKeys.Infantry, 2, 100)));
+        var convoys = _builder.Build([new ConvoyLeader("warrior", 1)], Pool((TestKeys.Infantry, 1, 100), (TestKeys.Infantry, 3, 50), (TestKeys.Infantry, 2, 100)))[0];
 
         // Перший: 50 × 1.2 + 50 × 1.1 = 115 юніт-рівнів; другий: 50 × 1.1 + 50 × 1.0 = 105
         Assert.Equal(115 * 10 * 0.15, convoys[0].Led.Attack, 6);
@@ -82,18 +82,31 @@ public class ConvoyBuilderTests
         Assert.Equal(105 * 10 * 0.15, convoys[1].Led.Attack, 6);
     }
 
-    /// <summary>Двоє героїв однієї ролі ділять пул: другому лишається те, що не взяв перший.</summary>
+    /// <summary>
+    /// Двоє героїв однієї ролі ділять пул по черзі: на 250 юнітів перший бере 100 і 50, другий — 100,
+    /// а не перший усі три конвої.
+    /// </summary>
     [Fact]
-    public void Build_ShouldShareThePoolBetweenHeroesOfOneRole()
+    public void Build_ShouldShareThePoolBetweenHeroesOfOneRole_ConvoyByConvoy()
     {
-        var pool = Pool((TestKeys.Infantry, 1, 300));
+        var pool = Pool((TestKeys.Infantry, 1, 250));
 
-        var first = _builder.Build(new ConvoyLeader("warrior", 10), pool);
-        var second = _builder.Build(new ConvoyLeader("warrior", 10), pool);
+        var squad = _builder.Build([new ConvoyLeader("warrior", 10), new ConvoyLeader("warrior", 10)], pool);
 
-        Assert.Equal(3, first.Count);
-        Assert.Empty(second);
+        Assert.Equal([100, 50], squad[0].Select(c => c.Units));
+        Assert.Equal([100], squad[1].Select(c => c.Units));
         Assert.Equal(0, pool.Left(TestKeys.Infantry));
+    }
+
+    /// <summary>Герої різних ролей не заважають одне одному: кожен бере свій тип юнітів.</summary>
+    [Fact]
+    public void Build_ShouldKeepRolesApart()
+    {
+        var squad = _builder.Build([new ConvoyLeader("warrior", 1), new ConvoyLeader("knight", 1)],
+            Pool((TestKeys.Infantry, 1, 100)));
+
+        Assert.Single(squad[0]);
+        Assert.Empty(squad[1]);
     }
 
     /// <summary>
@@ -105,7 +118,7 @@ public class ConvoyBuilderTests
     {
         var leader = new ConvoyLeader("warrior", 1, AttackMultiplier: 1.2, DefenseMultiplier: 1.1, UnitAttack: 80, UnitDefense: 40);
 
-        var convoy = _builder.Build(leader, Pool((TestKeys.Infantry, 1, 200)))[0];
+        var convoy = _builder.Build([leader], Pool((TestKeys.Infantry, 1, 200)))[0][0];
 
         // Пласке: 80 × 0.25 / 2 конвої = 10 атаки, 40 × 0.25 / 2 = 5 здоров'я
         Assert.Equal((1000 + 10) * 1.2 * 0.15, convoy.Led.Attack, 6);

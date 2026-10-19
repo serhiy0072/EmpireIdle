@@ -98,7 +98,7 @@ public class BattleSquadFactoryTests
         Assert.Equal(500 * _config.RealtimeBattle.HeroHealthScale, squad[0].Hero.MaxHealth, 6);
     }
 
-    /// <summary>Конвої — з юнітів удома; другий герой тієї ж ролі бере те, що лишилось.</summary>
+    /// <summary>Конвої — з юнітів удома; герої тієї ж ролі набирають по черзі, тож другий не лишається без війська.</summary>
     [Fact]
     public async Task BuildAsync_ShouldLeadConvoysOfUnitsAtHome()
     {
@@ -108,8 +108,8 @@ public class BattleSquadFactoryTests
 
         var squad = await Build([first.Id, second.Id]);
 
-        Assert.Equal([100, 50], squad[0].Convoys.Select(c => c.Units));
-        Assert.Empty(squad[1].Convoys);
+        Assert.Equal([100], squad[0].Convoys.Select(c => c.Units));
+        Assert.Equal([50], squad[1].Convoys.Select(c => c.Units));
     }
 
     /// <summary>Пасивка героя на атаку піхоти підсилює його конвої, як і в марші; без героя бонус гасне.</summary>
