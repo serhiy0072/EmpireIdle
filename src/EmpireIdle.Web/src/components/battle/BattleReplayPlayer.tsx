@@ -3,6 +3,7 @@ import type { BattleReplay } from "../../lib/apiTypes";
 import { loadAutoSkills, loadSpeed, saveAutoSkills, saveSpeed } from "../../lib/battleSettings";
 import { classLabel } from "../../lib/heroClasses";
 import { useCatalog, type Catalog } from "../../lib/queries/catalog";
+import { heroArtUrl } from "../heroes/heroArt";
 import { GameButton } from "../game/GameUi";
 import BattleHeroBar from "./BattleHeroBar";
 import { advance, marchedLines, startPlayback, type Playback } from "./battleReplay";
@@ -51,7 +52,7 @@ function layout(replay: BattleReplay, width: number): Spot[] {
     const order = convoyIndex.get(fighter.leader) ?? 0;
     convoyIndex.set(fighter.leader, order + 1);
 
-    return { x: heroX + side * (18 + Math.floor(order / 2) * 10), y: y + (order % 2 === 0 ? -7 : 7) };
+    return { x: heroX + side * (24 + Math.floor(order / 2) * 10), y: y + (order % 2 === 0 ? -7 : 7) };
   });
 }
 
@@ -62,6 +63,7 @@ function draw(
   playback: Playback,
   spots: Spot[],
   catalog: Catalog,
+  icons: Map<number, HTMLImageElement>,
   bossLane: number | null,
 ) {
   context.clearRect(0, 0, width, HEIGHT);
@@ -89,7 +91,7 @@ function draw(
 
     const hero = fighter.leader == null;
     const boss = hero && !fighter.attacker && fighter.lane === bossLane;
-    const radius = boss ? 18 : 13;
+    const radius = boss ? 21 : 16;
     const share = Math.max(0, (playback.health[index] ?? 0) / Math.max(1, fighter.maxHealth));
     const color = fighter.attacker ? (hero ? "#38bdf8" : "#7dd3fc") : hero ? "#f43f5e" : "#fda4af";
 
@@ -98,18 +100,33 @@ function draw(
     context.lineWidth = 1.5;
 
     if (hero) {
+      const icon = icons.get(index);
       context.beginPath();
       context.arc(spot.x, spot.y, radius, 0, Math.PI * 2);
-      context.fill();
-      // Бос — більший і в золотій обвідці: гравець одразу бачить, хто тут головний
-      context.strokeStyle = boss ? "#facc15" : "#0f172a";
-      context.lineWidth = boss ? 3 : 1.5;
+
+      if (icon !== undefined && icon.complete && icon.naturalWidth > 0) {
+        // Портрет героя в колі — той самий, що в картках: видно, хто це, а не лише клас
+        context.save();
+        context.clip();
+        context.drawImage(icon, spot.x - radius, spot.y - radius, radius * 2, radius * 2);
+        context.restore();
+      } else {
+        context.fill();
+        context.fillStyle = "#0f172a";
+        context.font = "bold 11px sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(classLabel(catalog.hero(fighter.heroKey ?? "")?.class).slice(0, 2), spot.x, spot.y);
+      }
+
+      // Обвідка — колір сторони; бос — золота й товща: гравець одразу бачить, хто тут головний
+      context.beginPath();
+      context.arc(spot.x, spot.y, radius, 0, Math.PI * 2);
+      context.strokeStyle = boss ? "#facc15" : color;
+      context.lineWidth = boss ? 4 : 3;
       context.stroke();
-      context.fillStyle = "#0f172a";
-      context.font = "bold 11px sans-serif";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.fillText(classLabel(catalog.hero(fighter.heroKey ?? "")?.class).slice(0, 2), spot.x, spot.y);
+      context.strokeStyle = "#0f172a";
+      context.lineWidth = 1.5;
     } else {
       context.fillRect(spot.x - 4.5, spot.y - 4.5, 9, 9);
       context.strokeRect(spot.x - 4.5, spot.y - 4.5, 9, 9);
@@ -217,6 +234,17 @@ export default function BattleReplayPlayer({ replay: initial, bossLane = null, o
     context.scale(ratio, ratio);
 
     const spots = layout(replayRef.current, width);
+
+    // Портрети героїв для поля — ті самі, що в картках; поки не завантажились, герой — коло з класом
+    const icons = new Map<number, HTMLImageElement>();
+    for (const fighter of replayRef.current.fighters) {
+      if (fighter.leader != null) continue;
+
+      const config = catalog.hero(fighter.heroKey ?? "");
+      const icon = new Image();
+      icon.src = heroArtUrl(fighter.heroKey ?? "", config?.class, config?.rank, config?.nativeTier ?? 1);
+      icons.set(fighter.index, icon);
+    }
     const playback = playbackRef.current;
     let last = performance.now();
     let lastCards = 0;
@@ -228,7 +256,7 @@ export default function BattleReplayPlayer({ replay: initial, bossLane = null, o
       const current = replayRef.current;
 
       if (!pausedRef.current) advance(playback, current, Math.min(current.ticks, playback.tick + (elapsed / current.tickMilliseconds) * speedRef.current));
-      draw(context, width, current, playback, spots, catalog, bossLane);
+      draw(context, width, current, playback, spots, catalog, icons, bossLane);
 
       // Авто в ручному бою — готове вміння натискається саме, щойно настало
       const waiting = playback.ready.keys().next();
