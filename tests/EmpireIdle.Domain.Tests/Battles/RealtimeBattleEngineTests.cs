@@ -159,6 +159,15 @@ public class RealtimeBattleEngineTests
         Assert.All(HitsBy(result, 0), hit => Assert.Equal(2, hit.Target));
     }
 
+    /// <summary>Лог несе лінію кожного бійця — клієнт ставить фігурки за нею, не вгадуючи за класом.</summary>
+    [Fact]
+    public void Run_ShouldRecordEachFightersLine_ConvoysWithTheirHero()
+    {
+        var result = Run([KnightHero(0, Stats(), Convoy("spearman", Stats()))], [ArcherHero(0, Stats(), Convoy(Archer, Stats())), WarriorHero(1, Stats())]);
+
+        Assert.Equal([1, 1, 2, 2, 0], result.Fighters.Select(f => f.Line));
+    }
+
     /// <summary>Фронт упав — ближній бере середню лінію, а стрільці лишаються на потім.</summary>
     [Fact]
     public void Run_ShouldSendMeleeAtTheKnights_OnceTheWarriorsFall()

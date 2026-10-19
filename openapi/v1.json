@@ -9752,6 +9752,7 @@
           "attacker",
           "index",
           "lane",
+          "line",
           "maxHealth",
           "skills",
           "ward"
@@ -9766,6 +9767,10 @@
             "type": "boolean"
           },
           "lane": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "line": {
             "type": "integer",
             "format": "int32"
           },

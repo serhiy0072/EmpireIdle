@@ -23,7 +23,7 @@ namespace EmpireIdle.Application.Battles.ReadModels
                 result.Ticks,
                 tickMilliseconds,
                 result.Fighters.Select(f => new BattleReplayFighter(
-                    f.Index, f.Side == BattleSide.Attacker, f.Lane, f.Leader, f.HeroKey, f.UnitType, Round(f.MaxHealth), Round(f.Ward), f.Skills)).ToList(),
+                    f.Index, f.Side == BattleSide.Attacker, f.Lane, f.Line, f.Leader, f.HeroKey, f.UnitType, Round(f.MaxHealth), Round(f.Ward), f.Skills)).ToList(),
                 result.Health.Select(Round).ToList(),
                 new BattleReplayEvents(
                     result.Events.Select(e => e.Tick).ToList(),
@@ -41,9 +41,10 @@ namespace EmpireIdle.Application.Battles.ReadModels
 
     /// <summary>Боєць на полі.</summary>
     /// <param name="Attacker">Сторона нападника — гравця, що натиснув «До бою».</param>
+    /// <param name="Line">Лінія вглиб поля: 0 — фронт, далі — глибше в тил.</param>
     /// <param name="Leader">Індекс героя для конвою; null — це сам герой.</param>
     /// <param name="Skills">Ключі вмінь героя за номером, на який посилається подія Cast.</param>
-    public record BattleReplayFighter(int Index, bool Attacker, int Lane, int? Leader, string? HeroKey, string? UnitType,
+    public record BattleReplayFighter(int Index, bool Attacker, int Lane, int Line, int? Leader, string? HeroKey, string? UnitType,
         double MaxHealth, double Ward, IReadOnlyList<string> Skills);
 
     /// <summary>
