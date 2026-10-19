@@ -9,7 +9,6 @@ import BeastPenPage from "../pages/BeastPenPage";
 import ChatPage from "../pages/ChatPage";
 import ClanPage from "../pages/ClanPage";
 import DungeonsPage from "../pages/DungeonsPage";
-import ForgePage from "../pages/ForgePage";
 import HeroCodexPage from "../pages/HeroCodexPage";
 import HeroesPage from "../pages/HeroesPage";
 import HeroPage from "../pages/HeroPage";
@@ -54,7 +53,6 @@ export default function AppRoutes() {
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/inventory/sets" element={<ArtifactSetsPage />} />
             <Route path="/beasts" element={<BeastPenPage />} />
-            <Route path="/forge" element={<ForgePage />} />
             <Route path="/banners" element={<BannersPage />} />
             <Route path="/clan" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />
