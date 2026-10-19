@@ -23,7 +23,8 @@ namespace EmpireIdle.Application.Battles.ReadModels
                 result.Ticks,
                 tickMilliseconds,
                 result.Fighters.Select(f => new BattleReplayFighter(
-                    f.Index, f.Side == BattleSide.Attacker, f.Lane, f.Line, f.Leader, f.HeroKey, f.UnitType, Round(f.MaxHealth), Round(f.Ward), f.Skills)).ToList(),
+                    f.Index, f.Side == BattleSide.Attacker, f.Lane, f.Line, f.Leader, f.HeroKey, f.UnitType, Round(f.MaxHealth), Round(f.Ward), f.Skills,
+                    f.SkillCooldowns.Select(Round).ToList())).ToList(),
                 result.Health.Select(Round).ToList(),
                 new BattleReplayEvents(
                     result.Events.Select(e => e.Tick).ToList(),
@@ -44,8 +45,9 @@ namespace EmpireIdle.Application.Battles.ReadModels
     /// <param name="Line">Лінія вглиб поля: 0 — фронт, далі — глибше в тил.</param>
     /// <param name="Leader">Індекс героя для конвою; null — це сам герой.</param>
     /// <param name="Skills">Ключі вмінь героя за номером, на який посилається подія Cast.</param>
+    /// <param name="SkillCooldowns">Перезарядка кожного вміння в секундах, у порядку Skills: відлік після спрацювання.</param>
     public record BattleReplayFighter(int Index, bool Attacker, int Lane, int Line, int? Leader, string? HeroKey, string? UnitType,
-        double MaxHealth, double Ward, IReadOnlyList<string> Skills);
+        double MaxHealth, double Ward, IReadOnlyList<string> Skills, IReadOnlyList<double> SkillCooldowns);
 
     /// <summary>
     /// Події бою колонками. Kinds: 0 — удар, 1 — смерть, 2 — лікування, 3 — вміння (Details — його номер у Skills),

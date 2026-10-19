@@ -74,7 +74,7 @@ namespace EmpireIdle.Domain.Battles
                 winner ?? BattleSide.Defender,
                 tick,
                 fighters.Select(f => new FighterInfo(f.Index, f.Side, f.Lane, f.Leader, f.UnitType, f.MaxHealth, f.Ward,
-                    f.Skills.Select(s => s.Skill.Key).ToList(), f.HeroKey, f.Line)).ToList(),
+                    f.Skills.Select(s => s.Skill.Key).ToList(), f.HeroKey, f.Line, f.Skills.Select(s => s.Skill.Cooldown).ToList())).ToList(),
                 fighters.Select(f => Math.Max(0, f.Health)).ToList(),
                 events);
         }

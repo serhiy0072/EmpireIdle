@@ -72,8 +72,9 @@ namespace EmpireIdle.Domain.Battles
     /// <param name="Skills">Ключі вмінь героя за номером, на який посилається Cast; у конвою — порожньо.</param>
     /// <param name="HeroKey">Ключ героя; у конвою — ключ його героя.</param>
     /// <param name="Line">Лінія вглиб поля, 0 — фронт (RealtimeBattle.HeroLines); конвой стоїть у лінії свого героя.</param>
+    /// <param name="SkillCooldowns">Перезарядка кожного вміння в секундах, у порядку Skills, — уже з множником героя.</param>
     public sealed record FighterInfo(int Index, BattleSide Side, int Lane, int? Leader, string? UnitType, double MaxHealth, double Ward,
-        IReadOnlyList<string> Skills, string? HeroKey, int Line);
+        IReadOnlyList<string> Skills, string? HeroKey, int Line, IReadOnlyList<double> SkillCooldowns);
 
     /// <summary>Підсумок бою: переможець, тривалість і повний лог для відтворення.</summary>
     /// <param name="Ticks">Скільки тиків тривав бій.</param>

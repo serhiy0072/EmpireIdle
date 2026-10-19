@@ -9862,6 +9862,7 @@
           "lane",
           "line",
           "maxHealth",
+          "skillCooldowns",
           "skills",
           "ward"
         ],
@@ -9907,6 +9908,13 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "skillCooldowns": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
             }
           }
         },

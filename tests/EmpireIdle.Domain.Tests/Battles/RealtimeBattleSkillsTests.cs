@@ -80,6 +80,16 @@ public class RealtimeBattleSkillsTests
         Assert.Equal(["skill_SingleEnemy_"], result.Fighters[0].Skills);
     }
 
+    /// <summary>Лог несе перезарядку кожного вміння в секундах — клієнт відлічує її й після кінця бою.</summary>
+    [Fact]
+    public void Run_ShouldReportEachSkillCooldown_InSeconds()
+    {
+        var result = Run([Archer(0, Stats(), [Skill(AbilityTarget.SingleEnemy, cooldown: 2), Skill(AbilityTarget.Self, cooldown: 4)])], [Archer(0, Stats())]);
+
+        Assert.Equal([5.0, 10.0], result.Fighters[0].SkillCooldowns);
+        Assert.Empty(result.Fighters[1].SkillCooldowns);
+    }
+
     private BattleResult RunManual(SquadMember[] attackers, SquadMember[] defenders, params ManualCast[] casts)
         => _engine.Run(new BattleSetup(attackers, defenders, casts), seed: 1);
 
