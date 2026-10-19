@@ -23,10 +23,8 @@
         { "FromFloor": 600, "Multiplier": 1.22, "DisplayName": "4 унікальні" }
       ],
       "Archetypes": [
-        { "Key": "standard", "DisplayName": "Стандарт", "Classes": [ "knight", "warrior", "knight", "archer", "archer" ] },
-        { "Key": "shieldwall", "DisplayName": "Стіна щитів", "Classes": [ "warrior", "warrior", "warrior", "warrior", "archer" ] },
-        { "Key": "spears", "DisplayName": "Списи", "Classes": [ "knight", "knight", "warrior", "knight", "knight" ] },
-        { "Key": "volley", "DisplayName": "Злива", "Classes": [ "archer", "archer", "warrior", "archer", "archer" ] }
+        { "Key": "standard", "DisplayName": "Стандарт", "Classes": [ "archer", "warrior", "warrior", "knight", "archer" ] },
+        { "Key": "vanguard", "DisplayName": "Авангард", "Classes": [ "knight", "warrior", "warrior", "knight", "archer" ] }
       ],
       "BossEvery": 10,
       "BossArchetype": "standard",
