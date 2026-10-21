@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BeastTiles } from "../components/beasts/BeastPanels";
+import BeastEnclosure from "../components/beasts/BeastEnclosure";
+import BeastListPopup from "../components/beasts/BeastListPopup";
 import { percent } from "../components/beasts/beastText";
 import ErrorBanner from "../components/ErrorBanner";
 import HungerBanner from "../components/HungerBanner";
@@ -24,6 +25,7 @@ export default function BeastPenPage() {
   const navigate = useNavigate();
   // Звір, якого шукали, а монстра його типу у світі зараз немає
   const [missing, setMissing] = useState<string | null>(null);
+  const [list, setList] = useState(false);
 
   if (pen.isPending) return <p className="text-sm text-slate-500">Завантаження…</p>;
   if (pen.isError) return <ErrorBanner error={pen.error} />;
@@ -58,10 +60,25 @@ export default function BeastPenPage() {
           відправте похід із наміром «Приручити».
         </p>
       ) : (
-        <BeastTiles
+        // Загін за референсом 21.10.2026: звірі бродять, натиск — екран звіра; список — для тих, хто не влучив
+        <div className="relative">
+          <BeastEnclosure beasts={pen.data.beasts} onSelect={(key) => void navigate(`/beasts/${key}`)} />
+          <button
+            type="button"
+            onClick={() => setList(true)}
+            className="absolute bottom-3 left-3 rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow ring-1 ring-sky-200 hover:brightness-110"
+          >
+            📋 Список звірів
+          </button>
+        </div>
+      )}
+
+      {list && (
+        <BeastListPopup
           beasts={pen.data.beasts}
           name={catalog.beastName}
           onPick={(key) => void navigate(`/beasts/${key}`)}
+          onClose={() => setList(false)}
         />
       )}
 
