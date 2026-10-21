@@ -5,38 +5,52 @@ interface Props {
   art: ArtResult;
   x: number;
   y: number;
-  label: string;
-  /** Текст бульбашки збору. null — збирати нічого. */
-  bubble: string | null;
+  name: string;
+  /** Рівень на табличці; null — функціональна будівля без рівнів. */
+  level: number | null;
+  /** Рівень ратуші, що відкриває будівлю; null — уже відкрита. */
+  gateLevel: number | null;
+  /** Масштаб камери: значки тримають свій розмір на екрані, хоч світ віддаляється. */
+  zoom: number;
+  /** Показати табличку з назвою й рівнем: камера рухається або на будівлю навели. */
+  labelled: boolean;
   onSelect: () => void;
-  onCollect: () => void;
 }
 
 /**
- * Підпис і бульбашка будівлі. Малюються після всіх силуетів:
- * інакше ближня будівля перекриває підпис дальньої.
+ * Табличка «назва · рівень» будівлі. Малюються після всіх силуетів:
+ * інакше ближня будівля перекриває підпис дальньої. Табличка — лише коли labelled
+ * (камера рухається чи будівлю навели); замок закритої будівлі видно завжди.
  */
-export default function IsoBuildingOverlay({ art, x, y, label, bubble, onSelect, onCollect }: Props) {
-  const anchor = at(x, y, art.height);
-  const labelPoint = at(x + art.foot, y + art.foot);
-  const width = label.length * 7 + 20;
+export default function IsoBuildingOverlay({ art, x, y, name, level, gateLevel, zoom, labelled, onSelect }: Props) {
+  // Табличка над дахом, а не під фундаментом: так видно, якій будівлі вона належить
+  const plate = at(x, y, art.height + 18);
+  // Розмір на екрані сталий до віддалення: 1/zoom скасовує масштаб камери
+  const scale = Math.max(1, 1 / zoom);
+  const locked = gateLevel !== null;
+  const text = locked ? `🔒 Ратуша ${gateLevel}` : name;
+  const textWidth = text.length * 6.6;
+  const chip = level !== null && !locked;
+  const chipWidth = chip ? String(level).length * 8 + 14 : 0;
+  const width = textWidth + 16 + (chip ? chipWidth + 6 : 0);
 
   return (
     <g>
-      <g className="cursor-pointer" transform={`translate(${labelPoint.x} ${labelPoint.y + 18})`} onClick={onSelect}>
-        <rect x={-width / 2} y={-11} width={width} height={20} rx={10} fill="rgba(15, 23, 42, 0.75)" />
-        <text textAnchor="middle" y={4} fontSize={12} fontWeight={600} fill="white">
-          {label}
-        </text>
-      </g>
-
-      {bubble !== null && (
-        <g className="cursor-pointer" transform={`translate(${anchor.x} ${anchor.y - 22})`} onClick={onCollect}>
-          <rect x={-34} y={-15} width={68} height={28} rx={14} fill="white" stroke="#10b981" strokeWidth={2} />
-          <text textAnchor="middle" y={5} fontSize={13} fontWeight={700} fill="#047857">
-            {bubble}
+      {(labelled || locked) && (
+        <g className="cursor-pointer" transform={`translate(${plate.x} ${plate.y}) scale(${scale})`} onClick={onSelect}>
+          <path d="M-5 11 L0 17 L5 11 Z" fill="#16305e" />
+          <rect x={-width / 2} y={-11} width={width} height={22} rx={7} fill="#16305e" fillOpacity={0.92} stroke="#8fb4ea" strokeWidth={1.2} />
+          <text x={-width / 2 + 8} y={4.5} fontSize={12} fontWeight={700} fill="white">
+            {text}
           </text>
-          <path d="M-6 13 L0 21 L6 13 Z" fill="white" stroke="#10b981" strokeWidth={2} />
+          {chip && (
+            <g transform={`translate(${width / 2 - chipWidth / 2 - 4} 0)`}>
+              <rect x={-chipWidth / 2} y={-8} width={chipWidth} height={16} rx={8} fill="#fde68a" />
+              <text textAnchor="middle" y={4.5} fontSize={12} fontWeight={800} fill="#78350f">
+                {level}
+              </text>
+            </g>
+          )}
         </g>
       )}
     </g>

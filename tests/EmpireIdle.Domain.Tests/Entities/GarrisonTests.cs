@@ -231,6 +231,21 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(RefusalReasons.GarrisonArmyCapacity.Key, refusal.Reason);
         }
 
+        /// <summary>У кожної будівлі юнітів свій ліміт: повна казарма не заважає тренувати лучників.</summary>
+        [Fact]
+        public void TrainUnits_ShouldCountOnlyTheBuildingsOwnTypes_AgainstItsCapacity()
+        {
+            var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+            var now = DateTime.UtcNow;
+
+            garrison.TrainUnits("infantry", 1, 6, 10, armyCapacity: 6, TimeSpan.FromMinutes(10), now, ["infantry"]);
+            garrison.CompleteDueTraining(now.AddMinutes(11));
+
+            garrison.TrainUnits("archer", 1, 6, 10, armyCapacity: 6, TimeSpan.FromMinutes(10), now.AddMinutes(11), ["archer"]);
+
+            Assert.Single(garrison.TrainingOrders);
+        }
+
         /// <summary>
         /// Підкріплення лягають окремою колекцією й не змішуються з власною
         /// армією: ліміт у них свій, від посольства.

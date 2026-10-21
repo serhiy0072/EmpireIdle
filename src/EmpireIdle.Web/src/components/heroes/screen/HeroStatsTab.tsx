@@ -9,21 +9,19 @@ interface Props {
   config: CatalogHero;
   busy: boolean;
   onEvolve: () => void;
-  onAppointLeader: () => void;
   onHeal: () => void;
   onResetLevel: () => void;
 }
 
 /**
  * Вкладка «Показники»: стан героя, базові стати з довідника, тір і рідші дії — еволюція,
- * лідерство, лікування, скидання рівня. Те, що качається щодня (рівень, зірки), — над вкладками.
+ * лікування, скидання рівня. Те, що качається щодня (рівень, зірки), — над вкладками.
  */
-export default function HeroStatsTab({ hero, config, busy, onEvolve, onAppointLeader, onHeal, onResetLevel }: Props) {
+export default function HeroStatsTab({ hero, config, busy, onEvolve, onHeal, onResetLevel }: Props) {
   const catalog = useCatalog();
   const [confirmingReset, setConfirmingReset] = useState(false);
 
   const atTierCap = hero.tier >= catalog.maxTier;
-  const stationed = hero.stationedGarrisonId != null;
 
   return (
     <div className="space-y-4 text-sm">
@@ -33,7 +31,8 @@ export default function HeroStatsTab({ hero, config, busy, onEvolve, onAppointLe
         <Row label="Рівень" value={`${hero.effectiveLevel} з ${hero.maxLevel}${hero.campSlot != null && hero.effectiveLevel !== hero.level ? ` (власний ${hero.level}, табір)` : ""}`} />
         <Row label="Веде" value={hero.unitType === null || hero.unitType === undefined ? "—" : catalog.unitName(hero.unitType)} />
         <Row label="Швидкість" value={String(config.speed)} />
-        <Row label="Лідер гарнізону" value={hero.isLeader ? "так" : "ні"} />
+        {/* Боронить сам найсильніший свого класу — призначати нікого не треба, і марш не заважає */}
+        <Row label="Боронить село" value={hero.isDefender ? "так" : "ні"} />
       </dl>
 
       {/* Стати зараз — з тіром, зірками, зброєю й спорядженням; поруч — що дасть наступний рівень */}
@@ -75,12 +74,6 @@ export default function HeroStatsTab({ hero, config, busy, onEvolve, onAppointLe
         <GameButton onClick={onEvolve} disabled={busy || atTierCap} variant="accent">
           {atTierCap ? "Максимальний тір" : "Еволюція тіру"}
         </GameButton>
-
-        {stationed && !hero.isLeader && (
-          <GameButton onClick={onAppointLeader} disabled={busy}>
-            Призначити лідером
-          </GameButton>
-        )}
 
         {hero.state === "Wounded" && (
           <GameButton onClick={onHeal} disabled={busy} variant="accent">

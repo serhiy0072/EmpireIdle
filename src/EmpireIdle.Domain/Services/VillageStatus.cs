@@ -53,6 +53,25 @@ namespace EmpireIdle.Domain.Services
                && config.RequiresMainBuildingLevel <= MainBuildingLevel(village);
 
         /// <summary>
+        /// Скільки м'яса за годину з'їдає село (рішення 20.10.2026): ставка × сума рівнів відкритих будівель
+        /// із рівнями — «чим більше селище, тим більше їсть». Без відкритої Їдальні — нуль.
+        /// </summary>
+        public int MealPerHour(Village village)
+        {
+            var provisions = _catalog.Config.Provisions;
+
+            if (provisions.MessHallBuildingKey is not { } messHall
+                || village.Buildings.All(b => b.Type != messHall) || !IsUnlocked(village, messHall))
+                return 0;
+
+            var size = village.Buildings
+                .Where(b => _catalog.Buildings.TryGetValue(b.Type, out var c) && c.Upgradable && IsUnlocked(village, b.Type))
+                .Sum(b => b.Level.Value);
+
+            return provisions.MealPerBuildingLevelPerHour * size;
+        }
+
+        /// <summary>
         /// Множник до сили оборони від укріплень. 1.0 — стін немає.
         /// Належить селищу, тож підкріплення клану ними теж прикриті.
         /// Пошкоджене укріплення дає лише частку бонусу (GDD §2.6).
@@ -61,12 +80,15 @@ namespace EmpireIdle.Domain.Services
         {
             var lossPerDamage = _catalog.Config.Combat.CityFall.DefenceLossPerDamage;
 
-            return 1.0 + village.Buildings
+            // Голодне село захищається гірше (рішення 13.10.2026; голод від м'яса Їдальні — 20.10.2026)
+            var hunger = village.IsHungry ? _catalog.Config.Provisions.HungerDefenceMultiplier : 1.0;
+
+            return hunger * (1.0 + village.Buildings
                 .Where(b => !b.IsUnderConstruction
                             && _catalog.Buildings.TryGetValue(b.Type, out var c)
                             && c.DefenceBonusPerLevel > 0)
                 .Sum(b => _catalog.Buildings[b.Type].DefenceBonusPerLevel * b.Level.Value
-                          * Math.Max(0, 1 - b.DamageAt(utcNow) * lossPerDamage));
+                          * Math.Max(0, 1 - b.DamageAt(utcNow) * lossPerDamage)));
         }
     }
 }

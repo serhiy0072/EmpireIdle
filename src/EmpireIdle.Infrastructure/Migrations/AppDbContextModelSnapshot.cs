@@ -422,6 +422,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<DateTime?>("DamagedUntil")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<double>("HungerProductionMultiplier")
+                        .HasColumnType("double precision");
+
                     b.Property<DateTime>("LastAccruedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1144,9 +1147,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<bool>("IsLeader")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("Level")
                         .HasColumnType("integer");
 
@@ -1209,10 +1209,6 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("PlayerId", "ServerId");
-
-                    b.HasIndex("StationedGarrisonId", "PlayerId")
-                        .IsUnique()
-                        .HasFilter("\"IsLeader\" AND \"StationedGarrisonId\" IS NOT NULL");
 
                     b.ToTable("Heroes", (string)null);
                 });
@@ -1558,6 +1554,10 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GarrisonId");
+
+                    b.HasIndex("GarrisonId", "TargetId")
+                        .IsUnique()
+                        .HasFilter("\"Intent\" = 3 AND \"State\" = 1");
 
                     b.HasIndex("ServerId", "ArrivesAt")
                         .HasFilter("\"State\" <> 3 AND \"State\" <> 4");
@@ -2401,6 +2401,40 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("StructureFalls", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.TowerProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("HighestFloor")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ReachedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.HasIndex("ServerId", "HighestFloor", "ReachedAt")
+                        .IsDescending(false, true, false);
+
+                    b.ToTable("TowerProgress", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.TrainingCamp", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2541,8 +2575,20 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("AutoCollectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("BeastsHungry")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("DefeatStreak")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("FoodUpkeepAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsHungry")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -138,7 +138,7 @@ namespace EmpireIdle.Application.Marches.Commands
                 ?? throw new InvalidOperationException(
                     $"Garrison {march.GarrisonId} not found for march {march.Id}.");
 
-            await _homecoming.ArriveAsync(march, garrison, leaderSlotFree: null, utcNow, cancellationToken);
+            await _homecoming.ArriveAsync(march, garrison, utcNow, cancellationToken);
         }
     }
 }

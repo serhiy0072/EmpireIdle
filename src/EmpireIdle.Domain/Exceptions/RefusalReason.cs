@@ -94,6 +94,14 @@
         /// <summary>Своє село й споруди свого клану розвідувати нема сенсу.</summary>
         public static readonly RefusalReason ScoutOwnTarget = new("scout.ownTarget");
 
+        /// <summary>На цю ціль уже йдуть твої розвідники — одночасно лише одна розвідка на ціль.</summary>
+        public static readonly RefusalReason ScoutAlreadyUnderway = new("scout.alreadyUnderway");
+
+        // ---------- Звірі ----------
+
+        /// <summary>Звіринцю не вистачило корму: поки звірі голодні, пасивки не активуються.</summary>
+        public static readonly RefusalReason BeastsHungry = new("beasts.hungry");
+
         // ---------- Прискорення ----------
 
         /// <summary>До кінця таймера лишилось не більше межі: прискорювати нічого, треба дочекатись; seconds — межа.</summary>
@@ -363,7 +371,7 @@
         public static readonly RefusalReason CampSlotReady = new("camp.slotReady", "slot");
 
         /// <summary>Немає книги для цього вміння (GDD §6.1); book — назва потрібної книги.</summary>
-        public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book");
+        public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book", "need", "have");
 
         // ---------- Спорядження ----------
 
@@ -384,6 +392,9 @@
 
         /// <summary>Згодувати вдягнене не можна — спершу зняти з героя.</summary>
         public static readonly RefusalReason EquipmentFoodEquipped = new("equipment.foodEquipped");
+
+        /// <summary>Набір лише для свого класу героїв (рішення 15.10.2026); set — назва набору, class — його клас.</summary>
+        public static readonly RefusalReason EquipmentWrongClass = new("equipment.wrongClass", "set", "class");
 
         // ---------- Ринок ----------
 
@@ -440,6 +451,22 @@
 
         /// <summary>Поповнень за gems на сьогодні більше немає.</summary>
         public static readonly RefusalReason DungeonRefillLimit = new("dungeon.refillLimit", "limit");
+
+        // ---------- Одномоментний бій (арена, вежа) ----------
+
+        /// <summary>Герой загону в госпіталі — поранити його могли між вибором складу й боєм.</summary>
+        public static readonly RefusalReason SquadHeroWounded = new("squad.heroWounded", "hero");
+
+        // ---------- Вежа ----------
+
+        /// <summary>Вежа ще закрита ратушею.</summary>
+        public static readonly RefusalReason TowerTownHallRequired = new("tower.townHallRequired", "level");
+
+        /// <summary>Штурмують не той поверх — найчастіше вежу відкрито у двох вкладках і поверх уже пройдено.</summary>
+        public static readonly RefusalReason TowerFloorClosed = new("tower.floorClosed", "floor", "next");
+
+        /// <summary>Усі поверхи пройдено.</summary>
+        public static readonly RefusalReason TowerConquered = new("tower.conquered");
 
         // ---------- Звірі ----------
 

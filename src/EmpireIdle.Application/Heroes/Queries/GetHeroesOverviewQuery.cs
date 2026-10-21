@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Heroes.Contracts;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
@@ -63,6 +64,14 @@ namespace EmpireIdle.Application.Heroes.Queries
             var equipped = (await _inventory.GetEquippedByHeroesAsync(heroes.Select(h => h.Id).ToList(), cancellationToken))
                 .ToLookup(e => e.EquippedByHeroId!.Value);
 
+            // Захисники — тим самим правилом, що й у бою, із тією ж силою, що на екрані
+            var defenders = GarrisonDefence.Pick(
+                    heroes.Where(h => _catalog.FindHero(h.HeroKey) is not null)
+                        .Select(h => (h, _catalog.FindHero(h.HeroKey)!.Class, Power(h, equipped[h.Id].ToList()))),
+                    _catalog.Config.HeroSettings.GarrisonDefenders)
+                .Select(h => h.Id)
+                .ToHashSet();
+
             var summaries = heroes
                 .Select(h => new HeroSummary(
                     h.Id,
@@ -79,7 +88,7 @@ namespace EmpireIdle.Application.Heroes.Queries
                     // Ім'я enum як є: клієнт розгалужується за "Idle", а не за "idle"
                     h.State.ToString(),
                     h.StationedGarrisonId,
-                    h.IsLeader,
+                    defenders.Contains(h.Id),
                     // Рівні рахує сервер: відкриття за рівнем героя й стелю зірок клієнт не дублює
                     (_catalog.FindHero(h.HeroKey)?.Skills ?? [])
                         .ToDictionary(s => s.Key, s => _skills.LevelOf(h, s)),

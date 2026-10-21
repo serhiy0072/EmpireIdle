@@ -79,13 +79,17 @@ namespace EmpireIdle.Domain.Combat
                 WoundedHeroes(defenderHeroes, defenderBase, attackerPower * defenderLossRatio));
         }
 
-        private static double HeroPower(IReadOnlyList<HeroCombatant>? heroes)
-            => heroes?.Sum(h => Math.Max(0, h.Power)) ?? 0;
+        /// <summary>
+        /// Внесок героїв у силу сторони: власна сила плюс сила військам зі спорядження.
+        /// Публічний — прев'ю мусить рахувати героїв тією самою формулою, що й бій.
+        /// </summary>
+        public static double HeroPower(IReadOnlyList<HeroCombatant>? heroes)
+            => heroes?.Sum(h => Math.Max(0, h.Power) + Math.Max(0, h.TroopPower)) ?? 0;
 
         /// <summary>
         /// Шкода стороні — сила супротивника × частка її втрат; герой бере її частку за своєю
-        /// часткою в силі сторони й пораняється, коли вона сягає його здоров'я × HeroHealthScale.
-        /// Тож поранення можливе й після перемоги, а розгром кладе героя майже напевно.
+        /// часткою в силі сторони й пораняється, коли вона сягає його здоров'я × HeroHealthScale
+        /// × (1 + оберіг). Тож поранення можливе й після перемоги, а розгром кладе героя майже напевно.
         /// </summary>
         private List<Guid> WoundedHeroes(IReadOnlyList<HeroCombatant>? heroes, double sidePower, double damage)
         {
@@ -93,7 +97,7 @@ namespace EmpireIdle.Domain.Combat
                 return [];
 
             return heroes
-                .Where(h => damage * Math.Max(0, h.Power) / sidePower >= h.Health * _config.HeroHealthScale)
+                .Where(h => damage * Math.Max(0, h.Power) / sidePower >= h.Health * _config.HeroHealthScale * (1 + Math.Max(0, h.Ward)))
                 .Select(h => h.HeroId)
                 .ToList();
         }

@@ -93,12 +93,12 @@
         },
         {
           "ItemKey": "key_rare",
-          "PriceGems": 500,
+          "PriceGems": 1000,
           "MaxPerPurchase": 100
         },
         {
           "ItemKey": "key_unique",
-          "PriceGems": 1000,
+          "PriceGems": 5000,
           "MaxPerPurchase": 100
         },
         {
@@ -114,53 +114,11 @@
           "Kind": "Hero",
           "PityGroup": "hero",
           "PriceGems": 1000,
-          "RarePity": 100,
-          "UniquePity": 300,
+          "RarePity": 10,
+          "UniquePity": 50,
           "RequiresServerLevel": 1,
           "WindowDays": 30,
           "Drops": [
-            {
-              "Key": "hero_warrior_gunnar",
-              "DisplayName": "Гуннар Скеля · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 4,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "warrior_gunnar",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_knight_elowen",
-              "DisplayName": "Еловен Світанкова · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 3,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "knight_elowen",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_archer_kestrel",
-              "DisplayName": "Кестрель Соколиця · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 3,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "archer_kestrel",
-                  "Amount": 10
-                }
-              ]
-            },
             {
               "Key": "hero_warrior_bran",
               "DisplayName": "Бран Щитоносець · осколки ×10",
@@ -344,10 +302,24 @@
               ]
             },
             {
+              "Key": "hero_warrior_gunnar",
+              "DisplayName": "Гуннар Скеля · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 10,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "warrior_gunnar",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_warrior_gunnar_shards_1",
               "DisplayName": "Гуннар Скеля · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 34,
+              "Rarity": "Unique",
+              "Weight": 260,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -359,8 +331,8 @@
             {
               "Key": "hero_warrior_gunnar_shards_2",
               "DisplayName": "Гуннар Скеля · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 22,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -372,8 +344,8 @@
             {
               "Key": "hero_warrior_gunnar_shards_5",
               "DisplayName": "Гуннар Скеля · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 40,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -383,10 +355,24 @@
               ]
             },
             {
+              "Key": "hero_knight_elowen",
+              "DisplayName": "Еловен Світанкова · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 10,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "knight_elowen",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_knight_elowen_shards_1",
               "DisplayName": "Еловен Світанкова · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 34,
+              "Rarity": "Unique",
+              "Weight": 260,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -398,8 +384,8 @@
             {
               "Key": "hero_knight_elowen_shards_2",
               "DisplayName": "Еловен Світанкова · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 22,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -411,8 +397,8 @@
             {
               "Key": "hero_knight_elowen_shards_5",
               "DisplayName": "Еловен Світанкова · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 40,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -422,10 +408,24 @@
               ]
             },
             {
+              "Key": "hero_archer_kestrel",
+              "DisplayName": "Кестрель Соколиця · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 10,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "archer_kestrel",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_archer_kestrel_shards_1",
               "DisplayName": "Кестрель Соколиця · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 33,
+              "Rarity": "Unique",
+              "Weight": 260,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -437,8 +437,8 @@
             {
               "Key": "hero_archer_kestrel_shards_2",
               "DisplayName": "Кестрель Соколиця · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 22,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -450,8 +450,8 @@
             {
               "Key": "hero_archer_kestrel_shards_5",
               "DisplayName": "Кестрель Соколиця · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 40,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -541,8 +541,8 @@
             {
               "Key": "hero_knight_ordwin_shards_1",
               "DisplayName": "Ордвін Непохитний · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -554,7 +554,7 @@
             {
               "Key": "hero_knight_ordwin_shards_2",
               "DisplayName": "Ордвін Непохитний · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -567,8 +567,9 @@
             {
               "Key": "hero_knight_ordwin_shards_5",
               "DisplayName": "Ордвін Непохитний · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -580,8 +581,8 @@
             {
               "Key": "hero_warrior_hedda_shards_1",
               "DisplayName": "Гедда Щитоносиця · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -593,7 +594,7 @@
             {
               "Key": "hero_warrior_hedda_shards_2",
               "DisplayName": "Гедда Щитоносиця · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -606,8 +607,9 @@
             {
               "Key": "hero_warrior_hedda_shards_5",
               "DisplayName": "Гедда Щитоносиця · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -619,8 +621,8 @@
             {
               "Key": "hero_warrior_torvald_shards_1",
               "DisplayName": "Торвальд Незламний · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -632,7 +634,7 @@
             {
               "Key": "hero_warrior_torvald_shards_2",
               "DisplayName": "Торвальд Незламний · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -645,8 +647,9 @@
             {
               "Key": "hero_warrior_torvald_shards_5",
               "DisplayName": "Торвальд Незламний · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -658,8 +661,8 @@
             {
               "Key": "hero_warrior_maren_shards_1",
               "DisplayName": "Марен Сокирниця · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -671,7 +674,7 @@
             {
               "Key": "hero_warrior_maren_shards_2",
               "DisplayName": "Марен Сокирниця · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -684,8 +687,9 @@
             {
               "Key": "hero_warrior_maren_shards_5",
               "DisplayName": "Марен Сокирниця · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -697,8 +701,8 @@
             {
               "Key": "hero_knight_aldric_shards_1",
               "DisplayName": "Альдрік Списоносець · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -710,7 +714,7 @@
             {
               "Key": "hero_knight_aldric_shards_2",
               "DisplayName": "Альдрік Списоносець · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -723,8 +727,9 @@
             {
               "Key": "hero_knight_aldric_shards_5",
               "DisplayName": "Альдрік Списоносець · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -736,8 +741,8 @@
             {
               "Key": "hero_knight_serah_shards_1",
               "DisplayName": "Сера Вартова · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -749,7 +754,7 @@
             {
               "Key": "hero_knight_serah_shards_2",
               "DisplayName": "Сера Вартова · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -762,8 +767,9 @@
             {
               "Key": "hero_knight_serah_shards_5",
               "DisplayName": "Сера Вартова · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -775,8 +781,8 @@
             {
               "Key": "hero_archer_finn_shards_1",
               "DisplayName": "Фінн Далекоокий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -788,7 +794,7 @@
             {
               "Key": "hero_archer_finn_shards_2",
               "DisplayName": "Фінн Далекоокий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -801,8 +807,9 @@
             {
               "Key": "hero_archer_finn_shards_5",
               "DisplayName": "Фінн Далекоокий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -814,8 +821,8 @@
             {
               "Key": "hero_archer_ysolde_shards_1",
               "DisplayName": "Ізольда Тихоструна · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -827,7 +834,7 @@
             {
               "Key": "hero_archer_ysolde_shards_2",
               "DisplayName": "Ізольда Тихоструна · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -840,8 +847,9 @@
             {
               "Key": "hero_archer_ysolde_shards_5",
               "DisplayName": "Ізольда Тихоструна · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -853,8 +861,8 @@
             {
               "Key": "hero_archer_rook_shards_1",
               "DisplayName": "Рук Строкатий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -866,7 +874,7 @@
             {
               "Key": "hero_archer_rook_shards_2",
               "DisplayName": "Рук Строкатий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -879,8 +887,9 @@
             {
               "Key": "hero_archer_rook_shards_5",
               "DisplayName": "Рук Строкатий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -892,8 +901,8 @@
             {
               "Key": "hero_mage_calder_shards_1",
               "DisplayName": "Кальдер Громовий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -905,7 +914,7 @@
             {
               "Key": "hero_mage_calder_shards_2",
               "DisplayName": "Кальдер Громовий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -918,8 +927,9 @@
             {
               "Key": "hero_mage_calder_shards_5",
               "DisplayName": "Кальдер Громовий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -931,8 +941,8 @@
             {
               "Key": "hero_mage_nerys_shards_1",
               "DisplayName": "Неріс Дзеркальна · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -944,7 +954,7 @@
             {
               "Key": "hero_mage_nerys_shards_2",
               "DisplayName": "Неріс Дзеркальна · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 29,
               "Rewards": [
                 {
@@ -957,8 +967,9 @@
             {
               "Key": "hero_mage_nerys_shards_5",
               "DisplayName": "Неріс Дзеркальна · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -971,7 +982,7 @@
               "Key": "loot_hero_xp_small",
               "DisplayName": "Мала баночка досвіду ×2",
               "Rarity": "Common",
-              "Weight": 1900,
+              "Weight": 1632,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -984,7 +995,7 @@
               "Key": "loot_hero_xp_1k",
               "DisplayName": "Баночка досвіду ×1",
               "Rarity": "Common",
-              "Weight": 1400,
+              "Weight": 1202,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -997,7 +1008,7 @@
               "Key": "loot_teleport_random",
               "DisplayName": "Випадковий телепорт ×1",
               "Rarity": "Common",
-              "Weight": 600,
+              "Weight": 515,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1010,7 +1021,7 @@
               "Key": "loot_teleport_nearby",
               "DisplayName": "Ближній телепорт ×1",
               "Rarity": "Common",
-              "Weight": 400,
+              "Weight": 343,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1023,7 +1034,7 @@
               "Key": "loot_speedup_1m",
               "DisplayName": "Прискорення 1 хв ×5",
               "Rarity": "Common",
-              "Weight": 800,
+              "Weight": 687,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1036,7 +1047,7 @@
               "Key": "loot_speedup_5m",
               "DisplayName": "Прискорення 5 хв ×2",
               "Rarity": "Common",
-              "Weight": 600,
+              "Weight": 515,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1049,7 +1060,7 @@
               "Key": "loot_crate_wood_5000",
               "DisplayName": "Ящик деревини ×1",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 107,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1059,10 +1070,49 @@
               ]
             },
             {
+              "Key": "loot_crate_food_5000",
+              "DisplayName": "Ящик м'яса ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_food_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_gold_5000",
+              "DisplayName": "Ящик золота ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_gold_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_iron_2500",
+              "DisplayName": "Ящик заліза ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_iron_2500",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
               "Key": "loot_wrench_common",
               "DisplayName": "Гайковий ключ ×3",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 429,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1073,9 +1123,9 @@
             },
             {
               "Key": "loot_beast_feed",
-              "DisplayName": "Корм для звірів ×5",
+              "DisplayName": "Ласощі для звірів ×5",
               "Rarity": "Common",
-              "Weight": 300,
+              "Weight": 258,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1088,7 +1138,7 @@
               "Key": "loot_dungeon_energy_10",
               "DisplayName": "Ковток енергії ×1",
               "Rarity": "Common",
-              "Weight": 200,
+              "Weight": 172,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1101,7 +1151,7 @@
               "Key": "loot_universal_shard_common",
               "DisplayName": "Універсальний осколок (звичайний) ×1",
               "Rarity": "Common",
-              "Weight": 250,
+              "Weight": 215,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -1114,7 +1164,7 @@
               "Key": "loot_dawn_necklace_common",
               "DisplayName": "Намисто Світанку (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -1127,7 +1177,7 @@
               "Key": "loot_dawn_ring_common",
               "DisplayName": "Кільце Світанку (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -1140,7 +1190,7 @@
               "Key": "loot_ember_crown_common",
               "DisplayName": "Корона Жарини (звичайна)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -1153,7 +1203,7 @@
               "Key": "loot_ember_belt_common",
               "DisplayName": "Пояс Жарини (звичайний)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -1166,7 +1216,7 @@
               "Key": "loot_frost_necklace_common",
               "DisplayName": "Намисто Морозу (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -1179,7 +1229,7 @@
               "Key": "loot_frost_ring_common",
               "DisplayName": "Кільце Морозу (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -1192,7 +1242,7 @@
               "Key": "loot_tide_crown_common",
               "DisplayName": "Корона Припливу (звичайна)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -1205,7 +1255,7 @@
               "Key": "loot_tide_belt_common",
               "DisplayName": "Пояс Припливу (звичайний)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -1222,53 +1272,11 @@
           "Kind": "Hero",
           "PityGroup": "hero",
           "PriceGems": 1000,
-          "RarePity": 100,
-          "UniquePity": 300,
+          "RarePity": 10,
+          "UniquePity": 50,
           "RequiresServerLevel": 2,
           "WindowDays": 30,
           "Drops": [
-            {
-              "Key": "hero_mage_sabine",
-              "DisplayName": "Сабіна Морозна · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 4,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "mage_sabine",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_mage_vael",
-              "DisplayName": "Ваель Безмовний · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 3,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "mage_vael",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_mage_iselle",
-              "DisplayName": "Ізелла Дев'ятого Полум'я · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 3,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "mage_iselle",
-                  "Amount": 10
-                }
-              ]
-            },
             {
               "Key": "hero_warrior_bran",
               "DisplayName": "Бран Щитоносець · осколки ×10",
@@ -1452,10 +1460,24 @@
               ]
             },
             {
+              "Key": "hero_mage_sabine",
+              "DisplayName": "Сабіна Морозна · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 10,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "mage_sabine",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_mage_sabine_shards_1",
               "DisplayName": "Сабіна Морозна · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 34,
+              "Rarity": "Unique",
+              "Weight": 260,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1467,8 +1489,8 @@
             {
               "Key": "hero_mage_sabine_shards_2",
               "DisplayName": "Сабіна Морозна · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 22,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1480,8 +1502,8 @@
             {
               "Key": "hero_mage_sabine_shards_5",
               "DisplayName": "Сабіна Морозна · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 40,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1491,10 +1513,24 @@
               ]
             },
             {
+              "Key": "hero_mage_vael",
+              "DisplayName": "Ваель Безмовний · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 10,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "mage_vael",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_mage_vael_shards_1",
               "DisplayName": "Ваель Безмовний · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 34,
+              "Rarity": "Unique",
+              "Weight": 260,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1506,8 +1542,8 @@
             {
               "Key": "hero_mage_vael_shards_2",
               "DisplayName": "Ваель Безмовний · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 22,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1519,8 +1555,8 @@
             {
               "Key": "hero_mage_vael_shards_5",
               "DisplayName": "Ваель Безмовний · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 40,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1530,10 +1566,24 @@
               ]
             },
             {
+              "Key": "hero_mage_iselle",
+              "DisplayName": "Ізелла Дев'ятого Полум'я · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 10,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "mage_iselle",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_mage_iselle_shards_1",
               "DisplayName": "Ізелла Дев'ятого Полум'я · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 33,
+              "Rarity": "Unique",
+              "Weight": 260,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1545,8 +1595,8 @@
             {
               "Key": "hero_mage_iselle_shards_2",
               "DisplayName": "Ізелла Дев'ятого Полум'я · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 22,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1558,8 +1608,8 @@
             {
               "Key": "hero_mage_iselle_shards_5",
               "DisplayName": "Ізелла Дев'ятого Полум'я · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 40,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1649,8 +1699,8 @@
             {
               "Key": "hero_knight_ordwin_shards_1",
               "DisplayName": "Ордвін Непохитний · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1662,7 +1712,7 @@
             {
               "Key": "hero_knight_ordwin_shards_2",
               "DisplayName": "Ордвін Непохитний · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1675,8 +1725,9 @@
             {
               "Key": "hero_knight_ordwin_shards_5",
               "DisplayName": "Ордвін Непохитний · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1688,8 +1739,8 @@
             {
               "Key": "hero_warrior_hedda_shards_1",
               "DisplayName": "Гедда Щитоносиця · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1701,7 +1752,7 @@
             {
               "Key": "hero_warrior_hedda_shards_2",
               "DisplayName": "Гедда Щитоносиця · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1714,8 +1765,9 @@
             {
               "Key": "hero_warrior_hedda_shards_5",
               "DisplayName": "Гедда Щитоносиця · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1727,8 +1779,8 @@
             {
               "Key": "hero_warrior_torvald_shards_1",
               "DisplayName": "Торвальд Незламний · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1740,7 +1792,7 @@
             {
               "Key": "hero_warrior_torvald_shards_2",
               "DisplayName": "Торвальд Незламний · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1753,8 +1805,9 @@
             {
               "Key": "hero_warrior_torvald_shards_5",
               "DisplayName": "Торвальд Незламний · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1766,8 +1819,8 @@
             {
               "Key": "hero_warrior_maren_shards_1",
               "DisplayName": "Марен Сокирниця · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1779,7 +1832,7 @@
             {
               "Key": "hero_warrior_maren_shards_2",
               "DisplayName": "Марен Сокирниця · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1792,8 +1845,9 @@
             {
               "Key": "hero_warrior_maren_shards_5",
               "DisplayName": "Марен Сокирниця · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1805,8 +1859,8 @@
             {
               "Key": "hero_knight_aldric_shards_1",
               "DisplayName": "Альдрік Списоносець · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1818,7 +1872,7 @@
             {
               "Key": "hero_knight_aldric_shards_2",
               "DisplayName": "Альдрік Списоносець · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1831,8 +1885,9 @@
             {
               "Key": "hero_knight_aldric_shards_5",
               "DisplayName": "Альдрік Списоносець · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1844,8 +1899,8 @@
             {
               "Key": "hero_knight_serah_shards_1",
               "DisplayName": "Сера Вартова · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1857,7 +1912,7 @@
             {
               "Key": "hero_knight_serah_shards_2",
               "DisplayName": "Сера Вартова · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1870,8 +1925,9 @@
             {
               "Key": "hero_knight_serah_shards_5",
               "DisplayName": "Сера Вартова · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1883,8 +1939,8 @@
             {
               "Key": "hero_archer_finn_shards_1",
               "DisplayName": "Фінн Далекоокий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1896,7 +1952,7 @@
             {
               "Key": "hero_archer_finn_shards_2",
               "DisplayName": "Фінн Далекоокий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1909,8 +1965,9 @@
             {
               "Key": "hero_archer_finn_shards_5",
               "DisplayName": "Фінн Далекоокий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1922,8 +1979,8 @@
             {
               "Key": "hero_archer_ysolde_shards_1",
               "DisplayName": "Ізольда Тихоструна · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1935,7 +1992,7 @@
             {
               "Key": "hero_archer_ysolde_shards_2",
               "DisplayName": "Ізольда Тихоструна · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1948,8 +2005,9 @@
             {
               "Key": "hero_archer_ysolde_shards_5",
               "DisplayName": "Ізольда Тихоструна · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1961,8 +2019,8 @@
             {
               "Key": "hero_archer_rook_shards_1",
               "DisplayName": "Рук Строкатий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -1974,7 +2032,7 @@
             {
               "Key": "hero_archer_rook_shards_2",
               "DisplayName": "Рук Строкатий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -1987,8 +2045,9 @@
             {
               "Key": "hero_archer_rook_shards_5",
               "DisplayName": "Рук Строкатий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2000,8 +2059,8 @@
             {
               "Key": "hero_mage_calder_shards_1",
               "DisplayName": "Кальдер Громовий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2013,7 +2072,7 @@
             {
               "Key": "hero_mage_calder_shards_2",
               "DisplayName": "Кальдер Громовий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -2026,8 +2085,9 @@
             {
               "Key": "hero_mage_calder_shards_5",
               "DisplayName": "Кальдер Громовий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2039,8 +2099,8 @@
             {
               "Key": "hero_mage_nerys_shards_1",
               "DisplayName": "Неріс Дзеркальна · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2052,7 +2112,7 @@
             {
               "Key": "hero_mage_nerys_shards_2",
               "DisplayName": "Неріс Дзеркальна · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 29,
               "Rewards": [
                 {
@@ -2065,8 +2125,9 @@
             {
               "Key": "hero_mage_nerys_shards_5",
               "DisplayName": "Неріс Дзеркальна · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2079,7 +2140,7 @@
               "Key": "loot_hero_xp_small",
               "DisplayName": "Мала баночка досвіду ×2",
               "Rarity": "Common",
-              "Weight": 1900,
+              "Weight": 1632,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2092,7 +2153,7 @@
               "Key": "loot_hero_xp_1k",
               "DisplayName": "Баночка досвіду ×1",
               "Rarity": "Common",
-              "Weight": 1400,
+              "Weight": 1202,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2105,7 +2166,7 @@
               "Key": "loot_teleport_random",
               "DisplayName": "Випадковий телепорт ×1",
               "Rarity": "Common",
-              "Weight": 600,
+              "Weight": 515,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2118,7 +2179,7 @@
               "Key": "loot_teleport_nearby",
               "DisplayName": "Ближній телепорт ×1",
               "Rarity": "Common",
-              "Weight": 400,
+              "Weight": 343,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2131,7 +2192,7 @@
               "Key": "loot_speedup_1m",
               "DisplayName": "Прискорення 1 хв ×5",
               "Rarity": "Common",
-              "Weight": 800,
+              "Weight": 687,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2144,7 +2205,7 @@
               "Key": "loot_speedup_5m",
               "DisplayName": "Прискорення 5 хв ×2",
               "Rarity": "Common",
-              "Weight": 600,
+              "Weight": 515,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2157,7 +2218,7 @@
               "Key": "loot_crate_wood_5000",
               "DisplayName": "Ящик деревини ×1",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 107,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2167,10 +2228,49 @@
               ]
             },
             {
+              "Key": "loot_crate_food_5000",
+              "DisplayName": "Ящик м'яса ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_food_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_gold_5000",
+              "DisplayName": "Ящик золота ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_gold_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_iron_2500",
+              "DisplayName": "Ящик заліза ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_iron_2500",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
               "Key": "loot_wrench_common",
               "DisplayName": "Гайковий ключ ×3",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 429,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2181,9 +2281,9 @@
             },
             {
               "Key": "loot_beast_feed",
-              "DisplayName": "Корм для звірів ×5",
+              "DisplayName": "Ласощі для звірів ×5",
               "Rarity": "Common",
-              "Weight": 300,
+              "Weight": 258,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2196,7 +2296,7 @@
               "Key": "loot_dungeon_energy_10",
               "DisplayName": "Ковток енергії ×1",
               "Rarity": "Common",
-              "Weight": 200,
+              "Weight": 172,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2209,7 +2309,7 @@
               "Key": "loot_universal_shard_common",
               "DisplayName": "Універсальний осколок (звичайний) ×1",
               "Rarity": "Common",
-              "Weight": 250,
+              "Weight": 215,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -2222,7 +2322,7 @@
               "Key": "loot_dawn_necklace_common",
               "DisplayName": "Намисто Світанку (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -2235,7 +2335,7 @@
               "Key": "loot_dawn_ring_common",
               "DisplayName": "Кільце Світанку (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -2248,7 +2348,7 @@
               "Key": "loot_ember_crown_common",
               "DisplayName": "Корона Жарини (звичайна)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -2261,7 +2361,7 @@
               "Key": "loot_ember_belt_common",
               "DisplayName": "Пояс Жарини (звичайний)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -2274,7 +2374,7 @@
               "Key": "loot_frost_necklace_common",
               "DisplayName": "Намисто Морозу (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -2287,7 +2387,7 @@
               "Key": "loot_frost_ring_common",
               "DisplayName": "Кільце Морозу (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -2300,7 +2400,7 @@
               "Key": "loot_tide_crown_common",
               "DisplayName": "Корона Припливу (звичайна)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -2313,7 +2413,7 @@
               "Key": "loot_tide_belt_common",
               "DisplayName": "Пояс Припливу (звичайний)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -2330,8 +2430,8 @@
           "Kind": "Standard",
           "PityGroup": "standard",
           "PriceGems": 1200,
-          "RarePity": 100,
-          "UniquePity": 360,
+          "RarePity": 10,
+          "UniquePity": 60,
           "Drops": [
             {
               "Key": "hero_warrior_bran",
@@ -2371,20 +2471,6 @@
                 {
                   "Type": "HeroShards",
                   "Key": "knight_ordwin",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_mage_iselle",
-              "DisplayName": "Ізелла Дев'ятого Полум'я · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 2,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "mage_iselle",
                   "Amount": 10
                 }
               ]
@@ -2530,76 +2616,6 @@
               ]
             },
             {
-              "Key": "hero_warrior_gunnar",
-              "DisplayName": "Гуннар Скеля · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 2,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "warrior_gunnar",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_knight_elowen",
-              "DisplayName": "Еловен Світанкова · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 2,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "knight_elowen",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_archer_kestrel",
-              "DisplayName": "Кестрель Соколиця · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 2,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "archer_kestrel",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_mage_vael",
-              "DisplayName": "Ваель Безмовний · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 1,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "mage_vael",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
-              "Key": "hero_mage_sabine",
-              "DisplayName": "Сабіна Морозна · осколки ×10",
-              "Rarity": "Unique",
-              "Kind": "Hero",
-              "Weight": 1,
-              "Rewards": [
-                {
-                  "Type": "HeroShards",
-                  "Key": "mage_sabine",
-                  "Amount": 10
-                }
-              ]
-            },
-            {
               "Key": "hero_warrior_bran_shards_1",
               "DisplayName": "Бран Щитоносець · 1 осколок",
               "Rarity": "Common",
@@ -2680,8 +2696,8 @@
             {
               "Key": "hero_knight_ordwin_shards_1",
               "DisplayName": "Ордвін Непохитний · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2693,7 +2709,7 @@
             {
               "Key": "hero_knight_ordwin_shards_2",
               "DisplayName": "Ордвін Непохитний · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -2706,8 +2722,9 @@
             {
               "Key": "hero_knight_ordwin_shards_5",
               "DisplayName": "Ордвін Непохитний · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2717,10 +2734,24 @@
               ]
             },
             {
+              "Key": "hero_mage_iselle",
+              "DisplayName": "Ізелла Дев'ятого Полум'я · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 5,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "mage_iselle",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_mage_iselle_shards_1",
               "DisplayName": "Ізелла Дев'ятого Полум'я · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 18,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2732,8 +2763,8 @@
             {
               "Key": "hero_mage_iselle_shards_2",
               "DisplayName": "Ізелла Дев'ятого Полум'я · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 65,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2745,8 +2776,8 @@
             {
               "Key": "hero_mage_iselle_shards_5",
               "DisplayName": "Ізелла Дев'ятого Полум'я · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 5,
+              "Rarity": "Unique",
+              "Weight": 20,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2758,8 +2789,8 @@
             {
               "Key": "hero_warrior_hedda_shards_1",
               "DisplayName": "Гедда Щитоносиця · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2771,7 +2802,7 @@
             {
               "Key": "hero_warrior_hedda_shards_2",
               "DisplayName": "Гедда Щитоносиця · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -2784,8 +2815,9 @@
             {
               "Key": "hero_warrior_hedda_shards_5",
               "DisplayName": "Гедда Щитоносиця · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2797,8 +2829,8 @@
             {
               "Key": "hero_warrior_torvald_shards_1",
               "DisplayName": "Торвальд Незламний · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2810,7 +2842,7 @@
             {
               "Key": "hero_warrior_torvald_shards_2",
               "DisplayName": "Торвальд Незламний · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -2823,8 +2855,9 @@
             {
               "Key": "hero_warrior_torvald_shards_5",
               "DisplayName": "Торвальд Незламний · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2836,8 +2869,8 @@
             {
               "Key": "hero_warrior_maren_shards_1",
               "DisplayName": "Марен Сокирниця · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2849,7 +2882,7 @@
             {
               "Key": "hero_warrior_maren_shards_2",
               "DisplayName": "Марен Сокирниця · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -2862,8 +2895,9 @@
             {
               "Key": "hero_warrior_maren_shards_5",
               "DisplayName": "Марен Сокирниця · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2875,8 +2909,8 @@
             {
               "Key": "hero_knight_aldric_shards_1",
               "DisplayName": "Альдрік Списоносець · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2888,7 +2922,7 @@
             {
               "Key": "hero_knight_aldric_shards_2",
               "DisplayName": "Альдрік Списоносець · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -2901,8 +2935,9 @@
             {
               "Key": "hero_knight_aldric_shards_5",
               "DisplayName": "Альдрік Списоносець · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2914,8 +2949,8 @@
             {
               "Key": "hero_knight_serah_shards_1",
               "DisplayName": "Сера Вартова · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2927,7 +2962,7 @@
             {
               "Key": "hero_knight_serah_shards_2",
               "DisplayName": "Сера Вартова · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -2940,8 +2975,9 @@
             {
               "Key": "hero_knight_serah_shards_5",
               "DisplayName": "Сера Вартова · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2953,8 +2989,8 @@
             {
               "Key": "hero_archer_finn_shards_1",
               "DisplayName": "Фінн Далекоокий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 57,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2966,7 +3002,7 @@
             {
               "Key": "hero_archer_finn_shards_2",
               "DisplayName": "Фінн Далекоокий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -2979,8 +3015,9 @@
             {
               "Key": "hero_archer_finn_shards_5",
               "DisplayName": "Фінн Далекоокий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 4,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -2992,8 +3029,8 @@
             {
               "Key": "hero_archer_ysolde_shards_1",
               "DisplayName": "Ізольда Тихоструна · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3005,7 +3042,7 @@
             {
               "Key": "hero_archer_ysolde_shards_2",
               "DisplayName": "Ізольда Тихоструна · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -3018,8 +3055,9 @@
             {
               "Key": "hero_archer_ysolde_shards_5",
               "DisplayName": "Ізольда Тихоструна · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3031,8 +3069,8 @@
             {
               "Key": "hero_archer_rook_shards_1",
               "DisplayName": "Рук Строкатий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3044,7 +3082,7 @@
             {
               "Key": "hero_archer_rook_shards_2",
               "DisplayName": "Рук Строкатий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -3057,8 +3095,9 @@
             {
               "Key": "hero_archer_rook_shards_5",
               "DisplayName": "Рук Строкатий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3070,8 +3109,8 @@
             {
               "Key": "hero_mage_calder_shards_1",
               "DisplayName": "Кальдер Громовий · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3083,7 +3122,7 @@
             {
               "Key": "hero_mage_calder_shards_2",
               "DisplayName": "Кальдер Громовий · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 30,
               "Rewards": [
                 {
@@ -3096,8 +3135,9 @@
             {
               "Key": "hero_mage_calder_shards_5",
               "DisplayName": "Кальдер Громовий · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3109,8 +3149,8 @@
             {
               "Key": "hero_mage_nerys_shards_1",
               "DisplayName": "Неріс Дзеркальна · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 49,
+              "Rarity": "Rare",
+              "Weight": 58,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3122,7 +3162,7 @@
             {
               "Key": "hero_mage_nerys_shards_2",
               "DisplayName": "Неріс Дзеркальна · 2 осколки",
-              "Rarity": "Common",
+              "Rarity": "Rare",
               "Weight": 29,
               "Rewards": [
                 {
@@ -3135,8 +3175,9 @@
             {
               "Key": "hero_mage_nerys_shards_5",
               "DisplayName": "Неріс Дзеркальна · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 12,
+              "Rarity": "Rare",
+              "Kind": "Hero",
+              "Weight": 3,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3146,10 +3187,24 @@
               ]
             },
             {
+              "Key": "hero_warrior_gunnar",
+              "DisplayName": "Гуннар Скеля · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 5,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "warrior_gunnar",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_warrior_gunnar_shards_1",
               "DisplayName": "Гуннар Скеля · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 18,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3161,8 +3216,8 @@
             {
               "Key": "hero_warrior_gunnar_shards_2",
               "DisplayName": "Гуннар Скеля · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 65,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3174,8 +3229,8 @@
             {
               "Key": "hero_warrior_gunnar_shards_5",
               "DisplayName": "Гуннар Скеля · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 5,
+              "Rarity": "Unique",
+              "Weight": 20,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3185,10 +3240,24 @@
               ]
             },
             {
+              "Key": "hero_knight_elowen",
+              "DisplayName": "Еловен Світанкова · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 5,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "knight_elowen",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_knight_elowen_shards_1",
               "DisplayName": "Еловен Світанкова · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 18,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3200,8 +3269,8 @@
             {
               "Key": "hero_knight_elowen_shards_2",
               "DisplayName": "Еловен Світанкова · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 65,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3213,8 +3282,8 @@
             {
               "Key": "hero_knight_elowen_shards_5",
               "DisplayName": "Еловен Світанкова · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 4,
+              "Rarity": "Unique",
+              "Weight": 20,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3224,10 +3293,24 @@
               ]
             },
             {
+              "Key": "hero_archer_kestrel",
+              "DisplayName": "Кестрель Соколиця · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 5,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "archer_kestrel",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_archer_kestrel_shards_1",
               "DisplayName": "Кестрель Соколиця · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 18,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3239,8 +3322,8 @@
             {
               "Key": "hero_archer_kestrel_shards_2",
               "DisplayName": "Кестрель Соколиця · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 65,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3252,8 +3335,8 @@
             {
               "Key": "hero_archer_kestrel_shards_5",
               "DisplayName": "Кестрель Соколиця · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 4,
+              "Rarity": "Unique",
+              "Weight": 20,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3263,10 +3346,24 @@
               ]
             },
             {
+              "Key": "hero_mage_vael",
+              "DisplayName": "Ваель Безмовний · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 5,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "mage_vael",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_mage_vael_shards_1",
               "DisplayName": "Ваель Безмовний · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 18,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3278,8 +3375,8 @@
             {
               "Key": "hero_mage_vael_shards_2",
               "DisplayName": "Ваель Безмовний · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 65,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3291,8 +3388,8 @@
             {
               "Key": "hero_mage_vael_shards_5",
               "DisplayName": "Ваель Безмовний · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 4,
+              "Rarity": "Unique",
+              "Weight": 20,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3302,10 +3399,24 @@
               ]
             },
             {
+              "Key": "hero_mage_sabine",
+              "DisplayName": "Сабіна Морозна · осколки ×10",
+              "Rarity": "Unique",
+              "Kind": "Hero",
+              "Weight": 5,
+              "Rewards": [
+                {
+                  "Type": "HeroShards",
+                  "Key": "mage_sabine",
+                  "Amount": 10
+                }
+              ]
+            },
+            {
               "Key": "hero_mage_sabine_shards_1",
               "DisplayName": "Сабіна Морозна · 1 осколок",
-              "Rarity": "Common",
-              "Weight": 18,
+              "Rarity": "Unique",
+              "Weight": 130,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3317,8 +3428,8 @@
             {
               "Key": "hero_mage_sabine_shards_2",
               "DisplayName": "Сабіна Морозна · 2 осколки",
-              "Rarity": "Common",
-              "Weight": 11,
+              "Rarity": "Unique",
+              "Weight": 65,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3330,8 +3441,8 @@
             {
               "Key": "hero_mage_sabine_shards_5",
               "DisplayName": "Сабіна Морозна · 5 осколків",
-              "Rarity": "Common",
-              "Weight": 4,
+              "Rarity": "Unique",
+              "Weight": 20,
               "Rewards": [
                 {
                   "Type": "HeroShards",
@@ -3344,7 +3455,7 @@
               "Key": "loot_hero_xp_small",
               "DisplayName": "Мала баночка досвіду ×2",
               "Rarity": "Common",
-              "Weight": 1900,
+              "Weight": 1632,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3357,7 +3468,7 @@
               "Key": "loot_hero_xp_1k",
               "DisplayName": "Баночка досвіду ×1",
               "Rarity": "Common",
-              "Weight": 1400,
+              "Weight": 1202,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3370,7 +3481,7 @@
               "Key": "loot_teleport_random",
               "DisplayName": "Випадковий телепорт ×1",
               "Rarity": "Common",
-              "Weight": 600,
+              "Weight": 515,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3383,7 +3494,7 @@
               "Key": "loot_teleport_nearby",
               "DisplayName": "Ближній телепорт ×1",
               "Rarity": "Common",
-              "Weight": 400,
+              "Weight": 343,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3396,7 +3507,7 @@
               "Key": "loot_speedup_1m",
               "DisplayName": "Прискорення 1 хв ×5",
               "Rarity": "Common",
-              "Weight": 800,
+              "Weight": 687,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3409,7 +3520,7 @@
               "Key": "loot_speedup_5m",
               "DisplayName": "Прискорення 5 хв ×2",
               "Rarity": "Common",
-              "Weight": 600,
+              "Weight": 515,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3422,7 +3533,7 @@
               "Key": "loot_crate_wood_5000",
               "DisplayName": "Ящик деревини ×1",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 107,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3432,10 +3543,49 @@
               ]
             },
             {
+              "Key": "loot_crate_food_5000",
+              "DisplayName": "Ящик м'яса ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_food_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_gold_5000",
+              "DisplayName": "Ящик золота ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_gold_5000",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
+              "Key": "loot_crate_iron_2500",
+              "DisplayName": "Ящик заліза ×1",
+              "Rarity": "Common",
+              "Weight": 107,
+              "Rewards": [
+                {
+                  "Type": "Item",
+                  "Key": "crate_iron_2500",
+                  "Amount": 1
+                }
+              ]
+            },
+            {
               "Key": "loot_wrench_common",
               "DisplayName": "Гайковий ключ ×3",
               "Rarity": "Common",
-              "Weight": 500,
+              "Weight": 429,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3446,9 +3596,9 @@
             },
             {
               "Key": "loot_beast_feed",
-              "DisplayName": "Корм для звірів ×5",
+              "DisplayName": "Ласощі для звірів ×5",
               "Rarity": "Common",
-              "Weight": 300,
+              "Weight": 258,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3461,7 +3611,7 @@
               "Key": "loot_dungeon_energy_10",
               "DisplayName": "Ковток енергії ×1",
               "Rarity": "Common",
-              "Weight": 200,
+              "Weight": 172,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3474,7 +3624,7 @@
               "Key": "loot_universal_shard_common",
               "DisplayName": "Універсальний осколок (звичайний) ×1",
               "Rarity": "Common",
-              "Weight": 250,
+              "Weight": 215,
               "Rewards": [
                 {
                   "Type": "Item",
@@ -3487,7 +3637,7 @@
               "Key": "loot_dawn_necklace_common",
               "DisplayName": "Намисто Світанку (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -3500,7 +3650,7 @@
               "Key": "loot_dawn_ring_common",
               "DisplayName": "Кільце Світанку (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -3513,7 +3663,7 @@
               "Key": "loot_ember_crown_common",
               "DisplayName": "Корона Жарини (звичайна)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -3526,7 +3676,7 @@
               "Key": "loot_ember_belt_common",
               "DisplayName": "Пояс Жарини (звичайний)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -3539,7 +3689,7 @@
               "Key": "loot_frost_necklace_common",
               "DisplayName": "Намисто Морозу (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -3552,7 +3702,7 @@
               "Key": "loot_frost_ring_common",
               "DisplayName": "Кільце Морозу (звичайне)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -3565,7 +3715,7 @@
               "Key": "loot_tide_crown_common",
               "DisplayName": "Корона Припливу (звичайна)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",
@@ -3578,7 +3728,7 @@
               "Key": "loot_tide_belt_common",
               "DisplayName": "Пояс Припливу (звичайний)",
               "Rarity": "Common",
-              "Weight": 50,
+              "Weight": 43,
               "Rewards": [
                 {
                   "Type": "Equipment",

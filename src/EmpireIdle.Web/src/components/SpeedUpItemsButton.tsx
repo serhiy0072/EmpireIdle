@@ -11,13 +11,16 @@ interface Props {
   timer: SpeedUpTimer;
   targetId: string;
   completesAt: string;
+  /** Підпис і вигляд кнопки там, де вона — головна дія (табір юнітів), а не дрібниця біля таймера. */
+  label?: string;
+  className?: string;
 }
 
 /**
  * Прискорення предметами поруч із gems (рішення 08.10.2026). Кнопки немає, доки в рюкзаку
  * немає жодного прискорення: тоді гравцеві лишається лише ціна в gems.
  */
-export default function SpeedUpItemsButton({ timer, targetId, completesAt }: Props) {
+export default function SpeedUpItemsButton({ timer, targetId, completesAt, label, className }: Props) {
   const session = useSession();
   const playerId = session?.playerId ?? "";
   const catalog = useCatalog();
@@ -55,7 +58,7 @@ export default function SpeedUpItemsButton({ timer, targetId, completesAt }: Pro
   };
 
   return (
-    <span className="relative inline-block">
+    <span className={`relative ${className === undefined ? "inline-block" : "block"}`}>
       <button
         type="button"
         onClick={() => {
@@ -63,13 +66,14 @@ export default function SpeedUpItemsButton({ timer, targetId, completesAt }: Pro
           if (!open) setPicked(suggestSpeedUps(stock, Math.ceil(minutesLeft)));
         }}
         title="Прискорити предметами"
-        className="rounded-lg border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100"
+        className={className ?? "rounded-lg border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100"}
       >
-        ⏩ предмети
+        {label ?? "⏩ предмети"}
       </button>
 
       {open && (
-        <div className="absolute right-0 z-20 mt-1 w-72 space-y-2 rounded-xl bg-[#1d3b6f] p-3 text-left text-white shadow-xl ring-1 ring-[#335c9a]">
+        // Велика кнопка стоїть унизу екрана — список відкривається над нею
+        <div className={`absolute right-0 z-20 w-72 ${className === undefined ? "mt-1" : "bottom-full mb-1"} space-y-2 rounded-xl bg-[#1d3b6f] p-3 text-left text-white shadow-xl ring-1 ring-[#335c9a]`}>
           <p className="text-xs text-sky-100/80">Лишилось ≈ {Math.ceil(minutesLeft)} хв. Надлишок хвилин згорає.</p>
           <ul className="space-y-1">
             {stock.map((item) => (

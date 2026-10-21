@@ -19,6 +19,7 @@ namespace EmpireIdle.Domain.Services
         public const string Defense = "Defense";
         public const string UnitAttack = "UnitAttack";
         public const string UnitDefense = "UnitDefense";
+        public const string Health = "Health";
 
         /// <summary>Ключі пласкої бази; лише їх можуть підсилювати сталі бонуси слота.</summary>
         public static readonly IReadOnlySet<string> BaseStats = new HashSet<string> { Attack, Defense, UnitAttack, UnitDefense };
@@ -46,8 +47,8 @@ namespace EmpireIdle.Domain.Services
             => _catalog.Config.Equipment.ArtifactClassMultipliers.GetValueOrDefault(heroClass);
 
         /// <summary>
-        /// Стати предмета: пласка база (Attack, Defense, UnitAttack, UnitDefense) і відсотки
-        /// випадкових бонусів під своїми ключами.
+        /// Стати предмета: пласка база (Attack, Defense, UnitAttack, UnitDefense, Health) і відсотки
+        /// випадкових бонусів під своїми ключами. Здоров'я однакове для всіх класів.
         /// </summary>
         /// <param name="multiplier">Множник класу героя, що носить предмет; null — предмет сам по собі.</param>
         public IReadOnlyDictionary<string, double> Compute(EquipmentItem item, ArtifactClassMultiplierConfig? multiplier = null)
@@ -68,6 +69,13 @@ namespace EmpireIdle.Domain.Services
                 result[Defense] = Round(hero * defense * Boost(item, Defense) * share);
                 result[UnitAttack] = Round(unit * attack * Boost(item, UnitAttack) * share);
                 result[UnitDefense] = Round(unit * defense * Boost(item, UnitDefense) * share);
+
+                var health = (basis.HeroHealth + basis.HeroHealthPerLevel * item.Level) * tier;
+
+                // Без множника класу: атака й захист у класів у сумі рівні (2.2), а здоров'я з одним
+                // лише множником захисту зробило б той самий предмет сильнішим на воїні, ніж на лучнику
+                if (health > 0)
+                    result[Health] = Round(health * share);
             }
 
             foreach (var stat in item.Stats.Where(s => !BaseStats.Contains(s.StatKey)))
@@ -78,7 +86,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>
         /// Сила предмета: пласка база за вагами героя й юнітів плюс випадкові бонуси за
-        /// PowerPerPercent. Сталі бонуси окремої сили не мають — вони вже в базі.
+        /// PowerPerPercent. Сталі бонуси окремої сили не мають — вони вже в базі. Здоров'я важить
+        /// так само, як здоров'я самого героя: очко з героя й очко з предмета — одна шкала.
         /// </summary>
         /// <param name="multiplier">Множник класу: сила на герої рахується з ним, сила предмета на ринку — без.</param>
         public double Power(EquipmentItem item, ArtifactClassMultiplierConfig? multiplier = null)
@@ -91,6 +100,7 @@ namespace EmpireIdle.Domain.Services
                 power += stat switch
                 {
                     Attack or Defense => value * equipment.HeroStatPower,
+                    Health => value * equipment.HeroStatPower * _catalog.Config.HeroSettings.StatPowerWeight(Health),
                     UnitAttack or UnitDefense => value * equipment.UnitStatPower,
                     _ => value * (equipment.FindArtifactBonus(stat)?.PowerPerPercent ?? 0),
                 };

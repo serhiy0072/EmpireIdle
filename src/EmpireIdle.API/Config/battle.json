@@ -1,0 +1,48 @@
+{
+  "GameConfig": {
+    "RealtimeBattle": {
+      "TickMilliseconds": 100,
+      "MaxBattleSeconds": 90,
+      "HeroLines": {
+        "warrior": 0,
+        "knight": 1,
+        "archer": 2
+      },
+      "RangedClasses": [
+        "archer"
+      ],
+      "MeleeApproachSeconds": 1.5,
+      "LineAdvanceSeconds": 1,
+      "RangedApproachSeconds": 0.5,
+      "DefensePerHalfDamage": 2,
+      "HeroHealthScale": 4,
+      "ConvoyAttackScale": 0.15,
+      "ConvoyHealthScale": 1.0,
+      "ConvoyDefenseScale": 12,
+      "HeroAttackIntervals": {
+        "warrior": 1.25,
+        "knight": 1.0,
+        "archer": 1.3
+      },
+      "UnitAttackIntervals": {
+        "infantry": 1.25,
+        "spearman": 1.0,
+        "archer": 1.4
+      },
+      "TypeAdvantages": {
+        "infantry": "archer",
+        "archer": "spearman",
+        "spearman": "infantry"
+      },
+      "TypeAdvantageMultiplier": 1.35,
+      "SecondsPerTurn": 2.5,
+      "FirstCastShare": 0.5,
+      "AoeShare": 0.4,
+      "WardSeconds": 15,
+      "CooldownReductionPerTurn": 0.12,
+      "MaxAttackSpeed": 0.5,
+      "MaxCooldownReduction": 0.35,
+      "SquadSize": 5
+    }
+  }
+}

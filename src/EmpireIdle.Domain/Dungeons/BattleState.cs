@@ -83,7 +83,10 @@ namespace EmpireIdle.Domain.Dungeons
 
         public required List<BattleStatus> Statuses { get; init; }
 
-        /// <summary>Унікальні властивості з артефактів; у ворогів порожньо.</summary>
+        /// <summary>
+        /// Данжові властивості з наборів і заточки; у ворогів порожньо. Назва лишилась від унікальних
+        /// артефактів: під нею збережено незавершені забіги.
+        /// </summary>
         public required Dictionary<DungeonStat, double> UniqueStats { get; init; }
 
         public bool IsAlive => Health > 0;
@@ -136,11 +139,15 @@ namespace EmpireIdle.Domain.Dungeons
 
         public bool IgnoresLine { get; init; }
 
+        /// <summary>Кого бере першим одномоментний бій; покроковий данж цілиться по-своєму.</summary>
+        public SkillFocus Focus { get; init; }
+
         public bool Ready => CooldownLeft <= 0;
 
         /// <summary>
-        /// Вміння на старті бою: множник рівня вшивається в шкоду, лікування й щит, а відлік
-        /// перезарядки повний — уміння з перезарядкою N уперше готове на N-му ході героя.
+        /// Вміння на старті бою: множник рівня вшивається в шкоду, лікування, щит і силу бафів
+        /// та дебафів, а відлік перезарядки повний — уміння з перезарядкою N уперше готове на
+        /// N-му ході героя. Отрута від рівня не росте: вона й так іде від атаки, що росте з героєм.
         /// </summary>
         public static CombatSkill Prepare(string key, SkillKind kind, SkillBattleConfig battle, double levelScale) => new()
         {
@@ -154,9 +161,12 @@ namespace EmpireIdle.Domain.Dungeons
             ShieldPercent = battle.ShieldPercent * levelScale,
             ShieldTurns = battle.ShieldTurns,
             Status = battle.Status,
-            StatusMagnitude = battle.StatusMagnitude,
+            StatusMagnitude = battle.Status is BattleStatusKind.AttackUp or BattleStatusKind.DefenseUp or BattleStatusKind.DefenseDown
+                ? battle.StatusMagnitude * levelScale
+                : battle.StatusMagnitude,
             StatusTurns = battle.StatusTurns,
             IgnoresLine = battle.IgnoresLine,
+            Focus = battle.Focus,
         };
     }
 }

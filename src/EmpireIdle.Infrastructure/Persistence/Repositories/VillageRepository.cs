@@ -65,6 +65,31 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsDueAutoCollectAsync(DateTime dueBefore, int batchSize,
+            CancellationToken cancellationToken = default)
+            => await _context.Villages
+                .AsNoTracking()
+                .Where(v => v.AutoCollectedAt == null || v.AutoCollectedAt <= dueBefore)
+                // Нові села першими, далі найдавніше зібрані: при великій пачці ніхто не чекає вічно
+                .OrderBy(v => v.AutoCollectedAt == null ? 0 : 1)
+                .ThenBy(v => v.AutoCollectedAt)
+                .Take(batchSize)
+                .Select(v => v.Id)
+                .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<Guid>> GetIdsDueProvisionsAsync(IReadOnlyCollection<string> eaterTypes,
+            DateTime dueBefore, int batchSize, CancellationToken cancellationToken = default)
+            => await _context.Villages
+                .AsNoTracking()
+                .Where(v => v.Buildings.Any(b => eaterTypes.Contains(b.Type))
+                            && (v.FoodUpkeepAt == null || v.FoodUpkeepAt <= dueBefore))
+                .OrderBy(v => v.Id)
+                .Take(batchSize)
+                .Select(v => v.Id)
+                .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
         public Task<Dictionary<Guid, string>> GetNamesAsync(IReadOnlyCollection<Guid> villageIds,
             CancellationToken cancellationToken = default)
             => _context.Villages

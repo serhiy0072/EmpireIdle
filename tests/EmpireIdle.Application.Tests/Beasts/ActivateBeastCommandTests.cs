@@ -81,6 +81,23 @@ public class ActivateBeastCommandTests
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
+    /// <summary>Звіринцю бракувало корму — голодні звірі не активуються, і нічого не списується.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_WhileTheBeastsAreHungry()
+    {
+        var catalog = Catalog();
+        GivenPenWithWolf();
+        var village = GivenVillage(catalog, food: 500);
+        village.PayBeastUpkeep(10_000, TestKeys.Wood, catalog.Buildings, Now, ProductionBoost.None, 1.0);
+
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
+            Handler(catalog).Handle(new ActivateBeastCommand(PlayerId, TestKeys.Beast), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.BeastsHungry.Key, refusal.Reason);
+        Assert.Equal(500, Food(village));
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
     /// <summary>На перезарядці — відмова до списання: гравець не платить за те, що не ввімкнулось.</summary>
     [Fact]
     public async Task Handle_ShouldRefuseOnCooldown_WithoutCharging()

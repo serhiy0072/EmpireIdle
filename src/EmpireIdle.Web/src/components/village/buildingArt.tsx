@@ -35,8 +35,6 @@ const ROCK_GOLD = faces("#d6c7a1", "#b39b6b", "#8a7446");
 const ROCK_IRON = faces("#cbd5e1", "#94a3b8", "#64748b");
 const GOLD = faces("#fef08a", "#facc15", "#ca8a04");
 const IRON = faces("#e2e8f0", "#94a3b8", "#475569");
-const TENT = faces("#fecaca", "#ef4444", "#b91c1c");
-const TENT_STRIPE = faces("#fef2f2", "#fecaca", "#fca5a5");
 const HAY = faces("#fef3c7", "#fcd34d", "#d97706");
 const BRICK = faces("#fca5a5", "#dc2626", "#991b1b");
 
@@ -311,29 +309,6 @@ const heroeshall: Art = (cx, cy, s, tier) => {
   };
 };
 
-const lootshop: Art = (cx, cy, s, tier) => {
-  const h = 34 * s;
-  return {
-    foot: 4,
-    height: h + 18,
-    node: (
-      <g>
-        <Box cx={cx} cy={cy} hx={4.2} hy={4.2} h={2} faces={WOOD} />
-        <Pyramid cx={cx} cy={cy} hx={4} hy={4} z={2} h={h} faces={TENT} />
-        {/* Смуги намету */}
-        <Pyramid cx={cx - 1.4} cy={cy + 1.4} hx={0.9} hy={0.9} z={2} h={h * 0.62} faces={TENT_STRIPE} />
-        <Pyramid cx={cx + 1.4} cy={cy + 1.4} hx={0.9} hy={0.9} z={2} h={h * 0.62} faces={TENT_STRIPE} />
-        <Door cx={cx} cy={cy} hx={4} hy={4} z={2} side="left" h={12} color="#7f1d1d" arched />
-        <Flag x={cx} y={cy} z={h + 2} h={18} color={TIER_FLAG[tier]} />
-        <Crate x={cx + 5} y={cy + 2} />
-        <Barrel x={cx + 5} y={cy} />
-        {tier >= 1 && <Box cx={cx - 5} cy={cy + 2} hx={0.6} hy={0.6} h={3} faces={GOLD} />}
-        <Lantern x={cx - 4.8} y={cy + 4.8} h={10} />
-      </g>
-    ),
-  };
-};
-
 const hospital: Art = (cx, cy, s, tier) => {
   const h = 20 * s;
   const cross = faces("#ef4444", "#dc2626", "#b91c1c");
@@ -357,6 +332,28 @@ const hospital: Art = (cx, cy, s, tier) => {
     ),
   };
 };
+
+/** Їдальня (рішення 20.10.2026): довга зала з димарем, надворі столи з казанами. Рівнів немає — tier не росте. */
+const messhall: Art = (cx, cy) => ({
+  foot: 5,
+  height: 26,
+  node: (
+    <g>
+      <Box cx={cx} cy={cy} hx={5.5} hy={5.5} h={1} faces={ROOF_SLATE} />
+      <Box cx={cx - 0.8} cy={cy - 1} hx={4.2} hy={2.6} h={9} z={1} faces={WOOD} />
+      <Gable cx={cx - 0.8} cy={cy - 1} hx={4.6} hy={3} z={10} h={6} faces={ROOF_RED} />
+      <Box cx={cx + 2} cy={cy - 2} hx={0.6} hy={0.6} h={9} z={10} faces={BRICK} />
+      <Cylinder cx={cx + 2} cy={cy - 2} r={0.7} z={20} h={2} faces={WHITE} />
+      {[-2.5, 1].map((dx) => (
+        <g key={dx}>
+          <Box cx={cx + dx} cy={cy + 3.4} hx={1.4} hy={0.6} h={2} z={1} faces={WOOD} />
+          <Cylinder cx={cx + dx} cy={cy + 3.4} r={0.45} z={3} h={1} faces={DARK} />
+        </g>
+      ))}
+      <Lantern x={cx + 3.5} y={cy + 1.5} h={9} />
+    </g>
+  ),
+});
 
 const market: Art = (cx, cy, _s, tier) => {
   const stalls = [
@@ -600,9 +597,9 @@ const ART: Record<string, Art> = {
   barracks,
   bank,
   heroeshall,
-  lootshop,
   hospital,
   market,
+  messhall,
   spearyard,
   range,
   embassy,

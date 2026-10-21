@@ -37,6 +37,9 @@ namespace EmpireIdle.Domain.Dungeons
 
         public bool Critical { get; init; }
 
+        /// <summary>Ціль заблокувала удар — шкода вже зменшена силою блоку.</summary>
+        public bool Blocked { get; init; }
+
         public double Healed { get; init; }
 
         public double ShieldGained { get; init; }

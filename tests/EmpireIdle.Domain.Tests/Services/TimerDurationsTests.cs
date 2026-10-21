@@ -35,13 +35,26 @@ public class TimerDurationsTests
         Assert.True(expected > TimeSpan.FromMinutes(configs[TestKit.TestKeys.Farm].BaseBuildMinutes));
     }
 
-    /// <summary>Тренування на рівень 3 — сума кроків 1+2+3, а не базовий час на штуку.</summary>
+    /// <summary>Тренування на рівень 3 — сума кроків 1+2+3 за кривою часу, а не ціни.</summary>
     [Fact]
     public void Training_ShouldSumTheStepsUpToTheTargetLevel()
     {
-        var unit = new UnitConfig { Key = "infantry", BaseTrainMinutes = 10, LevelUpCostGrowth = 2.0 };
+        var unit = new UnitConfig { Key = "infantry", BaseTrainSeconds = 10, TrainTimeGrowth = 2.0, LevelUpCostGrowth = 3.0 };
 
-        // Кроки: 10 + 20 + 40 = 70 хв на штуку, партія з двох — 140
-        Assert.Equal(TimeSpan.FromMinutes(140), TimerDurations.Training(unit, level: 3, count: 2));
+        // Кроки: 10 + 20 + 40 = 70 с на штуку, партія з двох — 140
+        Assert.Equal(TimeSpan.FromSeconds(140), TimerDurations.Training(unit, level: 3, count: 2));
+    }
+
+    /// <summary>
+    /// Числа рішення 13.10.2026: партія з 150 юнітів 1 рівня — 10 хвилин, 10 рівня — 2,5 години.
+    /// </summary>
+    [Theory]
+    [InlineData(1, 10)]
+    [InlineData(10, 150)]
+    public void Training_ShouldTakeTenMinutesAtLevelOne_AndTwoAndAHalfHoursAtLevelTen(int level, int minutes)
+    {
+        var unit = new UnitConfig { Key = "infantry", BaseTrainSeconds = 4, TrainTimeGrowth = 1.0875 };
+
+        Assert.Equal(TimeSpan.FromMinutes(minutes), TimerDurations.Training(unit, level, count: 150));
     }
 }

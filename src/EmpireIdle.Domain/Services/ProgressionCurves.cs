@@ -55,6 +55,21 @@ namespace EmpireIdle.Domain.Services
         public static double UnitStatMultiplier(int level) => 1 + 0.10 * (level - 1);
 
         /// <summary>
+        /// Скільки юнітів свого типу вміщує будівля юнітів: від min на першому рівні до max на maxLevel,
+        /// геометрично — кожен рівень множить місткість на однаковий коефіцієнт (рішення 13.10.2026).
+        /// </summary>
+        public static int UnitCapacity(int buildingLevel, int maxLevel, int min, int max)
+        {
+            if (maxLevel <= 1)
+                return max;
+
+            var level = Math.Clamp(buildingLevel, 1, maxLevel);
+            var growth = Math.Pow(max / (double)min, 1.0 / (maxLevel - 1));
+
+            return (int)Math.Round(min * Math.Pow(growth, level - 1), MidpointRounding.AwayFromZero);
+        }
+
+        /// <summary>
         /// Скільки юнітів будівля тренує чи качає за одну партію: від min на першому рівні
         /// до max на maxLevel, лінійно, з округленням до цілого (рішення 12.10.2026).
         /// </summary>

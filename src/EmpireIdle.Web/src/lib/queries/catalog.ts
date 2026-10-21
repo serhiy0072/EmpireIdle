@@ -33,6 +33,8 @@ export interface Catalog {
   item: (key: string) => CatalogItem | null;
   building: (key: string) => CatalogBuilding | null;
   unit: (key: string) => CatalogUnit | null;
+  /** Усі типи юнітів — щоб порівняти показник із найкращим серед них. */
+  units: CatalogUnit[];
   heroName: (key: string) => string;
   itemName: (key: string) => string;
   resourceName: (key: string) => string;
@@ -52,6 +54,8 @@ export interface Catalog {
   partsPerStar: number;
   /** Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1). */
   maxSkillLevel: number;
+  /** Скільки книг коштує підняти вміння з рівня n на n + 1 (індекс 0 — з першого); рішення 15.10.2026. */
+  skillBookCosts: number[];
   /** Ключ предмета-книги для вмінь цієї половини в героя такої ролі й рідкості; null — книги немає. */
   skillBook: (heroClass: string, rarity: string, half: string) => string | null;
   /** Скільки осколків коштує призов будь-якого героя. */
@@ -61,6 +65,8 @@ export interface Catalog {
   maxUnitLevel: number;
   /** Скільки юнітів будівля тренує чи качає за одну партію на цьому рівні. */
   unitBatchSize: (buildingLevel: number) => number;
+  /** Скільки юнітів своїх типів вміщує будівля юнітів цього рівня (рішення 13.10.2026). */
+  unitCapacity: (buildingLevel: number) => number;
   /** Ціна лікування пораненого юніта в gems — та сама для будь-якого типу. */
   healGemsPerUnit: number;
   /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
@@ -75,6 +81,8 @@ export interface Catalog {
   artifactLevelExperience: number[];
   /** Ціна в золоті й шанс успіху спроби з кожної поточної майстерності (індекс 0 — спроба на +1). */
   masteryAttempts: CatalogMasteryAttempt[];
+  /** Камінь для заточування — ним платять за спробу заточки (рішення 14.10.2026). */
+  masteryStoneItemKey: string;
   /** Ціна ремонту й шанси поломки на кожну заточку. */
   artifactRepair: CatalogArtifactRepair;
   /** Сторона світової мапи в клітинах. */
@@ -95,6 +103,8 @@ export interface Catalog {
   speedUpCost: (timer: SpeedUpTimer, completesAt: string, now: number, serverCost: number) => number;
   /** Межа таймера, нижче якої прискорення не зрізає (будівництво й тренування — 0, марш — 30 с). */
   speedUpFloorSeconds: (timer: SpeedUpTimer) => number;
+  /** Варіанти прискорення маршу: частка залишку дороги за сталу ціну, від меншої. */
+  marchSpeedUps: { percent: number; gems: number }[];
 }
 
 /**
@@ -137,6 +147,7 @@ export function useCatalog(): Catalog {
       item: (key) => items.get(key) ?? null,
       building: (key) => buildings.get(key) ?? null,
       unit: (key) => units.get(key) ?? null,
+      units: data?.units ?? [],
       // Ключ як запасна назва: краще технічний рядок, ніж порожнє місце
       heroName: (key) => heroes.get(key)?.displayName ?? key,
       itemName: (key) => items.get(key)?.displayName ?? key,
@@ -156,6 +167,7 @@ export function useCatalog(): Catalog {
       maxStars: data?.maxStars ?? 5,
       partsPerStar: data?.partsPerStar ?? 6,
       maxSkillLevel: data?.maxSkillLevel ?? 6,
+      skillBookCosts: data?.skillBookCosts ?? [],
       skillBook: (heroClass, rarity, half) =>
         (data?.skillBooks ?? []).find(
           (book) =>
@@ -168,6 +180,10 @@ export function useCatalog(): Catalog {
         const sizes = data?.unitBatchSizes ?? [];
         return sizes[Math.min(Math.max(buildingLevel, 1), sizes.length) - 1] ?? 1;
       },
+      unitCapacity: (buildingLevel) => {
+        const capacities = data?.unitCapacities ?? [];
+        return capacities[Math.min(Math.max(buildingLevel, 1), capacities.length) - 1] ?? 0;
+      },
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
       artifactSlots: data?.artifactSlots ?? [],
       artifactSlotName: (itemKey) => {
@@ -178,6 +194,7 @@ export function useCatalog(): Catalog {
       maxMastery: data?.maxMastery ?? 10,
       artifactLevelExperience: data?.artifactLevelExperience ?? [],
       masteryAttempts: data?.masteryAttempts ?? [],
+      masteryStoneItemKey: data?.masteryStoneItemKey ?? "whetstone",
       artifactRepair: data?.artifactRepair ?? { gemsPerMastery: 0, kitItemKey: "repair_kit", breakChances: [] },
       mapSize: data?.mapSize ?? 500,
       mainBuildingKey: data?.mainBuildingKey ?? "townhall",
@@ -188,6 +205,7 @@ export function useCatalog(): Catalog {
       },
       lootbox: (itemKey) => lootboxes.get(itemKey) ?? null,
       speedUpFloorSeconds: (timer) => data?.speedUp.floorSeconds[timer] ?? 0,
+      marchSpeedUps: data?.speedUp.marchOptions ?? [],
       speedUpCost: (timer, completesAt, now, serverCost) => {
         if (data === undefined) return serverCost;
 

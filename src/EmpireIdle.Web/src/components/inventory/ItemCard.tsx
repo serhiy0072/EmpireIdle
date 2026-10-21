@@ -18,7 +18,7 @@ const TYPE_LABELS: Record<string, string> = {
   boost: "Буст",
   teleport: "Телепорт",
   evolution: "Еволюція",
-  feed: "Корм",
+  feed: "Ласощі",
   scoutveil: "Захист від розвідки",
   energy: "Енергія данжів",
   heroxp: "Досвід героїв",

@@ -8,7 +8,9 @@ using EmpireIdle.Application.Catalog;
 using EmpireIdle.Application.Dev.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Combat;
+using EmpireIdle.Domain.Battles;
 using EmpireIdle.Domain.Dungeons;
+using EmpireIdle.Domain.Tower;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
@@ -47,10 +49,13 @@ builder.Configuration
     .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/battle.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/tower.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/market.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/beasts.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/provisions.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/lootboxes.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
 
@@ -76,6 +81,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.ActiveServerIds.Count > 0, "GameConfig.ActiveServerIds is empty.")
     .Validate(c => c.Map.Terrains.Any(t => t.Weight > 0), "GameConfig.Map has no terrain with positive weight.")
     .Validate(c => c.Map.Width > 0 && c.Map.Height > 0, "GameConfig.Map has non-positive dimensions.")
+    .Validate(c => c.Map.TerrainPatchSize >= 1, "GameConfig.Map.TerrainPatchSize must be at least 1 cell.")
     .Validate(c => c.Map.CellsPerMonster > 0, "GameConfig.Map.CellsPerMonster must be positive.")
     .Validate(c => c.Map.FullyOpenAtLevel >= 1, "GameConfig.Map.FullyOpenAtLevel must be at least 1.")
     .Validate(c => c.Map.Evolution.DaysPerLevel > 0, "GameConfig.Map.Evolution.DaysPerLevel must be positive — the world would never grow.")
@@ -83,8 +89,12 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Combat.Scouting.Speed > 0, "GameConfig.Combat.Scouting.Speed must be positive.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
     .Validate(c => c.Monetization.SpeedUpFloorSeconds.Values.All(seconds => seconds >= 0), "GameConfig.Monetization.SpeedUpFloorSeconds cannot be negative.")
+    .Validate(c => c.Monetization.MarchSpeedUps.Count > 0
+        && c.Monetization.MarchSpeedUps.All(o => o.Percent is >= 1 and <= 99 && o.Gems > 0)
+        && c.Monetization.MarchSpeedUps.Select(o => o.Percent).Distinct().Count() == c.Monetization.MarchSpeedUps.Count,
+        "GameConfig.Monetization.MarchSpeedUps must list distinct percents of 1–99 with a positive gem price.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
-    .Validate(c => c.Monetization.SpeedUpExponent is > 0 and < 1, "GameConfig.Monetization.SpeedUpExponent must be between 0 and 1 — otherwise long timers become unaffordable.")
+    .Validate(c => c.Monetization.SpeedUpExponent is > 0 and <= 1, "GameConfig.Monetization.SpeedUpExponent must be above 0 and at most 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count == Enum.GetValues<EmpireIdle.Domain.Enums.BattleOdds>().Length - 1,
         "GameConfig.Combat.PreviewOddsThresholds needs one entry fewer than BattleOdds bands — otherwise previews skip bands or return values outside the enum.")
     .Validate(c => c.Combat.RandomMin > 0 && c.Combat.RandomMin <= c.Combat.RandomMax && c.Combat.RandomSigma >= 0,
@@ -109,7 +119,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Equipment.ArtifactSets.All(s => !string.IsNullOrWhiteSpace(s.DisplayName)), "GameConfig.Equipment.ArtifactSets must all have a DisplayName — the sets screen shows it to players.")
     .Validate(c => c.Equipment.LevelExperienceBase > 0 && c.Equipment.LevelExperienceCoefficient >= 0 && c.Equipment.LevelExperienceExponent > 0,
         "GameConfig.Equipment level experience curve must be positive — otherwise a level costs nothing.")
-    .Validate(c => c.Equipment.ArtifactBase.Values.All(b => b.Hero >= 0 && b.HeroPerLevel >= 0 && b.Unit >= 0 && b.UnitPerLevel >= 0),
+    .Validate(c => c.Equipment.ArtifactBase.Values.All(b => b.Hero >= 0 && b.HeroPerLevel >= 0 && b.HeroHealth >= 0
+            && b.HeroHealthPerLevel >= 0 && b.Unit >= 0 && b.UnitPerLevel >= 0),
         "GameConfig.Equipment.ArtifactBase cannot be negative — a level would weaken the artifact.")
     .Validate(c => c.Equipment.ArtifactClassMultipliers.Values.All(m => m.Attack > 0 && m.Defense > 0),
         "GameConfig.Equipment.ArtifactClassMultipliers must be positive.")
@@ -118,8 +129,14 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Equipment.BonusStepChances.Count > 0 && c.Equipment.BonusStepChances.All(p => p is >= 0 and <= 1)
                    && Math.Abs(c.Equipment.BonusStepChances.Sum() - 1) < 1e-6,
         "GameConfig.Equipment.BonusStepChances must be shares within [0; 1] that sum to 1.")
-    .Validate(c => c.Equipment.MasteryBaseGold > 0 && c.Equipment.MasteryCostGrowth >= 1,
-        "GameConfig.Equipment mastery cost must be positive and must not fall with mastery.")
+    .Validate(c => c.HeroSettings.SkillBookCosts.All(cost => cost > 0),
+        "GameConfig.HeroSettings.SkillBookCosts must be positive.")
+    .Validate(c => c.HeroSettings.StatPowerWeights.Values.All(w => w >= 0)
+            && (c.HeroSettings.StatPowerWeights.Count == 0 || c.HeroSettings.StatPowerWeights.Values.Any(w => w > 0)),
+        "GameConfig.HeroSettings.StatPowerWeights must not be negative, and at least one must be positive.")
+    .Validate(c => c.Equipment.MasteryStoneCosts.All(cost => cost > 0)
+                   && c.Equipment.MasteryStoneCosts.Zip(c.Equipment.MasteryStoneCosts.Skip(1)).All(pair => pair.Second >= pair.First),
+        "GameConfig.Equipment.MasteryStoneCosts must be positive and must not fall with mastery.")
     .Validate(c => c.Equipment.MasterySuccessChances.All(p => p is > 0 and <= 1),
         "GameConfig.Equipment.MasterySuccessChances must be within (0; 1] — a zero chance is a wall nobody passes.")
     .Validate(c => c.Equipment.MasteryBreakChances.All(p => p is >= 0 and <= 1) && c.Equipment.BrokenStatShare is >= 0 and <= 1,
@@ -140,11 +157,46 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Dungeons.HeroExperiencePerRun >= 0, "GameConfig.Dungeons.HeroExperiencePerRun must not be negative.")
     .Validate(c => c.UnitBatchMin >= 1 && c.UnitBatchMax >= c.UnitBatchMin,
         "GameConfig.UnitBatchMin must be at least 1 and not above UnitBatchMax.")
+    .Validate(c => c.UnitCapacityMin >= c.UnitBatchMax && c.UnitCapacityMax >= c.UnitCapacityMin,
+        "GameConfig.UnitCapacityMin must hold a full batch and not exceed UnitCapacityMax.")
+    .Validate(c => c.Beasts.FodderUpkeep is { PerPenLevelPerHour: >= 0, PerBeastPerHour: >= 0, PerBeastLevelPerHour: >= 0 },
+        "GameConfig.Beasts.FodderUpkeep needs non-negative rates.")
+    .Validate(c => c.Provisions.MealPerBuildingLevelPerHour >= 0
+            && c.Provisions.HungerDefenceMultiplier is > 0 and <= 1
+            && c.Provisions.HungerProductionMultiplier is > 0 and <= 1,
+        "GameConfig.Provisions needs a non-negative meal rate and hunger multipliers in (0, 1].")
     .Validate(c => c.Combat.HeroHealthScale > 0, "GameConfig.Combat.HeroHealthScale must be positive — otherwise every hero in a battle is wounded.")
     .Validate(c => c.Shop.Banners.All(b => b.WindowDays is null or > 0), "GameConfig.Shop.Banners WindowDays must be positive when set.")
     .Validate(c => c.Dungeons.RefillPricesGems.All(p => p > 0) && c.Dungeons.RefillPricesGems.Zip(c.Dungeons.RefillPricesGems.Skip(1)).All(p => p.First <= p.Second),
         "GameConfig.Dungeons.RefillPricesGems must be positive and must not fall from one refill to the next.")
+    .Validate(c => new[] { c.Dungeons.MaxCritChance, c.Dungeons.MaxLifesteal, c.Dungeons.MaxDamageReduction, c.Dungeons.MaxBlockChance,
+            c.Dungeons.BaseBlockPower, c.Dungeons.MaxBlockPower, c.Dungeons.MaxWard }.All(v => v is >= 0 and < 1),
+        "GameConfig.Dungeons stat caps and BaseBlockPower must be shares in [0, 1) — a cap of 1 would make a hero immortal or always critical.")
+    .Validate(c => c.HeroSettings.GarrisonDefenders > 0, "GameConfig.HeroSettings.GarrisonDefenders must be positive — a village always has heroes to defend it.")
+    .Validate(c => c.Dungeons.WardTurns > 0, "GameConfig.Dungeons.WardTurns must be positive — a ward shield has to last at least one turn.")
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
+    .Validate(c => c.RealtimeBattle.TickMilliseconds > 0 && c.RealtimeBattle.MaxBattleSeconds * 1000 >= c.RealtimeBattle.TickMilliseconds,
+        "GameConfig.RealtimeBattle needs a positive tick that fits into MaxBattleSeconds.")
+    .Validate(c => c.RealtimeBattle.MeleeApproachSeconds >= 0 && c.RealtimeBattle.RangedApproachSeconds >= 0 && c.RealtimeBattle.LineAdvanceSeconds >= 0
+            && c.RealtimeBattle.MeleeApproachSeconds < c.RealtimeBattle.MaxBattleSeconds && c.RealtimeBattle.RangedApproachSeconds < c.RealtimeBattle.MaxBattleSeconds
+            && c.RealtimeBattle.LineAdvanceSeconds < c.RealtimeBattle.MaxBattleSeconds,
+        "GameConfig.RealtimeBattle approach and line advance times must be non-negative and shorter than the battle.")
+    .Validate(c => c.RealtimeBattle.DefensePerHalfDamage > 0, "GameConfig.RealtimeBattle.DefensePerHalfDamage must be positive — otherwise any defense blocks every hit.")
+    .Validate(c => new[] { c.RealtimeBattle.HeroHealthScale, c.RealtimeBattle.ConvoyAttackScale, c.RealtimeBattle.ConvoyHealthScale, c.RealtimeBattle.ConvoyDefenseScale }.All(v => v > 0),
+        "GameConfig.RealtimeBattle hero and convoy scales must be positive — a fighter without health or attack never ends a battle.")
+    .Validate(c => c.RealtimeBattle.HeroAttackIntervals.Values.Concat(c.RealtimeBattle.UnitAttackIntervals.Values).All(v => v > 0),
+        "GameConfig.RealtimeBattle attack intervals must be positive.")
+    .Validate(c => c.RealtimeBattle.TypeAdvantageMultiplier >= 1, "GameConfig.RealtimeBattle.TypeAdvantageMultiplier must be at least 1 — below it the advantage turns into a weakness.")
+    .Validate(c => c.RealtimeBattle.SecondsPerTurn > 0 && c.RealtimeBattle.WardSeconds > 0,
+        "GameConfig.RealtimeBattle.SecondsPerTurn and WardSeconds must be positive.")
+    .Validate(c => new[] { c.RealtimeBattle.FirstCastShare, c.RealtimeBattle.AoeShare }.All(v => v is > 0 and <= 1),
+        "GameConfig.RealtimeBattle.FirstCastShare and AoeShare must be shares in (0, 1].")
+    .Validate(c => new[] { c.RealtimeBattle.CooldownReductionPerTurn, c.RealtimeBattle.MaxCooldownReduction }.All(v => v is >= 0 and < 1) && c.RealtimeBattle.MaxAttackSpeed >= 0,
+        "GameConfig.RealtimeBattle cooldown reduction must be a share in [0, 1) — a full one would cast skills every tick.")
+    .Validate(c => c.RealtimeBattle.SquadSize > 0, "GameConfig.RealtimeBattle.SquadSize must be positive.")
+    .Validate(c => c.RealtimeBattle.HeroLines.Values.All(line => line >= 0), "GameConfig.RealtimeBattle.HeroLines counts lines from 0 — the front.")
+    .Validate(c => c.Tower.MaxFloor >= 1 && c.Tower.RequiresMainBuildingLevel >= 1, "GameConfig.Tower needs at least one floor and a town hall level from 1.")
+    .Validate(c => c.Tower.BossEvery >= 1 && c.Tower.BossHealthScale >= 1, "GameConfig.Tower.BossEvery must be positive and BossHealthScale at least 1 — a boss is never weaker than a plain hero.")
     .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
     .ValidateOnStart();
 
@@ -196,6 +248,9 @@ builder.Services.AddSingleton(sp => new ArtifactRoller(gameConfig.Equipment));
 builder.Services.AddSingleton(sp => new BannerRoller(gameConfig.Shop));
 builder.Services.AddSingleton(sp => new BattleEngine(gameConfig.Dungeons));
 builder.Services.AddSingleton(sp => new BattleBuilder(gameConfig.Dungeons));
+builder.Services.AddSingleton(sp => new RealtimeBattleEngine(gameConfig.RealtimeBattle));
+builder.Services.AddSingleton(sp => new TowerFloors(sp.GetRequiredService<GameCatalog>()));
+builder.Services.AddSingleton(sp => new TowerRewards(gameConfig.Tower));
 builder.Services.AddSingleton(sp => new HeroStats(sp.GetRequiredService<HeroProgression>(), sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MarketPricing(gameConfig));
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
@@ -347,6 +402,7 @@ if (!builder.Environment.IsEnvironment("Testing"))
 
     builder.Services.AddHangfireServer();
     builder.Services.AddHostedService<RecurringJobScheduler>();
+    builder.Services.AddHostedService<MarchArrivalLoop>();
 }
 
 // Раннер створює scope на кожен активний світ — без нього
@@ -364,6 +420,7 @@ builder.Services.AddScoped<ChatRetentionJob>();
 builder.Services.AddScoped<MailRetentionJob>();
 builder.Services.AddScoped<MarchRetentionJob>();
 builder.Services.AddScoped<MarketExpiryJob>();
+builder.Services.AddScoped<FoodUpkeepJob>();
 builder.Services.AddScoped<MarketPricesJob>();
 
 //  8. ВЕБ-ШАР

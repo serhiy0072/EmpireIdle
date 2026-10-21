@@ -170,6 +170,27 @@ public class HeroSkillValidationTests
             Fails(config);
     }
 
+    /// <summary>Отрута — частка атаки виконавця: нуль нічого не робить, понад одну атаку б'є сильніше за удар.</summary>
+    [Theory]
+    [InlineData(0.25, true)]
+    [InlineData(1.0, true)]
+    [InlineData(0, false)]
+    [InlineData(45, false)]
+    public void APoison_ShouldBeAShareOfTheAttack(double magnitude, bool valid)
+    {
+        var config = With(Active(b =>
+        {
+            b.Status = BattleStatusKind.Poison;
+            b.StatusMagnitude = magnitude;
+            b.StatusTurns = 3;
+        }));
+
+        if (valid)
+            GameConfigValidator.Validate(config);
+        else
+            Fails(config);
+    }
+
     // ---------- Склад за рідкістю ----------
 
     private static readonly SkillLayoutConfig CommonLayout = new() { Attack = 2, Defense = 2, Utility = 1 };

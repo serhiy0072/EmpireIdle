@@ -9,6 +9,7 @@
     /// </summary>
     /// <param name="SkillBooks">Яка книга (предмет) піднімає вміння героя якої ролі, рідкості й половини.</param>
     /// <param name="MaxSkillLevel">Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1).</param>
+    /// <param name="SkillBookCosts">Скільки книг коштує підняти вміння з рівня n на n + 1 (індекс 0 — з першого).</param>
     /// <param name="Lootboxes">Таблиці скринь із шансами — розкриття обов'язкове за правилами сторів.</param>
     /// <param name="ArtifactSlots">Артефактні слоти героя за типом у порядку номерів — клієнт малює саме їх.</param>
     /// <param name="MaxArtifactLevel">Стеля рівня артефакта — після неї «Посилити» зникає.</param>
@@ -18,9 +19,10 @@
     /// </param>
     /// <param name="MaxMastery">Стеля майстерності коваля.</param>
     /// <param name="MasteryAttempts">
-    /// Спроба заточки з кожної поточної майстерності (індекс 0 — спроба на +1): ціна в золоті й шанс успіху —
+    /// Спроба заточки з кожної поточної майстерності (індекс 0 — спроба на +1): ціна в каменях і шанс успіху —
     /// кузня показує їх на кнопці тими самими числами, що й сервер.
     /// </param>
+    /// <param name="MasteryStoneItemKey">Камінь для заточування — предмет, яким платять за спробу.</param>
     /// <param name="ArtifactRepair">Ремонт зламаного заточкою артефакта й шанси поломки (GDD §9.12).</param>
     /// <param name="SpeedUp">
     /// Ціна прискорення таймерів. Клієнт перераховує її щосекунди разом із відліком —
@@ -44,18 +46,21 @@
         int PartsPerStar,
         IReadOnlyList<int> WeaponShardCosts,
         int MaxSkillLevel,
+        IReadOnlyList<int> SkillBookCosts,
         IReadOnlyList<CatalogSkillBook> SkillBooks,
         double StarPartBonus,
         int SummonShards,
         int MaxTier,
         int MaxUnitLevel,
         IReadOnlyList<int> UnitBatchSizes,
+        IReadOnlyList<int> UnitCapacities,
         int HealGemsPerUnit,
         IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
         int MaxArtifactLevel,
         IReadOnlyList<long> ArtifactLevelExperience,
         int MaxMastery,
         IReadOnlyList<CatalogMasteryAttempt> MasteryAttempts,
+        string MasteryStoneItemKey,
         CatalogArtifactRepair ArtifactRepair,
         CatalogSpeedUp SpeedUp,
         int MapSize,
@@ -66,9 +71,13 @@
     /// <summary>
     /// Формула SpeedUpCalculator: ceil(Factor × хвилини^Exponent) за зрізану частину — усе понад
     /// FloorSeconds свого таймера (Construction, Training, UnitLevelUp, March); щонайменше 1 gem.
-    /// Таймера немає в FloorSeconds — межа нуль.
+    /// Таймера немає в FloorSeconds — межа нуль. Марш прискорюється не формулою, а варіантами MarchOptions.
     /// </summary>
-    public record CatalogSpeedUp(IReadOnlyDictionary<string, int> FloorSeconds, double Factor, double Exponent);
+    public record CatalogSpeedUp(IReadOnlyDictionary<string, int> FloorSeconds, double Factor, double Exponent,
+        IReadOnlyList<CatalogMarchSpeedUp> MarchOptions);
+
+    /// <summary>Варіант прискорення маршу: зрізає Percent відсотків залишку дороги за Gems.</summary>
+    public record CatalogMarchSpeedUp(int Percent, int Gems);
 
     /// <summary>Тип звіра (GDD §5.10): з якого монстра приручається й на що діє пасивка.</summary>
     /// <param name="Effect">Production, Attack, Defense, MarchSpeed або Carry.</param>
@@ -126,7 +135,7 @@
     public record CatalogSkillUtility(string Effect, IReadOnlyList<double> Percents);
 
     /// <param name="Cooldown">Раз на скільки власних ходів героя вміння готове.</param>
-    /// <param name="LevelScale">Множник шкоди, лікування й щита на кожному рівні вміння.</param>
+    /// <param name="LevelScale">Множник шкоди, лікування, щита й сили бафів і дебафів на кожному рівні вміння.</param>
     public record CatalogSkillBattle(
         string Target,
         int Cooldown,
@@ -184,7 +193,7 @@
     /// <summary>Одна спроба заточки коваля.</summary>
     /// <param name="Gold">Ціна спроби в золоті; невдача її не повертає.</param>
     /// <param name="Chance">Шанс успіху від 0 до 1.</param>
-    public record CatalogMasteryAttempt(int Gold, double Chance);
+    public record CatalogMasteryAttempt(int Stones, double Chance);
 
     /// <summary>Ремонт артефакта: gems за рівень заточки або один ремкомплект.</summary>
     /// <param name="BreakChances">Шанс поломки після невдалої спроби на кожну заточку, від спроби на +1.</param>
@@ -201,9 +210,13 @@
     /// <param name="StatMultiplier">Множник статів за рівнем — те, що рівень означає в числах.</param>
     /// <param name="FocusStats">Характер набору для гравця — атакувальний чи захисний; на стати предметів не впливає.</param>
     /// <param name="Dungeon">Данж, з якого падає набір; null — набір поза данжами.</param>
+    /// <param name="Class">Клас героїв, що вдягають набір (рішення 15.10.2026); null — будь-який.</param>
+    /// <param name="Description">Рядок характеру набору; порожньо — без опису.</param>
     public record CatalogArtifactSet(
         string Key,
         string DisplayName,
+        string? Class,
+        string Description,
         int Tier,
         double StatMultiplier,
         IReadOnlyList<string> FocusStats,
@@ -213,16 +226,23 @@
     /// <param name="RequiresMainBuildingLevel">Рівень ратуші, з якого данж відкритий.</param>
     public record CatalogSetSource(string Key, string DisplayName, int RequiresMainBuildingLevel);
 
-    /// <summary>Набір однієї рідкості: скільки частин треба вдягнути, що дає і з яких предметів складається.</summary>
+    /// <summary>Набір однієї рідкості: пороги з бонусами й предмети, з яких він складається.</summary>
     /// <param name="Rarity">"Common", "Rare", "Unique" — як у CatalogItem.</param>
     /// <param name="SetKey">Збігається з SetKey предметів цієї рідкості.</param>
+    /// <param name="Thresholds">
+    /// Пороги від меншого (рішення 15.10.2026): 2 предмети родини — перший бонус, 4 — ще один. Предмети
+    /// рахуються по родині будь-якої рідкості, а числа порогу N — з рідкості N-го предмета від найрідкіснішого.
+    /// </param>
     /// <param name="PieceKeys">Ключі частин; назви — у Items.</param>
     public record CatalogSetRarity(
         string Rarity,
         string SetKey,
-        int RequiredPieces,
-        IReadOnlyDictionary<string, double> Bonus,
+        IReadOnlyList<CatalogSetThreshold> Thresholds,
         IReadOnlyList<string> PieceKeys);
+
+    /// <param name="RequiredPieces">Скільки предметів родини треба вдягнути.</param>
+    /// <param name="Bonus">Що дає поріг — додатково до менших порогів.</param>
+    public record CatalogSetThreshold(int RequiredPieces, IReadOnlyDictionary<string, double> Bonus);
 
     public record CatalogResource(string Key, string DisplayName, string Icon);
 
@@ -239,12 +259,18 @@
     public record CatalogUnitCost(string Resource, int Amount);
 
     /// <param name="RequiresBuilding">Будівля, потрібна для тренування; null — без вимог.</param>
+    /// <param name="Stats">
+    /// Бойові стати юніта 1 рівня (Attack, Defense, Speed, CarryCapacity…). Атака й захист ростуть
+    /// з рівнем на +10% за рівень (ProgressionCurves.UnitStatMultiplier), швидкість і вантаж — ні.
+    /// </param>
     public record CatalogUnit(
         string Key,
         string DisplayName,
         string? RequiresBuilding,
         int RequiresBuildingLevel,
-        int BaseTrainMinutes,
+        int BaseTrainSeconds,
+        double TrainTimeGrowth,
         double LevelUpCostGrowth,
-        IReadOnlyList<CatalogUnitCost> Cost);
+        IReadOnlyList<CatalogUnitCost> Cost,
+        IReadOnlyDictionary<string, double> Stats);
 }

@@ -68,10 +68,10 @@ public class BattleAftermathTests
 
     /// <summary>
     /// Село господаря з гарнізоном, село союзника з гарнізоном, і контингент
-    /// союзника, що стоїть у господаря. Лідера союзника повертаємо назовні:
+    /// союзника, що стоїть у господаря. Героя союзника повертаємо назовні:
     /// половина перевірок дивиться саме на його стан.
     /// </summary>
-    private (Garrison Host, Hero AllyLeader) GivenAlliedContingent(int reinforcements = 50)
+    private (Garrison Host, Hero AllyHero) GivenAlliedContingent(int reinforcements = 50)
     {
         var hostVillage = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50);
         var hostGarrison = new Garrison(Guid.NewGuid(), hostVillage.Id, 1);
@@ -84,11 +84,11 @@ public class BattleAftermathTests
             hostGarrison.AddReinforcements(AllyPlayerId, allyGarrison.Id,
                 new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = reinforcements }, capacity: 1000, Now);
 
-        var hostLeader = new Hero(Guid.NewGuid(), HostPlayerId, 1, "warrior_bran",
-            hostGarrison.Id, asLeader: true, Now);
+        var hostHero = new Hero(Guid.NewGuid(), HostPlayerId, 1, "warrior_bran",
+            hostGarrison.Id, Now);
 
-        var allyLeader = new Hero(Guid.NewGuid(), AllyPlayerId, 1, "archer_lyra",
-            hostGarrison.Id, asLeader: true, Now);
+        var allyHero = new Hero(Guid.NewGuid(), AllyPlayerId, 1, "archer_lyra",
+            hostGarrison.Id, Now);
 
         _villages.GetByIdAsync(hostVillage.Id, Arg.Any<CancellationToken>()).Returns(hostVillage);
         _villages.GetByIdAsync(allyVillage.Id, Arg.Any<CancellationToken>()).Returns(allyVillage);
@@ -100,9 +100,9 @@ public class BattleAftermathTests
         _garrisons.GetByVillageIdAsync(hostVillage.Id, Arg.Any<CancellationToken>()).Returns(hostGarrison);
 
         _heroes.GetByGarrisonAsync(hostGarrison.Id, Arg.Any<CancellationToken>())
-            .Returns([hostLeader, allyLeader]);
+            .Returns([hostHero, allyHero]);
 
-        return (hostGarrison, allyLeader);
+        return (hostGarrison, allyHero);
     }
 
     private static List<StackLoss> Losses(int lost)
@@ -119,8 +119,8 @@ public class BattleAftermathTests
         var march = new March(Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55, MarchTargetType.Monster, Guid.NewGuid(),
             army, Now, Now.AddMinutes(-30));
 
-        var wounded = new Hero(Guid.NewGuid(), HostPlayerId, 1, "warrior_bran", garrison.Id, asLeader: true, Now);
-        var spared = new Hero(Guid.NewGuid(), HostPlayerId, 1, "archer_lyra", garrison.Id, asLeader: false, Now);
+        var wounded = new Hero(Guid.NewGuid(), HostPlayerId, 1, "warrior_bran", garrison.Id, Now);
+        var spared = new Hero(Guid.NewGuid(), HostPlayerId, 1, "archer_lyra", garrison.Id, Now);
         wounded.Deploy(march.Id, Now.AddMinutes(-30));
         spared.Deploy(march.Id, Now.AddMinutes(-30));
         _heroes.OnMarch(march.Id, wounded, spared);
@@ -155,19 +155,52 @@ public class BattleAftermathTests
         Assert.NotEqual(HeroState.Wounded, spared.State);
     }
 
+    /// <summary>
+    /// Захисника ранить його частка шкоди, навіть коли він у марші (рішення 15.10.2026: марш на оборону
+    /// не впливає); чужого героя з тим самим id-списком розбір оборони не чіпає.
+    /// </summary>
+    [Fact]
+    public async Task RecordDefender_ShouldWoundTheDefendersTheBattleWounded_EvenOnAMarch()
+    {
+        var village = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50);
+        var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
+        var attackerVillage = new Village(Guid.NewGuid(), AllyPlayerId, "Raider", ["food"], 60, 60);
+        var march = new March(Guid.NewGuid(), 1, Guid.NewGuid(), 60, 60, 50, 50, MarchTargetType.Village, village.Id,
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, Now, Now.AddMinutes(-30));
+
+        var away = new Hero(Guid.NewGuid(), HostPlayerId, 1, "warrior_bran", garrison.Id, Now);
+        away.Deploy(Guid.NewGuid(), Now.AddMinutes(-10));
+        var spared = new Hero(Guid.NewGuid(), HostPlayerId, 1, "archer_lyra", garrison.Id, Now);
+        var stranger = new Hero(Guid.NewGuid(), AllyPlayerId, 1, "archer_lyra", Guid.NewGuid(), Now);
+        _heroes.GetByIdAsync(away.Id, Arg.Any<CancellationToken>()).Returns(away);
+        _heroes.GetByIdAsync(spared.Id, Arg.Any<CancellationToken>()).Returns(spared);
+        _heroes.GetByIdAsync(stranger.Id, Arg.Any<CancellationToken>()).Returns(stranger);
+
+        var result = new BattleResult(true, 100, 50, new Dictionary<UnitStackKey, int>(), new Dictionary<UnitStackKey, int>(),
+            DefenderWoundedHeroes: [away.Id, stranger.Id]);
+
+        await Aftermath().RecordDefenderAsync(march, village, garrison, attackerVillage, [], [], result, "plain", seed: 1,
+            Now, CancellationToken.None);
+
+        Assert.Equal(HeroState.Wounded, away.State);
+        Assert.NotNull(away.MarchId);
+        Assert.NotEqual(HeroState.Wounded, spared.State);
+        Assert.NotEqual(HeroState.Wounded, stranger.State);
+    }
+
     // ---------- Оборона вистояла ----------
 
     [Fact]
     public async Task AdmitAlliedWounded_ShouldKeepReinforcements_WhenDefenceHolds()
     {
-        var (host, allyLeader) = GivenAlliedContingent();
+        var (host, allyHero) = GivenAlliedContingent();
 
         await Aftermath().AdmitAlliedWoundedAsync(
             Losses(10), host, HostPlayerId, defenceLost: false, seed: 1, Now, CancellationToken.None);
 
         Assert.Equal(50, host.ReinforcementCount);
-        Assert.Equal(HeroState.Idle, allyLeader.State);
-        Assert.Equal(host.Id, allyLeader.StationedGarrisonId);
+        Assert.Equal(HeroState.Idle, allyHero.State);
+        Assert.Equal(host.Id, allyHero.StationedGarrisonId);
         await _marches.DidNotReceive().AddAsync(Arg.Any<March>(), Arg.Any<CancellationToken>());
     }
 
@@ -176,14 +209,13 @@ public class BattleAftermathTests
     [Fact]
     public async Task AdmitAlliedWounded_ShouldSendAlliesHome_WhenDefenceFalls()
     {
-        var (host, allyLeader) = GivenAlliedContingent();
+        var (host, allyHero) = GivenAlliedContingent();
 
         await Aftermath().AdmitAlliedWoundedAsync(
             Losses(10), host, HostPlayerId, defenceLost: true, seed: 1, Now, CancellationToken.None);
 
-        Assert.Equal(HeroState.Wounded, allyLeader.State);
-        Assert.Null(allyLeader.StationedGarrisonId);
-        Assert.False(allyLeader.IsLeader);
+        Assert.Equal(HeroState.Wounded, allyHero.State);
+        Assert.Null(allyHero.StationedGarrisonId);
         Assert.Equal(0, host.ReinforcementCount);
         await _marches.Received(1).AddAsync(Arg.Any<March>(), Arg.Any<CancellationToken>());
     }
@@ -195,12 +227,12 @@ public class BattleAftermathTests
     [Fact]
     public async Task AdmitAlliedWounded_ShouldSendUntouchedContingentHome()
     {
-        var (host, allyLeader) = GivenAlliedContingent();
+        var (host, allyHero) = GivenAlliedContingent();
 
         await Aftermath().AdmitAlliedWoundedAsync(
             [], host, HostPlayerId, defenceLost: true, seed: 1, Now, CancellationToken.None);
 
-        Assert.Equal(HeroState.Wounded, allyLeader.State);
+        Assert.Equal(HeroState.Wounded, allyHero.State);
         Assert.Equal(0, host.ReinforcementCount);
         await _marches.Received(1).AddAsync(Arg.Any<March>(), Arg.Any<CancellationToken>());
     }
@@ -212,33 +244,32 @@ public class BattleAftermathTests
     [Fact]
     public async Task AdmitAlliedWounded_ShouldSendALoneHeroHome()
     {
-        var (host, allyLeader) = GivenAlliedContingent(reinforcements: 0);
+        var (host, allyHero) = GivenAlliedContingent(reinforcements: 0);
 
         await Aftermath().AdmitAlliedWoundedAsync(
             [], host, HostPlayerId, defenceLost: true, seed: 1, Now, CancellationToken.None);
 
-        Assert.Null(allyLeader.StationedGarrisonId);
+        Assert.Null(allyHero.StationedGarrisonId);
         await _marches.Received(1).AddAsync(Arg.Any<March>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>
     /// Господар не розпускається власним же розбором: його юніти вдома,
-    /// а лідера ранить RecordDefenderAsync, не цей метод.
+    /// а захисників ранить RecordDefenderAsync, не цей метод.
     /// </summary>
     [Fact]
     public async Task AdmitAlliedWounded_ShouldNotTouchTheHost()
     {
         var (host, _) = GivenAlliedContingent();
 
-        var hostLeader = (await _heroes.GetByGarrisonAsync(host.Id, CancellationToken.None))
+        var hostHero = (await _heroes.GetByGarrisonAsync(host.Id, CancellationToken.None))
             .Single(h => h.PlayerId == HostPlayerId);
 
         await Aftermath().AdmitAlliedWoundedAsync(
             Losses(10), host, HostPlayerId, defenceLost: true, seed: 1, Now, CancellationToken.None);
 
-        Assert.Equal(HeroState.Idle, hostLeader.State);
-        Assert.True(hostLeader.IsLeader);
-        Assert.Equal(host.Id, hostLeader.StationedGarrisonId);
+        Assert.Equal(HeroState.Idle, hostHero.State);
+        Assert.Equal(host.Id, hostHero.StationedGarrisonId);
     }
 
     /// <summary>
@@ -252,7 +283,7 @@ public class BattleAftermathTests
     [Fact]
     public async Task AdmitAlliedWounded_ShouldSurvive_WhenTheAllyHasNoHome()
     {
-        var (host, allyLeader) = GivenAlliedContingent();
+        var (host, allyHero) = GivenAlliedContingent();
 
         _villages.GetByPlayerIdAsync(AllyPlayerId, Arg.Any<CancellationToken>()).Returns((Village?)null);
         _villages.GetByIdAsync(_allyVillage.Id, Arg.Any<CancellationToken>()).Returns((Village?)null);
@@ -262,7 +293,7 @@ public class BattleAftermathTests
 
         await _marches.DidNotReceive().AddAsync(Arg.Any<March>(), Arg.Any<CancellationToken>());
         Assert.Equal(0, host.ReinforcementCount);
-        Assert.Equal(host.Id, allyLeader.StationedGarrisonId);
-        Assert.Equal(HeroState.Wounded, allyLeader.State);
+        Assert.Equal(host.Id, allyHero.StationedGarrisonId);
+        Assert.Equal(HeroState.Wounded, allyHero.State);
     }
 }

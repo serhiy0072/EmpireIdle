@@ -291,14 +291,19 @@ public class BattleEngineTests
         Assert.Equal(1, SkillOf(result.State, 0, "strike").CooldownLeft);
     }
 
-    /// <summary>Артефакт на перезарядку скорочує її після удару, але не нижче «щоходу».</summary>
+    /// <summary>
+    /// Артефакт на перезарядку скорочує її після удару, але не нижче одного ходу очікування:
+    /// між двома застосуваннями лишається звичайний удар. Вміння з перезарядкою 1 і так б'є щоходу.
+    /// </summary>
     [Theory]
-    [InlineData(1, 1)]
-    [InlineData(5, 0)]
-    public void Execute_CooldownReduction_ShouldShortenTheRecharge(double reduction, int expected)
+    [InlineData(3, 1, 1)]
+    [InlineData(4, 1, 2)]
+    [InlineData(3, 5, 1)]
+    [InlineData(1, 2, 0)]
+    public void Execute_CooldownReduction_ShouldShortenTheRecharge(int cooldown, double reduction, int expected)
     {
         var hero = Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.CooldownReduction] = reduction },
-            skills: Strike(cooldown: 3));
+            skills: Strike(cooldown: cooldown));
 
         var result = Engine().Execute(State(hero, Enemy(1, health: 5000)), 0, new BattleAction("strike", 1));
 
@@ -391,6 +396,25 @@ public class BattleEngineTests
         Assert.Equal(3.0, skill.DamageMultiplier, 6);
         Assert.Equal(0.4, skill.HealPercent, 6);
         Assert.Equal(2, skill.CooldownLeft);
+    }
+
+    /// <summary>Баф і дебаф ростуть із рівнем вміння, як шкода; отрута — ні, вона йде від атаки.</summary>
+    [Theory]
+    [InlineData(BattleStatusKind.AttackUp, 0.6)]
+    [InlineData(BattleStatusKind.DefenseUp, 0.6)]
+    [InlineData(BattleStatusKind.DefenseDown, 0.6)]
+    [InlineData(BattleStatusKind.Poison, 0.3)]
+    public void Prepare_ShouldScaleBuffsAndDebuffsByLevel(BattleStatusKind status, double expected)
+    {
+        var battle = new SkillBattleConfig
+        {
+            Target = AbilityTarget.SingleEnemy, Cooldown = 3, DamageMultiplier = 1.0,
+            Status = status, StatusMagnitude = 0.3, StatusTurns = 2,
+        };
+
+        var skill = CombatSkill.Prepare("smash", SkillKind.Active, battle, levelScale: 2.0);
+
+        Assert.Equal(expected, skill.StatusMagnitude, 6);
     }
 
     // ---------- Підтримка ----------
@@ -504,13 +528,29 @@ public class BattleEngineTests
         Assert.Empty(result.State.Combatants[0].Statuses);
     }
 
+    /// <summary>Отрута знімає щоходу частку атаки того, хто її наклав, а не пласке число.</summary>
+    [Fact]
+    public void Execute_Poison_ShouldBiteAShareOfTheCastersAttack()
+    {
+        var venom = Strike("venom", multiplier: 1.0) with
+        {
+            Status = BattleStatusKind.Poison, StatusMagnitude = 0.25, StatusTurns = 3,
+        };
+        var state = State(Hero(0, attack: 200, skills: venom), Enemy(1, health: 5000));
+
+        var result = Engine().Execute(state, 0, new BattleAction("venom", 1));
+
+        var poison = Assert.Single(result.State.Combatants[1].Statuses, s => s.Kind == BattleStatusKind.Poison);
+        Assert.Equal(50, poison.Magnitude);
+    }
+
     /// <summary>Повторне накладання оновлює тривалість, а не складає ефекти.</summary>
     [Fact]
     public void Execute_ShouldRefreshAStatus_InsteadOfStacking()
     {
         var venom = Strike("venom", multiplier: 1.0) with
         {
-            Status = BattleStatusKind.Poison, StatusMagnitude = 30, StatusTurns = 3,
+            Status = BattleStatusKind.Poison, StatusMagnitude = 0.3, StatusTurns = 3,
         };
         var state = State(Hero(0, skills: venom), Enemy(1, health: 5000));
         var engine = Engine();
@@ -548,6 +588,105 @@ public class BattleEngineTests
         var hitTough = engine.Execute(tough, 1, new BattleAction(null, 0)).State.Combatants[0].Health;
 
         Assert.True(hitTough > hitPlain);
+    }
+
+    // ---------- Стати наборів і заточки ----------
+
+    /// <summary>Конфіг, у якому кожен удар критичний і кожен блок спрацьовує: кидок не заважає рахувати.</summary>
+    private static DungeonsConfig Certain()
+    {
+        var config = Config();
+        config.BaseCritChance = 0.999;
+        config.MaxCritChance = 0.999;
+        config.MaxBlockChance = 0.999;
+
+        return config;
+    }
+
+    private static Dictionary<DungeonStat, double> With(DungeonStat stat, double value) => new() { [stat] = value };
+
+    /// <summary>Сила криту додається до множника: 1.6 + 0.4 = 2.0 замість 1.6.</summary>
+    [Fact]
+    public void Execute_CritPower_ShouldRaiseTheCriticalMultiplier()
+    {
+        var engine = Engine(Certain());
+        var plain = engine.Execute(State(Hero(0), Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+        var strong = engine.Execute(State(Hero(0, unique: With(DungeonStat.CritPower, 0.4)), Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+
+        Assert.True(plain.Critical);
+        Assert.Equal(plain.Damage * 2.0 / 1.6, strong.Damage, 0);
+    }
+
+    /// <summary>Шанс криту понад стелю не допомагає: зі стелею 0 критів немає навіть зі 100% з наборів.</summary>
+    [Fact]
+    public void Execute_CritChance_ShouldNotExceedTheCap()
+    {
+        var config = Config();
+        config.MaxCritChance = 0;
+
+        var effect = Engine(config).Execute(State(Hero(0, unique: With(DungeonStat.CritChance, 1)), Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+
+        Assert.False(effect.Critical);
+    }
+
+    /// <summary>Шкода вмінь підсилює вміння, але не звичайний удар.</summary>
+    [Fact]
+    public void Execute_SkillDamage_ShouldRaiseOnlySkillHits()
+    {
+        var engine = Engine();
+        var skilled = Hero(0, unique: With(DungeonStat.SkillDamage, 0.5), skills: Strike());
+
+        var plainSkill = engine.Execute(State(Hero(0, skills: Strike()), Enemy(1)), 0, new BattleAction("strike", 1)).Log.Effects[0];
+        var boostedSkill = engine.Execute(State(skilled, Enemy(1)), 0, new BattleAction("strike", 1)).Log.Effects[0];
+        var plainStrike = engine.Execute(State(Hero(0), Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+        var boostedStrike = engine.Execute(State(skilled, Enemy(1)), 0, new BattleAction(null, 1)).Log.Effects[0];
+
+        Assert.Equal(plainSkill.Damage * 1.5, boostedSkill.Damage, 0);
+        Assert.Equal(plainStrike.Damage, boostedStrike.Damage);
+    }
+
+    /// <summary>Блок гасить базові 30% плюс силу блоку: 0.3 + 0.2 = половина удару.</summary>
+    [Fact]
+    public void Execute_Block_ShouldSoftenTheHit_AndBeLogged()
+    {
+        var config = Certain();
+        config.BaseCritChance = 0;
+        var engine = Engine(config);
+
+        var plain = engine.Execute(State(Hero(0), Enemy(1)), 1, new BattleAction(null, 0)).Log.Effects[0];
+        var blocker = Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.BlockChance] = 1, [DungeonStat.BlockPower] = 0.2 });
+        var blocked = engine.Execute(State(blocker, Enemy(1)), 1, new BattleAction(null, 0)).Log.Effects[0];
+
+        Assert.False(plain.Blocked);
+        Assert.True(blocked.Blocked);
+        Assert.Equal(plain.Damage * 0.5, blocked.Damage, 0);
+    }
+
+    /// <summary>Сила блоку понад стелю не робить героя невразливим: стеля 0.8 лишає п'яту частину удару.</summary>
+    [Fact]
+    public void Execute_BlockPower_ShouldNotExceedTheCap()
+    {
+        var config = Certain();
+        config.BaseCritChance = 0;
+        var engine = Engine(config);
+
+        var plain = engine.Execute(State(Hero(0), Enemy(1)), 1, new BattleAction(null, 0)).Log.Effects[0];
+        var wall = Hero(0, unique: new Dictionary<DungeonStat, double> { [DungeonStat.BlockChance] = 1, [DungeonStat.BlockPower] = 5 });
+        var blocked = engine.Execute(State(wall, Enemy(1)), 1, new BattleAction(null, 0)).Log.Effects[0];
+
+        Assert.Equal(plain.Damage * 0.2, blocked.Damage, 0);
+    }
+
+    /// <summary>Вампіризм понад стелю лікує лише на стелю: 30% від завданої шкоди.</summary>
+    [Fact]
+    public void Execute_Lifesteal_ShouldNotExceedTheCap()
+    {
+        var vampire = Hero(0, unique: With(DungeonStat.Lifesteal, 0.9)) with { Health = 100 };
+
+        var result = Engine().Execute(State(vampire, Enemy(1)), 0, new BattleAction(null, 1));
+
+        var damage = result.Log.Effects[0].Damage;
+        Assert.Equal(Math.Round(damage * 0.3, 1), result.Log.Effects.Single(e => e.Healed > 0).Healed);
     }
 
     // ---------- Детермінізм ----------

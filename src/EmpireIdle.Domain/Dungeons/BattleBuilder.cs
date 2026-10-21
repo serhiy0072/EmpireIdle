@@ -7,6 +7,7 @@ namespace EmpireIdle.Domain.Dungeons
     /// Герой, уже порахований застосунком: стати з рівня, тіру й спорядження,
     /// вміння — під їхній рівень (лише відкриті й ті, що діють у данжі).
     /// </summary>
+    /// <param name="BattleStats">Данжові властивості з наборів і заточки: частками, перезарядка — цілими ходами.</param>
     public record DungeonHero(
         Guid HeroId,
         string HeroKey,
@@ -15,7 +16,7 @@ namespace EmpireIdle.Domain.Dungeons
         double Defense,
         double Health,
         double Speed,
-        IReadOnlyDictionary<DungeonStat, double> UniqueStats,
+        IReadOnlyDictionary<DungeonStat, double> BattleStats,
         IReadOnlyList<CombatSkill> Skills);
 
     /// <summary>
@@ -116,21 +117,32 @@ namespace EmpireIdle.Domain.Dungeons
             return BattleEngine.NextRound(state);
         }
 
-        private Combatant ToCombatant(DungeonHero hero, int index) => new()
+        /// <summary>
+        /// Герой на старті забігу. Оберіг ставить щит одразу — на WardTurns власних ходів, як щит уміння:
+        /// перший удар хвилі приймає він, а не здоров'я.
+        /// </summary>
+        private Combatant ToCombatant(DungeonHero hero, int index)
         {
-            Index = index,
-            Side = BattleSide.Heroes,
-            Line = LineFor(hero.HeroClass),
-            Key = hero.HeroKey,
-            HeroId = hero.HeroId,
-            Attack = Math.Round(hero.Attack, 1),
-            Defense = Math.Round(hero.Defense, 1),
-            MaxHealth = Math.Round(hero.Health, 1),
-            Health = Math.Round(hero.Health, 1),
-            Speed = hero.Speed,
-            Statuses = [],
-            UniqueStats = hero.UniqueStats.ToDictionary(p => p.Key, p => p.Value),
-            Skills = hero.Skills.ToList(),
-        };
+            var health = Math.Round(hero.Health, 1);
+            var ward = Math.Round(health * Math.Min(_config.MaxWard, hero.BattleStats.GetValueOrDefault(DungeonStat.Ward)), 1);
+
+            return new Combatant
+            {
+                Index = index,
+                Side = BattleSide.Heroes,
+                Line = LineFor(hero.HeroClass),
+                Key = hero.HeroKey,
+                HeroId = hero.HeroId,
+                Attack = Math.Round(hero.Attack, 1),
+                Defense = Math.Round(hero.Defense, 1),
+                MaxHealth = health,
+                Health = health,
+                Speed = hero.Speed,
+                ShieldPoints = ward,
+                Statuses = ward > 0 ? [new BattleStatus { Kind = BattleStatusKind.Shield, Magnitude = 0, TurnsLeft = Math.Max(1, _config.WardTurns) }] : [],
+                UniqueStats = hero.BattleStats.ToDictionary(p => p.Key, p => p.Value),
+                Skills = hero.Skills.ToList(),
+            };
+        }
     }
 }

@@ -67,15 +67,13 @@ public class GetMarchesQueryTests
         }
     };
 
-    private static SpeedUpCalculator Calculator() => new(Config().Monetization);
-
     private GetMarchesQueryHandler Handler()
     {
         var config = Config();
         var catalog = new GameCatalog(config);
 
         return new(_villages, _garrisons, _marches, _monsters, _heroes,
-            new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog, new FakeTimeProvider(Now), Calculator());
+            new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
     }
 
     private Garrison GivenGarrison()
@@ -133,8 +131,8 @@ public class GetMarchesQueryTests
         var garrison = GivenGarrison();
         var march = MarchTo(garrison, MarchTargetType.Monster, Guid.NewGuid(), Now.AddMinutes(30));
 
-        var weak = new Hero(Guid.NewGuid(), PlayerId, 1, "weak", garrison.Id, asLeader: false, Now.AddHours(-2));
-        var strong = new Hero(Guid.NewGuid(), PlayerId, 1, "strong", garrison.Id, asLeader: false, Now.AddHours(-1));
+        var weak = new Hero(Guid.NewGuid(), PlayerId, 1, "weak", garrison.Id, Now.AddHours(-2));
+        var strong = new Hero(Guid.NewGuid(), PlayerId, 1, "strong", garrison.Id, Now.AddHours(-1));
         weak.Deploy(march.Id, Now.AddMinutes(-10));
         strong.Deploy(march.Id, Now.AddMinutes(-10));
 
@@ -162,9 +160,9 @@ public class GetMarchesQueryTests
         Assert.Null(view.TargetName);
     }
 
-    /// <summary>Найближче прибуття першим і ціна прискорення як у SpeedUpCalculator.</summary>
+    /// <summary>Найближче прибуття першим.</summary>
     [Fact]
-    public async Task Handle_ShouldOrderByArrival_AndPriceTheSpeedUp()
+    public async Task Handle_ShouldOrderByArrival()
     {
         var garrison = GivenGarrison();
         var target = new Village(Guid.NewGuid(), Guid.NewGuid(), "Neighbour", [], 55, 55);
@@ -180,9 +178,6 @@ public class GetMarchesQueryTests
         Assert.Equal([soon.Id, late.Id], views.Select(v => v.Id));
         Assert.Equal("Neighbour", views[0].TargetName);
         Assert.Null(views[0].TargetLevel);
-        Assert.Equal(0, views[0].SpeedUpCostGems);
-        Assert.Equal(Calculator().GetCost(EmpireIdle.Domain.Enums.SpeedUpTimer.March, late.ArrivesAt, Now), views[1].SpeedUpCostGems);
-        Assert.True(views[1].SpeedUpCostGems > 0, "120 хвилин мають коштувати gems, інакше тест нічого не перевіряє.");
     }
 
     /// <summary>Цілі всіх маршів — пакетом за типом: запит на кожен марш множив би їх на довжину списку.</summary>

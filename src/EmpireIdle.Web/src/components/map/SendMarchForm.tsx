@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import type { MarchIntent, MarchTargetType, SendMarchRequest } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { useGarrison } from "../../lib/queries/garrison";
-import { useHeroes } from "../../lib/queries/heroes";
-import { BATTLE_VERDICT, MARCH_INTENT, MARCH_TARGET, usePreviewMarch, useSendMarch } from "../../lib/queries/marches";
+import { useHeroes, type HeroSummary } from "../../lib/queries/heroes";
+import { MARCH_INTENT, MARCH_TARGET, usePreviewMarch, useSendMarch } from "../../lib/queries/marches";
+import { compactPower } from "../../lib/queries/rating";
 import { useVillage } from "../../lib/queries/village";
 import { isShieldActive } from "../../lib/shield";
 import { formatDuration, parseTimeSpan } from "../../lib/time";
+import { UnitHex } from "../army/CampPanels";
 import ErrorBanner from "../ErrorBanner";
+import { GameButton, RoleBadge, StarRow } from "../game/GameUi";
+import HeroPortrait from "../heroes/HeroPortrait";
 
 interface Props {
   playerId: string;
@@ -16,11 +20,21 @@ interface Props {
   onCancel: () => void;
 }
 
+/** Героїв у марші щонайбільше (GDD §6.1) — по одному на роль. */
+const MAX_HEROES = 3;
+
+/** Прогноз бою одним рядком під героями, як на референсі. */
+const VERDICT_LINES: Record<number, { text: string; className: string }> = {
+  0: { text: "Цілком імовірно, що ви переможете", className: "text-emerald-300" },
+  1: { text: "Перемога можлива, але не певна", className: "text-amber-300" },
+  2: { text: "Цей бій не виграти", className: "text-rose-300" },
+};
+
 /**
- * Відправка армії: склад із гарнізону, герой (обов'язковий — він і є слот
- * маршу), оцінка шансів до кліку. Прев'ю рахує сервер: клієнт не знає
- * ні пасивок, ні місцевості, ні щитів. Підкріплення (своя споруда клану)
- * не б'ється: шансів не оцінюємо, лише відправляємо.
+ * Відправка армії (референс 19.10.2026): повноекранне вікно з ціллю, героями-картками, повзунками
+ * військ і нижньою панеллю — співвідношення ролей, «Зняти всіх», «Порівну», «Максимум», час і «Відправити».
+ * Кожен герой веде лише юнітів своєї ролі й не більше за свої конвої. Прогноз рахує сервер: клієнт
+ * не знає ні пасивок, ні місцевості, ні щитів. Підкріплення не б'ється — прогнозу не показуємо.
  */
 export default function SendMarchForm({ playerId, target, onSent, onCancel }: Props) {
   const catalog = useCatalog();
@@ -40,39 +54,65 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [picked, setPicked] = useState<string[] | null>(null);
+  const [picking, setPicking] = useState(false);
 
-  const idleHeroes = (heroes.data?.heroes ?? []).filter((hero) => hero.state === "Idle");
-  // До трьох героїв різних ролей (GDD §6.1); без вибору — перший вільний
+  const idleHeroes = [...(heroes.data?.heroes ?? [])].filter((hero) => hero.state === "Idle").sort((a, b) => b.power - a.power);
+  // Без вибору — найсильніший вільний
   const chosen = picked ?? (idleHeroes[0] === undefined ? [] : [idleHeroes[0].id]);
-  const leaders = idleHeroes.filter((hero) => chosen.includes(hero.id));
-  const takenRoles = new Set(leaders.map((hero) => hero.unitType));
-
-  const toggleHero = (heroId: string) =>
-    setPicked(chosen.includes(heroId) ? chosen.filter((id) => id !== heroId) : [...chosen, heroId]);
+  const leaders = chosen.flatMap((id) => idleHeroes.filter((hero) => hero.id === id));
 
   // Кожен герой веде лише юнітів своєї ролі й не більше за свої конвої
-  const leaderOf = (unitType: string) =>
-    leaders.find((hero) => hero.unitType == null || hero.unitType === unitType) ?? null;
-  const stacks = (garrison.data?.units ?? []).filter((stack) => stack.count > 0 && leaderOf(stack.unitType) !== null);
+  const leaderOf = (unitType: string) => leaders.find((hero) => hero.unitType == null || hero.unitType === unitType) ?? null;
+  // Старші рівні — першими: «Максимум» і «Порівну» беруть найсильніших
+  const stacks = (garrison.data?.units ?? [])
+    .filter((stack) => stack.count > 0 && leaderOf(stack.unitType) !== null)
+    .sort((a, b) => a.unitType.localeCompare(b.unitType) || b.level - a.level);
+  const keyOf = (stack: { unitType: string; level: number }) => `${stack.unitType}@${stack.level}`;
 
   const units: Record<string, number> = {};
   const room = new Map(leaders.map((hero) => [hero.id, hero.convoyCapacity]));
 
   for (const stack of stacks) {
-    const key = `${stack.unitType}@${stack.level}`;
     const leader = leaderOf(stack.unitType)!;
-    const count = Math.min(Math.max(counts[key] ?? 0, 0), stack.count, room.get(leader.id) ?? 0);
+    const count = Math.min(Math.max(counts[keyOf(stack)] ?? 0, 0), stack.count, room.get(leader.id) ?? 0);
 
-    if (count > 0) units[key] = count;
+    if (count > 0) units[keyOf(stack)] = count;
     room.set(leader.id, (room.get(leader.id) ?? 0) - count);
   }
 
-  const sentBy = (heroId: string) =>
-    stacks
-      .filter((stack) => leaderOf(stack.unitType)?.id === heroId)
-      .reduce((sum, stack) => sum + (units[`${stack.unitType}@${stack.level}`] ?? 0), 0);
+  const sent = Object.values(units).reduce((sum, count) => sum + count, 0);
+  const capacity = leaders.reduce((sum, hero) => sum + hero.convoyCapacity, 0);
+  const ready = sent > 0 && leaders.length > 0;
 
-  const ready = Object.keys(units).length > 0 && leaders.length > 0;
+  /** Кожному герою — до quota його ролі, від старших рівнів. */
+  const fill = (quota: (hero: HeroSummary) => number) => {
+    const next: Record<string, number> = {};
+
+    for (const hero of leaders) {
+      let left = quota(hero);
+
+      for (const stack of stacks.filter((candidate) => leaderOf(candidate.unitType)?.id === hero.id)) {
+        const take = Math.min(stack.count, left);
+        next[keyOf(stack)] = take;
+        left -= take;
+      }
+    }
+
+    setCounts(next);
+  };
+
+  const available = (hero: HeroSummary) =>
+    Math.min(
+      hero.convoyCapacity,
+      stacks.filter((stack) => leaderOf(stack.unitType)?.id === hero.id).reduce((sum, stack) => sum + stack.count, 0),
+    );
+
+  const fillMax = () => fill(available);
+  // Порівну: кожна роль — стільки, скільки може дати найслабша
+  const fillEven = () => {
+    const even = Math.min(...leaders.map(available));
+    fill(() => (Number.isFinite(even) ? even : 0));
+  };
 
   const request = (): SendMarchRequest => ({
     targetType: target.type,
@@ -94,148 +134,339 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
     return () => window.clearTimeout(timer);
   }, [previewKey, estimate]);
 
-  const verdict = preview.data === undefined ? null : BATTLE_VERDICT[preview.data.verdict];
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
+  const forecast = previewKey !== null && preview.data !== undefined ? preview.data : null;
+  const verdict = forecast === null ? null : (VERDICT_LINES[forecast.verdict] ?? null);
+  const title = reinforce ? "Підкріплення" : tame ? "Приручення" : "Ціль";
+
+  // Співвідношення ролей у загоні — як унизу референса
+  const shares = leaders.map((hero) => {
+    const amount = stacks
+      .filter((stack) => leaderOf(stack.unitType)?.id === hero.id)
+      .reduce((sum, stack) => sum + (units[keyOf(stack)] ?? 0), 0);
+    return { hero, share: sent === 0 ? 0 : Math.round((amount / sent) * 100) };
+  });
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <h3 className="font-medium text-slate-800">
-          {reinforce ? "Підкріплення" : tame ? "Приручення:" : "Похід на"} {target.name}
-        </h3>
-        <button type="button" onClick={onCancel} className="text-sm text-slate-500 hover:underline">
-          Скасувати
-        </button>
-      </div>
+    <div role="dialog" aria-modal="true" aria-label={`${title}: ${target.name}`} className="fixed inset-0 z-50 flex justify-center bg-slate-950/70">
+      <div className="flex h-full w-full max-w-xl flex-col bg-gradient-to-b from-[#24467f] to-[#16305e] text-white shadow-2xl">
+        <header className="flex items-center gap-3 px-4 py-3">
+          <button type="button" aria-label="Назад" onClick={onCancel} className="text-3xl font-bold text-sky-200 hover:text-white">
+            ←
+          </button>
+          <h2 className="min-w-0 flex-1 truncate text-xl font-semibold [text-shadow:0_1px_2px_#0008]">
+            {title}: {target.name}
+          </h2>
+        </header>
 
-      <ErrorBanner error={preview.error ?? send.error} />
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
+          <div className="flex items-center justify-between rounded-xl bg-[#1d3b6f] px-4 py-2 text-sm font-semibold ring-1 ring-[#335c9a]">
+            <span title="Скільки військ іде з героями — з їхньої загальної місткості">
+              👥 {sent.toLocaleString("uk-UA")}/{capacity.toLocaleString("uk-UA")}
+            </span>
+            {forecast?.attackerPower != null && (
+              <span title={forecast.targetPower == null ? undefined : `Сила цілі ${compactPower(forecast.targetPower)}`}>
+                ⚔ {Math.round(forecast.attackerPower).toLocaleString("uk-UA")}
+              </span>
+            )}
+          </div>
 
-      {reinforce && (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-          Військо стане гарнізоном споруди, а поки вона будується — прискорить будівництво: сильніший загін дає більше.
-        </p>
-      )}
+          <ErrorBanner error={preview.error ?? send.error} />
 
-      {tame && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Бій як звичайний. Перемога з шансом дасть звіра в звіринець замість здобичі; не вдасться — заберете здобич, а
-          гарантія наблизиться.
-        </p>
-      )}
+          {reinforce && (
+            <p className="rounded-lg bg-emerald-900/50 px-3 py-2 text-sm text-emerald-100 ring-1 ring-emerald-400/40">
+              Військо стане гарнізоном споруди, а поки вона будується — прискорить будівництво: сильніший загін дає більше.
+            </p>
+          )}
+          {tame && (
+            <p className="rounded-lg bg-amber-900/50 px-3 py-2 text-sm text-amber-100 ring-1 ring-amber-400/40">
+              Бій як звичайний. Перемога з шансом дасть звіра в звіринець замість здобичі; не вдасться — заберете здобич, а
+              гарантія наблизиться.
+            </p>
+          )}
+          {losesShield && (
+            <p className="rounded-lg bg-amber-900/50 px-3 py-2 text-sm text-amber-100 ring-1 ring-amber-400/40">
+              Напад на гравця зніме ваш щит після падіння міста.
+            </p>
+          )}
 
-      {losesShield && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Напад на гравця зніме ваш щит після падіння міста.
-        </p>
-      )}
+          <div className="grid grid-cols-3 gap-3">
+            {Array.from({ length: MAX_HEROES }, (_, slot) => {
+              const hero = leaders[slot];
+              const config = hero === undefined ? null : catalog.hero(hero.heroKey);
 
-      {stacks.length === 0 ? (
-        <p className="text-sm text-slate-500">
-          {leaders.length > 0
-            ? "У гарнізоні немає юнітів ролей обраних героїв — кожен герой веде лише своїх."
-            : "Оберіть героя: військо йде лише з героєм."}
-        </p>
-      ) : (
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-slate-500">Хто йде</p>
-          <ul className="space-y-0.5 text-xs text-slate-500">
-            {leaders.map((hero) => (
-              <li key={hero.id}>
-                {catalog.heroName(hero.heroKey)}: {hero.unitType != null ? catalog.unitName(hero.unitType) : "військо"}{" "}
-                {sentBy(hero.id)} з {hero.convoyCapacity}
-              </li>
-            ))}
-          </ul>
-          {stacks.map((stack) => {
-            const key = `${stack.unitType}@${stack.level}`;
-            const value = units[key] ?? 0;
-            const left = room.get(leaderOf(stack.unitType)?.id ?? "") ?? 0;
-
-            return (
-              <div key={key} className="flex items-center justify-between gap-2 text-sm">
-                <span className="text-slate-700">
-                  {catalog.unitName(stack.unitType)} (рів. {stack.level}) · є {stack.count}
-                </span>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    min={0}
-                    max={stack.count}
-                    value={value}
-                    onChange={(event) => setCounts((prev) => ({ ...prev, [key]: Number(event.target.value) }))}
-                    className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-right"
-                  />
+              return hero === undefined ? (
+                <button
+                  key={`empty-${slot}`}
+                  type="button"
+                  onClick={() => setPicking(true)}
+                  disabled={idleHeroes.length <= leaders.length}
+                  className="flex aspect-[3/4] items-center justify-center rounded-xl bg-[#335c9a]/60 text-5xl font-bold text-white/90 ring-1 ring-[#5b85c4] hover:bg-[#335c9a] disabled:opacity-40"
+                  aria-label="Додати героя"
+                >
+                  +
+                </button>
+              ) : (
+                <div
+                  key={hero.id}
+                  className="relative flex aspect-[3/4] flex-col overflow-hidden rounded-xl bg-gradient-to-b from-amber-400 to-orange-600 ring-2 ring-amber-200"
+                >
+                  <button type="button" onClick={() => setPicking(true)} className="flex min-h-0 flex-1 items-center justify-center" title={catalog.heroName(hero.heroKey)}>
+                    <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={96} />
+                  </button>
+                  <span className="absolute left-1 top-1">
+                    <RoleBadge role={hero.unitType ?? undefined} size={22} />
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setCounts((prev) => ({ ...prev, [key]: Math.min(stack.count, value + left) }))}
-                    className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+                    aria-label="Прибрати героя"
+                    onClick={() => setPicked(chosen.filter((id) => id !== hero.id))}
+                    className="absolute right-1 top-1 h-7 w-7 rounded-full bg-rose-500 text-lg font-bold leading-6 text-white ring-2 ring-white hover:bg-rose-400"
                   >
-                    усі
+                    −
                   </button>
+                  <div className="bg-black/30 px-2 py-1">
+                    <p className="text-sm font-bold [text-shadow:0_1px_1px_#000]">Рів. {hero.effectiveLevel}</p>
+                    <StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={12} />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
 
-      <div className="space-y-1">
-        <p className="text-xs font-medium text-slate-500">Герої на чолі — до 3, різних ролей</p>
-        {idleHeroes.length === 0 ? (
-          <p className="text-sm text-slate-500">Немає вільного героя: кожен похід веде герой, що вдома.</p>
-        ) : (
-          <div className="flex flex-wrap gap-1">
-            {idleHeroes.map((hero) => {
-              const selected = chosen.includes(hero.id);
-              const blocked = !selected && (leaders.length >= 3 || takenRoles.has(hero.unitType));
+          {verdict !== null && (
+            <p className={`text-center text-base font-semibold ${verdict.className} ${preview.isPending ? "opacity-60" : ""}`}>
+              {verdict.text}
+              {forecast?.verdict === 1 && ` · шанс ${Math.round(forecast.winChance * 100)}%`}
+            </p>
+          )}
+
+          {leaders.length === 0 ? (
+            <p className="rounded-xl bg-[#1d3b6f] px-4 py-6 text-center text-sm text-sky-100 ring-1 ring-[#335c9a]">
+              {idleHeroes.length === 0 ? "Немає вільного героя: кожен похід веде герой, що вдома." : "Додайте героя: військо йде лише з героєм."}
+            </p>
+          ) : stacks.length === 0 ? (
+            <p className="rounded-xl bg-[#1d3b6f] px-4 py-6 text-center text-sm text-sky-100 ring-1 ring-[#335c9a]">
+              У гарнізоні немає юнітів ролей обраних героїв — кожен герой веде лише своїх.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {stacks.map((stack) => {
+                const key = keyOf(stack);
+                const value = units[key] ?? 0;
+                // Повзунок дістає до того, що влізе в конвої героя разом із поточним значенням
+                const max = Math.min(stack.count, value + (room.get(leaderOf(stack.unitType)?.id ?? "") ?? 0));
+                const set = (next: number) => setCounts((prev) => ({ ...prev, [key]: Math.max(0, Math.min(max, next)) }));
+
+                return (
+                  <div key={key} className="flex items-center gap-3 rounded-xl bg-sky-50 px-3 py-2 text-slate-800 ring-1 ring-sky-200">
+                    <UnitHex unitType={stack.unitType} level={stack.level} size={52} />
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm text-slate-600">
+                          {catalog.unitName(stack.unitType)} · рів. {stack.level}
+                        </span>
+                        <span className="flex items-center gap-1 text-sm font-semibold">
+                          <input
+                            type="number"
+                            min={0}
+                            max={max}
+                            value={value}
+                            onChange={(event) => set(Number(event.target.value))}
+                            aria-label={`Скільки: ${catalog.unitName(stack.unitType)}`}
+                            className="w-20 rounded-lg bg-slate-200 px-2 py-0.5 text-center tabular-nums"
+                          />
+                          <span className="text-slate-500">/{stack.count.toLocaleString("uk-UA")}</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => set(value - 1)}
+                          className="h-8 w-8 shrink-0 rounded-lg bg-gradient-to-b from-sky-400 to-blue-600 text-xl font-bold leading-none text-white shadow"
+                          aria-label="Менше"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="range"
+                          min={0}
+                          max={stack.count}
+                          value={value}
+                          onChange={(event) => set(Number(event.target.value))}
+                          className="h-2 min-w-0 flex-1 cursor-pointer accent-emerald-500"
+                          aria-label={`Повзунок: ${catalog.unitName(stack.unitType)}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => set(value + 1)}
+                          className="h-8 w-8 shrink-0 rounded-lg bg-gradient-to-b from-sky-400 to-blue-600 text-xl font-bold leading-none text-white shadow"
+                          aria-label="Більше"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {shares.length > 0 && (
+          <div className="flex items-center justify-around border-t border-[#335c9a] bg-[#16305e] px-4 py-2 text-sm">
+            <span className="text-sky-200">Співвідношення військ:</span>
+            {shares.map(({ hero, share }) => (
+              <span key={hero.id} className="flex items-center gap-1 font-semibold">
+                <RoleBadge role={hero.unitType ?? undefined} size={20} />
+                {share}%
+              </span>
+            ))}
+          </div>
+        )}
+
+        <footer className="flex items-center gap-2 border-t-2 border-[#5b85c4] bg-gradient-to-b from-[#1d3b6f] to-[#0f2147] px-3 py-3">
+          <GameButton onClick={() => setCounts({})} variant="secondary" disabled={sent === 0}>
+            Зняти всіх
+          </GameButton>
+          <GameButton onClick={fillEven} variant="secondary" disabled={stacks.length === 0}>
+            Порівну
+          </GameButton>
+          <GameButton onClick={fillMax} variant="secondary" disabled={stacks.length === 0}>
+            Максимум
+          </GameButton>
+          <div className="ml-auto flex flex-col items-center gap-1">
+            {forecast !== null && <span className="font-mono text-xs text-sky-100">⏱ {formatDuration(parseTimeSpan(forecast.travelTime))}</span>}
+            <span data-tutorial="send-march">
+              <GameButton onClick={() => send.mutate(request(), { onSuccess: onSent })} disabled={!ready || send.isPending}>
+                {send.isPending ? "Відправляємо…" : "Відправити"}
+              </GameButton>
+            </span>
+          </div>
+        </footer>
+      </div>
+
+      {picking && (
+        <HeroPicker
+          heroes={idleHeroes}
+          chosen={chosen}
+          onAssign={(next) => {
+            setPicked(next);
+            setPicking(false);
+          }}
+          onClose={() => setPicking(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * «Обрати героїв» (референс 19.10.2026): угорі три місця, нижче — вільні герої від найсильнішого.
+ * Тап додає чи прибирає; герой ролі, що вже зайнята, неактивний — у марші по одному на роль.
+ */
+function HeroPicker({
+  heroes,
+  chosen,
+  onAssign,
+  onClose,
+}: {
+  heroes: HeroSummary[];
+  chosen: string[];
+  onAssign: (next: string[]) => void;
+  onClose: () => void;
+}) {
+  const catalog = useCatalog();
+  const [draft, setDraft] = useState(chosen);
+
+  const selected = draft.flatMap((id) => heroes.filter((hero) => hero.id === id));
+  const roles = new Set(selected.map((hero) => hero.unitType));
+  const toggle = (hero: HeroSummary) => setDraft(draft.includes(hero.id) ? draft.filter((id) => id !== hero.id) : [...draft, hero.id]);
+
+  return (
+    <div onClick={onClose} className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4">
+      <div
+        onClick={(event) => event.stopPropagation()}
+        className="flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-sky-50 text-slate-800 shadow-2xl ring-2 ring-sky-300"
+      >
+        <div className="flex items-center bg-gradient-to-b from-sky-500 to-sky-600 px-4 py-2 text-white">
+          <h3 className="flex-1 text-center text-lg font-semibold">Обрати героїв</h3>
+          <button type="button" aria-label="Закрити" onClick={onClose} className="text-xl font-bold hover:text-sky-100">
+            ✕
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+          <div className="grid grid-cols-3 gap-3">
+            {Array.from({ length: MAX_HEROES }, (_, slot) => {
+              const hero = selected[slot];
+              const config = hero === undefined ? null : catalog.hero(hero.heroKey);
+
+              return hero === undefined ? (
+                <div key={`empty-${slot}`} className="flex aspect-[3/4] items-center justify-center rounded-xl bg-sky-200/70 text-4xl text-white ring-2 ring-amber-300">
+                  +
+                </div>
+              ) : (
+                <button
+                  key={hero.id}
+                  type="button"
+                  onClick={() => toggle(hero)}
+                  className="relative flex aspect-[3/4] flex-col items-center justify-end overflow-hidden rounded-xl bg-gradient-to-b from-amber-400 to-orange-600 pb-1 text-white ring-2 ring-amber-200"
+                >
+                  <span className="absolute left-1 top-1">
+                    <RoleBadge role={hero.unitType ?? undefined} size={20} />
+                  </span>
+                  <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={72} />
+                  <span className="text-xs font-bold [text-shadow:0_1px_1px_#000]">Рів. {hero.effectiveLevel}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-xs text-slate-500">Від найсильнішого · по одному герою на роль</p>
+          <div className="grid grid-cols-4 gap-2">
+            {heroes.map((hero) => {
+              const config = catalog.hero(hero.heroKey);
+              const on = draft.includes(hero.id);
+              const blocked = !on && (draft.length >= MAX_HEROES || roles.has(hero.unitType));
 
               return (
                 <button
                   key={hero.id}
                   type="button"
-                  onClick={() => toggleHero(hero.id)}
+                  onClick={() => toggle(hero)}
                   disabled={blocked}
-                  className={`rounded-lg border px-2 py-1 text-xs ${
-                    selected ? "border-emerald-500 bg-emerald-50 text-emerald-800" : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                  } disabled:opacity-40`}
+                  title={`${catalog.heroName(hero.heroKey)} · ⚔ ${compactPower(hero.power)}${hero.isDefender ? " · боронить село" : ""}`}
+                  className={`relative flex flex-col items-center rounded-lg bg-white p-1 ring-2 disabled:opacity-40 ${
+                    on ? "ring-amber-400" : "ring-sky-200 hover:ring-sky-400"
+                  }`}
                 >
-                  {catalog.heroName(hero.heroKey)} · рів. {hero.effectiveLevel}
-                  {hero.unitType != null && ` · ${catalog.unitName(hero.unitType)} до ${hero.convoyCapacity}`}
-                  {hero.isLeader ? " · лідер" : ""}
+                  <span className="absolute left-0.5 top-0.5">
+                    <RoleBadge role={hero.unitType ?? undefined} size={16} />
+                  </span>
+                  <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={52} />
+                  <span className="text-[11px] font-semibold">Рів. {hero.effectiveLevel}</span>
+                  <StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={9} />
                 </button>
               );
             })}
           </div>
-        )}
-      </div>
-
-      {previewKey !== null && preview.data !== undefined && verdict !== null && (
-        <div className={`space-y-1 rounded-lg bg-slate-50 p-2 text-sm ${preview.isPending ? "opacity-60" : ""}`}>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded px-2 py-0.5 font-medium ${verdict.className}`}>{verdict.label}</span>
-            {preview.data.verdict === 1 && (
-              <span className="text-slate-700">шанс {Math.round(preview.data.winChance * 100)}%</span>
-            )}
-            <span className="text-slate-600">в дорозі {formatDuration(parseTimeSpan(preview.data.travelTime))}</span>
-          </div>
-          {preview.data.attackerPower != null && preview.data.targetPower != null && (
-            <p className="text-slate-600">
-              ⚔ ваша сила {Math.round(preview.data.attackerPower).toLocaleString("uk-UA")} проти{" "}
-              {Math.round(preview.data.targetPower).toLocaleString("uk-UA")}
-            </p>
-          )}
         </div>
-      )}
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          data-tutorial="send-march"
-          onClick={() => send.mutate(request(), { onSuccess: onSent })}
-          disabled={!ready || send.isPending}
-          className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-        >
-          {send.isPending ? "Відправляємо…" : "Відправити"}
-        </button>
+        <div className="grid grid-cols-2 gap-3 border-t border-sky-200 p-4">
+          <GameButton onClick={() => setDraft([])} variant="secondary" disabled={draft.length === 0}>
+            Очистити
+          </GameButton>
+          <GameButton onClick={() => onAssign(draft)}>Призначити</GameButton>
+        </div>
       </div>
     </div>
   );

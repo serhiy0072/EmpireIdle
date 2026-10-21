@@ -128,9 +128,11 @@ namespace EmpireIdle.Application.Catalog
                     Name("unit", unit.Key, unit.DisplayName),
                     unit.RequiresBuilding,
                     unit.RequiresBuildingLevel,
-                    unit.BaseTrainMinutes,
+                    unit.BaseTrainSeconds,
+                    unit.TrainTimeGrowth,
                     unit.LevelUpCostGrowth,
-                    unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList()))
+                    unit.Cost.Select(cost => new CatalogUnitCost(cost.Resource, cost.Amount)).ToList(),
+                    unit.Stats))
                 .ToList();
 
             var beasts = config.Beasts.Types
@@ -156,6 +158,9 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.PartsPerStar,
                 config.HeroSettings.WeaponShardCosts,
                 config.HeroSettings.MaxSkillLevel,
+                Enumerable.Range(1, Math.Max(0, config.HeroSettings.MaxSkillLevel - 1))
+                    .Select(new HeroSkills(config.HeroSettings).BookCost)
+                    .ToList(),
                 config.HeroSettings.SkillBooks
                     .Select(book => new CatalogSkillBook(book.ItemKey, book.Class, book.Rarity.ToString(), book.Half.ToString()))
                     .ToList(),
@@ -167,6 +172,10 @@ namespace EmpireIdle.Application.Catalog
                 Enumerable.Range(1, config.MaxBuildingLevel)
                     .Select(level => ProgressionCurves.UnitBatchSize(level, config.MaxBuildingLevel, config.UnitBatchMin, config.UnitBatchMax))
                     .ToList(),
+                // Місткість будівлі юнітів за її рівнем: індекс 0 — рівень 1
+                Enumerable.Range(1, config.MaxBuildingLevel)
+                    .Select(level => ProgressionCurves.UnitCapacity(level, config.MaxBuildingLevel, config.UnitCapacityMin, config.UnitCapacityMax))
+                    .ToList(),
                 config.Monetization.HealGemsPerUnit,
                 config.Equipment.ArtifactSlots
                     .Select(slot => new CatalogArtifactSlot(slot.Key, Name("artifactSlot", slot.Key, slot.DisplayName)))
@@ -177,12 +186,17 @@ namespace EmpireIdle.Application.Catalog
                     .ToList(),
                 config.Equipment.MaxMastery,
                 MasteryAttempts(config.Equipment),
+                config.Equipment.MasteryStoneItemKey,
                 new CatalogArtifactRepair(config.Equipment.RepairGemsPerMastery, config.Equipment.RepairKitItemKey,
                     config.Equipment.MasteryBreakChances),
                 new CatalogSpeedUp(
                     config.Monetization.SpeedUpFloorSeconds.ToDictionary(pair => pair.Key.ToString(), pair => pair.Value),
                     config.Monetization.SpeedUpFactor,
-                    config.Monetization.SpeedUpExponent),
+                    config.Monetization.SpeedUpExponent,
+                    config.Monetization.MarchSpeedUps
+                        .OrderBy(option => option.Percent)
+                        .Select(option => new CatalogMarchSpeedUp(option.Percent, option.Gems))
+                        .ToList()),
                 config.Map.Width,
                 catalog.MainBuildingKey,
                 language,
@@ -222,13 +236,15 @@ namespace EmpireIdle.Application.Catalog
                         .Select(rarity =>
                         {
                             var setKey = $"{set.Key}_{rarity.ToString().ToLowerInvariant()}";
-                            var bonus = equipment.SetBonuses.FirstOrDefault(b => b.SetKey == setKey);
 
                             return new CatalogSetRarity(
                                 rarity.ToString(),
                                 setKey,
-                                bonus?.RequiredPieces ?? 0,
-                                bonus?.Stats ?? new Dictionary<string, double>(),
+                                equipment.SetBonuses
+                                    .Where(b => b.SetKey == setKey)
+                                    .OrderBy(b => b.RequiredPieces)
+                                    .Select(b => new CatalogSetThreshold(b.RequiredPieces, b.Stats))
+                                    .ToList(),
                                 config.Items
                                     .Where(item => item.SetKey == setKey)
                                     .Select(item => item.Key)
@@ -240,6 +256,8 @@ namespace EmpireIdle.Application.Catalog
                     return new CatalogArtifactSet(
                         set.Key,
                         name("artifactSet", set.Key, set.DisplayName),
+                        set.Class,
+                        set.Description,
                         set.Tier,
                         multipliers.Count == 0 ? 1.0 : multipliers[Math.Clamp(set.Tier - 1, 0, multipliers.Count - 1)],
                         set.FocusStats,

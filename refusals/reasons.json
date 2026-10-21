@@ -27,6 +27,7 @@
     "capacity"
   ],
   "beast.penMissing": [],
+  "beasts.hungry": [],
   "building.alreadyCompleted": [],
   "building.maxLevel": [
     "maxLevel"
@@ -155,6 +156,10 @@
   "equipment.uniqueFood": [
     "item"
   ],
+  "equipment.wrongClass": [
+    "set",
+    "class"
+  ],
   "garrison.armyCapacity": [
     "occupied",
     "capacity",
@@ -205,7 +210,9 @@
     "level"
   ],
   "hero.skillNoBook": [
-    "book"
+    "book",
+    "need",
+    "have"
   ],
   "hero.skillStarCapped": [
     "stars"
@@ -314,6 +321,7 @@
     "level"
   ],
   "reinforce.targetShielded": [],
+  "scout.alreadyUnderway": [],
   "scout.blocked": [],
   "scout.ownTarget": [],
   "shop.maxPerPurchase": [
@@ -322,6 +330,9 @@
   "shop.offerClosed": [],
   "speedup.atFloor": [
     "seconds"
+  ],
+  "squad.heroWounded": [
+    "hero"
   ],
   "teleport.cellOccupied": [],
   "teleport.cellUnsuitable": [],
@@ -343,6 +354,14 @@
     "have"
   ],
   "territory.ownStructure": [],
+  "tower.conquered": [],
+  "tower.floorClosed": [
+    "floor",
+    "next"
+  ],
+  "tower.townHallRequired": [
+    "level"
+  ],
   "village.alreadyThere": [],
   "village.buildingOutOfBounds": [
     "min",

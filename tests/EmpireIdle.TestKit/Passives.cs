@@ -32,7 +32,7 @@ public static class Passives
 
         var hero = Entities.Hero(TestKeys.CommonHero, level: heroLevel);
 
-        return new HeroCombatModifiers(catalog).For(hero);
+        return new HeroCombatModifiers(catalog).For(hero, HeroGear.None);
     }
 
     private static HeroSkillConfig Passive(string stat, double percent, string target, int unlockLevel) => new()

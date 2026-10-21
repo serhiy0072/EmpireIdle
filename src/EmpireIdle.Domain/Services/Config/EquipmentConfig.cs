@@ -88,11 +88,17 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Будівля, де кують — без неї заточка недоступна.</summary>
         public string ForgeBuildingKey { get; set; } = "forge";
 
-        /// <summary>Ціна спроби на +1 у золоті; далі — round10(база · ріст^поточна заточка).</summary>
-        public int MasteryBaseGold { get; set; } = 400;
+        /// <summary>
+        /// Камінь для заточування — предмет із Items, яким платять за спробу заточки (рішення 14.10.2026:
+        /// заточка за камені, а не за золото).
+        /// </summary>
+        public string MasteryStoneItemKey { get; set; } = "whetstone";
 
-        /// <summary>Множник ціни за кожен наступний рівень заточки.</summary>
-        public double MasteryCostGrowth { get; set; } = 1.33;
+        /// <summary>
+        /// Скільки каменів коштує спроба з поточної заточки: індекс 0 — спроба на +1. Явний список, як і шанси:
+        /// його читає й балансує Режисер. Невдала спроба камені теж з'їдає.
+        /// </summary>
+        public List<int> MasteryStoneCosts { get; set; } = new();
 
         /// <summary>
         /// Шанс успіху спроби за поточною заточкою: індекс 0 — спроба на +1.
@@ -134,8 +140,24 @@ namespace EmpireIdle.Domain.Services.Config
         public ArtifactSetConfig? FindArtifactSet(string? setKey)
             => setKey is null
                 ? null
-                : ArtifactSets.FirstOrDefault(set => Enum.GetNames<Enums.Rarity>()
-                    .Any(rarity => setKey == $"{set.Key}_{rarity.ToLowerInvariant()}"));
+                : ArtifactSets.FirstOrDefault(set => set.Key == SplitSetKey(setKey).Family);
+
+        /// <summary>
+        /// Родина й рідкість із SetKey (<c>{родина}_{рідкість}</c>): пороги набору рахуються по родині,
+        /// а рідкість обирає числа. Ключ без суфікса рідкості — сам собі родина, без рідкості.
+        /// </summary>
+        public static (string Family, Enums.Rarity? Rarity) SplitSetKey(string setKey)
+        {
+            foreach (var rarity in Enum.GetValues<Enums.Rarity>())
+            {
+                var suffix = $"_{rarity.ToString().ToLowerInvariant()}";
+
+                if (setKey.EndsWith(suffix, StringComparison.Ordinal) && setKey.Length > suffix.Length)
+                    return (setKey[..^suffix.Length], rarity);
+            }
+
+            return (setKey, null);
+        }
 
         /// <summary>Рівень набору поза списком множників бере останній відомий — як і тір героя.</summary>
         public double TierMultiplier(string? setKey)

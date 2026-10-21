@@ -2,13 +2,13 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { useSession } from "../hooks/useSession";
 import ArmyPage from "../pages/ArmyPage";
+import UnitCampPage from "../pages/UnitCampPage";
 import ArtifactSetsPage from "../pages/ArtifactSetsPage";
 import BannersPage from "../pages/BannersPage";
 import BeastPenPage from "../pages/BeastPenPage";
 import ChatPage from "../pages/ChatPage";
 import ClanPage from "../pages/ClanPage";
 import DungeonsPage from "../pages/DungeonsPage";
-import ForgePage from "../pages/ForgePage";
 import HeroCodexPage from "../pages/HeroCodexPage";
 import HeroesPage from "../pages/HeroesPage";
 import HeroPage from "../pages/HeroPage";
@@ -21,6 +21,7 @@ import QuestsPage from "../pages/QuestsPage";
 import RatingPage from "../pages/RatingPage";
 import RegisterPage from "../pages/RegisterPage";
 import ShopPage from "../pages/ShopPage";
+import TowerPage from "../pages/TowerPage";
 import VillagePage from "../pages/VillagePage";
 
 /**
@@ -43,14 +44,15 @@ export default function AppRoutes() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<VillagePage />} />
             <Route path="/army" element={<ArmyPage />} />
+            <Route path="/army/:building" element={<UnitCampPage />} />
             <Route path="/heroes" element={<HeroesPage />} />
             <Route path="/heroes/codex" element={<HeroCodexPage />} />
             <Route path="/heroes/:heroId" element={<HeroPage />} />
             <Route path="/dungeons" element={<DungeonsPage />} />
+            <Route path="/tower" element={<TowerPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/inventory/sets" element={<ArtifactSetsPage />} />
             <Route path="/beasts" element={<BeastPenPage />} />
-            <Route path="/forge" element={<ForgePage />} />
             <Route path="/banners" element={<BannersPage />} />
             <Route path="/clan" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />

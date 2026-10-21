@@ -331,6 +331,30 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Validate_ShouldRejectDuplicateClasses()
             => RejectsHero(c => c.HeroSettings.Classes = ["warrior", "warrior", "archer"]);
 
+        /// <summary>Набір для класу, якого немає, не вдягнув би ніхто.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAnArtifactSetForAnUnknownClass()
+            => RejectsHero(c => c.Equipment.ArtifactSets.Add(new ArtifactSetConfig { Key = "arcane", DisplayName = "Набір Чар", Class = "paladin" }));
+
+        /// <summary>Стат героя без ваги мовчки випав би із сили — вага потрібна кожному.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAHeroStatWithoutPowerWeight()
+            => RejectsHero(c =>
+            {
+                c.Heroes[0].BaseStats = new Dictionary<string, double> { ["Attack"] = 40, ["Health"] = 300 };
+                c.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0 };
+            });
+
+        [Fact]
+        public void Validate_ShouldAcceptPowerWeightsForEveryHeroStat()
+        {
+            var config = WithHeroes();
+            config.Heroes[0].BaseStats = new Dictionary<string, double> { ["Attack"] = 40, ["Health"] = 300 };
+            config.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0, ["Health"] = 0.25 };
+
+            GameConfigValidator.Validate(config);
+        }
+
         /// <summary>Тір без росту — новий тір не сильніший за старий (GDD §6.1).</summary>
         [Fact]
         public void Validate_ShouldRejectATierGrowthOfOneOrLess()
@@ -457,6 +481,30 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Contains("DefenderLossLosses", error.Message);
         }
 
+        /// <summary>Заточка платиться каменем — його ключ мусить бути предметом, інакше заточка недосяжна.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAnUnknownWhetstone()
+        {
+            var config = new GameConfigBuilder().WithResources().WithBuildings().WithHeroes().WithEquipment().Build();
+            config.Equipment.MasteryStoneItemKey = "no_such_stone";
+
+            var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+
+            Assert.Contains("no_such_stone", error.Message);
+        }
+
+        /// <summary>Неповна таблиця каменів мовчки брала б останню ціну для пізніх рангів.</summary>
+        [Fact]
+        public void Validate_ShouldRejectAShortStoneTable()
+        {
+            var config = new GameConfigBuilder().WithResources().WithBuildings().WithHeroes().WithEquipment().Build();
+            config.Equipment.MasteryStoneCosts = [10, 20];
+
+            var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+
+            Assert.Contains("MasteryStoneCosts", error.Message);
+        }
+
         /// <summary>Вітрина обіцяє унікальний артефакт, а в Items він звичайний — гравець отримав би не те, що бачив.</summary>
         [Fact]
         public void Validate_ShouldRejectABannerDrop_WhoseRarityDiffersFromTheItem()
@@ -522,16 +570,29 @@ namespace EmpireIdle.Domain.Tests.Services
             return config;
         }
 
-        /// <summary>Пачка осколків менша за призов — звичайний лут: гарантія не може заплатити одним осколком.</summary>
+        /// <summary>Дрібна пачка осколків — філер, що не рухає гарантій.</summary>
         [Fact]
         public void Validate_ShouldAcceptAPartialShardBundle_AsFiller()
             => GameConfigValidator.Validate(WithHeroBanner(shards: 2, kind: null, rarity: Rarity.Common));
 
+        /// <summary>Філер-осколки несуть ранг свого героя: на вітрині видно, що це осколки унікального.</summary>
         [Fact]
-        public void Validate_ShouldRejectAPartialShardBundle_InTheHeroCategory()
+        public void Validate_ShouldAcceptFillerShards_WithTheRankOfTheirHero()
+            => GameConfigValidator.Validate(WithHeroBanner(shards: 1, kind: null, rarity: Rarity.Unique));
+
+        /// <summary>Гарантія може платити пачкою осколків — 5 осколків унікального (рішення 13.10.2026).</summary>
+        [Fact]
+        public void Validate_ShouldAcceptAPartialShardBundle_InTheHeroCategory()
+            => GameConfigValidator.Validate(WithHeroBanner(shards: 5, kind: BannerKind.Hero, rarity: Rarity.Unique));
+
+        /// <summary>«Рідкісні» осколки унікального героя збрехали б гравцю й зламали б гарантію рідкісного.</summary>
+        [Theory]
+        [InlineData(null)]
+        [InlineData(BannerKind.Hero)]
+        public void Validate_ShouldRejectShards_WithARankOtherThanTheirHero(BannerKind? kind)
         {
             var error = Assert.Throws<InvalidOperationException>(() =>
-                GameConfigValidator.Validate(WithHeroBanner(shards: 5, kind: BannerKind.Hero, rarity: Rarity.Unique)));
+                GameConfigValidator.Validate(WithHeroBanner(shards: 5, kind, rarity: Rarity.Rare)));
 
             Assert.Contains("bundle", error.Message);
         }

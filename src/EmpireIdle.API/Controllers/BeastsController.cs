@@ -29,8 +29,10 @@ namespace EmpireIdle.API.Controllers
                 pen.Beasts.Select(b => new BeastResponse(
                     b.BeastKey, b.Rank, b.Level, b.Experience, b.ExperienceToNext, b.MaxLevel, b.TamedAt,
                     new BeastPassiveResponse(b.Passive.Effect, b.Passive.Bonus, b.Passive.DurationMinutes, b.Passive.CooldownMinutes,
-                        b.Passive.ActivationFood, b.Passive.ActiveUntil, b.Passive.CooldownUntil))).ToList(),
-                pen.Taming.Select(t => new BeastTamingResponse(t.BeastKey, t.MonsterKey, t.Chance, t.Misses, t.PityWins)).ToList()));
+                        b.Passive.ActivationFodder, b.Passive.ActiveUntil, b.Passive.CooldownUntil))).ToList(),
+                pen.Taming.Select(t => new BeastTamingResponse(t.BeastKey, t.MonsterKey, t.Chance, t.Misses, t.PityWins)).ToList(),
+                pen.FodderUpkeepPerHour,
+                pen.IsHungry));
         }
 
         /// <summary>Нагодувати звіра кормом: рівень росте до стелі рангу, зайвий корм лишається в інвентарі.</summary>

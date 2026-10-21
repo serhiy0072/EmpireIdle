@@ -1,3 +1,4 @@
+﻿using EmpireIdle.Application.Battles.Services;
 using EmpireIdle.Application.Catalog;
 using EmpireIdle.Application.Chat.Services;
 using EmpireIdle.Application.Clans.Services;
@@ -22,6 +23,7 @@ using EmpireIdle.Application.Scouting.Services;
 using EmpireIdle.Application.Shop.Services;
 using EmpireIdle.Application.Speedups.Services;
 using EmpireIdle.Application.Territory.Services;
+using EmpireIdle.Application.Tower.Services;
 using EmpireIdle.Domain.Events;
 using FluentValidation;
 using MediatR;
@@ -90,6 +92,7 @@ namespace EmpireIdle.Application
             services.AddScoped<VillageRelocator>();
             services.AddScoped<CityFallService>();
             services.AddScoped<HeroCombatants>();
+            services.AddScoped<GarrisonDefenders>();
             services.AddScoped<MonsterBattleService>();
             services.AddScoped<BeastTamer>();
             services.AddScoped<MarchTargetResolver>();
@@ -104,10 +107,13 @@ namespace EmpireIdle.Application
             services.AddScoped<IRewardGranter, EquipmentRewardGranter>();
             services.AddScoped<IRewardGranter, HeroExperienceRewardGranter>();
             services.AddScoped<IRewardGranter, HeroShardsRewardGranter>();
+            services.AddScoped<IRewardGranter, ArtifactRewardGranter>();
             services.AddScoped<RewardDispatcher>();
             services.AddScoped<LootboxOpener>();
             services.AddScoped<ShopCheckout>();
             services.AddScoped<DungeonTeamFactory>();
+            services.AddScoped<BattleSquadFactory>();
+            services.AddScoped<TowerBattle>();
             services.AddScoped<DungeonRewarder>();
             services.AddScoped<MarketGoods>();
             services.AddScoped<MarketDesk>();

@@ -2,6 +2,7 @@ using EmpireIdle.Application.Beasts.Queries;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.TestKit;
 using NSubstitute;
 
@@ -62,6 +63,22 @@ public class GetBeastPenQueryTests
         Assert.Equal((TestKeys.Beast, 1, 1, 0, 100, 10),
             (beast.BeastKey, beast.Rank, beast.Level, beast.Experience, beast.ExperienceToNext, beast.MaxLevel));
         Assert.Equal(1, view.Taming.Single().Misses);
+    }
+
+    /// <summary>Екран бачить, скільки корму за годину з'їдає звіринець: 100 за рівень, 100 за звіра, 10 за його рівень.</summary>
+    [Fact]
+    public async Task Handle_ShouldShowTheHourlyFodderUpkeep()
+    {
+        _catalog.Config.Beasts.FodderUpkeep = new BeastUpkeepConfig { PerPenLevelPerHour = 100, PerBeastPerHour = 100, PerBeastLevelPerHour = 10 };
+        GivenVillageWithPen();
+        var pen = new BeastPen(Guid.NewGuid(), PlayerId, 1, Now);
+        pen.ResolveTaming(TestKeys.Beast, rolled: true, pityWins: 10, capacity: 1, maxRank: 5, Now);
+        _pens.GetByPlayerReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(pen);
+
+        var view = await Handler().Handle(new GetBeastPenQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal(210, view.FodderUpkeepPerHour);
+        Assert.False(view.IsHungry);
     }
 
     /// <summary>

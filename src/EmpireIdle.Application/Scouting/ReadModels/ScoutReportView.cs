@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 
 namespace EmpireIdle.Application.Scouting.ReadModels
@@ -17,5 +18,12 @@ namespace EmpireIdle.Application.Scouting.ReadModels
         string Outcome,
         double? DefencePower,
         Dictionary<string, long> Lootable,
-        DateTime CreatedAt);
+        DateTime CreatedAt)
+    {
+        /// <summary>Одна проєкція на список звітів і на лист скриньки.</summary>
+        public static ScoutReportView From(ScoutReport report)
+            => new(report.Id, report.TargetType, report.TargetId, report.TargetName, report.X, report.Y,
+                report.Outcome.ToString(), report.DefencePower,
+                report.Resources.ToDictionary(x => x.ResourceType, x => x.Amount), report.CreatedAt);
+    }
 }

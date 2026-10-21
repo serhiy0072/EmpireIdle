@@ -36,7 +36,7 @@
           "X": 48.0,
           "Y": 12.0
         },
-        "StoresResources": [ "wood", "iron", "food" ],
+        "StoresResources": [ "wood", "iron", "food", "fodder" ],
         "Cost": [
           {
             "Resource": "wood",
@@ -211,16 +211,6 @@
         "UpgradeCostGrowth": 1.28
       },
       {
-        "Key": "lootshop",
-        "DisplayName": "Торгова лавка",
-        "Upgradable": false,
-        "RequiresMainBuildingLevel": 3,
-        "Position": {
-          "X": 68.0,
-          "Y": 26.0
-        }
-      },
-      {
         "Key": "hospital",
         "DisplayName": "Госпіталь",
         "RequiresMainBuildingLevel": 3,
@@ -247,10 +237,20 @@
         "UpgradeCostGrowth": 1.28
       },
       {
+        "Key": "messhall",
+        "DisplayName": "Їдальня",
+        "Upgradable": false,
+        "RequiresMainBuildingLevel": 4,
+        "Position": {
+          "X": 38.0,
+          "Y": 58.0
+        }
+      },
+      {
         "Key": "market",
         "DisplayName": "Ринок",
         "Upgradable": false,
-        "RequiresMainBuildingLevel": 4,
+        "RequiresMainBuildingLevel": 3,
         "Position": {
           "X": 68.0,
           "Y": 42.0
@@ -402,9 +402,9 @@
         ],
         "BaseBuildMinutes": 4,
         "BuildTimeGrowth": 1.30,
-        "ProducesResource": "food",
-        "BaseProductionPerMinute": 10,
-        "BaseStorage": 1800,
+        "ProducesResource": "fodder",
+        "BaseProductionPerMinute": 7,
+        "BaseStorage": 1260,
         "UpgradeCostGrowth": 1.28
       },
       {
@@ -422,7 +422,7 @@
             "Amount": 400
           },
           {
-            "Resource": "food",
+            "Resource": "fodder",
             "Amount": 300
           }
         ],

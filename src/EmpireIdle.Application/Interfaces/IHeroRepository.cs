@@ -49,11 +49,6 @@ namespace EmpireIdle.Application.Interfaces
         Task<List<Hero>> GetByGarrisonAsync(Guid garrisonId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Лідер цього гравця в цьому гарнізоні; null — слот вільний.
-        /// </summary>
-        Task<Hero?> GetLeaderAsync(Guid garrisonId, Guid playerId, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Чужі гарнізони, де стоять герої гравця. Потрібен відкликанню:
         /// герой без юнітів рядка в Reinforcements не лишає, і пошук
         /// контингенту по стеках його не знайшов би.

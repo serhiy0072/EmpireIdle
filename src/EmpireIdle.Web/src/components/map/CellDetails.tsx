@@ -9,7 +9,7 @@ import type {
 } from "../../lib/apiTypes";
 import { useBeastPen } from "../../lib/queries/beasts";
 import { useCatalog } from "../../lib/queries/catalog";
-import { MARCH_INTENT, MARCH_TARGET, useRecallCamp } from "../../lib/queries/marches";
+import { MARCH_INTENT, MARCH_STATE, MARCH_TARGET, useMarches, useRecallCamp } from "../../lib/queries/marches";
 import { useSendScout } from "../../lib/queries/scouting";
 import { usePlaceStructure } from "../../lib/queries/territory";
 import { isShieldActive, shieldUntilLabel } from "../../lib/shield";
@@ -39,12 +39,20 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
   const catalog = useCatalog();
   const place = usePlaceStructure(playerId);
   const scout = useSendScout(playerId);
+  const marches = useMarches(playerId);
   const recall = useRecallCamp(playerId);
   const now = useNow();
 
   const pen = useBeastPen(playerId);
 
   const occupant = cell.occupantType ?? null;
+
+  // Одна розвідка на ціль: поки розвідники йдуть туди, друга кнопка не потрібна (сервер усе одно відмовить)
+  const scoutOnTheWay = (targetId: string) =>
+    (marches.data ?? []).some(
+      (march) =>
+        march.intent === MARCH_INTENT.scout && march.state === MARCH_STATE.outbound && march.targetId === targetId,
+    );
 
   // Приручити можна, лише коли з цього монстра є звір і звіринець уже відкритий (GDD §5.10)
   const beast = occupant === "Monster" && cell.monsterType != null ? catalog.beastForMonster(cell.monsterType) : null;
@@ -167,10 +175,10 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
                     <button
                       type="button"
                       onClick={() => scout.mutate({ targetType: MARCH_TARGET.camp, targetId: camp.marchId })}
-                      disabled={scout.isPending}
+                      disabled={scout.isPending || scoutOnTheWay(camp.marchId)}
                       className="flex-1 rounded-lg border border-amber-400 bg-white px-3 py-1.5 font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
                     >
-                      Розвідати
+                      {scoutOnTheWay(camp.marchId) ? "Розвідники в дорозі" : "Розвідати"}
                     </button>
                   </div>
                 )}
@@ -237,10 +245,10 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
           <button
             type="button"
             onClick={() => scout.mutate({ targetType, targetId: cell.occupantId as string })}
-            disabled={scout.isPending}
+            disabled={scout.isPending || scoutOnTheWay(cell.occupantId)}
             className="w-full rounded-lg border border-amber-400 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
           >
-            {scout.isPending ? "Відправляємо…" : scout.isSuccess ? "Розвідники в дорозі" : "Розвідати"}
+            {scout.isPending ? "Відправляємо…" : scoutOnTheWay(cell.occupantId) ? "Розвідники в дорозі" : "Розвідати"}
           </button>
         </div>
       )}

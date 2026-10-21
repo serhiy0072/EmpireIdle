@@ -1,65 +1,38 @@
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
-using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Tests.Entities
 {
-    /// <summary>Проживання героя в гарнізоні й лідерський слот.</summary>
+    /// <summary>Проживання героя в гарнізоні: лідерського слота немає (рішення 15.10.2026), лише «стоїть» чи «йде».</summary>
     public class HeroGarrisonTests
     {
         private static readonly DateTime Now = new(2026, 9, 13, 12, 0, 0, DateTimeKind.Utc);
         private static readonly Guid Garrison = Guid.NewGuid();
 
-        private static Hero Stationed(bool asLeader)
-            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "archer_lyra", Garrison, asLeader, Now);
+        private static Hero Stationed()
+            => new(Guid.NewGuid(), Guid.NewGuid(), 1, "archer_lyra", Garrison, Now);
 
         [Fact]
-        public void Deploy_ShouldClearGarrisonAndLeadership()
+        public void Deploy_ShouldClearTheGarrison()
         {
-            var hero = Stationed(asLeader: true);
+            var hero = Stationed();
 
             hero.Deploy(Guid.NewGuid(), Now);
 
             Assert.Null(hero.StationedGarrisonId);
-            Assert.False(hero.IsLeader);
             Assert.Equal(HeroState.Deployed, hero.State);
         }
 
-        /// <summary>
-        /// Слот зайняли, поки герой ішов. Він повертається рядовим,
-        /// інакше на SaveChanges прилетіло б порушення індексу.
-        /// </summary>
         [Fact]
-        public void ReturnHome_ShouldNotRestoreLeadership_WhenTheSlotIsTaken()
+        public void Arrive_ShouldStationTheHero_AndFreeItForANewMarch()
         {
-            var hero = Stationed(asLeader: true);
+            var hero = Stationed();
             hero.Deploy(Guid.NewGuid(), Now);
 
-            hero.Arrive(Garrison, leaderSlotFree: false, Now);
+            hero.Arrive(Garrison, Now);
 
             Assert.Equal(Garrison, hero.StationedGarrisonId);
-            Assert.False(hero.IsLeader);
             Assert.True(hero.IsAvailable);
-        }
-
-        [Fact]
-        public void ReturnHome_ShouldRestoreLeadership_WhenTheSlotIsFree()
-        {
-            var hero = Stationed(asLeader: true);
-            hero.Deploy(Guid.NewGuid(), Now);
-
-            hero.Arrive(Garrison, leaderSlotFree: true, Now);
-
-            Assert.True(hero.IsLeader);
-        }
-
-        [Fact]
-        public void AppointLeader_ShouldThrow_WhenTheHeroIsOnTheMove()
-        {
-            var hero = Stationed(asLeader: false);
-            hero.Deploy(Guid.NewGuid(), Now);
-
-            Assert.Throws<InvalidStateException>(() => hero.AppointLeader(Now));
         }
     }
 }

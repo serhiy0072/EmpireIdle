@@ -113,6 +113,22 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(0, farm.StoredAt(configs[TestKit.TestKeys.Farm], at, ProductionBoost.None, 1.0));
         }
 
+        /// <summary>Автозбір переносить вироблене на склад і запам'ятовує момент — від нього рахується наступний.</summary>
+        [Fact]
+        public void AutoCollect_ShouldMoveTheBuffersToStorage_AndRememberWhen()
+        {
+            var configs = ConfigsWithFoggedMine();
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 2, resourceAmount: 1000);
+            village.AddBuilding(Mine, configs, TestKit.Entities.Now);
+            var at = TestKit.Entities.Now.AddMinutes(5);
+
+            var summary = village.AutoCollect(configs, at, ProductionBoost.None, 1.0);
+
+            Assert.Equal(50, summary.Collected[TestKit.TestKeys.Iron]);
+            Assert.Equal(1050, village.Resources.Single(r => r.ResourceType == TestKit.TestKeys.Iron).Amount);
+            Assert.Equal(at, village.AutoCollectedAt);
+        }
+
         /// <summary>Порожні буфери — порожній підсумок.</summary>
         [Fact]
         public void CollectAll_ShouldReportNothing_WhenTheBuffersAreEmpty()

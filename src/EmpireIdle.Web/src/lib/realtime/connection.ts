@@ -64,8 +64,8 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
     // Новий ворожий марш — на мапу; зруйнована споруда зникає з мапи й звільняє слот
     AttackIncoming: [queryKeys.incoming(playerId)],
     AttackCalledOff: [queryKeys.incoming(playerId)],
-    // Розвідники звітують на місці й назад не йдуть — марш зникає разом зі звітом
-    ScoutReportReady: [queryKeys.scoutReports(playerId), queryKeys.marches(playerId)],
+    // Звіт лягає листом у скриньку (лист приходить своєю подією), а розвідники розвертаються додому
+    ScoutReportReady: [queryKeys.marches(playerId)],
     StructureDestroyed: [queryKeys.territory(playerId), queryKeys.incoming(playerId), ["map"]],
   };
 

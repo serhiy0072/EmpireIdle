@@ -41,7 +41,7 @@ public class EquipBestHeroGearCommandTests
 
     private Hero GivenHero()
     {
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroTestConfig.CommonHero, GarrisonId, asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, HeroTestConfig.CommonHero, GarrisonId, Now);
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 
         return hero;
@@ -62,6 +62,30 @@ public class EquipBestHeroGearCommandTests
 
     private Task<int> QuickEquip(Hero hero)
         => Handler().Handle(new EquipBestHeroGearCommand(PlayerId, hero.Id), CancellationToken.None);
+
+    /// <summary>
+    /// Набір чужого класу автоекіп не бере навіть унікальним: вручну його не вдягнути, тож і тут —
+    /// правило одне для обох шляхів.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldSkipItemsOfAnotherClassSet()
+    {
+        var config = HeroTestConfig.Create();
+        config.Equipment.ArtifactSets.Add(new() { Key = "arcane", DisplayName = "Набір Чар", Class = "mage" });
+        config.Items.Add(new() { Key = "arcane_necklace_common", Type = "equipment", Slot = EquipmentSlot.Artifact, ArtifactSlot = "necklace", SetKey = "arcane_common" });
+        var catalog = new GameCatalog(config);
+        var handler = new EquipBestHeroGearCommandHandler(_heroes, _inventory, _unitOfWork, new FakeTimeProvider(Now),
+            new EquipmentFit(catalog), catalog, NullLogger<EquipBestHeroGearCommandHandler>.Instance);
+
+        var hero = GivenHero();
+        var own = GivenItem(HeroTestConfig.Artifact, Rarity.Common);
+        var foreign = GivenItem("arcane_necklace_common", Rarity.Unique);
+
+        await handler.Handle(new EquipBestHeroGearCommand(PlayerId, hero.Id), CancellationToken.None);
+
+        Assert.Equal(hero.Id, own.EquippedByHeroId);
+        Assert.Null(foreign.EquippedByHeroId);
+    }
 
     /// <summary>Порожній герой отримує артефакти — кожен у слот свого типу.</summary>
     [Fact]

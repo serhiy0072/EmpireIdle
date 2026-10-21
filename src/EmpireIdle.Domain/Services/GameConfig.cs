@@ -49,6 +49,12 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Данжі: покроковий бій, енергія, набори артефактів.</summary>
         public DungeonsConfig Dungeons { get; set; } = new();
 
+        /// <summary>Одномоментний бій арени й вежі: тики, формула захисту, перевага типів.</summary>
+        public RealtimeBattleConfig RealtimeBattle { get; set; } = new();
+
+        /// <summary>«Тисячна вежа»: крива ворога, склади, нагороди поверхів.</summary>
+        public TowerConfig Tower { get; set; } = new();
+
         /// <summary>Ринок гравців: податок, строки, коридор ціни.</summary>
         public MarketConfig Market { get; set; } = new();
 
@@ -85,8 +91,14 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Квести з Config/quests.json — усі гілки: intro, military, milestones, daily, server.</summary>
         public List<QuestConfig> Quests { get; set; } = new();
 
-        /// <summary>Ліміт армії на рівень будівлі, що гейтить юніта; марші й поранені не рахуються.</summary>
-        public int ArmyCapacityPerBarracksLevel { get; set; }
+        /// <summary>
+        /// Скільки юнітів свого типу вміщує будівля першого рівня (рішення 13.10.2026): у кожної будівлі юнітів
+        /// свій ліміт, що росте геометрично до UnitCapacityMax на MaxBuildingLevel. Марші й поранені не рахуються.
+        /// </summary>
+        public int UnitCapacityMin { get; set; } = 1500;
+
+        /// <summary>Місткість будівлі юнітів максимального рівня.</summary>
+        public int UnitCapacityMax { get; set; } = 300_000;
 
         /// <summary>Скільки рівнів будівель відкриває один рівень сервера.</summary>
         public int BuildingLevelsPerTier { get; set; } = 10;
@@ -117,5 +129,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Ключові скрині: безкоштовні відкриття на добу, понад них — ключ (рішення 12.10.2026).</summary>
         public List<KeyChestConfig> KeyChests { get; set; } = new();
+
+        /// <summary>Провізія: Їдальня їсть м'ясо, нестача — голод села (рішення 20.10.2026).</summary>
+        public ProvisionsConfig Provisions { get; set; } = new();
     }
 }

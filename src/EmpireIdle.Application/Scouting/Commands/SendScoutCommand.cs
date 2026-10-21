@@ -14,7 +14,8 @@ namespace EmpireIdle.Application.Scouting.Commands
 {
     /// <summary>
     /// Відправити розвідників на чуже село чи споруду клану. Досить мати вежу розвідки:
-    /// ні героя, ні юнітів, ні ліміту на кількість і дальність. Ціль бачить марш і ім'я.
+    /// ні героя, ні юнітів, ні ліміту на дальність. На одну ціль — одна розвідка в дорозі.
+    /// Ціль бачить марш і ім'я.
     /// </summary>
     public record SendScoutCommand(Guid PlayerId, MarchTargetType TargetType, Guid TargetId)
         : IRequest<Guid>, IPlayerScopedRequest, IIdempotentRequest;
@@ -93,6 +94,9 @@ namespace EmpireIdle.Application.Scouting.Commands
                 || (target.Structure is { } structure
                     && await _clanRepository.GetClanIdByMemberAsync(request.PlayerId, cancellationToken) == structure.ClanId))
                 throw new RequirementNotMetException(RefusalReasons.ScoutOwnTarget, "You cannot scout your own village or clan.");
+
+            if (await _marchRepository.HasOutboundScoutAsync(garrison.Id, request.TargetId, cancellationToken))
+                throw new InvalidStateException(RefusalReasons.ScoutAlreadyUnderway, "Scouts are already on their way to this target.");
 
             // Завіса діє вже зараз — розвідники нічого не побачать, тож і не йдуть
             if (await _visibility.IsHiddenAsync(target, now, cancellationToken))

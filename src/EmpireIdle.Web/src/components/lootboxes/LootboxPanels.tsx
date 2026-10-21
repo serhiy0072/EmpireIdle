@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { LootboxDrop } from "../../lib/apiTypes";
 import { useCatalog, type Catalog } from "../../lib/queries/catalog";
 import { rarityLabel } from "../../lib/rarity";
@@ -187,6 +187,27 @@ export function LootboxDrops({ drops, onClose, again, pending = false }: DropsPr
     else merged.set(id, { drop, amount: seen.amount + drop.amount, pity: seen.pity || drop.wasPity });
   }
 
+  return (
+    <RewardsWindow onClose={onClose} again={again} pending={pending}>
+      {[...merged.entries()].map(([id, { drop, amount, pity }]) => (
+        <DropTile key={id} drop={drop} amount={amount} pity={pity} />
+      ))}
+    </RewardsWindow>
+  );
+}
+
+interface WindowProps {
+  children: ReactNode;
+  onClose: () => void;
+  again?: DropsAgain;
+  pending?: boolean;
+}
+
+/**
+ * Рамка вікна нагород, спільна для скринь і банерів: сталий розмір, плитки прокручуються всередині,
+ * кнопка «ще раз» не стрибає. Клік будь-де поза кнопкою чи Esc закриває вікно.
+ */
+export function RewardsWindow({ children, onClose, again, pending = false }: WindowProps) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -210,9 +231,7 @@ export function LootboxDrops({ drops, onClose, again, pending = false }: DropsPr
 
         <div className={`mt-4 min-h-0 w-full flex-1 overflow-y-auto ${pending ? "opacity-40" : ""}`}>
           <div className="flex flex-wrap content-start justify-center gap-3">
-            {[...merged.entries()].map(([id, { drop, amount, pity }]) => (
-              <DropTile key={id} drop={drop} amount={amount} pity={pity} />
-            ))}
+            {children}
           </div>
         </div>
 

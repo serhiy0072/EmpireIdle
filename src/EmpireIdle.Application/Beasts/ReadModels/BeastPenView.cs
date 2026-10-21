@@ -4,7 +4,10 @@ namespace EmpireIdle.Application.Beasts.ReadModels
     /// <param name="Capacity">Скільки видів звірів вміщає; 0 — звіринець ще не відкритий.</param>
     /// <param name="Beasts">Приручені звірі.</param>
     /// <param name="Taming">Шанс і гарантія приручення для кожного типу звіра.</param>
-    public record BeastPenView(int Capacity, List<BeastView> Beasts, List<BeastTamingView> Taming);
+    /// <param name="FodderUpkeepPerHour">Скільки корму за годину з'їдає звіринець (рішення 13.10.2026, 20.10.2026).</param>
+    /// <param name="IsHungry">Остання оплата корму не вдалась: пасивки не активуються, доки корму знову не вистачить.</param>
+    public record BeastPenView(int Capacity, List<BeastView> Beasts, List<BeastTamingView> Taming,
+        int FodderUpkeepPerHour = 0, bool IsHungry = false);
 
     /// <param name="Experience">Досвід усередині поточного рівня.</param>
     /// <param name="ExperienceToNext">Скільки корму треба на наступний рівень.</param>
@@ -17,7 +20,7 @@ namespace EmpireIdle.Application.Beasts.ReadModels
     /// <param name="Bonus">Надбавка на нинішньому рівні: 0.15 — +15%.</param>
     /// <param name="ActiveUntil">До коли діє; null або минуле — не діє.</param>
     /// <param name="CooldownUntil">Коли знову можна активувати; null або минуле — готова.</param>
-    public record BeastPassiveView(string Effect, double Bonus, int DurationMinutes, int CooldownMinutes, int ActivationFood,
+    public record BeastPassiveView(string Effect, double Bonus, int DurationMinutes, int CooldownMinutes, int ActivationFodder,
         DateTime? ActiveUntil, DateTime? CooldownUntil);
 
     public record BeastActivatedView(string BeastKey, DateTime ActiveUntil, DateTime CooldownUntil);

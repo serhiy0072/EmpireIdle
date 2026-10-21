@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import type { EquipmentResponse, InventoryItemResponse } from "../../../lib/apiTypes";
 import { useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
-import { statLabel, statValue } from "../../../lib/statNames";
 import { GameButton, Tile } from "../../game/GameUi";
+import ArtifactHover from "../../inventory/ArtifactHover";
 import ItemIcon from "../../inventory/ItemIcon";
 import HeroPortrait from "../HeroPortrait";
+import EquipmentInfoModal from "./EquipmentInfoModal";
 import { WeaponDetails, WeaponSlot } from "./HeroWeapon";
 
 interface Props {
@@ -52,6 +52,8 @@ export default function HeroGearTab({
 }: Props) {
   const catalog = useCatalog();
   const [picked, setPicked] = useState<string | null>(null);
+  // Вдягнений предмет відкривається окремим вікном з прокачкою (референс 13.10.2026)
+  const [infoSlot, setInfoSlot] = useState<number | null>(null);
 
   const atHome = hero.stationedGarrisonId != null;
   const worn = equipment.filter((piece) => piece.equippedByHeroId === hero.id);
@@ -61,13 +63,32 @@ export default function HeroGearTab({
   const slotId = (slot: Slot) => String(slot.index);
   const wornIn = (slot: Slot) => worn.find((piece) => piece.slotIndex === slot.index) ?? null;
 
-  // Те саме правило, що EquipmentFit на сервері: вільне, ціле, не на ринку й придатне для слота
-  const candidatesFor = (slot: Slot) =>
+  // Те саме правило, що EquipmentFit на сервері: вільне, не на ринку, придатне для слота й свого класу
+  const freeFor = (slot: Slot) =>
     equipment
       .filter((piece) => piece.equippedByHeroId == null && !piece.isOnMarket)
       .filter((piece) => catalog.item(piece.itemKey)?.artifactSlot === slot.artifactKey);
+  const fitsClass = (piece: EquipmentResponse) => {
+    const setClass = catalog.setOfItem(piece.itemKey)?.class;
+    return setClass == null || setClass === config.class;
+  };
+  const candidatesFor = (slot: Slot) => freeFor(slot).filter(fitsClass);
+  // Набори інших класів цей герой не вдягне (рішення 15.10.2026) — лише кажемо, що вони є
+  const foreignFor = (slot: Slot) => freeFor(slot).filter((piece) => !fitsClass(piece)).length;
 
   const pickedSlot = slots.find((slot) => slotId(slot) === picked) ?? null;
+
+  // Вікно вдягненого гортає слоти по порядку; заміна лишає його на тому ж слоті
+  const wornBySlot = [...worn].sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0));
+  const stepSlot = (delta: number) => {
+    const index = wornBySlot.findIndex((piece) => piece.slotIndex === infoSlot);
+    const next = wornBySlot[(index + delta + wornBySlot.length) % wornBySlot.length];
+    if (next?.slotIndex != null) setInfoSlot(next.slotIndex);
+  };
+  const slotCandidates = (piece: EquipmentResponse) => {
+    const slot = slots.find((candidate) => candidate.index === piece.slotIndex);
+    return slot === undefined ? [] : candidatesFor(slot);
+  };
 
   const slotTile = (slot: Slot) => {
     const piece = wornIn(slot);
@@ -85,15 +106,20 @@ export default function HeroGearTab({
         {candidatesFor(slot).length > 0 && <span className="mt-0.5 h-2 w-2 rounded-full bg-emerald-400" />}
       </button>
     ) : (
-      <Tile
-        rarity={piece.rarity}
-        selected={picked === slotId(slot)}
-        onClick={() => setPicked(slotId(slot))}
-        title={catalog.itemName(piece.itemKey)}
-        top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
-      >
-        <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
-      </Tile>
+      <ArtifactHover artifact={piece} wornKeys={worn.map((item) => item.itemKey)}>
+        <Tile
+          rarity={piece.rarity}
+          selected={infoSlot === slot.index}
+          onClick={() => {
+            setPicked(null);
+            setInfoSlot(slot.index);
+          }}
+          top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+          bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
+        >
+          <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
+        </Tile>
+      </ArtifactHover>
     );
   };
 
@@ -129,84 +155,114 @@ export default function HeroGearTab({
 
       {picked === WEAPON && <WeaponDetails playerId={playerId} hero={hero} config={config} items={items} />}
 
-      {pickedSlot !== null && (
+      {infoSlot !== null && (
+        <EquipmentInfoModal
+          key={wornBySlot.find((piece) => piece.slotIndex === infoSlot)?.id}
+          playerId={playerId}
+          piece={wornBySlot.find((piece) => piece.slotIndex === infoSlot)}
+          wornKeys={worn.map((item) => item.itemKey)}
+          onStep={wornBySlot.length > 1 ? stepSlot : null}
+          actions={(piece, choose) => (
+            <>
+              <GameButton
+                onClick={() => {
+                  onUnequip(piece.id);
+                  setInfoSlot(null);
+                }}
+                disabled={busy || !atHome}
+                variant="accent"
+              >
+                Зняти
+              </GameButton>
+              <GameButton onClick={choose} disabled={busy || !atHome || slotCandidates(piece).length === 0}>
+                Замінити
+              </GameButton>
+            </>
+          )}
+          choice={{
+            title: "Замінити спорядження",
+            render: (piece, done) => (
+              <div className="grid grid-cols-5 gap-2">
+                {slotCandidates(piece).map((candidate) => (
+                  <Tile
+                    key={candidate.id}
+                    rarity={candidate.rarity}
+                    onClick={() => {
+                      onEquip(candidate.id);
+                      done();
+                    }}
+                    dimmed={busy}
+                    title={`Вдягнути: ${catalog.itemName(candidate.itemKey)} · ⚔ ${Math.round(candidate.power)}`}
+                    top={candidate.level > 0 ? `Рів. ${candidate.level}` : undefined}
+                    bottomRight={candidate.mastery > 0 ? `+${candidate.mastery}` : undefined}
+                  >
+                    <ItemIcon itemKey={candidate.itemKey} type="equipment" rarity={candidate.rarity} size={44} bare />
+                  </Tile>
+                ))}
+              </div>
+            ),
+          }}
+          note={!atHome && <p className="text-xs text-amber-700">Герой у поході: зняти чи замінити можна вдома, качати — вже зараз.</p>}
+          onClose={() => setInfoSlot(null)}
+        />
+      )}
+
+      {pickedSlot !== null && wornIn(pickedSlot) === null && (
         <SlotDetails
           slot={pickedSlot}
-          worn={wornIn(pickedSlot)}
           candidates={candidatesFor(pickedSlot)}
+          wornKeys={worn.map((item) => item.itemKey)}
+          foreign={foreignFor(pickedSlot)}
           disabled={busy || !atHome}
           onEquip={onEquip}
-          onUnequip={onUnequip}
         />
       )}
     </div>
   );
 }
 
+/** Порожній слот: вільне, що туди підходить. Вдягнене відкривається вікном EquipmentInfoModal. */
 function SlotDetails({
   slot,
-  worn,
   candidates,
+  wornKeys,
+  foreign,
   disabled,
   onEquip,
-  onUnequip,
 }: {
   slot: Slot;
-  worn: EquipmentResponse | null;
   candidates: EquipmentResponse[];
+  /** Вдягнене героєм — підказка показує, скільки предметів набору вже на ньому. */
+  wornKeys: string[];
+  /** Скільки вільних предметів цього слота — з наборів іншого класу. */
+  foreign: number;
   disabled: boolean;
   onEquip: (equipmentId: string) => void;
-  onUnequip: (equipmentId: string) => void;
 }) {
-  const catalog = useCatalog();
-
   return (
     <div className="space-y-3 rounded-xl bg-[#16305e]/80 p-3 ring-1 ring-[#335c9a]">
-      {worn !== null && (
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="font-semibold">
-              {catalog.itemName(worn.itemKey)}
-              {worn.level > 0 && <span className="text-amber-200"> · рів. {worn.level}</span>}
-              {worn.mastery > 0 && <span className="text-sky-200"> · майст. {worn.mastery}</span>}
-              <span className="text-amber-200"> · ⚔ {Math.round(worn.power).toLocaleString("uk-UA")}</span>
-              {worn.isBroken && <span className="text-rose-300"> · зламано</span>}
-            </p>
-            <p className="text-sm text-sky-100/90">
-              {Object.entries(worn.stats)
-                .map(([stat, value]) => `${statLabel(stat)} +${statValue(stat, value)}`)
-                .join(" · ")}
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1">
-            <GameButton onClick={() => onUnequip(worn.id)} disabled={disabled} variant="secondary">
-              Зняти
-            </GameButton>
-            <Link to={`/forge?item=${worn.id}`} className="text-xs text-sky-200 hover:underline">
-              {worn.isBroken ? "Відремонтувати →" : "Посилити →"}
-            </Link>
-          </div>
-        </div>
-      )}
-
       <p className="text-sm font-semibold">
         {slot.label}: {candidates.length === 0 ? "вільного спорядження немає" : "вільне, що підходить"}
       </p>
       {candidates.length > 0 && (
         <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
           {candidates.map((piece) => (
-            <Tile
-              key={piece.id}
-              rarity={piece.rarity}
-              onClick={() => onEquip(piece.id)}
-              dimmed={disabled}
-              title={`Вдягнути: ${catalog.itemName(piece.itemKey)}`}
-              top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
-            >
-              <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={44} bare />
-            </Tile>
+            <ArtifactHover key={piece.id} artifact={piece} wornKeys={wornKeys}>
+              <Tile
+                rarity={piece.rarity}
+                onClick={() => onEquip(piece.id)}
+                dimmed={disabled}
+                top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+                bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
+              >
+                <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={44} bare />
+              </Tile>
+            </ArtifactHover>
           ))}
         </div>
+      )}
+      {foreign > 0 && (
+        <p className="text-xs text-sky-200/80">Ще {foreign} — з наборів іншого класу: цей герой їх не вдягне.</p>
       )}
     </div>
   );

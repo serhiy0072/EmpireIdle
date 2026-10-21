@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
+import { GameButton } from "../components/game/GameUi";
 import BattleReportList from "../components/map/BattleReportList";
 import CellDetails from "../components/map/CellDetails";
 import type { MapMarch } from "../components/map/MarchAnimation";
 import MarchList from "../components/map/MarchList";
-import ScoutReportList from "../components/map/ScoutReportList";
 import SendMarchForm from "../components/map/SendMarchForm";
 import WorldMap from "../components/map/WorldMap";
 import { useSession } from "../hooks/useSession";
@@ -50,6 +50,7 @@ export default function MapPage() {
   const [selected, setSelected] = useState<{ x: number; y: number } | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
   const [homeRequest, setHomeRequest] = useState(0);
+  const [reports, setReports] = useState(false);
   const [focusRequest, setFocusRequest] = useState<{ x: number; y: number; n: number } | null>(null);
 
   // Тривога веде сюди з ?focus=x,y,<марш>: ціль у кадр і виділена. Ключ із маршем —
@@ -123,165 +124,213 @@ export default function MapPage() {
     home !== null &&
     Math.max(Math.abs(selected.x - home.x), Math.abs(selected.y - home.y)) > teleportRange;
 
-  return (
-    <div className="space-y-4">
-      {teleportKey !== null && (
-        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
-          <span className="text-sm text-emerald-900">
-            Переселення: оберіть вільну придатну клітину на мапі й підтвердіть у панелі праворуч.
-            {teleportHint !== null && ` ${teleportHint}`}
-          </span>
-          <button
-            type="button"
-            onClick={cancelTeleport}
-            className="rounded-lg border border-emerald-300 px-3 py-1 text-sm text-emerald-900 hover:bg-emerald-100"
-          >
-            Скасувати
-          </button>
+  const panelOpen = selected !== null;
+
+  // Вікно дій над обраною клітиною: його ставить і веде за клітиною сама мапа
+  const cellPanel = !panelOpen ? null : (
+    <>
+      <button
+        type="button"
+        aria-label="Закрити"
+        onClick={() => {
+          setSelected(null);
+          setTarget(null);
+        }}
+        className="absolute right-2 top-1.5 z-10 text-lg font-bold text-slate-500 hover:text-slate-800"
+      >
+        ✕
+      </button>
+      {cell.isPending ? (
+        <p className="p-4 text-sm text-slate-500">Дивимось…</p>
+      ) : cell.isError ? (
+        <div className="p-4">
+          <ErrorBanner error={cell.error} />
         </div>
+      ) : teleportKey !== null ? (
+        <div className="space-y-3 rounded-xl border border-emerald-300 bg-white p-4">
+          <div className="flex items-baseline justify-between gap-2">
+            <h3 className="font-medium text-slate-800">Переселитися сюди?</h3>
+            <span className="text-xs text-slate-500">
+              ({cell.data.x}, {cell.data.y})
+            </span>
+          </div>
+          {/* Придатність вирішує сервер, але очевидне кажемо одразу: вода й зайняте не підходять */}
+          {!cell.data.habitable ? (
+            <p className="text-sm text-amber-800">Тут не оселитись — оберіть рівнину, ліс або гори.</p>
+          ) : cell.data.occupantType != null ? (
+            <p className="text-sm text-amber-800">Клітина зайнята — оберіть вільну.</p>
+          ) : tooFar ? (
+            <p className="text-sm text-amber-800">
+              Задалеко: цей телепорт дістає не далі {teleportItem?.teleportRange} клітин від поселення.
+            </p>
+          ) : (
+            <p className="text-sm text-slate-600">
+              Село переїде разом із гарнізоном; усі ваші війська — з походів, таборів і підкріплень у союзників —
+              одразу будуть удома.
+            </p>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                teleport.mutate(
+                  { itemKey: teleportKey, count: 1, targetX: cell.data.x, targetY: cell.data.y },
+                  { onSuccess: () => {
+                    cancelTeleport();
+                    setView(null);
+                    setHomeRequest((value) => value + 1);
+                  } },
+                )
+              }
+              disabled={teleport.isPending || !cell.data.habitable || cell.data.occupantType != null || tooFar}
+              className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              Переселитися
+            </button>
+            <button type="button" onClick={cancelTeleport} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
+              Скасувати
+            </button>
+          </div>
+        </div>
+      ) : (
+        <CellDetails
+          // Своя кнопка розвідки на кожну клітину: стан «в дорозі» не має переїжджати на сусідню
+          key={`${cell.data.x}:${cell.data.y}`}
+          playerId={playerId}
+          cell={cell.data}
+          isHome={isHome}
+          territory={territory.data}
+          threats={(incoming.data ?? []).filter((a) => a.targetX === cell.data.x && a.targetY === cell.data.y)}
+          camps={(area.data?.camps ?? []).filter((c) => c.x === cell.data.x && c.y === cell.data.y)}
+          onMarch={setTarget}
+        />
+      )}
+    </>
+  );
+
+  return (
+    // Мапа — на весь екран; панелі лежать поверх поля, як HUD гри
+    <div className="relative h-full">
+      {area.data === undefined || home === null || effectiveView === null ? (
+        area.isError ? (
+          <div className="p-4">
+            <ErrorBanner error={area.error} />
+          </div>
+        ) : (
+          <div className="h-full w-full animate-pulse bg-[#bfd9a0]" />
+        )
+      ) : (
+        <WorldMap
+          area={area.data}
+          home={home}
+          view={effectiveView}
+          marches={mapMarches}
+          selected={selected}
+          homeRequest={homeRequest}
+          focusRequest={focusRequest}
+          mapSize={catalog.mapSize}
+          ownClanId={myClan.data?.id ?? null}
+          coverageRadius={territory.data?.enabled === true ? territory.data.radius : 0}
+          playerId={playerId}
+          onSelect={(x, y) => {
+            setSelected({ x, y });
+            setTarget(null);
+          }}
+          popup={cellPanel}
+          onViewChange={changeView}
+        />
       )}
 
-      <ErrorBanner error={teleport.error} />
-
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Мапа</h1>
-        <div className="flex items-center gap-2 text-sm">
-          {home !== null && (
-            <span className="text-xs text-slate-500">
-              ({home.x}, {home.y}) · тягніть, щоб рухатись, колесо — масштаб
-            </span>
-          )}
-          <button
-            type="button"
+      <div className="pointer-events-none absolute inset-x-3 top-3 flex flex-wrap items-start gap-2">
+        <h1 className="rounded-xl bg-gradient-to-b from-[#24467f] to-[#16305e] px-4 py-1.5 text-base font-semibold text-white shadow-lg ring-2 ring-[#5b85c4] [text-shadow:0_1px_1px_#0008]">
+          Мапа світу
+          {home !== null && <span className="ml-2 text-xs font-normal text-sky-200">ваше село ({home.x}, {home.y})</span>}
+        </h1>
+        <div className="flex-1" />
+        <div className="pointer-events-auto flex gap-2">
+          <span data-tutorial="reports">
+            <GameButton onClick={() => setReports(true)} variant="secondary">
+              Звіти
+            </GameButton>
+          </span>
+          <GameButton
             onClick={() => {
               setView(null);
               setHomeRequest((value) => value + 1);
             }}
-            className="rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-100"
           >
             Додому
-          </button>
+          </GameButton>
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <div>
-          {area.data === undefined || home === null || effectiveView === null ? (
-            area.isError ? (
-              <ErrorBanner error={area.error} />
-            ) : (
-              <div className="aspect-square w-full animate-pulse rounded-xl bg-slate-200 lg:aspect-auto lg:h-[640px]" />
-            )
-          ) : (
-            <WorldMap
-              area={area.data}
-              home={home}
-              view={effectiveView}
-              marches={mapMarches}
-              selected={selected}
-              homeRequest={homeRequest}
-              focusRequest={focusRequest}
-              mapSize={catalog.mapSize}
-              ownClanId={myClan.data?.id ?? null}
-              coverageRadius={territory.data?.enabled === true ? territory.data.radius : 0}
-              playerId={playerId}
-              onSelect={(x, y) => {
-                setSelected({ x, y });
-                setTarget(null);
-              }}
-              onViewChange={changeView}
-            />
-          )}
-        </div>
+      <div className="absolute left-3 top-16 w-[min(28rem,calc(100%-1.5rem))] space-y-2">
+        {teleportKey !== null && (
+          <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50/95 px-4 py-3 shadow-lg">
+            <span className="text-sm text-emerald-900">
+              Переселення: оберіть вільну придатну клітину на мапі й підтвердіть у вікні біля неї.
+              {teleportHint !== null && ` ${teleportHint}`}
+            </span>
+            <button
+              type="button"
+              onClick={cancelTeleport}
+              className="rounded-lg border border-emerald-300 px-3 py-1 text-sm text-emerald-900 hover:bg-emerald-100"
+            >
+              Скасувати
+            </button>
+          </div>
+        )}
+        <ErrorBanner error={teleport.error} />
+      </div>
 
-        <div className="space-y-4">
-          {target !== null ? (
-            <SendMarchForm playerId={playerId} target={target} onSent={() => setTarget(null)} onCancel={() => setTarget(null)} />
-          ) : selected === null ? (
-            <p className="text-sm text-slate-500">
-              Оберіть клітину на мапі: рогата істота — монстр, синій дах — чуже село, червоний з прапором — ваше,
-              вежа — споруда клану (зелена — вашого, фіолетова — чужого), намет — табір армії (жовтий — ваш).
-            </p>
-          ) : cell.isPending ? (
-            <p className="text-sm text-slate-500">Дивимось…</p>
-          ) : cell.isError ? (
-            <ErrorBanner error={cell.error} />
-          ) : teleportKey !== null ? (
-            <div className="space-y-3 rounded-xl border border-emerald-300 bg-white p-4">
-              <div className="flex items-baseline justify-between gap-2">
-                <h3 className="font-medium text-slate-800">Переселитися сюди?</h3>
-                <span className="text-xs text-slate-500">
-                  ({cell.data.x}, {cell.data.y})
-                </span>
-              </div>
-              {/* Придатність вирішує сервер, але очевидне кажемо одразу: вода й зайняте не підходять */}
-              {!cell.data.habitable ? (
-                <p className="text-sm text-amber-800">Тут не оселитись — оберіть рівнину, ліс або гори.</p>
-              ) : cell.data.occupantType != null ? (
-                <p className="text-sm text-amber-800">Клітина зайнята — оберіть вільну.</p>
-              ) : tooFar ? (
-                <p className="text-sm text-amber-800">
-                  Задалеко: цей телепорт дістає не далі {teleportItem?.teleportRange} клітин від поселення.
-                </p>
-              ) : (
-                <p className="text-sm text-slate-600">
-                  Село переїде разом із гарнізоном; усі ваші війська — з походів, таборів і підкріплень у союзників —
-                  одразу будуть удома.
-                </p>
-              )}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    teleport.mutate(
-                      { itemKey: teleportKey, count: 1, targetX: cell.data.x, targetY: cell.data.y },
-                      { onSuccess: () => {
-                        cancelTeleport();
-                        setView(null);
-                        setHomeRequest((value) => value + 1);
-                      } },
-                    )
-                  }
-                  disabled={teleport.isPending || !cell.data.habitable || cell.data.occupantType != null || tooFar}
-                  className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  Переселитися
-                </button>
-                <button type="button" onClick={cancelTeleport} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
-                  Скасувати
-                </button>
-              </div>
-            </div>
-          ) : (
-            <CellDetails
-              // Своя кнопка розвідки на кожну клітину: стан «в дорозі» не має переїжджати на сусідню
-              key={`${cell.data.x}:${cell.data.y}`}
-              playerId={playerId}
-              cell={cell.data}
-              isHome={isHome}
-              territory={territory.data}
-              threats={(incoming.data ?? []).filter((a) => a.targetX === cell.data.x && a.targetY === cell.data.y)}
-              camps={(area.data?.camps ?? []).filter((c) => c.x === cell.data.x && c.y === cell.data.y)}
-              onMarch={setTarget}
-            />
-          )}
-
-          <section className="space-y-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Походи</h2>
+      {/* Права панель: походи; на вузькому екрані — знизу */}
+      <aside className="pointer-events-none absolute inset-x-3 bottom-3 flex max-h-[60%] flex-col gap-2 sm:inset-x-auto sm:right-3 sm:top-16 sm:max-h-none sm:w-80">
+        {(marches.data?.length ?? 0) > 0 || marches.isError ? (
+          <section className="pointer-events-auto space-y-2 rounded-xl bg-white/95 p-3 shadow-2xl ring-2 ring-[#5b85c4]">
+            <h2 className="text-sm font-semibold text-slate-800">Походи</h2>
             {marches.isError ? <ErrorBanner error={marches.error} /> : <MarchList playerId={playerId} marches={marches.data ?? []} />}
           </section>
+        ) : (
+          !panelOpen && (
+            <p className="rounded-xl bg-[#1d3b6f]/90 px-3 py-2 text-xs text-sky-100 shadow-lg ring-1 ring-[#5b85c4]">
+              Торкніться клітини: монстр, село, вежа клану чи намет табору — і тут з’являться дії.
+            </p>
+          )
+        )}
+      </aside>
+
+      {target !== null && (
+        <SendMarchForm playerId={playerId} target={target} onSent={() => setTarget(null)} onCancel={() => setTarget(null)} />
+      )}
+
+      {reports && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Звіти"
+          onClick={() => setReports(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4"
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-sky-50 text-slate-800 shadow-2xl ring-2 ring-sky-300"
+          >
+            <div className="flex items-center gap-2 bg-gradient-to-b from-sky-500 to-sky-600 px-4 py-2 text-white">
+              <h2 className="flex-1 text-center text-lg font-semibold">Звіти</h2>
+              <button type="button" aria-label="Закрити" onClick={() => setReports(false)} className="text-xl font-bold hover:text-sky-100">
+                ✕
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+              {/* Звіти розвідки лежать у скриньці — тут лише бої */}
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">Бої</h3>
+                <BattleReportList playerId={playerId} />
+              </section>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Звіти розвідки</h2>
-        <ScoutReportList playerId={playerId} />
-      </section>
-
-      <section className="space-y-2" data-tutorial="reports">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Звіти боїв</h2>
-        <BattleReportList playerId={playerId} />
-      </section>
+      )}
     </div>
   );
 }

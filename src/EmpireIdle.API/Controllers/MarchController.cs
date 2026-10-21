@@ -36,8 +36,7 @@ namespace EmpireIdle.API.Controllers
                 .Select(m => new MarchResponse(
                     m.Id, m.TargetType, m.TargetId, m.TargetName, m.TargetLevel, m.TargetX, m.TargetY, m.Intent, m.State,
                     m.HeroIds, m.DepartedAt, m.LegStartedAt, m.ArrivesAt,
-                    m.Units.Select(u => new MarchUnitResponse(u.UnitType, u.Level, u.Count)).ToList(),
-                    m.SpeedUpCostGems))
+                    m.Units.Select(u => new MarchUnitResponse(u.UnitType, u.Level, u.Count)).ToList()))
                 .ToList();
 
             return Ok(response);
@@ -108,15 +107,16 @@ namespace EmpireIdle.API.Controllers
 
 
         /// <summary>
-        /// Миттєво завершити переміщення армії за gems. Бій відбудеться
-        /// найближчим проходом сканера.
+        /// Прискорити марш за gems: зрізати обраний відсоток залишку дороги (50/75/90 — варіанти каталогу).
+        /// Бій відбудеться найближчим проходом сканера.
         /// </summary>
         [HttpPost("{playerId:guid}/{marchId:guid}/speedup")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> SpeedUpMarch(Guid playerId, Guid marchId, CancellationToken cancellationToken)
+        public async Task<IActionResult> SpeedUpMarch(Guid playerId, Guid marchId, [FromBody] SpeedUpMarchRequest request,
+            CancellationToken cancellationToken)
         {
-            await _mediator.Send(new SpeedUpMarchCommand(playerId, marchId), cancellationToken);
+            await _mediator.Send(new SpeedUpMarchCommand(playerId, marchId, request.Percent), cancellationToken);
             return NoContent();
         }
 

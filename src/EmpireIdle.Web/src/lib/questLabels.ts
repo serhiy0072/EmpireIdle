@@ -1,5 +1,6 @@
 import type { QuestObjectiveView, RewardConfig } from "./apiTypes";
 import type { Catalog } from "./queries/catalog";
+import { rarityLabel } from "./rarity";
 
 /**
  * Текст цілі з її типу й цілі. Тип — ім'я доменної події на беку
@@ -45,6 +46,11 @@ export function rewardLabel(reward: RewardConfig, catalog: Catalog): string {
     case "Equipment":
     case "Item":
       return reward.amount > 1 ? `${catalog.itemName(key)} ×${amount}` : catalog.itemName(key);
+    case "HeroExperience":
+      return `${amount} досвіду героям`;
+    case "Artifact":
+      // Випадковий артефакт рідкості: «Рідкісний артефакт ×2»
+      return reward.amount > 1 ? `${rarityLabel(key)} артефакт ×${amount}` : `${rarityLabel(key)} артефакт`;
     default:
       return `${reward.type} ${key} ×${amount}`;
   }

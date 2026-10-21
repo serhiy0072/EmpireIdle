@@ -43,12 +43,31 @@ function distance(a: { x: number; y: number }, b: { x: number; y: number }): num
  * зсувом, без перерахунку одиниць. Тягання не плутається з тапом —
  * після зсуву понад поріг wasDragged() гасить клік по будівлі.
  */
+/** Скільки після останнього руху камера ще вважається «в русі». */
+const SETTLE_MS = 700;
+
 export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world: Bounds, limits: ZoomLimits = DEFAULT_ZOOM) {
   const [transform, setTransform] = useState<Transform | null>(null);
   const fitScale = useRef(1);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const moved = useRef(0);
   const dragged = useRef(false);
+  // Камера щойно рухалась: підписи будівель видно під час руху й трохи після, далі гаснуть
+  const [moving, setMoving] = useState(false);
+  const settle = useRef<number | null>(null);
+
+  const nudge = useCallback(() => {
+    setMoving(true);
+    if (settle.current !== null) window.clearTimeout(settle.current);
+    settle.current = window.setTimeout(() => setMoving(false), SETTLE_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (settle.current !== null) window.clearTimeout(settle.current);
+    },
+    [],
+  );
 
   /** Трансформ, за якого bounds вписані в контейнер; null — контейнер ще без розміру. */
   const fitted = useCallback(
@@ -118,6 +137,7 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
 
   const zoomAt = useCallback(
     (px: number, py: number, factor: number) => {
+      nudge();
       setTransform((t) => {
         if (t === null) return t;
 
@@ -133,7 +153,7 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
         return clamp({ k, x: px - (px - t.x) * ratio, y: py - (py - t.y) * ratio });
       });
     },
-    [containerRef, limits, clamp],
+    [containerRef, limits, clamp, nudge],
   );
 
   const local = (event: { clientX: number; clientY: number }) => {
@@ -169,6 +189,7 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
           containerRef.current?.setPointerCapture(event.pointerId);
         }
 
+        nudge();
         setTransform((t) => (t === null ? t : clamp({ ...t, x: t.x + dx, y: t.y + dy })));
       }
     } else if (pointers.current.size === 2) {
@@ -214,5 +235,7 @@ export function usePanZoom(containerRef: RefObject<HTMLDivElement | null>, world
     handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp },
     wasDragged: () => dragged.current,
     focus,
+    /** Камера рухається (тягнуть чи зумлять) — або зупинилась менш ніж SETTLE_MS тому. */
+    moving,
   };
 }

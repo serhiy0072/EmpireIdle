@@ -129,7 +129,7 @@ namespace EmpireIdle.Domain.Tests.Entities
             var item = Artifact();
             item.ApplyMasteryRank(2, "CritChance", 1, Now);
 
-            Assert.Throws<InvalidStateException>(() => item.ApplyMasteryRank(2, "AttackSpeed", 2, Now));
+            Assert.Throws<InvalidStateException>(() => item.ApplyMasteryRank(2, "AttackSpeed", 5, Now));
             Assert.Equal(1, item.Mastery);
         }
 

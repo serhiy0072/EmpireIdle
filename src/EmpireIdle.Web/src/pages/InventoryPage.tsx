@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
-import { GamePanel, GameScreen, GameTabs, Tile, TileGrid, type GameTab } from "../components/game/GameUi";
+import { GameButton, GamePanel, GameScreen, GameTabs, Tile, TileGrid, type GameTab } from "../components/game/GameUi";
 import HeroPortrait from "../components/heroes/HeroPortrait";
+import EquipmentInfoModal from "../components/heroes/screen/EquipmentInfoModal";
 import ActiveEffects from "../components/inventory/ActiveEffects";
-import EquipmentCard from "../components/inventory/EquipmentCard";
 import ItemCard from "../components/inventory/ItemCard";
+import ArtifactHover from "../components/inventory/ArtifactHover";
 import ItemIcon from "../components/inventory/ItemIcon";
 import LootboxCard from "../components/lootboxes/LootboxCard";
 import { LootboxDrops, WeaponChestContents } from "../components/lootboxes/LootboxPanels";
@@ -118,6 +119,25 @@ export default function InventoryPage() {
   const pickedItem = tab === "equipment" ? null : (shown.find((item) => item.itemKey === selected) ?? null);
   const pickedEquipment = tab === "equipment" ? (equipment.find((piece) => piece.id === selected) ?? null) : null;
 
+  // Вдягнене тим самим героєм — для лічильника набору
+  const wornKeysOf = (piece: EquipmentResponse) =>
+    piece.equippedByHeroId == null
+      ? []
+      : equipment.filter((other) => other.equippedByHeroId === piece.equippedByHeroId).map((other) => other.itemKey);
+
+  // Переодягаються лише вдома; набір — лише для свого класу (рішення 15.10.2026)
+  const wearersFor = (piece: EquipmentResponse) => {
+    const setClass = catalog.setOfItem(piece.itemKey)?.class;
+    return roster.filter((hero) => hero.stationedGarrisonId != null && (setClass == null || catalog.hero(hero.heroKey)?.class === setClass));
+  };
+
+  // Стрілки вікна гортають рюкзак у порядку сітки
+  const stepEquipment = (delta: number) => {
+    const index = equipment.findIndex((piece) => piece.id === selected);
+    const next = equipment[(index + delta + equipment.length) % equipment.length];
+    if (next !== undefined) select({ item: next.id });
+  };
+
   return (
     <div className="space-y-3">
       <GameScreen
@@ -143,13 +163,13 @@ export default function InventoryPage() {
                   const wearerConfig = wearer === undefined ? null : catalog.hero(wearer.heroKey);
 
                   return (
+                    <ArtifactHover key={piece.id} artifact={piece} wornKeys={wornKeysOf(piece)}>
                     <Tile
-                      key={piece.id}
                       rarity={piece.rarity}
                       selected={piece.id === selected}
                       onClick={() => select({ item: piece.id })}
-                      title={catalog.itemName(piece.itemKey)}
                       top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+                      bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
                       bottomLeft={
                         wearer === undefined ? undefined : (
                           <HeroPortrait
@@ -165,6 +185,7 @@ export default function InventoryPage() {
                     >
                       <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
                     </Tile>
+                    </ArtifactHover>
                   );
                 })}
               </TileGrid>
@@ -233,17 +254,63 @@ export default function InventoryPage() {
       )}
 
       {pickedEquipment !== null && (
-        // Сітка спорядження довга: картка обраного з'являється під нею — докручуємо до неї,
-        // інакше клік виглядав би без відповіді. key — щоб докрутка спрацьовувала на кожен вибір
-        <div key={pickedEquipment.id} ref={(node) => node?.scrollIntoView({ behavior: "smooth", block: "nearest" })}>
-          <EquipmentCard
-            equipment={pickedEquipment}
-            heroes={roster}
-            busy={busy}
-            onEquip={(heroId) => equip.mutate({ heroId, equipmentId: pickedEquipment.id })}
-            onUnequip={() => unequip.mutate(pickedEquipment.id)}
-          />
-        </div>
+        <EquipmentInfoModal
+          key={pickedEquipment.id}
+          playerId={playerId}
+          piece={pickedEquipment}
+          wornKeys={wornKeysOf(pickedEquipment)}
+          onStep={equipment.length > 1 ? stepEquipment : null}
+          actions={(piece, choose) =>
+            piece.isOnMarket ? (
+              <Link to="/market?tab=mine" className="text-xs text-amber-700 hover:underline">
+                До своїх лотів
+              </Link>
+            ) : piece.equippedByHeroId != null ? (
+              <GameButton onClick={() => unequip.mutate(piece.id)} disabled={busy} variant="accent">
+                Зняти
+              </GameButton>
+            ) : (
+              <GameButton onClick={choose} disabled={busy || wearersFor(piece).length === 0}>
+                Одягнути
+              </GameButton>
+            )
+          }
+          choice={{
+            title: "Кому вдягнути",
+            render: (piece, done) => (
+              <div className="space-y-2">
+                {catalog.artifactSlotName(piece.itemKey) !== null && (
+                  <p className="text-xs text-slate-600">
+                    Замінить те, що в слоті «{catalog.artifactSlotName(piece.itemKey)?.toLowerCase()}».
+                  </p>
+                )}
+                <div className="grid grid-cols-4 gap-2">
+                  {wearersFor(piece).map((hero) => {
+                    const config = catalog.hero(hero.heroKey);
+
+                    return (
+                      <button
+                        key={hero.id}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          equip.mutate({ heroId: hero.id, equipmentId: piece.id });
+                          done();
+                        }}
+                        className="flex flex-col items-center gap-1 rounded-lg p-1 text-xs hover:bg-sky-100 disabled:opacity-50"
+                      >
+                        <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={56} />
+                        <span className="w-full truncate text-center">{catalog.heroName(hero.heroKey)}</span>
+                        <span className="text-slate-500">{hero.level} рів.</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ),
+          }}
+          onClose={() => select({ item: null })}
+        />
       )}
     </div>
   );

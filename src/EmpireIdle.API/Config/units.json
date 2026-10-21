@@ -11,10 +11,12 @@
             "Amount": 15
           }
         ],
-        "BaseTrainMinutes": 2,
+        "BaseTrainSeconds": 4,
+        "TrainTimeGrowth": 1.0875,
         "Stats": {
           "Attack": 8,
           "Defense": 12,
+          "Health": 12,
           "Speed": 4,
           "CarryCapacity": 40
         },
@@ -35,10 +37,12 @@
             "Amount": 10
           }
         ],
-        "BaseTrainMinutes": 3,
+        "BaseTrainSeconds": 4,
+        "TrainTimeGrowth": 1.0875,
         "Stats": {
           "Attack": 12,
           "Defense": 6,
+          "Health": 7,
           "Speed": 4,
           "CarryCapacity": 20
         },
@@ -59,10 +63,12 @@
             "Amount": 5
           }
         ],
-        "BaseTrainMinutes": 3,
+        "BaseTrainSeconds": 4,
+        "TrainTimeGrowth": 1.0875,
         "Stats": {
           "Attack": 12,
           "Defense": 10,
+          "Health": 10,
           "Speed": 4,
           "CarryCapacity": 40
         },

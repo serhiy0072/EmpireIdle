@@ -72,7 +72,7 @@ public class GetBattlePreviewQueryTests
         _serverContext.ServerId.Returns(1);
 
         var targets = new MarchTargetResolver(
-            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, catalog,
+            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, TestCombatants.WithoutGear(catalog), TestCombatants.Defenders(_heroes, catalog), catalog,
             new VillageStatus(catalog), Substitute.For<IClanStructureRepository>(), Substitute.For<IClanRepository>(),
             new ClanTerritoryRules(catalog), Substitute.For<IMarchRepository>(), TestEffects.Resolver(_effects));
 
@@ -92,7 +92,7 @@ public class GetBattlePreviewQueryTests
         garrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, Now);
 
         var monster = new Monster(Guid.NewGuid(), 1, "wolves", 1, 55, 55, Now);
-        var hero = new Hero(Guid.NewGuid(), heroOwnerId, 1, "warrior_bran", Guid.NewGuid(), asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), heroOwnerId, 1, "warrior_bran", Guid.NewGuid(), Now);
 
         _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdReadOnlyAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);

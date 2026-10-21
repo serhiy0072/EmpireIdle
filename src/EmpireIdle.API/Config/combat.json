@@ -14,7 +14,7 @@
       "NewbieShieldTownHallLevel": 3,
       "Scouting": {
         "RequiredBuilding": "scouttower",
-        "Speed": 24.0
+        "Speed": 240.0
       },
       "CityFall": {
         "Enabled": true,

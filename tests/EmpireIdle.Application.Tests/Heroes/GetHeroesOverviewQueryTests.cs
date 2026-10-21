@@ -77,6 +77,26 @@ public class GetHeroesOverviewQueryTests
         Assert.Equal(bareView.Power + 40, armedView.Power, 3);
     }
 
+    /// <summary>
+    /// Боронить село найсильніший кожного класу (рішення 15.10.2026), хоч і в марші: слабший воїн —
+    /// ні, маг — так, бо він один свого класу.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldMarkTheStrongestHeroOfEachClass_AsADefender()
+    {
+        var strong = TestKit.Entities.Hero(HeroTestConfig.CommonHero, PlayerId, level: 5);
+        strong.Deploy(Guid.NewGuid(), Now);
+        var weak = TestKit.Entities.Hero(HeroTestConfig.CommonHero, PlayerId, level: 1);
+        var mage = TestKit.Entities.Hero(HeroTestConfig.UniqueHero, PlayerId);
+        _roster.AddRange([weak, strong, mage]);
+
+        var views = (await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None)).Heroes;
+
+        Assert.True(views.Single(v => v.Id == strong.Id).IsDefender);
+        Assert.False(views.Single(v => v.Id == weak.Id).IsDefender);
+        Assert.True(views.Single(v => v.Id == mage.Id).IsDefender);
+    }
+
     /// <summary>Конвої — за рівнем героя, місткість — конвої × розмір конвою.</summary>
     [Fact]
     public async Task Handle_ShouldReportConvoys_ConsistentWithCapacity()

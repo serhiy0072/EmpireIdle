@@ -16,7 +16,6 @@ namespace EmpireIdle.Application.Marches.Services
     {
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IVillageRepository _villageRepository;
-        private readonly IHeroRepository _heroRepository;
         private readonly MarchLogistics _logistics;
         private readonly ReinforcementRules _rules;
         private readonly VillageCapacities _capacities;
@@ -25,7 +24,6 @@ namespace EmpireIdle.Application.Marches.Services
         public ReinforcementDelivery(
             IGarrisonRepository garrisonRepository,
             IVillageRepository villageRepository,
-            IHeroRepository heroRepository,
             MarchLogistics logistics,
             ReinforcementRules rules,
             VillageCapacities capacities,
@@ -33,7 +31,6 @@ namespace EmpireIdle.Application.Marches.Services
         {
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
-            _heroRepository = heroRepository;
             _logistics = logistics;
             _rules = rules;
             _capacities = capacities;
@@ -94,19 +91,8 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Герої лишаються завжди, навіть коли не влізло нічого: вони не
             // займають слота посольства, і саме вони тримають бонус над своїми конвоями
-            var leaderTaken = false;
-
-            // Найсильніший — першим: вільний слот лідера дістається йому
             foreach (var hero in await _logistics.HeroesOnMarchAsync(march, cancellationToken))
-            {
-                // Лідерство рахується в межах власника: у господаря свій
-                // лідер, у кожного союзника свій над своїм стеком
-                var leaderFree = !leaderTaken
-                    && await _heroRepository.GetLeaderAsync(targetGarrison.Id, hero.PlayerId, cancellationToken) is null;
-
-                hero.Arrive(targetGarrison.Id, leaderSlotFree: leaderFree, utcNow);
-                leaderTaken |= leaderFree;
-            }
+                hero.Arrive(targetGarrison.Id, utcNow);
 
             if (rejected.Count > 0)
             {

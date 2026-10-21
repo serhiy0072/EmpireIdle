@@ -1,16 +1,7 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
-import type { ScoutReportResponse, SendScoutRequest } from "../apiTypes";
-import { queryKeys } from "../queryKeys";
+import type { SendScoutRequest } from "../apiTypes";
 import { invalidatePlayer } from "./invalidate";
-
-/** Останні звіти розвідки. Новий приходить подією ScoutReportReady — вона й інвалідує список. */
-export function useScoutReports(playerId: string): UseQueryResult<ScoutReportResponse[]> {
-  return useQuery({
-    queryKey: queryKeys.scoutReports(playerId),
-    queryFn: () => api<ScoutReportResponse[]>(`/api/marches/${playerId}/scout-reports`),
-  });
-}
 
 /** Розвідники йдуть без героя й юнітів — гарнізон і герої не змінюються, лише список маршів. */
 export function useSendScout(playerId: string) {

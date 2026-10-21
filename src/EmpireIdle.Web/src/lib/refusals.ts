@@ -6,6 +6,8 @@
  * файлу, тож новий ключ без тексту тут не пройде typecheck.
  */
 
+import { classLabel } from "./heroClasses";
+
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
 type RefusalArgs = Record<string, string | number>;
@@ -83,6 +85,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   // ---------- Розвідка ----------
   "scout.blocked": () => "Село ховається від розвідки — розвідники нічого не побачать",
   "scout.ownTarget": () => "Своє село й споруди свого клану розвідувати не треба",
+  "scout.alreadyUnderway": () => "Твої розвідники вже йдуть до цієї цілі",
 
   // ---------- Прискорення ----------
   // Межа 0 (будівництво, тренування): відмова означає, що таймер уже скінчився
@@ -195,7 +198,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "hero.skillLocked": ({ skill, level }) => `«${skill}» відкриється з ${level} рівня героя`,
   "hero.skillStarCapped": ({ stars }) => `Наступний рівень вміння відкриється на ${stars} зірці героя`,
   "hero.skillMaxed": ({ level }) => `Вміння вже на найвищому, ${level} рівні`,
-  "hero.skillNoBook": ({ book }) => `Потрібна «${book}»`,
+  "hero.skillNoBook": ({ book, need, have }) => `Замало книг «${book}»: потрібно ${need}, є ${have}`,
   "hero.notOwned": ({ hero }) => `Універсальні осколки йдуть лише у відкритого героя, а «${hero}» ще не призваний`,
   "hero.shardUpgradeLocked": () => "Обмін відкриється, коли всі герої цієї рідкості матимуть усі зірки",
 
@@ -206,6 +209,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "equipment.notBroken": () => "Артефакт цілий — ремонтувати нічого",
   "equipment.uniqueFood": ({ item }) => `«${item}» не згодовується`,
   "equipment.foodEquipped": () => "Спершу зніміть предмет із героя — вдягнене не згодовується",
+  "equipment.wrongClass": ({ set, class: heroClass }) => `«${set}» — лише для класу «${classLabel(String(heroClass))}»`,
 
   // ---------- Ринок ----------
   "market.locked": ({ level }) => `Ринок відкриється з ратушею ${level} рівня`,
@@ -234,12 +238,21 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "dungeon.energyFull": () => "Енергія вже повна — поповнювати нічого",
   "dungeon.refillLimit": ({ limit }) => `Сьогодні енергію вже поповнено ${limit} разів — нові поповнення з опівночі UTC`,
 
+  // ---------- Одномоментний бій ----------
+  "squad.heroWounded": ({ hero }) => `${hero} зараз у госпіталі — замініть героя в загоні`,
+
+  // ---------- Вежа ----------
+  "tower.townHallRequired": ({ level }) => `Тисячна вежа відкривається з ратушею ${level} рівня`,
+  "tower.floorClosed": ({ floor, next }) => `Поверх ${floor} уже закритий — на вас чекає поверх ${next}`,
+  "tower.conquered": () => "Вежу підкорено: усі поверхи пройдено",
+
   // ---------- Звірі ----------
   "beast.penMissing": () => "Приручати нікуди: спершу відкрийте звіринець",
   "beast.penFull": ({ capacity }) =>
     `Звіринець повний: усі ${capacity} місць зайняті іншими звірами. Підніміть рівень звіринця`,
   "beast.notTameable": () => "Цього монстра не приручити",
-  "beast.notEnoughFeed": ({ need, have }) => `Корму не вистачає: потрібно ${need}, є ${have}`,
+  "beasts.hungry": () => "Звірі голодні: звіринцю бракує корму. Наростіть корм у Рибальській хижі",
+  "beast.notEnoughFeed": ({ need, have }) => `Ласощів не вистачає: потрібно ${need}, є ${have}`,
   "beast.levelCapped": ({ level }) =>
     `Звір досяг стелі рівня ${level} для свого рангу — підніміть ранг, приручивши ще одного такого звіра`,
   "beast.onCooldown": ({ readyAt }) =>

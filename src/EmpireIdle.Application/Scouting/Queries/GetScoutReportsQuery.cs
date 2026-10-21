@@ -21,11 +21,7 @@ namespace EmpireIdle.Application.Scouting.Queries
         {
             var reports = await _reports.GetRecentAsync(request.PlayerId, Recent, cancellationToken);
 
-            return reports
-                .Select(r => new ScoutReportView(r.Id, r.TargetType, r.TargetId, r.TargetName, r.X, r.Y,
-                    r.Outcome.ToString(), r.DefencePower,
-                    r.Resources.ToDictionary(x => x.ResourceType, x => x.Amount), r.CreatedAt))
-                .ToList();
+            return reports.Select(ScoutReportView.From).ToList();
         }
     }
 }

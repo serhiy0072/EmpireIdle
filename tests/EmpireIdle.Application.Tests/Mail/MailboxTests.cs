@@ -30,6 +30,7 @@ public class MailboxTests
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
     private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
+    private readonly IScoutReportRepository _scoutReports = Substitute.For<IScoutReportRepository>();
     private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
@@ -46,9 +47,10 @@ public class MailboxTests
             .Returns(new Dictionary<Guid, ClanCard>());
         _falls.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
         _structureFalls.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+        _scoutReports.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
     }
 
-    private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, _falls, _structureFalls, new FakeTimeProvider(Now));
+    private GetMailboxQueryHandler Mailbox() => new(_mail, _requests, _clans, _falls, _structureFalls, _scoutReports, new FakeTimeProvider(Now));
 
     // ---------- Лист із події ----------
 
@@ -190,6 +192,42 @@ public class MailboxTests
 
         Assert.Null(view.ClanInvite);
         Assert.Equal(new CityFallLetterView("Вовчий кут", 10, 12, 40, 44, Now.AddHours(24)), view.CityFall);
+    }
+
+    // ---------- Звіт розвідки ----------
+
+    [Fact]
+    public async Task ScoutReport_ShouldPutALetterReferencingTheReport()
+    {
+        MailLetter? added = null;
+        await _mail.AddLetterAsync(Arg.Do<MailLetter>(l => added = l), Arg.Any<CancellationToken>());
+        var reportId = Guid.NewGuid();
+
+        await new ScoutReportMailHandler(_mail, _serverContext, _unitOfWork, _notifier, _catalog).Handle(
+            new DomainEventNotification<ScoutReportFiled>(new ScoutReportFiled(PlayerId, reportId, "Вовчий кут", ScoutOutcome.Success, Now)),
+            CancellationToken.None);
+
+        Assert.NotNull(added);
+        Assert.Equal(MailKind.ScoutReport, added.Kind);
+        Assert.Equal(reportId, added.ReferenceId);
+        Assert.Equal(PlayerId, added.PlayerId);
+        await _notifier.Received(1).NotifyMailAsync(PlayerId, "ScoutReport", Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Звіт стерто — лист лишається без подробиць, а не ламає скриньку.</summary>
+    [Fact]
+    public async Task Mailbox_ShouldLeaveTheScoutLetterEmpty_WhenTheReportIsGone()
+    {
+        var letter = new MailLetter(Guid.NewGuid(), 1, PlayerId, MailKind.ScoutReport, Guid.NewGuid(), Now, TimeSpan.FromDays(14));
+
+        _mail.GetLettersAsync(PlayerId, Now, Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([letter]);
+        _mail.GetAnnouncementsAsync(Now, Arg.Any<CancellationToken>()).Returns([]);
+        _mail.GetReadAnnouncementIdsAsync(PlayerId, Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
+
+        var view = Assert.Single((await Mailbox().Handle(new GetMailboxQuery(PlayerId), CancellationToken.None)).Letters);
+
+        Assert.Equal("ScoutReport", view.Kind);
+        Assert.Null(view.ScoutReport);
     }
 
     // ---------- Зруйнована споруда клану ----------

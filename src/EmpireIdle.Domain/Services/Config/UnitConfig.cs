@@ -19,8 +19,17 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Вартість тренування одного юніта.</summary>
         public List<ResourceCost> Cost { get; set; } = new();
 
-        /// <summary>Час тренування одного юніта, хвилин (партія = ×кількість).</summary>
-        public int BaseTrainMinutes { get; set; }
+        /// <summary>
+        /// Час тренування одного юніта 1 рівня, секунд (партія = ×кількість). Секунди, а не хвилини:
+        /// партія з 150 юнітів 1 рівня триває 10 хвилин — 4 секунди на юніта (рішення 13.10.2026).
+        /// </summary>
+        public int BaseTrainSeconds { get; set; }
+
+        /// <summary>
+        /// Ріст часу тренування й прокачки на 1 рівень юніта — окремо від ціни (LevelUpCostGrowth):
+        /// партія 10 рівня має тренуватись 2,5 години, а не дні, але коштувати як і раніше.
+        /// </summary>
+        public double TrainTimeGrowth { get; set; } = 1.35;
 
         /// <summary>
         /// Мінімальний рівень будівлі з RequiresBuilding.

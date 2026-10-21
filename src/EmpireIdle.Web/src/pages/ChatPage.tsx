@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import { useSession } from "../hooks/useSession";
 import {
@@ -165,12 +165,19 @@ export default function ChatPage() {
   const session = useSession();
   const playerId = session?.playerId ?? "";
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const tab = (TABS.find((t) => t.channel === params.get("tab"))?.channel ?? "Server") as ChatChannelName;
 
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-medium text-slate-800">Чат</h1>
+      <div className="flex items-baseline justify-between gap-2">
+        <h1 className="text-xl font-medium text-slate-800">Чат</h1>
+        {/* Чат розкривається зі смужки над панеллю — згортаємо туди, звідки прийшли */}
+        <button type="button" onClick={() => navigate(-1)} className="text-sm text-emerald-700 hover:underline">
+          Згорнути ↓
+        </button>
+      </div>
 
       <nav className="flex gap-1">
         {TABS.map((item) => (

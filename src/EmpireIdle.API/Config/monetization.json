@@ -1,15 +1,20 @@
 {
   "GameConfig": {
     "Monetization": {
-      "SpeedUpFactor": 60.0,
-      "SpeedUpExponent": 0.85,
+      "SpeedUpFactor": 16.666666,
+      "SpeedUpExponent": 1.0,
       "SpeedUpFloorSeconds": {
         "Construction": 0,
         "Training": 0,
         "UnitLevelUp": 0,
-        "March": 30
+        "March": 0
       },
-      "HealGemsPerUnit": 30
+      "HealGemsPerUnit": 30,
+      "MarchSpeedUps": [
+        { "Percent": 50, "Gems": 200 },
+        { "Percent": 75, "Gems": 500 },
+        { "Percent": 90, "Gems": 800 }
+      ]
     }
   }
 }

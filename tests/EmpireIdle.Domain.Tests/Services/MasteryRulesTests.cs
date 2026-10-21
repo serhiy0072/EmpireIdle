@@ -10,8 +10,7 @@ namespace EmpireIdle.Domain.Tests.Services
         private static EquipmentConfig Config() => new()
         {
             MaxMastery = 20,
-            MasteryBaseGold = 400,
-            MasteryCostGrowth = 1.33,
+            MasteryStoneCosts = [10, 12, 14, 17, 20, 24, 28, 33, 40, 50, 54, 58, 62, 67, 72, 77, 82, 88, 94, 100],
             MasterySuccessChances = [1, 1, 1, 1, 1, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.27, 0.25],
             MasteryBreakChances = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2],
             RepairGemsPerMastery = 50,
@@ -19,14 +18,13 @@ namespace EmpireIdle.Domain.Tests.Services
 
         private static MasteryRules Rules() => new(Config());
 
-        /// <summary>round10(400 · 1.33^поточна): 400, 530, 710, 940 … 90 210 за спробу на +20.</summary>
+        /// <summary>Камені за таблицею (рішення 14.10.2026): 10 на +1, 50 на +10, 100 на +20; поза таблицею — остання ціна.</summary>
         [Theory]
-        [InlineData(0, 400)]
-        [InlineData(1, 530)]
-        [InlineData(2, 710)]
-        [InlineData(3, 940)]
-        [InlineData(19, 90_210)]
-        public void Cost_ShouldGrowGeometrically_RoundedToTens(int mastery, int expected)
+        [InlineData(0, 10)]
+        [InlineData(9, 50)]
+        [InlineData(19, 100)]
+        [InlineData(25, 100)]
+        public void Cost_ShouldFollowTheStoneTable(int mastery, int expected)
             => Assert.Equal(expected, Rules().Cost(mastery));
 
         [Theory]

@@ -61,6 +61,18 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public List<List<int>> StarPartCosts { get; set; } = new();
 
+        /// <summary>
+        /// Вага кожного стата в силі героя (рішення 15.10.2026: Attack 1, Defense 1, Health 0.25).
+        /// Проста сума ставила б танка вище за гармату тієї ж рідкості: здоров'я числом у 4–5 разів
+        /// більше за атаку. Порожньо — кожен стат важить 1 (мінімальні фікстури); інакше кожен стат
+        /// героїв мусить мати вагу.
+        /// </summary>
+        public Dictionary<string, double> StatPowerWeights { get; set; } = new();
+
+        /// <summary>Вага стата в силі: без ваг у конфігу — 1, стат без ваги — 0.</summary>
+        public double StatPowerWeight(string stat)
+            => StatPowerWeights.Count == 0 ? 1.0 : StatPowerWeights.GetValueOrDefault(stat);
+
         /// <summary>Скільки бойової міці дає кожна частинка зірки: 0.05 — +5% до всіх статів.</summary>
         public double StarPartBonus { get; set; } = 0.05;
 
@@ -100,6 +112,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// (мінімальні фікстури); інакше кожен герой мусить мати книги для своїх половин.
         /// </summary>
         public List<SkillBookConfig> SkillBooks { get; set; } = new();
+
+        /// <summary>
+        /// Скільки книг коштує підняти вміння з поточного рівня: індекс 0 — з першого на другий
+        /// (рішення 15.10.2026: 3/5/7/10/12). Порожньо — одна книга за рівень (мінімальні фікстури).
+        /// </summary>
+        public List<int> SkillBookCosts { get; set; } = new();
 
         /// <summary>
         /// Який тип юніта веде герой кожної ролі (GDD §6.1): ключ — клас героя, значення — ключ юніта.
@@ -162,5 +180,11 @@ namespace EmpireIdle.Domain.Services.Config
         /// найшвидших юнітів, щоб герой без явного стата колону не гальмував.
         /// </summary>
         public double DefaultMarchSpeed { get; set; } = 6.0;
+
+        /// <summary>
+        /// Скільки героїв боронить село (рішення 15.10.2026): найсильніший кожного класу, без лідера.
+        /// Три — по одному на клас.
+        /// </summary>
+        public int GarrisonDefenders { get; set; } = 3;
     }
 }

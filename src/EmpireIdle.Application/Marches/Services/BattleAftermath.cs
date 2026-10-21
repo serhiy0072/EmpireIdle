@@ -173,15 +173,16 @@ namespace EmpireIdle.Application.Marches.Services
 
             defenderGarrison.AdmitWounded(split.Wounded, utcNow);
 
-            // Лідера гарнізону ранить його частка шкоди (варіант B). Решта героїв стоїть
-            // у резерві й у бою не була: інакше одна поразка клала б увесь зал
+            // Захисників ранить їхня частка шкоди (варіант B) — де б вони не були, хоч і в марші:
+            // поранений доїде й лікуватиметься вдома. Решта ростеру в бою не була: інакше одна
+            // поразка клала б увесь зал
             if (result.DefenderWoundedHeroes is { Count: > 0 } wounded)
             {
-                var leader = await _heroRepository.GetLeaderAsync(
-                    defenderGarrison.Id, defenderVillage.PlayerId, cancellationToken);
-
-                if (leader is not null && wounded.Contains(leader.Id))
-                    leader.Wound(utcNow);
+                foreach (var hero in await _heroRepository.GetByIdsAsync(wounded, cancellationToken))
+                {
+                    if (hero.PlayerId == defenderVillage.PlayerId)
+                        hero.Wound(utcNow);
+                }
             }
 
             var hostStoodByType = ByType(hostStood);
@@ -217,7 +218,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// це свідоме спрощення: один бій інакше породжував би до двохсот звітів.
         /// </summary>
         /// <param name="defenceLost">
-        /// Чи впала оборона. Тільки тоді лідери союзників ідуть у госпіталь,
+        /// Чи впала оборона. Тільки тоді герої союзників ідуть у госпіталь,
         /// а вцілілі повертаються додому: виграний бій лишає контингент стояти.
         /// </param>
         public async Task AdmitAlliedWoundedAsync(IReadOnlyList<StackLoss> losses, Garrison hostGarrison,
@@ -390,7 +391,7 @@ namespace EmpireIdle.Application.Marches.Services
         }
 
         /// <summary>
-        /// Після програної оборони лідери союзників ідуть у госпіталь, а контингенти — додому.
+        /// Після програної оборони герої союзників ідуть у госпіталь, а контингенти — додому.
         /// Виграний бій лишає їх стояти.
         /// </summary>
         private async Task DisbandIfLostAsync(Garrison hostGarrison, Guid hostOwnerId, bool defenceLost,
@@ -405,8 +406,10 @@ namespace EmpireIdle.Application.Marches.Services
 
             var stationed = await _heroRepository.GetByGarrisonAsync(hostGarrison.Id, cancellationToken);
 
-            foreach (var leader in stationed.Where(h => h.IsLeader && h.PlayerId != hostOwnerId))
-                leader.Wound(utcNow);
+            // Герої союзників програли разом зі своїми конвоями: слота лідера, що брав на себе удар
+            // замість решти, більше немає (рішення 15.10.2026)
+            foreach (var ally in stationed.Where(h => h.PlayerId != hostOwnerId))
+                ally.Wound(utcNow);
 
             foreach (var ownerId in owners.Concat(stationed.Select(h => h.PlayerId)).Distinct())
             {

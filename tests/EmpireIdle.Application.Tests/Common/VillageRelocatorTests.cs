@@ -72,9 +72,9 @@ public class VillageRelocatorTests
             calculator, catalog, new HeroProgression(config.HeroSettings),
             TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
 
-        return new VillageRelocator(_map, _marches, _garrisons, _heroes, _servers, catalog,
+        return new VillageRelocator(_map, _marches, _garrisons, _servers, catalog,
             new WorldGeometry(config.Map), effects,
-            new MarchHomecoming(_heroes, logistics, NullLogger<MarchHomecoming>.Instance), returner);
+            new MarchHomecoming(logistics, NullLogger<MarchHomecoming>.Instance), returner);
     }
 
     /// <summary>Село з гарнізоном і маршами, що належать цьому гарнізону.</summary>
@@ -142,17 +142,14 @@ public class VillageRelocatorTests
         Assert.Equal(10, garrison.Units.Single().Count);
     }
 
-    /// <summary>
-    /// Два герої з двох маршів прибувають в одній транзакції: лідером стає лише один,
-    /// інакше унікальний індекс лідера зламав би збереження.
-    /// </summary>
+    /// <summary>Два герої з двох маршів прибувають в одній транзакції — обидва стають удома.</summary>
     [Fact]
-    public async Task RelocateAsync_ShouldGiveTheLeaderSlotToOneReturningHeroOnly()
+    public async Task RelocateAsync_ShouldStationEveryReturningHero()
     {
         var (village, garrison) = GivenVillage();
 
-        var first = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrison.Id, asLeader: false, Now.AddHours(-1));
-        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer", garrison.Id, asLeader: false, Now.AddHours(-1));
+        var first = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrison.Id, Now.AddHours(-1));
+        var second = new Hero(Guid.NewGuid(), PlayerId, 1, "archer", garrison.Id, Now.AddHours(-1));
         var relocator = Relocator();
 
         // Марші — до Returns: Attack сам налаштовує підміну героїв, а вкладене налаштування NSubstitute не терпить
@@ -167,7 +164,6 @@ public class VillageRelocatorTests
 
         Assert.Equal(garrison.Id, first.StationedGarrisonId);
         Assert.Equal(garrison.Id, second.StationedGarrisonId);
-        Assert.Single(new[] { first, second }, hero => hero.IsLeader);
     }
 
     /// <summary>Війська, що стоять підкріпленням у союзника, теж одразу вдома — без маршу.</summary>

@@ -2,6 +2,7 @@ using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Mail.Contracts;
+using EmpireIdle.Application.Scouting.ReadModels;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using MediatR;
@@ -21,16 +22,19 @@ namespace EmpireIdle.Application.Mail.Queries
         private readonly IClanRepository _clans;
         private readonly IVillageFallRepository _falls;
         private readonly IStructureFallRepository _structureFalls;
+        private readonly IScoutReportRepository _scoutReports;
         private readonly TimeProvider _timeProvider;
 
         public GetMailboxQueryHandler(IMailRepository mail, IClanRequestRepository requests, IClanRepository clans,
-            IVillageFallRepository falls, IStructureFallRepository structureFalls, TimeProvider timeProvider)
+            IVillageFallRepository falls, IStructureFallRepository structureFalls, IScoutReportRepository scoutReports,
+            TimeProvider timeProvider)
         {
             _mail = mail;
             _requests = requests;
             _clans = clans;
             _falls = falls;
             _structureFalls = structureFalls;
+            _scoutReports = scoutReports;
             _timeProvider = timeProvider;
         }
 
@@ -50,6 +54,8 @@ namespace EmpireIdle.Application.Mail.Queries
                 .ToDictionary(f => f.Id);
             var structureFalls = (await _structureFalls.GetByIdsAsync(ReferencesOf(letters, MailKind.StructureFall), cancellationToken))
                 .ToDictionary(f => f.Id);
+            var scoutReports = (await _scoutReports.GetByIdsAsync(ReferencesOf(letters, MailKind.ScoutReport), cancellationToken))
+                .ToDictionary(r => r.Id);
 
             var letterViews = letters
                 .Select(letter => new MailLetterView(letter.Id, letter.Kind.ToString(), letter.CreatedAt, letter.ExpiresAt,
@@ -57,6 +63,9 @@ namespace EmpireIdle.Application.Mail.Queries
                     letter.Kind == MailKind.ClanInvite ? Invite(letter, invites, clans, now) : null,
                     letter.Kind == MailKind.CityFall ? Fall(letter, falls) : null,
                     letter.Kind == MailKind.StructureFall ? StructureFall(letter, structureFalls) : null,
+                    letter.Kind == MailKind.ScoutReport && scoutReports.TryGetValue(letter.ReferenceId!.Value, out var report)
+                        ? ScoutReportView.From(report)
+                        : null,
                     letter.Rewards.Select(r => new MailRewardView(r.Type, r.Key, r.Amount)).ToList(),
                     letter.Sequence, letter.ClaimedAt, letter.CanClaimAt(now)))
                 .ToList();

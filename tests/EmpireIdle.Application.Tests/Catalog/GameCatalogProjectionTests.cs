@@ -87,9 +87,9 @@ public class GameCatalogProjectionTests
         var attempts = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).MasteryAttempts;
 
         Assert.Equal(config.Equipment.MaxMastery, attempts.Count);
-        Assert.Equal((rules.Cost(0), rules.SuccessChance(0)), (attempts[0].Gold, attempts[0].Chance));
+        Assert.Equal((rules.Cost(0), rules.SuccessChance(0)), (attempts[0].Stones, attempts[0].Chance));
         Assert.Equal((rules.Cost(config.Equipment.MaxMastery - 1), rules.SuccessChance(config.Equipment.MaxMastery - 1)),
-            (attempts[^1].Gold, attempts[^1].Chance));
+            (attempts[^1].Stones, attempts[^1].Chance));
     }
 
     /// <summary>Кузня показує ціну ремонту й попереджає про поломку тими самими числами, що й сервер.</summary>
@@ -211,7 +211,7 @@ public class GameCatalogProjectionTests
         {
             unit.RequiresBuilding = TestKeys.Barracks;
             unit.RequiresBuildingLevel = 2;
-            unit.BaseTrainMinutes = 3;
+            unit.BaseTrainSeconds = 3;
         }).BuildCatalog();
 
         var response = new GameCatalogProjection(catalog).ResponseFor(null);
@@ -220,8 +220,38 @@ public class GameCatalogProjectionTests
         Assert.All(response.Units, unit => Assert.False(string.IsNullOrWhiteSpace(unit.DisplayName)));
         Assert.All(response.Units, unit => Assert.Equal(TestKeys.Barracks, unit.RequiresBuilding));
         Assert.All(response.Units, unit => Assert.Equal(2, unit.RequiresBuildingLevel));
-        Assert.All(response.Units, unit => Assert.Equal(3, unit.BaseTrainMinutes));
+        Assert.All(response.Units, unit => Assert.Equal(3, unit.BaseTrainSeconds));
         Assert.All(response.Units, unit => Assert.NotEmpty(unit.Cost));
+    }
+
+    /// <summary>Табір показує місткість своєї будівлі — від першого рівня до останнього, по одній на рівень.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheUnitCapacityOfEveryBuildingLevel()
+    {
+        var config = new GameConfigBuilder().WithBuildings().WithUnits().Build();
+        config.UnitCapacityMin = 1500;
+        config.UnitCapacityMax = 300_000;
+
+        var response = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null);
+
+        Assert.Equal(config.MaxBuildingLevel, response.UnitCapacities.Count);
+        Assert.Equal(1500, response.UnitCapacities[0]);
+        Assert.Equal(300_000, response.UnitCapacities[^1]);
+    }
+
+    /// <summary>Екран табору показує показники юніта — стати 1 рівня доходять до клієнта як є.</summary>
+    [Fact]
+    public void Response_ShouldCarryTheUnitStats()
+    {
+        var catalog = new GameConfigBuilder().WithBuildings().WithUnits(unit =>
+        {
+            unit.Stats = new Dictionary<string, double> { ["Attack"] = 12, ["CarryCapacity"] = 40 };
+        }).BuildCatalog();
+
+        var response = new GameCatalogProjection(catalog).ResponseFor(null);
+
+        Assert.All(response.Units, unit => Assert.Equal(12, unit.Stats["Attack"]));
+        Assert.All(response.Units, unit => Assert.Equal(40, unit.Stats["CarryCapacity"]));
     }
 
     /// <summary>
@@ -365,7 +395,28 @@ public class GameCatalogProjectionTests
         Assert.Equal(1, set.Dungeon?.RequiresMainBuildingLevel);
     }
 
-    /// <summary>Кожна рідкість — зі своїм бонусом і чотирма частинами; ключ збігається з SetKey предметів.</summary>
+    /// <summary>Пороги — від меншого, кожен зі своїм бонусом; клас і опис набору — як у конфігу.</summary>
+    [Fact]
+    public void Response_ShouldListThresholdsInOrder_WithTheSetsClass()
+    {
+        var config = new GameConfigBuilder().WithDungeons().Build();
+        var family = config.Equipment.ArtifactSets.Single(s => s.Key == TestKeys.DungeonSetKey);
+        family.Class = "warrior";
+        family.Description = "Яма не відпускає.";
+        config.Equipment.SetBonuses.Insert(0, new SetBonusConfig
+        {
+            SetKey = $"{TestKeys.DungeonSetKey}_common", RequiredPieces = 2, Stats = new() { ["DefensePercent"] = 5 },
+        });
+
+        var set = new GameCatalogProjection(new GameCatalog(config)).ResponseFor(null).ArtifactSets.Single();
+        var common = set.Rarities.Single(r => r.Rarity == "Common");
+
+        Assert.Equal(("warrior", "Яма не відпускає."), (set.Class, set.Description));
+        Assert.Equal([2, 4], common.Thresholds.Select(t => t.RequiredPieces));
+        Assert.Equal(5, common.Thresholds[0].Bonus["DefensePercent"]);
+    }
+
+    /// <summary>Кожна рідкість — зі своїми порогами й чотирма частинами; ключ збігається з SetKey предметів.</summary>
     [Fact]
     public void Response_ShouldListEveryRarityWithItsBonusAndPieces()
     {
@@ -378,8 +429,9 @@ public class GameCatalogProjectionTests
         Assert.All(set.Rarities, rarity =>
         {
             Assert.Equal($"{TestKeys.DungeonSetKey}_{rarity.Rarity.ToLowerInvariant()}", rarity.SetKey);
-            Assert.Equal(4, rarity.RequiredPieces);
-            Assert.Equal(10, rarity.Bonus["Attack"]);
+            var threshold = Assert.Single(rarity.Thresholds);
+            Assert.Equal(4, threshold.RequiredPieces);
+            Assert.Equal(10, threshold.Bonus["Attack"]);
             Assert.Equal(4, rarity.PieceKeys.Count);
             Assert.All(rarity.PieceKeys, key => Assert.Equal(rarity.SetKey, catalog.FindItem(key)?.SetKey));
         });

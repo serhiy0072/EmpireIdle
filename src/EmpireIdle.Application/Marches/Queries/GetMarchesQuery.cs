@@ -24,8 +24,6 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly IHeroRepository _heroRepository;
         private readonly HeroStats _heroStats;
         private readonly GameCatalog _catalog;
-        private readonly TimeProvider _timeProvider;
-        private readonly SpeedUpCalculator _calculator;
 
         public GetMarchesQueryHandler(
             IVillageRepository villageRepository,
@@ -34,9 +32,7 @@ namespace EmpireIdle.Application.Marches.Queries
             IMonsterRepository monsterRepository,
             IHeroRepository heroRepository,
             HeroStats heroStats,
-            GameCatalog catalog,
-            TimeProvider timeProvider,
-            SpeedUpCalculator calculator)
+            GameCatalog catalog)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
@@ -45,14 +41,10 @@ namespace EmpireIdle.Application.Marches.Queries
             _heroRepository = heroRepository;
             _heroStats = heroStats;
             _catalog = catalog;
-            _timeProvider = timeProvider;
-            _calculator = calculator;
         }
 
         public async Task<List<MarchView>> Handle(GetMarchesQuery request, CancellationToken cancellationToken)
         {
-            var now = _timeProvider.GetUtcNow().UtcDateTime;
-
             var village = await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
@@ -90,8 +82,7 @@ namespace EmpireIdle.Application.Marches.Queries
                     march.DepartedAt,
                     march.LegStartedAt,
                     march.ArrivesAt,
-                    march.Units.Select(u => new MarchUnitView(u.UnitType, u.Level, u.Count)).ToList(),
-                    _calculator.GetCost(SpeedUpTimer.March, march.ArrivesAt, now)));
+                    march.Units.Select(u => new MarchUnitView(u.UnitType, u.Level, u.Count)).ToList()));
             }
 
             return views;

@@ -181,7 +181,8 @@
                 ArtifactItem(TestKeys.ThirdArtifact, TestKeys.SetKey, "crown"),
                 ArtifactItem(TestKeys.FourthArtifact, TestKeys.SetKey, "belt"),
                 ArtifactItem(TestKeys.LooseArtifact, setKey: null, "ring"),
-                new ItemConfig { Key = RepairKit, Type = "repairkit", DisplayName = "Ремкомплект", Description = "r" }
+                new ItemConfig { Key = RepairKit, Type = "repairkit", DisplayName = "Ремкомплект", Description = "r" },
+                new ItemConfig { Key = Whetstone, Type = "whetstone", DisplayName = "Камінь для заточування", Description = "w" }
             ]);
 
             tune?.Invoke(_config.Equipment);
@@ -202,7 +203,7 @@
                     Slot("necklace", "Намисто", ["Attack", "UnitAttack"], ("CritChance", 25), ("AttackSpeed", 35), ("AttackPercent", 40)),
                     Slot("crown", "Корона", ["Defense", "UnitDefense"], ("CritPower", 25), ("CooldownReduction", 10), ("SkillDamage", 30), ("Lifesteal", 30)),
                     Slot("ring", "Кільце", ["Attack", "Defense"], ("CritChance", 25), ("BlockChance", 22), ("BlockPower", 22), ("DamageReduction", 14), ("DefensePercent", 22)),
-                    Slot("belt", "Пояс", ["UnitAttack", "UnitDefense"], ("CritPower", 25), ("UnitCritChance", 25), ("UnitHealthPercent", 25), ("HealthPercent", 25))
+                    Slot("belt", "Пояс", ["UnitAttack", "UnitDefense"], ("CritPower", 25), ("CritChance", 25), ("TroopsDefense", 25), ("HealthPercent", 25))
                 ],
                 MaxLevel = 80,
                 LevelExperienceBase = 100,
@@ -223,11 +224,12 @@
                     Bonus("Defense", 0, 5, 10, 15, 20),
                     Bonus("UnitAttack", 0, 5, 10, 15, 20),
                     Bonus("UnitDefense", 0, 5, 10, 15, 20),
-                    Bonus("CritChance", 10, 1, 2, 3, 4),
+                    Bonus("CritChance", 2, 5, 9, 14, 20),
                     Bonus("CritPower", 2.5, 4, 8, 12, 16),
                     Bonus("SkillDamage", 3.5, 3, 6, 9, 12),
-                    Bonus("AttackSpeed", 5, 2, 4, 6, 8),
+                    Bonus("AttackSpeed", 2.5, 5, 8, 11, 15),
                     Bonus("CooldownReduction", 9, 2, 4, 6, 8),
+                    Bonus("Ward", 3, 3, 6, 9, 12),
                     Bonus("Lifesteal", 8, 1, 2, 3, 4),
                     Bonus("BlockChance", 8, 1, 2, 3, 4),
                     Bonus("BlockPower", 2, 4, 8, 12, 16),
@@ -235,23 +237,26 @@
                     Bonus("AttackPercent", 3, 3, 6, 9, 12),
                     Bonus("DefensePercent", 3, 3, 6, 9, 12),
                     Bonus("HealthPercent", 3, 3, 6, 9, 12),
-                    Bonus("UnitCritChance", 8, 1, 2, 3, 4),
-                    Bonus("UnitHealthPercent", 3, 3, 6, 9, 12)
+                    Bonus("TroopsAttack", 4.5, 2, 4, 6, 8),
+                    Bonus("TroopsDefense", 4.5, 2, 4, 6, 8)
                 ],
                 BonusStepChances = [0.4, 0.3, 0.2, 0.1],
                 MaxMastery = 20,
                 ForgeBuildingKey = forgeKey,
-                MasteryBaseGold = 400,
-                MasteryCostGrowth = 1.33,
+                MasteryStoneCosts = [10, 12, 14, 17, 20, 24, 28, 33, 40, 50, 54, 58, 62, 67, 72, 77, 82, 88, 94, 100],
                 MasterySuccessChances = [1, 1, 1, 1, 1, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.27, 0.25],
                 MasteryBreakChances = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2],
                 BrokenStatShare = 0.5,
                 RepairGemsPerMastery = 50,
-                RepairKitItemKey = RepairKit
+                RepairKitItemKey = RepairKit,
+                MasteryStoneItemKey = Whetstone
             };
 
         /// <summary>Ключ ремкомплекта в DefaultEquipment; сам предмет додає WithEquipment.</summary>
         public const string RepairKit = "repair_kit";
+
+        /// <summary>Ключ каменю для заточування в DefaultEquipment; сам предмет додає WithEquipment.</summary>
+        public const string Whetstone = "whetstone";
 
         private static ArtifactSlotConfig Slot(string key, string name, List<string> fixedBonuses,
             params (string Stat, double Weight)[] pool)
@@ -435,6 +440,8 @@
                 MaxRank = 5,
                 LevelsPerRank = 10,
                 FeedItemKey = TestKeys.BeastFeed,
+                // Фікстури платять за звірів тим самим ресурсом, що й за решту: окремий корм не потрібен
+                UpkeepResource = TestKeys.Food,
                 BaseExperience = 100,
                 ExperienceGrowth = 1.25,
                 Types =
@@ -443,7 +450,7 @@
                     {
                         Key = TestKeys.Beast, DisplayName = "Вовк", MonsterKey = TestKeys.BeastMonster, TameChance = 0.2,
                         Effect = EffectTarget.Attack, BaseBonus = 0.15, BonusPerLevel = 0.01,
-                        DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                        DurationMinutes = 120, CooldownMinutes = 480, ActivationFodder = 100
                     }
                 ]
             };
@@ -480,6 +487,7 @@
             {
                 ["Attack"] = attack,
                 ["Defense"] = defence,
+                ["Health"] = defence,
                 ["Speed"] = speed
             },
             Cost = [new ResourceCost { Resource = TestKeys.Food, Amount = 10 }]

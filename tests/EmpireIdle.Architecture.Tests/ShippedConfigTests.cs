@@ -1,6 +1,9 @@
 using AwesomeAssertions;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.Tower;
 using Microsoft.Extensions.Configuration;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -140,5 +143,74 @@ public class ShippedConfigTests
             .ToList();
 
         wrong.Should().BeEmpty("спорядження видається типом Equipment, а не Item");
+    }
+
+    /// <summary>
+    /// За рівних рівня, тіру, зірок і зброї найслабший унікальний сильніший за найсильнішого
+    /// рідкісного, а той — за найсильнішого звичайного (рішення 15.10.2026). Тір і зірки множать
+    /// усі стати однаково, а бонус зброї росте з рідкістю, тож досить перевірити власні стати —
+    /// на першому й останньому рівні, бо сила лінійна від рівня.
+    /// </summary>
+    [Fact]
+    public void ShippedHeroes_ShouldBeOrderedByRarityInPower()
+    {
+        var config = Bind(RepositoryRoot.Find());
+        var progression = new HeroProgression(config.HeroSettings);
+
+        foreach (var level in new[] { 1, config.HeroSettings.MaxLevel })
+        {
+            double Power(HeroConfig hero) => hero.BaseStats.Keys.Sum(stat => config.HeroSettings.StatPowerWeight(stat)
+                * progression.StatValue(hero, stat, level, hero.NativeTier, hero.NativeTier, starParts: 0, weaponLevel: 0));
+
+            var byRank = config.Heroes
+                .GroupBy(h => h.Rank)
+                .ToDictionary(g => g.Key, g => g.Select(Power).ToList());
+
+            byRank[Rarity.Unique].Min().Should().BeGreaterThan(byRank[Rarity.Rare].Max(),
+                $"на рівні {level} найслабший унікальний герой мусить бути сильнішим за найсильнішого рідкісного");
+            byRank[Rarity.Rare].Min().Should().BeGreaterThan(byRank[Rarity.Common].Max(),
+                $"на рівні {level} найслабший рідкісний герой мусить бути сильнішим за найсильнішого звичайного");
+        }
+    }
+
+    /// <summary>
+    /// Набори по класах (рішення 15.10.2026): на кожному рівні в кожного класу героїв рівно один набір,
+    /// і кожен падає зі свого данжу. Без цього якийсь клас на тірі лишився б без спорядження,
+    /// а гравцеві довелося б фармити «чужий» лут.
+    /// </summary>
+    [Fact]
+    public void ShippedArtifactSets_ShouldGiveEveryClassOneSetPerTier_FromItsOwnDungeon()
+    {
+        var config = Bind(RepositoryRoot.Find());
+        var sets = config.Equipment.ArtifactSets;
+
+        foreach (var tier in sets.Select(s => s.Tier).Distinct())
+        {
+            sets.Where(s => s.Tier == tier).Select(s => s.Class).Should().BeEquivalentTo(config.HeroSettings.Classes,
+                $"на рівні {tier} у кожного класу має бути рівно один набір");
+        }
+
+        config.Dungeons.Dungeons.Select(d => d.ArtifactSetKey).Should().BeEquivalentTo(sets.Select(s => s.Key),
+            "кожен набір падає рівно з одного данжу");
+    }
+
+    /// <summary>
+    /// Поверхи вежі будуються з номера, тож помилка в кривій чи шаблонах вилізла б лише на якомусь
+    /// далекому поверсі. Тут будуються всі — і кожен загін стоїть у бою з бійцями, що мають здоров'я й темп.
+    /// </summary>
+    [Fact]
+    public void ShippedTower_ShouldBuildEveryFloor()
+    {
+        var config = Bind(RepositoryRoot.Find());
+        var floors = new TowerFloors(new GameCatalog(config));
+
+        for (var number = 1; number <= config.Tower.MaxFloor; number++)
+        {
+            var squad = floors.Squad(floors.Describe(number));
+
+            squad.Should().NotBeEmpty($"поверх {number} без ворога пройшовся б сам");
+            squad.SelectMany(m => m.Convoys.Select(c => c.Led).Prepend(m.Hero))
+                .Should().OnlyContain(f => f.MaxHealth > 0 && f.Attack > 0 && f.AttackInterval > 0, $"на поверсі {number} кожен боєць має битись");
+        }
     }
 }

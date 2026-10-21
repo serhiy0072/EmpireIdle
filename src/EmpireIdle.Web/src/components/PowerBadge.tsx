@@ -27,12 +27,12 @@ export default function PowerBadge({ playerId, village }: Props) {
     <Link
       to="/rating"
       title={breakdown}
-      className="flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-900 hover:bg-amber-100"
+      className="flex items-center gap-2 rounded-full bg-gradient-to-b from-amber-400 to-orange-600 px-3 py-0.5 text-sm font-semibold text-white ring-1 ring-amber-200 [text-shadow:0_1px_1px_#0006] hover:brightness-110"
     >
       <span>
         🏰 <span className="font-medium">{mainLevel ?? "…"}</span>
       </span>
-      <span className="text-amber-300">|</span>
+      <span className="text-amber-100/70">|</span>
       <span>
         ⚔ <span className="font-medium">{total === undefined ? "…" : compactPower(total)}</span>
       </span>

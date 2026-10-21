@@ -22,6 +22,9 @@ public static class HeroRepositoryStubs
         heroes.GetByMarchAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(_ => new List<Hero>());
 
+        heroes.GetByPlayerAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(_ => new List<Hero>());
+
         heroes.GetByMarchesReadOnlyAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(_ => Array.Empty<Hero>().ToLookup(h => h.MarchId!.Value));
 

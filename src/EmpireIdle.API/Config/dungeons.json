@@ -26,7 +26,7 @@
       "DefenseSoftening": 120,
       "MinDamageShare": 0.1,
       "MaxRoundsPerWave": 30,
-      "BaseCritChance": 0.05,
+      "BaseCritChance": 0.1,
       "CritMultiplier": 1.6,
       "Dungeons": [
         {
@@ -288,6 +288,137 @@
             {
               "Resource": "iron",
               "Amount": 870
+            }
+          ]
+        },
+        {
+          "Key": "flint_mines",
+          "DisplayName": "Кременеві копальні",
+          "Description": "Тут добували камінь для перших сокир — і не всі звідси вийшли.",
+          "ArtifactSetKey": "flint",
+          "RequiresMainBuildingLevel": 5,
+          "Waves": [
+            {
+              "Key": "flint_mines_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 68,
+              "Defense": 37,
+              "Health": 515,
+              "Speed": 6,
+              "Wave": 1
+            },
+            {
+              "Key": "flint_mines_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 86,
+              "Defense": 27,
+              "Health": 441,
+              "Speed": 4,
+              "Wave": 1
+            },
+            {
+              "Key": "flint_mines_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 104,
+              "Defense": 15,
+              "Health": 294,
+              "Speed": 9,
+              "Wave": 1
+            },
+            {
+              "Key": "flint_mines_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 68,
+              "Defense": 37,
+              "Health": 515,
+              "Speed": 6,
+              "Wave": 2
+            },
+            {
+              "Key": "flint_mines_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 86,
+              "Defense": 27,
+              "Health": 441,
+              "Speed": 4,
+              "Wave": 2
+            },
+            {
+              "Key": "flint_mines_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 104,
+              "Defense": 15,
+              "Health": 294,
+              "Speed": 9,
+              "Wave": 2
+            },
+            {
+              "Key": "flint_mines_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 68,
+              "Defense": 37,
+              "Health": 515,
+              "Speed": 6,
+              "Wave": 3
+            },
+            {
+              "Key": "flint_mines_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 86,
+              "Defense": 27,
+              "Health": 441,
+              "Speed": 4,
+              "Wave": 3
+            },
+            {
+              "Key": "flint_mines_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 104,
+              "Defense": 15,
+              "Health": 294,
+              "Speed": 9,
+              "Wave": 3
+            }
+          ],
+          "Boss": [
+            {
+              "Key": "flint_mines_boss",
+              "DisplayName": "Володар",
+              "Line": "Front",
+              "Attack": 147,
+              "Defense": 55,
+              "Health": 1715,
+              "Speed": 8,
+              "Wave": 99
+            },
+            {
+              "Key": "flint_mines_boss_adept",
+              "DisplayName": "Служник",
+              "Line": "Back",
+              "Attack": 98,
+              "Defense": 19,
+              "Health": 368,
+              "Speed": 11,
+              "Wave": 99
+            }
+          ],
+          "Reward": [
+            {
+              "Resource": "gold",
+              "Amount": 1470
+            },
+            {
+              "Resource": "iron",
+              "Amount": 735
             }
           ]
         },
@@ -554,6 +685,137 @@
           ]
         },
         {
+          "Key": "amber_shore",
+          "DisplayName": "Бурштиновий берег",
+          "Description": "Смола тримає в собі тих, хто колись тут заснув.",
+          "ArtifactSetKey": "amber",
+          "RequiresMainBuildingLevel": 10,
+          "Waves": [
+            {
+              "Key": "amber_shore_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 117,
+              "Defense": 64,
+              "Health": 893,
+              "Speed": 6,
+              "Wave": 1
+            },
+            {
+              "Key": "amber_shore_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 149,
+              "Defense": 47,
+              "Health": 765,
+              "Speed": 4,
+              "Wave": 1
+            },
+            {
+              "Key": "amber_shore_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 181,
+              "Defense": 26,
+              "Health": 510,
+              "Speed": 9,
+              "Wave": 1
+            },
+            {
+              "Key": "amber_shore_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 117,
+              "Defense": 64,
+              "Health": 893,
+              "Speed": 6,
+              "Wave": 2
+            },
+            {
+              "Key": "amber_shore_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 149,
+              "Defense": 47,
+              "Health": 765,
+              "Speed": 4,
+              "Wave": 2
+            },
+            {
+              "Key": "amber_shore_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 181,
+              "Defense": 26,
+              "Health": 510,
+              "Speed": 9,
+              "Wave": 2
+            },
+            {
+              "Key": "amber_shore_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 117,
+              "Defense": 64,
+              "Health": 893,
+              "Speed": 6,
+              "Wave": 3
+            },
+            {
+              "Key": "amber_shore_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 149,
+              "Defense": 47,
+              "Health": 765,
+              "Speed": 4,
+              "Wave": 3
+            },
+            {
+              "Key": "amber_shore_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 181,
+              "Defense": 26,
+              "Health": 510,
+              "Speed": 9,
+              "Wave": 3
+            }
+          ],
+          "Boss": [
+            {
+              "Key": "amber_shore_boss",
+              "DisplayName": "Володар",
+              "Line": "Front",
+              "Attack": 255,
+              "Defense": 96,
+              "Health": 2975,
+              "Speed": 8,
+              "Wave": 99
+            },
+            {
+              "Key": "amber_shore_boss_adept",
+              "DisplayName": "Служник",
+              "Line": "Back",
+              "Attack": 170,
+              "Defense": 32,
+              "Health": 638,
+              "Speed": 11,
+              "Wave": 99
+            }
+          ],
+          "Reward": [
+            {
+              "Resource": "gold",
+              "Amount": 2550
+            },
+            {
+              "Resource": "iron",
+              "Amount": 1275
+            }
+          ]
+        },
+        {
           "Key": "storm_spire",
           "DisplayName": "Шпиль бурі",
           "Description": "Блискавка б'є в нього так часто, що камінь дзвенить.",
@@ -812,6 +1074,137 @@
             {
               "Resource": "iron",
               "Amount": 1950
+            }
+          ]
+        },
+        {
+          "Key": "horn_valley",
+          "DisplayName": "Долина рогів",
+          "Description": "Тут сурмили до бою так довго, що луна лишилась.",
+          "ArtifactSetKey": "horn",
+          "RequiresMainBuildingLevel": 15,
+          "Waves": [
+            {
+              "Key": "horn_valley_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 167,
+              "Defense": 91,
+              "Health": 1271,
+              "Speed": 6,
+              "Wave": 1
+            },
+            {
+              "Key": "horn_valley_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 212,
+              "Defense": 67,
+              "Health": 1089,
+              "Speed": 4,
+              "Wave": 1
+            },
+            {
+              "Key": "horn_valley_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 257,
+              "Defense": 37,
+              "Health": 726,
+              "Speed": 9,
+              "Wave": 1
+            },
+            {
+              "Key": "horn_valley_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 167,
+              "Defense": 91,
+              "Health": 1271,
+              "Speed": 6,
+              "Wave": 2
+            },
+            {
+              "Key": "horn_valley_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 212,
+              "Defense": 67,
+              "Health": 1089,
+              "Speed": 4,
+              "Wave": 2
+            },
+            {
+              "Key": "horn_valley_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 257,
+              "Defense": 37,
+              "Health": 726,
+              "Speed": 9,
+              "Wave": 2
+            },
+            {
+              "Key": "horn_valley_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 167,
+              "Defense": 91,
+              "Health": 1271,
+              "Speed": 6,
+              "Wave": 3
+            },
+            {
+              "Key": "horn_valley_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 212,
+              "Defense": 67,
+              "Health": 1089,
+              "Speed": 4,
+              "Wave": 3
+            },
+            {
+              "Key": "horn_valley_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 257,
+              "Defense": 37,
+              "Health": 726,
+              "Speed": 9,
+              "Wave": 3
+            }
+          ],
+          "Boss": [
+            {
+              "Key": "horn_valley_boss",
+              "DisplayName": "Володар",
+              "Line": "Front",
+              "Attack": 363,
+              "Defense": 136,
+              "Health": 4235,
+              "Speed": 8,
+              "Wave": 99
+            },
+            {
+              "Key": "horn_valley_boss_adept",
+              "DisplayName": "Служник",
+              "Line": "Back",
+              "Attack": 242,
+              "Defense": 46,
+              "Health": 908,
+              "Speed": 11,
+              "Wave": 99
+            }
+          ],
+          "Reward": [
+            {
+              "Resource": "gold",
+              "Amount": 3630
+            },
+            {
+              "Resource": "iron",
+              "Amount": 1815
             }
           ]
         },
@@ -1078,6 +1471,137 @@
           ]
         },
         {
+          "Key": "moon_marsh",
+          "DisplayName": "Місячне болото",
+          "Description": "Вночі тут видно на сто кроків — і тебе видно так само.",
+          "ArtifactSetKey": "moon",
+          "RequiresMainBuildingLevel": 20,
+          "Waves": [
+            {
+              "Key": "moon_marsh_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 216,
+              "Defense": 118,
+              "Health": 1649,
+              "Speed": 6,
+              "Wave": 1
+            },
+            {
+              "Key": "moon_marsh_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 275,
+              "Defense": 86,
+              "Health": 1413,
+              "Speed": 4,
+              "Wave": 1
+            },
+            {
+              "Key": "moon_marsh_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 334,
+              "Defense": 47,
+              "Health": 942,
+              "Speed": 9,
+              "Wave": 1
+            },
+            {
+              "Key": "moon_marsh_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 216,
+              "Defense": 118,
+              "Health": 1649,
+              "Speed": 6,
+              "Wave": 2
+            },
+            {
+              "Key": "moon_marsh_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 275,
+              "Defense": 86,
+              "Health": 1413,
+              "Speed": 4,
+              "Wave": 2
+            },
+            {
+              "Key": "moon_marsh_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 334,
+              "Defense": 47,
+              "Health": 942,
+              "Speed": 9,
+              "Wave": 2
+            },
+            {
+              "Key": "moon_marsh_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 216,
+              "Defense": 118,
+              "Health": 1649,
+              "Speed": 6,
+              "Wave": 3
+            },
+            {
+              "Key": "moon_marsh_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 275,
+              "Defense": 86,
+              "Health": 1413,
+              "Speed": 4,
+              "Wave": 3
+            },
+            {
+              "Key": "moon_marsh_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 334,
+              "Defense": 47,
+              "Health": 942,
+              "Speed": 9,
+              "Wave": 3
+            }
+          ],
+          "Boss": [
+            {
+              "Key": "moon_marsh_boss",
+              "DisplayName": "Володар",
+              "Line": "Front",
+              "Attack": 471,
+              "Defense": 177,
+              "Health": 5495,
+              "Speed": 8,
+              "Wave": 99
+            },
+            {
+              "Key": "moon_marsh_boss_adept",
+              "DisplayName": "Служник",
+              "Line": "Back",
+              "Attack": 314,
+              "Defense": 59,
+              "Health": 1178,
+              "Speed": 11,
+              "Wave": 99
+            }
+          ],
+          "Reward": [
+            {
+              "Resource": "gold",
+              "Amount": 4710
+            },
+            {
+              "Resource": "iron",
+              "Amount": 2355
+            }
+          ]
+        },
+        {
           "Key": "gale_pass",
           "DisplayName": "Вітряний перевал",
           "Description": "Вітер зносить зі стежки все, крім вартових.",
@@ -1336,6 +1860,137 @@
             {
               "Resource": "iron",
               "Amount": 3030
+            }
+          ]
+        },
+        {
+          "Key": "zenith_cathedral",
+          "DisplayName": "Сонячний собор",
+          "Description": "Опівдні тіні тут зникають, а з ними — і укриття.",
+          "ArtifactSetKey": "zenith",
+          "RequiresMainBuildingLevel": 25,
+          "Waves": [
+            {
+              "Key": "zenith_cathedral_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 266,
+              "Defense": 145,
+              "Health": 2027,
+              "Speed": 6,
+              "Wave": 1
+            },
+            {
+              "Key": "zenith_cathedral_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 338,
+              "Defense": 106,
+              "Health": 1737,
+              "Speed": 4,
+              "Wave": 1
+            },
+            {
+              "Key": "zenith_cathedral_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 410,
+              "Defense": 58,
+              "Health": 1158,
+              "Speed": 9,
+              "Wave": 1
+            },
+            {
+              "Key": "zenith_cathedral_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 266,
+              "Defense": 145,
+              "Health": 2027,
+              "Speed": 6,
+              "Wave": 2
+            },
+            {
+              "Key": "zenith_cathedral_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 338,
+              "Defense": 106,
+              "Health": 1737,
+              "Speed": 4,
+              "Wave": 2
+            },
+            {
+              "Key": "zenith_cathedral_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 410,
+              "Defense": 58,
+              "Health": 1158,
+              "Speed": 9,
+              "Wave": 2
+            },
+            {
+              "Key": "zenith_cathedral_guard",
+              "DisplayName": "Вартовий",
+              "Line": "Front",
+              "Attack": 266,
+              "Defense": 145,
+              "Health": 2027,
+              "Speed": 6,
+              "Wave": 3
+            },
+            {
+              "Key": "zenith_cathedral_brute",
+              "DisplayName": "Здоровань",
+              "Line": "Front",
+              "Attack": 338,
+              "Defense": 106,
+              "Health": 1737,
+              "Speed": 4,
+              "Wave": 3
+            },
+            {
+              "Key": "zenith_cathedral_seer",
+              "DisplayName": "Віщун",
+              "Line": "Back",
+              "Attack": 410,
+              "Defense": 58,
+              "Health": 1158,
+              "Speed": 9,
+              "Wave": 3
+            }
+          ],
+          "Boss": [
+            {
+              "Key": "zenith_cathedral_boss",
+              "DisplayName": "Володар",
+              "Line": "Front",
+              "Attack": 579,
+              "Defense": 217,
+              "Health": 6755,
+              "Speed": 8,
+              "Wave": 99
+            },
+            {
+              "Key": "zenith_cathedral_boss_adept",
+              "DisplayName": "Служник",
+              "Line": "Back",
+              "Attack": 386,
+              "Defense": 73,
+              "Health": 1448,
+              "Speed": 11,
+              "Wave": 99
+            }
+          ],
+          "Reward": [
+            {
+              "Resource": "gold",
+              "Amount": 5790
+            },
+            {
+              "Resource": "iron",
+              "Amount": 2895
             }
           ]
         }

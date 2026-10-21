@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { DungeonRunView } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { Tile } from "../game/GameUi";
+import ArtifactHover from "../inventory/ArtifactHover";
 import ItemIcon from "../inventory/ItemIcon";
 
 type Reward = NonNullable<DungeonRunView["reward"]>;
@@ -52,9 +53,11 @@ export default function DungeonRewardCard({ reward }: { reward: Reward }) {
 
         {reward.artifacts.map((artifact) => (
           <RewardSlot key={artifact.itemKey} caption={artifact.displayName}>
-            <Tile rarity={artifact.rarity}>
-              <ItemIcon itemKey={artifact.itemKey} type="equipment" rarity={artifact.rarity} size={56} bare />
-            </Tile>
+            <ArtifactHover artifact={artifact}>
+              <Tile rarity={artifact.rarity}>
+                <ItemIcon itemKey={artifact.itemKey} type="equipment" rarity={artifact.rarity} size={56} bare />
+              </Tile>
+            </ArtifactHover>
           </RewardSlot>
         ))}
       </div>

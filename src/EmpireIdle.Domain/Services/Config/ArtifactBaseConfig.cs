@@ -12,6 +12,15 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Приріст атаки й захисту героя за рівень.</summary>
         public double HeroPerLevel { get; set; }
 
+        /// <summary>
+        /// Здоров'я героя на рівні 0. Без нього атака й захист від спорядження росли б, а здоров'я —
+        /// ні, і поріг рани героя сповзав би з прогресом (рішення 15.10.2026: 6 × база героя).
+        /// </summary>
+        public double HeroHealth { get; set; }
+
+        /// <summary>Приріст здоров'я героя за рівень.</summary>
+        public double HeroHealthPerLevel { get; set; }
+
         /// <summary>Атака й захист юнітів на рівні 0.</summary>
         public double Unit { get; set; }
 

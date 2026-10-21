@@ -68,8 +68,8 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Герої від найсильнішого (GDD §6.1): перший — обличчя маршу у звітах і на карті й першим
-        /// бере вільний слот лідера, коли марш прибуває. За рівної сили — хто прийшов раніше,
+        /// Герої від найсильнішого (GDD §6.1): перший — обличчя маршу у звітах і на карті.
+        /// За рівної сили — хто прийшов раніше,
         /// щоб порядок не стрибав. Герой, якого вже немає в довіднику, — найслабший.
         /// </summary>
         public List<Hero> StrongestFirst(IEnumerable<Hero> heroes)
@@ -80,12 +80,17 @@ namespace EmpireIdle.Domain.Services
                 .ToList();
 
         /// <summary>
-        /// Сила героя без спорядження: сума власних статів від рівня й тіру.
+        /// Сила героя без спорядження: власні стати від рівня й тіру, кожен зі своєю вагою.
         /// Окремо від Compute, бо і рейтинг, і ринок оцінюють героя без того,
         /// що на ньому вдягнено, — екіп живе своїм життям і продається окремо.
         /// </summary>
         public double Power(Hero hero, HeroConfig config)
-            => config.BaseStats.Keys.Sum(stat => _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel));
+        {
+            var settings = _catalog.Config.HeroSettings;
+
+            return config.BaseStats.Keys.Sum(stat => settings.StatPowerWeight(stat)
+                * _progression.StatValue(config, stat, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel));
+        }
 
         /// <summary>
         /// Сила героя з вдягненим (GDD §9.12): власна плюс сила кожного артефакта з множником
@@ -98,34 +103,76 @@ namespace EmpireIdle.Domain.Services
 
             return Power(hero, config)
                 + equipped.Sum(item => _artifacts.Power(item, multiplier))
-                + SetBonus(equipped).Values.Sum();
+                + SetPower(hero, config, equipped);
+        }
+
+        /// <summary>
+        /// Сила бонусів наборів за тими самими вагами, що й решта (рішення 15.10.2026): пласкі стати —
+        /// за вагою стата, відсоток до стата героя — за реальним приростом цього стата, решта — за
+        /// PowerPerPercent. Сира сума складала б здоров'я з атакою один до одного й відсотки з числами.
+        /// </summary>
+        private double SetPower(Hero hero, HeroConfig config, IReadOnlyCollection<EquipmentItem> equipped)
+        {
+            var bonuses = SetBonus(equipped);
+
+            if (bonuses.Count == 0)
+                return 0;
+
+            var settings = _catalog.Config.HeroSettings;
+            var equipment = _catalog.Config.Equipment;
+            var multiplier = _artifacts.ClassMultiplier(config.Class);
+            var power = 0.0;
+
+            foreach (var (stat, value) in bonuses)
+            {
+                if (ArtifactStats.HeroPercentStats.TryGetValue(stat, out var target))
+                {
+                    // Відсоток множить увесь стат: власний героя й пласкі з предметів і наборів
+                    var flat = _progression.StatValue(config, target, hero.EffectiveLevel, hero.Tier, hero.NativeTier, hero.StarParts, hero.WeaponLevel)
+                        + equipped.Sum(item => _artifacts.Compute(item, multiplier).GetValueOrDefault(target))
+                        + bonuses.GetValueOrDefault(target);
+
+                    power += flat * value / 100 * settings.StatPowerWeight(target) * equipment.HeroStatPower;
+                }
+                else if (stat is ArtifactStats.Attack or ArtifactStats.Defense or ArtifactStats.Health)
+                    power += value * settings.StatPowerWeight(stat) * equipment.HeroStatPower;
+                else
+                    power += value * (equipment.FindArtifactBonus(stat)?.PowerPerPercent ?? 0);
+            }
+
+            return Math.Round(power, 2);
         }
 
         /// <summary>Сила предмета самого по собі, без героя: так його оцінює ринок.</summary>
         public double Power(EquipmentItem item) => _artifacts.Power(item);
 
         /// <summary>
-        /// Бонуси за повні набори з вдягненого.
+        /// Бонуси наборів із вдягненого за порогами (рішення 15.10.2026): предмети рахуються по родині
+        /// будь-якої рідкості, поріг N дає свій бонус, щойно вдягнено N предметів родини, а числа бере
+        /// з рідкості N-го предмета, якщо розкласти їх від найрідкіснішого. Так 2 унікальні + 2 звичайні
+        /// дають поріг 2 унікальний, а поріг 4 — звичайний; при трьох предметах діє лише поріг 2.
         /// </summary>
         public IReadOnlyDictionary<string, double> SetBonus(IReadOnlyCollection<EquipmentItem> equipped)
         {
             var result = new Dictionary<string, double>();
-            var equipment = _catalog.Config.Equipment;
+            var bonuses = _catalog.Config.Equipment.SetBonuses;
 
-            if (equipment.SetBonuses.Count == 0)
+            if (bonuses.Count == 0)
                 return result;
 
             var worn = equipped
-                .Select(e => e.ItemKey)
-                .ToList();
+                .Select(e => _catalog.FindItem(e.ItemKey)?.SetKey)
+                .OfType<string>()
+                .Select(EquipmentConfig.SplitSetKey)
+                .GroupBy(piece => piece.Family)
+                .ToDictionary(g => g.Key, g => g.Select(piece => piece.Rarity).OrderByDescending(r => r).ToList());
 
-            foreach (var bonus in equipment.SetBonuses)
+            foreach (var bonus in bonuses)
             {
-                var pieces = _catalog.SetPieces.GetValueOrDefault(bonus.SetKey, []);
+                var (family, rarity) = EquipmentConfig.SplitSetKey(bonus.SetKey);
 
-                var count = worn.Count(pieces.Contains);
-
-                if (count < bonus.RequiredPieces)
+                if (!worn.TryGetValue(family, out var rarities) || rarities.Count < bonus.RequiredPieces
+                    || rarities[bonus.RequiredPieces - 1] != rarity)
                     continue;
 
                 foreach (var (stat, value) in bonus.Stats)

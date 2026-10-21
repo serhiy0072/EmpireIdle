@@ -3,6 +3,7 @@ namespace EmpireIdle.Application.Villages.ReadModels
     /// <summary>
     /// Село в поданні для клієнта. X/Y — клітина на мапі світу: карта центрується на ній.
     /// ShieldUntil — щит після падіння міста, лише поки він діє.
+    /// MealPerHour — скільки м'яса за годину з'їдає Їдальня; 0 — Їдальні ще немає (рішення 20.10.2026).
     /// </summary>
     public record VillageView(
         Guid Id,
@@ -12,7 +13,9 @@ namespace EmpireIdle.Application.Villages.ReadModels
         List<BuildingView> Buildings,
         List<ResourceView> Resources,
         DateTime? ShieldUntil,
-        VillageDamageView? Damage);
+        VillageDamageView? Damage,
+        bool IsHungry = false,
+        int MealPerHour = 0);
 
     /// <summary>
     /// Наслідки програних оборон (GDD §2.6), лише поки є пошкоджені будівлі.

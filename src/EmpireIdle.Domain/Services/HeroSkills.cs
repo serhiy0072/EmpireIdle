@@ -32,6 +32,17 @@ namespace EmpireIdle.Domain.Services
             => _config.SkillBooks.FirstOrDefault(b => b.Class == hero.Class && b.Rarity == hero.Rank && b.Half == half);
 
         /// <summary>
+        /// Скільки книг коштує підняти вміння з поточного рівня на наступний; поза списком — остання відома ціна,
+        /// без списку — одна книга.
+        /// </summary>
+        public int BookCost(int currentLevel)
+        {
+            var costs = _config.SkillBookCosts;
+
+            return costs.Count == 0 ? 1 : costs[Math.Clamp(currentLevel - 1, 0, costs.Count - 1)];
+        }
+
+        /// <summary>
         /// До якого рівня вміння можна дійти з поточними зірками: зірки + 1, але не вище MaxSkillLevel.
         /// Без зірок — лише перший рівень, на п'ятій зірці — шостий.
         /// </summary>

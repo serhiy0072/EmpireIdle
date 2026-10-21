@@ -23,21 +23,21 @@ namespace EmpireIdle.Domain.Tests.Services
             {
                 Key = "cavalry",
                 DisplayName = "Cavalry",
-                BaseTrainMinutes = 3,
+                BaseTrainSeconds = 3,
                 Stats = new Dictionary<string, double> { ["Speed"] = 8 }
             },
             new UnitConfig
             {
                 Key = "infantry",
                 DisplayName = "Infantry",
-                BaseTrainMinutes = 2,
+                BaseTrainSeconds = 2,
                 Stats = new Dictionary<string, double> { ["Speed"] = 4 }
             },
             new UnitConfig
             {
                 Key = "siege",
                 DisplayName = "Siege",
-                BaseTrainMinutes = 10,
+                BaseTrainSeconds = 10,
                 Stats = new Dictionary<string, double> { ["Speed"] = 1 }
             }
         };

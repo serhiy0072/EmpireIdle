@@ -166,17 +166,18 @@ public class MarchAlertTests
         Assert.IsType<HostileMarchLaunched>(Assert.Single(march.DomainEvents));
     }
 
-    /// <summary>Розвідники звітують на місці й назад не йдуть.</summary>
+    /// <summary>Розвідники звітують на місці й ідуть додому новою ногою — лише розвідники.</summary>
     [Fact]
-    public void FinishScouting_ShouldCompleteTheMarch_AndOnlyForScouts()
+    public void FinishScouting_ShouldTurnTheScoutsHome_AndOnlyForScouts()
     {
         var scouts = Send(MarchTargetType.Village, MarchIntent.Scout, Guid.NewGuid());
         var attack = Send(MarchTargetType.Village, MarchIntent.Attack, Guid.NewGuid());
 
-        scouts.FinishScouting(Now.AddMinutes(20));
+        scouts.FinishScouting(TimeSpan.FromMinutes(20), Now.AddMinutes(20));
 
-        Assert.Equal(MarchState.Completed, scouts.State);
-        Assert.ThrowsAny<Exception>(() => attack.FinishScouting(Now.AddMinutes(20)));
+        Assert.Equal(MarchState.Returning, scouts.State);
+        Assert.Equal((Now.AddMinutes(20), Now.AddMinutes(40)), (scouts.LegStartedAt, scouts.ArrivesAt));
+        Assert.ThrowsAny<Exception>(() => attack.FinishScouting(TimeSpan.FromMinutes(20), Now.AddMinutes(20)));
     }
 
     [Fact]

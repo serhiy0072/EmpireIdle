@@ -45,6 +45,20 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Power_ShouldSumTheHerosOwnStats()
             => Assert.Equal(140, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig()), 3);
 
+        /// <summary>Кожен стат іде в силу зі своєю вагою: 100 атаки × 1 + 40 захисту × 0.5.</summary>
+        [Fact]
+        public void Power_ShouldWeighEachStat_WhenWeightsAreSet()
+        {
+            var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+            config.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0, ["Defense"] = 0.5 };
+            var catalog = new GameCatalog(config);
+            var stats = new HeroStats(new HeroProgression(config.HeroSettings), catalog);
+
+            var power = stats.Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), catalog.Hero(TestKeys.CommonHero));
+
+            Assert.Equal(120, power, 3);
+        }
+
         /// <summary>
         /// Найсильніший — першим (GDD §6.1): він обличчя маршу й бере слот лідера на прибутті.
         /// Невідомий довіднику герой — у кінці, а не виняток.
@@ -73,12 +87,12 @@ namespace EmpireIdle.Domain.Tests.Services
 
         /// <summary>
         /// Рівень 2 і бонуси: атака 14 × 1.1, захист 14, атака юнітів 56 × 1.05, захист юнітів 56,
-        /// плюс 2% крита по 10 сили: 29.4 + 114.8 × 0.25 + 20.
+        /// плюс 10% крита по 2 сили: 29.4 + 114.8 × 0.25 + 20.
         /// </summary>
         [Fact]
         public void Power_ShouldCountTheLevelTheFixedBoostsAndTheRandomBonuses()
         {
-            var item = Necklace(level: 2, (0, "Attack", 10), (1, "UnitAttack", 5), (2, "CritChance", 2));
+            var item = Necklace(level: 2, (0, "Attack", 10), (1, "UnitAttack", 5), (2, "CritChance", 10));
 
             Assert.Equal(78.1, Stats().Power(item), 3);
         }
@@ -91,15 +105,73 @@ namespace EmpireIdle.Domain.Tests.Services
         public void Power_WithGear_ShouldAddTheItemPowerWithTheClassMultiplier()
             => Assert.Equal(184, Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), HeroConfig(), [Necklace()]), 3);
 
-        /// <summary>Зламаний дає половину сили: (20 + 80 × 0.25 + 2% крита × 10) / 2.</summary>
+        /// <summary>Зламаний дає половину сили: (20 + 80 × 0.25 + 10% крита × 2) / 2.</summary>
         [Fact]
         public void Power_ShouldHalve_ForABrokenItem()
         {
-            var item = Necklace(0, (2, "CritChance", 2));
+            var item = Necklace(0, (2, "CritChance", 10));
             item.Break(TestKit.Entities.Now);
 
             Assert.Equal(30, Stats().Power(item), 3);
         }
+
+        /// <summary>Звичайний артефакт зі здоров'ям: 60 на нулі й +12 за рівень, ваги сили як у грі.</summary>
+        private static (HeroStats Stats, HeroConfig Hero) WithArtifactHealth()
+        {
+            var config = new GameConfigBuilder()
+                .WithHeroes()
+                .WithEquipment(e =>
+                {
+                    e.ArtifactClassMultipliers["warrior"] = new ArtifactClassMultiplierConfig { Attack = 1.0, Defense = 1.2 };
+                    e.ArtifactBase[Rarity.Common].HeroHealth = 60;
+                    e.ArtifactBase[Rarity.Common].HeroHealthPerLevel = 12;
+                })
+                .Build();
+            config.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0, ["Defense"] = 1.0, ["Health"] = 0.25 };
+            var catalog = new GameCatalog(config);
+
+            return (new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog.Hero(TestKeys.CommonHero));
+        }
+
+        /// <summary>
+        /// Здоров'я артефакта росте з рівнем, а множник класу на нього не діє: 60 + 12 × 2 і на воїні.
+        /// Без нього рана героя наставала б дедалі легше з прогресом.
+        /// </summary>
+        [Fact]
+        public void Compute_ShouldAddTheArtifactsHealthWithoutTheClassMultiplier()
+        {
+            var (stats, hero) = WithArtifactHealth();
+
+            var result = stats.Compute(TestKit.Entities.Hero(TestKeys.CommonHero, level: 1), hero, [Necklace(level: 2)]);
+
+            Assert.Equal(84, result["Health"], 3);
+        }
+
+        /// <summary>
+        /// Той самий предмет дає однакову силу будь-якому класу: атака й захист класів у сумі рівні,
+        /// а здоров'я від класу не залежить. Інакше рідкісний воїн обганяв би унікального лучника.
+        /// </summary>
+        [Fact]
+        public void Power_ShouldNotDependOnTheHerosClass_ForTheSameItem()
+        {
+            var config = new GameConfigBuilder().WithHeroes().WithEquipment(e =>
+            {
+                e.ArtifactBase[Rarity.Common].HeroHealth = 60;
+                e.ArtifactBase[Rarity.Common].HeroHealthPerLevel = 12;
+            }).Build();
+            var artifacts = new ArtifactStats(new GameCatalog(config));
+            var item = Necklace(level: 10);
+
+            var warrior = artifacts.Power(item, new ArtifactClassMultiplierConfig { Attack = 1.0, Defense = 1.2 });
+            var archer = artifacts.Power(item, new ArtifactClassMultiplierConfig { Attack = 1.4, Defense = 0.8 });
+
+            Assert.Equal(warrior, archer, 3);
+        }
+
+        /// <summary>Здоров'я предмета важить у силі як здоров'я героя: (10 + 10) + (40 + 40) × 0.25 + 60 × 0.25.</summary>
+        [Fact]
+        public void Power_ShouldWeighTheArtifactsHealthLikeTheHerosOwn()
+            => Assert.Equal(55, WithArtifactHealth().Stats.Power(Necklace()), 3);
 
         /// <summary>Відсотки крита складаються в силу за своєю вагою, а не з пласкою атакою.</summary>
         [Fact]
@@ -107,7 +179,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var plain = Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(), [Necklace()]);
             var critical = Stats().Power(TestKit.Entities.Hero(TestKeys.CommonHero), HeroConfig(),
-                [Necklace(0, (2, "CritChance", 3))]);
+                [Necklace(0, (2, "CritChance", 15))]);
 
             Assert.Equal(30, critical - plain, 3);
         }
@@ -244,10 +316,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public void SetBonus_ShouldGiveNothing_WhenNothingIsEquipped()
             => Assert.Empty(Stats().SetBonus([]));
 
-        /// <summary>
-        /// Три з чотирьох не дають нічого. Саме це й робить набір метою,
-        /// а не побічним ефектом збирання найсильніших артефактів.
-        /// </summary>
+        /// <summary>Три з чотирьох не дають порогу 4, а порогу 2 в цьому наборі немає.</summary>
         [Fact]
         public void SetBonus_ShouldGiveNothing_BelowTheFullSet()
         {
@@ -288,6 +357,101 @@ namespace EmpireIdle.Domain.Tests.Services
             ]);
 
             Assert.Empty(bonus);
+        }
+
+        /// <summary>
+        /// Родина «amber» у трьох рідкостях з порогами 2 і 4: числа порогу — це рідкість у тисячах
+        /// (звичайна 1, рідкісна 2, унікальна 3) плюс поріг, щоб з атаки було видно, що спрацювало.
+        /// </summary>
+        private static HeroStats AmberStats()
+        {
+            var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+            config.Equipment.ArtifactSets.Add(new ArtifactSetConfig { Key = "amber", DisplayName = "Набір Бурштину" });
+
+            foreach (var rarity in Enum.GetValues<Rarity>())
+            {
+                var setKey = $"amber_{rarity.ToString().ToLowerInvariant()}";
+
+                foreach (var slot in new[] { "necklace", "ring", "crown", "belt" })
+                    config.Items.Add(new ItemConfig { Key = $"{setKey}_{slot}", Type = "equipment", Slot = EquipmentSlot.Artifact, ArtifactSlot = slot, SetKey = setKey });
+
+                foreach (var pieces in new[] { 2, 4 })
+                    config.Equipment.SetBonuses.Add(new SetBonusConfig { SetKey = setKey, RequiredPieces = pieces, Stats = new() { ["Attack"] = (int)rarity * 1000 + pieces } });
+            }
+
+            return new HeroStats(new HeroProgression(config.HeroSettings), new GameCatalog(config));
+        }
+
+        private static EquipmentItem Amber(Rarity rarity, string slot)
+            => SetPiece($"amber_{rarity.ToString().ToLowerInvariant()}_{slot}");
+
+        /// <summary>Три предмети родини — лише поріг 2: третій нового не додає.</summary>
+        [Fact]
+        public void SetBonus_ShouldGiveTheTwoPieceBonus_OnThreePieces()
+        {
+            var bonus = AmberStats().SetBonus([Amber(Rarity.Rare, "necklace"), Amber(Rarity.Rare, "ring"), Amber(Rarity.Rare, "crown")]);
+
+            Assert.Equal(2002, bonus["Attack"], 3);
+        }
+
+        [Fact]
+        public void SetBonus_ShouldGiveNothing_OnASinglePiece()
+            => Assert.Empty(AmberStats().SetBonus([Amber(Rarity.Unique, "necklace")]));
+
+        /// <summary>
+        /// Родина рахується незалежно від рідкості, а поріг N бере рідкість N-го предмета від найрідкіснішого:
+        /// 2 унікальні + 2 звичайні = поріг 2 унікальний (3002) і поріг 4 звичайний (1004).
+        /// </summary>
+        [Fact]
+        public void SetBonus_ShouldTakeEachThresholdsRarity_FromItsNthRarestPiece()
+        {
+            var bonus = AmberStats().SetBonus(
+            [
+                Amber(Rarity.Common, "necklace"),
+                Amber(Rarity.Unique, "ring"),
+                Amber(Rarity.Common, "crown"),
+                Amber(Rarity.Unique, "belt")
+            ]);
+
+            Assert.Equal(3002 + 1004, bonus["Attack"], 3);
+        }
+
+        /// <summary>Унікальний + звичайний: другий за рідкістю — звичайний, тож і поріг 2 звичайний.</summary>
+        [Fact]
+        public void SetBonus_ShouldGiveTheLowerRarity_WhenTheNthPieceIsLower()
+        {
+            var bonus = AmberStats().SetBonus([Amber(Rarity.Unique, "necklace"), Amber(Rarity.Common, "ring")]);
+
+            Assert.Equal(1002, bonus["Attack"], 3);
+        }
+
+        /// <summary>
+        /// Бонус набору важить у силі за вагами, а не сирою сумою: 100 здоров'я × 0.25 = 25, а +10% атаки —
+        /// це 10% від усієї пласкої атаки: (100 героя + 4 × 10 предметів) × 0.1 = 14.
+        /// </summary>
+        [Fact]
+        public void Power_ShouldWeighTheSetBonus_LikeTheStatsItGives()
+        {
+            var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+            config.HeroSettings.StatPowerWeights = new Dictionary<string, double> { ["Attack"] = 1.0, ["Defense"] = 1.0, ["Health"] = 0.25 };
+            config.Equipment.SetBonuses[0].Stats = new Dictionary<string, double> { ["Health"] = 100, ["AttackPercent"] = 10 };
+            var catalog = new GameCatalog(config);
+            var stats = new HeroStats(new HeroProgression(config.HeroSettings), catalog);
+            var artifacts = new ArtifactStats(catalog);
+            var hero = TestKit.Entities.Hero(TestKeys.CommonHero, level: 1);
+            var heroConfig = catalog.Hero(TestKeys.CommonHero);
+            EquipmentItem[] set =
+            [
+                SetPiece(TestKeys.Artifact),
+                SetPiece(TestKeys.SecondArtifact),
+                SetPiece(TestKeys.ThirdArtifact),
+                SetPiece(TestKeys.FourthArtifact)
+            ];
+            var withoutSet = stats.Power(hero, heroConfig) + set.Sum(item => artifacts.Power(item, artifacts.ClassMultiplier(heroConfig.Class)));
+
+            var power = stats.Power(hero, heroConfig, set);
+
+            Assert.Equal(withoutSet + 25 + 14, power, 3);
         }
 
         /// <summary>Повний набір входить у підсумкові стати, а не живе окремо.</summary>

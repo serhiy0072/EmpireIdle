@@ -22,6 +22,8 @@ export type PlayerScope =
   | "clanRequests"
   | "power"
   | "dungeons"
+  | "tower"
+  | "towerLeaderboard"
   | "market"
   | "territory";
 

@@ -13,3 +13,11 @@ export function cumulativeUnitLevelCost(base: number, fromLevel: number, toLevel
 
   return Math.trunc(total);
 }
+
+/**
+ * Множник атаки й захисту юніта від рівня — дзеркалить ProgressionCurves.UnitStatMultiplier на бекенді:
+ * +10% за рівень, рівень 1 — база. Швидкість і вантаж від рівня не ростуть.
+ */
+export function unitStatMultiplier(level: number): number {
+  return 1 + 0.1 * (level - 1);
+}

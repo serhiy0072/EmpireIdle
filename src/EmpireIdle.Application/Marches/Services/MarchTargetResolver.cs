@@ -51,6 +51,8 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IHeroRepository _heroRepository;
         private readonly MonsterArmyBuilder _armyBuilder;
         private readonly HeroCombatModifiers _heroModifiers;
+        private readonly HeroCombatants _combatants;
+        private readonly GarrisonDefenders _defenders;
         private readonly GameCatalog _catalog;
         private readonly VillageStatus _status;
         private readonly IClanStructureRepository _structureRepository;
@@ -68,6 +70,8 @@ namespace EmpireIdle.Application.Marches.Services
             IHeroRepository heroRepository,
             MonsterArmyBuilder armyBuilder,
             HeroCombatModifiers heroModifiers,
+            HeroCombatants combatants,
+            GarrisonDefenders defenders,
             GameCatalog catalog,
             VillageStatus status,
             IClanStructureRepository structureRepository,
@@ -82,6 +86,8 @@ namespace EmpireIdle.Application.Marches.Services
             _heroRepository = heroRepository;
             _armyBuilder = armyBuilder;
             _heroModifiers = heroModifiers;
+            _combatants = combatants;
+            _defenders = defenders;
             _status = status;
             _catalog = catalog;
             _structureRepository = structureRepository;
@@ -213,7 +219,9 @@ namespace EmpireIdle.Application.Marches.Services
                         Village: null,
                         // Армія табору — одного власника; його герої ведуть свої конвої й у обороні
                         DefenceStacks.FromArmy(camp.GetUnits()),
-                        new DefenceBuffs(_heroModifiers.ForMarch(campHeroes), new Dictionary<Guid, StackBuff>()),
+                        new DefenceBuffs(
+                            _heroModifiers.ForMarch(campHeroes, await _combatants.GearAsync(campHeroes, cancellationToken)),
+                            new Dictionary<Guid, StackBuff>()),
                         // Стін у полі немає (§2.5); територія — за клітинкою табору
                         await _territoryBonus.DefenceMultiplierAtAsync(
                             campHome.PlayerId, camp.TargetX, camp.TargetY, utcNow, cancellationToken),
@@ -226,21 +234,23 @@ namespace EmpireIdle.Application.Marches.Services
         }
 
         /// <summary>
-        /// Пасивки лідерів гарнізону. Лідер господаря діє на його юнітів,
-        /// лідер кожного союзника — лише на власний стек.
+        /// Бонуси героїв оборони — так само, як у бою: захисники господаря (найсильніший кожного класу)
+        /// ведуть юнітів свого класу, герої кожного союзника — лише власний стек.
         /// </summary>
         private async Task<DefenceBuffs> BuildDefenceBuffsAsync(Guid garrisonId, Guid hostPlayerId,
             CancellationToken cancellationToken)
         {
             var stationed = await _heroRepository.GetByGarrisonAsync(garrisonId, cancellationToken);
+            var defenders = await _defenders.ForAsync(hostPlayerId, cancellationToken);
+            var gear = await _combatants.GearAsync(stationed.Concat(defenders), cancellationToken);
 
             return new DefenceBuffs(
-                _heroModifiers.For(stationed.FirstOrDefault(h => h.IsLeader && h.PlayerId == hostPlayerId)),
+                _heroModifiers.ForMarch(defenders, gear),
                 // Союзник прийшов із кількома героями — кожен підсилює власні конвої (GDD §6.1)
                 stationed
                     .Where(h => h.PlayerId != hostPlayerId)
                     .GroupBy(h => h.PlayerId)
-                    .ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g)));
+                    .ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g, gear)));
         }
 
         /// <summary>

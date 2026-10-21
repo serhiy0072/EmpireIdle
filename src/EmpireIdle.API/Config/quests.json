@@ -160,6 +160,58 @@
         ]
       },
       {
+        "Key": "intro_farm_2",
+        "DisplayName": "Повні комори",
+        "Window": "Chain",
+        "Prerequisite": "intro_townhall_3",
+        "Objectives": [
+          { "Type": "BuildingUpgradeCompleted", "Target": "farm", "Count": 2, "Mode": "Threshold" }
+        ],
+        "Rewards": [
+          { "Type": "Gems", "Amount": 150 },
+          { "Type": "Resource", "Key": "food", "Amount": 300 }
+        ]
+      },
+      {
+        "Key": "intro_messhall",
+        "DisplayName": "Ситне селище",
+        "Window": "Chain",
+        "Prerequisite": "intro_farm_2",
+        "Objectives": [
+          { "Type": "BuildingUpgradeCompleted", "Target": "farm", "Count": 4, "Mode": "Threshold" }
+        ],
+        "Rewards": [
+          { "Type": "Gems", "Amount": 250 },
+          { "Type": "Resource", "Key": "food", "Amount": 500 }
+        ]
+      },
+      {
+        "Key": "intro_fishinghut",
+        "DisplayName": "Улов для звіринця",
+        "Window": "Chain",
+        "Prerequisite": "intro_townhall_5",
+        "Objectives": [
+          { "Type": "BuildingUpgradeCompleted", "Target": "fishinghut", "Count": 1, "Mode": "Threshold" }
+        ],
+        "Rewards": [
+          { "Type": "Gems", "Amount": 300 },
+          { "Type": "Resource", "Key": "fodder", "Amount": 1500 }
+        ]
+      },
+      {
+        "Key": "intro_beastpen",
+        "DisplayName": "Перший звір",
+        "Window": "Chain",
+        "Prerequisite": "intro_fishinghut",
+        "Objectives": [
+          { "Type": "BuildingUpgradeCompleted", "Target": "beastpen", "Count": 1, "Mode": "Threshold" }
+        ],
+        "Rewards": [
+          { "Type": "Gems", "Amount": 300 },
+          { "Type": "Item", "Key": "beast_feed", "Amount": 30 }
+        ]
+      },
+      {
         "Key": "milestone_townhall_10",
         "DisplayName": "Віха: Ратуша 10",
         "Window": "Chain",
@@ -175,6 +227,11 @@
           {
             "Type": "Gems",
             "Amount": 2340
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 75
           }
         ]
       },
@@ -281,6 +338,11 @@
             "Type": "Item",
             "Key": "beast_feed",
             "Amount": 50
+          },
+          {
+            "Type": "Item",
+            "Key": "whetstone",
+            "Amount": 5
           }
         ]
       },

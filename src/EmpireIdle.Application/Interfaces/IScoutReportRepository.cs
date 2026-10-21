@@ -9,5 +9,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Найсвіжіші звіти гравця разом із ресурсами, новіші першими.</summary>
         Task<List<ScoutReport>> GetRecentAsync(Guid playerId, int take, CancellationToken cancellationToken = default);
+
+        /// <summary>Звіти за ідентифікаторами (для листів скриньки), лише для читання.</summary>
+        Task<List<ScoutReport>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
     }
 }

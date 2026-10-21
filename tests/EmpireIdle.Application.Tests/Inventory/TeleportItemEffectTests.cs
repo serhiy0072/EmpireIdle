@@ -73,9 +73,9 @@ public class TeleportItemEffectTests
             new HeroProgression(config.HeroSettings), new HeroStats(new HeroProgression(config.HeroSettings), catalog), NullLogger<MarchLogistics>.Instance);
         var returner = new ReinforcementReturner(_garrisons, _villages, _structures, _marches, _heroes,
             calculator, catalog, new HeroProgression(config.HeroSettings), TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()), NullLogger<ReinforcementReturner>.Instance);
-        var relocator = new VillageRelocator(_map, _marches, _garrisons, _heroes, _servers, catalog, geometry,
+        var relocator = new VillageRelocator(_map, _marches, _garrisons, _servers, catalog, geometry,
             TestEffects.Resolver(Substitute.For<IActiveEffectRepository>()),
-            new MarchHomecoming(_heroes, logistics, NullLogger<MarchHomecoming>.Instance), returner);
+            new MarchHomecoming(logistics, NullLogger<MarchHomecoming>.Instance), returner);
 
         return new TeleportItemEffect(_villages, _map, _servers, _clans, _serverContext, geometry, terrain,
             new SettlementPlacer(terrain, geometry, new SystemRandomSource()),

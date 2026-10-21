@@ -264,10 +264,13 @@ namespace EmpireIdle.Domain.Dungeons
                 _ => targetIndex is { } single ? [single] : [],
             };
 
+            // Шкода вмінь підсилює і активне, і періодичне — обидва йдуть сюди; звичайний удар — ні
+            var multiplier = ability.DamageMultiplier * (1 + actor.UniqueStats.GetValueOrDefault(DungeonStat.SkillDamage));
+
             foreach (var target in targets)
             {
                 if (ability.DamageMultiplier > 0)
-                    Strike(combatants, actorIndex, target, ability.DamageMultiplier, effects, random, ability.Status, ability.StatusMagnitude, ability.StatusTurns);
+                    Strike(combatants, actorIndex, target, multiplier, effects, random, ability.Status, ability.StatusMagnitude, ability.StatusTurns);
                 else
                     Support(combatants, actorIndex, target, ability, effects);
             }
@@ -314,15 +317,19 @@ namespace EmpireIdle.Domain.Dungeons
 
         /// <summary>
         /// Повна перезарядка після спрацювання: з перезарядкою N уміння знову готове через N ходів героя.
-        /// Артефакт на перезарядку скорочує лише активне — періодичне й так б'є без участі гравця.
+        /// Артефакт на перезарядку скорочує лише активне — періодичне й так б'є без участі гравця —
+        /// і не нижче одного ходу очікування: між двома застосуваннями лишається звичайний удар,
+        /// інакше кілька таких артефактів дали б активне вміння щоходу.
         /// </summary>
         private static int FullCooldown(CombatSkill skill, Combatant actor)
         {
+            var full = Math.Max(0, skill.Cooldown - 1);
+
             var reduction = skill.Kind == SkillKind.Active
                 ? (int)Math.Round(actor.UniqueStats.GetValueOrDefault(DungeonStat.CooldownReduction))
                 : 0;
 
-            return Math.Max(0, skill.Cooldown - 1 - reduction);
+            return Math.Max(Math.Min(1, full), full - reduction);
         }
 
         /// <summary>
@@ -364,13 +371,20 @@ namespace EmpireIdle.Domain.Dungeons
                 _config.MinDamageShare,
                 _config.DefenseSoftening / (_config.DefenseSoftening + defense));
 
-            var critChance = _config.BaseCritChance + actor.UniqueStats.GetValueOrDefault(DungeonStat.CritChance);
+            var critChance = Math.Min(_config.MaxCritChance, _config.BaseCritChance + actor.UniqueStats.GetValueOrDefault(DungeonStat.CritChance));
             var critical = random.NextDouble() < critChance;
 
             if (critical)
-                raw *= _config.CritMultiplier;
+                raw *= _config.CritMultiplier + actor.UniqueStats.GetValueOrDefault(DungeonStat.CritPower);
 
-            raw *= 1 - Math.Min(0.8, target.UniqueStats.GetValueOrDefault(DungeonStat.DamageReduction));
+            // Блок кидається лише в того, хто має шанс: бої без блоку зберігають ту саму послідовність кидків
+            var blockChance = Math.Min(_config.MaxBlockChance, target.UniqueStats.GetValueOrDefault(DungeonStat.BlockChance));
+            var blocked = blockChance > 0 && random.NextDouble() < blockChance;
+
+            if (blocked)
+                raw *= 1 - Math.Min(_config.MaxBlockPower, _config.BaseBlockPower + target.UniqueStats.GetValueOrDefault(DungeonStat.BlockPower));
+
+            raw *= 1 - Math.Min(_config.MaxDamageReduction, target.UniqueStats.GetValueOrDefault(DungeonStat.DamageReduction));
 
             var absorbed = Math.Min(target.ShieldPoints, raw);
             var damage = Math.Round(raw - absorbed, 1);
@@ -378,8 +392,10 @@ namespace EmpireIdle.Domain.Dungeons
             var health = Math.Max(0, target.Health - damage);
             var statuses = target.Statuses;
 
+            // Отрута — частка атаки на момент накладання: пласке число було б надто сильним
+            // на старті й нічого не важило б на пізніх рівнях
             if (status is { } kind && health > 0)
-                statuses = Apply(statuses, kind, statusMagnitude, statusTurns);
+                statuses = Apply(statuses, kind, kind == BattleStatusKind.Poison ? Math.Round(attack * statusMagnitude, 1) : statusMagnitude, statusTurns);
 
             combatants[targetIndex] = target with
             {
@@ -388,7 +404,7 @@ namespace EmpireIdle.Domain.Dungeons
                 Statuses = statuses,
             };
 
-            var lifesteal = actor.UniqueStats.GetValueOrDefault(DungeonStat.Lifesteal);
+            var lifesteal = Math.Min(_config.MaxLifesteal, actor.UniqueStats.GetValueOrDefault(DungeonStat.Lifesteal));
             var healed = 0.0;
 
             if (lifesteal > 0 && damage > 0)
@@ -405,6 +421,7 @@ namespace EmpireIdle.Domain.Dungeons
                 TargetIndex = targetIndex,
                 Damage = damage,
                 Critical = critical,
+                Blocked = blocked,
                 ShieldAbsorbed = Math.Round(absorbed, 1),
                 StatusApplied = health > 0 ? status : null,
                 Died = health <= 0,

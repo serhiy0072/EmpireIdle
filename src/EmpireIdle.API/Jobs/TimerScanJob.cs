@@ -4,8 +4,6 @@ using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Garrisons.Queries;
 using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Heroes.Queries;
-using EmpireIdle.Application.Marches.Commands;
-using EmpireIdle.Application.Marches.Queries;
 using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
 using Hangfire;
@@ -36,9 +34,11 @@ namespace EmpireIdle.API.Jobs
 
             await _runner.ForEachServerAsync(nameof(RemoveExpiredClanHelpCommand), (mediator, _, ct) => mediator.Send(new RemoveExpiredClanHelpCommand(), ct), cancellationToken);
 
-            // Кожен похід — у власному scope, тим самим шляхом, що й інші таймери
-            await _runner.ForEachItemAsync(nameof(CompleteMarchCommand), (mediator, ct) => mediator.Send(new GetDueMarchIdsQuery(), ct),
-                (mediator, id, ct) => mediator.Send(new CompleteMarchCommand(id), ct), cancellationToken);
+            // Автозбір: вироблене саме переходить на склад (рішення 19.10.2026)
+            await _runner.ForEachItemAsync(nameof(AutoCollectVillageCommand), (mediator, ct) => mediator.Send(new GetVillageIdsDueAutoCollectQuery(), ct),
+                (mediator, id, ct) => mediator.Send(new AutoCollectVillageCommand(id), ct), cancellationToken);
+
+            // Прибуття походів — у MarchArrivalLoop: хвилина очікування для них задовга
 
             await _runner.ForEachServerAsync(nameof(PurgeExpiredRecoverableCommand), (mediator, _, ct) => mediator.Send(new PurgeExpiredRecoverableCommand(), ct), cancellationToken);
         }

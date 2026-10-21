@@ -6,8 +6,8 @@ namespace EmpireIdle.Domain.Services
 {
     /// <summary>
     /// Скільки таймера зріже прискорення і скільки воно коштує в gems.
-    /// Межа своя для кожного таймера (рішення 08.10.2026): будівництво й тренування
-    /// прискорюються до кінця, марш — до останніх секунд, щоб бій лишався подією на мапі.
+    /// Межа своя для кожного таймера (рішення 08.10.2026); з 19.10.2026 марш теж без межі —
+    /// його прискорюють повторно, кожного разу від залишку (10 хв → 1 хв → 6 с).
     /// Безкоштовного фінішу немає — будь-яке прискорення платне.
     /// </summary>
     public class SpeedUpCalculator
@@ -42,6 +42,32 @@ namespace EmpireIdle.Domain.Services
             if (cut <= TimeSpan.Zero)
             {
                 var floorSeconds = (int)Floor(timer).TotalSeconds;
+
+                throw new InvalidStateException(RefusalReasons.SpeedUpAtFloor,
+                    $"Less than {floorSeconds} s remain; there is nothing to speed up.", floorSeconds);
+            }
+
+            return cut;
+        }
+
+        /// <summary>Варіант прискорення маршу за відсотком; null — такого варіанта в конфізі немає.</summary>
+        public MarchSpeedUpConfig? MarchOption(int percent)
+            => _config.MarchSpeedUps.FirstOrDefault(option => option.Percent == percent);
+
+        /// <summary>
+        /// Скільки дороги зрізає прискорення маршу на percent відсотків залишку. Межа маршу з конфіга
+        /// (якщо задана) не зрізається, і коли зрізати нічого — це відмова, а не безкоштовна покупка.
+        /// </summary>
+        public TimeSpan RequireMarchCut(int percent, DateTime arrivesAt, DateTime now)
+        {
+            var remaining = arrivesAt - now;
+            var left = remaining * (1 - percent / 100.0);
+            var floor = Floor(SpeedUpTimer.March);
+            var cut = remaining - (left > floor ? left : floor);
+
+            if (cut <= TimeSpan.Zero)
+            {
+                var floorSeconds = (int)floor.TotalSeconds;
 
                 throw new InvalidStateException(RefusalReasons.SpeedUpAtFloor,
                     $"Less than {floorSeconds} s remain; there is nothing to speed up.", floorSeconds);

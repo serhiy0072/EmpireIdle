@@ -45,16 +45,6 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public string? ArtifactSlot { get; set; }
 
-        /// <summary>
-        /// Бойова властивість унікального артефакта для данжів. Не росте від
-        /// прокачки предмета: це й відрізняє унікальний набір від рідкісного,
-        /// де більші лише звичайні стати.
-        /// </summary>
-        public DungeonStat? UniqueStat { get; set; }
-
-        /// <summary>Сила унікальної властивості часткою: 0.1 — плюс десять відсотків.</summary>
-        public double UniqueStatValue { get; set; }
-
         /// <summary>equipment: ключ набору, за повний комплект якого дається бонус.</summary>
         public string? SetKey { get; set; }
 

@@ -105,6 +105,40 @@ namespace EmpireIdle.Domain.Tests.Services
         }
 
         /// <summary>
+        /// Плями: сусідні клітини здебільшого одного типу (ліс, озеро), а не шахівниця, —
+        /// і частки типів на великій ділянці все одно тримаються ваг.
+        /// </summary>
+        [Fact]
+        public void GetTerrain_ShouldGrowPatches_KeepingTheWeights()
+        {
+            var config = Config();
+            config.TerrainPatchSize = 5;
+            var patched = new TerrainGenerator(config);
+            var scattered = new TerrainGenerator(Config());
+
+            double SameAsRightNeighbour(TerrainGenerator generator)
+            {
+                var same = 0;
+                for (int x = 0; x < 200; x++)
+                    for (int y = 0; y < 200; y++)
+                        if (generator.GetTerrainType(1, x, y) == generator.GetTerrainType(1, x + 1, y))
+                            same++;
+                return same / 40_000.0;
+            }
+
+            Assert.True(SameAsRightNeighbour(patched) > 0.7, "Patches should keep most neighbours alike.");
+            Assert.True(SameAsRightNeighbour(scattered) < 0.4, "Patch size 1 should stay scattered.");
+
+            var plain = 0;
+            for (int x = 0; x < 400; x++)
+                for (int y = 0; y < 400; y++)
+                    if (patched.GetTerrainType(1, x, y) == "plain")
+                        plain++;
+
+            Assert.InRange(plain / 160_000.0, 0.28, 0.42); // вага plain — 35%
+        }
+
+        /// <summary>
         /// Властивості клітини беруться з конфіга типу: вода непрохідна й незаселювана,
         /// болото проходиме, але жити там не можна.
         /// </summary>

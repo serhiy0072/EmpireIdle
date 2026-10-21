@@ -77,9 +77,7 @@ namespace EmpireIdle.Application.Clans.Services
         /// одразу в <paramref name="home"/>, без маршу. Виняток із правила «юніти
         /// не телепортуються» — переїзд і є телепортом, і армія переїжджає разом із селом.
         /// </summary>
-        /// <param name="leaderSlotFree">Чи вільний слот лідера вдома — див. MarchHomecoming.</param>
-        /// <returns>Чи лишився слот лідера вільним після повернення героїв.</returns>
-        public async Task<bool> BringAllOfPlayerHomeNowAsync(Guid ownerPlayerId, Garrison home, bool leaderSlotFree,
+        public async Task BringAllOfPlayerHomeNowAsync(Guid ownerPlayerId, Garrison home,
             DateTime utcNow, CancellationToken cancellationToken = default)
         {
             var hosts = await HostsOfAsync(ownerPlayerId, cancellationToken);
@@ -94,17 +92,12 @@ namespace EmpireIdle.Application.Clans.Services
                 var stationed = await _heroRepository.GetByGarrisonAsync(host.Id, cancellationToken);
 
                 foreach (var hero in stationed.Where(h => h.PlayerId == ownerPlayerId))
-                {
-                    hero.Relocate(home.Id, leaderSlotFree, utcNow);
-                    leaderSlotFree = false;
-                }
+                    hero.Relocate(home.Id, utcNow);
             }
 
             if (hosts.Count > 0)
                 _logger.LogInformation("Reinforcements of {OwnerId} brought home from {Count} garrisons on relocation",
                     ownerPlayerId, hosts.Count);
-
-            return leaderSlotFree;
         }
 
         /// <summary>

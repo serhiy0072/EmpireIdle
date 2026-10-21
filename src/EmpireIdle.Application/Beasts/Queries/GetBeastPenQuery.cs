@@ -50,7 +50,9 @@ namespace EmpireIdle.Application.Beasts.Queries
                 _catalog.Config.Beasts.Types
                     .Select(beast => new BeastTamingView(beast.Key, beast.MonsterKey,
                         _taming.ChanceFor(beast, penLevel), pen?.MissesFor(beast.Key) ?? 0, pityWins))
-                    .ToList());
+                    .ToList(),
+                _catalog.Config.Beasts.FodderUpkeep.HourlyUpkeep(penLevel, pen?.Beasts.Select(b => b.Level) ?? []),
+                village.BeastsHungry);
         }
 
         private BeastPassiveView Passive(Domain.Entities.Beast beast)
@@ -59,7 +61,7 @@ namespace EmpireIdle.Application.Beasts.Queries
 
             // Сума кроків рівня в double дає хвіст (0.21800000000000003) — клієнту віддаємо чисте число
             return new BeastPassiveView(config.Effect.ToString(), Math.Round(_progression.Bonus(config, beast.Level), 6),
-                config.DurationMinutes, config.CooldownMinutes, config.ActivationFood, beast.ActiveUntil, beast.CooldownUntil);
+                config.DurationMinutes, config.CooldownMinutes, config.ActivationFodder, beast.ActiveUntil, beast.CooldownUntil);
         }
     }
 }

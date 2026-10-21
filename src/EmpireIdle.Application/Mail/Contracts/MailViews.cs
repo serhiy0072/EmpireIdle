@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Scouting.ReadModels;
+
 namespace EmpireIdle.Application.Mail.Contracts
 {
     /// <summary>Скринька гравця: особисті листи, оголошення світу й лічильник непрочитаних.</summary>
@@ -7,13 +9,14 @@ namespace EmpireIdle.Application.Mail.Contracts
     /// Особистий лист. Деталі — лише свого виду, і вони актуальні на момент
     /// читання: лист посилається, а не копіює (GDD §7.4).
     /// </summary>
-    /// <param name="Kind">"ClanInvite", "CityFall", "DailyReward", "WeeklyReward" або "MonthlyReward".</param>
+    /// <param name="Kind">"ClanInvite", "CityFall", "StructureFall", "ScoutReport", "DailyReward", "WeeklyReward",
+    /// "MonthlyReward" або "ServerQuestReward".</param>
     /// <param name="Rewards">Вкладення; порожнє — лист без нагороди.</param>
     /// <param name="Sequence">Порядковий номер у серії — день для щоденної нагороди.</param>
     /// <param name="CanClaim">Вкладення ще не забране й не згоріло.</param>
     public record MailLetterView(Guid Id, string Kind, DateTime CreatedAt, DateTime ExpiresAt, bool IsRead,
         ClanInviteLetterView? ClanInvite, CityFallLetterView? CityFall, StructureFallLetterView? StructureFall,
-        IReadOnlyList<MailRewardView> Rewards, int? Sequence, DateTime? ClaimedAt, bool CanClaim);
+        ScoutReportView? ScoutReport, IReadOnlyList<MailRewardView> Rewards, int? Sequence, DateTime? ClaimedAt, bool CanClaim);
 
     /// <param name="Type">Gems, Resource, Item… — як у конфігу нагород.</param>
     public record MailRewardView(string Type, string? Key, int Amount);

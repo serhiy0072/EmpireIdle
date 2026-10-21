@@ -10,8 +10,8 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Heroes.Commands
 {
     /// <summary>
-    /// Заточка коваля (GDD §9.12): спроба за золото з шансом. Успіх додає ранг бонусу — його стат
-    /// і ступінь розігрує ArtifactRoller із сідом у журналі предмета. Невдача з'їдає золото, а на
+    /// Заточка коваля (GDD §9.12): спроба за камені для заточування з шансом. Успіх додає ранг бонусу — його стат
+    /// і ступінь розігрує ArtifactRoller із сідом у журналі предмета. Невдача з'їдає камені, а на
     /// пізніх рангах може ще й зламати предмет; попередження про це — у клієнті.
     /// </summary>
     public record RaiseArtifactMasteryCommand(Guid PlayerId, Guid EquipmentId)
@@ -61,7 +61,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (item is null || item.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Equipment", request.EquipmentId.ToString());
 
-            // До списання золота: виставлений чи зламаний не можна ні прокачати, ні оплатити спробу
+            // До списання каменів: виставлений чи зламаний не можна ні прокачати, ні оплатити спробу
             item.EnsureNotOnMarket();
             item.EnsureNotBroken();
 
@@ -76,7 +76,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Mastery requires the {equipment.ForgeBuildingKey}.", _catalog.Building(equipment.ForgeBuildingKey).DisplayName);
 
-            village.ChargeCost([new ResourceCost { Resource = "gold", Amount = _rules.Cost(item.Mastery) }], now);
+            await PayWithStonesAsync(request.PlayerId, _rules.Cost(item.Mastery), cancellationToken);
 
             var outcome = _rules.Roll(item.Mastery, _random);
 
@@ -98,6 +98,27 @@ namespace EmpireIdle.Application.Heroes.Commands
                 item.Id, outcome, item.Mastery);
 
             return outcome;
+        }
+
+        /// <summary>Списує камені для заточування; не вистачає — відмова до кидка, нічого не витрачено.</summary>
+        private async Task PayWithStonesAsync(Guid playerId, int stones, CancellationToken cancellationToken)
+        {
+            if (stones <= 0)
+                return;
+
+            var key = _catalog.Config.Equipment.MasteryStoneItemKey;
+            var stack = await _inventoryRepository.GetItemAsync(playerId, key, cancellationToken);
+            var have = stack?.Count ?? 0;
+
+            if (stack is null || have < stones)
+                throw new RequirementNotMetException(RefusalReasons.ItemNotEnough,
+                    $"Mastery needs {stones} '{key}', the player has {have}.",
+                    _catalog.FindItem(key)?.DisplayName ?? key, stones, have);
+
+            stack.Consume(stones);
+
+            if (stack.Count == 0)
+                _inventoryRepository.RemoveItem(stack);
         }
     }
 }

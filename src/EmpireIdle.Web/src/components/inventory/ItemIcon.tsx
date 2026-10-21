@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { rarityKey } from "../../lib/rarity";
+import { artifactArtFor, drawArtifact } from "./artifactArt";
 
 /**
  * Іконка предмета: процедурний SVG за ключем і типом, рамка за рідкістю.
@@ -14,6 +15,8 @@ interface Props {
   className?: string;
   /** Без власного тла й рамки — коли рамку рідкості малює плитка навколо. */
   bare?: boolean;
+  /** Заточка артефакта: «+N» у правому нижньому куті, 0 — без позначки. */
+  mastery?: number;
 }
 
 const FRAME: Record<string, { stroke: string; back: string }> = {
@@ -21,6 +24,39 @@ const FRAME: Record<string, { stroke: string; back: string }> = {
   Rare: { stroke: "#38bdf8", back: "#e0f2fe" },
   Unique: { stroke: "#f59e0b", back: "#fef3c7" },
 };
+
+/** Ящик ресурсу: бічні грані кольору ресурсу, на кришці — збільшений знак ресурсу. */
+function crate(color: string, mark: ReactElement): ReactElement {
+  return (
+    <g>
+      <path d="M14 36 L50 18 L86 36 L86 70 L50 88 L14 70 Z" fill="#e7d3b0" stroke="#78350f" strokeWidth={2.5} />
+      <path d="M14 36 L50 54 L50 88 L14 70 Z" fill={color} opacity={0.9} />
+      <path d="M50 54 L86 36 L86 70 L50 88 Z" fill={color} opacity={0.65} />
+      <path d="M50 54 L86 36 M50 54 L14 36 M50 54 L50 88" stroke="#78350f" strokeWidth={2.5} />
+      <g transform="translate(50 36) scale(1.35) translate(-50 -33)">{mark}</g>
+    </g>
+  );
+}
+
+const woodMark = (
+  <g stroke="#78350f" strokeWidth={1.5}>
+    <rect x={38} y={26} width={24} height={7} rx={3.5} fill="#d97706" />
+    <rect x={40} y={33} width={24} height={7} rx={3.5} fill="#b45309" />
+  </g>
+);
+const foodMark = (
+  <g>
+    <ellipse cx={50} cy={32} rx={11} ry={7} fill="#f87171" stroke="#7f1d1d" strokeWidth={1.5} />
+    <rect x={58} y={30} width={8} height={4} rx={2} fill="#fef3c7" stroke="#7f1d1d" strokeWidth={1} />
+  </g>
+);
+const goldMark = (
+  <g stroke="#854d0e" strokeWidth={1.5}>
+    <circle cx={45} cy={33} r={7} fill="#facc15" />
+    <circle cx={55} cy={30} r={7} fill="#fde047" />
+  </g>
+);
+const ironMark = <path d="M38 38 L42 28 L62 28 L66 38 Z" fill="#cbd5e1" stroke="#334155" strokeWidth={1.5} />;
 
 const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
   {
@@ -146,6 +182,17 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
+    // Камінь для заточування: брусок-точило з іскрою
+    test: /whetstone/,
+    draw: () => (
+      <g>
+        <path d="M22 62 L60 30 Q66 26 72 32 L78 40 Q82 46 76 50 L38 80 Q32 84 27 78 L20 70 Q17 65 22 62 Z" fill="#94a3b8" stroke="#334155" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M30 66 L64 38" stroke="#e2e8f0" strokeWidth={3} strokeLinecap="round" />
+        <path d="M76 18 L78 26 L86 28 L78 30 L76 38 L74 30 L66 28 L74 26 Z" fill="#fde047" />
+      </g>
+    ),
+  },
+  {
     // Ремкомплект: скринька з хрестом
     test: /repair/,
     draw: () => (
@@ -210,6 +257,25 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
       </g>
     ),
   },
+  // Ящики ресурсів: той самий ящик, але дошки свого кольору й знак ресурсу на кришці — їх видно з першого погляду
+  { test: /crate_wood/, draw: () => crate("#b45309", woodMark) },
+  { test: /crate_food/, draw: () => crate("#65a30d", foodMark) },
+  { test: /crate_gold/, draw: () => crate("#ca8a04", goldMark) },
+  { test: /crate_iron/, draw: () => crate("#64748b", ironMark) },
+  {
+    test: /crate_mixed/,
+    draw: () =>
+      crate(
+        "#7c3aed",
+        // Усі чотири знаки дрібніше, квадратом навколо центру кришки
+        <g>
+          <g transform="translate(42 28) scale(0.5) translate(-50 -33)">{goldMark}</g>
+          <g transform="translate(58 28) scale(0.5) translate(-50 -33)">{woodMark}</g>
+          <g transform="translate(42 39) scale(0.5) translate(-50 -33)">{foodMark}</g>
+          <g transform="translate(58 39) scale(0.5) translate(-50 -33)">{ironMark}</g>
+        </g>,
+      ),
+  },
   {
     test: /crate|chest|box/,
     draw: () => (
@@ -229,7 +295,7 @@ const SHAPES: { test: RegExp; draw: () => ReactElement }[] = [
     ),
   },
   {
-    // Корм для звірів: миска з кісткою
+    // Ласощі для звірів: миска з кісткою
     test: /feed/,
     draw: () => (
       <g>
@@ -292,19 +358,47 @@ const BY_TYPE: Record<string, RegExp> = {
   universalshard: /shard/,
   wrench: /wrench/,
   repairkit: /repair/,
+  whetstone: /whetstone/,
   chestkey: /^key_/,
 };
 
-export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false }: Props): ReactElement {
+export default function ItemIcon({ itemKey, type, rarity, size = 48, className = "", bare = false, mastery = 0 }: Props): ReactElement {
   const frame = FRAME[rarityKey(rarity)] ?? (FRAME.Common as { stroke: string; back: string });
   const key = itemKey.toLowerCase();
-  const shape = SHAPES.find((candidate) => candidate.test.test(key)) ?? SHAPES.find((candidate) => candidate.test.test(BY_TYPE[type]?.source ?? ""));
+  // Артефакти мають свій арт за набором; решта — загальні форми за ключем і типом
+  const art = artifactArtFor(key);
+  const artifact = art === null ? drawArtifact(key) : null;
+  const shape =
+    art !== null || artifact !== null
+      ? undefined
+      : (SHAPES.find((candidate) => candidate.test.test(key)) ??
+        SHAPES.find((candidate) => candidate.test.test(BY_TYPE[type]?.source ?? "")));
 
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} className={`shrink-0 rounded-lg ${className}`} aria-hidden>
       {!bare && <rect width={100} height={100} rx={12} fill={frame.back} />}
+      {art !== null && <image href={art} x={6} y={6} width={88} height={88} preserveAspectRatio="xMidYMid meet" />}
+      {artifact}
       {shape?.draw()}
       {!bare && <rect x={2} y={2} width={96} height={96} rx={11} fill="none" stroke={frame.stroke} strokeWidth={3} />}
+      {/* Заточка видна на самому значку — як на референсах, без підпису поруч */}
+      {mastery > 0 && (
+        <text
+          x={95}
+          y={94}
+          textAnchor="end"
+          // Розмір і вигляд — як напис «Рів. N» на плитці (12 px, білий з тінню) незалежно від розміру значка
+          fontSize={Math.max(16, 1200 / size)}
+          fontWeight={700}
+          fill="#fff"
+          stroke="#000"
+          strokeWidth={Math.max(16, 1200 / size) / 6}
+          paintOrder="stroke"
+          strokeLinejoin="round"
+        >
+          +{mastery}
+        </text>
+      )}
     </svg>
   );
 }

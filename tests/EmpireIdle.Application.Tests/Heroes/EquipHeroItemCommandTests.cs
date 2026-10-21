@@ -28,7 +28,7 @@ public class EquipHeroItemCommandTests
 
     private Hero GivenHero(string heroKey = "warrior_bran")
     {
-        var hero = new Hero(Guid.NewGuid(), PlayerId, ServerId, heroKey, GarrisonId, asLeader: true, Now);
+        var hero = new Hero(Guid.NewGuid(), PlayerId, ServerId, heroKey, GarrisonId, Now);
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
 
         return hero;
@@ -126,6 +126,34 @@ public class EquipHeroItemCommandTests
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, piece.Id), CancellationToken.None));
         Assert.Equal(RefusalReasons.HeroOnTheMove.Key, refusal.Reason);
+    }
+
+    /// <summary>
+    /// Набір лише для свого класу (рішення 15.10.2026): воїн не вдягне магівське намисто,
+    /// і те, що вже стоїть у слоті, лишається на місці.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldRejectAnItemFromAnotherClassSet()
+    {
+        var config = HeroTestConfig.Create();
+        config.Equipment.ArtifactSets.Add(new() { Key = "arcane", DisplayName = "Набір Чар", Class = "mage" });
+        config.Items.Add(new() { Key = "arcane_necklace_common", Type = "equipment", Slot = EquipmentSlot.Artifact, ArtifactSlot = "necklace", SetKey = "arcane_common" });
+        var catalog = new GameCatalog(config);
+        var handler = new EquipHeroItemCommandHandler(_heroes, _inventory, _unitOfWork, new FakeTimeProvider(Now),
+            catalog, new EquipmentFit(catalog), NullLogger<EquipHeroItemCommandHandler>.Instance);
+
+        var hero = GivenHero();
+        var worn = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
+        worn.EquipTo(hero.Id, HeroTestConfig.NecklaceSlot, Now);
+        GivenEquipped(hero.Id, worn);
+        var foreign = GivenItem("arcane_necklace_common", EquipmentSlot.Artifact);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            handler.Handle(new EquipHeroItemCommand(PlayerId, hero.Id, foreign.Id), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.EquipmentWrongClass.Key, refusal.Reason);
+        Assert.Null(foreign.EquippedByHeroId);
+        Assert.Equal(hero.Id, worn.EquippedByHeroId);
     }
 
     [Fact]

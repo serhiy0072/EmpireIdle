@@ -32,8 +32,10 @@ public record MarchResponse(
     DateTime DepartedAt,
     DateTime LegStartedAt,
     DateTime ArrivesAt,
-    List<MarchUnitResponse> Units,
-    int SpeedUpCostGems);
+    List<MarchUnitResponse> Units);
+
+/// <summary>Прискорення маршу: відсоток залишку дороги — один із варіантів каталогу (SpeedUp.MarchOptions).</summary>
+public record SpeedUpMarchRequest(int Percent);
 
 /// <summary>Загін у поході.</summary>
 public record MarchUnitResponse(string UnitType, int Level, int Count);

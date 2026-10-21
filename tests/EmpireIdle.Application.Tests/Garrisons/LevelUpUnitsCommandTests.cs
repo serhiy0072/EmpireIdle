@@ -37,7 +37,7 @@ public class LevelUpUnitsCommandTests
             {
                 Key = "infantry",
                 RequiresBuilding = "barracks",
-                BaseTrainMinutes = 2,
+                BaseTrainSeconds = 2,
                 LevelUpCostGrowth = 1.35,
                 Cost = [new ResourceCost { Resource = "food", Amount = 10 }]
             }
@@ -152,7 +152,7 @@ public class LevelUpUnitsCommandTests
 
         // Крок(3) = 2 × 1.35² = 3.645 → 3 (усічення), для 1 юніта
         var order = Assert.Single(garrison.LevelUpOrders);
-        Assert.Equal(Now.AddMinutes(3), order.CompletesAt);
+        Assert.Equal(Now.AddSeconds(3), order.CompletesAt);
     }
 
     /// <summary>Вартість списується за кількість юнітів у партії, за кроком рівня.</summary>

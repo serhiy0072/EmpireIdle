@@ -74,6 +74,8 @@ public class CompleteMarchCommandTests
 
     private static GameConfig BaseConfig(bool cityFall) => new()
     {
+        // Звірі платять їжею — ресурс мусить бути в конфізі
+        Resources = [new ResourceConfig { Key = "food", DisplayName = "М'ясо" }],
         Buildings =
         [
             new BuildingConfig { Key = "townhall", IsMainBuilding = true, UpgradeCostGrowth = 1.45 },
@@ -85,6 +87,7 @@ public class CompleteMarchCommandTests
         Items = [new ItemConfig { Key = "beast_feed", DisplayName = "Корм", Description = "Корм", Type = "feed" }],
         Beasts = new BeastsConfig
         {
+            UpkeepResource = EmpireIdle.TestKit.TestKeys.Food,
             PityWins = 10,
             MaxRank = 2,
             LevelsPerRank = 10,
@@ -96,7 +99,7 @@ public class CompleteMarchCommandTests
                 new BeastConfig
                 {
                     Key = "wolf", MonsterKey = "wolves", TameChance = 0.2, Effect = EffectTarget.Carry,
-                    BaseBonus = 0.5, DurationMinutes = 120, CooldownMinutes = 480, ActivationFood = 100
+                    BaseBonus = 0.5, DurationMinutes = 120, CooldownMinutes = 480, ActivationFodder = 100
                 }
             ]
         },
@@ -181,7 +184,9 @@ public class CompleteMarchCommandTests
 
         // Спорядження в цих сценах немає: бійця дають власні стати героя
         _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
+        _inventory.GetEquippedByHeroesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
         var combatants = new HeroCombatants(_inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
+        var defenders = new GarrisonDefenders(_heroes, _inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
 
         var logistics = new MarchLogistics(
             _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
@@ -208,9 +213,9 @@ public class CompleteMarchCommandTests
             new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog),
             NullLogger<MonsterBattleService>.Instance);
 
-        var homecoming = new MarchHomecoming(_heroes, logistics, NullLogger<MarchHomecoming>.Instance);
+        var homecoming = new MarchHomecoming(logistics, NullLogger<MarchHomecoming>.Instance);
 
-        var relocator = new VillageRelocator(_map, _marches, _garrisons, _heroes, _serverRepository, catalog, geometry, effects,
+        var relocator = new VillageRelocator(_map, _marches, _garrisons, _serverRepository, catalog, geometry, effects,
             homecoming, returner);
 
         // Справжній випадок, а не заглушка _random: на ній пошук клітини крутився б на одній точці
@@ -223,7 +228,7 @@ public class CompleteMarchCommandTests
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
             resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, heroModifiers, combatants, cityFallService, territoryBonus, new HostilityRules(_clans),
+            status, plunder, heroModifiers, combatants, defenders, cityFallService, territoryBonus, new HostilityRules(_clans),
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
@@ -233,11 +238,11 @@ public class CompleteMarchCommandTests
         _garrisons.GetHoldingReinforcementsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Garrison>());
 
         var reinforcements = new ReinforcementDelivery(
-            _garrisons, _villages, _heroes, logistics, reinforcementRules, capacities,
+            _garrisons, _villages, logistics, reinforcementRules, capacities,
             NullLogger<ReinforcementDelivery>.Instance);
 
         var structureDelivery = new StructureReinforcementDelivery(
-            _garrisons, _villages, _heroes, _clans, _structures, combat, heroModifiers, terrain, logistics, territory,
+            _garrisons, _villages, _clans, _structures, combat, heroModifiers, combatants, terrain, logistics, territory,
             NullLogger<StructureReinforcementDelivery>.Instance);
 
         var remover = new ClanStructureRemover(_structures, _garrisons, _map, returner, NullLogger<ClanStructureRemover>.Instance);
@@ -248,7 +253,7 @@ public class CompleteMarchCommandTests
             NullLogger<StructureBattleService>.Instance);
 
         var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, heroModifiers,
-            catalog, status, _structures, _clans, territory, _marches, effects);
+            combatants, defenders, catalog, status, _structures, _clans, territory, _marches, effects);
 
         var campBattle = new CampBattleService(
             _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,
@@ -257,7 +262,7 @@ public class CompleteMarchCommandTests
             new HostilityRules(_clans), NullLogger<CampBattleService>.Instance);
 
         var scouts = new ScoutService(_garrisons, _villages, _structures, _serverRepository, _scoutReports,
-            targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry,
+            targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry, calculator, catalog,
             NullLogger<ScoutService>.Instance);
 
         return new CompleteMarchCommandHandler(
@@ -714,7 +719,7 @@ public class CompleteMarchCommandTests
     /// <summary>Герой, що вийшов із гарнізону в цей похід: у дорозі, без гарнізону.</summary>
     private Hero GivenHeroOnTheMarch(Guid garrisonId, Guid marchId)
     {
-        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrisonId, asLeader: true, Now.AddHours(-1));
+        var hero = new Hero(Guid.NewGuid(), PlayerId, 1, "knight", garrisonId, Now.AddHours(-1));
         hero.Deploy(marchId, Now.AddMinutes(-30));
 
         _heroes.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
@@ -1056,7 +1061,7 @@ public class CompleteMarchCommandTests
 
     /// <summary>
     /// Розвідники дивляться й звітують: сила оборони — та сама, що в бою, здобич — понад
-    /// захищений запас. Нічого в цілі не змінюється, і назад розвідники не йдуть.
+    /// захищений запас. Нічого в цілі не змінюється, а розвідники йдуть додому.
     /// </summary>
     [Fact]
     public async Task Handle_ShouldReportTheDefenceAndLoot_WhenScoutsArrive()
@@ -1077,7 +1082,9 @@ public class CompleteMarchCommandTests
         Assert.Equal(10, targetGarrison.Units.Sum(u => u.Count));
         await _reports.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
 
-        Assert.Equal(MarchState.Completed, march.State);
+        Assert.Equal(MarchState.Returning, march.State);
+        Assert.Equal(Now, march.LegStartedAt);
+        Assert.True(march.ArrivesAt > Now, "Розвідники мають іти додому, а не з'являтися вдома миттєво.");
         var filed = Assert.Single(report.DomainEvents.OfType<ScoutReportFiled>());
         Assert.Equal((PlayerId, report.Id, target.Name, ScoutOutcome.Success), (filed.PlayerId, filed.ReportId, filed.TargetName, filed.Outcome));
         await _notifier.DidNotReceiveWithAnyArgs().NotifyScoutReportReadyAsync(default, default, default!, default!, default);

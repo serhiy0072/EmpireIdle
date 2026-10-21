@@ -143,5 +143,5 @@ public class GetMapAreaQueryTests
     [Fact]
     public async Task Handle_ShouldReject_ARadiusBeyondTheCap()
         => await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => Handler().Handle(new GetMapAreaQuery(0, 0, 26), CancellationToken.None));
+            () => Handler().Handle(new GetMapAreaQuery(0, 0, GetMapAreaQueryHandler.MaxRadius + 1), CancellationToken.None));
 }

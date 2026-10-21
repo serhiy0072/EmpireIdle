@@ -81,3 +81,16 @@ export type KeyChestView = components["schemas"]["KeyChestView"];
 export type LootboxOpening = components["schemas"]["LootboxOpening"];
 export type LootboxPurchase = components["schemas"]["LootboxPurchase"];
 export type LootboxPityView = components["schemas"]["LootboxPityView"];
+
+/** «Тисячна вежа» й одномоментний бій. */
+export type TowerView = components["schemas"]["TowerView"];
+export type TowerFloorView = components["schemas"]["TowerFloorView"];
+export type TowerEnemyView = components["schemas"]["TowerEnemyView"];
+export type TowerUpcomingFloor = components["schemas"]["TowerUpcomingFloor"];
+export type TowerLeaderboard = components["schemas"]["TowerLeaderboard"];
+export type TowerLeaderboardEntry = components["schemas"]["TowerLeaderboardEntry"];
+export type TowerStormResult = components["schemas"]["TowerStormResult"];
+export type BattleReplay = components["schemas"]["BattleReplay"];
+export type ManualCast = components["schemas"]["ManualCastRequest"];
+export type BattleReplayFighter = components["schemas"]["BattleReplayFighter"];
+export type BattleReplayEvents = components["schemas"]["BattleReplayEvents"];

@@ -2,7 +2,6 @@ import { useNow } from "../../hooks/useNow";
 import type { MarchResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { MARCH_INTENT, MARCH_STATE, MARCH_TARGET, useRecallCamp, useSpeedUpMarch } from "../../lib/queries/marches";
-import { speedUpLabel } from "../../lib/speedUp";
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 import SpeedUpItemsButton from "../SpeedUpItemsButton";
@@ -12,7 +11,7 @@ interface Props {
   marches: MarchResponse[];
 }
 
-/** Активні походи: куди, скільки, коли прибуде, і прискорення за gems; табори — з відкликанням. */
+/** Активні походи: куди, скільки, коли прибуде, і прискорення на 50/75/90% за gems; табори — з відкликанням. */
 export default function MarchList({ playerId, marches }: Props) {
   const now = useNow();
   const catalog = useCatalog();
@@ -68,21 +67,28 @@ export default function MarchList({ playerId, marches }: Props) {
                 Відкликати
               </button>
             ) : (
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-slate-700">{formatRemaining(march.arrivesAt, now)}</span>
+              <div className="flex flex-col items-end gap-1">
                 <span className="flex items-center gap-2">
+                  <span className="font-mono text-slate-700">{formatRemaining(march.arrivesAt, now)}</span>
                   <SpeedUpItemsButton timer="March" targetId={march.id} completesAt={march.arrivesAt} />
-                  {catalog.speedUpCost("March", march.arrivesAt, now, march.speedUpCostGems) > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => speedUp.mutate(march.id)}
-                      disabled={speedUp.isPending}
-                      className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-white disabled:opacity-50"
-                    >
-                      {speedUpLabel(catalog.speedUpCost("March", march.arrivesAt, now, march.speedUpCostGems))}
-                    </button>
-                  )}
                 </span>
+                {/* На межі (останні секунди) зрізати нічого — кнопок не показуємо, сервер усе одно відмовить */}
+                {new Date(march.arrivesAt).getTime() - now > catalog.speedUpFloorSeconds("March") * 1_000 && (
+                  <span className="flex gap-1">
+                    {catalog.marchSpeedUps.map((option) => (
+                      <button
+                        key={option.percent}
+                        type="button"
+                        onClick={() => speedUp.mutate({ marchId: march.id, percent: option.percent })}
+                        disabled={speedUp.isPending}
+                        title={`Зрізати ${option.percent}% залишку дороги за ${option.gems} 💎`}
+                        className="rounded-lg bg-gradient-to-b from-sky-400 to-blue-600 px-1.5 py-0.5 text-[11px] font-semibold text-white shadow hover:brightness-110 disabled:opacity-50"
+                      >
+                        −{option.percent}% · {option.gems}💎
+                      </button>
+                    ))}
+                  </span>
+                )}
               </div>
             )}
           </div>

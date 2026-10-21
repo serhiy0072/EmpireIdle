@@ -18,8 +18,7 @@ namespace EmpireIdle.Application.Heroes.Validators
                 .When(c => c.FoodIds is not null && c.Wrenches is not null)
                 .WithMessage("Nothing to feed.");
 
-            // Стеля рівня — 20; сотні предметів за раз означають помилку, а не гру
-            RuleFor(c => c.FoodIds.Count).LessThanOrEqualTo(100).When(c => c.FoodIds is not null);
+            RuleFor(c => c.FoodIds.Count).LessThanOrEqualTo(FeedArtifactCommand.MaxFood).When(c => c.FoodIds is not null);
             RuleForEach(c => c.FoodIds).NotEmpty();
             RuleForEach(c => c.Wrenches).ChildRules(w =>
             {
