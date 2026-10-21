@@ -4,6 +4,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 
@@ -21,6 +22,10 @@ public class GetHeroesOverviewQueryTests
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
+    private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
+    private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
+    private readonly Village _village = TestKit.Entities.VillageWithTownhall(townhallLevel: 1);
+    private readonly Garrison _garrison;
     private readonly List<Hero> _roster = [];
     private readonly List<EquipmentItem> _equipped = [];
 
@@ -30,8 +35,11 @@ public class GetHeroesOverviewQueryTests
         _heroes.GetAllShardsAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(new List<HeroShardProgress>());
         _inventory.GetEquippedByHeroesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(_ => _equipped.ToList());
-        _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>())
-            .Returns(TestKit.Entities.VillageWithTownhall(townhallLevel: 1));
+        _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(_village);
+
+        _garrison = new Garrison(Guid.NewGuid(), _village.Id, 1);
+        _garrisons.GetByVillageIdReadOnlyAsync(_village.Id, Arg.Any<CancellationToken>()).Returns(_garrison);
+        _marches.GetActiveByGarrisonAsync(_garrison.Id, Arg.Any<CancellationToken>()).Returns(new List<March>());
     }
 
     private static GameConfig Config()
@@ -51,7 +59,7 @@ public class GetHeroesOverviewQueryTests
         return new GetHeroesOverviewQueryHandler(
             _heroes, _inventory, new HeroStats(progression, catalog), progression,
             new HeroSkills(config.HeroSettings), new HeroConvoys(config.HeroSettings),
-            new TrainingCampRules(config.HeroSettings.TrainingCamp), _villages, new VillageStatus(catalog),
+            new TrainingCampRules(config.HeroSettings.TrainingCamp), _villages, _garrisons, _marches, new VillageStatus(catalog),
             catalog, new FakeTimeProvider(Now));
     }
 
@@ -95,6 +103,29 @@ public class GetHeroesOverviewQueryTests
         Assert.True(views.Single(v => v.Id == strong.Id).IsDefender);
         Assert.False(views.Single(v => v.Id == weak.Id).IsDefender);
         Assert.True(views.Single(v => v.Id == mage.Id).IsDefender);
+    }
+
+    /// <summary>
+    /// Лишок маршів рахується так само, як перевіряє SendMarchCommand: вільні герої гарнізону
+    /// плюс активні марші під стелею, мінус активні — 7 вільних і 3 марші при стелі 8 дають ще 5.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReportMarchesLeft_TheWaySendMarchCountsThem()
+    {
+        _heroes.CountAvailableAsync(PlayerId, _garrison.Id, Arg.Any<CancellationToken>()).Returns(7);
+        var active = Enumerable.Range(0, 3)
+            .Select(_ => new March(
+                Guid.NewGuid(), 1, _garrison.Id, 50, 50, 60, 60,
+                MarchTargetType.Monster, Guid.NewGuid(),
+                new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 1 },
+                Now.AddHours(1), Now))
+            .ToList();
+        _marches.GetActiveByGarrisonAsync(_garrison.Id, Arg.Any<CancellationToken>()).Returns(active);
+
+        var overview = await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal(8, overview.MarchCapacity);
+        Assert.Equal(5, overview.MarchesLeft);
     }
 
     /// <summary>Конвої — за рівнем героя, місткість — конвої × розмір конвою.</summary>

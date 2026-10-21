@@ -22,6 +22,8 @@ namespace EmpireIdle.Application.Heroes.Queries
         private readonly HeroConvoys _convoys;
         private readonly TrainingCampRules _campRules;
         private readonly IVillageRepository _villages;
+        private readonly IGarrisonRepository _garrisons;
+        private readonly IMarchRepository _marches;
         private readonly VillageStatus _status;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
@@ -35,6 +37,8 @@ namespace EmpireIdle.Application.Heroes.Queries
             HeroConvoys convoys,
             TrainingCampRules campRules,
             IVillageRepository villages,
+            IGarrisonRepository garrisons,
+            IMarchRepository marches,
             VillageStatus status,
             GameCatalog catalog,
             TimeProvider timeProvider)
@@ -47,6 +51,8 @@ namespace EmpireIdle.Application.Heroes.Queries
             _convoys = convoys;
             _campRules = campRules;
             _villages = villages;
+            _garrisons = garrisons;
+            _marches = marches;
             _status = status;
             _catalog = catalog;
             _timeProvider = timeProvider;
@@ -116,12 +122,32 @@ namespace EmpireIdle.Application.Heroes.Queries
             // Пул лише читаємо: без трекінгу тут нема чого зберігати, а свіжість — та сама
             var experience = await _heroRepository.GetExperienceAsync(request.PlayerId, cancellationToken);
 
+            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken);
+            var (available, active) = await MarchLoadAsync(request.PlayerId, village, cancellationToken);
+
             return new HeroesOverview(
                 summaries,
                 shardSummaries,
                 experience?.Amount ?? 0,
-                _progression.MarchCapacity(heroes.Count(h => h.IsAvailable)),
-                await CampAsync(request.PlayerId, heroes, cancellationToken));
+                _progression.MarchCapacity(available + active),
+                _progression.MarchesLeft(available, active),
+                await CampAsync(request.PlayerId, village, heroes, cancellationToken));
+        }
+
+        /// <summary>
+        /// Вільні герої вдома й активні марші гарнізону — тим самим підрахунком, що й у SendMarchCommand,
+        /// щоб лишок маршів на екрані збігався з тим, що пропустить сервер.
+        /// </summary>
+        private async Task<(int Available, int Active)> MarchLoadAsync(Guid playerId, Domain.Entities.Village? village,
+            CancellationToken cancellationToken)
+        {
+            var garrison = village is null ? null : await _garrisons.GetByVillageIdReadOnlyAsync(village.Id, cancellationToken);
+            if (garrison is null) return (0, 0);
+
+            var available = await _heroRepository.CountAvailableAsync(playerId, garrison.Id, cancellationToken);
+            var active = await _marches.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
+
+            return (available, active.Count);
         }
 
         /// <summary>Стати героя на заданому рівні, округлені для показу; герой поза довідником — null.</summary>
@@ -138,12 +164,11 @@ namespace EmpireIdle.Application.Heroes.Queries
                 : 0;
 
         /// <summary>Табір очима гравця: рівень, відкриті слоти, хто де стоїть і що перезаряджається.</summary>
-        private async Task<TrainingCampView> CampAsync(Guid playerId, IReadOnlyCollection<Domain.Entities.Hero> heroes,
-            CancellationToken cancellationToken)
+        private async Task<TrainingCampView> CampAsync(Guid playerId, Domain.Entities.Village? village,
+            IReadOnlyCollection<Domain.Entities.Hero> heroes, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var camp = await _heroRepository.GetCampAsync(playerId, cancellationToken);
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(playerId, cancellationToken);
 
             var purchased = camp?.PurchasedSlots ?? 0;
             var free = village is null ? 0 : _campRules.FreeSlots(_status.MainBuildingLevel(village));

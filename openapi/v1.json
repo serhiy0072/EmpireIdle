@@ -13218,6 +13218,7 @@
           "experience",
           "heroes",
           "marchCapacity",
+          "marchesLeft",
           "shards"
         ],
         "type": "object",
@@ -13239,6 +13240,10 @@
             "format": "int64"
           },
           "marchCapacity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "marchesLeft": {
             "type": "integer",
             "format": "int32"
           },

@@ -3,14 +3,16 @@ namespace EmpireIdle.Application.Heroes.Contracts
     /// <summary>
     /// Усе, що потрібно екрану героїв: ростер, уламки, пул досвіду, кап маршів і навчальний табір.
     ///
-    /// MarchCapacity тут, бо окремого лічильника слотів немає — один герой
-    /// веде один марш, і межа рахується з ростера та конфіга.
+    /// MarchCapacity тут, бо окремого лічильника слотів немає — межа рахується з героїв гарнізону
+    /// (вільних і в поході) та стелі конфіга. MarchesLeft — скільки маршів ще можна відправити зараз:
+    /// на нього ділить військо кнопка «Порівну» у формі маршу (рішення 21.10.2026).
     /// </summary>
     public record HeroesOverview(
         List<HeroSummary> Heroes,
         List<HeroShardSummary> Shards,
         long Experience,
         int MarchCapacity,
+        int MarchesLeft,
         TrainingCampView Camp);
 
     /// <summary>Навчальний табір (GDD §6.1, рішення 07.10.2026).</summary>
