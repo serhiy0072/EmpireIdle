@@ -53,13 +53,17 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
   const losesShield =
     (target.type === MARCH_TARGET.village || target.type === MARCH_TARGET.camp) && isShieldActive(village.data?.shieldUntil);
 
-  const [counts, setCounts] = useState<Record<string, number>>({});
+  // null — гравець ще не крутив повзунки: іде максимум, що влазить у конвої (рішення 21.10.2026)
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [picked, setPicked] = useState<string[] | null>(null);
   const [picking, setPicking] = useState(false);
 
   const idleHeroes = [...(heroes.data?.heroes ?? [])].filter((hero) => hero.state === "Idle").sort((a, b) => b.power - a.power);
-  // Без вибору — найсильніший вільний
-  const chosen = picked ?? (idleHeroes[0] === undefined ? [] : [idleHeroes[0].id]);
+  // Без вибору — до трьох найсильніших вільних, по одному на роль, як велить сервер (рішення 21.10.2026)
+  const strongest = idleHeroes.filter(
+    (hero, index) => idleHeroes.findIndex((other) => other.unitType === hero.unitType) === index,
+  );
+  const chosen = picked ?? strongest.slice(0, MAX_HEROES).map((hero) => hero.id);
   const leaders = chosen.flatMap((id) => idleHeroes.filter((hero) => hero.id === id));
 
   // Кожен герой веде лише юнітів своєї ролі й не більше за свої конвої
@@ -75,7 +79,8 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
   for (const stack of stacks) {
     const leader = leaderOf(stack.unitType)!;
-    const count = Math.min(Math.max(counts[keyOf(stack)] ?? 0, 0), stack.count, room.get(leader.id) ?? 0);
+    const wanted = counts === null ? stack.count : Math.max(counts[keyOf(stack)] ?? 0, 0);
+    const count = Math.min(wanted, stack.count, room.get(leader.id) ?? 0);
 
     if (count > 0) units[keyOf(stack)] = count;
     room.set(leader.id, (room.get(leader.id) ?? 0) - count);
@@ -266,7 +271,8 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                 const value = units[key] ?? 0;
                 // Повзунок дістає до того, що влізе в конвої героя разом із поточним значенням
                 const max = Math.min(stack.count, value + (room.get(leaderOf(stack.unitType)?.id ?? "") ?? 0));
-                const set = (next: number) => setCounts((prev) => ({ ...prev, [key]: Math.max(0, Math.min(max, next)) }));
+                // Перший дотик фіксує поточний максимум, щоб решта повзунків не обнулилась
+                const set = (next: number) => setCounts((prev) => ({ ...(prev ?? units), [key]: Math.max(0, Math.min(max, next)) }));
 
                 return (
                   <div key={key} className="flex items-center gap-3 rounded-xl bg-sky-50 px-3 py-2 text-slate-800 ring-1 ring-sky-200">
