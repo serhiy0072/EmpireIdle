@@ -11,6 +11,9 @@ export type BeastTamingResponse = components["schemas"]["BeastTamingResponse"];
 export type TameTargetResponse = components["schemas"]["TameTargetResponse"];
 type NearestTameTargetResponse = components["schemas"]["NearestTameTargetResponse"];
 
+/** Ключ ласощів для звірів з конфіга — той самий, що FeedItemKey у beasts.json. */
+export const FEED_ITEM = "beast_feed";
+
 /** Звіринець (GDD §5.10): місця, звірі з рівнями й пасивками, шанси приручення. */
 export function useBeastPen(playerId: string): UseQueryResult<BeastPenResponse> {
   return useQuery({
