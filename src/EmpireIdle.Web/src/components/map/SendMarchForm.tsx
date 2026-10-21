@@ -114,10 +114,11 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
     );
 
   const fillMax = () => fill(available);
-  // Порівну: кожна роль — стільки, скільки може дати найслабша
+  // Порівну: кожен стек ділиться на марші, які ще можна відправити, — решті походів лишиться
+  // стільки ж (рішення 21.10.2026). Більше, ніж влізе в конвої, однаково не піде
   const fillEven = () => {
-    const even = Math.min(...leaders.map(available));
-    fill(() => (Number.isFinite(even) ? even : 0));
+    const parts = Math.max(heroes.data?.marchesLeft ?? 1, 1);
+    setCounts(Object.fromEntries(stacks.map((stack) => [keyOf(stack), Math.floor(stack.count / parts)])));
   };
 
   const request = (): SendMarchRequest => ({
