@@ -105,8 +105,10 @@ export default function InventoryPage() {
   const failure = consume.error ?? equip.error ?? unequip.error;
   const roster = heroes.data?.heroes ?? [];
 
-  const inTab = (type: string) => (TAB_OF_TYPE[type] ?? "other") === tab;
-  const shown = items.filter((item) => inTab(item.type));
+  // Ящик ресурсів лишається в «Ресурсах», навіть коли він скриня з випадковою сумою, як ящик золота (рішення 22.10.2026)
+  const tabOf = (item: { itemKey: string; type: string }) =>
+    item.itemKey.startsWith("crate_") ? "resources" : (TAB_OF_TYPE[item.type] ?? "other");
+  const shown = items.filter((item) => tabOf(item) === tab);
 
   const tabs: GameTab<Tab>[] = [
     { key: "resources", label: "Ресурси" },
