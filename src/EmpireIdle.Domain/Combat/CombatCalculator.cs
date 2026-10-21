@@ -126,7 +126,7 @@ namespace EmpireIdle.Domain.Combat
                     ? 1.0
                     : isAttacker ? buff.Attack(stack.UnitType) : buff.Defense(stack.UnitType);
 
-                power += count * stat * ProgressionCurves.UnitStatMultiplier(stack.Level)
+                power += count * stat * ProgressionCurves.UnitStatMultiplier(stack.Level, _catalog.Config.UnitLevelStatBonus)
                     * GetTerrainModifier(terrainType, stack.UnitType) * hero;
             }
 
@@ -151,7 +151,7 @@ namespace EmpireIdle.Domain.Combat
 
                 var stat = config.Stats.GetValueOrDefault("Defense", 1.0);
 
-                power += stack.Count * stat * ProgressionCurves.UnitStatMultiplier(stack.Level)
+                power += stack.Count * stat * ProgressionCurves.UnitStatMultiplier(stack.Level, _catalog.Config.UnitLevelStatBonus)
                     * GetTerrainModifier(terrainType, stack.UnitType)
                     * resolved.For(stack.OwnerPlayerId).Defense(stack.UnitType);
             }
@@ -327,7 +327,7 @@ namespace EmpireIdle.Domain.Combat
                 ? config.Stats.GetValueOrDefault("Defense", 1.0)
                 : 1.0;
 
-            return Math.Max(0.1, stat * ProgressionCurves.UnitStatMultiplier(stack.Level)
+            return Math.Max(0.1, stat * ProgressionCurves.UnitStatMultiplier(stack.Level, _catalog.Config.UnitLevelStatBonus)
                 * GetTerrainModifier(terrainType, stack.UnitType));
         }
 

@@ -92,7 +92,7 @@ namespace EmpireIdle.Domain.Battles
             var size = units.Sum(u => u.Count);
 
             // Рівень множить кожного юніта; захист — стрій, тож береться середній множник конвою
-            var levelWeight = units.Sum(u => u.Count * ProgressionCurves.UnitStatMultiplier(u.Level));
+            var levelWeight = units.Sum(u => u.Count * ProgressionCurves.UnitStatMultiplier(u.Level, _catalog.Config.UnitLevelStatBonus));
             var attack = config.Stats.GetValueOrDefault("Attack") * levelWeight;
             var health = config.Stats.GetValueOrDefault("Health") * levelWeight;
             var defense = config.Stats.GetValueOrDefault("Defense") * levelWeight / size;

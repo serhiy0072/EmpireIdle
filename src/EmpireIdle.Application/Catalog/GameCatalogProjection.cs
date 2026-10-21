@@ -168,6 +168,7 @@ namespace EmpireIdle.Application.Catalog
                 config.HeroSettings.SummonShards,
                 config.HeroSettings.MaxTier,
                 config.MaxUnitLevel,
+                config.UnitLevelStatBonus,
                 // Ліміт партії за рівнем будівлі юніта: індекс 0 — рівень 1
                 Enumerable.Range(1, config.MaxBuildingLevel)
                     .Select(level => ProgressionCurves.UnitBatchSize(level, config.MaxBuildingLevel, config.UnitBatchMin, config.UnitBatchMax))

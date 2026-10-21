@@ -10998,6 +10998,7 @@
           "summonShards",
           "unitBatchSizes",
           "unitCapacities",
+          "unitLevelStatBonus",
           "units",
           "version",
           "weaponShardCosts"
@@ -11105,6 +11106,10 @@
           "maxUnitLevel": {
             "type": "integer",
             "format": "int32"
+          },
+          "unitLevelStatBonus": {
+            "type": "number",
+            "format": "double"
           },
           "unitBatchSizes": {
             "type": "array",

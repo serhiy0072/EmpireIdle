@@ -3,6 +3,7 @@
     "UnitBatchMin": 30,
     "UnitBatchMax": 1000,
     "MaxUnitLevel": 10,
+    "UnitLevelStatBonus": 0.1,
     "StartingResources": {
       "gold": 500,
       "wood": 400,
