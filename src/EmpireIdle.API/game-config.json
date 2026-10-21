@@ -1,7 +1,7 @@
 {
   "GameConfig": {
     "UnitBatchMin": 30,
-    "UnitBatchMax": 150,
+    "UnitBatchMax": 1000,
     "MaxUnitLevel": 10,
     "StartingResources": {
       "gold": 500,
