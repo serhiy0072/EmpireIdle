@@ -8,6 +8,17 @@ import type { ReactElement } from "react";
 const OUTLINE = "#0f2147";
 
 const NAV: Record<string, ReactElement> = {
+  village: (
+    <g stroke={OUTLINE} strokeWidth={1.5} strokeLinejoin="round">
+      <path d="M4 15 L11 8 L18 15 Z" fill="#ef4444" />
+      <rect x={6} y={15} width={10} height={10} fill="#fde68a" />
+      <path d="M15 12 L22 5 L29 12 Z" fill="#3b82f6" />
+      <rect x={17} y={12} width={10} height={13} fill="#e2e8f0" />
+      <rect x={9.5} y={19} width={3} height={6} fill="#92400e" />
+      <rect x={20.5} y={16} width={3} height={3} fill="#38bdf8" />
+      <path d="M2 26 H30" />
+    </g>
+  ),
   army: (
     <g stroke={OUTLINE} strokeWidth={1.5} strokeLinejoin="round">
       <path d="M7 5 L23 21 L21 23 L5 7 Z" fill="#e2e8f0" />

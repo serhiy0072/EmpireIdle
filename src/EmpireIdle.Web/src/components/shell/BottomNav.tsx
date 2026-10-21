@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink, useMatch } from "react-router-dom";
 import { NavIcon } from "./icons";
 
 /**
@@ -27,6 +27,7 @@ interface Props {
  * активний розділ піднятий і світліший, мапа світу — окрема кругла кнопка в правому куті.
  */
 export default function BottomNav({ attention }: Props) {
+  const onMap = useMatch("/map") !== null;
   // Червона крапка з кількістю — щось чекає, щоб його забрали; гасне, щойно забрано
   const badge = (count: number) =>
     count > 0 && (
@@ -61,20 +62,16 @@ export default function BottomNav({ attention }: Props) {
           </NavLink>
         ))}
       </div>
-      {/* Мапа світу — кругла кнопка в правому куті екрана */}
-      <NavLink
-        to="/map"
-        data-tutorial="nav:/map"
-        aria-label="Мапа світу"
-        className={({ isActive }) =>
-          `absolute bottom-1.5 right-3 z-10 flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-full bg-gradient-to-b text-[10px] font-bold text-white shadow-lg ring-4 ${
-            isActive ? "from-amber-300 to-amber-600 ring-amber-200" : "from-[#5b85c4] to-[#24467f] ring-[#5b85c4] hover:brightness-110"
-          }`
-        }
+      {/* Мапа світу — кругла кнопка в правому куті екрана; на самій мапі вона веде назад у селище (рішення 21.10.2026) */}
+      <Link
+        to={onMap ? "/" : "/map"}
+        data-tutorial={onMap ? undefined : "nav:/map"}
+        aria-label={onMap ? "Селище" : "Мапа світу"}
+        className="absolute bottom-1.5 right-3 z-10 flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#5b85c4] to-[#24467f] text-[10px] font-bold text-white shadow-lg ring-4 ring-[#5b85c4] hover:brightness-110"
       >
-        <NavIcon name="map" size={30} />
-        Мапа
-      </NavLink>
+        <NavIcon name={onMap ? "village" : "map"} size={30} />
+        {onMap ? "Селище" : "Мапа"}
+      </Link>
     </nav>
   );
 }
