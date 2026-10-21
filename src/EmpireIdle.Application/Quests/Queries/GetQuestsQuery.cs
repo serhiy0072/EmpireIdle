@@ -2,10 +2,7 @@ using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Quests.ReadModels;
 using EmpireIdle.Application.Quests.Services;
-using EmpireIdle.Domain.Entities;
-using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Services.Config;
 using MediatR;
 
 namespace EmpireIdle.Application.Quests.Queries
@@ -40,91 +37,19 @@ namespace EmpireIdle.Application.Quests.Queries
                 .ToDictionary(p => p.QuestKey);
 
             var levels = await _thresholds.LevelsAsync(request.PlayerId, cancellationToken);
-            var personal = _catalog.Quests.Values.Where(c => c.Scope == QuestScope.Personal).ToList();
 
-            // Стан кожного квесту з урахуванням порогів — один раз, бо від нього ж залежить і ланцюжок
-            var effective = personal.ToDictionary(c => c.Key, c => Evaluate(c, progressByKey.GetValueOrDefault(c.Key), levels));
-
-            // Ланцюжок відкривається завершенням, а не клеймом. Поріг закриває ланку лише тоді,
-            // коли вона сама вже відкрита: інакше ратуша 3 відкрила б третій квест повз перший
-            var configByKey = personal.ToDictionary(c => c.Key);
-            var doneByKey = new Dictionary<string, bool>();
-
-            bool IsDone(string key)
-            {
-                if (doneByKey.TryGetValue(key, out var known))
-                    return known;
-
-                // Запис до рекурсії — захист від циклу в конфігу
-                doneByKey[key] = false;
-
-                if (!configByKey.TryGetValue(key, out var quest))
-                    return false;
-
-                var done = progressByKey.GetValueOrDefault(key) is { State: not QuestState.InProgress }
-                           || (effective[key].State != QuestState.InProgress
-                               && (quest.Prerequisite is null || IsDone(quest.Prerequisite)));
-
-                doneByKey[key] = done;
-
-                return done;
-            }
-
-            var views = new List<QuestView>();
-
-            foreach (var config in personal)
-            {
-                if (config.Prerequisite is not null && !IsDone(config.Prerequisite))
-                    continue;
-
-                if (!config.IsOpenAt(now))
-                    continue;
-
-                var (state, amounts) = effective[config.Key];
-
-                var objectives = config.Objectives
-                    .Select((o, i) => new QuestObjectiveView(o.Type, o.Target, amounts[i], o.Count))
-                    .ToList();
-
-                views.Add(new QuestView(
-                    config.Key,
-                    config.DisplayName,
-                    config.Scope,
-                    config.Window,
-                    state,
-                    objectives,
-                    config.Rewards));
-            }
-
-            return views;
-        }
-
-        /// <summary>
-        /// Стан і лічильники квесту, як їх побачить гравець: збережений прогрес, підтягнутий
-        /// до поточних порогів. Нічого не пише — квест, закритий порогом, фіксує команда клейму.
-        /// </summary>
-        private static (QuestState State, int[] Amounts) Evaluate(QuestConfig config, QuestProgress? progress,
-            IReadOnlyDictionary<string, int> levels)
-        {
-            var amounts = config.Objectives
-                .Select((objective, i) =>
-                {
-                    var stored = progress?.Objectives.FirstOrDefault(p => p.Index == i)?.Amount ?? 0;
-
-                    return QuestThresholds.CurrentValue(objective, levels) is int level ? Math.Max(stored, level) : stored;
-                })
-                .ToArray();
-
-            if (progress is not null && progress.State != QuestState.InProgress)
-                return (progress.State, amounts);
-
-            // Поріг — той, що зафіксовано в прогресі на старті, як і в домені; без рядка — з конфіга
-            var met = config.Objectives.Count > 0
-                      && config.Objectives
-                          .Select((o, i) => amounts[i] >= (progress?.Objectives.FirstOrDefault(p => p.Index == i)?.Required ?? o.Count))
-                          .All(x => x);
-
-            return (met ? QuestState.Completed : QuestState.InProgress, amounts);
+            return QuestBoard.Visible(_catalog.Quests.Values, progressByKey, levels, now)
+                .Select(entry => new QuestView(
+                    entry.Config.Key,
+                    entry.Config.DisplayName,
+                    entry.Config.Scope,
+                    entry.Config.Window,
+                    entry.State,
+                    entry.Config.Objectives
+                        .Select((o, i) => new QuestObjectiveView(o.Type, o.Target, entry.Amounts[i], o.Count))
+                        .ToList(),
+                    entry.Config.Rewards))
+                .ToList();
         }
     }
 }
