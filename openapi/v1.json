@@ -602,6 +602,75 @@
         }
       }
     },
+    "/api/beasts/{playerId}/{beastKey}/nearest": {
+      "get": {
+        "tags": [
+          "Beasts"
+        ],
+        "operationId": "Beasts_GetNearest",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "beastKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearestTameTargetResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearestTameTargetResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearestTameTargetResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/beasts/{playerId}/{beastKey}/feed": {
       "post": {
         "tags": [
@@ -14439,6 +14508,15 @@
         },
         "additionalProperties": false
       },
+      "NearestTameTargetResponse": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/TameTargetResponse"
+          }
+        },
+        "additionalProperties": false
+      },
       "OpenWeaponChestsRequest": {
         "required": [
           "count",
@@ -15400,6 +15478,38 @@
         "properties": {
           "heroKey": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TameTargetResponse": {
+        "required": [
+          "level",
+          "monsterId",
+          "monsterKey",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "monsterId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "monsterKey": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
