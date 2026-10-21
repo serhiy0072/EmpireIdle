@@ -19,23 +19,34 @@ export function useInventory(playerId: string): UseQueryResult<InventoryResponse
 /** Скільки разів пробуємо телепорт, клітину якому обирає гра, якщо її щойно зайняв інший гравець. */
 const GAME_PICKED_CELL_ATTEMPTS = 3;
 
+/** Сервер приймає до стількох штук за запит (UseItemCommand.MaxCount). */
+const MAX_USE_PER_REQUEST = 10_000;
+
+/** Один запит «використати»: щонайбільше MAX_USE_PER_REQUEST штук. */
+async function applyOnce(playerId: string, input: UseItemRequest): Promise<void> {
+  // Клітину обирає гра (випадковий, до лідера): двох одночасних гравців на одну клітину розводить
+  // індекс мапи — другий отримує 409, а повтор із новим ключем дістане наступну вільну (GDD §8.9).
+  // Відмова відкочує команду цілком, тож повтор нічого не списує вдруге
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await api<void>(`/api/inventory/${playerId}/use`, { method: "POST", body: input, idempotent: true });
+    } catch (error: unknown) {
+      const cellTaken = input.targetX == null && isApiError(error) && error.is("AlreadyExists");
+
+      if (!cellTaken || attempt >= GAME_PICKED_CELL_ATTEMPTS) throw error;
+    }
+  }
+}
+
 /** Ящик наливає ресурси в село, буст з'являється в інвентарі, телепорт рухає село мапою. */
 export function useUseItem(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: UseItemRequest) => {
-      // Клітину обирає гра (випадковий, до лідера): двох одночасних гравців на одну клітину розводить
-      // індекс мапи — другий отримує 409, а повтор із новим ключем дістане наступну вільну (GDD §8.9).
-      // Відмова відкочує команду цілком, тож повтор нічого не списує вдруге
-      for (let attempt = 1; ; attempt++) {
-        try {
-          return await api<void>(`/api/inventory/${playerId}/use`, { method: "POST", body: input, idempotent: true });
-        } catch (error: unknown) {
-          const cellTaken = input.targetX == null && isApiError(error) && error.is("AlreadyExists");
-
-          if (!cellTaken || attempt >= GAME_PICKED_CELL_ATTEMPTS) throw error;
-        }
+      // «Усі» — весь стек (рішення 22.10.2026): понад стелю сервера — кількома запитами поспіль
+      for (let left = input.count; left > 0; left -= MAX_USE_PER_REQUEST) {
+        await applyOnce(playerId, { ...input, count: Math.min(left, MAX_USE_PER_REQUEST) });
       }
     },
     onSuccess: () => {
