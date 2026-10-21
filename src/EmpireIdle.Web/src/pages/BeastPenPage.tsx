@@ -147,13 +147,18 @@ interface CardProps {
 }
 
 function BeastCard({ beast, name, now, feedLeft, busy, onFeed, onActivate }: CardProps) {
-  const [count, setCount] = useState(1);
 
   const { passive } = beast;
   const active = passive.activeUntil != null && Date.parse(passive.activeUntil) > now;
   const cooling = passive.cooldownUntil != null && Date.parse(passive.cooldownUntil) > now;
   const capped = beast.level >= beast.maxLevel;
   const toNext = beast.experienceToNext - beast.experience;
+  const feedOptions = [
+    { label: "+1", count: 1 },
+    { label: "+10", count: 10 },
+    { label: "До рівня", count: Math.min(feedLeft, toNext) },
+    { label: "Максимум", count: feedLeft },
+  ];
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
@@ -178,31 +183,21 @@ function BeastCard({ beast, name, now, feedLeft, busy, onFeed, onActivate }: Car
         </p>
       </div>
 
+      {/* Кнопки замість поля з числом (рішення 21.10.2026): зайве сервер не з'їсть — лишиться в рюкзаку */}
       {!capped && (
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            min={1}
-            max={Math.max(feedLeft, 1)}
-            value={count}
-            onChange={(event) => setCount(Math.max(1, Number(event.target.value)))}
-            className="w-24 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm"
-          />
-          <button
-            type="button"
-            onClick={() => setCount(Math.max(1, Math.min(feedLeft, toNext)))}
-            className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
-          >
-            до рівня
-          </button>
-          <button
-            type="button"
-            onClick={() => onFeed(count)}
-            disabled={busy || feedLeft < count}
-            className="flex-1 rounded-lg border border-amber-300 px-3 py-1 text-sm text-amber-800 hover:bg-amber-50 disabled:opacity-50"
-          >
-            Нагодувати
-          </button>
+        <div className="grid grid-cols-4 gap-1.5">
+          {feedOptions.map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              onClick={() => onFeed(option.count)}
+              disabled={busy || option.count < 1 || feedLeft < option.count}
+              title={`${option.count.toLocaleString("uk-UA")} ласощів`}
+              className="rounded-lg border border-amber-300 px-2 py-1 text-xs font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-40"
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       )}
 
