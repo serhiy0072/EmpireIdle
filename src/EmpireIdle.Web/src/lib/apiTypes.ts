@@ -17,6 +17,7 @@ export type TrainingOrderResponse = components["schemas"]["TrainingOrderResponse
 export type RecoverableUnitResponse = components["schemas"]["RecoverableUnitResponse"];
 export type HealPaymentMethod = components["schemas"]["HealPaymentMethod"];
 export type QuestView = components["schemas"]["QuestView"];
+export type ClaimAllQuestsResponse = components["schemas"]["ClaimAllQuestsResponse"];
 export type QuestObjectiveView = components["schemas"]["QuestObjectiveView"];
 export type QuestState = components["schemas"]["QuestState"];
 export type QuestWindow = components["schemas"]["QuestWindow"];

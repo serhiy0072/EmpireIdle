@@ -4,7 +4,7 @@ import ServerQuestCard from "../components/ServerQuestCard";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
 import type { QuestView, QuestWindow } from "../lib/apiTypes";
-import { nextDailyResetAt, QUEST_STATE, QUEST_WINDOW, useClaimQuest, useQuests, useServerQuests } from "../lib/queries/quests";
+import { nextDailyResetAt, QUEST_STATE, QUEST_WINDOW, useClaimAllQuests, useClaimQuest, useQuests, useServerQuests } from "../lib/queries/quests";
 import { formatRemaining } from "../lib/time";
 
 /** Порядок секцій: спершу те, що обнуляється, — щоденні горять. */
@@ -30,6 +30,7 @@ export default function QuestsPage() {
   const quests = useQuests(playerId);
   const serverQuests = useServerQuests(playerId);
   const claim = useClaimQuest(playerId);
+  const claimAll = useClaimAllQuests(playerId);
 
   if (quests.isPending) {
     return <p className="text-slate-500">Завантаження квестів…</p>;
@@ -45,13 +46,25 @@ export default function QuestsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Квести</h1>
-        <p className="text-sm text-slate-500">
-          {claimable > 0 ? `Готово до отримання: ${claimable} · ` : ""}
-          щоденні оновляться за {formatRemaining(nextDailyResetAt(now), now)}
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm text-slate-500">
+            {claimable > 0 ? `Готово до отримання: ${claimable} · ` : ""}
+            щоденні оновляться за {formatRemaining(nextDailyResetAt(now), now)}
+          </p>
+          {claimable > 1 && (
+            <button
+              type="button"
+              onClick={() => claimAll.mutate()}
+              disabled={claim.isPending || claimAll.isPending}
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              Зібрати все
+            </button>
+          )}
+        </div>
       </div>
 
-      <ErrorBanner error={claim.error} />
+      <ErrorBanner error={claim.error ?? claimAll.error} />
 
       {SECTIONS.map((section) => {
         const items = quests.data.filter((quest) => quest.window === section.window).sort(byUrgency);
@@ -66,7 +79,7 @@ export default function QuestsPage() {
                 <QuestCard
                   key={quest.key}
                   quest={quest}
-                  busy={claim.isPending}
+                  busy={claim.isPending || claimAll.isPending}
                   onClaim={() => claim.mutate(quest.key)}
                 />
               ))}

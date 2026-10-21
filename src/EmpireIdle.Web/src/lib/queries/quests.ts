@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
-import type { QuestState, QuestView, QuestWindow, ServerQuestResponse } from "../apiTypes";
+import type { ClaimAllQuestsResponse, QuestState, QuestView, QuestWindow, ServerQuestResponse } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 
@@ -49,6 +49,17 @@ export function useClaimQuest(playerId: string) {
   return useMutation({
     mutationFn: (questKey: string) =>
       api<void>(`/api/quests/${playerId}/${questKey}/claim`, { method: "POST", idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes"]),
+  });
+}
+
+/** «Зібрати все»: сервер сам вирішує, що завершене, — клієнт не перебирає квести циклом. */
+export function useClaimAllQuests(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      api<ClaimAllQuestsResponse>(`/api/quests/${playerId}/claim-all`, { method: "POST", idempotent: true }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes"]),
   });
 }
