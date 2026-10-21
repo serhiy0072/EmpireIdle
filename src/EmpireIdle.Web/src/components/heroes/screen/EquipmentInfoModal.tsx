@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { EquipmentResponse } from "../../../lib/apiTypes";
 import { useCatalog } from "../../../lib/queries/catalog";
 import { rarityLabel, rarityStyle } from "../../../lib/rarity";
@@ -7,6 +7,7 @@ import { EquipmentFeed, EquipmentMastery } from "../../forge/EquipmentUpgrade";
 import { GameButton } from "../../game/GameUi";
 import ArtifactSetInfo from "../../inventory/ArtifactSetInfo";
 import ItemIcon from "../../inventory/ItemIcon";
+import { useHotkeys } from "../../../hooks/useHotkeys";
 
 type View = "info" | "choice" | "feed" | "mastery";
 
@@ -49,13 +50,14 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
   const catalog = useCatalog();
   const [view, setView] = useState<View>("info");
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  useHotkeys(
+    {
+      Escape: onClose,
+      ArrowLeft: onStep === null ? undefined : () => onStep(-1),
+      ArrowRight: onStep === null ? undefined : () => onStep(1),
+    },
+    { modal: true },
+  );
 
   if (piece === undefined) return null;
 

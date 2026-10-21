@@ -6,6 +6,7 @@ import HeroGearTab from "../components/heroes/screen/HeroGearTab";
 import HeroLevelUp from "../components/heroes/screen/HeroLevelUp";
 import HeroSkillsTab from "../components/heroes/screen/HeroSkillsTab";
 import HeroStatsTab from "../components/heroes/screen/HeroStatsTab";
+import { HOTKEY_PRIORITY, useHotkeys } from "../hooks/useHotkeys";
 import { useSession } from "../hooks/useSession";
 import { parseRosterSort, sortRoster } from "../lib/heroOrder";
 import { rankLabel, useCatalog } from "../lib/queries/catalog";
@@ -57,6 +58,21 @@ export default function HeroPage() {
   const [params, setParams] = useSearchParams();
   const tab = (params.get("tab") as Tab | null) ?? "stats";
 
+  // Той самий порядок, що в сітці героїв: стрілки гортають так, як гравець відсортував
+  const sort = parseRosterSort(params.get("sort"));
+  const roster = sortRoster(heroes.data?.heroes ?? [], (key) => catalog.hero(key)?.rank, sort);
+  const position = roster.findIndex((hero) => hero.id === heroId);
+
+  const go = (step: number) => {
+    const next = roster[(position + step + roster.length) % roster.length];
+    if (next !== undefined) void navigate(`/heroes/${next.id}?tab=${tab}&sort=${sort}`, { replace: true });
+  };
+
+  useHotkeys(
+    { ArrowLeft: () => go(-1), ArrowRight: () => go(1) },
+    { priority: HOTKEY_PRIORITY.neighbours, enabled: roster.length > 1 },
+  );
+
   if (heroes.isPending) {
     return <p className="text-slate-500">Завантаження героя…</p>;
   }
@@ -65,10 +81,6 @@ export default function HeroPage() {
     return <ErrorBanner error={heroes.error} />;
   }
 
-  // Той самий порядок, що в сітці героїв: стрілки гортають так, як гравець відсортував
-  const sort = parseRosterSort(params.get("sort"));
-  const roster = sortRoster(heroes.data.heroes, (key) => catalog.hero(key)?.rank, sort);
-  const position = roster.findIndex((hero) => hero.id === heroId);
   const hero = roster[position];
   const config = hero === undefined ? null : catalog.hero(hero.heroKey);
 
@@ -79,11 +91,6 @@ export default function HeroPage() {
   const mutations = [levelUp, advanceStar, convertShards, evolve, heal, resetLevel, upgradeSkill, equip, unequip, unequipAll, equipBest];
   const busy = mutations.some((mutation) => mutation.isPending);
   const failure = mutations.map((mutation) => mutation.error).find((error) => error !== null) ?? null;
-
-  const go = (step: number) => {
-    const next = roster[(position + step + roster.length) % roster.length];
-    if (next !== undefined) void navigate(`/heroes/${next.id}?tab=${tab}&sort=${sort}`, { replace: true });
-  };
 
   const items = inventory.data?.items ?? [];
   const rank = config?.rank ?? "Common";

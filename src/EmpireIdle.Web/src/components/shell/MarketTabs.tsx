@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useTabHotkeys } from "../../hooks/useHotkeys";
 
 /** Вкладки будівлі «Ринок» (рішення 19.10.2026): крамниця, банери й ринок гравців — одна будівля. */
 const TABS = [
@@ -8,6 +9,15 @@ const TABS = [
 ] as const;
 
 export default function MarketTabs() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  useTabHotkeys(
+    TABS.map((tab) => tab.to),
+    TABS.find((tab) => tab.to === pathname)?.to ?? TABS[0].to,
+    (to) => void navigate(to, { replace: true }),
+  );
+
   return (
     <nav className="flex gap-1 rounded-xl bg-[#1d3b6f] p-1 shadow ring-1 ring-[#5b85c4]">
       {TABS.map((tab) => (

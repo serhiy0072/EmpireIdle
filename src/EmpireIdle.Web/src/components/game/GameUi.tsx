@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTabHotkeys } from "../../hooks/useHotkeys";
 import { rarityKey } from "../../lib/rarity";
 
 /**
@@ -36,6 +37,8 @@ export function GameTabs<T extends string>({
   value: T;
   onChange: (next: T) => void;
 }) {
+  useTabHotkeys(tabs.map((tab) => tab.key), value, onChange);
+
   return (
     <nav className="flex gap-1">
       {tabs.map((tab) => {

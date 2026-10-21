@@ -17,6 +17,7 @@ import { useMapArea, useMapCell, type MapView } from "../lib/queries/map";
 import { MARCH_INTENT, MARCH_STATE, useIncomingAttacks, useMarches } from "../lib/queries/marches";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
+import { useHotkeys } from "../hooks/useHotkeys";
 
 type Target = { type: MarchTargetType; id: string; name: string; intent?: MarchIntent };
 
@@ -58,6 +59,10 @@ export default function MapPage() {
   // а не в ефекті: це похідний від URL стан, і зайвого кадру без виділення не буде
   const focusParam = searchParams.get("focus");
   const [handledFocus, setHandledFocus] = useState<string | null>(null);
+
+  // Esc спершу закриває вікно звітів, далі — дії вибраної клітини, і лише потім веде назад
+  useHotkeys({ Escape: () => setReports(false) }, { modal: true, enabled: reports });
+  useHotkeys({ Escape: () => setSelected(null) }, { enabled: selected !== null });
 
   if (focusParam !== null && focusParam !== handledFocus) {
     const [fx, fy] = focusParam.split(",").map(Number);

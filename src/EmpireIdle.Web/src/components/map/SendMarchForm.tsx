@@ -12,6 +12,7 @@ import { UnitHex } from "../army/CampPanels";
 import ErrorBanner from "../ErrorBanner";
 import { GameButton, RoleBadge, StarRow } from "../game/GameUi";
 import HeroPortrait from "../heroes/HeroPortrait";
+import { useHotkeys } from "../../hooks/useHotkeys";
 
 interface Props {
   playerId: string;
@@ -134,13 +135,15 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
     return () => window.clearTimeout(timer);
   }, [previewKey, estimate]);
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onCancel();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
+  useHotkeys(
+    {
+      Escape: onCancel,
+      Enter: () => {
+        if (ready && !send.isPending) send.mutate(request(), { onSuccess: onSent });
+      },
+    },
+    { modal: true },
+  );
 
   const forecast = previewKey !== null && preview.data !== undefined ? preview.data : null;
   const verdict = forecast === null ? null : (VERDICT_LINES[forecast.verdict] ?? null);
@@ -386,6 +389,8 @@ function HeroPicker({
 }) {
   const catalog = useCatalog();
   const [draft, setDraft] = useState(chosen);
+
+  useHotkeys({ Escape: onClose, Enter: () => onAssign(draft) }, { modal: true });
 
   const selected = draft.flatMap((id) => heroes.filter((hero) => hero.id === id));
   const roles = new Set(selected.map((hero) => hero.unitType));

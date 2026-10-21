@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { HOTKEY_PRIORITY, useHotkeys } from "../hooks/useHotkeys";
 import { useAttention } from "../hooks/useAttention";
 import { useSession } from "../hooks/useSession";
 import { logout } from "../lib/auth";
@@ -28,6 +29,7 @@ export default function AppLayout() {
   const session = useSession();
   const queryClient = useQueryClient();
   const location = useLocation();
+  const navigate = useNavigate();
   const playerId = session?.playerId ?? "";
   const village = useVillage(playerId);
   const wallet = useWallet(playerId);
@@ -41,6 +43,14 @@ export default function AppLayout() {
   const fullBleed = location.pathname === "/" || location.pathname === "/map";
 
   useDailyCheckIn(playerId);
+
+  // Esc — назад (рішення 21.10.2026): на попередній екран, а без історії (відкрили за посиланням) — у село.
+  // Село — дім, далі назад нікуди. Вікна й вибране на екрані реєструють свій Esc вище й закриваються першими
+  useHotkeys(
+    { Escape: () => void (location.key !== "default" ? navigate(-1) : navigate("/")) },
+    { priority: HOTKEY_PRIORITY.shell, enabled: location.pathname !== "/" },
+  );
+  useHotkeys({ Escape: () => setMenu(false) }, { modal: true, enabled: menu });
 
   // Чат дописується тут, а не на сторінці чату: інакше історія закритого чату
   // застаріла б, а перечитувати її за таймером нема потреби

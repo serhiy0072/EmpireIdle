@@ -30,6 +30,7 @@ import {
 import { useGarrison } from "../lib/queries/garrison";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
+import TabHotkeys from "../components/shell/TabHotkeys";
 
 type Tab = "help" | "members" | "territory" | "requests" | "settings";
 
@@ -146,6 +147,7 @@ export default function ClanPage() {
 
       <ErrorBanner error={failure} />
 
+      <TabHotkeys keys={tabs.filter((item) => item.visible).map((item) => item.key)} value={tab} onChange={setTab} />
       <nav className="flex gap-1">
         {tabs
           .filter((item) => item.visible)
