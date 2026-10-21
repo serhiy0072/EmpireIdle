@@ -4,10 +4,10 @@ import { NavIcon } from "./icons";
 /**
  * Розділи панелі — усі на виду, без меню «Ще»; на них же вказує навчання (data-tutorial="nav:…").
  * Військо, звіринець, данжі й ринок відкриваються з їхніх будівель у селі (рішення 19.10.2026),
- * чат — смужкою над панеллю (ChatTicker).
+ * чат — смужкою над панеллю (ChatTicker). Села на панелі немає (рішення 21.10.2026): туди веде
+ * стрілка ← у HUD, а Esc — назад.
  */
 const SECTIONS = [
-  { to: "/", label: "Село", icon: "village" },
   { to: "/heroes", label: "Герої", icon: "heroes" },
   { to: "/tower", label: "Вежа", icon: "tower" },
   { to: "/quests", label: "Квести", icon: "quests" },
@@ -50,7 +50,6 @@ export default function BottomNav({ attention }: Props) {
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === "/"}
             data-tutorial={`nav:${item.to}`}
             className={({ isActive }) => tab(isActive)}
           >

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { HOTKEY_PRIORITY, useHotkeys } from "../hooks/useHotkeys";
 import { useAttention } from "../hooks/useAttention";
 import { useSession } from "../hooks/useSession";
@@ -71,6 +71,18 @@ export default function AppLayout() {
     <div className="flex h-dvh flex-col bg-gradient-to-b from-[#cfdcf0] to-[#e8eef8]">
       <header className="relative z-40 shrink-0 border-b-2 border-[#5b85c4] bg-gradient-to-b from-[#24467f] to-[#16305e] text-white shadow-lg">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-3 py-2">
+          {/* Додому, у село — замість кнопки «Село» на панелі (рішення 21.10.2026); на неї ж вказує навчання */}
+          {location.pathname !== "/" && (
+            <Link
+              to="/"
+              data-tutorial="nav:/"
+              aria-label="У село"
+              title="У село"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-sky-300 to-sky-600 text-lg font-bold text-white shadow ring-2 ring-sky-100 hover:brightness-110"
+            >
+              ←
+            </Link>
+          )}
           <PowerBadge playerId={playerId} village={village.data} />
           <ResourceBar village={village.data} />
 
