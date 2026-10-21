@@ -13,6 +13,8 @@ interface Props {
 const PAD = 6;
 const CARD_WIDTH = 320;
 const GAP = 12;
+/** Відступ картки в куті від низу: над нижньою панеллю й круглою кнопкою мапи (70 px), щоб їх не накривати. */
+const CORNER_BOTTOM = 84;
 
 /**
  * Картка під ціллю, якщо є місце, інакше над нею. Без цілі: підказка — у правому
@@ -21,7 +23,7 @@ const GAP = 12;
  */
 function cardStyle(rect: TargetRect | null, corner: boolean): CSSProperties {
   if (rect === null && corner) {
-    return { right: 16, bottom: 16, width: Math.min(CARD_WIDTH, window.innerWidth - 32) };
+    return { right: 16, bottom: CORNER_BOTTOM, width: Math.min(CARD_WIDTH, window.innerWidth - 32) };
   }
 
   if (rect === null) {
