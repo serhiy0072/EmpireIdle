@@ -46,15 +46,9 @@
       {
         "Key": "crate_gold_5000",
         "DisplayName": "Ящик золота",
-        "Description": "Миттєво додає 5000 золота",
+        "Description": "5 000 золота гарантовано і ще від 5 000 до 1 000 000 навмання",
         "Rarity": "common",
-        "Type": "resources",
-        "Resources": [
-          {
-            "Resource": "gold",
-            "Amount": 5000
-          }
-        ]
+        "Type": "lootbox"
       },
       {
         "Key": "crate_iron_2500",
