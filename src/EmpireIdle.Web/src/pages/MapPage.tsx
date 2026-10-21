@@ -8,16 +8,16 @@ import type { MapMarch } from "../components/map/MarchAnimation";
 import MarchList from "../components/map/MarchList";
 import SendMarchForm from "../components/map/SendMarchForm";
 import WorldMap from "../components/map/WorldMap";
+import { useHotkeys } from "../hooks/useHotkeys";
 import { useSession } from "../hooks/useSession";
 import type { MarchIntent, MarchTargetType } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { useMyClan } from "../lib/queries/clans";
 import { useUseItem } from "../lib/queries/inventory";
 import { useMapArea, useMapCell, type MapView } from "../lib/queries/map";
-import { MARCH_INTENT, MARCH_STATE, useIncomingAttacks, useMarches } from "../lib/queries/marches";
+import { MARCH_INTENT, MARCH_STATE, MARCH_TARGET, useIncomingAttacks, useMarches } from "../lib/queries/marches";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
-import { useHotkeys } from "../hooks/useHotkeys";
 
 type Target = { type: MarchTargetType; id: string; name: string; intent?: MarchIntent };
 
@@ -58,6 +58,9 @@ export default function MapPage() {
   // щоб та сама клітина з новою тривогою знову наводила камеру. Робимо під час рендеру,
   // а не в ефекті: це похідний від URL стан, і зайвого кадру без виділення не буде
   const focusParam = searchParams.get("focus");
+  // Звіринець приводить сюди ще й з &tame=<монстр>&beast=<звір>: форма приручення відкривається одразу
+  const tameParam = searchParams.get("tame");
+  const tameBeast = searchParams.get("beast");
   const [handledFocus, setHandledFocus] = useState<string | null>(null);
 
   // Esc спершу закриває вікно звітів, далі — дії вибраної клітини, і лише потім веде назад
@@ -70,7 +73,11 @@ export default function MapPage() {
 
     if (fx !== undefined && fy !== undefined && Number.isInteger(fx) && Number.isInteger(fy)) {
       setSelected({ x: fx, y: fy });
-      setTarget(null);
+      setTarget(
+        tameParam === null
+          ? null
+          : { type: MARCH_TARGET.monster, id: tameParam, name: catalog.beastName(tameBeast ?? ""), intent: MARCH_INTENT.tame },
+      );
       setView({ x: fx, y: fy, radius: 12 });
       setFocusRequest((previous) => ({ x: fx, y: fy, n: (previous?.n ?? 0) + 1 }));
     }

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
-import { useActivateBeast, useBeastPen, useFeedBeast, type BeastResponse } from "../lib/queries/beasts";
+import { useActivateBeast, useBeastPen, useFeedBeast, useFindTameTarget, type BeastResponse } from "../lib/queries/beasts";
 import { useCatalog } from "../lib/queries/catalog";
 import { useInventory } from "../lib/queries/inventory";
 import { formatRemaining } from "../lib/time";
@@ -36,6 +36,10 @@ export default function BeastPenPage() {
   const inventory = useInventory(playerId);
   const feed = useFeedBeast(playerId);
   const activate = useActivateBeast(playerId);
+  const find = useFindTameTarget(playerId);
+  const navigate = useNavigate();
+  // Звір, якого шукали, а монстра його типу у світі зараз немає
+  const [missing, setMissing] = useState<string | null>(null);
 
   if (pen.isPending) return <p className="text-sm text-slate-500">Завантаження…</p>;
   if (pen.isError) return <ErrorBanner error={pen.error} />;
@@ -59,7 +63,7 @@ export default function BeastPenPage() {
       {/* Звіринець їсть зі складу й незібраного виробітку ферм (рішення 13.10.2026) */}
       {pen.data.isHungry && <HungerBanner kind="beasts" />}
 
-      <ErrorBanner error={feed.error ?? activate.error} />
+      <ErrorBanner error={feed.error ?? activate.error ?? find.error} />
 
       {pen.data.capacity === 0 ? (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -96,8 +100,33 @@ export default function BeastPenPage() {
                 {catalog.beastName(taming.beastKey)}
                 {tamedKeys.has(taming.beastKey) && <span className="ml-1 text-xs text-emerald-700">· уже є</span>}
               </span>
-              <span className="text-xs text-slate-500">
-                шанс {percent(taming.chance)} · гарантія через {Math.max(taming.pityWins - taming.misses, 0) + 1} перемог
+              <span className="flex items-center gap-3">
+                <span className="text-xs text-slate-500">
+                  {missing === taming.beastKey
+                    ? "у світі зараз жодного — спробуйте пізніше"
+                    : `шанс ${percent(taming.chance)} · гарантія через ${Math.max(taming.pityWins - taming.misses, 0) + 1} перемог`}
+                </span>
+                {/* Найближчий монстр цього звіра — і одразу форма приручення на мапі (рішення 21.10.2026) */}
+                {pen.data.capacity > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      find.mutate(taming.beastKey, {
+                        onSuccess: (target) => {
+                          setMissing(target === null ? taming.beastKey : null);
+                          if (target !== null)
+                            void navigate(
+                              `/map?focus=${target.x},${target.y},${target.monsterId}&tame=${target.monsterId}&beast=${taming.beastKey}`,
+                            );
+                        },
+                      })
+                    }
+                    disabled={find.isPending}
+                    className="rounded-lg border border-amber-400 px-2 py-0.5 text-xs font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                  >
+                    🎯 Знайти
+                  </button>
+                )}
               </span>
             </li>
           ))}
