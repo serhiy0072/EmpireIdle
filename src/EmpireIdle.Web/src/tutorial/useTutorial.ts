@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useBattleReports } from "../lib/queries/battleReports";
+import { useBeastPen } from "../lib/queries/beasts";
 import { useCatalog } from "../lib/queries/catalog";
+import { useClanHelp, useMyClan } from "../lib/queries/clans";
 import { useGarrison } from "../lib/queries/garrison";
 import { useHeroes } from "../lib/queries/heroes";
 import { useInventory } from "../lib/queries/inventory";
@@ -15,6 +17,9 @@ import { activeStep, INTRO_STEPS, type TutorialSnapshot, type TutorialStep } fro
 
 /** Скільки контекстна підказка чекає після закритої, якщо гравець лишився на тому самому екрані. */
 const HINT_PAUSE_MS = 90_000;
+
+/** Миша чи тачскрін — за сесію не змінюється, тож рахуємо раз. */
+const POINTER_FINE = typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches;
 
 export interface TutorialController {
   step: TutorialStep | null;
@@ -40,6 +45,9 @@ export function useTutorial(playerId: string): TutorialController {
   const inventory = useInventory(playerId);
   const incoming = useIncomingAttacks(playerId);
   const unreadMail = useMailUnread(playerId);
+  const beastPen = useBeastPen(playerId);
+  const clan = useMyClan(playerId);
+  const clanHelp = useClanHelp(playerId, clan.data != null);
   const route = useLocation().pathname;
   // Закрита контекстна підказка: наступна — на іншому екрані або після паузи
   const [pause, setPause] = useState<{ route: string; until: number } | null>(null);
@@ -62,6 +70,10 @@ export function useTutorial(playerId: string): TutorialController {
       inventory: inventory.data,
       incoming: incoming.data,
       unreadMail: unreadMail.data ?? 0,
+      beastPen: beastPen.data,
+      clan: clan.data,
+      clanHelp: clanHelp.data,
+      pointerFine: POINTER_FINE,
       route,
       hintsPaused: pause !== null && pause.route === route,
       seen: new Set(progress.data.seenSteps),
@@ -80,6 +92,9 @@ export function useTutorial(playerId: string): TutorialController {
     inventory.data,
     incoming.data,
     unreadMail.data,
+    beastPen.data,
+    clan.data,
+    clanHelp.data,
     route,
     pause,
   ]);

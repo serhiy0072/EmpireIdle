@@ -1,13 +1,16 @@
 import type {
   BattleReportResponse,
+  ClanHelpItemResponse,
   GarrisonResponse,
   IncomingAttackResponse,
   InventoryResponse,
   MarchResponse,
+  MyClanResponse,
   QuestView,
   VillageResponse,
   WalletResponse,
 } from "../lib/apiTypes";
+import type { BeastPenResponse } from "../lib/queries/beasts";
 import type { Catalog } from "../lib/queries/catalog";
 import type { HeroesOverview } from "../lib/queries/heroes";
 import { QUEST_STATE, QUEST_WINDOW } from "../lib/queries/quests";
@@ -28,6 +31,12 @@ export interface TutorialSnapshot {
   inventory: InventoryResponse | undefined;
   incoming: IncomingAttackResponse[] | undefined;
   unreadMail: number;
+  beastPen: BeastPenResponse | undefined;
+  /** null — гравець поза кланом; undefined — ще не завантажено. */
+  clan: MyClanResponse | null | undefined;
+  clanHelp: ClanHelpItemResponse[] | undefined;
+  /** Точний вказівник (миша): підказка про клавіші має сенс лише з ним. */
+  pointerFine: boolean;
   /** Поточний екран (pathname): підказки «при першому вході» дивляться сюди. */
   route: string;
   /**
@@ -89,6 +98,29 @@ function townHallLevel(s: TutorialSnapshot): number {
 
 function hasItem(s: TutorialSnapshot, test: (item: { itemKey: string; type: string }) => boolean): boolean {
   return s.inventory?.items.some((item) => item.count > 0 && test(item)) ?? false;
+}
+
+/** Будівля відкрита ратушею: для механік, що вмикаються будівлею, а не її рівнем. */
+function unlocked(s: TutorialSnapshot, type: string): boolean {
+  const config = s.catalog.building(type);
+
+  return config !== null && townHallLevel(s) >= config.requiresMainBuildingLevel;
+}
+
+/** Два артефакти одного набору — перший момент, коли бонус набору досяжний. */
+function hasSetPair(s: TutorialSnapshot): boolean {
+  const counts = new Map<string, number>();
+
+  for (const piece of s.inventory?.equipment ?? []) {
+    const set = s.catalog.item(piece.itemKey)?.setKey;
+    if (set == null) continue;
+
+    const count = (counts.get(set) ?? 0) + 1;
+    if (count >= 2) return true;
+    counts.set(set, count);
+  }
+
+  return false;
 }
 
 function armySize(s: TutorialSnapshot): number {
@@ -254,6 +286,99 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     available: (st) => st.incoming?.some((attack) => attack.mine) ?? false,
   });
 
+  // Перший візит на екран: підказка про те, що саме тут відкрито, — поки гравець дивиться на нього.
+  // Змішані тригери (екран або предмет у рюкзаку) — в кінці, щоб не перебивали підказку поточного екрана
+  steps.push(
+    {
+      key: "hint.tower",
+      mode: "hint",
+      title: "Тисячна вежа",
+      text: "Кожен поверх — бій ваших героїв проти загону вежі. За поверх — 20 💎 і досвід героїв, на кожному 5-му — рідкісний ключ, на кожному 10-му — ще й артефакт і унікальний ключ.",
+      targets: [],
+      available: (st) => st.route === "/tower",
+    },
+    {
+      key: "hint.banners",
+      mode: "hint",
+      title: "Банери героїв",
+      text: "Призов коштує 1000 💎 (стандартний — 1200). Рідкісна нагорода гарантована не пізніше 10-ї спроби, унікальна — не пізніше 50-ї (у стандартного — 60-ї). Усі шанси — під «Шанси».",
+      targets: [],
+      available: (st) => st.route === "/banners",
+    },
+    {
+      key: "hint.market",
+      mode: "hint",
+      title: "Ринок гравців",
+      text: "Продавайте й купуйте в інших гравців. Лот висить 48 годин, податок — 5%, одночасно до 10 лотів; куплене можна перепродати лише через 72 години.",
+      targets: [],
+      available: (st) => st.route === "/market",
+    },
+    {
+      key: "hint.dungeons",
+      mode: "hint",
+      title: "Данжі",
+      text: "Загін із 4 героїв проходить хвилі ворогів; воїни й лицарі стоять попереду. Забіг коштує 10 енергії зі 100, повна шкала відновлюється за 20 годин. Кожен данж дає артефакти свого набору й досвід героям.",
+      targets: [],
+      available: (st) => st.route === "/dungeons",
+    },
+    {
+      key: "hint.beastpen",
+      mode: "hint",
+      title: "Звіринець",
+      text: "Звіра приручають на мапі: «Приручити» на монстрі його виду — це звичайний бій, і перемога з шансом приводить звіра. Не пізніше 10-ї перемоги звір гарантований. «Знайти» відкриє найближчого.",
+      targets: [],
+      available: (st) => st.route === "/beasts",
+    },
+    {
+      key: "hint.clan",
+      mode: "hint",
+      title: "Клан",
+      text: "Співклановці скорочують ваші таймери: кожен помічник — 2%, разом до 40%. На території клану ваші війська б'ються на 10% сильніше.",
+      targets: [],
+      available: (st) => st.route === "/clan" && st.clan === null,
+    },
+    {
+      key: "hint.rating",
+      mode: "hint",
+      title: "Рейтинг",
+      text: "Рейтинг рахує силу (55%), розвиток (25%) і активність (20%).",
+      targets: [],
+      available: (st) => st.route === "/rating",
+    },
+    {
+      key: "hint.codex",
+      mode: "hint",
+      title: "Кодекс героїв",
+      text: "Кодекс — усі герої гри й де їх шукати.",
+      targets: [],
+      available: (st) => st.route === "/heroes/codex",
+    },
+    {
+      key: "hint.scout",
+      mode: "hint",
+      title: "Розвідка",
+      text: "Перед атакою на село розвідайте його: звіт прийде в скриньку. Завіса туману на 24 години ховає ваше село від розвідки.",
+      targets: [],
+      available: (st) => st.route === "/map" && unlocked(st, "scouttower"),
+    },
+    {
+      key: "hint.key-chests",
+      mode: "hint",
+      title: "Скрині за ключі",
+      text: "Рідкісну скриню можна відкрити безкоштовно 5 разів на день, з перервою 5 хв, унікальну — раз на 48 годин. Понад це потрібні ключі: їх дає Вежа й продає крамниця.",
+      targets: ["nav:/shop"],
+      available: (st) => st.route === "/shop" || hasItem(st, (item) => item.itemKey === "key_rare" || item.itemKey === "key_unique"),
+    },
+    {
+      key: "hint.sets",
+      mode: "hint",
+      title: "Набори артефактів",
+      text: "2 і 4 предмети одного набору на герої його класу дають додаткові бонуси. Набори падають у данжах — кожен данж має свій.",
+      targets: ["nav:/inventory"],
+      available: (st) => st.route === "/inventory/sets" || hasSetPair(st),
+    },
+  );
+
   // Картка лише для поточного рівня: гравець, що давно пройшов ці рівні, не отримає стос карток
   const opened = s.village.buildings.flatMap((b) => {
     const config = s.catalog.building(b.type);
@@ -331,6 +456,150 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
       text: "Скрині відкриваються в рюкзаку, можна цілим стосом. Гарантія з опису («не пізніше N-ї скрині») працює чесно: лічильник зберігається між відкриттями.",
       targets: ["nav:/inventory"],
       available: (st) => hasItem(st, (item) => item.type === "lootbox"),
+    },
+  );
+
+  // Перший тиждень: механіка вперше трапилась у стані гри
+  steps.push(
+    {
+      key: "hint.march-roles",
+      mode: "hint",
+      title: "Марш і колони",
+      text: "У марш іде від 1 до 3 героїв, і кожен веде колони війська своєї ролі. Колона — 100 воїнів; на 1 рівні героя їх 2, на 10-му — 3, і далі більше. «Порівну» ділить військо між маршами, які ще можна відправити.",
+      targets: ["nav:/map"],
+      available: (st) => (st.heroes?.heroes.length ?? 0) >= 2,
+    },
+    {
+      key: "hint.type-advantage",
+      mode: "hint",
+      title: "Хто кого б'є",
+      text: "Піхота б'є лучників, лучники — списоносців, списоносці — піхоту: +35% урону по слабшому. Місцевість теж важить: у лісі сильніша піхота, у горах — лучники.",
+      targets: [],
+      available: (st) => new Set((st.garrison?.units ?? []).filter((u) => u.count > 0).map((u) => u.unitType)).size >= 2,
+    },
+    {
+      key: "hint.camp",
+      mode: "hint",
+      title: "Навчальний табір",
+      text: "Герой у таборі одразу отримує рівень найслабшого з ваших 5 найсильніших героїв — без витрати досвіду. Вийнятий герой звільняє слот на 24 години.",
+      targets: ["nav:/heroes"],
+      available: (st) => {
+        const camp = st.heroes?.camp;
+        const free = camp?.slots.some((slot) => slot.heroId == null && slot.cooldownUntil == null) ?? false;
+
+        return camp !== undefined && camp.available && free && (st.heroes?.heroes.length ?? 0) > camp.referenceSize;
+      },
+    },
+    {
+      key: "hint.stars",
+      mode: "hint",
+      title: "Зірки героя",
+      text: "Уламки купують частини зірок: 6 частин — зірка, максимум 5 зірок. Кожна частина посилює героя, а кожна зірка відкриває ще один рівень умінь.",
+      targets: ["nav:/heroes"],
+      available: (st) => st.heroes?.heroes.some((h) => h.nextStarPartCost != null && h.shards >= h.nextStarPartCost) ?? false,
+    },
+    {
+      key: "hint.skill-books",
+      mode: "hint",
+      title: "Книги вмінь",
+      text: "Книга піднімає вміння героя свого класу й рідкості: рівні коштують 3, 5, 7, 10 і 12 книг. Кожен наступний рівень потребує ще однієї зірки героя.",
+      targets: ["nav:/heroes"],
+      available: (st) => hasItem(st, (item) => item.itemKey.startsWith("skill_book_")),
+    },
+    {
+      key: "hint.wrench",
+      mode: "hint",
+      title: "Гайкові ключі",
+      text: "Ключ дає артефакту досвід рівня — 100 або 300, як згодований звичайний чи рідкісний артефакт.",
+      targets: ["nav:/inventory"],
+      available: (st) => hasItem(st, (item) => item.itemKey.startsWith("wrench_")),
+    },
+    {
+      key: "hint.forge",
+      mode: "hint",
+      title: "Заточка",
+      text: "Кузня заточує артефакти за точильні камені аж до +20. До +5 заточка завжди вдала, далі шанс падає до 40%, а з +11 невдача може зламати артефакт — його лагодить ремкомплект або 💎.",
+      targets: ["building:forge", "nav:/"],
+      available: (st) => unlocked(st, "forge") && hasItem(st, (item) => item.itemKey === st.catalog.masteryStoneItemKey),
+    },
+    {
+      key: "hint.beast-tamed",
+      mode: "hint",
+      title: "Ваш звір",
+      text: "Ласощі піднімають звірові рівень і посилюють його бонус. Бонус вмикається за корм і діє кілька годин, а утримання звіринця щогодини з'їдає корм.",
+      targets: ["nav:/beasts"],
+      available: (st) => (st.beastPen?.beasts.length ?? 0) > 0,
+    },
+    {
+      key: "hint.beasts-hungry",
+      mode: "hint",
+      title: "Звірам бракує корму",
+      text: "Без корму бонуси звірів не вмикаються. Покращуйте рибальську хижу.",
+      targets: ["building:fishinghut", "nav:/"],
+      available: (st) => (st.beastPen?.beasts.length ?? 0) > 0 && st.beastPen?.isHungry === true,
+    },
+    {
+      key: "hint.evolution",
+      mode: "hint",
+      title: "Еволюція",
+      text: "Герой досяг стелі свого тіру. Есенція Другого Кола переведе його в наступний тір (потрібен рівень світу 2), Третього Кола — ще вище (рівень світу 3).",
+      targets: ["nav:/heroes"],
+      available: (st) => st.heroes?.heroes.some((h) => h.level >= h.maxLevel && h.tier < st.catalog.maxTier) ?? false,
+    },
+    {
+      key: "hint.weapon",
+      mode: "hint",
+      title: "Зброя героя",
+      text: "Шматки зброї посилюють героя відсотком до характеристик, до 5 рівнів. Скриня зброї дає шматок унікальної зброї героя банера на ваш вибір.",
+      targets: ["nav:/heroes"],
+      available: (st) =>
+        (st.heroes?.heroes.some((h) => h.nextWeaponCost != null && h.weaponShards >= h.nextWeaponCost) ?? false)
+        || hasItem(st, (item) => item.itemKey.startsWith("weapon_chest")),
+    },
+  );
+
+  // Пізніше: клан, переміщення, прискорення, клавіші
+  steps.push(
+    {
+      key: "hint.clan-help",
+      mode: "hint",
+      title: "Допомога клану",
+      text: "Натискайте «Допомогти» — це безкоштовно й скорочує таймери союзників.",
+      targets: ["nav:/clan"],
+      available: (st) => st.clanHelp?.some((item) => !item.isMine && !item.alreadyHelped) ?? false,
+    },
+    {
+      key: "hint.reinforce",
+      mode: "hint",
+      title: "Підкріплення",
+      text: "Посольство приймає війська союзників на оборону села. Свої війська союзнику — через марш із наміром «Підкріпити».",
+      targets: ["building:embassy", "nav:/"],
+      available: (st) => st.clan != null && unlocked(st, "embassy"),
+    },
+    {
+      key: "hint.teleport",
+      mode: "hint",
+      title: "Телепорт",
+      text: "Телепорт переносить село на вільну клітину. Ближній — до 100 клітин, клановий — на територію клану.",
+      targets: ["nav:/inventory"],
+      available: (st) => hasItem(st, (item) => item.type === "teleport"),
+    },
+    {
+      key: "hint.speedup-items",
+      mode: "hint",
+      title: "Прискорення",
+      text: "Прискорення зрізають час із будь-якого таймера: будівництва, тренування, рівнів війська чи маршу.",
+      targets: ["nav:/inventory"],
+      available: (st) => hasItem(st, (item) => item.type === "speedup"),
+    },
+    {
+      key: "hint.hotkeys",
+      mode: "hint",
+      title: "Клавіші",
+      text: "Esc — назад або закрити вікно, Enter — підтвердити, ←/→ — гортати вкладки й сусідів.",
+      targets: [],
+      // Лише з мишею й після ланцюжка: на телефоні клавіш немає, а посеред навчання це зайвий шум
+      available: (st) => st.pointerFine && (st.seen.has("intro.next") || st.skipped) && st.route !== "/",
     },
   );
 
