@@ -167,6 +167,34 @@ public class BuildingTests
         Assert.Equal(50, building.StoredAt(Farm, completedAt.AddMinutes(1), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
+    /// <summary>
+    /// Допомога клану зрізала таймер глибше, ніж він ішов: завершення опинилось до старту
+    /// апгрейду. Проміжок до апгрейду вже в буфері — вдруге, за новою ставкою, він не рахується.
+    /// </summary>
+    [Fact]
+    public void CompleteConstruction_ShouldNotRecreditTimeBeforeTheUpgrade_WhenTheTimerWasCutIntoThePast()
+    {
+        var building = CreateFarm();
+        var start = building.LastAccruedAt;
+        var upgradeAt = start.AddMinutes(3);
+
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), upgradeAt, ProductionBoost.None, locationMultiplier: 1.0);
+        building.ReduceConstructionTime(TimeSpan.FromMinutes(12));
+        building.CompleteConstruction(upgradeAt.AddMinutes(1));
+
+        // 30 до апгрейду + 2 рівень × 10/хв × 1 хв від старту апгрейду, а не від хвилини −2
+        Assert.Equal(50, building.StoredAt(Farm, upgradeAt.AddMinutes(1), ProductionBoost.None, locationMultiplier: 1.0));
+    }
+
+    [Fact]
+    public void ReduceConstructionTime_ShouldRejectANegativeCut()
+    {
+        var building = CreateFarm();
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), building.LastAccruedAt, ProductionBoost.None, locationMultiplier: 1.0);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => building.ReduceConstructionTime(TimeSpan.FromMinutes(-5)));
+    }
+
     /// <summary>Матеріалізація фіксує накопичене й зсуває мітку часу.</summary>
     [Fact]
     public void Materialize_ShouldBankProductionAndMoveMarker()

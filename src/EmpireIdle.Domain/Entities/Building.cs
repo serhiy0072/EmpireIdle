@@ -261,8 +261,11 @@ namespace EmpireIdle.Domain.Entities
                 throw new InvalidStateException($"Building {Id} is not under construction.");
 
             // Виробництво стартує з моменту завершення, а не з приходу сканера:
-            // інакше кожна хвилина затримки Hangfire — втрачений виробіток
-            LastAccruedAt = completesAt <= utcNow ? completesAt : utcNow;
+            // інакше кожна хвилина затримки Hangfire — втрачений виробіток.
+            // Але не раніше за вже зафіксоване: допомога клану могла зсунути завершення
+            // до старту апгрейду, і тоді той самий проміжок нарахувався б удруге
+            var startsAt = completesAt <= utcNow ? completesAt : utcNow;
+            LastAccruedAt = startsAt > LastAccruedAt ? startsAt : LastAccruedAt;
             Level = Level.Next();
             ConstructionCompletesAt = null;
         }
@@ -272,6 +275,8 @@ namespace EmpireIdle.Domain.Entities
         {
             if (!IsUnderConstruction)
                 throw new InvalidStateException($"Building {Id} is not under construction.");
+
+            ArgumentOutOfRangeException.ThrowIfLessThan(reduction, TimeSpan.Zero);
 
             ConstructionCompletesAt -= reduction;
         }
