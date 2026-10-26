@@ -59,11 +59,16 @@ namespace EmpireIdle.API.Jobs
         /// <param name="jobName">Ім'я джоба для логів.</param>
         /// <param name="load">Повертає ідентифікатори до обробки. Не сутності: завантажене в одному scope не зберегти в іншому.</param>
         /// <param name="process">Обробка одного елемента у власному scope.</param>
+        /// <param name="onFailure">
+        /// Що зробити з елементом, обробка якого впала, — у свіжому scope: контекст упалого брудний.
+        /// Помилка й тут лише логується.
+        /// </param>
         public async Task ForEachItemAsync<TItem>(
             string jobName,
             Func<IMediator, CancellationToken, Task<IReadOnlyList<TItem>>> load,
             Func<IMediator, TItem, CancellationToken, Task> process,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            Func<IMediator, TItem, CancellationToken, Task>? onFailure = null)
         {
             foreach (var serverId in _catalog.Config.ActiveServerIds)
             {
@@ -72,7 +77,7 @@ namespace EmpireIdle.API.Jobs
                 var items = await LoadAsync(jobName, serverId, load, cancellationToken);
 
                 if (items is not null)
-                    await ProcessAsync(jobName, serverId, items, process, cancellationToken);
+                    await ProcessAsync(jobName, serverId, items, process, onFailure, cancellationToken);
             }
         }
 
@@ -104,7 +109,7 @@ namespace EmpireIdle.API.Jobs
                     if (fresh is null || fresh.Count == 0)
                         break;
 
-                    await ProcessAsync(jobName, serverId, fresh, process, cancellationToken);
+                    await ProcessAsync(jobName, serverId, fresh, process, onFailure: null, cancellationToken);
                 }
             }
         }
@@ -125,7 +130,8 @@ namespace EmpireIdle.API.Jobs
         }
 
         private async Task ProcessAsync<TItem>(string jobName, int serverId, IReadOnlyList<TItem> items,
-            Func<IMediator, TItem, CancellationToken, Task> process, CancellationToken cancellationToken)
+            Func<IMediator, TItem, CancellationToken, Task> process, Func<IMediator, TItem, CancellationToken, Task>? onFailure,
+            CancellationToken cancellationToken)
         {
             foreach (var item in items)
             {
@@ -140,7 +146,24 @@ namespace EmpireIdle.API.Jobs
                 {
                     _logger.LogError(ex, "{Job}: item {Item} failed on server {ServerId}; continuing.",
                         jobName, item, serverId);
+
+                    if (onFailure is not null)
+                        await HandleFailureAsync(jobName, serverId, item, onFailure, cancellationToken);
                 }
+            }
+        }
+
+        private async Task HandleFailureAsync<TItem>(string jobName, int serverId, TItem item,
+            Func<IMediator, TItem, CancellationToken, Task> onFailure, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await InScopeAsync(serverId, mediator => onFailure(mediator, item, cancellationToken));
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogError(ex, "{Job}: failure handling for item {Item} failed on server {ServerId}.",
+                    jobName, item, serverId);
             }
         }
 

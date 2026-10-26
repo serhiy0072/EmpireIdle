@@ -36,9 +36,11 @@ namespace EmpireIdle.API.Jobs
                     using var scope = _scopeFactory.CreateScope();
                     var runner = scope.ServiceProvider.GetRequiredService<ServerJobRunner>();
 
-                    // Кожен похід — у власному scope, тим самим шляхом, що й інші таймери
+                    // Кожен похід — у власному scope, тим самим шляхом, що й інші таймери.
+                    // Упале прибуття відкладається, а не повторюється кожен тік
                     await runner.ForEachItemAsync(nameof(CompleteMarchCommand), (mediator, ct) => mediator.Send(new GetDueMarchIdsQuery(), ct),
-                        (mediator, id, ct) => mediator.Send(new CompleteMarchCommand(id), ct), stoppingToken);
+                        (mediator, id, ct) => mediator.Send(new CompleteMarchCommand(id), ct), stoppingToken,
+                        onFailure: (mediator, id, ct) => mediator.Send(new DeferMarchArrivalCommand(id), ct));
                 }
                 catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
                 {

@@ -56,6 +56,29 @@ public class DueMarchesQueryTests : IAsyncLifetime
         Assert.DoesNotContain(camp.Id, ids);
     }
 
+    /// <summary>Прибуття, що впало, чекає своєї паузи — і повертається в сканер, коли вона минула.</summary>
+    [Fact]
+    public async Task GetDueAsync_ShouldSkipADeferredArrival_UntilItsRetry()
+    {
+        var now = DateTime.UtcNow;
+        var garrison = new Garrison(Guid.NewGuid(), Guid.NewGuid(), ServerId);
+
+        var deferred = Attack(garrison.Id, now);
+        deferred.DeferArrival(now);
+
+        await using (var seed = CreateScope(out _, out var context))
+        {
+            context.Garrisons.Add(garrison);
+            context.Marches.Add(deferred);
+            await context.SaveChangesAsync();
+        }
+
+        await using var scope = CreateScope(out var marches, out _);
+
+        Assert.DoesNotContain(deferred.Id, (await marches.GetDueAsync(now, batchSize: 10_000)).Select(m => m.Id));
+        Assert.Contains(deferred.Id, (await marches.GetDueAsync(deferred.ArrivalRetryAt!.Value, batchSize: 10_000)).Select(m => m.Id));
+    }
+
     /// <summary>Атака, що вже мала прибути: час настав хвилину тому.</summary>
     private static March Attack(Guid garrisonId, DateTime now)
         => new(Guid.NewGuid(), ServerId, garrisonId, 1, 1, 5, 5,

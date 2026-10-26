@@ -1500,6 +1500,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ArrivalRetryAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("ArrivesAt")
                         .HasColumnType("timestamp with time zone");
 

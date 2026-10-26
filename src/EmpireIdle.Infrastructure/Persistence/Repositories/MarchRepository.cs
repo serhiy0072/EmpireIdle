@@ -37,6 +37,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             .AsNoTracking()
             // Табір стоїть до відкликання: його час прибуття — момент, коли він став
             .Where(m => m.State != MarchState.Completed && m.State != MarchState.Camping && m.ArrivesAt <= utcNow)
+            // Прибуття, що впало, чекає своєї паузи — інакше тримало б голову пачки
+            .Where(m => m.ArrivalRetryAt == null || m.ArrivalRetryAt <= utcNow)
             .OrderBy(m => m.ArrivesAt)
             .Take(batchSize)
             .ToListAsync(cancellationToken);
