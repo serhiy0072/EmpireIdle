@@ -2633,6 +2633,10 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasIndex("ServerId");
 
+                    b.HasIndex("ServerId", "AutoCollectedAt");
+
+                    b.HasIndex("ServerId", "FoodUpkeepAt");
+
                     b.ToTable("Villages");
                 });
 

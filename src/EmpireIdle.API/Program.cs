@@ -88,6 +88,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.MaxBuildingLevel > 0 && c.BuildingLevelsPerTier > 0, "GameConfig.MaxBuildingLevel and BuildingLevelsPerTier must be positive.")
     .Validate(c => c.Combat.Scouting.Speed > 0, "GameConfig.Combat.Scouting.Speed must be positive.")
     .Validate(c => c.ScanBatchSize > 0, "GameConfig.ScanBatchSize must be greater than zero.")
+    .Validate(c => c.AutoCollectSeconds > 0, "GameConfig.AutoCollectSeconds must be positive.")
     .Validate(c => c.Monetization.SpeedUpFloorSeconds.Values.All(seconds => seconds >= 0), "GameConfig.Monetization.SpeedUpFloorSeconds cannot be negative.")
     .Validate(c => c.Monetization.MarchSpeedUps.Count > 0
         && c.Monetization.MarchSpeedUps.All(o => o.Percent is >= 1 and <= 99 && o.Gems > 0)

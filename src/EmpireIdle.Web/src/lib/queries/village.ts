@@ -5,7 +5,7 @@ import { queryKeys } from "../queryKeys";
 import { invalidatePlayer, type PlayerScope } from "./invalidate";
 import { refetchAtDue } from "./polling";
 
-/** Крок автозбору на сервері (GetVillageIdsDueAutoCollectQuery.Interval). */
+/** Як часто перечитуємо склад: крок автозбору на сервері (GameConfig.AutoCollectSeconds). */
 const AUTO_COLLECT_MS = 60_000;
 
 const atDue = refetchAtDue<VillageResponse>((village) =>

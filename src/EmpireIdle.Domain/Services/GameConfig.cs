@@ -94,6 +94,12 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скільки елементів обробляє фоновий сканер за один прогін.</summary>
         public int ScanBatchSize { get; set; } = 500;
 
+        /// <summary>
+        /// Як часто вироблене переходить на склад автоматично, секунди (рішення 19.10.2026).
+        /// Частіше за тік timer-scan (хвилина) не вийде — сканер просто не встигне.
+        /// </summary>
+        public int AutoCollectSeconds { get; set; } = 60;
+
         /// <summary>Активні світи. Фонові джоби проходять по кожному.</summary>
         public List<int> ActiveServerIds { get; set; } = new() { 1 };
 
