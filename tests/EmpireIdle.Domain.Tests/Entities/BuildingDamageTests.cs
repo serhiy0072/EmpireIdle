@@ -225,7 +225,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var village = NewVillage();
 
-            var picked = new CityFallRules(Catalog()).PickDamaged(village, firstInStreak: true, new SystemRandomSource());
+            var picked = new CityFallRules(Catalog()).PickDamaged(village, firstInStreak: true, new DeterministicRandom(42));
 
             Assert.Equal(3, picked.Count);
             Assert.Contains(Wall(village).Id, picked);
@@ -237,7 +237,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         {
             var village = NewVillage();
 
-            var picked = new CityFallRules(Catalog()).PickDamaged(village, firstInStreak: false, new SystemRandomSource());
+            var picked = new CityFallRules(Catalog()).PickDamaged(village, firstInStreak: false, new DeterministicRandom(42));
 
             Assert.Equal(2, picked.Count);
             Assert.Equal(2, picked.Distinct().Count());

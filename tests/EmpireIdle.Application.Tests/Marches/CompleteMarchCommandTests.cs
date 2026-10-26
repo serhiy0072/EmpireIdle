@@ -220,8 +220,8 @@ public class CompleteMarchCommandTests
 
         // Справжній випадок, а не заглушка _random: на ній пошук клітини крутився б на одній точці
         var cityFallService = new CityFallService(
-            _falls, _map, _serverRepository, new SystemRandomSource(), catalog,
-            new SettlementPlacer(terrain, geometry, new SystemRandomSource()),
+            _falls, _map, _serverRepository, new DeterministicRandom(42), catalog,
+            new SettlementPlacer(terrain, geometry, new DeterministicRandom(42)),
             geometry, effects, relocator, new CityFallRules(catalog),
             NullLogger<CityFallService>.Instance);
 

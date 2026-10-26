@@ -78,7 +78,7 @@ public class TeleportItemEffectTests
             new MarchHomecoming(logistics, NullLogger<MarchHomecoming>.Instance), returner);
 
         return new TeleportItemEffect(_villages, _map, _servers, _clans, _serverContext, geometry, terrain,
-            new SettlementPlacer(terrain, geometry, new SystemRandomSource()),
+            new SettlementPlacer(terrain, geometry, new DeterministicRandom(42)),
             new TerritoryBonus(_clans, _structures, new ClanTerritoryRules(catalog)), relocator);
     }
 

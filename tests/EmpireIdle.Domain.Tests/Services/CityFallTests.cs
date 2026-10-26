@@ -73,7 +73,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var map = Map();
             var terrain = new TerrainGenerator(map);
             var geometry = new WorldGeometry(map);
-            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
+            var placer = new SettlementPlacer(terrain, geometry, new DeterministicRandom(42));
 
             for (var i = 0; i < 30; i++)
             {
@@ -94,7 +94,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var map = Map();
             var terrain = new TerrainGenerator(map);
             var geometry = new WorldGeometry(map);
-            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
+            var placer = new SettlementPlacer(terrain, geometry, new DeterministicRandom(42));
 
             var spot = await placer.FindSpotNearRingAsync(1, serverLevel: 3, ring: 0,
                 (x, y) => Task.FromResult(geometry.RingAt(x, y, 3) == 0));
@@ -108,7 +108,7 @@ namespace EmpireIdle.Domain.Tests.Services
         public async Task FindSpotNearRing_ShouldReturnNull_WhenTheWorldIsFull()
         {
             var map = Map();
-            var placer = new SettlementPlacer(new TerrainGenerator(map), new WorldGeometry(map), new SystemRandomSource());
+            var placer = new SettlementPlacer(new TerrainGenerator(map), new WorldGeometry(map), new DeterministicRandom(42));
 
             var spot = await placer.FindSpotNearRingAsync(1, serverLevel: 3, ring: 1,
                 (_, _) => Task.FromResult(true), attemptsPerRing: 10);
