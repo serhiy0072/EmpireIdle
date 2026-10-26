@@ -431,7 +431,17 @@ namespace EmpireIdle.Domain.Battles
             if (!target.IsHero && status is BattleStatusKind.Stun or BattleStatusKind.Taunt)
                 return;
 
-            target.Statuses[status] = new Status(magnitude, time + seconds, time + 1);
+            // Отрута поверх отрути не збиває відлік укусів і не слабшає від слабшого накладання:
+            // інакше часті накладання відсували б укус щоразу, і отрута не кусала б зовсім
+            var nextTick = time + 1;
+
+            if (status == BattleStatusKind.Poison && target.Statuses.TryGetValue(status, out var active))
+            {
+                nextTick = active.NextTick;
+                magnitude = Math.Max(magnitude, active.Magnitude);
+            }
+
+            target.Statuses[status] = new Status(magnitude, time + seconds, nextTick);
 
             if (status == BattleStatusKind.Stun)
                 target.Target = null;
@@ -445,6 +455,10 @@ namespace EmpireIdle.Domain.Battles
             foreach (var (kind, status) in fighter.Statuses.ToList())
             {
                 if (time < status.Until - Epsilon)
+                    continue;
+
+                // Останній укус отрути припадає рівно на її кінець: N секунд — N укусів, як N частин ходу в данжі
+                if (kind == BattleStatusKind.Poison && status.NextTick <= status.Until + Epsilon)
                     continue;
 
                 fighter.Statuses.Remove(kind);
