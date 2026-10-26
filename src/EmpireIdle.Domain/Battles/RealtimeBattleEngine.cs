@@ -23,9 +23,13 @@ namespace EmpireIdle.Domain.Battles
 
         private readonly RealtimeBattleConfig _config;
 
+        /// <summary>Задня лінія — найдальша з ліній класів; конфіг сталий, тож рахується раз, а не на кожне вміння.</summary>
+        private readonly int _backLine;
+
         public RealtimeBattleEngine(RealtimeBattleConfig config)
         {
             _config = config;
+            _backLine = config.HeroLines.Values.DefaultIfEmpty().Max();
         }
 
         private double TickSeconds => _config.TickMilliseconds / 1000.0;
@@ -265,7 +269,7 @@ namespace EmpireIdle.Domain.Battles
             {
                 SkillFocus.FrontLine => InLine(enemies, 0),
                 SkillFocus.MiddleLine => InLine(enemies, 1),
-                SkillFocus.BackLine => InLine(enemies, _config.HeroLines.Values.DefaultIfEmpty().Max()),
+                SkillFocus.BackLine => InLine(enemies, _backLine),
                 SkillFocus.Strongest => enemies.Where(f => f.IsHero).OrderByDescending(Attack).ThenBy(f => f.Index).FirstOrDefault(),
                 _ => null
             };
@@ -479,7 +483,12 @@ namespace EmpireIdle.Domain.Battles
                 events.Add(new BattleEvent(tick, BattleEventKind.Death, fighter.Index, fighter.Index, 0));
             }
 
-            foreach (var convoy in fighters.Where(f => f.Leaderless is not null && fallen.Any(h => h.Index == f.Leader)))
+            if (fallen.Count == 0)
+                return;
+
+            var fallenIndices = fallen.Select(f => f.Index).ToHashSet();
+
+            foreach (var convoy in fighters.Where(f => f.Leaderless is not null && f.Leader is { } leader && fallenIndices.Contains(leader)))
                 convoy.Stats = convoy.Leaderless!;
         }
 
@@ -489,9 +498,20 @@ namespace EmpireIdle.Domain.Battles
         /// </summary>
         private void Advance(List<Fighter> fighters, int tick, double time, List<BattleEvent> events)
         {
+            // Фронт кожної сторони — один прохід на тик, а не прохід по всіх на кожного ближнього
+            int? attackerFront = null, defenderFront = null;
+
+            foreach (var f in fighters.Where(f => f.Alive))
+            {
+                if (f.Side == BattleSide.Attacker)
+                    attackerFront = attackerFront is { } a ? Math.Min(a, f.Line) : f.Line;
+                else
+                    defenderFront = defenderFront is { } d ? Math.Min(d, f.Line) : f.Line;
+            }
+
             foreach (var fighter in fighters.Where(f => f.Alive && f.Melee))
             {
-                var front = EnemyFront(fighter, fighters);
+                var front = fighter.Side == BattleSide.Attacker ? defenderFront : attackerFront;
 
                 if (front is null || front <= fighter.FacingLine)
                     continue;
@@ -503,7 +523,7 @@ namespace EmpireIdle.Domain.Battles
             }
         }
 
-        /// <summary>Найпередня жива лінія ворога; null — ворогів не лишилось.</summary>
+        /// <summary>Найпередня жива лінія ворога; null — ворогів не лишилось. Лише для розстановки на старті.</summary>
         private static int? EnemyFront(Fighter fighter, List<Fighter> fighters)
             => fighters.Where(f => f.Alive && f.Side != fighter.Side).Select(f => (int?)f.Line).Min();
 
