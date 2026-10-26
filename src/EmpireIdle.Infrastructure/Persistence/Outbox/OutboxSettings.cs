@@ -10,7 +10,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
         public int BatchSize { get; set; } = 50;
 
         /// <summary>Після скількох невдач повідомлення відкладається назавжди.</summary>
-        public int MaxAttempts { get; set; } = 5;
+        public int MaxAttempts { get; set; } = 10;
+
+        /// <summary>Пауза перед першим повтором, секунди; далі вона подвоюється до RetryMaxSeconds.</summary>
+        public int RetryBaseSeconds { get; set; } = 5;
+
+        /// <summary>Найдовша пауза між повторами, секунди.</summary>
+        public int RetryMaxSeconds { get; set; } = 3600;
 
         /// <summary>Скільки днів тримати оброблені повідомлення.</summary>
         public int RetentionDays { get; set; } = 7;

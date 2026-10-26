@@ -98,7 +98,8 @@ namespace EmpireIdle.Infrastructure
             services.AddOptions<OutboxSettings>()
                 .Bind(configuration.GetSection("Outbox"))
                 .Validate(s => s is { PollSeconds: > 0, BatchSize: > 0, MaxAttempts: > 0, RetentionDays: > 0,
-                        StaleReservationHours: > 0, IdempotencyRetentionDays: > 0 },
+                        StaleReservationHours: > 0, IdempotencyRetentionDays: > 0, RetryBaseSeconds: > 0 }
+                        && s.RetryMaxSeconds >= s.RetryBaseSeconds,
                     "Outbox settings must all be positive — a zero BatchSize spins the processor without a pause.")
                 .ValidateOnStart();
             services.AddHostedService<OutboxProcessor>();

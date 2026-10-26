@@ -64,6 +64,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
 
         private async Task<int> ProcessBatchAsync(CancellationToken cancellationToken)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             List<Guid> ids;
 
             using (var scope = _scopeFactory.CreateScope())
@@ -75,6 +76,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
                     .IgnoreQueryFilters()
                     .AsNoTracking()
                     .Where(m => m.ProcessedAt == null && m.Attempts < _settings.MaxAttempts)
+                    // Упале чекає своєї паузи: інакше спроби згоряли б щопрогону
+                    .Where(m => m.NextAttemptAt == null || m.NextAttemptAt <= now)
                     .OrderBy(m => m.OccurredAt)
                     .Take(_settings.BatchSize)
                     .Select(m => m.Id)
@@ -146,27 +149,41 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
             {
                 // Відкат — і пуші, що встигли стати в чергу, не летять
                 notifications.Discard();
-                await transaction.RollbackAsync(cancellationToken);
+                await transaction.RollbackAsync(CancellationToken.None);
+
+                // Зупинка сервера — не невдача події: спробу не рахуємо, наступний запуск візьме її знову
+                if (cancellationToken.IsCancellationRequested)
+                    throw;
 
                 _logger.LogError(ex, "Failed to publish outbox message {MessageId} of type {Type}", id, message.Type);
-                await RecordFailureAsync(id, ex.Message, cancellationToken);
+                await RecordFailureAsync(id, message.Attempts, ex.Message, now, cancellationToken);
 
                 return false;
             }
         }
 
+        /// <summary>Пауза перед наступною спробою: подвоюється з кожною невдачею до стелі.</summary>
+        public static TimeSpan RetryDelay(int failedAttempts, OutboxSettings settings)
+        {
+            var seconds = settings.RetryBaseSeconds * Math.Pow(2, Math.Max(0, failedAttempts - 1));
 
-        /// <summary>Пише лічильник спроб окремою транзакцією — попередня вже відкотилась.</summary>
-        private async Task RecordFailureAsync(Guid id, string error, CancellationToken cancellationToken)
+            return TimeSpan.FromSeconds(Math.Min(seconds, settings.RetryMaxSeconds));
+        }
+
+        /// <summary>Пише лічильник спроб і паузу окремою транзакцією — попередня вже відкотилась.</summary>
+        private async Task RecordFailureAsync(Guid id, int attemptsBefore, string error, DateTime now,
+            CancellationToken cancellationToken)
         {
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var retryAt = now + RetryDelay(attemptsBefore + 1, _settings);
 
             await context.OutboxMessages
                 .IgnoreQueryFilters()
                 .Where(m => m.Id == id)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(m => m.Attempts, m => m.Attempts + 1)
+                    .SetProperty(m => m.NextAttemptAt, retryAt)
                     .SetProperty(m => m.Error, error.Length > 2000 ? error[..2000] : error),
                     cancellationToken);
         }

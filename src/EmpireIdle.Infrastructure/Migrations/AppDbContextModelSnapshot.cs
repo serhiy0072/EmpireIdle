@@ -2839,6 +2839,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<string>("Error")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
