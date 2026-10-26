@@ -94,7 +94,13 @@ namespace EmpireIdle.Infrastructure
                     "StripeSettings.SuccessUrl and CancelUrl must be absolute URLs.")
                 .ValidateOnStart();
 
-            services.Configure<OutboxSettings>(configuration.GetSection("Outbox"));
+            // BatchSize 0 крутив би процесор без паузи: «пачка повна» спрацьовує на 0 == 0
+            services.AddOptions<OutboxSettings>()
+                .Bind(configuration.GetSection("Outbox"))
+                .Validate(s => s is { PollSeconds: > 0, BatchSize: > 0, MaxAttempts: > 0, RetentionDays: > 0,
+                        StaleReservationHours: > 0, IdempotencyRetentionDays: > 0 },
+                    "Outbox settings must all be positive — a zero BatchSize spins the processor without a pause.")
+                .ValidateOnStart();
             services.AddHostedService<OutboxProcessor>();
 
             // Identity

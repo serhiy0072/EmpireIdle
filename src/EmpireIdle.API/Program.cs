@@ -199,6 +199,40 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Tower.MaxFloor >= 1 && c.Tower.RequiresMainBuildingLevel >= 1, "GameConfig.Tower needs at least one floor and a town hall level from 1.")
     .Validate(c => c.Tower.BossEvery >= 1 && c.Tower.BossHealthScale >= 1, "GameConfig.Tower.BossEvery must be positive and BossHealthScale at least 1 — a boss is never weaker than a plain hero.")
     .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
+    .Validate(c => c.Combat.WoundedShareMin >= 0 && c.Combat.WoundedShareMin <= c.Combat.WoundedShareMax
+            && c.Combat.RecoverableShare >= 0 && c.Combat.WoundedShareMax + c.Combat.RecoverableShare <= 1,
+        "GameConfig.Combat needs 0 ≤ WoundedShareMin ≤ WoundedShareMax and WoundedShareMax + RecoverableShare ≤ 1 — otherwise the hospital takes in more units than were lost.")
+    .Validate(c => c.Combat.NoLossShareThreshold is >= 0 and < 1, "GameConfig.Combat.NoLossShareThreshold must be a share within [0; 1).")
+    .Validate(c => c.Combat.RecoveryWindowHours > 0 && c.Combat.NewbieShieldTownHallLevel >= 0,
+        "GameConfig.Combat.RecoveryWindowHours must be positive and NewbieShieldTownHallLevel non-negative.")
+    .Validate(c => new[] { c.Combat.AttackerWinLosses, c.Combat.AttackerLossLosses, c.Combat.DefenderWinLosses, c.Combat.DefenderLossLosses }
+            .All(b => b.Min >= 0 && b.Min <= b.Max && b.Max <= 1),
+        "GameConfig.Combat loss bands must satisfy 0 ≤ Min ≤ Max ≤ 1.")
+    .Validate(c => c.Combat.CityFall is { DefeatsToEvict: >= 1, FirstDefeatRandomBuildings: >= 0, NextDefeatRandomBuildings: >= 0, RepairHours: > 0, ShieldHours: >= 0 }
+            && c.Combat.CityFall.DamagedProductionMultiplier is >= 0 and <= 1
+            && c.Combat.CityFall.DefenceLossPerDamage is >= 0 and <= 1
+            && c.Combat.CityFall.RepairCostShare >= 0,
+        "GameConfig.Combat.CityFall needs DefeatsToEvict ≥ 1, positive RepairHours, non-negative counts and costs, and multipliers within [0; 1].")
+    .Validate(c => c.Clan.HelpSharePerPlayer > 0 && c.Clan.MaxHelpShare is > 0 and <= 1 && c.Clan.MaxHelpShare >= c.Clan.HelpSharePerPlayer,
+        "GameConfig.Clan needs 0 < HelpSharePerPlayer ≤ MaxHelpShare ≤ 1 — otherwise help is broken or cuts more than the whole timer.")
+    .Validate(c => c.Clan.HelpRequestLifetimeHours > 0 && c.Clan.RequestLifetimeHours > 0 && c.Clan.RejectedCooldownHours >= 0 && c.Clan.LeaderInactivityDays > 0,
+        "GameConfig.Clan lifetimes and LeaderInactivityDays must be positive (the rejection cooldown may be zero) — a zero inactivity would demote every leader daily.")
+    .Validate(c => c.Dungeons is { MaxLevel: >= 1, TeamSize: >= 1, BaseWaves: >= 1 } && c.Dungeons.RegenHours > 0,
+        "GameConfig.Dungeons needs at least one level, team slot and wave, and a positive RegenHours.")
+    .Validate(c => c.Dungeons.DefenseSoftening > 0 && c.Dungeons.MinDamageShare is > 0 and <= 1
+            && c.Dungeons.BaseCritChance is >= 0 and < 1 && c.Dungeons.CritMultiplier >= 1,
+        "GameConfig.Dungeons needs positive DefenseSoftening, MinDamageShare within (0; 1], BaseCritChance within [0; 1) and CritMultiplier ≥ 1.")
+    .Validate(c => c.Units.All(u => u.BaseTrainSeconds > 0 && u.TrainTimeGrowth >= 1 && u.LevelUpCostGrowth >= 1 && u.RecoverCostGems >= 0),
+        "GameConfig.Units need a positive BaseTrainSeconds, growths of at least 1 and a non-negative RecoverCostGems.")
+    .Validate(c => c.Buildings.All(b => b.BaseProductionPerMinute >= 0 && b.BaseStorage >= 0 && b.BaseBuildMinutes >= 0
+            && (b.BuildTimeGrowth == 0 || b.BuildTimeGrowth >= 1)),
+        "GameConfig.Buildings production, storage and build time cannot be negative, and BuildTimeGrowth is 0 or at least 1.")
+    .Validate(c => c.Shop.GemPacks.All(p => p.Gems > 0 && p.PriceCents > 0 && p.BonusPercent >= 0),
+        "GameConfig.Shop.GemPacks need positive Gems and PriceCents and a non-negative BonusPercent — Stripe refuses a free checkout.")
+    .Validate(c => c.Monetization.HealGemsPerUnit >= 0, "GameConfig.Monetization.HealGemsPerUnit cannot be negative.")
+    .Validate(c => new[] { c.Rating.PointsPerMonster, c.Rating.PointsPerBattleWon, c.Rating.PointsPerQuest, c.Rating.PointsPerContribution }.All(p => p >= 0),
+        "GameConfig.Rating activity points cannot be negative.")
+    .Validate(c => c.Map.Terrains.All(t => t.MoveCost > 0), "GameConfig.Map.Terrains MoveCost must be positive — a march over it would take no time.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
