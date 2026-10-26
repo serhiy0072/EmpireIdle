@@ -3,6 +3,7 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Application.Marches.Services
 {
@@ -29,14 +30,12 @@ namespace EmpireIdle.Application.Marches.Services
             CancellationToken cancellationToken)
         {
             var combatants = new List<HeroCombatant>();
+            var fighting = Fighting(heroes);
+            var gear = await EquippedAsync(fighting, cancellationToken);
 
-            foreach (var hero in heroes)
+            foreach (var (hero, config) in fighting)
             {
-                if (hero is null || hero.State == HeroState.Wounded || _catalog.FindHero(hero.HeroKey) is not { } config)
-                    continue;
-
-                var equipped = await _inventory.GetEquippedAsync(hero.Id, cancellationToken);
-                var stats = _heroStats.Compute(hero, config, equipped);
+                var stats = _heroStats.Compute(hero, config, gear[hero.Id].ToList());
                 var troops = stats.GetValueOrDefault(attacking ? ArtifactStats.UnitAttack : ArtifactStats.UnitDefense);
 
                 // Оберіг у відсотках, як і решта статів; стеля та сама, що й у данжі
@@ -64,19 +63,36 @@ namespace EmpireIdle.Application.Marches.Services
         /// </summary>
         public async Task<HeroGear> GearAsync(IEnumerable<Hero?> heroes, CancellationToken cancellationToken)
         {
-            var stats = new Dictionary<Guid, IReadOnlyDictionary<string, double>>();
+            var fighting = Fighting(heroes);
+            var gear = await EquippedAsync(fighting, cancellationToken);
 
-            foreach (var hero in heroes)
-            {
-                if (hero is null || hero.State == HeroState.Wounded || stats.ContainsKey(hero.Id)
-                    || _catalog.FindHero(hero.HeroKey) is not { } config)
-                    continue;
-
-                var equipped = await _inventory.GetEquippedAsync(hero.Id, cancellationToken);
-                stats[hero.Id] = _heroStats.Compute(hero, config, equipped);
-            }
+            var stats = fighting.ToDictionary(f => f.Hero.Id,
+                f => _heroStats.Compute(f.Hero, f.Config, gear[f.Hero.Id].ToList()));
 
             return stats.Count == 0 ? HeroGear.None : new HeroGear(stats);
+        }
+
+        /// <summary>Хто б'ється: живий, не поранений, з відомим конфігом; кожен герой один раз.</summary>
+        private List<(Hero Hero, HeroConfig Config)> Fighting(IEnumerable<Hero?> heroes)
+            => heroes
+                .OfType<Hero>()
+                .Where(h => h.State != HeroState.Wounded)
+                .DistinctBy(h => h.Id)
+                .Select(h => (Hero: h, Config: _catalog.FindHero(h.HeroKey)))
+                .Where(f => f.Config is not null)
+                .Select(f => (f.Hero, f.Config!))
+                .ToList();
+
+        /// <summary>Спорядження всіх бійців одним запитом: бій за село з гарнізоном інакше робив би запит на кожного.</summary>
+        private async Task<ILookup<Guid, EquipmentItem>> EquippedAsync(List<(Hero Hero, HeroConfig Config)> fighting,
+            CancellationToken cancellationToken)
+        {
+            if (fighting.Count == 0)
+                return Array.Empty<EquipmentItem>().ToLookup(e => Guid.Empty);
+
+            var items = await _inventory.GetEquippedByHeroesAsync(fighting.Select(f => f.Hero.Id).ToList(), cancellationToken);
+
+            return items.ToLookup(e => e.EquippedByHeroId!.Value);
         }
     }
 }
