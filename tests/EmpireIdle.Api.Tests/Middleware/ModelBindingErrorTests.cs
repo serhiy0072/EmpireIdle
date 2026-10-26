@@ -31,8 +31,8 @@ public class ModelBindingErrorTests : IAsyncLifetime
     {
         using var client = _factory.CreateClient();
 
-        // Ім'я користувача числом — JSON не зводиться до LoginRequest
-        using var body = new StringContent("""{"userName": 5}""", Encoding.UTF8, "application/json");
+        // Email числом — JSON не зводиться до LoginRequest саме через тип поля, а не через відсутні поля
+        using var body = new StringContent("""{"email": 5, "password": "x"}""", Encoding.UTF8, "application/json");
         var response = await client.PostAsync("/api/auth/login", body);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
