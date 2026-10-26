@@ -48,27 +48,77 @@ public class RealtimeContractTests
         Assert.Empty(broken);
     }
 
-    /// <summary>Імена — camelCase: саме так їх серіалізує протокол SignalR.</summary>
-    private static SortedDictionary<string, string[]> Contract()
+    /// <summary>
+    /// Імена — camelCase: саме так їх серіалізує протокол SignalR. Поруч — тип у нотації TypeScript
+    /// з nullability: зміна int → string чи string → string? інакше пройшла б контракт непоміченою.
+    /// </summary>
+    private static SortedDictionary<string, SortedDictionary<string, string>> Contract()
     {
-        var contract = new SortedDictionary<string, string[]>(StringComparer.Ordinal);
+        var contract = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+        var nullability = new NullabilityInfoContext();
 
         foreach (var method in typeof(IGameClient).GetMethods())
         {
             var payload = method.GetParameters().Single().ParameterType;
+            var fields = new SortedDictionary<string, string>(StringComparer.Ordinal);
 
-            contract[method.Name] = payload
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Select(property => JsonNamingPolicy.CamelCase.ConvertName(property.Name))
-                .Order(StringComparer.Ordinal)
-                .ToArray();
+            foreach (var property in payload.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var info = nullability.Create(property);
+                fields[JsonNamingPolicy.CamelCase.ConvertName(property.Name)] = TypeName(info);
+            }
+
+            contract[method.Name] = fields;
         }
 
         return contract;
     }
 
+    private static string TypeName(NullabilityInfo info)
+    {
+        var type = Nullable.GetUnderlyingType(info.Type) ?? info.Type;
+        var name = BaseName(type, info);
+
+        return info.ReadState == NullabilityState.Nullable ? $"{name} | null" : name;
+    }
+
+    private static string BaseName(Type type, NullabilityInfo info)
+    {
+        if (type == typeof(string) || type == typeof(Guid) || type == typeof(DateTime) || type == typeof(DateTimeOffset))
+            return "string";
+
+        if (type == typeof(bool))
+            return "boolean";
+
+        if (type.IsEnum)
+            return $"number /* {type.Name} */";
+
+        if (type.IsPrimitive || type == typeof(decimal))
+            return "number";
+
+        if (type.IsGenericType && info.GenericTypeArguments.Length == 2 && IsDictionary(type))
+            return $"Record<string, {TypeName(info.GenericTypeArguments[1])}>";
+
+        if (info.ElementType is { } element)
+            return $"{TypeName(element)}[]";
+
+        if (type.IsGenericType && info.GenericTypeArguments.Length == 1)
+            return $"{TypeName(info.GenericTypeArguments[0])}[]";
+
+        return type.Name;
+    }
+
+    private static bool IsDictionary(Type type)
+        => type.GetInterfaces().Append(type).Any(i => i.IsGenericType
+            && (i.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>) || i.GetGenericTypeDefinition() == typeof(IDictionary<,>)));
+
+    // Без екранування < і >: файл читає людина, що звіряє його з events.ts
     private static string Serialize(object contract)
-        => JsonSerializer.Serialize(contract, new JsonSerializerOptions { WriteIndented = true });
+        => JsonSerializer.Serialize(contract, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        });
 
     private static string Normalize(string json)
         => Serialize(JsonSerializer.Deserialize<JsonElement>(json));
