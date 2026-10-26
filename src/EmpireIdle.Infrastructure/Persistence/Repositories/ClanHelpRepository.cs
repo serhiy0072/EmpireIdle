@@ -43,6 +43,16 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             => await _context.ClanHelpRequests.AddAsync(request, cancellationToken);
 
         /// <inheritdoc/>
+        public async Task RemoveByPlayerAsync(Guid clanId, Guid playerId, CancellationToken cancellationToken = default)
+        {
+            var requests = await _context.ClanHelpRequests
+                .Where(r => r.ClanId == clanId && r.PlayerId == playerId)
+                .ToListAsync(cancellationToken);
+
+            _context.ClanHelpRequests.RemoveRange(requests);
+        }
+
+        /// <inheritdoc/>
         public Task<int> RemoveByClanAsync(Guid clanId, CancellationToken cancellationToken = default)
             => _context.ClanHelpRequests.Where(r => r.ClanId == clanId).ExecuteDeleteAsync(cancellationToken);
 

@@ -64,6 +64,10 @@ namespace EmpireIdle.Application.Clans.Commands
             if (helpRequest.ClanId != clan.Id)
                 throw new RequirementNotMetException("That request belongs to another clan.");
 
+            // Власник устиг вийти: його запит прибирається з виходом, але гонку з кліком ловимо тут
+            if (clan.Members.All(m => m.PlayerId != helpRequest.PlayerId))
+                throw new InvalidStateException(RefusalReasons.ClanHelpNotNeeded, "The requester has left the clan.");
+
             var clanConfig = _catalog.Config.Clan;
             var maxHelpers = clanConfig.MaxHelpers;
 
