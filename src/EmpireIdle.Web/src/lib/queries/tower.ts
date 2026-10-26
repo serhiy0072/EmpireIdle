@@ -35,7 +35,8 @@ export function useStormTowerFloor(playerId: string) {
       api<TowerStormResult>(`/api/tower/${playerId}/storm`, { method: "POST", body: input, idempotent: true }),
     onSuccess: (result) => {
       if (result.victory)
-        invalidatePlayer(queryClient, playerId, ["tower", "towerLeaderboard", "village", "wallet", "inventory"]);
+        // Досвід героям лягає в запас на екрані героїв
+        invalidatePlayer(queryClient, playerId, ["tower", "towerLeaderboard", "village", "wallet", "inventory", "heroes"]);
     },
   });
 }

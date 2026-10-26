@@ -73,8 +73,8 @@ export function useDungeonTurn(playerId: string) {
       }),
     onSuccess: (result) => {
       if (result.state !== "InProgress") {
-        // Забіг скінчився: нагорода вже в селі й інвентарі, сила змінилась
-        invalidatePlayer(queryClient, playerId, ["dungeons", "inventory", "village", "power"]);
+        // Забіг скінчився: нагорода вже в селі й інвентарі, досвід — у запасі героїв, сила змінилась
+        invalidatePlayer(queryClient, playerId, ["dungeons", "inventory", "village", "power", "heroes"]);
         void queryClient.invalidateQueries({ queryKey: queryKeys.dungeonRun(playerId) });
       }
     },
