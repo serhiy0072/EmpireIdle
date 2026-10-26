@@ -38,6 +38,8 @@ namespace EmpireIdle.Domain.Entities
             QuestKey = questKey;
             State = QuestState.InProgress;
             StartedAt = utcNow;
+            // Як і решта агрегатів: мітка зміни є з першого дня, а не DateTime.MinValue до першого Advance
+            UpdatedAt = utcNow;
 
             var index = 0;
             foreach (var required in requiredCounts)
