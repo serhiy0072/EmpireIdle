@@ -35,6 +35,7 @@ public class OpenWeaponChestsCommandTests
             WeaponHeroes = [HeroTestConfig.UniqueHero],
             WeaponShards = 1
         });
+        config.HeroSettings.WeaponShardCosts = [5, 5];
         _catalog = new GameCatalog(config);
     }
 
@@ -94,6 +95,21 @@ public class OpenWeaponChestsCommandTests
 
         Assert.Equal(RefusalReasons.HeroWeaponNotInChest.Key, refusal.Reason);
         Assert.Equal(5, stack.Count);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldRefuse_WhenTheWeaponIsMaxed()
+    {
+        var hero = GivenHero();
+        var chests = GivenChests(3);
+        hero.AddWeaponShards(10, Now);
+        hero.UpgradeWeapon(5, 2, Now);
+        hero.UpgradeWeapon(5, 2, Now);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Open(hero, 1));
+
+        Assert.Equal(RefusalReasons.HeroWeaponMaxed.Key, refusal.Reason);
+        Assert.Equal(3, chests.Count);
     }
 
     [Fact]

@@ -32,6 +32,7 @@ public class BuyHeroWeaponShardsCommandTests
     {
         var config = HeroTestConfig.Create();
         config.HeroSettings.WeaponShardPriceGems = new() { [Rarity.Common] = 250, [Rarity.Rare] = 750 };
+        config.HeroSettings.WeaponShardCosts = [5, 5];
         _catalog = new GameCatalog(config);
 
         _players.GetByIdAsync(PlayerId, Arg.Any<CancellationToken>())
@@ -50,6 +51,22 @@ public class BuyHeroWeaponShardsCommandTests
         => new BuyHeroWeaponShardsCommandHandler(_heroes, _players, _wallets, _catalog, _unitOfWork,
                 new FakeTimeProvider(Now), NullLogger<BuyHeroWeaponShardsCommandHandler>.Instance)
             .Handle(new BuyHeroWeaponShardsCommand(PlayerId, hero.Id, count), CancellationToken.None);
+
+    /// <summary>Зброя на стелі — шматки нікуди вкласти: gems не списуються.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_WhenTheWeaponIsMaxed()
+    {
+        _wallet.AddGems(new GemAmount(10_000), "test", Now);
+        var hero = GivenHero(HeroTestConfig.CommonHero);
+        hero.AddWeaponShards(10, Now);
+        hero.UpgradeWeapon(5, 2, Now);
+        hero.UpgradeWeapon(5, 2, Now);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Buy(hero, 1));
+
+        Assert.Equal(RefusalReasons.HeroWeaponMaxed.Key, refusal.Reason);
+        Assert.Equal(10_000, _wallet.GemBalance.Value);
+    }
 
     [Fact]
     public async Task Handle_ShouldChargeByHeroRarity_AndAddTheShards()
