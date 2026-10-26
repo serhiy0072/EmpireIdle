@@ -134,7 +134,7 @@ public class RealtimeBattleSkillsTests
 
         Assert.Equal(25, Events(result, BattleEventKind.Cast, 0)[0].Tick);
         Assert.Equal(25, Events(result, BattleEventKind.Cast, 1)[0].Tick);
-        Assert.Empty(result.Events.Where(e => e.Kind == BattleEventKind.Ready));
+        Assert.DoesNotContain(result.Events, e => e.Kind == BattleEventKind.Ready);
     }
 
     /// <summary>Вміння на тил б'є ворожого стрільця на далекій доріжці, хоч найближчий — воїн навпроти.</summary>
