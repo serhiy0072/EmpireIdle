@@ -245,7 +245,13 @@ builder.Services.AddOptions<GameConfig>()
         "GameConfig.Retention days must all be positive — a zero would delete history the moment it is written.")
     .ValidateOnStart();
 
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
+builder.Services.AddOptions<JwtSettings>()
+    .Bind(builder.Configuration.GetSection(nameof(JwtSettings)))
+    .Validate(s => !string.IsNullOrWhiteSpace(s.Issuer) && !string.IsNullOrWhiteSpace(s.Audience),
+        "JwtSettings.Issuer and Audience are required — tokens without them pass any validator that skips the check.")
+    .Validate(s => s.AccessTokenExpirationMinutes > 0 && s.RefreshTokenExpirationDays > 0,
+        "JwtSettings token lifetimes must be positive — a zero lifetime logs everyone out instantly.")
+    .ValidateOnStart();
 
 // Знімки конфігу для сінглтонів — читаються тут, використовуються нижче
 var gameConfig = builder.Configuration.GetSection("GameConfig").Get<GameConfig>()
