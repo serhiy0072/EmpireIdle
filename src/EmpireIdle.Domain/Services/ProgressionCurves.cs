@@ -92,6 +92,9 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public static int CumulativeUnitLevelCost(int baseAmount, int fromLevel, int toLevel, double growth)
         {
+            // Рівні юнітів починаються з 1; нижчий fromLevel — баг викликача, а не безкоштовні кроки
+            ArgumentOutOfRangeException.ThrowIfLessThan(fromLevel, 1);
+
             var total = 0.0;
 
             for (var level = fromLevel; level < toLevel; level++)

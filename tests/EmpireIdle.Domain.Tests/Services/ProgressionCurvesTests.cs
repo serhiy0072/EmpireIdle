@@ -116,5 +116,18 @@ namespace EmpireIdle.Domain.Tests.Services
         [InlineData(40, 300000)]
         public void UnitCapacity_ShouldGrowGeometricallyFrom1500To300000(int level, int expected)
             => Assert.Equal(expected, ProgressionCurves.UnitCapacity(level, maxLevel: 30, min: 1500, max: 300_000));
+
+        /// <summary>Стрибок через рівні коштує суму кроків: 10 × (1 + 1.5 + 2.25) = 47.5 → 47.</summary>
+        [Fact]
+        public void CumulativeUnitLevelCost_ShouldSumEveryStep()
+            => Assert.Equal(47, ProgressionCurves.CumulativeUnitLevelCost(10, fromLevel: 1, toLevel: 4, growth: 1.5));
+
+        /// <summary>Рівні нижче першого не існують — від'ємний fromLevel крутив би цикл мільярди разів.</summary>
+        [Theory]
+        [InlineData(0)]
+        [InlineData(int.MinValue)]
+        public void CumulativeUnitLevelCost_ShouldReject_AFromLevelBelowOne(int fromLevel)
+            => Assert.Throws<ArgumentOutOfRangeException>(
+                () => ProgressionCurves.CumulativeUnitLevelCost(10, fromLevel, toLevel: 2, growth: 1.5));
     }
 }
