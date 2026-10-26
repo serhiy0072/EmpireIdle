@@ -56,6 +56,8 @@
         IReadOnlyList<int> UnitBatchSizes,
         IReadOnlyList<int> UnitCapacities,
         int HealGemsPerUnit,
+        double HealResourceCostShare,
+        int MaxHeroesPerMarch,
         IReadOnlyList<CatalogArtifactSlot> ArtifactSlots,
         int MaxArtifactLevel,
         IReadOnlyList<long> ArtifactLevelExperience,

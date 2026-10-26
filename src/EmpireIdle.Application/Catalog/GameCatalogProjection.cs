@@ -178,6 +178,8 @@ namespace EmpireIdle.Application.Catalog
                     .Select(level => ProgressionCurves.UnitCapacity(level, config.MaxBuildingLevel, config.UnitCapacityMin, config.UnitCapacityMax))
                     .ToList(),
                 config.Monetization.HealGemsPerUnit,
+                config.Monetization.HealResourceCostShare,
+                config.HeroSettings.MaxHeroesPerMarch,
                 config.Equipment.ArtifactSlots
                     .Select(slot => new CatalogArtifactSlot(slot.Key, Name("artifactSlot", slot.Key, slot.DisplayName)))
                     .ToList(),

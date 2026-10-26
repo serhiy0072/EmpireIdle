@@ -11002,6 +11002,7 @@
           "beasts",
           "buildings",
           "healGemsPerUnit",
+          "healResourceCostShare",
           "heroClasses",
           "heroes",
           "items",
@@ -11012,6 +11013,7 @@
           "masteryAttempts",
           "masteryStoneItemKey",
           "maxArtifactLevel",
+          "maxHeroesPerMarch",
           "maxMastery",
           "maxSkillLevel",
           "maxStars",
@@ -11154,6 +11156,14 @@
             }
           },
           "healGemsPerUnit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "healResourceCostShare": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxHeroesPerMarch": {
             "type": "integer",
             "format": "int32"
           },

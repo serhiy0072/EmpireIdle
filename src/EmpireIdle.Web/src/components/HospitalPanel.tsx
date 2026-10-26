@@ -9,9 +9,6 @@ interface Props {
   playerId: string;
 }
 
-/** Дзеркалить HealCostFactor на беку: лікування ресурсами — половина ціни нового юніта. */
-const HEAL_COST_FACTOR = 0.5;
-
 /**
  * Госпіталь: лікування поранених (ресурсами або gems) і викуп юнітів,
  * що чекають своєї черги, за gems, поки не спливе дедлайн.
@@ -55,7 +52,7 @@ export default function HospitalPanel({ playerId }: Props) {
 
             const resourceLabel = unit
               ? unit.cost
-                  .map((line) => `${Math.ceil(line.amount * count * HEAL_COST_FACTOR).toLocaleString("uk-UA")} ${catalog.resourceName(line.resource)}`)
+                  .map((line) => `${Math.ceil(line.amount * count * catalog.healResourceCostShare).toLocaleString("uk-UA")} ${catalog.resourceName(line.resource)}`)
                   .join(", ")
               : "";
             const gemsLabel = (count * catalog.healGemsPerUnit).toLocaleString("uk-UA");

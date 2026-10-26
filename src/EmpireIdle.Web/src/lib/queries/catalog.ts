@@ -71,6 +71,10 @@ export interface Catalog {
   unitCapacity: (buildingLevel: number) => number;
   /** Ціна лікування пораненого юніта в gems — та сама для будь-якого типу. */
   healGemsPerUnit: number;
+  /** Частка ціни нового юніта, яку коштує лікування ресурсами. */
+  healResourceCostShare: number;
+  /** Скільки героїв веде один марш. */
+  maxHeroesPerMarch: number;
   /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
   artifactSlots: CatalogArtifactSlot[];
   /** Назва слота, у який вдягається артефакт; null — не артефакт. */
@@ -188,6 +192,8 @@ export function useCatalog(): Catalog {
         return capacities[Math.min(Math.max(buildingLevel, 1), capacities.length) - 1] ?? 0;
       },
       healGemsPerUnit: data?.healGemsPerUnit ?? 1,
+      healResourceCostShare: data?.healResourceCostShare ?? 0.5,
+      maxHeroesPerMarch: data?.maxHeroesPerMarch ?? 3,
       artifactSlots: data?.artifactSlots ?? [],
       artifactSlotName: (itemKey) => {
         const slot = items.get(itemKey)?.artifactSlot;
