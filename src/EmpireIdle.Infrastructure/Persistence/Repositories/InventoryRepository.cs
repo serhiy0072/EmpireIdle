@@ -26,11 +26,26 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         /// Спершу дивимось у поточну одиницю роботи: предмет, щойно доданий у цій же
         /// транзакції (10-ролл, «Забрати все»), база ще не бачить — і друга видача того
         /// самого ключа дала б другий INSERT на унікальний (PlayerId, ItemKey).
+        ///
+        /// Стек, видалений у цій же одиниці роботи (списали останній), Local не показує, а запит до бази
+        /// повертає той самий екземпляр у стані Deleted — видача на нього зникла б разом із рядком.
+        /// Тому такий стек повертається до життя порожнім, і видача ляже в нього.
         /// </remarks>
         public async Task<PlayerItem?> GetItemAsync(Guid playerId, string itemKey, CancellationToken cancellationToken = default)
-            => _context.PlayerItems.Local.FirstOrDefault(i => i.PlayerId == playerId && i.ItemKey == itemKey)
-               ?? await _context.PlayerItems
-                   .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.ItemKey == itemKey, cancellationToken);
+        {
+            var removed = _context.ChangeTracker.Entries<PlayerItem>()
+                .FirstOrDefault(e => e.State == EntityState.Deleted && e.Entity.PlayerId == playerId && e.Entity.ItemKey == itemKey);
+
+            if (removed is not null)
+            {
+                removed.State = EntityState.Modified;
+                return removed.Entity;
+            }
+
+            return _context.PlayerItems.Local.FirstOrDefault(i => i.PlayerId == playerId && i.ItemKey == itemKey)
+                   ?? await _context.PlayerItems
+                       .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.ItemKey == itemKey, cancellationToken);
+        }
 
         /// <inheritdoc/>
         public Task<List<EquipmentItem>> GetEquipmentAsync(Guid playerId, CancellationToken cancellationToken = default)
