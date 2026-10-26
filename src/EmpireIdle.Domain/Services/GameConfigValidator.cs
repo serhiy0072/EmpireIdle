@@ -377,10 +377,6 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Ринок: будівля існує, кожен товар має якір ціни. Без якоря коридор
-        /// рахувався б із першого ж продажу, і його задавав би вош.
-        /// </summary>
-        /// <summary>
         /// Звірі (GDD §5.10): кожен тип приручається з наявного монстра, один звір на монстра,
         /// шанс у (0; 1], є звіринець із місцями й корм-предмет — інакше приручати нікуди й годувати нічим.
         /// </summary>
@@ -477,10 +473,6 @@ namespace EmpireIdle.Domain.Services
             }
         }
 
-        /// <summary>
-        /// Скрині (GDD §9.12): таблиця на кожен предмет-скриню, додатні ваги й кількості,
-        /// відомі ключі, гарантія з позиціями й вкладені скрині без циклу.
-        /// </summary>
         /// <summary>Ключова скриня посилається на таблицю скрині й на предмет-ключ — обидва мусять існувати.</summary>
         private static void ValidateKeyChests(GameConfig config)
         {
@@ -504,6 +496,10 @@ namespace EmpireIdle.Domain.Services
             }
         }
 
+        /// <summary>
+        /// Скрині (GDD §9.12): таблиця на кожен предмет-скриню, додатні ваги й кількості,
+        /// відомі ключі, гарантія з позиціями й вкладені скрині без циклу.
+        /// </summary>
         private static void ValidateLootboxes(GameConfig config)
         {
             RequireUniqueKeys(config.Lootboxes.Select(b => b.Key), "Lootboxes");
@@ -616,6 +612,10 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException($"Nearby teleports need a positive TeleportRange: {string.Join(", ", broken)}.");
         }
 
+        /// <summary>
+        /// Ринок: будівля існує, кожен товар має якір ціни. Без якоря коридор
+        /// рахувався б із першого ж продажу, і його задавав би вош.
+        /// </summary>
         private static void ValidateMarket(GameConfig config)
         {
             var market = config.Market;
@@ -713,13 +713,14 @@ namespace EmpireIdle.Domain.Services
                 .Concat(config.Equipment.ArtifactSlots.Select(s => $"artifactSlot.{s.Key}"))
                 .ToHashSet();
 
+        /// <summary>Стат здоров'я юніта — його читає лише одномоментний бій.</summary>
+        private const string UnitHealthStat = "Health";
+
         /// <summary>
         /// Одномоментний бій: кожен клас героя і кожен тип юнітів, що веде герой, має свій темп удару,
         /// а перевага типів посилається лише на відомі юніти й не б'є сама себе. Порожні словники
         /// пропускає — так само, як RoleUnits у героях.
         /// </summary>
-        private const string UnitHealthStat = "Health";
-
         private static void ValidateRealtimeBattle(GameConfig config)
         {
             var battle = config.RealtimeBattle;
@@ -1716,11 +1717,6 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Стати артефактів (GDD §9.12): база для кожної рідкості, що трапляється, сталі бонуси —
-        /// лише базові стати, пули — з відомих бонусів і не менше двох, ступенів стільки ж,
-        /// скільки шансів, і шанси заточки покривають усю стелю.
-        /// </summary>
-        /// <summary>
         /// Що може дати поріг набору: пласкі стати, відсотки героя, будь-який бонус заточки (крит, оберіг,
         /// військам, марш…) і цілі ходи перезарядки — лише те, що справді рахує бій, марш чи сила.
         /// </summary>
@@ -1732,6 +1728,11 @@ namespace EmpireIdle.Domain.Services
                 .Append(DungeonStats.CooldownTurns)
                 .ToHashSet();
 
+        /// <summary>
+        /// Стати артефактів (GDD §9.12): база для кожної рідкості, що трапляється, сталі бонуси —
+        /// лише базові стати, пули — з відомих бонусів і не менше двох, ступенів стільки ж,
+        /// скільки шансів, і шанси заточки покривають усю стелю.
+        /// </summary>
         private static void ValidateArtifactStats(GameConfig config, IReadOnlyCollection<ItemConfig> equipment)
         {
             var settings = config.Equipment;
