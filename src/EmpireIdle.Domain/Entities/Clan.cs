@@ -356,12 +356,13 @@ namespace EmpireIdle.Domain.Entities
             Touch(utcNow);
         }
 
-        /// <summary>Фіксує активність учасника — за нею визначається мертвий лідер.</summary>
+        /// <summary>
+        /// Фіксує активність учасника — за нею визначається мертвий лідер. Корінь не чіпає:
+        /// інваріантів клану активність не зачіпає, а оновлення кореня серіалізувало б через
+        /// його xmin усі допомоги клану, і паралельні отримували б 409 на чесній дії.
+        /// </summary>
         public void RecordActivity(Guid playerId, DateTime utcNow)
-        {
-            _members.FirstOrDefault(m => m.PlayerId == playerId)?.Touch(utcNow);
-            Touch(utcNow);
-        }
+            => _members.FirstOrDefault(m => m.PlayerId == playerId)?.Touch(utcNow);
 
         #endregion
 
