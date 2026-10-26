@@ -1018,6 +1018,42 @@ public class CompleteMarchCommandTests
         await _reports.Received(1).AddAsync(Arg.Is<BattleReport>(r => r.PlayerId == PlayerId), Arg.Any<CancellationToken>());
     }
 
+    /// <summary>
+    /// Зруйнована споруда з героєм союзника в гарнізоні: розпуск один, герой поранений
+    /// і йде додому одним маршем зі своїм конвоєм. Заглушка віддає героя за гарнізоном
+    /// і після SendHome — так само, як EF до SaveChanges повертає вже відстежений екземпляр.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldSendAStationedHeroHomeOnce_WhenTheStructureFalls()
+    {
+        var catalog = new GameCatalog(Config());
+        var (march, _, structure, structureGarrison) = GivenStructureMarch(MarchIntent.Attack, Guid.NewGuid(), playerClanId: null);
+
+        var ally = Guid.NewGuid();
+        var home = NewVillage(catalog, ally, 60, 60);
+        var homeGarrison = new Garrison(Guid.NewGuid(), home.Id, 1);
+
+        structureGarrison.AddReinforcements(ally, homeGarrison.Id,
+            new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 5 }, StructureGarrisonCapacity, Now);
+
+        var hero = new Hero(Guid.NewGuid(), ally, 1, "knight", structureGarrison.Id, Now.AddHours(-1));
+
+        _villages.GetByPlayerIdAsync(ally, Arg.Any<CancellationToken>()).Returns(home);
+        _villages.GetByIdAsync(home.Id, Arg.Any<CancellationToken>()).Returns(home);
+        _garrisons.GetByVillageIdAsync(home.Id, Arg.Any<CancellationToken>()).Returns(homeGarrison);
+        _garrisons.GetByIdAsync(homeGarrison.Id, Arg.Any<CancellationToken>()).Returns(homeGarrison);
+
+        var handler = Handler();
+        _heroes.GetByGarrisonAsync(structureGarrison.Id, Arg.Any<CancellationToken>()).Returns(new List<Hero> { hero });
+
+        await handler.Handle(new CompleteMarchCommand(march.Id), CancellationToken.None);
+
+        _structures.Received(1).Remove(structure);
+        Assert.Equal(HeroState.Wounded, hero.State);
+        Assert.Null(hero.StationedGarrisonId);
+        await _marches.Received(1).AddAsync(Arg.Is<March>(m => m.Id == hero.MarchId), Arg.Any<CancellationToken>());
+    }
+
     /// <summary>Нападник устиг вступити до клану споруди — свою він не руйнує, а розвертається.</summary>
     [Fact]
     public async Task Handle_ShouldTurnBack_WhenTheAttackerJoinedTheOwningClan()

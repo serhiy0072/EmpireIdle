@@ -292,8 +292,10 @@ namespace EmpireIdle.Application.Marches.Services
                 report.AnnounceDefence(utcNow);
             }
 
-            // Господаря в споруди немає — після поразки додому йдуть усі
-            await DisbandIfLostAsync(structureGarrison, Guid.Empty, result.AttackerWon, utcNow, cancellationToken);
+            // Програна споруда падає, і гарнізон додому веде ClanStructureRemover разом із нею:
+            // другий розпуск тут удруге слав би тих самих героїв і кидав би виняток
+            if (result.AttackerWon)
+                await WoundAlliedHeroesAsync(structureGarrison, Guid.Empty, utcNow, cancellationToken);
         }
 
         private static Dictionary<UnitStackKey, int> LostBy(IEnumerable<StackLoss> losses)
@@ -404,12 +406,7 @@ namespace EmpireIdle.Application.Marches.Services
             // вистояти без жодної втрати, а додому все одно йде
             var owners = hostGarrison.ReinforcementOwners().ToList();
 
-            var stationed = await _heroRepository.GetByGarrisonAsync(hostGarrison.Id, cancellationToken);
-
-            // Герої союзників програли разом зі своїми конвоями: слота лідера, що брав на себе удар
-            // замість решти, більше немає (рішення 15.10.2026)
-            foreach (var ally in stationed.Where(h => h.PlayerId != hostOwnerId))
-                ally.Wound(utcNow);
+            var stationed = await WoundAlliedHeroesAsync(hostGarrison, hostOwnerId, utcNow, cancellationToken);
 
             foreach (var ownerId in owners.Concat(stationed.Select(h => h.PlayerId)).Distinct())
             {
@@ -418,6 +415,22 @@ namespace EmpireIdle.Application.Marches.Services
 
                 await _returner.ReturnOwnerAsync(hostGarrison, ownerId, utcNow, cancellationToken);
             }
+        }
+
+        /// <summary>
+        /// Герої союзників програли разом зі своїми конвоями: слота лідера, що брав на себе удар
+        /// замість решти, більше немає (рішення 15.10.2026).
+        /// </summary>
+        /// <returns>Усі герої, що стояли в гарнізоні.</returns>
+        private async Task<IReadOnlyList<Hero>> WoundAlliedHeroesAsync(Garrison hostGarrison, Guid hostOwnerId,
+            DateTime utcNow, CancellationToken cancellationToken)
+        {
+            var stationed = await _heroRepository.GetByGarrisonAsync(hostGarrison.Id, cancellationToken);
+
+            foreach (var ally in stationed.Where(h => h.PlayerId != hostOwnerId))
+                ally.Wound(utcNow);
+
+            return stationed;
         }
 
         /// <summary>

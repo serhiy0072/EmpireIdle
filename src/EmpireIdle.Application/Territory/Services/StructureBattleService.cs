@@ -145,8 +145,8 @@ namespace EmpireIdle.Application.Territory.Services
             await _aftermath.RecordAttackerAsync(march, attackerVillage, attackerGarrison,
                 clan?.Tag ?? string.Empty, 0, attackerArmy, outcome, terrain, seed, utcNow, cancellationToken);
 
-            // Власника-господаря немає: кожен, хто стояв у гарнізоні, отримує свій звіт,
-            // а після поразки всі йдуть додому
+            // Власника-господаря немає: кожен, хто стояв у гарнізоні, отримує свій звіт.
+            // Після поразки додому їх веде знесення споруди нижче
             await _aftermath.RecordStructureDefenceAsync(march, structure, defenderGarrison, attackerVillage,
                 defence, defenderLosses, result, terrain, seed, utcNow, cancellationToken);
 
