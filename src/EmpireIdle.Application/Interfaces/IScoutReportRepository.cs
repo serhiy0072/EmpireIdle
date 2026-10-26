@@ -12,5 +12,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Звіти за ідентифікаторами (для листів скриньки), лише для читання.</summary>
         Task<List<ScoutReport>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє звіти всіх світів, старші за <paramref name="before"/>, одразу в БД. Ресурси йдуть каскадом.</summary>
+        Task<int> DeleteBeforeAsync(DateTime before, CancellationToken cancellationToken = default);
     }
 }

@@ -34,5 +34,8 @@ namespace EmpireIdle.Application.Interfaces
         Task<List<MarketPriceSnapshot>> GetSnapshotsAsync(CancellationToken cancellationToken = default);
 
         Task AddSnapshotAsync(MarketPriceSnapshot snapshot, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє закриті лоти всіх світів, закриті до <paramref name="before"/>, одразу в БД.</summary>
+        Task<int> DeleteClosedBeforeAsync(DateTime before, CancellationToken cancellationToken = default);
     }
 }

@@ -98,5 +98,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
         public async Task AddSnapshotAsync(MarketPriceSnapshot snapshot, CancellationToken cancellationToken = default)
             => await _context.MarketPriceSnapshots.AddAsync(snapshot, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> DeleteClosedBeforeAsync(DateTime before, CancellationToken cancellationToken = default)
+            => _context.MarketListings.IgnoreQueryFilters()
+                .Where(l => l.State != MarketListingState.Active && l.ClosedAt < before)
+                .ExecuteDeleteAsync(cancellationToken);
     }
 }

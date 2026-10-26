@@ -13,5 +13,8 @@ namespace EmpireIdle.Application.Interfaces
 
         /// <summary>Додати звіт.</summary>
         Task AddAsync(BattleReport report, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє звіти всіх світів, старші за <paramref name="before"/>, одразу в БД. Рядки йдуть каскадом.</summary>
+        Task<int> DeleteBeforeAsync(DateTime before, CancellationToken cancellationToken = default);
     }
 }

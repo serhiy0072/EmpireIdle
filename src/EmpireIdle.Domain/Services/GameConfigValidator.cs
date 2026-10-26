@@ -30,6 +30,7 @@ namespace EmpireIdle.Domain.Services
             ValidateQuests(config);
             ValidateGeometry(config);
             ValidateRating(config);
+            ValidateRetention(config);
             ValidatePreview(config);
             ValidateHeroes(config);
             ValidateLossBands(config);
@@ -1104,6 +1105,31 @@ namespace EmpireIdle.Domain.Services
 
             if (rating.Scale <= 0)
                 throw new InvalidOperationException("Rating.Scale must be positive.");
+        }
+
+        /// <summary>
+        /// Строки зберігання не коротші за тих, хто на історію спирається: медіана ринку читає продані лоти,
+        /// пауза після відмови — вирішену заявку, лист розвідки — звіт, викуп відновлюваних — звіт бою.
+        /// </summary>
+        private static void ValidateRetention(GameConfig config)
+        {
+            var retention = config.Retention;
+
+            if (retention.ClosedMarketListingDays * 24 < config.Market.MedianWindowHours)
+                throw new InvalidOperationException(
+                    $"Retention.ClosedMarketListingDays must cover Market.MedianWindowHours {config.Market.MedianWindowHours} — the median reads sold listings.");
+
+            if (retention.ResolvedClanRequestDays * 24 < config.Clan.RejectedCooldownHours)
+                throw new InvalidOperationException(
+                    $"Retention.ResolvedClanRequestDays must cover Clan.RejectedCooldownHours {config.Clan.RejectedCooldownHours} — the cooldown reads the rejected request.");
+
+            if (retention.ScoutReportDays < config.Mail.LetterRetentionDays)
+                throw new InvalidOperationException(
+                    $"Retention.ScoutReportDays must cover Mail.LetterRetentionDays {config.Mail.LetterRetentionDays} — a scout letter opens its report.");
+
+            if (retention.BattleReportDays * 24 < config.Combat.RecoveryWindowHours)
+                throw new InvalidOperationException(
+                    $"Retention.BattleReportDays must cover Combat.RecoveryWindowHours {config.Combat.RecoveryWindowHours} — recovery points at its report.");
         }
 
         private static void RequireUniqueKeys(IEnumerable<string> keys, string section)

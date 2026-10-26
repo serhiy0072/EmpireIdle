@@ -37,5 +37,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         {
             await _context.BattleReports.AddAsync(report, cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public Task<int> DeleteBeforeAsync(DateTime before, CancellationToken cancellationToken = default)
+            => _context.BattleReports.IgnoreQueryFilters()
+                .Where(r => r.FoughtAt < before)
+                .ExecuteDeleteAsync(cancellationToken);
     }
 }

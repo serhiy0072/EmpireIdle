@@ -73,6 +73,9 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скринька: строки зберігання листів і оголошень.</summary>
         public MailConfig Mail { get; set; } = new();
 
+        /// <summary>Строки зберігання історії: звіти, завершені забіги, закриті лоти, вирішені заявки.</summary>
+        public RetentionConfig Retention { get; set; } = new();
+
         /// <summary>Нагороди за вхід: серія днів, тиждень, місяць.</summary>
         public LoginRewardsConfig LoginRewards { get; set; } = new();
 

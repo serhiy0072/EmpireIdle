@@ -233,6 +233,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => new[] { c.Rating.PointsPerMonster, c.Rating.PointsPerBattleWon, c.Rating.PointsPerQuest, c.Rating.PointsPerContribution }.All(p => p >= 0),
         "GameConfig.Rating activity points cannot be negative.")
     .Validate(c => c.Map.Terrains.All(t => t.MoveCost > 0), "GameConfig.Map.Terrains MoveCost must be positive — a march over it would take no time.")
+    .Validate(c => c.Retention is { BattleReportDays: > 0, ScoutReportDays: > 0, FinishedDungeonRunDays: > 0, ClosedMarketListingDays: > 0, ResolvedClanRequestDays: > 0 },
+        "GameConfig.Retention days must all be positive — a zero would delete history the moment it is written.")
     .ValidateOnStart();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
@@ -454,6 +456,7 @@ builder.Services.AddScoped<ClanLeadershipJob>();
 builder.Services.AddScoped<ChatRetentionJob>();
 builder.Services.AddScoped<MailRetentionJob>();
 builder.Services.AddScoped<MarchRetentionJob>();
+builder.Services.AddScoped<HistoryRetentionJob>();
 builder.Services.AddScoped<MarketExpiryJob>();
 builder.Services.AddScoped<FoodUpkeepJob>();
 builder.Services.AddScoped<MarketPricesJob>();
