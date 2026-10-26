@@ -792,6 +792,14 @@ namespace EmpireIdle.Domain.Services
             if (tower.Anchors.Count == 0)
                 return;
 
+            // Вежа б'ється одномоментним боєм: без темпу ударів і ліній чесний штурм кидав би 500.
+            // Повноту кожного словника вже перевіряє ValidateRealtimeBattle — тут лише що вони є
+            var battle = config.RealtimeBattle;
+
+            if (battle.HeroAttackIntervals.Count == 0 || battle.UnitAttackIntervals.Count == 0 || battle.HeroLines.Count == 0)
+                throw new InvalidOperationException(
+                    "Tower is configured, so RealtimeBattle needs HeroAttackIntervals, UnitAttackIntervals and HeroLines.");
+
             var anchors = tower.Anchors;
 
             if (anchors[0].Floor != 1 || anchors[^1].Floor != tower.MaxFloor || anchors.Zip(anchors.Skip(1)).Any(p => p.Second.Floor <= p.First.Floor))

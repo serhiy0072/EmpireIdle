@@ -155,6 +155,23 @@
         }
 
         /// <summary>
+        /// Одномоментний бій: темп удару й лінія для чотирьох класів героїв, темп удару трьох типів юнітів.
+        /// Без них валідатор не пропустить налаштовану вежу.
+        /// </summary>
+        public GameConfigBuilder WithRealtimeBattle(Action<RealtimeBattleConfig>? tune = null)
+        {
+            var battle = _config.RealtimeBattle;
+
+            battle.HeroAttackIntervals = new() { ["warrior"] = 1.25, ["knight"] = 1.0, ["archer"] = 1.3, ["mage"] = 1.3 };
+            battle.HeroLines = new() { ["warrior"] = 0, ["knight"] = 0, ["archer"] = 1, ["mage"] = 1 };
+            battle.UnitAttackIntervals = new() { [TestKeys.Infantry] = 1.25, [TestKeys.Cavalry] = 1.0, [TestKeys.Archer] = 1.4 };
+
+            tune?.Invoke(battle);
+
+            return this;
+        }
+
+        /// <summary>
         /// Спорядження: дві зброї воїна, набір із чотирьох артефактів
         /// і один артефакт поза набором.
         /// </summary>
