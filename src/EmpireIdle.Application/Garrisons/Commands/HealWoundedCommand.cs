@@ -13,7 +13,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     /// <summary>Чим платити за лікування.</summary>
     public enum HealPaymentMethod
     {
-        /// <summary>Ресурсами — половина вартості юніта.</summary>
+        /// <summary>Ресурсами — частка вартості юніта (Monetization.HealResourceCostShare).</summary>
         Resources = 1,
 
         /// <summary>Gems — фіксована ціна за юніта.</summary>

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -51,7 +52,7 @@ namespace EmpireIdle.Application.Marches.Validators
             {
                 unit.RuleFor(u => u.Key.UnitType).NotEmpty().MaximumLength(50);
                 unit.RuleFor(u => u.Key.Level).GreaterThanOrEqualTo(1);
-                unit.RuleFor(u => u.Value).GreaterThan(0);
+                unit.RuleFor(u => u.Value).GreaterThan(0).LessThanOrEqualTo(UnitCountLimit.MaxPerStack);
             });
         }
     }
