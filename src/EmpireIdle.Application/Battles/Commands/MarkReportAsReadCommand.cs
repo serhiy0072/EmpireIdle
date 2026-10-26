@@ -6,7 +6,7 @@ using MediatR;
 namespace EmpireIdle.Application.Battles.Commands
 {
     /// <summary>Позначити звіт прочитаним.</summary>
-    public record MarkReportAsReadCommand(Guid PlayerId, Guid ReportId) : IRequest, IPlayerScopedRequest;
+    public record MarkReportAsReadCommand(Guid PlayerId, Guid ReportId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
     public sealed class MarkReportAsReadCommandHandler : IRequestHandler<MarkReportAsReadCommand>
     {

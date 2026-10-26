@@ -144,6 +144,79 @@ public class ConventionTests
         messages.Should().BeEmpty("команди й запити оголошуються як record");
     }
 
+    /// <summary>
+    /// Захист від IDOR: запит із PlayerId звіряє його з гравцем із токена лише через
+    /// IPlayerScopedRequest. Забутий маркер — дія над чужим гравцем, і жоден інший тест не впаде.
+    /// Винятки — внутрішні команди фонових задач, яких немає в контролерах.
+    /// </summary>
+    [Fact]
+    public void RequestsWithAPlayerId_ShouldBePlayerScoped()
+    {
+        string[] internalOnly = ["RecalculatePlayerPowerCommand", "ResetPlayerDailyQuestsCommand"];
+
+        var offenders = Requests()
+            .Where(t => t.GetProperty("PlayerId") is not null)
+            .Where(t => !typeof(Application.Common.Security.IPlayerScopedRequest).IsAssignableFrom(t))
+            .Select(t => t.Name)
+            .Except(internalOnly)
+            .ToList();
+
+        offenders.Should().BeEmpty("запит із PlayerId гравця реалізує IPlayerScopedRequest");
+    }
+
+    /// <summary>
+    /// Команда гравця, що змінює стан, ідемпотентна: ретрай мережі не виконує її двічі.
+    /// Хід данжу захищено номером ходу (expectedTurn → 409 StaleTurn), а не ключем;
+    /// сід dev-акаунта існує лише в Development і повторюється свідомо.
+    /// </summary>
+    [Fact]
+    public void PlayerCommands_ShouldBeIdempotent()
+    {
+        string[] guardedOtherwise = ["TakeDungeonTurnCommand", "SeedDevAccountCommand"];
+
+        var offenders = Requests()
+            .Where(t => t.Name.EndsWith("Command"))
+            .Where(t => typeof(Application.Common.Security.IPlayerScopedRequest).IsAssignableFrom(t))
+            .Where(t => !typeof(Application.Common.Security.IIdempotentRequest).IsAssignableFrom(t))
+            .Select(t => t.Name)
+            .Except(guardedOtherwise)
+            .ToList();
+
+        offenders.Should().BeEmpty("команда гравця реалізує IIdempotentRequest");
+    }
+
+    /// <summary>
+    /// Без токена відкриті лише вхід, каталог і вебхук Stripe (його підпис перевіряє обробник).
+    /// FallbackPolicy закриває решту — новий [AllowAnonymous] мусить потрапити сюди свідомо.
+    /// </summary>
+    [Fact]
+    public void AnonymousAccess_ShouldStayOnTheAllowList()
+    {
+        string[] allowed = ["AuthController", "CatalogController", "PaymentsController.Webhook"];
+        var anonymous = typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute);
+
+        var controllers = typeof(EmpireIdle.API.Controllers.AuthController).Assembly.GetTypes()
+            .Where(t => t.IsClass && t.Name.EndsWith("Controller"))
+            .ToList();
+
+        var open = controllers.Where(t => t.IsDefined(anonymous, inherit: true)).Select(t => t.Name)
+            .Concat(controllers
+                .Where(t => !t.IsDefined(anonymous, inherit: true))
+                .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                .Where(m => m.IsDefined(anonymous, inherit: true))
+                .Select(m => $"{m.DeclaringType!.Name}.{m.Name}"))
+            .Except(allowed)
+            .ToList();
+
+        open.Should().BeEmpty("анонімний доступ відкривається лише свідомо");
+    }
+
+    private static IEnumerable<Type> Requests()
+        => ApplicationAssembly.GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false })
+            .Where(t => t.GetInterfaces().Contains(typeof(MediatR.IRequest))
+                        || t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(MediatR.IRequest<>)));
+
     [Fact]
     public void Validators_ShouldBeSealed()
     {
