@@ -210,7 +210,10 @@ export default function BattleReplayPlayer({ replay: initial, bossLane = null, o
       replayRef.current = next;
       setReplay(next);
     } catch {
-      // Наказ не дійшов — бій іде далі, як був; помилку покаже сторінка
+      // Наказ не дійшов — бій іде далі, як був; помилку покаже сторінка. Авто вимикаємо лише на цей бій:
+      // інакше кожен кадр слав би той самий наказ знову, поки не впреться в ліміт запитів
+      autoRef.current = false;
+      setAuto(false);
     } finally {
       pausedRef.current = false;
     }
