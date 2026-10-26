@@ -204,7 +204,6 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.RealtimeBattle.HeroLines.Values.All(line => line >= 0), "GameConfig.RealtimeBattle.HeroLines counts lines from 0 — the front.")
     .Validate(c => c.Tower.MaxFloor >= 1 && c.Tower.RequiresMainBuildingLevel >= 1, "GameConfig.Tower needs at least one floor and a town hall level from 1.")
     .Validate(c => c.Tower.BossEvery >= 1 && c.Tower.BossHealthScale >= 1, "GameConfig.Tower.BossEvery must be positive and BossHealthScale at least 1 — a boss is never weaker than a plain hero.")
-    .Validate(c => c.Buildings.All(b => b.Position is null || (b.Position.X is >= 10 and <= 90 && b.Position.Y is >= 10 and <= 90)), "GameConfig has a building outside the village walls: Position must be within 10–90.")
     .Validate(c => c.Combat.WoundedShareMin >= 0 && c.Combat.WoundedShareMin <= c.Combat.WoundedShareMax
             && c.Combat.RecoverableShare >= 0 && c.Combat.WoundedShareMax + c.Combat.RecoverableShare <= 1,
         "GameConfig.Combat needs 0 ≤ WoundedShareMin ≤ WoundedShareMax and WoundedShareMax + RecoverableShare ≤ 1 — otherwise the hospital takes in more units than were lost.")
