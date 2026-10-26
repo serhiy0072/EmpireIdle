@@ -165,6 +165,23 @@ public class PayProvisionsCommandTests
         Assert.True(village.IsHungry);
     }
 
+    /// <summary>
+    /// Джоб іде кожні 10 хвилин: за годину шість прогонів списують рівно годинну норму (230),
+    /// а не 6 × floor(230 / 6) = 228 — дріб переходить на наступний прогін.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldChargeTheFullHour_InTenMinuteRuns()
+    {
+        var catalog = Catalog(messHall: true);
+        var village = GivenVillage(catalog, food: 1000);
+        await Handler(catalog, Now).Handle(new PayProvisionsCommand(village.Id), CancellationToken.None);
+
+        for (var run = 1; run <= 6; run++)
+            await Handler(catalog, Now.AddMinutes(run * 10)).Handle(new PayProvisionsCommand(village.Id), CancellationToken.None);
+
+        Assert.Equal(770, Food(village));
+    }
+
     /// <summary>Села вже немає — джоб іде далі без помилки.</summary>
     [Fact]
     public async Task Handle_ShouldSkip_AVanishedVillage()

@@ -68,7 +68,7 @@ namespace EmpireIdle.Application.Beasts.Commands
             var mealPerHour = _status.MealPerHour(village);
 
             // Перша оплата лише ставить відлік: до неї ні Їдальня, ні звіринець нічого не їли
-            var hours = Math.Max(0, (now - (village.FoodUpkeepAt ?? now)).TotalHours);
+            var paidUntil = village.FoodUpkeepAt ?? now;
 
             // Буфери й голодний темп фіксуються, тож потрібні буст і кільце, як при зборі
             var boost = await _effectResolver.GetProductionBoostAsync(village.PlayerId, now, cancellationToken);
@@ -77,9 +77,9 @@ namespace EmpireIdle.Application.Beasts.Commands
             var (wasHungry, beastsWereHungry) = (village.IsHungry, village.BeastsHungry);
 
             var provisions = _catalog.Config.Provisions;
-            var missingMeal = village.PayFoodUpkeep((int)Math.Floor(mealPerHour * hours), provisions.MealResource,
+            var missingMeal = village.PayFoodUpkeep(UpkeepMeter.Due(mealPerHour, paidUntil, now), provisions.MealResource,
                 provisions.HungerProductionMultiplier, _catalog.Buildings, now, boost, locationMultiplier);
-            var missingFodder = village.PayBeastUpkeep((int)Math.Floor(fodderPerHour * hours),
+            var missingFodder = village.PayBeastUpkeep(UpkeepMeter.Due(fodderPerHour, paidUntil, now),
                 _catalog.Config.Beasts.UpkeepResource, _catalog.Buildings, now, boost, locationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
