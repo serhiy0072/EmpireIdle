@@ -6,6 +6,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -64,15 +65,17 @@ namespace EmpireIdle.Application.Common.Behaviors
                         "Idempotency-Key must be 16–100 chars of [A-Za-z0-9._-].")]);
 
             var requestType = typeof(TRequest).Name;
+            var requestHash = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(request)));
 
             var existing = await _repository.FindAsync(playerId, key, cancellationToken);
             if (existing is not null)
-                return Replay(existing, key, requestType);
+                return Replay(existing, key, requestType, requestHash);
 
             var record = new IdempotencyRecord(
                 Guid.NewGuid(), key, playerId, requestType,
                 responseJson: null,
-                _timeProvider.GetUtcNow().UtcDateTime);
+                _timeProvider.GetUtcNow().UtcDateTime,
+                requestHash);
 
             // Резерв ДО виконання: гонку вирішує унікальний індекс, а не перевірка вище
             if (!await _repository.TryReserveAsync(record, cancellationToken))
@@ -81,7 +84,7 @@ namespace EmpireIdle.Application.Common.Behaviors
                     ?? throw new InvalidOperationException(
                         $"Idempotency key '{key}' is reserved but its record is missing.");
 
-                return Replay(winner, key, requestType);
+                return Replay(winner, key, requestType, requestHash);
             }
 
             TResponse response;
@@ -111,9 +114,11 @@ namespace EmpireIdle.Application.Common.Behaviors
             return response;
         }
 
-        private TResponse Replay(IdempotencyRecord record, string key, string requestType)
+        private TResponse Replay(IdempotencyRecord record, string key, string requestType, string requestHash)
         {
-            if (record.RequestType != requestType)
+            // Той самий ключ з іншою операцією чи іншими параметрами — не повтор, а баг клієнта
+            if (record.RequestType != requestType
+                || (record.RequestHash is not null && record.RequestHash != requestHash))
                 throw new IdempotencyKeyReusedException(key);
 
             // Резерв є, відповіді ще немає — операція виконується прямо зараз і могла

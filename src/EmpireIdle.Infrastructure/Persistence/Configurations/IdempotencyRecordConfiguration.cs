@@ -14,6 +14,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(r => r.Key).IsRequired().HasMaxLength(100);
             builder.Property(r => r.RequestType).IsRequired().HasMaxLength(200);
+            // SHA-256 у hex
+            builder.Property(r => r.RequestHash).HasMaxLength(64);
 
             // Ключ унікальний у межах гравця — головний захист від дублю
             builder.HasIndex(r => new { r.PlayerId, r.Key }).IsUnique();

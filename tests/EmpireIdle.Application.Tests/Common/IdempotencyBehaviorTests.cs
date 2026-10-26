@@ -52,6 +52,59 @@ public class IdempotencyBehaviorTests
         new(Guid.NewGuid(), ValidKey, _playerId, requestType, responseJson,
             _time.GetUtcNow().UtcDateTime);
 
+    /// <summary>Відбиток запиту, який behavior записав у резерв, — для запису «вже виконано».</summary>
+    private async Task<string> HashOf(PayCommand command)
+    {
+        IdempotencyRecord? reserved = null;
+        _repository.TryReserveAsync(Arg.Do<IdempotencyRecord>(r => reserved = r), Arg.Any<CancellationToken>()).Returns(true);
+
+        await BehaviorFor<PayCommand>().Handle(command, Handler(), CancellationToken.None);
+
+        _repository.ClearReceivedCalls();
+        return reserved!.RequestHash!;
+    }
+
+    private void GivenCompleted(string? requestHash)
+        => _repository.FindAsync(_playerId, ValidKey, Arg.Any<CancellationToken>())
+            .Returns(new IdempotencyRecord(Guid.NewGuid(), ValidKey, _playerId, nameof(PayCommand),
+                JsonSerializer.Serialize("receipt-1"), _time.GetUtcNow().UtcDateTime, requestHash));
+
+    // ---------- Відбиток запиту ----------
+
+    /// <summary>Той самий ключ з іншими параметрами — баг клієнта: чужий «успіх» назвав би незроблене зробленим.</summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_TheSameKeyWithDifferentParameters()
+    {
+        GivenCompleted(await HashOf(new PayCommand(10)));
+        var handlerCalled = false;
+
+        var act = () => BehaviorFor<PayCommand>().Handle(new PayCommand(99), Handler(onCall: () => handlerCalled = true), CancellationToken.None);
+
+        await act.Should().ThrowAsync<IdempotencyKeyReusedException>();
+        handlerCalled.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReplay_TheSameKeyWithTheSameParameters()
+    {
+        GivenCompleted(await HashOf(new PayCommand(10)));
+
+        var result = await BehaviorFor<PayCommand>().Handle(new PayCommand(10), Handler("receipt-2"), CancellationToken.None);
+
+        result.Should().Be("receipt-1");
+    }
+
+    /// <summary>Запис, старший за відбиток, повторюється як раніше — без хибних 422 після деплою.</summary>
+    [Fact]
+    public async Task Handle_ShouldReplay_ARecordWithoutAHash()
+    {
+        GivenCompleted(requestHash: null);
+
+        var result = await BehaviorFor<PayCommand>().Handle(new PayCommand(99), Handler("receipt-2"), CancellationToken.None);
+
+        result.Should().Be("receipt-1");
+    }
+
     // ---------- Happy path ----------
 
     [Fact]

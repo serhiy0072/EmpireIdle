@@ -16,16 +16,25 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Тип запиту (щоб один ключ не перевикористали для іншої операції).</summary>
         public string RequestType { get; private set; } = null!;
 
+        /// <summary>
+        /// Відбиток параметрів запиту: той самий ключ з іншими даними — баг клієнта, а не повтор,
+        /// і віддати йому чужий «успіх» означало б сказати «зроблено» про незроблене.
+        /// null — запис старший за цю перевірку.
+        /// </summary>
+        public string? RequestHash { get; private set; }
+
         /// <summary>Серіалізована відповідь — віддається при повторі.</summary>
         public string? ResponseJson { get; private set; }
 
         public DateTime CreatedAt { get; private set; }
 
-        public IdempotencyRecord(Guid id, string key, Guid playerId, string requestType, string? responseJson, DateTime utcNow) : base(id)
+        public IdempotencyRecord(Guid id, string key, Guid playerId, string requestType, string? responseJson, DateTime utcNow,
+            string? requestHash = null) : base(id)
         {
             Key = key;
             PlayerId = playerId;
             RequestType = requestType;
+            RequestHash = requestHash;
             ResponseJson = responseJson;
             CreatedAt = utcNow;
         }
