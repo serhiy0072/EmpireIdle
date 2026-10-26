@@ -64,17 +64,12 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new RequirementNotMetException(RefusalReasons.HeroSkillLocked,
                     $"Skill '{skill.Key}' unlocks at hero level {skill.UnlockLevel}.", skill.DisplayName, skill.UnlockLevel);
 
-            // Стелі перевіряються до списання книги: інакше відмова з'їла б її
+            // Стелі — до книги й тим самим правилом агрегату: гравець має почути «рівень максимальний»,
+            // а не «бракує книг» на вже вичерпаному вмінні
             var settings = _catalog.Config.HeroSettings;
             var current = hero.SkillLevel(skill.Key);
 
-            if (current >= settings.MaxSkillLevel)
-                throw new RequirementNotMetException(RefusalReasons.HeroSkillMaxed,
-                    $"Skill '{skill.Key}' is already at the top level.", settings.MaxSkillLevel);
-
-            if (current >= _skills.LevelCap(hero))
-                throw new RequirementNotMetException(RefusalReasons.HeroSkillStarCapped,
-                    $"Skill '{skill.Key}' needs {current} stars for level {current + 1}.", current);
+            hero.EnsureCanRaiseSkill(skill.Key, _skills.LevelCap(hero), settings.MaxSkillLevel);
 
             var book = _skills.BookFor(config, skill.Half)
                 ?? throw new InvalidOperationException($"No skill book for {config.Class}/{config.Rank}/{skill.Half}.");
