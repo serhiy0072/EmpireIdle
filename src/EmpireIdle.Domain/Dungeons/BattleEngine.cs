@@ -409,10 +409,11 @@ namespace EmpireIdle.Domain.Dungeons
 
             if (lifesteal > 0 && damage > 0)
             {
-                healed = Math.Round(damage * lifesteal, 1);
+                // У лог — реально вилікуване: понад стелю здоров'я нічого не додається, як і в realtime-бою
+                healed = Math.Max(0, Math.Min(actor.MaxHealth - combatants[actorIndex].Health, Math.Round(damage * lifesteal, 1)));
                 combatants[actorIndex] = combatants[actorIndex] with
                 {
-                    Health = Math.Min(actor.MaxHealth, combatants[actorIndex].Health + healed),
+                    Health = combatants[actorIndex].Health + healed,
                 };
             }
 
