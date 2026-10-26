@@ -117,7 +117,9 @@ async function sendWithRetry(path: string, options: RequestOptions, idempotencyK
 /**
  * 500 не повторюємо: сервер уже зняв резерв ключа, а збій здебільшого
  * детермінований. 409 OperationInProgress — той самий ключ ще виконується,
- * тож чекаємо на його результат.
+ * тож чекаємо на його результат. 409 ConcurrencyConflict — команду відкотила
+ * паралельна зміна (автозбір щохвилини торкається села), резерв ключа знято,
+ * і повтор виконає її на свіжому стані.
  */
 async function isRetryable(response: Response): Promise<boolean> {
   if (RETRYABLE_STATUSES.has(response.status)) return true;
@@ -126,7 +128,7 @@ async function isRetryable(response: Response): Promise<boolean> {
 
   const problem = parseJson(await response.clone().text()) as ProblemDetails | null;
 
-  return problem?.errorCode === "OperationInProgress";
+  return problem?.errorCode === "OperationInProgress" || problem?.errorCode === "ConcurrencyConflict";
 }
 
 async function send(path: string, options: RequestOptions, idempotencyKey: string | null): Promise<Response> {
