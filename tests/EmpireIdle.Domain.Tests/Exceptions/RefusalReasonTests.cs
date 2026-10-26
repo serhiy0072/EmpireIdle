@@ -25,7 +25,8 @@ public class RefusalReasonTests
     [Fact]
     public void Exception_WithTooFewValues_ShouldThrow()
     {
-        Assert.Throws<ArgumentException>(() => new InvalidStateException(LevelLocked, "Requires town hall 5.", 5));
+        // InvalidOperationException — 500 у моніторингу, а не 400 серед помилок клієнта
+        Assert.Throws<InvalidOperationException>(() => new InvalidStateException(LevelLocked, "Requires town hall 5.", 5));
     }
 
     /// <summary>Відмова без причини — з багу клієнта, а не з гри: гравець побачить нейтральний текст.</summary>
