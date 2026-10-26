@@ -175,7 +175,10 @@ builder.Services.AddOptions<GameConfig>()
             c.Dungeons.BaseBlockPower, c.Dungeons.MaxBlockPower, c.Dungeons.MaxWard }.All(v => v is >= 0 and < 1),
         "GameConfig.Dungeons stat caps and BaseBlockPower must be shares in [0, 1) — a cap of 1 would make a hero immortal or always critical.")
     .Validate(c => c.HeroSettings.GarrisonDefenders > 0, "GameConfig.HeroSettings.GarrisonDefenders must be positive — a village always has heroes to defend it.")
+    .Validate(c => c.HeroSettings.MaxHeroesPerMarch is >= 1 and <= EmpireIdle.Application.Marches.Validators.SendMarchCommandValidator.MaxHeroIds,
+        "GameConfig.HeroSettings.MaxHeroesPerMarch must be at least 1 and within the request limit — every march needs a hero.")
     .Validate(c => c.Dungeons.WardTurns > 0, "GameConfig.Dungeons.WardTurns must be positive — a ward shield has to last at least one turn.")
+    .Validate(c => c.Dungeons.AutoHealBelowShare is > 0 and <= 1, "GameConfig.Dungeons.AutoHealBelowShare must be a share within (0; 1].")
     .Validate(c => c.Dungeons.MaxRoundsPerWave > 0, "GameConfig.Dungeons.MaxRoundsPerWave must be positive — otherwise every battle times out on its first turn.")
     .Validate(c => c.RealtimeBattle.TickMilliseconds > 0 && c.RealtimeBattle.MaxBattleSeconds * 1000 >= c.RealtimeBattle.TickMilliseconds,
         "GameConfig.RealtimeBattle needs a positive tick that fits into MaxBattleSeconds.")
@@ -191,6 +194,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.RealtimeBattle.TypeAdvantageMultiplier >= 1, "GameConfig.RealtimeBattle.TypeAdvantageMultiplier must be at least 1 — below it the advantage turns into a weakness.")
     .Validate(c => c.RealtimeBattle.SecondsPerTurn > 0 && c.RealtimeBattle.WardSeconds > 0,
         "GameConfig.RealtimeBattle.SecondsPerTurn and WardSeconds must be positive.")
+    .Validate(c => c.RealtimeBattle.PoisonTickSeconds > 0 && c.RealtimeBattle.PoisonTickSeconds * 1000 >= c.RealtimeBattle.TickMilliseconds,
+        "GameConfig.RealtimeBattle.PoisonTickSeconds must be positive and not shorter than a tick.")
     .Validate(c => new[] { c.RealtimeBattle.FirstCastShare, c.RealtimeBattle.AoeShare }.All(v => v is > 0 and <= 1),
         "GameConfig.RealtimeBattle.FirstCastShare and AoeShare must be shares in (0, 1].")
     .Validate(c => new[] { c.RealtimeBattle.CooldownReductionPerTurn, c.RealtimeBattle.MaxCooldownReduction }.All(v => v is >= 0 and < 1) && c.RealtimeBattle.MaxAttackSpeed >= 0,
@@ -226,14 +231,17 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Units.All(u => u.BaseTrainSeconds > 0 && u.TrainTimeGrowth >= 1 && u.LevelUpCostGrowth >= 1 && u.RecoverCostGems >= 0),
         "GameConfig.Units need a positive BaseTrainSeconds, growths of at least 1 and a non-negative RecoverCostGems.")
     .Validate(c => c.Buildings.All(b => b.BaseProductionPerMinute >= 0 && b.BaseStorage >= 0 && b.BaseBuildMinutes >= 0
-            && (b.BuildTimeGrowth == 0 || b.BuildTimeGrowth >= 1)),
-        "GameConfig.Buildings production, storage and build time cannot be negative, and BuildTimeGrowth is 0 or at least 1.")
+            && (b.BuildTimeGrowth == 0 || b.BuildTimeGrowth >= 1) && b.EarlyTaxStrength >= 0 && b.EarlyTaxDecay > 0),
+        "GameConfig.Buildings production, storage and build time cannot be negative, BuildTimeGrowth is 0 or at least 1, and the early tax needs a non-negative strength and a positive decay.")
     .Validate(c => c.Shop.GemPacks.All(p => p.Gems > 0 && p.PriceCents > 0 && p.BonusPercent >= 0),
         "GameConfig.Shop.GemPacks need positive Gems and PriceCents and a non-negative BonusPercent — Stripe refuses a free checkout.")
     .Validate(c => c.Monetization.HealGemsPerUnit >= 0, "GameConfig.Monetization.HealGemsPerUnit cannot be negative.")
+    .Validate(c => c.Monetization.HealResourceCostShare is > 0 and <= 1,
+        "GameConfig.Monetization.HealResourceCostShare must be a share within (0; 1] — healing for free or above a new unit makes no sense.")
     .Validate(c => new[] { c.Rating.PointsPerMonster, c.Rating.PointsPerBattleWon, c.Rating.PointsPerQuest, c.Rating.PointsPerContribution }.All(p => p >= 0),
         "GameConfig.Rating activity points cannot be negative.")
     .Validate(c => c.Map.Terrains.All(t => t.MoveCost > 0), "GameConfig.Map.Terrains MoveCost must be positive — a march over it would take no time.")
+    .Validate(c => c.Map.ImpassableMoveMultiplier >= 1, "GameConfig.Map.ImpassableMoveMultiplier must be at least 1 — an impassable cell is never faster than a passable one.")
     .Validate(c => c.Retention is { BattleReportDays: > 0, ScoutReportDays: > 0, FinishedDungeonRunDays: > 0, ClosedMarketListingDays: > 0, ResolvedClanRequestDays: > 0, ExpiredEffectHours: > 0 },
         "GameConfig.Retention days must all be positive — a zero would delete history the moment it is written.")
     .ValidateOnStart();

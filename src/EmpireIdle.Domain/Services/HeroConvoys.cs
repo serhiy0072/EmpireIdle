@@ -34,9 +34,6 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скільки юнітів герой може повести: рівень — з табором, як і для статів.</summary>
         public int Capacity(Hero hero) => ConvoysAt(hero.EffectiveLevel) * _config.ConvoySize;
 
-        /// <summary>Скільки героїв може вести один марш (GDD §6.1, рішення 08.10.2026): по одному на роль.</summary>
-        public const int MaxHeroesPerMarch = 3;
-
         /// <summary>
         /// Чи можуть ці герої повести саме цих юнітів (GDD §6.1, рішення 08.10.2026): героїв різних ролей,
         /// кожен тип юнітів — під героєм своєї ролі й не більше за його конвої.
@@ -45,9 +42,9 @@ namespace EmpireIdle.Domain.Services
         public void EnsureCanLead(IReadOnlyCollection<(Hero Hero, HeroConfig? Config)> leaders,
             IReadOnlyDictionary<UnitStackKey, int> units)
         {
-            if (leaders.Count > MaxHeroesPerMarch)
+            if (leaders.Count > _config.MaxHeroesPerMarch)
                 throw new RequirementNotMetException(RefusalReasons.MarchTooManyHeroes,
-                    $"A march takes at most {MaxHeroesPerMarch} heroes.", MaxHeroesPerMarch);
+                    $"A march takes at most {_config.MaxHeroesPerMarch} heroes.", _config.MaxHeroesPerMarch);
 
             var sent = units.Where(u => u.Value > 0).GroupBy(u => u.Key.UnitType).ToDictionary(g => g.Key, g => g.Sum(u => u.Value));
             var limited = _config.ConvoysByLevel.Count > 0;

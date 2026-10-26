@@ -55,6 +55,18 @@ public class TowerValidationTests
         GameConfigValidator.Validate(config);
     }
 
+    /// <summary>Сім складів при кроці ротації 7 — усі звичайні поверхи отримали б перший склад.</summary>
+    [Fact]
+    public void ArchetypeCountThatStallsTheRotation_ShouldFail()
+    {
+        var config = Valid();
+        config.Tower.Archetypes.AddRange(Enumerable.Range(0, 5)
+            .Select(i => new TowerArchetypeConfig { Key = $"extra{i}", DisplayName = "Extra", Classes = ["warrior"] }));
+
+        var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+        Assert.Contains("must not be a multiple", error.Message);
+    }
+
     /// <summary>Вежа без налаштувань бою: чесний штурм кидав би 500 замість бою.</summary>
     [Theory]
     [InlineData("hero intervals")]

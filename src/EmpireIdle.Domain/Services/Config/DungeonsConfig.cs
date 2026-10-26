@@ -90,6 +90,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки власних ходів героя живе щит оберегу.</summary>
         public int WardTurns { get; set; } = 2;
 
+        /// <summary>
+        /// Автобій лікує, лише коли хтось зі своїх має здоров'я нижче цієї частки: лікування
+        /// майже повної команди — змарнована перезарядка.
+        /// </summary>
+        public double AutoHealBelowShare { get; set; } = 0.9;
+
         /// <summary>Самі данжі.</summary>
         public List<DungeonConfig> Dungeons { get; set; } = new();
     }

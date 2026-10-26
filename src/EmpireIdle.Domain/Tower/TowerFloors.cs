@@ -24,8 +24,11 @@ namespace EmpireIdle.Domain.Tower
     /// </summary>
     public sealed class TowerFloors
     {
-        /// <summary>Крок ротації складів: сусідні поверхи отримують різні склади, а не ті самі по колу.</summary>
-        private const int ArchetypeStride = 7;
+        /// <summary>
+        /// Крок ротації складів: сусідні поверхи отримують різні склади, а не ті самі по колу.
+        /// Кількість складів, кратна кроку, звела б ротацію до одного складу — це ловить валідатор конфіга.
+        /// </summary>
+        public const int ArchetypeStride = 7;
 
         private readonly GameCatalog _catalog;
         private readonly HeroProgression _progression;

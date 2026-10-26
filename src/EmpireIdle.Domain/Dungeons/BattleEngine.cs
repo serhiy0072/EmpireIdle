@@ -200,11 +200,11 @@ namespace EmpireIdle.Domain.Dungeons
                 throw new RequirementNotMetException(RefusalReasons.DungeonTargetUnreachable, "That target cannot be reached right now.");
         }
 
-        private static bool IsUseful(BattleState state, Combatant actor, CombatSkill ability)
+        private bool IsUseful(BattleState state, Combatant actor, CombatSkill ability)
         {
             // Лікування в повну команду й щит на вже щитованого — змарнована перезарядка
             if (ability.HealPercent > 0)
-                return state.Alive(actor.Side).Any(c => c.Health < c.MaxHealth * 0.9);
+                return state.Alive(actor.Side).Any(c => c.Health < c.MaxHealth * _config.AutoHealBelowShare);
 
             if (ability.ShieldPercent > 0)
                 return state.Alive(actor.Side).Any(c => c.ShieldPoints <= 0);

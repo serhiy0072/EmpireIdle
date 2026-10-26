@@ -84,7 +84,7 @@ namespace EmpireIdle.Domain.Services
                 {
                     var cell = _terrain.GetTerrain(serverId, x, y);
                     // Непрохідна клітина не блокує, а сильно сповільнює (армія обходить)
-                    total += cell.Passable ? cell.MoveCost : cell.MoveCost * 3.0;
+                    total += cell.Passable ? cell.MoveCost : cell.MoveCost * _catalog.Config.Map.ImpassableMoveMultiplier;
                     cells++;
                 }
 

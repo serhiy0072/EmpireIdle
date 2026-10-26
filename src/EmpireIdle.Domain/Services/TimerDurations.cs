@@ -12,7 +12,8 @@ namespace EmpireIdle.Domain.Services
     {
         /// <summary>Апгрейд будівлі з поточного рівня на наступний.</summary>
         public static TimeSpan Construction(BuildingConfig config, int currentLevel)
-            => TimeSpan.FromMinutes(ProgressionCurves.BuildMinutes(config.BaseBuildMinutes, config.BuildTimeGrowth, currentLevel));
+            => TimeSpan.FromMinutes(ProgressionCurves.BuildMinutes(config.BaseBuildMinutes, config.BuildTimeGrowth, currentLevel,
+                config.EarlyTaxStrength, config.EarlyTaxDecay));
 
         /// <summary>Тренування партії з нуля на рівень <paramref name="level"/> — сума кроків від 1 (§5.2).</summary>
         public static TimeSpan Training(UnitConfig unit, int level, int count)

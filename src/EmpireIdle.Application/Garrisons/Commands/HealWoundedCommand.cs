@@ -26,9 +26,6 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
     public sealed class HealWoundedCommandHandler : IRequestHandler<HealWoundedCommand>
     {
-        /// <summary>Лікування ресурсами коштує половину вартості нового юніта.</summary>
-        private const double HealCostFactor = 0.5;
-
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IPlayerWalletRepository _walletRepository;
@@ -113,7 +110,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
                 foreach (var line in config.Cost)
                 {
-                    var amount = (int)Math.Ceiling(line.Amount * count * HealCostFactor);
+                    var amount = (int)Math.Ceiling(line.Amount * count * _catalog.Config.Monetization.HealResourceCostShare);
                     var existing = cost.FirstOrDefault(c => c.Resource == line.Resource);
 
                     if (existing is null)

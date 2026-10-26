@@ -834,6 +834,11 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Tower.Archetypes need 1–{squadSize} known hero classes each: {string.Join(", ", badArchetypes)}.");
 
+            // Поверх бере склад floor × крок % кількість: кратна кроку кількість дала б усім поверхам перший склад
+            if (tower.Archetypes.Count > 1 && tower.Archetypes.Count % Tower.TowerFloors.ArchetypeStride == 0)
+                throw new InvalidOperationException(
+                    $"Tower.Archetypes count {tower.Archetypes.Count} must not be a multiple of {Tower.TowerFloors.ArchetypeStride} — the floors would stop rotating.");
+
             if (tower.Archetypes.FirstOrDefault(a => a.Key == tower.BossArchetype) is not { } boss || tower.BossLane < 0 || tower.BossLane >= boss.Classes.Count)
                 throw new InvalidOperationException($"Tower.BossArchetype '{tower.BossArchetype}' must exist and have a hero on BossLane {tower.BossLane}.");
 

@@ -81,6 +81,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Скільки секунд живе щит оберегу від старту бою.</summary>
         public double WardSeconds { get; set; } = 15;
 
+        /// <summary>Як часто кусає отрута, секунди. Сила укусу масштабується так, щоб за хід набігло стільки ж.</summary>
+        public double PoisonTickSeconds { get; set; } = 1;
+
         /// <summary>
         /// Скорочення перезарядки за кожен хід CooldownTurns набору (tide, hollow): данж читає ходи,
         /// а цей бій — частку, тож набір працює в обох режимах без зміни items.json.

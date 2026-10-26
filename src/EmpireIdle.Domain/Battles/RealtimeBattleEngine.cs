@@ -94,7 +94,7 @@ namespace EmpireIdle.Domain.Battles
             if (fighter.Statuses.TryGetValue(BattleStatusKind.Poison, out var poison) && time + Epsilon >= poison.NextTick)
             {
                 round.Poisons.Add((fighter, poison.Magnitude));
-                fighter.Statuses[BattleStatusKind.Poison] = poison with { NextTick = poison.NextTick + 1 };
+                fighter.Statuses[BattleStatusKind.Poison] = poison with { NextTick = poison.NextTick + _config.PoisonTickSeconds };
             }
 
             if (fighter.Statuses.ContainsKey(BattleStatusKind.Stun))
@@ -363,7 +363,7 @@ namespace EmpireIdle.Domain.Battles
                 {
                     // Отрута — частка атаки на момент накладання за хід данжу, розкладена на секунди
                     var magnitude = status == BattleStatusKind.Poison
-                        ? hit.Attack * hit.Skill.StatusMagnitude / _config.SecondsPerTurn
+                        ? hit.Attack * hit.Skill.StatusMagnitude * _config.PoisonTickSeconds / _config.SecondsPerTurn
                         : hit.Skill.StatusMagnitude;
 
                     Afflict(hit.Target, status, magnitude, hit.Skill.StatusSeconds, time, tick, events);
@@ -429,7 +429,7 @@ namespace EmpireIdle.Domain.Battles
         /// Накладає стан. Оглушення й провокація діють лише на героїв: конвой — це стрій, а не боєць,
         /// якого можна приголомшити. Повторне накладання оновлює тривалість, а не складає ефекти.
         /// </summary>
-        private static void Afflict(Fighter target, BattleStatusKind status, double magnitude, double seconds, double time, int tick,
+        private void Afflict(Fighter target, BattleStatusKind status, double magnitude, double seconds, double time, int tick,
             List<BattleEvent> events)
         {
             if (!target.IsHero && status is BattleStatusKind.Stun or BattleStatusKind.Taunt)
@@ -437,7 +437,7 @@ namespace EmpireIdle.Domain.Battles
 
             // Отрута поверх отрути не збиває відлік укусів і не слабшає від слабшого накладання:
             // інакше часті накладання відсували б укус щоразу, і отрута не кусала б зовсім
-            var nextTick = time + 1;
+            var nextTick = time + _config.PoisonTickSeconds;
 
             if (status == BattleStatusKind.Poison && target.Statuses.TryGetValue(status, out var active))
             {

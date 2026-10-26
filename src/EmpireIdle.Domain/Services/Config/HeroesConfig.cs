@@ -186,5 +186,8 @@ namespace EmpireIdle.Domain.Services.Config
         /// Три — по одному на клас.
         /// </summary>
         public int GarrisonDefenders { get; set; } = 3;
+
+        /// <summary>Скільки героїв може вести один марш (GDD §6.1, рішення 08.10.2026): по одному на роль.</summary>
+        public int MaxHeroesPerMarch { get; set; } = 3;
     }
 }

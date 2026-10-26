@@ -26,6 +26,12 @@ namespace EmpireIdle.Domain.Services.Config
         public List<TerrainConfig> Terrains { get; set; } = new();
 
         /// <summary>
+        /// У скільки разів повільніше армія долає непрохідну клітину: вона не блокує, а змушує
+        /// обходити. Множить MoveCost самої клітини.
+        /// </summary>
+        public double ImpassableMoveMultiplier { get; set; } = 3.0;
+
+        /// <summary>
         /// Рівень світу, на якому туман і кільця досягають повного розміру. Сам рівень світу
         /// стелі не має (GDD §2.7): далі світ росте контентом, а не площею.
         /// </summary>

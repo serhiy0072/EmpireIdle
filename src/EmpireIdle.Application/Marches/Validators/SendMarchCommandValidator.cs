@@ -7,6 +7,9 @@ namespace EmpireIdle.Application.Marches.Validators
 {
     public sealed class SendMarchCommandValidator : AbstractValidator<SendMarchCommand>
     {
+        /// <summary>Технічна стеля списку героїв у запиті — правило гри живе в HeroesConfig.MaxHeroesPerMarch.</summary>
+        public const int MaxHeroIds = 10;
+
         public SendMarchCommandValidator()
         {
             RuleFor(x => x.PlayerId).NotEmpty();
@@ -14,9 +17,10 @@ namespace EmpireIdle.Application.Marches.Validators
             RuleFor(x => x.TargetId).NotEmpty();
             RuleFor(x => x.Units).NotNull();
 
-            // До трьох героїв різних ролей (GDD §6.1): роль сервер звіряє з конфігом, тут — лише форма
+            // Лише форма: скільки героїв веде марш (HeroesConfig.MaxHeroesPerMarch) і чи різних вони ролей,
+            // звіряє HeroConvoys з конфігом. Тут — стеля від завеликого списку в запиті
             RuleFor(x => x.HeroIds).NotEmpty()
-                .Must(ids => ids.Count <= HeroConvoys.MaxHeroesPerMarch).WithMessage($"A march takes at most {HeroConvoys.MaxHeroesPerMarch} heroes.")
+                .Must(ids => ids.Count <= MaxHeroIds).WithMessage($"A march takes at most {MaxHeroIds} hero ids.")
                 .Must(ids => ids.Distinct().Count() == ids.Count).WithMessage("A hero cannot lead the same march twice.");
             RuleForEach(x => x.HeroIds).NotEmpty();
             RuleFor(x => x.Intent).IsInEnum();
