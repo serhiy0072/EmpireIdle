@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Marches.Commands;
 using EmpireIdle.Application.Marches.Queries;
 using EmpireIdle.Application.Scouting.Commands;
@@ -139,6 +140,7 @@ namespace EmpireIdle.API.Controllers
         /// монстра; у чужого села їх показує розвідка, а не прев'ю.
         /// </summary>
         [HttpPost("{playerId:guid}/preview")]
+        [WithoutIdempotencyKey]
         [ProducesResponseType(typeof(BattlePreviewResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

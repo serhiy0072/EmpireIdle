@@ -12,16 +12,6 @@
           "Auth"
         ],
         "operationId": "Auth_Register",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -91,16 +81,6 @@
           "Auth"
         ],
         "operationId": "Auth_Login",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -170,16 +150,6 @@
           "Auth"
         ],
         "operationId": "Auth_Refresh",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -332,6 +302,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -509,6 +480,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -707,6 +679,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -784,6 +757,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1028,6 +1002,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1313,6 +1288,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1472,6 +1448,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1572,6 +1549,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1641,6 +1619,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1702,6 +1681,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1763,6 +1743,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1844,6 +1825,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1909,6 +1891,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -1987,6 +1978,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2039,6 +2031,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2260,6 +2253,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2341,6 +2335,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2421,6 +2416,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2514,6 +2510,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2625,6 +2622,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2736,14 +2734,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -2879,6 +2869,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2992,6 +2983,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3063,6 +3055,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3134,6 +3127,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3205,6 +3199,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3285,6 +3280,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3346,6 +3342,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3459,6 +3456,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3530,6 +3528,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3619,6 +3618,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3680,6 +3680,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3741,6 +3742,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3793,6 +3795,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3854,6 +3857,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3915,6 +3919,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -3976,6 +3981,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4064,6 +4070,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4116,6 +4123,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4205,6 +4213,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4266,6 +4275,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4327,6 +4337,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4388,6 +4399,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4458,6 +4470,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4519,6 +4532,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4591,6 +4605,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -4702,6 +4725,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4832,6 +4856,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4948,6 +4973,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5137,6 +5163,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5228,6 +5255,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5328,6 +5356,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5408,6 +5437,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5486,6 +5516,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5651,6 +5682,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5712,6 +5744,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5801,6 +5834,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -5859,6 +5893,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -6127,6 +6162,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -6218,6 +6254,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -6478,6 +6515,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -6558,6 +6596,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -6644,14 +6683,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -6867,14 +6898,6 @@
               "type": "string",
               "format": "uuid"
             }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "requestBody": {
@@ -6980,6 +7003,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7097,6 +7121,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7198,6 +7223,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7278,6 +7304,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7313,16 +7340,6 @@
           "Payments"
         ],
         "operationId": "Payments_Webhook",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -7391,6 +7408,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7462,6 +7480,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7630,6 +7649,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7682,6 +7702,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7981,6 +8002,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -8092,6 +8114,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -8201,6 +8224,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -8354,6 +8378,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -8474,6 +8499,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -8555,6 +8581,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -8665,6 +8692,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -8767,14 +8795,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -9000,6 +9020,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9052,6 +9073,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9154,6 +9176,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9234,6 +9257,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9295,6 +9319,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9347,6 +9372,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9405,6 +9431,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9457,6 +9484,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
             "schema": {
               "type": "string"
             }

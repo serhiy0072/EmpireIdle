@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Payments.Commands;
@@ -40,6 +41,7 @@ public class PaymentsController : ControllerBase
     /// </summary>
     [HttpPost("webhook")]
     [AllowAnonymous]
+    [WithoutIdempotencyKey]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Webhook(CancellationToken cancellationToken)
     {

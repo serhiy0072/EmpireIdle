@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Players.Commands;
 using EmpireIdle.Infrastructure.Auth;
 using MediatR;
@@ -12,6 +13,7 @@ namespace EmpireIdle.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [AllowAnonymous]
+    [WithoutIdempotencyKey]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;

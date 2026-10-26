@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Dungeons.Commands;
 using EmpireIdle.Application.Dungeons.Contracts;
 using EmpireIdle.Application.Dungeons.Queries;
@@ -78,6 +79,7 @@ namespace EmpireIdle.API.Controllers
         /// 409 StaleTurn — перечитай забіг. Завершений забіг віддається як є.
         /// </summary>
         [HttpPost("{playerId:guid}/run/{runId:guid}/turn")]
+        [WithoutIdempotencyKey]
         [ProducesResponseType(typeof(DungeonRunView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
