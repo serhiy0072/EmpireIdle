@@ -28,6 +28,6 @@ export function useBuyShopItem(playerId: string) {
 export function useCheckout(playerId: string) {
   return useMutation({
     mutationFn: (packKey: string) =>
-      api<CheckoutResponse>(`/api/payments/${playerId}/checkout/${packKey}`, { method: "POST" }),
+      api<CheckoutResponse>(`/api/payments/${playerId}/checkout/${packKey}`, { method: "POST", idempotent: true }),
   });
 }
