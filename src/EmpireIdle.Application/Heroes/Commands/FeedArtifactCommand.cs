@@ -66,13 +66,21 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             long experience = 0;
             var foods = new List<EquipmentItem>();
+            var foodIds = request.FoodIds.Distinct().ToList();
 
-            foreach (var foodId in request.FoodIds.Distinct())
+            if (foodIds.Contains(item.Id))
+                throw new RequirementNotMetException($"Artifact {item.Id} cannot be fed to itself.");
+
+            // Одним запитом: «макс.» у кузні шле сотні предметів, і запит на кожен множив би час команди
+            var loaded = (await _inventoryRepository.GetEquipmentByIdsAsync(foodIds, cancellationToken))
+                .ToDictionary(e => e.Id);
+
+            foreach (var foodId in foodIds)
             {
-                if (foodId == item.Id)
-                    throw new RequirementNotMetException($"Artifact {item.Id} cannot be fed to itself.");
+                // Чужий не відрізняється від неіснуючого
+                if (!loaded.TryGetValue(foodId, out var food) || food.PlayerId != request.PlayerId)
+                    throw new EntityNotFoundException("Equipment", foodId.ToString());
 
-                var food = await OwnedAsync(request.PlayerId, foodId, cancellationToken);
                 food.EnsureCanBeFed();
 
                 experience += _progression.FeedValue(food)
