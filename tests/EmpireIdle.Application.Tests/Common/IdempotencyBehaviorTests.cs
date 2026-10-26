@@ -4,6 +4,7 @@ using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.ValueObjects;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -26,6 +27,9 @@ public class IdempotencyBehaviorTests
     private sealed record PayCommand(int Gems) : IRequest<string>, IIdempotentRequest;
 
     private sealed record PlainCommand(int Gems) : IRequest<string>;
+
+    // Команда зі словником за UnitStackKey — як марш, лікування, викуп: такий ключ STJ без конвертера не бере
+    private sealed record UnitsCommand(Dictionary<UnitStackKey, int> Units) : IRequest<string>, IIdempotentRequest;
 
     public IdempotencyBehaviorTests()
     {
@@ -103,6 +107,44 @@ public class IdempotencyBehaviorTests
         var result = await BehaviorFor<PayCommand>().Handle(new PayCommand(99), Handler("receipt-2"), CancellationToken.None);
 
         result.Should().Be("receipt-1");
+    }
+
+    // ---------- Відбиток команди зі складним ключем словника ----------
+
+    /// <summary>
+    /// Марш, лікування й викуп несуть Dictionary&lt;UnitStackKey,int&gt;. Обчислення відбитка не має
+    /// валити запит у 500 — інакше перший бій з монстром неможливий (регресія 82cd64de).
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldReserve_ForACommandKeyedByUnitStackKey()
+    {
+        var behavior = BehaviorFor<UnitsCommand>();
+        var command = new UnitsCommand(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 6 });
+
+        var result = await behavior.Handle(command, Handler(), CancellationToken.None);
+
+        result.Should().Be("receipt-1");
+        await _repository.Received(1).TryReserveAsync(Arg.Any<IdempotencyRecord>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Різний склад армії дає різний відбиток: той самий ключ з іншими юнітами — не повтор.</summary>
+    [Fact]
+    public async Task Handle_ShouldHashUnitStackKeyCommands_ByTheirUnits()
+    {
+        IdempotencyRecord? reserved = null;
+        _repository.TryReserveAsync(Arg.Do<IdempotencyRecord>(r => reserved = r), Arg.Any<CancellationToken>()).Returns(true);
+
+        await BehaviorFor<UnitsCommand>().Handle(
+            new UnitsCommand(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 6 }),
+            Handler(), CancellationToken.None);
+        var firstHash = reserved!.RequestHash;
+
+        await BehaviorFor<UnitsCommand>().Handle(
+            new UnitsCommand(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 7 }),
+            Handler(), CancellationToken.None);
+
+        firstHash.Should().NotBeNullOrEmpty();
+        reserved!.RequestHash.Should().NotBe(firstHash);
     }
 
     // ---------- Happy path ----------
