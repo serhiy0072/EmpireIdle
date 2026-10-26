@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Додати ефект.</summary>
         Task AddAsync(ActiveEffect effect, CancellationToken cancellationToken = default);
 
-        /// <summary>Прибрати прострочені ефекти (фонове очищення).</summary>
-        Task<int> RemoveExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default);
+        /// <summary>Прибрати ефекти, що скінчились не пізніше за <paramref name="expiredBefore"/> (фонове очищення).</summary>
+        Task<int> RemoveExpiredAsync(DateTime expiredBefore, CancellationToken cancellationToken = default);
     }
 }

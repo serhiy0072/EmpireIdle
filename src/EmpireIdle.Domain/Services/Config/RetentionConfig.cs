@@ -20,5 +20,11 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Вирішені й прострочені заявки в клан: відмова тримає паузу на повторну заявку.</summary>
         public int ResolvedClanRequestDays { get; set; } = 7;
+
+        /// <summary>
+        /// Скільки годин тримати буст, що скінчився: виробіток під ним рахується при наступному зборі,
+        /// а збір може відставати. Видалений одразу — і гравець втрачав би частину оплаченого буста.
+        /// </summary>
+        public int ExpiredEffectHours { get; set; } = 24;
     }
 }

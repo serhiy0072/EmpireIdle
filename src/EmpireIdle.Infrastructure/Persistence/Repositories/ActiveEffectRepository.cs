@@ -33,9 +33,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
-        public Task<int> RemoveExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default)
+        public Task<int> RemoveExpiredAsync(DateTime expiredBefore, CancellationToken cancellationToken = default)
             => _context.ActiveEffects
-            .Where(e => e.ExpiresAt <= utcNow)
+            .Where(e => e.ExpiresAt <= expiredBefore)
             .ExecuteDeleteAsync(cancellationToken);
     }
 }
