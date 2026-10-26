@@ -233,10 +233,10 @@ namespace EmpireIdle.Domain.Entities
         public void Heal(DateTime utcNow)
         {
             if (State != HeroState.Wounded)
-                throw new InvalidStateException($"Hero {Id} is not wounded.");
+                throw new InvalidStateException(RefusalReasons.HeroNotWounded, $"Hero {Id} is not wounded.");
 
             if (StationedGarrisonId is null)
-                throw new InvalidStateException($"Hero {Id} is on the move and cannot be healed.");
+                throw new InvalidStateException(RefusalReasons.HeroOnTheMove, $"Hero {Id} is on the move and cannot be healed.");
 
             State = HeroState.Idle;
             Touch(utcNow);

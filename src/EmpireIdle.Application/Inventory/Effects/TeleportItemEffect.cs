@@ -102,7 +102,9 @@ namespace EmpireIdle.Application.Inventory.Effects
                         .Select(cell => (cell.X, cell.Y))
                         .ToList());
 
-            return spot ?? throw new InvalidOperationException($"No free habitable cell near the leader on server {serverId}.");
+            // Довкола лідера все зайнято — це стан світу, а не баг: відмова з причиною, а не 500
+            return spot ?? throw new RequirementNotMetException(RefusalReasons.TeleportNoFreeCell,
+                $"No free habitable cell near the leader on server {serverId}.");
         }
 
         /// <summary>Клітина, яку обрав гравець: спільні правила заселення плюс межа типу телепорта.</summary>

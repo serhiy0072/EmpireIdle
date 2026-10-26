@@ -280,6 +280,9 @@
 
         public static readonly RefusalReason HeroOnTheMove = new("hero.onTheMove");
 
+        /// <summary>Лікувати нічого — героя вже вилікували (подвійний клік, друга вкладка).</summary>
+        public static readonly RefusalReason HeroNotWounded = new("hero.notWounded");
+
         public static readonly RefusalReason HeroLevelCeiling = new("hero.levelCeiling", "hero", "ceiling");
 
 
@@ -504,5 +507,8 @@
 
         /// <summary>Телепорт до лідера — гравець сам глава клану.</summary>
         public static readonly RefusalReason TeleportYouAreLeader = new("teleport.youAreLeader");
+
+        /// <summary>Телепорт до лідера — довкола його села не лишилось вільної придатної клітини.</summary>
+        public static readonly RefusalReason TeleportNoFreeCell = new("teleport.noFreeCell");
     }
 }

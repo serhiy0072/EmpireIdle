@@ -62,8 +62,9 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, chest.Key, cancellationToken);
 
+            // Нестача з цифрами, як і в інших витратах предметів: назва — бо ключ гравцю нічого не скаже
             if (stack is null || stack.Count < request.Count)
-                throw new RequirementNotMetException($"Not enough '{chest.Key}': {stack?.Count ?? 0} of {request.Count}.");
+                throw new NotEnoughResourcesException(chest.DisplayName, request.Count, stack?.Count ?? 0);
 
             stack.Consume(request.Count);
 

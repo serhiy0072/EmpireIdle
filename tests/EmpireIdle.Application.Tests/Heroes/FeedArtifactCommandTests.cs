@@ -214,8 +214,9 @@ public class FeedArtifactCommandTests
         var target = GivenItem();
         var stack = GivenWrenches(1);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var shortage = await Assert.ThrowsAsync<NotEnoughResourcesException>(() =>
             Feed(target, [], new Dictionary<string, int> { [Wrench] = 2 }));
+        Assert.Equal((2, 1), (shortage.Need, shortage.Have));
 
         Assert.Equal(1, stack.Count);
     }

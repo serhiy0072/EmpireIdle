@@ -93,8 +93,10 @@ namespace EmpireIdle.Application.Heroes.Commands
 
                 var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, key, cancellationToken);
 
+                // Друга вкладка встигла витратити ключі — нестача з цифрами, а не нейтральна відмова.
+                // Назва, а не ключ: клієнт показує ресурс за назвою, і ключ предмета гравцю нічого не скаже
                 if (stack is null || stack.Count < count)
-                    throw new RequirementNotMetException($"Not enough '{key}': {stack?.Count ?? 0} of {count}.");
+                    throw new NotEnoughResourcesException(wrench.DisplayName, count, stack?.Count ?? 0);
 
                 experience += (long)wrench.ArtifactExperience * count;
                 stacks.Add((stack, count));

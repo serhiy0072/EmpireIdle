@@ -102,7 +102,8 @@ public class OpenWeaponChestsCommandTests
         var hero = GivenHero();
         GivenChests(1);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() => Open(hero, 2));
+        var shortage = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Open(hero, 2));
+        Assert.Equal((2, 1), (shortage.Need, shortage.Have));
         Assert.Equal(0, hero.WeaponShards);
     }
 
