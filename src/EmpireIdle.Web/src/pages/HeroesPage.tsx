@@ -97,7 +97,7 @@ export default function HeroesPage() {
           {tab === "heroes" &&
             (roster.length === 0 ? (
               <p className="py-8 text-center text-sm text-sky-100/80">
-                Героїв ще немає — купіть уламки звичайного героя за золото або крутіть банери.
+                Героїв ще немає — першого приведе квест ратуші, решту дають банери.
               </p>
             ) : (
               <div className="space-y-3">
