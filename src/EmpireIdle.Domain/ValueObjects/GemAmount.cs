@@ -20,7 +20,8 @@ namespace EmpireIdle.Domain.ValueObjects
             Value = value;
         }
 
-        public GemAmount Add(GemAmount other) => new(Value + other.Value);
+        // checked: переповнення int дало б від'ємний баланс, а не помилку
+        public GemAmount Add(GemAmount other) => new(checked(Value + other.Value));
 
         public GemAmount Subtract(GemAmount amount)
         {
