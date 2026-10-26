@@ -131,8 +131,8 @@ namespace EmpireIdle.Application.Players.Commands
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Player {PlayerId} created: {Username} ({Email})",
-                playerId, request.UserName, request.Email);
+            // Без email: це персональні дані, а для розбору інциденту досить id і імені
+            _logger.LogInformation("Player {PlayerId} created: {Username}", playerId, request.UserName);
 
             return playerId;
         }
