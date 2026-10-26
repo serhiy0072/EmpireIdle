@@ -21,6 +21,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                    .HasFilter("\"ConstructionCompletesAt\" IS NOT NULL");
 
             builder.Property(b => b.Type).IsRequired().HasMaxLength(50);
+
+            // Один тип будівлі на село: гонку двох «побудувати» розв'язує індекс, а не лише xmin села
+            builder.HasIndex(b => new { b.VillageId, b.Type }).IsUnique();
             builder.Property(b => b.Level).HasConversion(l=> l.Value, v=>new Domain.ValueObjects.BuildingLevel(v)).HasColumnName("Level");
             builder.Property<uint>("Version").IsRowVersion();
         }

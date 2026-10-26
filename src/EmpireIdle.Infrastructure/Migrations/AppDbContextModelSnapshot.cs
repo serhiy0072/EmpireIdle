@@ -457,10 +457,11 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("VillageId");
-
                     b.HasIndex("ConstructionCompletesAt", "VillageId")
                         .HasFilter("\"ConstructionCompletesAt\" IS NOT NULL");
+
+                    b.HasIndex("VillageId", "Type")
+                        .IsUnique();
 
                     b.ToTable("Buildings");
                 });
