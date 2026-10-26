@@ -155,6 +155,21 @@ namespace EmpireIdle.Infrastructure.Auth
             return (accessToken, newRefreshToken, playerId);
         }
 
+        /// <summary>
+        /// Вихід: відкликає цей refresh-токен, щоб збережена копія не жила до кінця строку.
+        /// Невідомий чи вже відкликаний токен — не помилка: вихід ідемпотентний, і відповідь
+        /// не має підказувати, чи такий токен існував.
+        /// </summary>
+        public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
+        {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+            var hash = HashToken(refreshToken);
+
+            await _context.RefreshTokens
+                .Where(rt => rt.Token == hash && rt.RevokedAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(rt => rt.RevokedAt, now), cancellationToken);
+        }
+
         /// <summary>У БД лежить лише хеш: дамп таблиці не дає живих сесій.</summary>
         private static string HashToken(string token)
             => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(token)));

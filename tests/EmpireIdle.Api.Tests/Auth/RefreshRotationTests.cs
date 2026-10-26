@@ -45,6 +45,20 @@ public class RefreshRotationTests : IClassFixture<RegistrationFixture>
         (await RefreshAsync(second.RefreshToken)).StatusCode.Should().NotBe(HttpStatusCode.OK);
     }
 
+    /// <summary>Вихід відкликає сесію: збережена копія refresh-токена більше не дає нових токенів, а повторний вихід — не помилка.</summary>
+    [Fact]
+    public async Task Logout_ShouldRevokeTheRefreshToken()
+    {
+        var session = await RegisterAsync();
+
+        (await _client.PostAsJsonAsync("/api/auth/logout", new RefreshRequest(session.RefreshToken)))
+            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+        (await _client.PostAsJsonAsync("/api/auth/logout", new RefreshRequest(session.RefreshToken)))
+            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        (await RefreshAsync(session.RefreshToken)).StatusCode.Should().NotBe(HttpStatusCode.OK);
+    }
+
     /// <summary>
     /// Ротація не ділить жорсткий ліміт логіну (10 за хвилину з IP): кілька гравців за
     /// одним NAT інакше вилітали б із сесій, щойно хтось із них оновить токен удесяте.
