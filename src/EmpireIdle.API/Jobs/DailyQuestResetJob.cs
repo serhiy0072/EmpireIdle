@@ -4,7 +4,10 @@ using Hangfire;
 
 namespace EmpireIdle.API.Jobs
 {
-    /// <summary>Скидає дейліки о 00:00 UTC — по кожному активному світу.</summary>
+    /// <summary>
+    /// Скидає дейліки о 00:00 UTC — по кожному активному світу, до останнього гравця:
+    /// прогін раз на добу, і пропущений гравець лишився б із учорашніми квестами.
+    /// </summary>
     public class DailyQuestResetJob
     {
         private readonly ServerJobRunner _runner;
@@ -12,7 +15,7 @@ namespace EmpireIdle.API.Jobs
         public DailyQuestResetJob(ServerJobRunner runner) => _runner = runner;
 
         [DisableConcurrentExecution(timeoutInSeconds: JobDefaults.LockWaitSeconds)]
-        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachItemAsync(nameof(ResetPlayerDailyQuestsCommand),
+        public Task RunAsync(CancellationToken cancellationToken) => _runner.ForEachItemUntilDrainedAsync(nameof(ResetPlayerDailyQuestsCommand),
             (mediator, ct) => mediator.Send(new GetPlayerIdsWithStaleDailyQuestsQuery(), ct),
             (mediator, playerId, ct) => mediator.Send(new ResetPlayerDailyQuestsCommand(playerId), ct), cancellationToken);
     }

@@ -89,6 +89,57 @@ public class JobConventionTests
         Assert.Equal(6, processed);
     }
 
+    /// <summary>
+    /// Пачка за пачкою, доки вибірка не спорожніє: добовий джоб не лишає гравців
+    /// за межею ScanBatchSize до наступної доби.
+    /// </summary>
+    [Fact]
+    public async Task UntilDrained_ShouldReloadUntilNothingIsLeft()
+    {
+        var pending = new HashSet<int>(Enumerable.Range(1, 7));
+        var processed = new List<int>();
+
+        await Runner().ForEachItemUntilDrainedAsync(
+            "test",
+            (_, _) => Task.FromResult<IReadOnlyList<int>>(pending.Order().Take(3).ToList()),
+            (_, item, _) =>
+            {
+                processed.Add(item);
+                pending.Remove(item);
+                return Task.CompletedTask;
+            });
+
+        // Перший світ вибирає всіх сімох пачками по три, другому вже нічого не лишилось
+        Assert.Equal(Enumerable.Range(1, 7), processed);
+        Assert.Empty(pending);
+    }
+
+    /// <summary>Елемент, що падає щоразу, береться раз за прогін: він не тримає вибірку вічно.</summary>
+    [Fact]
+    public async Task UntilDrained_ShouldNotRetryAFailedItemWithinOneRun()
+    {
+        var pending = new HashSet<int> { 1, 2, 3 };
+        var attempts = new List<int>();
+
+        await Runner().ForEachItemUntilDrainedAsync(
+            "test",
+            (_, _) => Task.FromResult<IReadOnlyList<int>>(pending.Order().Take(2).ToList()),
+            (_, item, _) =>
+            {
+                attempts.Add(item);
+
+                if (item == 1)
+                    throw new InvalidOperationException("boom");
+
+                pending.Remove(item);
+                return Task.CompletedTask;
+            });
+
+        // Світ 1: 1 (впав), 2, далі 3; світ 2: лише 1 — він досі у вибірці
+        Assert.Equal([1, 2, 3, 1], attempts);
+        Assert.Equal([1], pending);
+    }
+
     /// <summary>Токен зупинки доходить до дії: інакше Send у джобі не дізнався б про деплой.</summary>
     [Fact]
     public async Task Runner_ShouldHandTheShutdownTokenToTheAction()
