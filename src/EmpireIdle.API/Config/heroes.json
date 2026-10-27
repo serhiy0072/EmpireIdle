@@ -418,7 +418,7 @@
           {
             "Key": "shieldwall",
             "DisplayName": "Стіна щитів",
-            "Description": "",
+            "Description": "Піхота Брана тримає стіну щитів. Захист піхоти.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 20,
@@ -665,7 +665,7 @@
           {
             "Key": "lance_charge",
             "DisplayName": "Удар списом",
-            "Description": "",
+            "Description": "Ордвін веде списоносців у таранний удар. Атака списоносців.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -684,8 +684,8 @@
           },
           {
             "Key": "barded_horses",
-            "DisplayName": "Кінська броня",
-            "Description": "",
+            "DisplayName": "Броньовані коні",
+            "Description": "Коні Ордвіна йдуть у бій під бронею. Захист списоносців.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -742,7 +742,7 @@
           "Defense": 4,
           "Health": 38
         },
-        "WeaponName": "Лук Дев'ятого Полум'я",
+        "WeaponName": "Посох Дев'ятого Полум'я",
         "Skills": [
           {
             "Key": "mage_iselle_storm",
@@ -818,7 +818,7 @@
           {
             "Key": "flame_wave",
             "DisplayName": "Вогняна хвиля",
-            "Description": "",
+            "Description": "Вогонь Ізелли котиться перед військом. Атака всіх загонів.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -838,7 +838,7 @@
           {
             "Key": "ward",
             "DisplayName": "Оберіг",
-            "Description": "",
+            "Description": "Іскра дев'ятого вогню береже кожного. Захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -993,7 +993,7 @@
           {
             "Key": "rally",
             "DisplayName": "Клич",
-            "Description": "",
+            "Description": "Клич Гедди кидає військо вперед. Атака всіх загонів.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -1013,7 +1013,7 @@
           {
             "Key": "iron_stance",
             "DisplayName": "Залізна стійка",
-            "Description": "",
+            "Description": "Піхоту Гедди не зрушити з місця. Захист піхоти.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -1168,7 +1168,7 @@
           {
             "Key": "bulwark",
             "DisplayName": "Бастіон",
-            "Description": "",
+            "Description": "Торвальд стає там, де стіна найслабша. Захист піхоти.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -1188,7 +1188,7 @@
           {
             "Key": "last_stand",
             "DisplayName": "Останній рубіж",
-            "Description": "",
+            "Description": "Хто стоїть поруч із Торвальдом, не відступає. Захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 20,
@@ -1303,7 +1303,7 @@
           {
             "Key": "cleave",
             "DisplayName": "Розріз",
-            "Description": "",
+            "Description": "Сокири Марен розрубують ворожий стрій навпіл. Атака піхоти.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -1453,7 +1453,7 @@
           {
             "Key": "wedge",
             "DisplayName": "Клин",
-            "Description": "",
+            "Description": "Списоносці Альдріка входять у ворога клином. Атака списоносців.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -1472,8 +1472,8 @@
           },
           {
             "Key": "barding",
-            "DisplayName": "Броня коней",
-            "Description": "",
+            "DisplayName": "Сталеві налобники",
+            "Description": "Коні Альдріка йдуть у клин у сталевих налобниках. Захист списоносців.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -1623,7 +1623,7 @@
           {
             "Key": "flank_guard",
             "DisplayName": "Варта флангу",
-            "Description": "",
+            "Description": "Сера ніколи не лишає флангу відкритим. Захист списоносців.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -1643,7 +1643,7 @@
           {
             "Key": "escort",
             "DisplayName": "Ескорт",
-            "Description": "",
+            "Description": "Під вартою Сери доходить кожен обоз. Захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 20,
@@ -1758,7 +1758,7 @@
           {
             "Key": "long_shot",
             "DisplayName": "Далекий постріл",
-            "Description": "",
+            "Description": "Фінн бачить ціль раніше, ніж вона його. Атака лучників.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -1913,7 +1913,7 @@
           {
             "Key": "silent_volley",
             "DisplayName": "Тихий залп",
-            "Description": "",
+            "Description": "Тятиви Ізольди не дзвенять — ворог не чує залпу. Атака лучників.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -1933,7 +1933,7 @@
           {
             "Key": "cover_fire",
             "DisplayName": "Прикриття",
-            "Description": "",
+            "Description": "Стріли Ізольди прикривають кожен крок війська. Захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -2068,7 +2068,7 @@
           {
             "Key": "barrage",
             "DisplayName": "Обстріл",
-            "Description": "",
+            "Description": "Найманці Рука стріляють, доки не скінчаться болти. Атака лучників.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -2145,7 +2145,7 @@
           "Defense": 4,
           "Health": 27
         },
-        "WeaponName": "Громовий спис",
+        "WeaponName": "Громовий скіпетр",
         "Skills": [
           {
             "Key": "mage_calder_bolt",
@@ -2221,7 +2221,7 @@
           {
             "Key": "thunder",
             "DisplayName": "Грім",
-            "Description": "",
+            "Description": "Грім Кальдера б'є раніше за військо. Атака всіх загонів.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -2298,7 +2298,7 @@
           "Defense": 4,
           "Health": 27
         },
-        "WeaponName": "Дзеркальний лук",
+        "WeaponName": "Дзеркальна сфера",
         "Skills": [
           {
             "Key": "mage_nerys_bolt",
@@ -2392,7 +2392,7 @@
           {
             "Key": "mirror_ward",
             "DisplayName": "Дзеркальний оберіг",
-            "Description": "",
+            "Description": "Світло Неріс ховає військо за дзеркальним щитом. Захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -2412,7 +2412,7 @@
           {
             "Key": "refraction",
             "DisplayName": "Заломлення",
-            "Description": "",
+            "Description": "Заломлене світло збиває ворогові приціл. Захист лучників.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 20,
@@ -2527,7 +2527,7 @@
           {
             "Key": "avalanche",
             "DisplayName": "Лавина",
-            "Description": "",
+            "Description": "Піхота Гуннара сходить на ворога лавиною. Атака піхоти.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -2547,7 +2547,7 @@
           {
             "Key": "stone_skin",
             "DisplayName": "Кам'яна шкіра",
-            "Description": "",
+            "Description": "Удари відскакують від піхоти Гуннара, як від скелі. Захист піхоти.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -2567,7 +2567,7 @@
           {
             "Key": "unbroken",
             "DisplayName": "Незламність",
-            "Description": "",
+            "Description": "Скелю не зламати, хоч як б'є хвиля. Захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 20,
@@ -2587,7 +2587,7 @@
           {
             "Key": "mountain_heart",
             "DisplayName": "Серце гори",
-            "Description": "",
+            "Description": "Гуннар стоїть так, як стоять гори. Сильний захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -2698,7 +2698,7 @@
           {
             "Key": "dawn_charge",
             "DisplayName": "Світанковий наступ",
-            "Description": "",
+            "Description": "Списоносці Еловен б'ють разом із першим промінням. Атака списоносців.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -2718,7 +2718,7 @@
           {
             "Key": "aegis",
             "DisplayName": "Егіда",
-            "Description": "",
+            "Description": "Стяг Еловен вкриває її списоносців. Захист списоносців.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -2870,7 +2870,7 @@
           {
             "Key": "hawk_eye",
             "DisplayName": "Соколине око",
-            "Description": "",
+            "Description": "Лучники Кестрель цілять соколиним оком. Атака лучників.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -2967,7 +2967,7 @@
           "Defense": 4,
           "Health": 40
         },
-        "WeaponName": "Безмовний спис",
+        "WeaponName": "Безмовний жезл",
         "Skills": [
           {
             "Key": "mage_vael_storm",
@@ -3043,7 +3043,7 @@
           {
             "Key": "hush",
             "DisplayName": "Тиша",
-            "Description": "",
+            "Description": "Ваель наказує тишу — і ворог не встигає крикнути. Атака всіх загонів.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -3063,7 +3063,7 @@
           {
             "Key": "null_ward",
             "DisplayName": "Порожній оберіг",
-            "Description": "",
+            "Description": "Порожнеча Ваеля ковтає ворожі чари. Захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -3215,8 +3215,8 @@
           },
           {
             "Key": "cold_snap",
-            "DisplayName": "Хапавка",
-            "Description": "",
+            "DisplayName": "Приморозок",
+            "Description": "Раптовий мороз сковує ворога перед ударом. Атака всіх загонів.",
             "Half": "Attack",
             "Kind": "Passive",
             "UnlockLevel": 40,
@@ -3236,7 +3236,7 @@
           {
             "Key": "frost",
             "DisplayName": "Мороз",
-            "Description": "",
+            "Description": "Іній на обладунках тримає ворожу сталь. Захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 1,
@@ -3256,7 +3256,7 @@
           {
             "Key": "glacier",
             "DisplayName": "Льодовик",
-            "Description": "",
+            "Description": "Піхота Сабіни стоїть, як льодовик. Захист піхоти.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 20,
@@ -3276,7 +3276,7 @@
           {
             "Key": "deep_winter",
             "DisplayName": "Глибока зима",
-            "Description": "",
+            "Description": "Її зима не відступає. Сильний захист усіх загонів.",
             "Half": "Defense",
             "Kind": "Passive",
             "UnlockLevel": 40,

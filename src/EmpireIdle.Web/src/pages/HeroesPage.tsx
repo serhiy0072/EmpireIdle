@@ -165,7 +165,7 @@ export default function HeroesPage() {
       {tab === "heroes" && (
         <>
           <section className="space-y-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Уламки</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Осколки героїв</h2>
             <ShardsPanel shards={heroes.data.shards} busy={busy} onSummon={(heroKey) => summon.mutate(heroKey)} />
           </section>
 

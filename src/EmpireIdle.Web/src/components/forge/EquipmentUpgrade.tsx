@@ -138,7 +138,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
             </p>
 
             {food.length === 0 && ownedWrenches.length === 0 ? (
-              <p className="text-xs text-slate-500">Нема чим посилити: потрібні вільні неунікальні артефакти або гаєчки.</p>
+              <p className="text-xs text-slate-500">Нема чим посилити: потрібні вільні неунікальні артефакти або різці гравера.</p>
             ) : (
               <div className="flex gap-2">
                 <button
