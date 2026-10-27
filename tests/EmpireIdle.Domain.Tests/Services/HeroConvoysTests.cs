@@ -127,7 +127,8 @@ public class HeroConvoysTests
     [Fact]
     public void EnsureCanLead_ShouldRefuse_MoreThanThreeHeroes()
     {
-        var leaders = Enumerable.Range(0, HeroConvoys.MaxHeroesPerMarch + 1).Select(_ => Leader(Warrior)).ToList();
+        // Стеля з HeroesConfig.MaxHeroesPerMarch, за замовчуванням три
+        var leaders = Enumerable.Range(0, new HeroesConfig().MaxHeroesPerMarch + 1).Select(_ => Leader(Warrior)).ToList();
 
         var refusal = Assert.Throws<RequirementNotMetException>(() => Convoys().EnsureCanLead(leaders, Units("infantry", 1)));
 

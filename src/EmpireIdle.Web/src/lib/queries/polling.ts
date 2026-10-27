@@ -5,6 +5,12 @@ const OVERDUE_POLL_MS = 5_000;
 const DUE_MARGIN_MS = 1_500;
 
 /**
+ * Стеля інтервалу: setInterval переповнює затримку понад 2³¹−1 мс (≈24,8 доби)
+ * майже в нуль, а дедлайни подій бувають на місяць уперед.
+ */
+const MAX_POLL_MS = 60 * 60_000;
+
+/**
  * refetchInterval для запитів із таймерами. Завершення черг робить сканер
  * на сервері, події про це не приходять, тож клієнт сам перепитує рівно
  * тоді, коли настане найближчий дедлайн, а далі — з коротким кроком,
@@ -31,6 +37,6 @@ export function refetchAtDue<T>(dueTimes: (data: T) => Iterable<string | null | 
 
     if (next === Number.POSITIVE_INFINITY) return false;
 
-    return Math.max(next - Date.now() + DUE_MARGIN_MS, OVERDUE_POLL_MS);
+    return Math.min(Math.max(next - Date.now() + DUE_MARGIN_MS, OVERDUE_POLL_MS), MAX_POLL_MS);
   };
 }

@@ -21,5 +21,8 @@ namespace EmpireIdle.Application.Interfaces
         Task<Dictionary<string, int>> GetClearedLevelsAsync(Guid playerId, CancellationToken cancellationToken = default);
 
         Task AddClearAsync(DungeonClear clear, CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє завершені забіги, що скінчились до <paramref name="before"/>, одразу в БД.</summary>
+        Task<int> DeleteFinishedBeforeAsync(DateTime before, CancellationToken cancellationToken = default);
     }
 }

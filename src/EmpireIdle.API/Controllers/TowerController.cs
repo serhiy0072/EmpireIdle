@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Battles.ReadModels;
 using EmpireIdle.Application.Tower.Commands;
 using EmpireIdle.Application.Tower.Queries;
@@ -47,6 +48,7 @@ namespace EmpireIdle.API.Controllers
         /// перегляд; результат зараховує штурм із тими самими наказами.
         /// </summary>
         [HttpPost("{playerId:guid}/preview")]
+        [WithoutIdempotencyKey]
         [ProducesResponseType(typeof(BattleReplay), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

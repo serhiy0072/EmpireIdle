@@ -83,7 +83,7 @@ export function useFeedArtifact(playerId: string) {
   });
 }
 
-/** Майстерність коваля: спроба за золото села; невдача з'їдає золото, а на пізніх заточках може зламати предмет. */
+/** Майстерність коваля: спроба за камені заточки; невдача з'їдає камені, а на пізніх заточках може зламати предмет. */
 export function useRaiseMastery(playerId: string) {
   const queryClient = useQueryClient();
 
@@ -93,7 +93,8 @@ export function useRaiseMastery(playerId: string) {
         method: "POST",
         idempotent: true,
       }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "heroes"]),
+    // Камені — предмет інвентаря, а не ресурс села
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "heroes"]),
   });
 }
 

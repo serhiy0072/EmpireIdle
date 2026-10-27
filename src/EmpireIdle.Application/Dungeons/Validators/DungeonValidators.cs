@@ -1,16 +1,17 @@
 using EmpireIdle.Application.Dungeons.Commands;
+using EmpireIdle.Domain.Services;
 using FluentValidation;
 
 namespace EmpireIdle.Application.Dungeons.Validators
 {
     public sealed class StartDungeonRunCommandValidator : AbstractValidator<StartDungeonRunCommand>
     {
-        public StartDungeonRunCommandValidator()
+        public StartDungeonRunCommandValidator(GameCatalog catalog)
         {
             RuleFor(x => x.PlayerId).NotEmpty();
             RuleFor(x => x.DungeonKey).NotEmpty().MaximumLength(50);
-            // Точні межі рівня й розміру команди знає конфіг — тут лише захист від сміття
-            RuleFor(x => x.Level).InclusiveBetween(1, 10);
+            // Межа рівня — з конфіга: піднятий MaxLevel інакше відбивав би нові рівні як сміття
+            RuleFor(x => x.Level).InclusiveBetween(1, catalog.Config.Dungeons.MaxLevel);
             RuleFor(x => x.HeroIds).NotEmpty();
             RuleForEach(x => x.HeroIds).NotEmpty();
         }

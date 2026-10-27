@@ -168,6 +168,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
 
   // ---------- Герої ----------
   "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
+  "hero.notWounded": () => "Герой уже здоровий — лікувати нікого",
   "hero.levelCeiling": ({ hero, ceiling }) => `${hero} уже на найвищому рівні — ${ceiling}`,
   "hero.worldLevelRequired": ({ required, current }) =>
     `Наступний тір відкриється на рівні світу ${required} (зараз ${current})`,
@@ -264,6 +265,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "teleport.noClan": () => "Клановий телепорт працює лише в клані",
   "teleport.outsideClanTerritory": () => "Клановий телепорт переносить лише на територію вашого клану — поруч зі спорудою",
   "teleport.youAreLeader": () => "Ви і є глава клану — переселятися до себе нікуди",
+  "teleport.noFreeCell": () => "Довкола глави клану не лишилося вільного місця — спробуйте пізніше",
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */

@@ -201,8 +201,9 @@ public class SpeedUpWithItemsCommandTests
 
         await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Use(SpeedUpTimer.Construction, farm.Id, ("hero_xp_small", 1)));
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var shortage = await Assert.ThrowsAsync<NotEnoughResourcesException>(() =>
             Use(SpeedUpTimer.Construction, farm.Id, ("speedup_5m", 2)));
+        Assert.Equal((2, 1), (shortage.Need, shortage.Have));
 
         Assert.Equal(Now.AddMinutes(120), farm.ConstructionCompletesAt);
     }

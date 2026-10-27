@@ -66,6 +66,8 @@ export default function ClanPage() {
 
   const [tab, setTab] = useState<Tab>("help");
   const [copied, setCopied] = useState(false);
+  // Вихід і тим паче розпуск не скасувати — другий клік, як у передачі лідерства
+  const [confirmLeave, setConfirmLeave] = useState(false);
 
   if (clan.isPending) {
     return <p className="text-slate-500">Завантаження клану…</p>;
@@ -242,7 +244,15 @@ export default function ClanPage() {
               {/* Лідер теж може вийти: лідерство перейде найвищому за рангом, а сам-один — розпускає клан */}
               <button
                 type="button"
-                onClick={() => leave.mutate()}
+                onClick={() => {
+                  if (confirmLeave) {
+                    setConfirmLeave(false);
+                    leave.mutate();
+                  } else {
+                    setConfirmLeave(true);
+                  }
+                }}
+                onBlur={() => setConfirmLeave(false)}
                 disabled={busy}
                 title={
                   isLeader && clan.data.memberCount > 1
@@ -251,7 +261,11 @@ export default function ClanPage() {
                 }
                 className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
               >
-                {isLeader && clan.data.memberCount <= 1 ? "Розпустити клан" : "Покинути клан"}
+                {confirmLeave
+                  ? "Точно? Натисніть ще раз"
+                  : isLeader && clan.data.memberCount <= 1
+                    ? "Розпустити клан"
+                    : "Покинути клан"}
               </button>
             </div>
             {typeof recall.data === "number" && (

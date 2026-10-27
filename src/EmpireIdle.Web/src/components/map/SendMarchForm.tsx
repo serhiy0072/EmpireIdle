@@ -21,9 +21,6 @@ interface Props {
   onCancel: () => void;
 }
 
-/** Героїв у марші щонайбільше (GDD §6.1) — по одному на роль. */
-const MAX_HEROES = 3;
-
 /** Прогноз бою одним рядком під героями, як на референсі. */
 const VERDICT_LINES: Record<number, { text: string; className: string }> = {
   0: { text: "Цілком імовірно, що ви переможете", className: "text-emerald-300" },
@@ -39,6 +36,8 @@ const VERDICT_LINES: Record<number, { text: string; className: string }> = {
  */
 export default function SendMarchForm({ playerId, target, onSent, onCancel }: Props) {
   const catalog = useCatalog();
+  // Героїв у марші щонайбільше (GDD §6.1) — по одному на роль; число з конфіга
+  const maxHeroes = catalog.maxHeroesPerMarch;
   const garrison = useGarrison(playerId);
   const heroes = useHeroes(playerId);
   const preview = usePreviewMarch(playerId);
@@ -63,7 +62,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
   const strongest = idleHeroes.filter(
     (hero, index) => idleHeroes.findIndex((other) => other.unitType === hero.unitType) === index,
   );
-  const chosen = picked ?? strongest.slice(0, MAX_HEROES).map((hero) => hero.id);
+  const chosen = picked ?? strongest.slice(0, maxHeroes).map((hero) => hero.id);
   const leaders = chosen.flatMap((id) => idleHeroes.filter((hero) => hero.id === id));
 
   // Кожен герой веде лише юнітів своєї ролі й не більше за свої конвої
@@ -207,7 +206,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
           )}
 
           <div className="grid grid-cols-3 gap-3">
-            {Array.from({ length: MAX_HEROES }, (_, slot) => {
+            {Array.from({ length: maxHeroes }, (_, slot) => {
               const hero = leaders[slot];
               const config = hero === undefined ? null : catalog.hero(hero.heroKey);
 
@@ -395,6 +394,7 @@ function HeroPicker({
   onClose: () => void;
 }) {
   const catalog = useCatalog();
+  const maxHeroes = catalog.maxHeroesPerMarch;
   const [draft, setDraft] = useState(chosen);
 
   useHotkeys({ Escape: onClose, Enter: () => onAssign(draft) }, { modal: true });
@@ -418,7 +418,7 @@ function HeroPicker({
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
           <div className="grid grid-cols-3 gap-3">
-            {Array.from({ length: MAX_HEROES }, (_, slot) => {
+            {Array.from({ length: maxHeroes }, (_, slot) => {
               const hero = selected[slot];
               const config = hero === undefined ? null : catalog.hero(hero.heroKey);
 
@@ -448,7 +448,7 @@ function HeroPicker({
             {heroes.map((hero) => {
               const config = catalog.hero(hero.heroKey);
               const on = draft.includes(hero.id);
-              const blocked = !on && (draft.length >= MAX_HEROES || roles.has(hero.unitType));
+              const blocked = !on && (draft.length >= maxHeroes || roles.has(hero.unitType));
 
               return (
                 <button

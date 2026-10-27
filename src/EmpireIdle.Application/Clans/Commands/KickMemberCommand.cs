@@ -22,6 +22,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IClanRepository _clanRepository;
         private readonly IPlayerRepository _playerRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly IClanHelpRepository _helpRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ReinforcementReturner _returner;
@@ -31,6 +32,7 @@ namespace EmpireIdle.Application.Clans.Commands
             IClanRepository clanRepository,
             IPlayerRepository playerRepository,
             IVillageRepository villageRepository,
+            IClanHelpRepository helpRepository,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ReinforcementReturner returner,
@@ -39,6 +41,7 @@ namespace EmpireIdle.Application.Clans.Commands
             _clanRepository = clanRepository;
             _playerRepository = playerRepository;
             _villageRepository = villageRepository;
+            _helpRepository = helpRepository;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
             _returner = returner;
@@ -61,6 +64,9 @@ namespace EmpireIdle.Application.Clans.Commands
             // Право й ранг перевіряє агрегат: він знає ролі, а хендлер ні
             clan.Kick(request.PlayerId, target.Id, now);
             target.LeaveClan();
+
+            // Колишні соклановці не зрізають його таймери
+            await _helpRepository.RemoveByPlayerAsync(clan.Id, target.Id, cancellationToken);
 
             await _returner.ReturnAllOfPlayerAsync(request.TargetPlayerId, now, cancellationToken);
 

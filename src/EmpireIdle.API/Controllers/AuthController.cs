@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Players.Commands;
 using EmpireIdle.Infrastructure.Auth;
 using MediatR;
@@ -12,6 +13,7 @@ namespace EmpireIdle.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [AllowAnonymous]
+    [WithoutIdempotencyKey]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -65,6 +67,19 @@ namespace EmpireIdle.API.Controllers
         {
             var (accessToken, refreshToken, playerId) = await _authService.RefreshAsync(request.RefreshToken, cancellationToken);
             return Ok(new AuthResponse(accessToken, refreshToken, playerId));
+        }
+
+        /// <summary>
+        /// Вийти: відкликати refresh-токен цієї сесії. Анонімний — access-токен міг уже сплисти,
+        /// а доказом володіння сесією є сам refresh-токен.
+        /// </summary>
+        [HttpPost("logout")]
+        [EnableRateLimiting("refresh")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Logout([FromBody] DTOs.RefreshRequest request, CancellationToken cancellationToken)
+        {
+            await _authService.LogoutAsync(request.RefreshToken, cancellationToken);
+            return NoContent();
         }
     }
 }

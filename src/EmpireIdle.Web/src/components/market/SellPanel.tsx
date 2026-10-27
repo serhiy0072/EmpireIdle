@@ -71,7 +71,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
   if (options.length === 0) {
     return (
       <p className="text-sm text-slate-500">
-        Продати нічого: спорядження, вільні герої вдома й предмети, що торгуються (бусти, есенції), з'являться тут.
+        Продати нічого: спорядження й предмети, що торгуються (бусти, есенції), з'являться тут.
       </p>
     );
   }

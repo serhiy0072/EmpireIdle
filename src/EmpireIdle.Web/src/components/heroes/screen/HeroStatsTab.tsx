@@ -108,7 +108,7 @@ export default function HeroStatsTab({ hero, config, busy, onEvolve, onHeal, onR
         </div>
       )}
 
-      <p className="text-center text-xs text-sky-200/70">Стеля рівня — нижча з двох: рівень ратуші й тір × 10.</p>
+      <p className="text-center text-xs text-sky-200/70">Рівень піднімається досвідом із запасу — ні ратуша, ні тір його не обмежують.</p>
     </div>
   );
 }

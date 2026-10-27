@@ -5,13 +5,13 @@ using MediatR;
 namespace EmpireIdle.Application.Villages.Queries
 {
     /// <summary>
-    /// Id сіл, яким пора автозбору: востаннє — щонайменше Interval тому (рішення 19.10.2026).
+    /// Id сіл, яким пора автозбору: востаннє — щонайменше GameConfig.AutoCollectSeconds тому (рішення 19.10.2026).
     /// Сканерний запит: лише ідентифікатори, кожне село збирається у власному scope.
     /// </summary>
     public record GetVillageIdsDueAutoCollectQuery : IRequest<IReadOnlyList<Guid>>
     {
-        /// <summary>Як часто вироблене переходить на склад. Збігається з тіком timer-scan.</summary>
-        public static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
+        /// <summary>Запас: тік, що запустився трохи раніше, не пропускає село до наступного разу.</summary>
+        public static readonly TimeSpan EarlyTickMargin = TimeSpan.FromSeconds(5);
     }
 
     public sealed class GetVillageIdsDueAutoCollectQueryHandler
@@ -31,8 +31,9 @@ namespace EmpireIdle.Application.Villages.Queries
 
         public Task<IReadOnlyList<Guid>> Handle(GetVillageIdsDueAutoCollectQuery request, CancellationToken cancellationToken)
         {
-            // Запас у кілька секунд: тік, що запустився трохи раніше, не пропускає село до наступного разу
-            var dueBefore = _timeProvider.GetUtcNow().UtcDateTime - GetVillageIdsDueAutoCollectQuery.Interval + TimeSpan.FromSeconds(5);
+            var dueBefore = _timeProvider.GetUtcNow().UtcDateTime
+                - TimeSpan.FromSeconds(_catalog.Config.AutoCollectSeconds)
+                + GetVillageIdsDueAutoCollectQuery.EarlyTickMargin;
 
             return _villageRepository.GetIdsDueAutoCollectAsync(dueBefore, _catalog.Config.ScanBatchSize, cancellationToken);
         }

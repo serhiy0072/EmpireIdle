@@ -10,7 +10,7 @@ public class TowerValidationTests
 {
     private static GameConfig Valid()
     {
-        var config = new GameConfigBuilder().WithHeroes().WithEquipment().WithDungeons().Build();
+        var config = new GameConfigBuilder().WithHeroes().WithRealtimeBattle().WithEquipment().WithDungeons().Build();
 
         config.Tower = new TowerConfig
         {
@@ -53,6 +53,39 @@ public class TowerValidationTests
         config.Tower = new TowerConfig();
 
         GameConfigValidator.Validate(config);
+    }
+
+    /// <summary>Сім складів при кроці ротації 7 — усі звичайні поверхи отримали б перший склад.</summary>
+    [Fact]
+    public void ArchetypeCountThatStallsTheRotation_ShouldFail()
+    {
+        var config = Valid();
+        config.Tower.Archetypes.AddRange(Enumerable.Range(0, 5)
+            .Select(i => new TowerArchetypeConfig { Key = $"extra{i}", DisplayName = "Extra", Classes = ["warrior"] }));
+
+        var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+        Assert.Contains("must not be a multiple", error.Message);
+    }
+
+    /// <summary>Вежа без налаштувань бою: чесний штурм кидав би 500 замість бою.</summary>
+    [Theory]
+    [InlineData("hero intervals")]
+    [InlineData("unit intervals")]
+    [InlineData("lines")]
+    public void TowerWithoutBattleSettings_ShouldFail(string missing)
+    {
+        var config = Valid();
+        var battle = config.RealtimeBattle;
+
+        switch (missing)
+        {
+            case "hero intervals": battle.HeroAttackIntervals = new(); break;
+            case "unit intervals": battle.UnitAttackIntervals = new(); break;
+            default: battle.HeroLines = new(); break;
+        }
+
+        var error = Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config));
+        Assert.Contains("Tower is configured", error.Message);
     }
 
     /// <summary>Крива, що не доходить до верху, лишила б верхні поверхи без ворога.</summary>

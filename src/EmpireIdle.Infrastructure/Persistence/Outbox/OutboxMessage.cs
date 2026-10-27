@@ -20,6 +20,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Outbox
         /// <summary>Кількість спроб публікації.</summary>
         public int Attempts { get; set; }
 
+        /// <summary>
+        /// Не раніше якого моменту повторити після невдачі; null — ще не падало. Без паузи
+        /// всі спроби згоряли б за пів хвилини, і короткий збій залежності губив би подію назавжди.
+        /// </summary>
+        public DateTime? NextAttemptAt { get; set; }
+
         /// <summary>Світ, у якому сталася подія. Потрібен підписникам із query-фільтрами.</summary>
         public int ServerId { get; set; }
 

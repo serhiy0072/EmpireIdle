@@ -106,19 +106,29 @@ export function useJoinClan(playerId: string) {
   return useClanCommand<string>(
     playerId,
     (clanId) => ({ path: `/api/clans/${playerId}/join/${clanId}` }),
-    ["clan", "clanRequests"],
+    // Клан відкриває бонус території й кланові квести
+    ["clan", "clanRequests", "territory", "quests"],
   );
 }
 
+/** Вихід повертає війська в обидва боки: свої з чужих сіл і споруд, чужі — зі свого. */
 export function useLeaveClan(playerId: string) {
-  return useClanCommand<void>(playerId, () => ({ path: `/api/clans/${playerId}/leave` }), ["clan", "clanHelp"]);
+  return useClanCommand<void>(playerId, () => ({ path: `/api/clans/${playerId}/leave` }), [
+    "clan",
+    "clanHelp",
+    "marches",
+    "garrison",
+    "heroes",
+    "territory",
+  ]);
 }
 
+/** Кік повертає війська виключеного з нашого гарнізону — і наш гарнізон, і марші змінюються. */
 export function useKickMember(playerId: string) {
   return useClanCommand<string>(
     playerId,
     (targetPlayerId) => ({ path: `/api/clans/${playerId}/kick/${targetPlayerId}` }),
-    ["clan"],
+    ["clan", "garrison", "marches"],
   );
 }
 

@@ -1,84 +1,84 @@
 {
-  "AttackCalledOff": [
-    "marchId"
-  ],
-  "AttackIncoming": [
-    "arrivesAt",
-    "attackerClanTag",
-    "attackerName",
-    "departedAt",
-    "fromX",
-    "fromY",
-    "intent",
-    "marchId",
-    "targetId",
-    "targetName",
-    "targetType",
-    "targetX",
-    "targetY"
-  ],
-  "BattleFinished": [
-    "reportId",
-    "targetName",
-    "won"
-  ],
-  "BuildingCollected": [
-    "buildingId",
-    "collected",
-    "newVillageAmount",
-    "resourceType"
-  ],
-  "ChatMessage": [
-    "channel",
-    "clanId",
-    "id",
-    "language",
-    "recipientId",
-    "senderId",
-    "senderName",
-    "sentAt",
-    "text",
-    "translations"
-  ],
-  "ClanInvite": [
-    "clanId",
-    "clanName",
-    "clanTag",
-    "expiresAt",
-    "requestId"
-  ],
-  "MailReceived": [
-    "kind"
-  ],
-  "MarchCamped": [
-    "marchId",
-    "x",
-    "y"
-  ],
-  "MarchReturned": [
-    "marchId"
-  ],
-  "ScoutReportReady": [
-    "outcome",
-    "reportId",
-    "targetName"
-  ],
-  "ServerQuestRewarded": [
-    "contribution",
-    "questKey",
-    "rank"
-  ],
-  "StructureDestroyed": [
-    "structureId",
-    "x",
-    "y"
-  ],
-  "UpgradeCompleted": [
-    "buildingId",
-    "newLevel"
-  ],
-  "UpgradeStarted": [
-    "buildingId",
-    "completesAt"
-  ]
+  "AttackCalledOff": {
+    "marchId": "string"
+  },
+  "AttackIncoming": {
+    "arrivesAt": "string",
+    "attackerClanTag": "string | null",
+    "attackerName": "string",
+    "departedAt": "string",
+    "fromX": "number",
+    "fromY": "number",
+    "intent": "string",
+    "marchId": "string",
+    "targetId": "string",
+    "targetName": "string | null",
+    "targetType": "string",
+    "targetX": "number",
+    "targetY": "number"
+  },
+  "BattleFinished": {
+    "reportId": "string",
+    "targetName": "string",
+    "won": "boolean"
+  },
+  "BuildingCollected": {
+    "buildingId": "string",
+    "collected": "number",
+    "newVillageAmount": "number",
+    "resourceType": "string"
+  },
+  "ChatMessage": {
+    "channel": "string",
+    "clanId": "string | null",
+    "id": "string",
+    "language": "string",
+    "recipientId": "string | null",
+    "senderId": "string",
+    "senderName": "string",
+    "sentAt": "string",
+    "text": "string",
+    "translations": "Record<string, string>"
+  },
+  "ClanInvite": {
+    "clanId": "string",
+    "clanName": "string",
+    "clanTag": "string",
+    "expiresAt": "string",
+    "requestId": "string"
+  },
+  "MailReceived": {
+    "kind": "string"
+  },
+  "MarchCamped": {
+    "marchId": "string",
+    "x": "number",
+    "y": "number"
+  },
+  "MarchReturned": {
+    "marchId": "string"
+  },
+  "ScoutReportReady": {
+    "outcome": "string",
+    "reportId": "string",
+    "targetName": "string"
+  },
+  "ServerQuestRewarded": {
+    "contribution": "number",
+    "questKey": "string",
+    "rank": "number"
+  },
+  "StructureDestroyed": {
+    "structureId": "string",
+    "x": "number",
+    "y": "number"
+  },
+  "UpgradeCompleted": {
+    "buildingId": "string",
+    "newLevel": "number"
+  },
+  "UpgradeStarted": {
+    "buildingId": "string",
+    "completesAt": "string"
+  }
 }

@@ -54,17 +54,11 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (hero.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
-            // До списання досвіду: герой у таборі не піднімається, і досвід не має згоріти
-            hero.EnsureOwnLevelCanGrow();
+            // До списання досвіду і тим самим правилом, що й підйом: табір і стеля рівня
+            hero.EnsureCanGainLevels(request.Levels, _progression.MaxLevel,
+                _catalog.FindHero(hero.HeroKey)?.DisplayName ?? hero.HeroKey);
 
-            var target = hero.Level + request.Levels;
-
-            if (target > _progression.MaxLevel)
-                throw new RequirementNotMetException(RefusalReasons.HeroLevelCeiling,
-                    $"Hero {hero.Id} cannot go above level {_progression.MaxLevel}.",
-                    _catalog.FindHero(hero.HeroKey)?.DisplayName ?? hero.HeroKey, _progression.MaxLevel);
-
-            var cost = _progression.ExperienceBetween(hero.Level, target);
+            var cost = _progression.ExperienceBetween(hero.Level, hero.Level + request.Levels);
 
             // Пул не створюємо: без досвіду піднімати нічим, і відмова має назвати нестачу
             var pool = await _heroRepository.GetExperienceAsync(request.PlayerId, cancellationToken)

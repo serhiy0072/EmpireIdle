@@ -89,6 +89,96 @@ public class JobConventionTests
         Assert.Equal(6, processed);
     }
 
+    /// <summary>Упалий елемент передається обробнику збою — лише він і лише раз за прогін світу.</summary>
+    [Fact]
+    public async Task Runner_ShouldHandAFailedItemToTheFailureHandler()
+    {
+        var failed = new List<int>();
+
+        await Runner().ForEachItemAsync(
+            "test",
+            (_, _) => Task.FromResult<IReadOnlyList<int>>([1, 2, 3]),
+            (_, item, _) => item == 2 ? throw new InvalidOperationException("boom") : Task.CompletedTask,
+            onFailure: (_, item, _) =>
+            {
+                failed.Add(item);
+                return Task.CompletedTask;
+            });
+
+        // Два світи — по одному збою в кожному
+        Assert.Equal([2, 2], failed);
+    }
+
+    /// <summary>Збій самого обробника збою не зупиняє прогін.</summary>
+    [Fact]
+    public async Task Runner_ShouldContinue_WhenTheFailureHandlerFails()
+    {
+        var processed = 0;
+
+        await Runner().ForEachItemAsync(
+            "test",
+            (_, _) => Task.FromResult<IReadOnlyList<int>>([1, 2]),
+            (_, _, _) =>
+            {
+                processed++;
+                throw new InvalidOperationException("boom");
+            },
+            onFailure: (_, _, _) => throw new InvalidOperationException("boom again"));
+
+        Assert.Equal(4, processed);
+    }
+
+    /// <summary>
+    /// Пачка за пачкою, доки вибірка не спорожніє: добовий джоб не лишає гравців
+    /// за межею ScanBatchSize до наступної доби.
+    /// </summary>
+    [Fact]
+    public async Task UntilDrained_ShouldReloadUntilNothingIsLeft()
+    {
+        var pending = new HashSet<int>(Enumerable.Range(1, 7));
+        var processed = new List<int>();
+
+        await Runner().ForEachItemUntilDrainedAsync(
+            "test",
+            (_, _) => Task.FromResult<IReadOnlyList<int>>(pending.Order().Take(3).ToList()),
+            (_, item, _) =>
+            {
+                processed.Add(item);
+                pending.Remove(item);
+                return Task.CompletedTask;
+            });
+
+        // Перший світ вибирає всіх сімох пачками по три, другому вже нічого не лишилось
+        Assert.Equal(Enumerable.Range(1, 7), processed);
+        Assert.Empty(pending);
+    }
+
+    /// <summary>Елемент, що падає щоразу, береться раз за прогін: він не тримає вибірку вічно.</summary>
+    [Fact]
+    public async Task UntilDrained_ShouldNotRetryAFailedItemWithinOneRun()
+    {
+        var pending = new HashSet<int> { 1, 2, 3 };
+        var attempts = new List<int>();
+
+        await Runner().ForEachItemUntilDrainedAsync(
+            "test",
+            (_, _) => Task.FromResult<IReadOnlyList<int>>(pending.Order().Take(2).ToList()),
+            (_, item, _) =>
+            {
+                attempts.Add(item);
+
+                if (item == 1)
+                    throw new InvalidOperationException("boom");
+
+                pending.Remove(item);
+                return Task.CompletedTask;
+            });
+
+        // Світ 1: 1 (впав), 2, далі 3; світ 2: лише 1 — він досі у вибірці
+        Assert.Equal([1, 2, 3, 1], attempts);
+        Assert.Equal([1], pending);
+    }
+
     /// <summary>Токен зупинки доходить до дії: інакше Send у джобі не дізнався б про деплой.</summary>
     [Fact]
     public async Task Runner_ShouldHandTheShutdownTokenToTheAction()

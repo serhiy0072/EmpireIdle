@@ -1,4 +1,5 @@
 using EmpireIdle.API.DTOs;
+using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Market.Commands;
 using EmpireIdle.Application.Market.Contracts;
 using EmpireIdle.Application.Market.Queries;
@@ -38,6 +39,7 @@ namespace EmpireIdle.API.Controllers
 
         /// <summary>Дозволений діапазон ціни для товару — перед виставленням.</summary>
         [HttpPost("{playerId:guid}/quote")]
+        [WithoutIdempotencyKey]
         [ProducesResponseType(typeof(MarketQuoteView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

@@ -66,13 +66,21 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             long experience = 0;
             var foods = new List<EquipmentItem>();
+            var foodIds = request.FoodIds.Distinct().ToList();
 
-            foreach (var foodId in request.FoodIds.Distinct())
+            if (foodIds.Contains(item.Id))
+                throw new RequirementNotMetException($"Artifact {item.Id} cannot be fed to itself.");
+
+            // Одним запитом: «макс.» у кузні шле сотні предметів, і запит на кожен множив би час команди
+            var loaded = (await _inventoryRepository.GetEquipmentByIdsAsync(foodIds, cancellationToken))
+                .ToDictionary(e => e.Id);
+
+            foreach (var foodId in foodIds)
             {
-                if (foodId == item.Id)
-                    throw new RequirementNotMetException($"Artifact {item.Id} cannot be fed to itself.");
+                // Чужий не відрізняється від неіснуючого
+                if (!loaded.TryGetValue(foodId, out var food) || food.PlayerId != request.PlayerId)
+                    throw new EntityNotFoundException("Equipment", foodId.ToString());
 
-                var food = await OwnedAsync(request.PlayerId, foodId, cancellationToken);
                 food.EnsureCanBeFed();
 
                 experience += _progression.FeedValue(food)
@@ -93,8 +101,10 @@ namespace EmpireIdle.Application.Heroes.Commands
 
                 var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, key, cancellationToken);
 
+                // Друга вкладка встигла витратити ключі — нестача з цифрами, а не нейтральна відмова.
+                // Назва, а не ключ: клієнт показує ресурс за назвою, і ключ предмета гравцю нічого не скаже
                 if (stack is null || stack.Count < count)
-                    throw new RequirementNotMetException($"Not enough '{key}': {stack?.Count ?? 0} of {count}.");
+                    throw new NotEnoughResourcesException(wrench.DisplayName, count, stack?.Count ?? 0);
 
                 experience += (long)wrench.ArtifactExperience * count;
                 stacks.Add((stack, count));

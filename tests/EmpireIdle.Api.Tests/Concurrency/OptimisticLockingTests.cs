@@ -112,9 +112,9 @@ public class OptimisticLockingTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Інваріант «одна будівля кожного типу» тримається лише перевіркою в AddBuilding:
-    /// унікальності (VillageId, Type) в БД немає. Токен на корені — єдине,
-    /// що серіалізує два паралельні AddBuilding одного типу.
+    /// Інваріант «одна будівля кожного типу» тримають двоє: унікальний індекс (VillageId, Type)
+    /// і токен на корені. Хто з них спрацює першим, залежить від порядку команд у SaveChanges —
+    /// важливо лише, що другий AddBuilding не проходить і ферма лишається одна.
     /// </summary>
     [Fact]
     public async Task Village_ShouldRejectConcurrentDuplicateBuilding()
@@ -134,7 +134,8 @@ public class OptimisticLockingTests : IAsyncLifetime
 
         await contextA.SaveChangesAsync();
 
-        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => contextB.SaveChangesAsync());
+        // DbUpdateConcurrencyException — теж DbUpdateException, тож це покриває обидва захисти
+        await Assert.ThrowsAnyAsync<DbUpdateException>(() => contextB.SaveChangesAsync());
 
         await using var verify = CreateContext();
         var final = await LoadVillageAsync(verify, villageId);

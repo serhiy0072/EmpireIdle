@@ -31,5 +31,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .Include(r => r.Resources)
                 .Where(r => ids.Contains(r.Id))
                 .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> DeleteBeforeAsync(DateTime before, CancellationToken cancellationToken = default)
+            => _context.ScoutReports.IgnoreQueryFilters()
+                .Where(r => r.CreatedAt < before)
+                .ExecuteDeleteAsync(cancellationToken);
     }
 }

@@ -108,7 +108,7 @@ public class RegisterPlayerCommandTests
             NullLogger<RegisterPlayerCommandHandler>.Instance,
             new FakeTimeProvider(Now),
             new GameCatalog(config),
-            new SettlementPlacer(terrain, geometry, new SystemRandomSource()),
+            new SettlementPlacer(terrain, geometry, new DeterministicRandom(42)),
             _map);
     }
 

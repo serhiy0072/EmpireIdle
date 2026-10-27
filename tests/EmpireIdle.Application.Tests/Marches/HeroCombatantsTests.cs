@@ -16,14 +16,24 @@ public class HeroCombatantsTests
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly GameCatalog _catalog = HeroTestConfig.Catalog();
     private readonly HeroStats _stats;
+    private readonly List<EquipmentItem> _equipped = [];
 
     public HeroCombatantsTests()
     {
         _stats = new HeroStats(new HeroProgression(_catalog.Config.HeroSettings), _catalog);
-        _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
+
+        // Спорядження всіх бійців читається одним запитом
+        _inventory.GetEquippedByHeroesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(call => _equipped.Where(e => call.Arg<IReadOnlyCollection<Guid>>().Contains(e.EquippedByHeroId!.Value)).ToList());
     }
 
     private HeroCombatants Combatants() => new(_inventory, _stats, _catalog);
+
+    private void Equip(Hero hero, EquipmentItem item)
+    {
+        item.EquipTo(hero.Id, 0, Now);
+        _equipped.Add(item);
+    }
 
     private static Hero Hero(string key = HeroTestConfig.CommonHero)
         => new(Guid.NewGuid(), Guid.NewGuid(), 1, key, Guid.NewGuid(), Now);
@@ -54,7 +64,7 @@ public class HeroCombatantsTests
     {
         var hero = Hero();
         var necklace = EmpireIdle.TestKit.Entities.Equipment(HeroTestConfig.Artifact, Domain.Enums.EquipmentSlot.Artifact, bonuses: (0, "CritChance", 20));
-        _inventory.GetEquippedAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem> { necklace });
+        Equip(hero, necklace);
         var stats = _stats.Compute(hero, _catalog.Hero(hero.HeroKey), [necklace]);
 
         var attacking = Assert.Single(await Combatants().ForAsync([hero], attacking: true, CancellationToken.None));
@@ -72,7 +82,7 @@ public class HeroCombatantsTests
     {
         var hero = Hero();
         var necklace = EmpireIdle.TestKit.Entities.Equipment(HeroTestConfig.Artifact, Domain.Enums.EquipmentSlot.Artifact, bonuses: (0, "Ward", 16));
-        _inventory.GetEquippedAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem> { necklace });
+        Equip(hero, necklace);
         var stats = _stats.Compute(hero, _catalog.Hero(hero.HeroKey), [necklace]);
         Assert.True(stats.GetValueOrDefault(ArtifactStats.UnitAttack) > 0);
 
@@ -93,7 +103,9 @@ public class HeroCombatantsTests
         var wounded = Hero();
         wounded.Wound(Now);
         var belt = EmpireIdle.TestKit.Entities.Equipment(HeroTestConfig.Artifact, Domain.Enums.EquipmentSlot.Artifact, bonuses: (0, "TroopsAttack", 8));
-        _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem> { belt });
+        var woundedBelt = EmpireIdle.TestKit.Entities.Equipment(HeroTestConfig.Artifact, Domain.Enums.EquipmentSlot.Artifact, bonuses: (0, "TroopsAttack", 8));
+        Equip(hero, belt);
+        Equip(wounded, woundedBelt);
 
         var gear = await Combatants().GearAsync([hero, wounded, null], CancellationToken.None);
 

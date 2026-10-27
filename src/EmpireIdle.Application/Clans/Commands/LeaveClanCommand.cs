@@ -18,6 +18,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IClanRepository _clanRepository;
         private readonly IPlayerRepository _playerRepository;
         private readonly IVillageRepository _villageRepository;
+        private readonly IClanHelpRepository _helpRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ReinforcementReturner _returner;
@@ -29,6 +30,7 @@ namespace EmpireIdle.Application.Clans.Commands
             IClanRepository clanRepository,
             IPlayerRepository playerRepository,
             IVillageRepository villageRepository,
+            IClanHelpRepository helpRepository,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ReinforcementReturner returner,
@@ -40,6 +42,7 @@ namespace EmpireIdle.Application.Clans.Commands
             _clanRepository = clanRepository;
             _playerRepository = playerRepository;
             _villageRepository = villageRepository;
+            _helpRepository = helpRepository;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
             _returner = returner;
@@ -63,6 +66,9 @@ namespace EmpireIdle.Application.Clans.Commands
 
             clan.Leave(player.Id, successor, now);
             player.LeaveClan();
+
+            // Колишні соклановці не зрізають його таймери
+            await _helpRepository.RemoveByPlayerAsync(clan.Id, player.Id, cancellationToken);
 
             // Обидва напрямки: свої війська з чужих сіл і чужі — зі свого.
             // Поза кланом гість у селі не має підстав лишатися

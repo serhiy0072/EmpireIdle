@@ -62,7 +62,7 @@ public class LeaveClanCommandTests
         var disbander = new ClanDisbander(_clans, _structures, _requests, _helps, _quests, structureRemover,
             NullLogger<ClanDisbander>.Instance);
 
-        return new LeaveClanCommandHandler(_clans, _players, _villages, _unitOfWork, new FakeTimeProvider(Now),
+        return new LeaveClanCommandHandler(_clans, _players, _villages, _helps, _unitOfWork, new FakeTimeProvider(Now),
             returner, new ClanSuccession(_players), disbander, NullLogger<LeaveClanCommandHandler>.Instance);
     }
 
@@ -102,6 +102,17 @@ public class LeaveClanCommandTests
         Assert.True(clan.IsLeader(deputy));
         Assert.DoesNotContain(clan.Members, m => m.PlayerId == LeaderId);
         _clans.DidNotReceive().Remove(clan);
+    }
+
+    /// <summary>Хто вийшов, тому колишні соклановці таймери вже не зрізають: його запити допомоги йдуть разом із ним.</summary>
+    [Fact]
+    public async Task Handle_ShouldRemoveTheLeaversHelpRequests()
+    {
+        var clan = GivenClan((Guid.NewGuid(), "default", Now));
+
+        await Handler().Handle(new LeaveClanCommand(LeaderId), CancellationToken.None);
+
+        await _helps.Received(1).RemoveByPlayerAsync(clan.Id, LeaderId, Arg.Any<CancellationToken>());
     }
 
     /// <summary>Серед рівних за рангом — той, хто був у грі найпізніше.</summary>

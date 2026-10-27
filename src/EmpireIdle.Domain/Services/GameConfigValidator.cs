@@ -30,6 +30,7 @@ namespace EmpireIdle.Domain.Services
             ValidateQuests(config);
             ValidateGeometry(config);
             ValidateRating(config);
+            ValidateRetention(config);
             ValidatePreview(config);
             ValidateHeroes(config);
             ValidateLossBands(config);
@@ -376,10 +377,6 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Ринок: будівля існує, кожен товар має якір ціни. Без якоря коридор
-        /// рахувався б із першого ж продажу, і його задавав би вош.
-        /// </summary>
-        /// <summary>
         /// Звірі (GDD §5.10): кожен тип приручається з наявного монстра, один звір на монстра,
         /// шанс у (0; 1], є звіринець із місцями й корм-предмет — інакше приручати нікуди й годувати нічим.
         /// </summary>
@@ -476,10 +473,6 @@ namespace EmpireIdle.Domain.Services
             }
         }
 
-        /// <summary>
-        /// Скрині (GDD §9.12): таблиця на кожен предмет-скриню, додатні ваги й кількості,
-        /// відомі ключі, гарантія з позиціями й вкладені скрині без циклу.
-        /// </summary>
         /// <summary>Ключова скриня посилається на таблицю скрині й на предмет-ключ — обидва мусять існувати.</summary>
         private static void ValidateKeyChests(GameConfig config)
         {
@@ -503,6 +496,10 @@ namespace EmpireIdle.Domain.Services
             }
         }
 
+        /// <summary>
+        /// Скрині (GDD §9.12): таблиця на кожен предмет-скриню, додатні ваги й кількості,
+        /// відомі ключі, гарантія з позиціями й вкладені скрині без циклу.
+        /// </summary>
         private static void ValidateLootboxes(GameConfig config)
         {
             RequireUniqueKeys(config.Lootboxes.Select(b => b.Key), "Lootboxes");
@@ -615,6 +612,10 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException($"Nearby teleports need a positive TeleportRange: {string.Join(", ", broken)}.");
         }
 
+        /// <summary>
+        /// Ринок: будівля існує, кожен товар має якір ціни. Без якоря коридор
+        /// рахувався б із першого ж продажу, і його задавав би вош.
+        /// </summary>
         private static void ValidateMarket(GameConfig config)
         {
             var market = config.Market;
@@ -712,13 +713,14 @@ namespace EmpireIdle.Domain.Services
                 .Concat(config.Equipment.ArtifactSlots.Select(s => $"artifactSlot.{s.Key}"))
                 .ToHashSet();
 
+        /// <summary>Стат здоров'я юніта — його читає лише одномоментний бій.</summary>
+        private const string UnitHealthStat = "Health";
+
         /// <summary>
         /// Одномоментний бій: кожен клас героя і кожен тип юнітів, що веде герой, має свій темп удару,
         /// а перевага типів посилається лише на відомі юніти й не б'є сама себе. Порожні словники
         /// пропускає — так само, як RoleUnits у героях.
         /// </summary>
-        private const string UnitHealthStat = "Health";
-
         private static void ValidateRealtimeBattle(GameConfig config)
         {
             var battle = config.RealtimeBattle;
@@ -792,6 +794,14 @@ namespace EmpireIdle.Domain.Services
             if (tower.Anchors.Count == 0)
                 return;
 
+            // Вежа б'ється одномоментним боєм: без темпу ударів і ліній чесний штурм кидав би 500.
+            // Повноту кожного словника вже перевіряє ValidateRealtimeBattle — тут лише що вони є
+            var battle = config.RealtimeBattle;
+
+            if (battle.HeroAttackIntervals.Count == 0 || battle.UnitAttackIntervals.Count == 0 || battle.HeroLines.Count == 0)
+                throw new InvalidOperationException(
+                    "Tower is configured, so RealtimeBattle needs HeroAttackIntervals, UnitAttackIntervals and HeroLines.");
+
             var anchors = tower.Anchors;
 
             if (anchors[0].Floor != 1 || anchors[^1].Floor != tower.MaxFloor || anchors.Zip(anchors.Skip(1)).Any(p => p.Second.Floor <= p.First.Floor))
@@ -824,6 +834,11 @@ namespace EmpireIdle.Domain.Services
             if (tower.Archetypes.Count == 0 || badArchetypes.Count > 0)
                 throw new InvalidOperationException(
                     $"Tower.Archetypes need 1–{squadSize} known hero classes each: {string.Join(", ", badArchetypes)}.");
+
+            // Поверх бере склад floor × крок % кількість: кратна кроку кількість дала б усім поверхам перший склад
+            if (tower.Archetypes.Count > 1 && tower.Archetypes.Count % Tower.TowerFloors.ArchetypeStride == 0)
+                throw new InvalidOperationException(
+                    $"Tower.Archetypes count {tower.Archetypes.Count} must not be a multiple of {Tower.TowerFloors.ArchetypeStride} — the floors would stop rotating.");
 
             if (tower.Archetypes.FirstOrDefault(a => a.Key == tower.BossArchetype) is not { } boss || tower.BossLane < 0 || tower.BossLane >= boss.Classes.Count)
                 throw new InvalidOperationException($"Tower.BossArchetype '{tower.BossArchetype}' must exist and have a hero on BossLane {tower.BossLane}.");
@@ -1096,6 +1111,31 @@ namespace EmpireIdle.Domain.Services
 
             if (rating.Scale <= 0)
                 throw new InvalidOperationException("Rating.Scale must be positive.");
+        }
+
+        /// <summary>
+        /// Строки зберігання не коротші за тих, хто на історію спирається: медіана ринку читає продані лоти,
+        /// пауза після відмови — вирішену заявку, лист розвідки — звіт, викуп відновлюваних — звіт бою.
+        /// </summary>
+        private static void ValidateRetention(GameConfig config)
+        {
+            var retention = config.Retention;
+
+            if (retention.ClosedMarketListingDays * 24 < config.Market.MedianWindowHours)
+                throw new InvalidOperationException(
+                    $"Retention.ClosedMarketListingDays must cover Market.MedianWindowHours {config.Market.MedianWindowHours} — the median reads sold listings.");
+
+            if (retention.ResolvedClanRequestDays * 24 < config.Clan.RejectedCooldownHours)
+                throw new InvalidOperationException(
+                    $"Retention.ResolvedClanRequestDays must cover Clan.RejectedCooldownHours {config.Clan.RejectedCooldownHours} — the cooldown reads the rejected request.");
+
+            if (retention.ScoutReportDays < config.Mail.LetterRetentionDays)
+                throw new InvalidOperationException(
+                    $"Retention.ScoutReportDays must cover Mail.LetterRetentionDays {config.Mail.LetterRetentionDays} — a scout letter opens its report.");
+
+            if (retention.BattleReportDays * 24 < config.Combat.RecoveryWindowHours)
+                throw new InvalidOperationException(
+                    $"Retention.BattleReportDays must cover Combat.RecoveryWindowHours {config.Combat.RecoveryWindowHours} — recovery points at its report.");
         }
 
         private static void RequireUniqueKeys(IEnumerable<string> keys, string section)
@@ -1677,11 +1717,6 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Стати артефактів (GDD §9.12): база для кожної рідкості, що трапляється, сталі бонуси —
-        /// лише базові стати, пули — з відомих бонусів і не менше двох, ступенів стільки ж,
-        /// скільки шансів, і шанси заточки покривають усю стелю.
-        /// </summary>
-        /// <summary>
         /// Що може дати поріг набору: пласкі стати, відсотки героя, будь-який бонус заточки (крит, оберіг,
         /// військам, марш…) і цілі ходи перезарядки — лише те, що справді рахує бій, марш чи сила.
         /// </summary>
@@ -1693,6 +1728,11 @@ namespace EmpireIdle.Domain.Services
                 .Append(DungeonStats.CooldownTurns)
                 .ToHashSet();
 
+        /// <summary>
+        /// Стати артефактів (GDD §9.12): база для кожної рідкості, що трапляється, сталі бонуси —
+        /// лише базові стати, пули — з відомих бонусів і не менше двох, ступенів стільки ж,
+        /// скільки шансів, і шанси заточки покривають усю стелю.
+        /// </summary>
         private static void ValidateArtifactStats(GameConfig config, IReadOnlyCollection<ItemConfig> equipment)
         {
             var settings = config.Equipment;

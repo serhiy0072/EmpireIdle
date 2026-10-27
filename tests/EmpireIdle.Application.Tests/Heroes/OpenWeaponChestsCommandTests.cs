@@ -35,6 +35,7 @@ public class OpenWeaponChestsCommandTests
             WeaponHeroes = [HeroTestConfig.UniqueHero],
             WeaponShards = 1
         });
+        config.HeroSettings.WeaponShardCosts = [5, 5];
         _catalog = new GameCatalog(config);
     }
 
@@ -97,12 +98,28 @@ public class OpenWeaponChestsCommandTests
     }
 
     [Fact]
+    public async Task Handle_ShouldRefuse_WhenTheWeaponIsMaxed()
+    {
+        var hero = GivenHero();
+        var chests = GivenChests(3);
+        hero.AddWeaponShards(10, Now);
+        hero.UpgradeWeapon(5, 2, Now);
+        hero.UpgradeWeapon(5, 2, Now);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Open(hero, 1));
+
+        Assert.Equal(RefusalReasons.HeroWeaponMaxed.Key, refusal.Reason);
+        Assert.Equal(3, chests.Count);
+    }
+
+    [Fact]
     public async Task Handle_ShouldRefuse_WithoutEnoughChests()
     {
         var hero = GivenHero();
         GivenChests(1);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() => Open(hero, 2));
+        var shortage = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Open(hero, 2));
+        Assert.Equal((2, 1), (shortage.Need, shortage.Have));
         Assert.Equal(0, hero.WeaponShards);
     }
 

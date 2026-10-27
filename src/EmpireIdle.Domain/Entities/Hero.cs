@@ -233,10 +233,10 @@ namespace EmpireIdle.Domain.Entities
         public void Heal(DateTime utcNow)
         {
             if (State != HeroState.Wounded)
-                throw new InvalidStateException($"Hero {Id} is not wounded.");
+                throw new InvalidStateException(RefusalReasons.HeroNotWounded, $"Hero {Id} is not wounded.");
 
             if (StationedGarrisonId is null)
-                throw new InvalidStateException($"Hero {Id} is on the move and cannot be healed.");
+                throw new InvalidStateException(RefusalReasons.HeroOnTheMove, $"Hero {Id} is on the move and cannot be healed.");
 
             State = HeroState.Idle;
             Touch(utcNow);
@@ -248,6 +248,20 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void GainLevels(int levels, int maxLevel, DateTime utcNow)
         {
+            EnsureCanGainLevels(levels, maxLevel);
+
+            Level += levels;
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>
+        /// Чи може герой піднятись на <paramref name="levels"/> — окремо від самого підйому, щоб викликач
+        /// перевірив до списання досвіду тим самим правилом, а не своєю копією.
+        /// </summary>
+        /// <param name="heroName">Ім'я для тексту відмови; null — ключ (лише коли викликач уже перевірив).</param>
+        public void EnsureCanGainLevels(int levels, int maxLevel, string? heroName = null)
+        {
             if (levels < 1)
                 throw new ArgumentOutOfRangeException(nameof(levels), levels, "Levels to gain must be positive.");
 
@@ -255,11 +269,7 @@ namespace EmpireIdle.Domain.Entities
 
             if (Level + levels > maxLevel)
                 throw new RequirementNotMetException(RefusalReasons.HeroLevelCeiling,
-                    $"Hero {Id} cannot go above level {maxLevel}.", HeroKey, maxLevel);
-
-            Level += levels;
-            Touch(utcNow);
-            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+                    $"Hero {Id} cannot go above level {maxLevel}.", heroName ?? HeroKey, maxLevel);
         }
 
         /// <summary>
@@ -352,6 +362,19 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void RaiseSkill(string skillKey, int levelCap, int maxSkillLevel, DateTime utcNow)
         {
+            EnsureCanRaiseSkill(skillKey, levelCap, maxSkillLevel);
+
+            SkillLevels = new Dictionary<string, int>(SkillLevels) { [skillKey] = SkillLevel(skillKey) + 1 };
+            Touch(utcNow);
+            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
+        }
+
+        /// <summary>
+        /// Чи можна підняти вміння — окремо від підйому, щоб викликач перевірив стелі до списання книги
+        /// тим самим правилом. Стелю від зірок рахує HeroSkills.
+        /// </summary>
+        public void EnsureCanRaiseSkill(string skillKey, int levelCap, int maxSkillLevel)
+        {
             var current = SkillLevel(skillKey);
 
             if (current >= maxSkillLevel)
@@ -362,10 +385,6 @@ namespace EmpireIdle.Domain.Entities
             if (current >= levelCap)
                 throw new RequirementNotMetException(RefusalReasons.HeroSkillStarCapped,
                     $"Hero {Id} needs {current} stars to raise skill '{skillKey}' above level {current}.", current);
-
-            SkillLevels = new Dictionary<string, int>(SkillLevels) { [skillKey] = current + 1 };
-            Touch(utcNow);
-            RaiseDomainEvent(new HeroChanged(PlayerId, Id, utcNow));
         }
 
         /// <summary>

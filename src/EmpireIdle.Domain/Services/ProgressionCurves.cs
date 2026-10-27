@@ -33,15 +33,13 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>
         /// Час апгрейду з рівня. Поверх геометричного росту накладає спадний
-        /// "ранній податок": на рівні 1 час зростає найсильніше (×3), до рівня
+        /// "ранній податок": на рівні 1 час зростає найсильніше (×3 за замовчуванням), до рівня
         /// ~15 ефект згасає до кількох відсотків. Перші рівні мали відчуватись
-        /// миттєвими — це їх сповільнює, не займаючи пізню гру.
+        /// миттєвими — це їх сповільнює, не займаючи пізню гру. Сила й згасання — з конфіга будівлі.
         /// </summary>
-        public static double BuildMinutes(int baseMinutes, double growth, int level)
+        public static double BuildMinutes(int baseMinutes, double growth, int level,
+            double earlyTaxStrength = 2.0, double earlyTaxDecay = 1.2)
         {
-            const double earlyTaxStrength = 2.0;
-            const double earlyTaxDecay = 1.2;
-
             var geometric = baseMinutes * Math.Pow(growth, level - 1);
             var earlyMultiplier = 1 + earlyTaxStrength / Math.Pow(level, earlyTaxDecay);
 
@@ -92,6 +90,9 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public static int CumulativeUnitLevelCost(int baseAmount, int fromLevel, int toLevel, double growth)
         {
+            // Рівні юнітів починаються з 1; нижчий fromLevel — баг викликача, а не безкоштовні кроки
+            ArgumentOutOfRangeException.ThrowIfLessThan(fromLevel, 1);
+
             var total = 0.0;
 
             for (var level = fromLevel; level < toLevel; level++)

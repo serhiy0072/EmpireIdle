@@ -45,5 +45,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
 
         public async Task AddClearAsync(DungeonClear clear, CancellationToken cancellationToken = default)
             => await _context.DungeonClears.AddAsync(clear, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> DeleteFinishedBeforeAsync(DateTime before, CancellationToken cancellationToken = default)
+            => _context.DungeonRuns.IgnoreQueryFilters()
+                .Where(r => r.State != DungeonRunState.InProgress && r.FinishedAt < before)
+                .ExecuteDeleteAsync(cancellationToken);
     }
 }

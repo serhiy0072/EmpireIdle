@@ -134,7 +134,7 @@ public class RealtimeBattleSkillsTests
 
         Assert.Equal(25, Events(result, BattleEventKind.Cast, 0)[0].Tick);
         Assert.Equal(25, Events(result, BattleEventKind.Cast, 1)[0].Tick);
-        Assert.Empty(result.Events.Where(e => e.Kind == BattleEventKind.Ready));
+        Assert.DoesNotContain(result.Events, e => e.Kind == BattleEventKind.Ready);
     }
 
     /// <summary>Вміння на тил б'є ворожого стрільця на далекій доріжці, хоч найближчий — воїн навпроти.</summary>
@@ -272,8 +272,8 @@ public class RealtimeBattleSkillsTests
     }
 
     /// <summary>
-    /// Отрута 0.5 атаки за хід — 100 × 0.5 / 2.5 = 20 щосекунди; на 2 ходи (5 с) — чотири укуси,
-    /// перший через секунду після накладання; наступна отрута — з другим спрацюванням на 75-й секунді.
+    /// Отрута 0.5 атаки за хід — 100 × 0.5 / 2.5 = 20 щосекунди; на 2 ходи (5 с) — п'ять укусів,
+    /// перший через секунду після накладання, останній рівно на її кінці: разом 100, як 2 × 50 у данжі.
     /// </summary>
     [Fact]
     public void Run_ShouldPoisonOncePerSecond()
@@ -282,9 +282,26 @@ public class RealtimeBattleSkillsTests
 
         var result = Run([Archer(0, Stats(attack: 100), [poison])], [Archer(0, Stats())]);
 
-        var bites = result.Events.Where(e => e.Flags.HasFlag(HitFlags.Poison)).Take(5).ToList();
-        Assert.Equal([260, 270, 280, 290, 760], bites.Select(e => e.Tick));
+        var bites = result.Events.Where(e => e.Flags.HasFlag(HitFlags.Poison)).Take(6).ToList();
+        Assert.Equal([260, 270, 280, 290, 300, 760], bites.Select(e => e.Tick));
         Assert.All(bites, e => Assert.Equal((1, 20.0), (e.Target, e.Amount)));
+    }
+
+    /// <summary>
+    /// Накладання частіше за тривалість не збиває відлік: укуси йдуть щосекунди без пропусків,
+    /// поки отруйник оновлює стан.
+    /// </summary>
+    [Fact]
+    public void Run_ShouldKeepBiting_WhenThePoisonIsRefreshedBeforeItEnds()
+    {
+        // Перезарядка в ходах: 1 хід — 2.5 с, удвічі коротша за отруту на 2 ходи
+        var poison = Skill(AbilityTarget.SingleEnemy, cooldown: 1, damage: 1, status: BattleStatusKind.Poison, magnitude: 0.5, statusTurns: 2);
+
+        var result = Run([Archer(0, Stats(attack: 100), [poison])], [Archer(0, Stats())]);
+
+        var ticks = result.Events.Where(e => e.Flags.HasFlag(HitFlags.Poison)).Take(10).Select(e => e.Tick).ToList();
+        Assert.Equal(10, ticks.Count);
+        Assert.All(ticks.Zip(ticks.Skip(1)), pair => Assert.Equal(10, pair.Second - pair.First));
     }
 
     /// <summary>Провокація перетягує ворожого героя на себе понад липку ціль; конвої її не чують.</summary>

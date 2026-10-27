@@ -13,6 +13,10 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Скільки gems коштує вилікувати одного пораненого.</summary>
         public int HealGemsPerUnit { get; set; } = 1;
+
+        /// <summary>Частка ціни нового юніта, яку коштує лікування пораненого ресурсами.</summary>
+        public double HealResourceCostShare { get; set; } = 0.5;
+
         /// <summary>Множник у формулі прискорення: ceil(Factor × хвилин^Exponent).</summary>
         public double SpeedUpFactor { get; set; } = 1.2;
 

@@ -17,6 +17,23 @@ public class ClanTests
 
     private static Guid RoleId(Clan clan, string name) => clan.Roles.Single(r => r.Name == name).Id;
 
+    /// <summary>
+    /// Активність пишеться в рядок учасника, а не в корінь: інакше кожна допомога оновлювала б
+    /// клан, і паралельні допомоги одна одній давали б 409.
+    /// </summary>
+    [Fact]
+    public void RecordActivity_ShouldTouchTheMemberOnly()
+    {
+        var clan = NewClan();
+        var member = Recruit(clan, "Member");
+        var updatedAt = clan.UpdatedAt;
+
+        clan.RecordActivity(member, Now.AddHours(3));
+
+        Assert.Equal(updatedAt, clan.UpdatedAt);
+        Assert.Equal(Now.AddHours(3), clan.Members.Single(m => m.PlayerId == member).LastActiveAt);
+    }
+
     /// <summary>Новий гравець у ролі, яку видав лідер.</summary>
     private static Guid Recruit(Clan clan, string role)
     {

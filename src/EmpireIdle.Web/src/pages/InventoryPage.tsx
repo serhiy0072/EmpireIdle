@@ -173,7 +173,7 @@ export default function InventoryPage() {
         <GamePanel className="min-h-[40vh]">
           {tab === "equipment" ? (
             equipment.length === 0 ? (
-              <p className="py-8 text-center text-sm text-sky-100/80">Спорядження ще немає — купіть зброю в кузні або крутіть банери.</p>
+              <p className="py-8 text-center text-sm text-sky-100/80">Спорядження ще немає — воно випадає в данжах і з банерів.</p>
             ) : (
               <TileGrid>
                 {equipment.map((piece) => {

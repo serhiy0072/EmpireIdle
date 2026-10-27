@@ -34,7 +34,9 @@ function invalidate(name: GameEventName, queryClient: QueryClient, playerId: str
     // Бій ранить героїв і юнітів гарнізону
     // Після бою марш розвертається, монстр міг зникнути з мапи
     // Перемога з наміром «Приручити» селить звіра в звіринець
+    // Подію отримує й захисник: грабунок і пошкодження міняють його село — шапку й банер пошкоджень
     BattleFinished: [
+      queryKeys.village(playerId),
       queryKeys.battleReports(playerId),
       queryKeys.beasts(playerId),
       queryKeys.heroes(playerId),

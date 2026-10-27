@@ -80,6 +80,15 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Коефіцієнт росту часу апгрейду з рівнем: час = BaseBuildMinutes × BuildTimeGrowth^(рівень−1).</summary>
         public double BuildTimeGrowth { get; set; }
 
+        /// <summary>
+        /// «Ранній податок» на час: множник 1 + EarlyTaxStrength / рівень^EarlyTaxDecay поверх геометрії.
+        /// На рівні 1 час зростає втричі, до ~15 рівня ефект згасає — перші рівні не мають бути миттєвими.
+        /// </summary>
+        public double EarlyTaxStrength { get; set; } = 2.0;
+
+        /// <summary>Як швидко згасає ранній податок з рівнем.</summary>
+        public double EarlyTaxDecay { get; set; } = 1.2;
+
         // ---------- Спеціальні ----------
 
         /// <summary>Місткість поранених на рівень (0 — не госпіталь).</summary>

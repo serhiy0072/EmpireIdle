@@ -12,6 +12,9 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasKey(v => v.Id);
             builder.HasIndex(v => v.ServerId);
             builder.HasIndex(v => v.PlayerId).IsUnique();
+            // Сканери автозбору й провізії щохвилини шукають села світу за цими мітками
+            builder.HasIndex(v => new { v.ServerId, v.AutoCollectedAt });
+            builder.HasIndex(v => new { v.ServerId, v.FoodUpkeepAt });
             builder.Ignore(v => v.DomainEvents);
 
             builder.Property(v => v.UpdatedAt).IsRequired();

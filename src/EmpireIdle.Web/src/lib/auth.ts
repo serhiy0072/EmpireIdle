@@ -26,6 +26,20 @@ export function getPlayerId(): string | null {
   return getSession()?.playerId ?? null;
 }
 
-export function logout(): void {
+/**
+ * Вихід: сесія зникає локально одразу, а refresh-токен відкликається на сервері — інакше збережена
+ * копія жила б до кінця строку. Збій мережі вихід не блокує: локально гравець уже вийшов.
+ */
+export async function logout(): Promise<void> {
+  const refreshToken = getSession()?.refreshToken ?? null;
+
   setSession(null);
+
+  if (refreshToken === null) return;
+
+  try {
+    await apiPost<void>("/api/auth/logout", { refreshToken });
+  } catch {
+    // Токен однаково спливе сам; гравця вже виведено
+  }
 }

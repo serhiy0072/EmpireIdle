@@ -68,5 +68,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                          && r.Status == ClanRequestStatus.Pending
                          && r.ExpiresAt > utcNow)
                 .ToListAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public Task<int> DeleteStaleBeforeAsync(DateTime before, CancellationToken cancellationToken = default)
+            => _context.ClanRequests.IgnoreQueryFilters()
+                .Where(r => r.ExpiresAt < before || (r.ResolvedAt != null && r.ResolvedAt < before))
+                .ExecuteDeleteAsync(cancellationToken);
     }
 }

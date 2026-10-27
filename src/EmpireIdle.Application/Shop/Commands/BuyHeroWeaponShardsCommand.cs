@@ -62,6 +62,12 @@ namespace EmpireIdle.Application.Shop.Commands
                 throw new RequirementNotMetException(RefusalReasons.HeroWeaponNotSold,
                     $"Weapon shards of '{hero.HeroKey}' are not sold.", config.DisplayName);
 
+            // Зброя вже на стелі — шматки нікуди вкласти, і gems згоріли б даремно
+            var maxWeapon = _catalog.Config.HeroSettings.MaxWeaponLevel;
+            if (hero.WeaponLevel >= maxWeapon)
+                throw new RequirementNotMetException(RefusalReasons.HeroWeaponMaxed,
+                    $"Hero {hero.Id} weapon is already +{hero.WeaponLevel}.", maxWeapon);
+
             var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Player", request.PlayerId);
 

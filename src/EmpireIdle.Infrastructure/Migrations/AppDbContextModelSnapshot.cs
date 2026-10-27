@@ -457,10 +457,11 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("VillageId");
-
                     b.HasIndex("ConstructionCompletesAt", "VillageId")
                         .HasFilter("\"ConstructionCompletesAt\" IS NOT NULL");
+
+                    b.HasIndex("VillageId", "Type")
+                        .IsUnique();
 
                     b.ToTable("Buildings");
                 });
@@ -1290,6 +1291,10 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("RequestType")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1499,6 +1504,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArrivalRetryAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("ArrivesAt")
                         .HasColumnType("timestamp with time zone");
@@ -2626,6 +2634,10 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.HasIndex("ServerId");
 
+                    b.HasIndex("ServerId", "AutoCollectedAt");
+
+                    b.HasIndex("ServerId", "FoodUpkeepAt");
+
                     b.ToTable("Villages");
                 });
 
@@ -2827,6 +2839,9 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<string>("Error")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");

@@ -53,9 +53,11 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
             {
                 // ILike, а не ToLower().Contains(): у Postgres це пошук
                 // без регістру на боці бази, назви кланів гравці пишуть як завгодно
-                var pattern = $"%{search.Trim()}%";
-                query = query.Where(c => EF.Functions.ILike(c.Name, pattern)
-                                      || EF.Functions.ILike(c.Tag, pattern));
+                // % і _ із пошуку — буквально: інакше «_» знаходив би будь-яку назву
+                var escaped = search.Trim().Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_");
+                var pattern = $"%{escaped}%";
+                query = query.Where(c => EF.Functions.ILike(c.Name, pattern, @"\")
+                                      || EF.Functions.ILike(c.Tag, pattern, @"\"));
             }
 
             var total = await query.CountAsync(cancellationToken);

@@ -25,6 +25,7 @@ public class TowerFloorsTests
                 h.ConvoySize = 100;
                 h.ConvoysByLevel = [new ConvoyStepConfig { Level = 1, Convoys = 2 }, new ConvoyStepConfig { Level = 10, Convoys = 3 }];
             })
+            .WithRealtimeBattle()
             .Build();
 
         foreach (var hero in _config.Heroes)
@@ -35,8 +36,6 @@ public class TowerFloorsTests
 
         var battle = _config.RealtimeBattle;
         battle.HeroHealthScale = 4;
-        battle.HeroAttackIntervals = new() { ["warrior"] = 1.25, ["knight"] = 1.0, ["archer"] = 1.3, ["mage"] = 1.3 };
-        battle.UnitAttackIntervals = new() { [TestKeys.Infantry] = 1.25, [TestKeys.Cavalry] = 1.0, [TestKeys.Archer] = 1.4 };
 
         _config.Tower = new TowerConfig
         {

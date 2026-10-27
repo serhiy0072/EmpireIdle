@@ -200,11 +200,11 @@ namespace EmpireIdle.Domain.Dungeons
                 throw new RequirementNotMetException(RefusalReasons.DungeonTargetUnreachable, "That target cannot be reached right now.");
         }
 
-        private static bool IsUseful(BattleState state, Combatant actor, CombatSkill ability)
+        private bool IsUseful(BattleState state, Combatant actor, CombatSkill ability)
         {
             // Лікування в повну команду й щит на вже щитованого — змарнована перезарядка
             if (ability.HealPercent > 0)
-                return state.Alive(actor.Side).Any(c => c.Health < c.MaxHealth * 0.9);
+                return state.Alive(actor.Side).Any(c => c.Health < c.MaxHealth * _config.AutoHealBelowShare);
 
             if (ability.ShieldPercent > 0)
                 return state.Alive(actor.Side).Any(c => c.ShieldPoints <= 0);
@@ -409,10 +409,11 @@ namespace EmpireIdle.Domain.Dungeons
 
             if (lifesteal > 0 && damage > 0)
             {
-                healed = Math.Round(damage * lifesteal, 1);
+                // У лог — реально вилікуване: понад стелю здоров'я нічого не додається, як і в realtime-бою
+                healed = Math.Max(0, Math.Min(actor.MaxHealth - combatants[actorIndex].Health, Math.Round(damage * lifesteal, 1)));
                 combatants[actorIndex] = combatants[actorIndex] with
                 {
-                    Health = Math.Min(actor.MaxHealth, combatants[actorIndex].Health + healed),
+                    Health = combatants[actorIndex].Health + healed,
                 };
             }
 

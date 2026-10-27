@@ -15,10 +15,11 @@ namespace EmpireIdle.Domain.Exceptions
         protected DomainException(RefusalReason reason, string message, object[] values) : base(message)
         {
             // Розбіжність — баг у місці кидка, а не відмова гравцю: клієнт підставив
-            // би в текст порожнє місце замість рівня чи назви
+            // би в текст порожнє місце замість рівня чи назви. InvalidOperationException, а не
+            // ArgumentException: та мапиться на 400 і сховала б баг серед помилок клієнта
             if (values.Length != reason.ArgNames.Count)
-                throw new ArgumentException(
-                    $"Refusal '{reason.Key}' expects {reason.ArgNames.Count} values, got {values.Length}.", nameof(values));
+                throw new InvalidOperationException(
+                    $"Refusal '{reason.Key}' expects {reason.ArgNames.Count} values, got {values.Length}.");
 
             Reason = reason.Key;
             Args = reason.ArgNames.Zip(values).ToDictionary(pair => pair.First, pair => pair.Second);

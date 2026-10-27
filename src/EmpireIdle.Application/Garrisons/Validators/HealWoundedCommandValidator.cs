@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Garrisons.Commands;
 using FluentValidation;
 
@@ -15,7 +16,23 @@ namespace EmpireIdle.Application.Garrisons.Validators
             {
                 unit.RuleFor(u => u.Key.UnitType).NotEmpty().MaximumLength(50);
                 unit.RuleFor(u => u.Key.Level).GreaterThanOrEqualTo(1);
-                unit.RuleFor(u => u.Value).GreaterThan(0);
+                unit.RuleFor(u => u.Value).GreaterThan(0).LessThanOrEqualTo(UnitCountLimit.MaxPerStack);
+            });
+        }
+    }
+
+    public sealed class RecoverUnitsCommandValidator : AbstractValidator<RecoverUnitsCommand>
+    {
+        public RecoverUnitsCommandValidator()
+        {
+            RuleFor(x => x.PlayerId).NotEmpty();
+            RuleFor(x => x.Units).NotEmpty();
+
+            RuleForEach(x => x.Units).ChildRules(unit =>
+            {
+                unit.RuleFor(u => u.Key.UnitType).NotEmpty().MaximumLength(50);
+                unit.RuleFor(u => u.Key.Level).GreaterThanOrEqualTo(1);
+                unit.RuleFor(u => u.Value).GreaterThan(0).LessThanOrEqualTo(UnitCountLimit.MaxPerStack);
             });
         }
     }

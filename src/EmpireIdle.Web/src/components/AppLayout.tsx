@@ -138,7 +138,15 @@ export default function AppLayout() {
                     </button>
                   )}
 
-                  <button type="button" onClick={logout} className="w-full rounded-lg bg-white/10 px-3 py-1 text-sm hover:bg-white/20">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Кеш — дані цього гравця: наступний, хто ввійде в цій вкладці, їх не побачить
+                      queryClient.clear();
+                      void logout();
+                    }}
+                    className="w-full rounded-lg bg-white/10 px-3 py-1 text-sm hover:bg-white/20"
+                  >
                     Вийти
                   </button>
                 </div>

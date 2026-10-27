@@ -29,10 +29,7 @@ public class TowerQueriesTests
             h.RoleUnits = new() { ["warrior"] = TestKeys.Infantry, ["knight"] = TestKeys.Cavalry, ["archer"] = TestKeys.Archer, ["mage"] = TestKeys.Archer };
             h.ConvoySize = 100;
             h.ConvoysByLevel = [new ConvoyStepConfig { Level = 1, Convoys = 1 }];
-        }).Build();
-
-        _config.RealtimeBattle.HeroAttackIntervals = new() { ["warrior"] = 1.25, ["knight"] = 1.0, ["archer"] = 1.3, ["mage"] = 1.3 };
-        _config.RealtimeBattle.UnitAttackIntervals = new() { [TestKeys.Infantry] = 1.25, [TestKeys.Cavalry] = 1.0, [TestKeys.Archer] = 1.4 };
+        }).WithRealtimeBattle().Build();
 
         _config.Tower = new TowerConfig
         {

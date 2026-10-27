@@ -38,5 +38,8 @@ namespace EmpireIdle.Application.Interfaces
         /// </summary>
         Task<List<ClanRequest>> GetPendingForPlayerAsync(Guid playerId, DateTime utcNow,
             CancellationToken cancellationToken = default);
+
+        /// <summary>Видаляє вирішені й прострочені заявки всіх світів, старші за <paramref name="before"/>, одразу в БД.</summary>
+        Task<int> DeleteStaleBeforeAsync(DateTime before, CancellationToken cancellationToken = default);
     }
 }

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Garrisons.Commands;
 using FluentValidation;
 
@@ -9,7 +10,7 @@ namespace EmpireIdle.Application.Garrisons.Validators
         {
             RuleFor(x => x.PlayerId).NotEmpty();
             RuleFor(x => x.UnitType).NotEmpty().MaximumLength(50);
-            RuleFor(x => x.Count).GreaterThan(0);
+            RuleFor(x => x.Count).GreaterThan(0).LessThanOrEqualTo(UnitCountLimit.MaxPerStack);
         }
     }
 }

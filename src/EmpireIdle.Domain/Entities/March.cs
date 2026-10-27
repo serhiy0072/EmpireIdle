@@ -35,6 +35,16 @@ namespace EmpireIdle.Domain.Entities
         public DateTime ArrivesAt { get; private set; }
 
         /// <summary>
+        /// Не раніше якого моменту сканер знову береться за прибуття, що впало; null — не падало.
+        /// Без цього похід зі стабільною помилкою повторювався б кожні дві секунди й тримав би
+        /// голову пачки сканера, витісняючи здорові.
+        /// </summary>
+        public DateTime? ArrivalRetryAt { get; private set; }
+
+        private static readonly TimeSpan MinArrivalRetry = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan MaxArrivalRetry = TimeSpan.FromHours(1);
+
+        /// <summary>
         /// Коли армія вийшла. Потрібне для розвороту після переїзду поселення:
         /// зворотний час дорівнює вже пройденому, а не відстані до нових координат —
         /// інакше телепорт у центр робив би далекі походи безкоштовними.
@@ -311,6 +321,22 @@ namespace EmpireIdle.Domain.Entities
             // Захисник чекає за старим часом — тривога мусить знати новий
             if (State == MarchState.Outbound && IsHostileToPlayers)
                 RaiseDomainEvent(new HostileMarchRetimed(Id, TargetType, TargetId, ArrivesAt, utcNow));
+        }
+
+        /// <summary>
+        /// Прибуття впало — відкладає наступну спробу на стільки, на скільки похід уже прострочений
+        /// (від 10 секунд до години). Пауза подвоюється сама собою без лічильника спроб, а нова нога
+        /// з новим ArrivesAt починає відлік спочатку.
+        /// </summary>
+        public void DeferArrival(DateTime utcNow)
+        {
+            var overdue = utcNow - ArrivesAt;
+            var delay = overdue < MinArrivalRetry ? MinArrivalRetry
+                : overdue > MaxArrivalRetry ? MaxArrivalRetry
+                : overdue;
+
+            ArrivalRetryAt = utcNow + delay;
+            Touch(utcNow);
         }
 
         private void Touch(DateTime utcNow) => UpdatedAt = utcNow;

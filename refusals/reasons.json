@@ -198,6 +198,7 @@
   "hero.notOwned": [
     "hero"
   ],
+  "hero.notWounded": [],
   "hero.onTheMove": [],
   "hero.shardUpgradeLocked": [
     "rarity"
@@ -337,6 +338,7 @@
   "teleport.cellOccupied": [],
   "teleport.cellUnsuitable": [],
   "teleport.noClan": [],
+  "teleport.noFreeCell": [],
   "teleport.outsideClanTerritory": [],
   "teleport.outsideRegion": [],
   "teleport.tooFar": [

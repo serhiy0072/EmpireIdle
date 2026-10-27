@@ -28,7 +28,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var config = Config();
             var terrain = new TerrainGenerator(config);
             var geometry = new WorldGeometry(config); 
-            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
+            var placer = new SettlementPlacer(terrain, geometry, new DeterministicRandom(42));
 
             // 50 спроб поспіль — щоб зловити випадковість
             for (var i = 0; i < 50; i++)
@@ -47,7 +47,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var config = Config();
             var terrain = new TerrainGenerator(config);
             var geometry = new WorldGeometry(config); 
-            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
+            var placer = new SettlementPlacer(terrain, geometry, new DeterministicRandom(42));
 
             for (var i = 0; i < 50; i++)
             {
@@ -87,7 +87,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var config = Config();
             var terrain = new TerrainGenerator(config);
             var geometry = new WorldGeometry(config); 
-            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
+            var placer = new SettlementPlacer(terrain, geometry, new DeterministicRandom(42));
 
             var occupied = new HashSet<(int, int)>();
 
@@ -113,7 +113,7 @@ namespace EmpireIdle.Domain.Tests.Services
             var config = Config();
             var terrain = new TerrainGenerator(config);
             var geometry = new WorldGeometry(config); 
-            var placer = new SettlementPlacer(terrain, geometry, new SystemRandomSource());
+            var placer = new SettlementPlacer(terrain, geometry, new DeterministicRandom(42));
 
             // усе зайнято
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -127,7 +127,7 @@ namespace EmpireIdle.Domain.Tests.Services
         {
             var config = Config();
             var terrain = new TerrainGenerator(config);
-            return (terrain, new SettlementPlacer(terrain, new WorldGeometry(config), new SystemRandomSource()));
+            return (terrain, new SettlementPlacer(terrain, new WorldGeometry(config), new DeterministicRandom(42)));
         }
 
         /// <summary>Зайняті клітини квадрата з набору — так, як їх віддала б БД.</summary>

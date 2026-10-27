@@ -25,11 +25,17 @@ public class FeedArtifactCommandTests
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly GameConfig _config;
 
+    private readonly List<EquipmentItem> _equipment = [];
+
     public FeedArtifactCommandTests()
     {
         _config = HeroTestConfig.Create();
         _config.Items.Add(new ItemConfig { Key = Wrench, Type = "wrench", ArtifactExperience = 100 });
         _config.Items.Add(new ItemConfig { Key = "speedup_1m", Type = "speedup", SpeedUpMinutes = 1 });
+
+        // Їжа читається одним запитом — віддаємо те з відомого, що попросили
+        _inventory.GetEquipmentByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(call => _equipment.Where(e => call.Arg<IReadOnlyCollection<Guid>>().Contains(e.Id)).ToList());
     }
 
     private EquipmentItem GivenItem(Rarity rarity = Rarity.Common, Guid? owner = null)
@@ -37,6 +43,7 @@ public class FeedArtifactCommandTests
         var item = new EquipmentItem(Guid.NewGuid(), owner ?? PlayerId, 1, HeroTestConfig.Artifact,
             EquipmentSlot.Artifact, rarity, Now);
         _inventory.GetEquipmentByIdAsync(item.Id, Arg.Any<CancellationToken>()).Returns(item);
+        _equipment.Add(item);
         return item;
     }
 
@@ -214,8 +221,9 @@ public class FeedArtifactCommandTests
         var target = GivenItem();
         var stack = GivenWrenches(1);
 
-        await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var shortage = await Assert.ThrowsAsync<NotEnoughResourcesException>(() =>
             Feed(target, [], new Dictionary<string, int> { [Wrench] = 2 }));
+        Assert.Equal((2, 1), (shortage.Need, shortage.Have));
 
         Assert.Equal(1, stack.Count);
     }

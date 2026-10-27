@@ -49,7 +49,8 @@ export function useClaimQuest(playerId: string) {
   return useMutation({
     mutationFn: (questKey: string) =>
       api<void>(`/api/quests/${playerId}/${questKey}/claim`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes"]),
+    // Предмети й спорядження з нагород лягають в інвентар
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes", "inventory"]),
   });
 }
 
@@ -60,6 +61,6 @@ export function useClaimAllQuests(playerId: string) {
   return useMutation({
     mutationFn: () =>
       api<ClaimAllQuestsResponse>(`/api/quests/${playerId}/claim-all`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes", "inventory"]),
   });
 }
