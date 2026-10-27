@@ -804,6 +804,10 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<bool>("IsLeaderRole")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Key")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(32)

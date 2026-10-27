@@ -80,23 +80,23 @@ namespace EmpireIdle.Domain.Entities
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
                 | ClanPermission.ManageRoles | ClanPermission.EditProfile
                 | ClanPermission.BuildStructures | ClanPermission.Disband,
-                isLeaderRole: true),
+                isLeaderRole: true, key: "leader"),
 
             new(Guid.NewGuid(), clanId, "Deputy", 85,
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
                 | ClanPermission.ManageRoles | ClanPermission.EditProfile
-                | ClanPermission.BuildStructures),
+                | ClanPermission.BuildStructures, key: "deputy"),
 
             new(Guid.NewGuid(), clanId, "General", 60,
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
-                | ClanPermission.BuildStructures),
+                | ClanPermission.BuildStructures, key: "general"),
 
             new(Guid.NewGuid(), clanId, "Officer", 40,
-                ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles),
+                ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles, key: "officer"),
 
-            new(Guid.NewGuid(), clanId, "Veteran", 20, ClanPermission.None),
+            new(Guid.NewGuid(), clanId, "Veteran", 20, ClanPermission.None, key: "veteran"),
 
-            new(Guid.NewGuid(), clanId, "Member", 0, ClanPermission.None, isDefaultRole: true)
+            new(Guid.NewGuid(), clanId, "Member", 0, ClanPermission.None, isDefaultRole: true, key: "member")
         ];
 
         #endregion
@@ -185,7 +185,7 @@ namespace EmpireIdle.Domain.Entities
 
             if (targetRole.Rank >= actor.Rank)
                 throw new RequirementNotMetException(RefusalReasons.ClanNoPermission,
-                    $"'{actor.Name}' cannot kick a '{targetRole.Name}'.", actor.Name);
+                    $"'{actor.Name}' cannot kick a '{targetRole.Name}'.", actor.Name, actor.Key ?? "");
 
             _members.Remove(target);
             Touch(utcNow);
@@ -206,7 +206,7 @@ namespace EmpireIdle.Domain.Entities
                 throw new RequirementNotMetException("Leadership is transferred, not assigned.");
 
             if (role.Rank >= actor.Rank)
-                throw new RequirementNotMetException(RefusalReasons.ClanNoPermission, $"'{actor.Name}' cannot grant '{role.Name}'.", actor.Name);
+                throw new RequirementNotMetException(RefusalReasons.ClanNoPermission, $"'{actor.Name}' cannot grant '{role.Name}'.", actor.Name, actor.Key ?? "");
 
             var target = _members.FirstOrDefault(m => m.PlayerId == targetId)
                 ?? throw new EntityNotFoundException("Clan member", targetId);
@@ -215,7 +215,7 @@ namespace EmpireIdle.Domain.Entities
 
             if (currentRole.Rank >= actor.Rank)
                 throw new RequirementNotMetException(RefusalReasons.ClanNoPermission,
-                    $"'{actor.Name}' cannot change the role of a '{currentRole.Name}'.", actor.Name);
+                    $"'{actor.Name}' cannot change the role of a '{currentRole.Name}'.", actor.Name, actor.Key ?? "");
 
             target.AssignRole(role.Id);
             Touch(utcNow);
@@ -379,7 +379,7 @@ namespace EmpireIdle.Domain.Entities
 
             if (excess != ClanPermission.None)
                 throw new RequirementNotMetException(RefusalReasons.ClanPermissionsExceedOwn,
-                    $"'{actor.Name}' cannot grant {excess} it does not have.", actor.Name);
+                    $"'{actor.Name}' cannot grant {excess} it does not have.", actor.Name, actor.Key ?? "");
         }
 
         private ClanRole RequireRole(Guid actorId, ClanPermission permission)
@@ -389,7 +389,7 @@ namespace EmpireIdle.Domain.Entities
 
             if (!role.Can(permission))
                 throw new RequirementNotMetException(RefusalReasons.ClanNoPermission,
-                    $"'{role.Name}' lacks the {permission} permission.", role.Name);
+                    $"'{role.Name}' lacks the {permission} permission.", role.Name, role.Key ?? "");
 
             return role;
         }
@@ -402,7 +402,7 @@ namespace EmpireIdle.Domain.Entities
         {
             if (rank >= actor.Rank)
                 throw new RequirementNotMetException(RefusalReasons.ClanNoPermission,
-                    $"'{actor.Name}' cannot manage roles at rank {rank} or above.", actor.Name);
+                    $"'{actor.Name}' cannot manage roles at rank {rank} or above.", actor.Name, actor.Key ?? "");
         }
 
         private void EnsureNameFree(string name, Guid? exceptRoleId)

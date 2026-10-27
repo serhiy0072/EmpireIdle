@@ -66,12 +66,12 @@ namespace EmpireIdle.API.Controllers
                 return Ok(null);
 
             var roles = clan.Roles
-                .Select(r => new ClanRoleResponse(r.Id, r.Name, r.Rank,
+                .Select(r => new ClanRoleResponse(r.Id, r.Name, r.Key, r.Rank,
                     PermissionNames(r.Permissions), r.IsLeaderRole, r.IsDefaultRole))
                 .ToList();
 
             var members = clan.Members
-                .Select(m => new ClanMemberResponse(m.PlayerId, m.PlayerName, m.RoleId, m.RoleName,
+                .Select(m => new ClanMemberResponse(m.PlayerId, m.PlayerName, m.RoleId, m.RoleName, m.RoleKey,
                     m.Rank, m.Power, m.JoinedAt, m.LastActiveAt))
                 .ToList();
 

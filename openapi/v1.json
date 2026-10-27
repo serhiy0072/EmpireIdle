@@ -12127,6 +12127,10 @@
           "roleName": {
             "type": "string"
           },
+          "roleKey": {
+            "type": "string",
+            "nullable": true
+          },
           "rank": {
             "type": "integer",
             "format": "int32"
@@ -12258,6 +12262,10 @@
           },
           "name": {
             "type": "string"
+          },
+          "key": {
+            "type": "string",
+            "nullable": true
           },
           "rank": {
             "type": "integer",

@@ -13,6 +13,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(r => r.Id).ValueGeneratedNever(); // ключ ставить домен, не БД/EF
 
             builder.Property(r => r.Name).IsRequired().HasMaxLength(32);
+            builder.Property(r => r.Key).HasMaxLength(32);
             builder.Property(r => r.Permissions).HasConversion<int>();
 
             // Назви ролей унікальні в межах клану — інакше в списку

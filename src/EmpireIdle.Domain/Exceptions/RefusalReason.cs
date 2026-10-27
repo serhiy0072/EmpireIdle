@@ -174,8 +174,8 @@
 
         public static readonly RefusalReason ClanLeaderMustTransfer = new("clan.leaderMustTransfer");
 
-        /// <summary>Роль гравця не дозволяє дію; role — назва цієї ролі в клані.</summary>
-        public static readonly RefusalReason ClanNoPermission = new("clan.noPermission", "role");
+        /// <summary>Роль гравця не дозволяє дію; role — назва цієї ролі в клані, roleKey — ключ вбудованої ролі або порожньо.</summary>
+        public static readonly RefusalReason ClanNoPermission = new("clan.noPermission", "role", "roleKey");
 
         public static readonly RefusalReason ClanLeaderOnly = new("clan.leaderOnly");
 
@@ -184,8 +184,8 @@
 
         public static readonly RefusalReason ClanRoleNameTaken = new("clan.roleNameTaken", "name");
 
-        /// <summary>Роль видає дозволи, яких сама не має; role — назва ролі виконавця.</summary>
-        public static readonly RefusalReason ClanPermissionsExceedOwn = new("clan.permissionsExceedOwn", "role");
+        /// <summary>Роль видає дозволи, яких сама не має; role — назва ролі виконавця, roleKey — ключ вбудованої ролі або порожньо.</summary>
+        public static readonly RefusalReason ClanPermissionsExceedOwn = new("clan.permissionsExceedOwn", "role", "roleKey");
 
         public static readonly RefusalReason ClanRequestResolved = new("clan.requestResolved");
 

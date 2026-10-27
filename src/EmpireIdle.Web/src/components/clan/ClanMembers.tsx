@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { ClanMemberResponse, ClanRoleResponse } from "../../lib/apiTypes";
+import { clanRoleName } from "../../lib/clanRoles";
 
 interface Props {
   members: ClanMemberResponse[];
@@ -97,16 +98,16 @@ export default function ClanMembers({
                     >
                       {/* Поточна роль може бути вищою за доступні — лишаємо її в списку, щоб select не збрехав */}
                       {!assignable.some((role) => role.id === member.roleId) && (
-                        <option value={member.roleId}>{member.roleName}</option>
+                        <option value={member.roleId}>{clanRoleName(member.roleKey, member.roleName)}</option>
                       )}
                       {assignable.map((role) => (
                         <option key={role.id} value={role.id}>
-                          {role.name}
+                          {clanRoleName(role.key, role.name)}
                         </option>
                       ))}
                     </select>
                   ) : (
-                    member.roleName
+                    clanRoleName(member.roleKey, member.roleName)
                   )}
                 </td>
                 <td className="px-3 py-2 text-right text-slate-700">{compact(member.power)}</td>

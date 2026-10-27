@@ -107,11 +107,13 @@
     "tag"
   ],
   "clan.noPermission": [
-    "role"
+    "role",
+    "roleKey"
   ],
   "clan.notMember": [],
   "clan.permissionsExceedOwn": [
-    "role"
+    "role",
+    "roleKey"
   ],
   "clan.requestExpired": [],
   "clan.requestResolved": [],

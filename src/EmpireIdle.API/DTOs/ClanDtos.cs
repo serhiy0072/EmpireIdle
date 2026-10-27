@@ -48,21 +48,26 @@ public record ClanProfileResponse(
     bool IsFull,
     DateTime CreatedAt);
 
-/// <summary>Роль клану. Дозволи — списком назв, а не бітовою маскою.</summary>
+/// <summary>
+/// Роль клану. Дозволи — списком назв, а не бітовою маскою. Key — ключ вбудованої ролі:
+/// за ним клієнт показує назву мовою гравця; null — назву дав клан.
+/// </summary>
 public record ClanRoleResponse(
     Guid Id,
     string Name,
+    string? Key,
     int Rank,
     List<string> Permissions,
     bool IsLeaderRole,
     bool IsDefaultRole);
 
-/// <summary>Учасник клану.</summary>
+/// <summary>Учасник клану. RoleKey — як Key у ролі.</summary>
 public record ClanMemberResponse(
     Guid PlayerId,
     string PlayerName,
     Guid RoleId,
     string RoleName,
+    string? RoleKey,
     int Rank,
     double Power,
     DateTime JoinedAt,

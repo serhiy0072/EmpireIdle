@@ -27,6 +27,7 @@ import {
   useTransferLeadership,
   useUpdateClanSettings,
 } from "../lib/queries/clans";
+import { clanRoleName } from "../lib/clanRoles";
 import { useGarrison } from "../lib/queries/garrison";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
@@ -142,7 +143,7 @@ export default function ClanPage() {
           [{clan.data.tag}] {clan.data.name}
         </h1>
         <p className="text-sm text-slate-500">
-          {me?.roleName ?? "—"}
+          {me === undefined ? "—" : clanRoleName(me.roleKey, me.roleName)}
           {permissions.size > 0 && ` · ${[...permissions].map(permissionLabel).join(", ")}`}
         </p>
       </div>

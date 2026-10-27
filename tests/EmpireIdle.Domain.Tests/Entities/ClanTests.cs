@@ -46,6 +46,31 @@ public class ClanTests
         return playerId;
     }
 
+    /// <summary>Вбудовані ролі мають ключ: за ним клієнт показує назву мовою гравця.</summary>
+    [Fact]
+    public void NewClan_ShouldKeyEveryBuiltInRole()
+    {
+        var clan = NewClan();
+
+        Assert.Equal(["leader", "deputy", "general", "officer", "veteran", "member"],
+            clan.Roles.OrderByDescending(r => r.Rank).Select(r => r.Key));
+    }
+
+    /// <summary>Перейменована роль — уже назва клану: ключ зникає, щоб клієнт не підмінив її перекладом.</summary>
+    [Fact]
+    public void UpdateRole_WithANewName_ShouldDropTheBuiltInKey()
+    {
+        var clan = NewClan();
+        var officer = clan.Roles.Single(r => r.Key == "officer");
+        var veteran = clan.Roles.Single(r => r.Key == "veteran");
+
+        clan.UpdateRole(LeaderId, officer.Id, "Marshal", officer.Rank, officer.Permissions, Now);
+        clan.UpdateRole(LeaderId, veteran.Id, veteran.Name, 25, veteran.Permissions, Now);
+
+        Assert.Null(officer.Key);
+        Assert.Equal("veteran", veteran.Key);
+    }
+
     [Fact]
     public void Join_AFullClan_ShouldNameTheCapacity()
     {
@@ -106,6 +131,7 @@ public class ClanTests
 
         Assert.Equal(RefusalReasons.ClanNoPermission.Key, refusal.Reason);
         Assert.Equal("Member", refusal.Args["role"]);
+        Assert.Equal("member", refusal.Args["roleKey"]);
     }
 
     /// <summary>Право є, але ціль рівна за рангом — для гравця це та сама відмова ролі.</summary>

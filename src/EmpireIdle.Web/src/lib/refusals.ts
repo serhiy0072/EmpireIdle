@@ -6,6 +6,7 @@
  * файлу, тож новий ключ без тексту тут не пройде typecheck.
  */
 
+import { clanRoleName } from "./clanRoles";
 import { classLabel } from "./heroClasses";
 
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
@@ -156,11 +157,12 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "clan.alreadyInvited": () => "Цього гравця вже запрошено — дочекайтеся відповіді",
   "clan.applicantJoinedElsewhere": () => "Гравець уже вступив до іншого клану",
   "clan.leaderMustTransfer": () => "Лідер не може просто вийти — спершу передайте лідерство",
-  "clan.noPermission": ({ role }) => `Роль «${role}» не дозволяє цю дію`,
+  "clan.noPermission": ({ role, roleKey }) => `Роль «${clanRoleName(roleKey, role)}» не дозволяє цю дію`,
   "clan.leaderOnly": () => "Лідерство може передати лише лідер",
   "clan.roleProtected": () => "Роль лідера й роль новачків не можна змінити чи видалити",
   "clan.roleNameTaken": ({ name }) => `Роль «${name}» уже є в клані`,
-  "clan.permissionsExceedOwn": ({ role }) => `Роль «${role}» не може видати дозволи, яких сама не має`,
+  "clan.permissionsExceedOwn": ({ role, roleKey }) =>
+    `Роль «${clanRoleName(roleKey, role)}» не може видати дозволи, яких сама не має`,
   "clan.requestResolved": () => "Цю заявку вже розглянули",
   "clan.requestExpired": () => "Термін заявки минув",
   "clan.helpAlreadyRequested": () => "Допомогу для цього вже попросили",
