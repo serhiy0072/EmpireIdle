@@ -60,7 +60,7 @@ namespace EmpireIdle.Application.Dungeons.Services
                 // Поранити героя могли між вибором складу й стартом — наприклад, у бою маршу
                 if (hero.State == HeroState.Wounded)
                     throw new RequirementNotMetException(RefusalReasons.DungeonHeroWounded,
-                        $"Hero {hero.Id} is wounded and cannot enter a dungeon.", config.DisplayName);
+                        $"Hero {hero.Id} is wounded and cannot enter a dungeon.", hero.HeroKey);
 
                 var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
                 var stats = _heroStats.Compute(hero, config, equipped);

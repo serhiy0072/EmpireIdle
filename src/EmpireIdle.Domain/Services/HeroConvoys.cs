@@ -56,7 +56,7 @@ namespace EmpireIdle.Domain.Services
 
                 if (limited && total > capacity)
                     throw new RequirementNotMetException(RefusalReasons.MarchOverCapacity,
-                        $"The heroes lead up to {capacity} units, {total} were sent.", capacity, total, Names(leaders));
+                        $"The heroes lead up to {capacity} units, {total} were sent.", capacity, total, Keys(leaders));
 
                 return;
             }
@@ -66,7 +66,7 @@ namespace EmpireIdle.Domain.Services
 
             if (twin is not null)
                 throw new RequirementNotMetException(RefusalReasons.MarchSameRole,
-                    $"Two heroes of class '{twin.Key}' in one march.", string.Join(", ", twin.Select(l => Name(l))));
+                    $"Two heroes of class '{twin.Key}' in one march.", Keys(twin));
 
             foreach (var (unit, count) in sent)
             {
@@ -74,7 +74,7 @@ namespace EmpireIdle.Domain.Services
 
                 if (leader.Hero is null)
                     throw new RequirementNotMetException(RefusalReasons.MarchWrongUnits,
-                        $"No hero in the march leads '{unit}'.", unit, Names(leaders));
+                        $"No hero in the march leads '{unit}'.", unit, Keys(leaders));
 
                 if (!limited)
                     continue;
@@ -83,12 +83,11 @@ namespace EmpireIdle.Domain.Services
 
                 if (count > capacity)
                     throw new RequirementNotMetException(RefusalReasons.MarchOverCapacity,
-                        $"Hero '{leader.Hero.HeroKey}' leads up to {capacity} units, {count} were sent.", capacity, count, Name(leader));
+                        $"Hero '{leader.Hero.HeroKey}' leads up to {capacity} units, {count} were sent.", capacity, count, leader.Hero.HeroKey);
             }
         }
 
-        private static string Name((Hero Hero, HeroConfig? Config) leader) => leader.Config?.DisplayName ?? leader.Hero.HeroKey;
-
-        private static string Names(IEnumerable<(Hero Hero, HeroConfig? Config)> leaders) => string.Join(", ", leaders.Select(Name));
+        // Ключі героїв через кому: назви мовою гравця підставляє клієнт із каталогу
+        private static string Keys(IEnumerable<(Hero Hero, HeroConfig? Config)> leaders) => string.Join(",", leaders.Select(l => l.Hero.HeroKey));
     }
 }

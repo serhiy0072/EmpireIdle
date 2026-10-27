@@ -97,7 +97,7 @@ public class HeroConvoysTests
 
         Assert.Equal(RefusalReasons.MarchOverCapacity.Key, refusal.Reason);
         Assert.Equal(201, refusal.Args["sent"]);
-        Assert.Equal("Бран", refusal.Args["hero"]);
+        Assert.Equal(Warrior.Key, refusal.Args["hero"]);
     }
 
     /// <summary>Місткість — у кожного героя своя: сильний воїн не возить лучників за слабкого лучника.</summary>
@@ -110,7 +110,7 @@ public class HeroConvoysTests
         var refusal = Assert.Throws<RequirementNotMetException>(() =>
             Convoys().EnsureCanLead([Leader(Warrior, level: 80), Leader(Archer)], units));
 
-        Assert.Equal("Ліра", refusal.Args["hero"]);
+        Assert.Equal(Archer.Key, refusal.Args["hero"]);
     }
 
     [Fact]

@@ -99,7 +99,7 @@ namespace EmpireIdle.Application.Clans.Commands
 
             if (!_status.IsUnlocked(village, embassyKey))
                 throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
-                    $"Founding a clan requires the '{embassyKey}'.", _catalog.Building(embassyKey).DisplayName);
+                    $"Founding a clan requires the '{embassyKey}'.", embassyKey);
         }
     }
 }

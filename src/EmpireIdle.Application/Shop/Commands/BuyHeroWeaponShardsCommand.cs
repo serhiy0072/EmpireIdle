@@ -60,7 +60,7 @@ namespace EmpireIdle.Application.Shop.Commands
 
             if (!_catalog.Config.HeroSettings.WeaponShardPriceGems.TryGetValue(config.Rank, out var price))
                 throw new RequirementNotMetException(RefusalReasons.HeroWeaponNotSold,
-                    $"Weapon shards of '{hero.HeroKey}' are not sold.", config.DisplayName);
+                    $"Weapon shards of '{hero.HeroKey}' are not sold.", hero.HeroKey);
 
             // Зброя вже на стелі — шматки нікуди вкласти, і gems згоріли б даремно
             var maxWeapon = _catalog.Config.HeroSettings.MaxWeaponLevel;

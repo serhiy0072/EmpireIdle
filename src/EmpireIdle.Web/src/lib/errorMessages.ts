@@ -1,6 +1,18 @@
 import { isApiError } from "./problem";
-import { refusalText } from "./refusals";
+import { refusalText, type RefusalNames } from "./refusals";
 import { resourceGenitive } from "./resourceNames";
+
+/**
+ * Чого бракує, у родовому відмінку. Предмет чи воїнів сервер шле ключем, а родового
+ * відмінка каталог не дає — тоді назва в лапках.
+ */
+function shortfallName(key: string, names: RefusalNames | undefined): string {
+  const genitive = resourceGenitive(key);
+  if (genitive !== key || names === undefined) return genitive;
+
+  const item = names.itemName(key);
+  return `«${item !== key ? item : names.unitName(key)}»`;
+}
 
 export interface ErrorMessage {
   text: string;
@@ -15,8 +27,10 @@ export interface ErrorMessage {
  * Розгалуження за errorCode, а не за Detail: текст беку англійський.
  * Невідомий код і помилки валідації запиту — це дефект клієнта, а не дія
  * гравця, тож назовні йде нейтральне повідомлення, а деталі в консоль.
+ *
+ * names — каталог: відмови несуть ключі записів конфігу, назви дає він.
  */
-export function explainError(error: unknown): ErrorMessage {
+export function explainError(error: unknown, names?: RefusalNames): ErrorMessage {
   if (!isApiError(error)) {
     console.error("Мережева помилка", error);
     return { text: "Не вдалося з'єднатися з сервером", actionable: true };
@@ -27,13 +41,13 @@ export function explainError(error: unknown): ErrorMessage {
 
   if (shortfall !== null) {
     return {
-      text: `Не вистачає ${resourceGenitive(shortfall.resource)}: потрібно ${shortfall.need.toLocaleString("uk-UA")}, є ${shortfall.have.toLocaleString("uk-UA")}`,
+      text: `Не вистачає ${shortfallName(shortfall.resource, names)}: потрібно ${shortfall.need.toLocaleString("uk-UA")}, є ${shortfall.have.toLocaleString("uk-UA")}`,
       actionable: true,
     };
   }
 
   // Причина з сервера — власний текст для гравця з підставленими параметрами
-  const refusal = refusalText(error.problem.reason, error.problem.args);
+  const refusal = refusalText(error.problem.reason, error.problem.args, names);
 
   if (refusal !== null) {
     return { text: refusal, actionable: true };

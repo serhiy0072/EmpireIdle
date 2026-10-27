@@ -66,7 +66,7 @@ public class HeroExperienceTests
             new TrainingCampRules(HeroTestConfig.Create().HeroSettings.TrainingCamp));
 
     private Task LevelUp(Hero hero, int levels)
-        => new LevelUpHeroCommandHandler(_heroes, _unitOfWork, _progression, HeroTestConfig.Catalog(), Camps(), new FakeTimeProvider(Now),
+        => new LevelUpHeroCommandHandler(_heroes, _unitOfWork, _progression, Camps(), new FakeTimeProvider(Now),
                 NullLogger<LevelUpHeroCommandHandler>.Instance)
             .Handle(new LevelUpHeroCommand(PlayerId, hero.Id, levels), CancellationToken.None);
 

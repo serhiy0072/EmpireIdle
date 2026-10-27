@@ -75,7 +75,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
                                      && _status.IsUnlocked(village, b.Type))
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Levelling up '{request.UnitType}' requires a '{config.RequiresBuilding}'.",
-                    _catalog.Building(config.RequiresBuilding).DisplayName);
+                    config.RequiresBuilding);
 
             // Сума кроків від fromLevel до toLevel — стрибок через рівні коштує
             // так само, як послідовна прокачка, не менше (§5.2 GDD)

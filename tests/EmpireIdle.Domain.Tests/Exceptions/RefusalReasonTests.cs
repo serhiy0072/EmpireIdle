@@ -13,11 +13,11 @@ public class RefusalReasonTests
     [Fact]
     public void Exception_ShouldCarryTheReasonAndNamedArgs()
     {
-        var exception = new RequirementNotMetException(LevelLocked, "Requires town hall 5.", 5, "Ратуша");
+        var exception = new RequirementNotMetException(LevelLocked, "Requires town hall 5.", 5, "townhall");
 
         Assert.Equal("test.levelLocked", exception.Reason);
         Assert.Equal(5, exception.Args["level"]);
-        Assert.Equal("Ратуша", exception.Args["building"]);
+        Assert.Equal("townhall", exception.Args["building"]);
         Assert.Equal("Requires town hall 5.", exception.Message);
     }
 

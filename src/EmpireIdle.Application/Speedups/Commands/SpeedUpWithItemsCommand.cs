@@ -61,9 +61,9 @@ namespace EmpireIdle.Application.Speedups.Commands
 
                 var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, itemKey, cancellationToken);
 
-                // Нестача з цифрами, як і в інших витратах предметів: назва — бо ключ гравцю нічого не скаже
+                // Нестача з цифрами, як і в інших витратах предметів; назву за ключем підставляє клієнт
                 if (stack is null || stack.Count < count)
-                    throw new NotEnoughResourcesException(config.DisplayName, count, stack?.Count ?? 0);
+                    throw new NotEnoughResourcesException(itemKey, count, stack?.Count ?? 0);
 
                 minutes += (long)config.SpeedUpMinutes * count;
                 stacks.Add((stack, count));

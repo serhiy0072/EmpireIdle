@@ -85,7 +85,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
                 experience += _progression.FeedValue(food)
                     ?? throw new RequirementNotMetException(RefusalReasons.EquipmentUniqueFood,
-                        $"Equipment {food.Id} is {food.Rarity} and cannot be fed.", _catalog.FindItem(food.ItemKey)?.DisplayName ?? food.ItemKey);
+                        $"Equipment {food.Id} is {food.Rarity} and cannot be fed.", food.ItemKey);
 
                 foods.Add(food);
             }
@@ -102,9 +102,9 @@ namespace EmpireIdle.Application.Heroes.Commands
                 var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, key, cancellationToken);
 
                 // Друга вкладка встигла витратити ключі — нестача з цифрами, а не нейтральна відмова.
-                // Назва, а не ключ: клієнт показує ресурс за назвою, і ключ предмета гравцю нічого не скаже
+                // Ключ предмета: назву мовою гравця підставляє клієнт із каталогу
                 if (stack is null || stack.Count < count)
-                    throw new NotEnoughResourcesException(wrench.DisplayName, count, stack?.Count ?? 0);
+                    throw new NotEnoughResourcesException(key, count, stack?.Count ?? 0);
 
                 experience += (long)wrench.ArtifactExperience * count;
                 stacks.Add((stack, count));

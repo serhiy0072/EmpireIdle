@@ -62,12 +62,12 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var progress = await _heroRepository.GetShardsAsync(request.PlayerId, request.HeroKey, cancellationToken)
                 ?? throw new RequirementNotMetException(RefusalReasons.HeroNotEnoughShards,
-                    $"No shards of '{request.HeroKey}' collected yet.", config.DisplayName, cost, 0);
+                    $"No shards of '{request.HeroKey}' collected yet.", request.HeroKey, cost, 0);
 
             if (!progress.TryConsume(cost))
                 throw new RequirementNotMetException(RefusalReasons.HeroNotEnoughShards,
                     $"Summoning '{request.HeroKey}' needs {cost} shards, {progress.Count} collected.",
-                    config.DisplayName, cost, progress.Count);
+                    request.HeroKey, cost, progress.Count);
 
             await _heroGranter.GrantAsync(request.PlayerId, request.HeroKey, "shard-summon", now, cancellationToken);
 

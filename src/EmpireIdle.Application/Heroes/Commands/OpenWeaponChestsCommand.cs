@@ -58,7 +58,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (!chest.WeaponHeroes.Contains(hero.HeroKey))
                 throw new RequirementNotMetException(RefusalReasons.HeroWeaponNotInChest,
                     $"Chest '{chest.Key}' does not hold weapon shards of '{hero.HeroKey}'.",
-                    _catalog.FindHero(hero.HeroKey)?.DisplayName ?? hero.HeroKey);
+                    hero.HeroKey);
 
             // Зброя вже на стелі — шматки нікуди вкласти, і скрині згоріли б даремно
             var maxWeapon = _catalog.Config.HeroSettings.MaxWeaponLevel;
@@ -68,9 +68,9 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, chest.Key, cancellationToken);
 
-            // Нестача з цифрами, як і в інших витратах предметів: назва — бо ключ гравцю нічого не скаже
+            // Нестача з цифрами, як і в інших витратах предметів; назву за ключем підставляє клієнт
             if (stack is null || stack.Count < request.Count)
-                throw new NotEnoughResourcesException(chest.DisplayName, request.Count, stack?.Count ?? 0);
+                throw new NotEnoughResourcesException(chest.Key, request.Count, stack?.Count ?? 0);
 
             stack.Consume(request.Count);
 

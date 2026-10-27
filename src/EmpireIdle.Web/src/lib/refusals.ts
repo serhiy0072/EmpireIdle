@@ -13,6 +13,38 @@ type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 type RefusalArgs = Record<string, string | number>;
 
 /**
+ * Назви записів конфігу мовою гравця. Сервер кладе в параметри відмови ключі
+ * (домен мови запиту не знає), а назви підставляємо тут — з каталогу.
+ */
+export interface RefusalNames {
+  heroName: (key: string) => string;
+  itemName: (key: string) => string;
+  buildingName: (key: string) => string;
+  unitName: (key: string) => string;
+  skillName: (key: string) => string;
+  artifactSetName: (key: string) => string;
+}
+
+// Без каталогу (вхід, реєстрація) назв не буває — ключ лишається як є
+const KEYS_AS_NAMES: RefusalNames = {
+  heroName: (key) => key,
+  itemName: (key) => key,
+  buildingName: (key) => key,
+  unitName: (key) => key,
+  skillName: (key) => key,
+  artifactSetName: (key) => key,
+};
+
+/** Кілька ключів через кому — у назви через кому з пробілом. */
+function nameList(keys: string | number | undefined, name: (key: string) => string): string {
+  return String(keys ?? "")
+    .split(",")
+    .filter((key) => key !== "")
+    .map(name)
+    .join(", ");
+}
+
+/**
  * Коди Identity з відмови в реєстрації. Невідомий код не ховаємо за
  * загальною фразою мовчки — він іде в консоль, а гравець бачить нейтральний текст.
  */
@@ -46,13 +78,13 @@ function registrationText(codes: string): string {
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
-const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
+const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => string } = {
   // ---------- Акаунт ----------
   "auth.registrationRejected": ({ codes }) => registrationText(String(codes)),
 
   // ---------- Спільні ----------
-  "common.buildingRequired": ({ building }) => `Потрібна будівля «${building}»`,
-  "common.buildingLevelRequired": ({ building, level }) => `Потрібна «${building}» ${level} рівня`,
+  "common.buildingRequired": ({ building }, n) => `Потрібна будівля «${n.buildingName(String(building))}»`,
+  "common.buildingLevelRequired": ({ building, level }, n) => `Потрібна «${n.buildingName(String(building))}» ${level} рівня`,
 
   // ---------- Гарнізон ----------
   "garrison.batchSize": ({ max }) => `За раз — від 1 до ${max} воїнів`,
@@ -74,12 +106,12 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "building.serverCeiling": ({ serverLevel, ceiling }) =>
     `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
   "building.maxLevel": ({ maxLevel }) => `Будівля вже на найвищому рівні ${maxLevel}`,
-  "building.townHallCeiling": ({ building, level }) =>
-    `«${building}» не може бути вищою за ратушу (${level} рівень) — спершу підніміть ратушу`,
-  "building.villageLagging": ({ level, buildings }) =>
-    `Перш ніж ратуша перейде на новий тір, підтягніть до ${level} рівня: ${buildings}`,
+  "building.townHallCeiling": ({ building, level }, n) =>
+    `«${n.buildingName(String(building))}» не може бути вищою за ратушу (${level} рівень) — спершу підніміть ратушу`,
+  "building.villageLagging": ({ level, buildings }, n) =>
+    `Перш ніж ратуша перейде на новий тір, підтягніть до ${level} рівня: ${nameList(buildings, n.buildingName)}`,
   "building.underConstruction": () => "Ця будівля вже будується",
-  "building.notUpgradable": ({ building }) => `${building} не має рівнів — її не покращують`,
+  "building.notUpgradable": ({ building }, n) => `${n.buildingName(String(building))} не має рівнів — її не покращують`,
   "building.alreadyCompleted": () => "Будівництво вже завершено",
 
   // ---------- Розвідка ----------
@@ -100,7 +132,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "item.notGiftable": () => "Цей предмет не можна подарувати",
   "item.giftNotClanmate": () => "Дарувати можна лише членам свого клану",
   "item.giftToSelf": () => "Собі подарунок не зробиш",
-  "item.notEnough": ({ item, need, have }) => `Замало: «${item}» потрібно ${need}, є ${have}`,
+  "item.notEnough": ({ item, need, have }, n) => `Замало: «${n.itemName(String(item))}» потрібно ${need}, є ${have}`,
   "lootbox.freeNotReady": ({ at }) => `Безкоштовне відкриття буде доступне ${localTime(at)}`,
   "teleport.outsideRegion": () => "Ця клітинка поза освоєною зоною світу",
   "teleport.cellUnsuitable": () => "На цій клітинці не можна заснувати поселення",
@@ -169,21 +201,23 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   // ---------- Герої ----------
   "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
   "hero.notWounded": () => "Герой уже здоровий — лікувати нікого",
-  "hero.levelCeiling": ({ hero, ceiling }) => `${hero} уже на найвищому рівні — ${ceiling}`,
+  "hero.levelCeiling": ({ hero, ceiling }, n) => `${n.heroName(String(hero))} уже на найвищому рівні — ${ceiling}`,
   "hero.worldLevelRequired": ({ required, current }) =>
     `Наступний тір відкриється на рівні світу ${required} (зараз ${current})`,
-  "hero.evolutionItemRequired": ({ item }) => `Для еволюції потрібен предмет «${item}»`,
+  "hero.evolutionItemRequired": ({ item }, n) => `Для еволюції потрібен предмет «${n.itemName(String(item))}»`,
   "hero.maxTier": ({ tier }) => `Герой уже на найвищому тірі (${tier})`,
   "hero.tierLocked": ({ tier }) => `Герой ${tier} тіру з'явиться на рівні світу ${tier}`,
-  "hero.notEnoughShards": ({ hero, need, have }) => `«${hero}»: потрібно ${need} осколків, зібрано ${have}`,
+  "hero.notEnoughShards": ({ hero, need, have }, n) => `«${n.heroName(String(hero))}»: потрібно ${need} осколків, зібрано ${have}`,
   "hero.maxStars": () => "Усі зірки героя вже заповнені",
   "hero.weaponMaxed": ({ max }) => `Зброя героя вже на найвищому рівні (+${max})`,
   "hero.weaponShards": ({ need, have }) => `Бракує шматків зброї: потрібно ${need}, є ${have}`,
-  "hero.weaponNotInChest": ({ hero }) => `Ця скриня не дає шматків зброї героя ${hero}`,
-  "hero.weaponNotSold": ({ hero }) => `Шматки зброї героя ${hero} не продаються — лише зі скринь зброї`,
-  "march.wrongUnits": ({ unit, hero }) => `Жоден герой маршу (${hero}) не веде «${unit}» — кожен веде лише юнітів своєї ролі`,
-  "march.overCapacity": ({ capacity, sent, hero }) => `${hero} веде до ${capacity} юнітів, а відправлено ${sent}`,
-  "march.sameRole": ({ heroes }) => `У марші не може бути двох героїв однієї ролі: ${heroes}`,
+  "hero.weaponNotInChest": ({ hero }, n) => `Ця скриня не дає шматків зброї героя ${n.heroName(String(hero))}`,
+  "hero.weaponNotSold": ({ hero }, n) => `Шматки зброї героя ${n.heroName(String(hero))} не продаються — лише зі скринь зброї`,
+  "march.wrongUnits": ({ unit, hero }, n) =>
+    `Жоден герой маршу (${nameList(hero, n.heroName)}) не веде «${n.unitName(String(unit))}» — кожен веде лише юнітів своєї ролі`,
+  "march.overCapacity": ({ capacity, sent, hero }, n) => `${nameList(hero, n.heroName)} веде до ${capacity} юнітів, а відправлено ${sent}`,
+  "march.sameRole": ({ heroes }, n) =>
+    `У марші не може бути двох героїв однієї ролі: ${nameList(heroes, n.heroName)}`,
   "march.tooManyHeroes": ({ max }) => `Марш веде не більше ${max} героїв`,
   "camp.unavailable": ({ need, have }) => `Табір відкриється, коли поза ним буде ${need} героїв — зараз ${have}`,
   "camp.slotLocked": ({ slot }) => `Слот ${slot} ще не відкрито — підніміть ратушу або купіть слот`,
@@ -196,11 +230,12 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "camp.heroLevelLocked": () => "Герой у таборі: його рівень тримає табір. Виведіть героя з табору, щоб піднімати власний рівень",
   "camp.allSlotsBought": ({ count }) => `Усі ${count} додаткові слоти вже куплені`,
   "camp.slotReady": ({ slot }) => `Слот ${slot} уже готовий`,
-  "hero.skillLocked": ({ skill, level }) => `«${skill}» відкриється з ${level} рівня героя`,
+  "hero.skillLocked": ({ skill, level }, n) => `«${n.skillName(String(skill))}» відкриється з ${level} рівня героя`,
   "hero.skillStarCapped": ({ stars }) => `Наступний рівень вміння відкриється на ${stars} зірці героя`,
   "hero.skillMaxed": ({ level }) => `Вміння вже на найвищому, ${level} рівні`,
-  "hero.skillNoBook": ({ book, need, have }) => `Замало книг «${book}»: потрібно ${need}, є ${have}`,
-  "hero.notOwned": ({ hero }) => `Універсальні осколки йдуть лише у відкритого героя, а «${hero}» ще не призваний`,
+  "hero.skillNoBook": ({ book, need, have }, n) => `Замало книг «${n.itemName(String(book))}»: потрібно ${need}, є ${have}`,
+  "hero.notOwned": ({ hero }, n) =>
+    `Універсальні осколки йдуть лише у відкритого героя, а «${n.heroName(String(hero))}» ще не призваний`,
   "hero.shardUpgradeLocked": () => "Обмін відкриється, коли всі герої цієї рідкості матимуть усі зірки",
 
   // ---------- Спорядження ----------
@@ -208,17 +243,18 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "equipment.maxMastery": ({ max }) => `Заточка вже найвища — +${max}`,
   "equipment.broken": () => "Артефакт зламаний — спершу відремонтуйте його в кузні",
   "equipment.notBroken": () => "Артефакт цілий — ремонтувати нічого",
-  "equipment.uniqueFood": ({ item }) => `«${item}» не згодовується`,
+  "equipment.uniqueFood": ({ item }, n) => `«${n.itemName(String(item))}» не згодовується`,
   "equipment.foodEquipped": () => "Спершу зніміть предмет із героя — вдягнене не згодовується",
-  "equipment.wrongClass": ({ set, class: heroClass }) => `«${set}» — лише для класу «${classLabel(String(heroClass))}»`,
+  "equipment.wrongClass": ({ set, class: heroClass }, n) =>
+    `«${n.artifactSetName(String(set))}» — лише для класу «${classLabel(String(heroClass))}»`,
 
   // ---------- Ринок ----------
   "market.locked": ({ level }) => `Ринок відкриється з ратушею ${level} рівня`,
   "market.listingLimit": ({ limit }) => `Уже виставлено ${limit} лотів — стільки дозволяє ваш ринок. Підніміть його рівень`,
   "market.priceOutOfCorridor": ({ min, max }) =>
     `Ціна має бути від ${Number(min).toLocaleString("uk-UA")} до ${Number(max).toLocaleString("uk-UA")} золота`,
-  "market.notTradeable": ({ item }) => `«${item}» не продається на ринку`,
-  "market.notEnoughItems": ({ item, need, have }) => `Не вистачає «${item}»: потрібно ${need}, є ${have}`,
+  "market.notTradeable": ({ item }, n) => `«${n.itemName(String(item))}» не продається на ринку`,
+  "market.notEnoughItems": ({ item, need, have }, n) => `Не вистачає «${n.itemName(String(item))}»: потрібно ${need}, є ${have}`,
   "market.resaleCooldown": ({ until }) => `Щойно куплене можна перепродати після ${localTime(until)}`,
   "market.itemListed": () => "Предмет виставлений на ринок — спершу зніміть лот",
   "market.listingClosed": () => "Лот уже продано або знято",
@@ -231,16 +267,16 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
   "chat.toSelf": () => "Не можна написати самому собі",
 
   // ---------- Данжі ----------
-  "dungeon.townHallRequired": ({ dungeon, level }) => `«${dungeon}» відкривається з ратушею ${level} рівня`,
+  "dungeon.townHallRequired": ({ level }) => `Цей данж відкривається з ратушею ${level} рівня`,
   "dungeon.levelLocked": ({ level, previous }) => `Рівень ${level} відкриється після проходження рівня ${previous}`,
-  "dungeon.heroWounded": ({ hero }) => `${hero} зараз у госпіталі — оберіть іншого героя`,
+  "dungeon.heroWounded": ({ hero }, n) => `${n.heroName(String(hero))} зараз у госпіталі — оберіть іншого героя`,
   "dungeon.runInProgress": () => "У вас уже є незавершений забіг — поверніться до нього",
   "dungeon.targetUnreachable": () => "Цю ціль зараз не дістати: спершу бийте передню лінію або того, хто провокує",
   "dungeon.energyFull": () => "Енергія вже повна — поповнювати нічого",
   "dungeon.refillLimit": ({ limit }) => `Сьогодні енергію вже поповнено ${limit} разів — нові поповнення з опівночі UTC`,
 
   // ---------- Одномоментний бій ----------
-  "squad.heroWounded": ({ hero }) => `${hero} зараз у госпіталі — замініть героя в загоні`,
+  "squad.heroWounded": ({ hero }, n) => `${n.heroName(String(hero))} зараз у госпіталі — замініть героя в загоні`,
 
   // ---------- Вежа ----------
   "tower.townHallRequired": ({ level }) => `Тисячна вежа відкривається з ратушею ${level} рівня`,
@@ -269,10 +305,14 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs) => string } = {
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */
-export function refusalText(reason: string | undefined, args: RefusalArgs | undefined): string | null {
+export function refusalText(
+  reason: string | undefined,
+  args: RefusalArgs | undefined,
+  names: RefusalNames = KEYS_AS_NAMES,
+): string | null {
   if (reason === undefined) return null;
 
-  const text = (TEXTS as Record<string, ((args: RefusalArgs) => string) | undefined>)[reason];
+  const text = (TEXTS as Record<string, ((args: RefusalArgs, names: RefusalNames) => string) | undefined>)[reason];
 
-  return text === undefined ? null : text(args ?? {});
+  return text === undefined ? null : text(args ?? {}, names);
 }

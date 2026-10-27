@@ -82,7 +82,7 @@ namespace EmpireIdle.Application.Scouting.Commands
             // Вежа стоїть із дня 1 під туманом — рахується лише відкрита
             if (village.Buildings.All(b => b.Type != tower) || !_status.IsUnlocked(village, tower))
                 throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
-                    $"Scouting requires a '{tower}'.", _catalog.Building(tower).DisplayName);
+                    $"Scouting requires a '{tower}'.", tower);
 
             var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
                 ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");

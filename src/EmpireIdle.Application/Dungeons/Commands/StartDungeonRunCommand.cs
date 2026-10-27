@@ -86,7 +86,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
             if (mainLevel < dungeon.RequiresMainBuildingLevel)
                 throw new RequirementNotMetException(RefusalReasons.DungeonTownHallRequired,
                     $"Dungeon '{dungeon.Key}' opens at town hall {dungeon.RequiresMainBuildingLevel}.",
-                    dungeon.DisplayName, dungeon.RequiresMainBuildingLevel);
+                    dungeon.Key, dungeon.RequiresMainBuildingLevel);
 
             var cleared = await _dungeons.GetClearedLevelsAsync(request.PlayerId, cancellationToken);
             var clearedLevel = cleared.GetValueOrDefault(dungeon.Key);

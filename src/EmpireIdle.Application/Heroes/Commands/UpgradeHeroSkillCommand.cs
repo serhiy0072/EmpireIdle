@@ -62,7 +62,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             if (!HeroSkills.IsUnlocked(hero, skill))
                 throw new RequirementNotMetException(RefusalReasons.HeroSkillLocked,
-                    $"Skill '{skill.Key}' unlocks at hero level {skill.UnlockLevel}.", skill.DisplayName, skill.UnlockLevel);
+                    $"Skill '{skill.Key}' unlocks at hero level {skill.UnlockLevel}.", skill.Key, skill.UnlockLevel);
 
             // Стелі — до книги й тим самим правилом агрегату: гравець має почути «рівень максимальний»,
             // а не «бракує книг» на вже вичерпаному вмінні
@@ -73,15 +73,13 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var book = _skills.BookFor(config, skill.Half)
                 ?? throw new InvalidOperationException($"No skill book for {config.Class}/{config.Rank}/{skill.Half}.");
-
-            var bookName = _catalog.FindItem(book.ItemKey)?.DisplayName ?? book.ItemKey;
             var stack = await _inventoryRepository.GetItemAsync(request.PlayerId, book.ItemKey, cancellationToken);
             var need = _skills.BookCost(current);
             var have = stack?.Count ?? 0;
 
             if (stack is null || have < need)
                 throw new RequirementNotMetException(RefusalReasons.HeroSkillNoBook,
-                    $"Raising '{skill.Key}' needs {need} '{book.ItemKey}', the player has {have}.", bookName, need, have);
+                    $"Raising '{skill.Key}' needs {need} '{book.ItemKey}', the player has {have}.", book.ItemKey, need, have);
 
             stack.Consume(need);
 

@@ -43,6 +43,10 @@ export interface Catalog {
   buildingName: (key: string) => string;
   unitName: (key: string) => string;
   beastName: (key: string) => string;
+  /** Назва вміння за ключем — вміння живуть у героях, ключі унікальні на всю гру. */
+  skillName: (key: string) => string;
+  /** Назва родини наборів артефактів за її ключем («dawn»). */
+  artifactSetName: (key: string) => string;
   /** Звір, якого дає монстр цього типу; null — монстр не приручається. */
   beastForMonster: (monsterType: string) => CatalogBeast | null;
   /** Юніти, які ця будівля вже може тренувати на своєму поточному рівні. */
@@ -139,6 +143,8 @@ export function useCatalog(): Catalog {
     const buildings = new Map((data?.buildings ?? []).map((building) => [building.key, building]));
     const units = new Map((data?.units ?? []).map((unit) => [unit.key, unit]));
     const beasts = new Map((data?.beasts ?? []).map((beast) => [beast.key, beast]));
+    const skills = new Map((data?.heroes ?? []).flatMap((hero) => hero.skills.map((skill) => [skill.key, skill] as const)));
+    const sets = new Map((data?.artifactSets ?? []).map((set) => [set.key, set]));
     const lootboxes = new Map((data?.lootboxes ?? []).map((box) => [box.key, box]));
     const beastsByMonster = new Map((data?.beasts ?? []).map((beast) => [beast.monsterKey, beast]));
     // SetKey предмета («dawn_rare») → родина («dawn»): так картка артефакту знає свій набір
@@ -162,6 +168,8 @@ export function useCatalog(): Catalog {
       buildingName: (key) => buildings.get(key)?.displayName ?? key,
       unitName: (key) => units.get(key)?.displayName ?? key,
       beastName: (key) => beasts.get(key)?.displayName ?? key,
+      skillName: (key) => skills.get(key)?.displayName ?? key,
+      artifactSetName: (key) => sets.get(key)?.displayName ?? key,
       beastForMonster: (monsterType) => beastsByMonster.get(monsterType) ?? null,
       unitsFor: (buildingType, buildingLevel) =>
         (data?.units ?? []).filter(

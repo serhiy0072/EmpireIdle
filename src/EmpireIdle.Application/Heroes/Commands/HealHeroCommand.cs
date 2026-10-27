@@ -64,7 +64,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             if (!village.HasBuilding(buildingKey))
                 throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
-                    $"Healing a hero requires the {buildingKey}.", _catalog.Building(buildingKey).DisplayName);
+                    $"Healing a hero requires the {buildingKey}.", buildingKey);
 
             // Стан перевіряє агрегат: він же не дасть лікувати того, хто в дорозі
             hero.Heal(now);

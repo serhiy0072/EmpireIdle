@@ -76,7 +76,7 @@ namespace EmpireIdle.Application.Battles.Services
 
                 if (hero.State == HeroState.Wounded)
                     throw new RequirementNotMetException(RefusalReasons.SquadHeroWounded,
-                        $"Hero {hero.Id} is wounded and cannot fight.", config.DisplayName);
+                        $"Hero {hero.Id} is wounded and cannot fight.", hero.HeroKey);
 
                 members.Add(await MemberAsync(hero, config, lane, cancellationToken));
             }

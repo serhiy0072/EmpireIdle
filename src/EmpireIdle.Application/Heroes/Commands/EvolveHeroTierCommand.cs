@@ -83,7 +83,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var item = await _inventoryRepository.GetItemAsync(request.PlayerId, itemKey, cancellationToken)
                 ?? throw new RequirementNotMetException(RefusalReasons.HeroEvolutionItemRequired,
-                    $"Evolving this hero requires '{itemKey}'.", _catalog.FindItem(itemKey)?.DisplayName ?? itemKey);
+                    $"Evolving this hero requires '{itemKey}'.", itemKey);
 
             // Предмет списується до підняття тіру: зворотний порядок
             // лишив би тір піднятим, якби списання впало
