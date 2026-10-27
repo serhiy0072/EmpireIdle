@@ -687,31 +687,18 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     $"Locales for languages outside Localization.Languages: {string.Join(", ", unsupported)}.");
 
-            // Переклад назви, якої немає, тихо нічого б не перекладав — і приховав би друкарську помилку в ключі
-            var known = LocalizableKeys(config);
+            // Переклад тексту, якого немає, тихо нічого б не перекладав — і приховав би друкарську помилку в ключі
+            var known = LocaleTexts.LocalizableKeys(config);
 
             var unknown = config.Locales
-                .SelectMany(locale => locale.Value.Names.Keys
+                .SelectMany(locale => locale.Value.Texts.Keys
                     .Where(key => !known.Contains(key))
                     .Select(key => $"{locale.Key}: {key}"))
                 .ToList();
 
             if (unknown.Count > 0)
-                throw new InvalidOperationException($"Locales name unknown keys: {string.Join(", ", unknown)}.");
+                throw new InvalidOperationException($"Locales translate unknown keys: {string.Join(", ", unknown)}.");
         }
-
-        /// <summary>Ключі «розділ.ключ» усього, що має назву для гравця й може перекладатись.</summary>
-        public static HashSet<string> LocalizableKeys(GameConfig config)
-            => config.Buildings.Select(b => $"building.{b.Key}")
-                .Concat(config.Heroes.Select(h => $"hero.{h.Key}"))
-                .Concat(config.Items.Select(i => $"item.{i.Key}"))
-                .Concat(config.Resources.Select(r => $"resource.{r.Key}"))
-                .Concat(config.Units.Select(u => $"unit.{u.Key}"))
-                .Concat(config.Monsters.Select(m => $"monster.{m.Key}"))
-                .Concat(config.Beasts.Types.Select(b => $"beast.{b.Key}"))
-                .Concat(config.Equipment.ArtifactSets.Select(s => $"artifactSet.{s.Key}"))
-                .Concat(config.Equipment.ArtifactSlots.Select(s => $"artifactSlot.{s.Key}"))
-                .ToHashSet();
 
         /// <summary>Стат здоров'я юніта — його читає лише одномоментний бій.</summary>
         private const string UnitHealthStat = "Health";

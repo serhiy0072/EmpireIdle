@@ -34,9 +34,40 @@ public class LocalizationValidationTests
     public void Validate_ShouldRejectALocaleNameForAnUnknownKey()
     {
         var config = Config(l => l.Languages = ["uk", "en"]);
-        config.Locales["en"] = new LocaleConfig { Names = new Dictionary<string, string> { ["building.nowhere"] = "Nowhere" } };
+        config.Locales["en"] = new LocaleConfig { Texts = new Dictionary<string, string> { ["building.nowhere"] = "Nowhere" } };
 
         Assert.Contains("building.nowhere", Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config)).Message);
+    }
+
+    /// <summary>Поле, якого в записі не буває (опис будівлі), — така ж друкарська помилка, як невідомий ключ.</summary>
+    [Fact]
+    public void Validate_ShouldRejectAFieldTheSectionDoesNotHave()
+    {
+        var config = Config(l => l.Languages = ["uk", "en"]);
+        config.Locales["en"] = new LocaleConfig
+        {
+            Texts = new Dictionary<string, string> { [$"building.{TestKeys.Townhall}.lore"] = "Old stones" }
+        };
+
+        Assert.Contains("lore", Assert.Throws<InvalidOperationException>(() => GameConfigValidator.Validate(config)).Message);
+    }
+
+    [Fact]
+    public void Validate_ShouldAcceptANameAndAFieldOfAKnownEntry()
+    {
+        var config = new GameConfigBuilder().WithBuildings().WithHeroes().Build();
+        config.Localization.Languages = ["uk", "en"];
+        var hero = config.Heroes[0].Key;
+        config.Locales["en"] = new LocaleConfig
+        {
+            Texts = new Dictionary<string, string>
+            {
+                [$"building.{TestKeys.Townhall}"] = "Town Hall",
+                [$"hero.{hero}.lore"] = "Born in the hills"
+            }
+        };
+
+        Assert.Null(Record.Exception(() => GameConfigValidator.Validate(config)));
     }
 
     [Fact]

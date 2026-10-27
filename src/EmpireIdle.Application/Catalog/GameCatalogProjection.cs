@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -45,10 +45,10 @@ namespace EmpireIdle.Application.Catalog
         private static CatalogResponse Build(GameCatalog catalog, string language)
         {
             var config = catalog.Config;
-            var names = config.Locales.GetValueOrDefault(language)?.Names ?? new Dictionary<string, string>();
+            var texts = new LocaleTexts(config, language);
 
-            // Переклад поверх назви з конфіга; чого в локалі немає — показується як є
-            string Name(string section, string key, string fallback) => names.GetValueOrDefault($"{section}.{key}", fallback);
+            // Переклад поверх тексту з конфіга; чого в локалі немає — показується як є
+            string Name(string section, string key, string fallback) => texts.Name(section, key, fallback);
 
             var heroes = config.Heroes
                 .Select(hero => new CatalogHero(
@@ -57,16 +57,16 @@ namespace EmpireIdle.Application.Catalog
                     hero.Class,
                     hero.Rank.ToString(),
                     hero.NativeTier,
-                    hero.Description,
-                    hero.Lore,
+                    texts.Field("hero", hero.Key, LocaleTexts.DescriptionField, hero.Description),
+                    texts.Field("hero", hero.Key, LocaleTexts.LoreField, hero.Lore),
                     hero.Speed ?? config.HeroSettings.DefaultMarchSpeed,
                     hero.BaseStats,
                     hero.StatGrowth,
                     hero.Skills
                         .Select(skill => new CatalogSkill(
                             skill.Key,
-                            skill.DisplayName,
-                            skill.Description,
+                            Name("skill", skill.Key, skill.DisplayName),
+                            texts.Field("skill", skill.Key, LocaleTexts.DescriptionField, skill.Description),
                             skill.Half.ToString(),
                             skill.Kind.ToString(),
                             skill.UnlockLevel,
@@ -82,7 +82,7 @@ namespace EmpireIdle.Application.Catalog
                                     battle.LevelScale)
                                 : null))
                         .ToList(),
-                    hero.WeaponName,
+                    texts.Field("hero", hero.Key, LocaleTexts.WeaponField, hero.WeaponName),
                     config.HeroSettings.WeaponBonusPercents.GetValueOrDefault(hero.Rank) ?? [],
                     config.HeroSettings.WeaponShardPriceGems.TryGetValue(hero.Rank, out var shardPrice) ? shardPrice : null))
                 .ToList();
@@ -91,7 +91,7 @@ namespace EmpireIdle.Application.Catalog
                 .Select(item => new CatalogItem(
                     item.Key,
                     Name("item", item.Key, item.DisplayName),
-                    item.Description,
+                    texts.Field("item", item.Key, LocaleTexts.DescriptionField, item.Description),
                     item.Rarity.ToString(),
                     item.Type,
                     item.Slot?.ToString(),
@@ -147,7 +147,7 @@ namespace EmpireIdle.Application.Catalog
                 buildings,
                 units,
                 beasts,
-                ArtifactSets(config, Name),
+                ArtifactSets(config, texts),
                 config.Lootboxes
                     .Select(box => new CatalogLootbox(box.Key, box.PityWithin, box.Entries
                         .Zip(LootboxRoller.Odds(box), (entry, chance) => new CatalogLootboxEntry(entry.Type, entry.Key, entry.Amount, chance, entry.Pity))
@@ -223,7 +223,7 @@ namespace EmpireIdle.Application.Catalog
         /// Родини наборів у порядку рівнів. SetKey рідкості — <c>{Key}_{рідкість}</c>,
         /// та сама домовленість, за якою данж видає частину.
         /// </summary>
-        private static List<CatalogArtifactSet> ArtifactSets(GameConfig config, Func<string, string, string, string> name)
+        private static List<CatalogArtifactSet> ArtifactSets(GameConfig config, LocaleTexts texts)
         {
             var equipment = config.Equipment;
             var multipliers = equipment.ArtifactTierMultipliers;
@@ -258,13 +258,13 @@ namespace EmpireIdle.Application.Catalog
 
                     return new CatalogArtifactSet(
                         set.Key,
-                        name("artifactSet", set.Key, set.DisplayName),
+                        texts.Name("artifactSet", set.Key, set.DisplayName),
                         set.Class,
-                        set.Description,
+                        texts.Field("artifactSet", set.Key, LocaleTexts.DescriptionField, set.Description),
                         set.Tier,
                         multipliers.Count == 0 ? 1.0 : multipliers[Math.Clamp(set.Tier - 1, 0, multipliers.Count - 1)],
                         set.FocusStats,
-                        dungeon is null ? null : new CatalogSetSource(dungeon.Key, dungeon.DisplayName, dungeon.RequiresMainBuildingLevel),
+                        dungeon is null ? null : new CatalogSetSource(dungeon.Key, texts.Name("dungeon", dungeon.Key, dungeon.DisplayName), dungeon.RequiresMainBuildingLevel),
                         rarities);
                 })
                 .ToList();

@@ -321,15 +321,43 @@ public class GameCatalogProjectionTests
     /// <summary>Конфіг українською, англійська локаль перекладає ратушу, решта — з конфіга.</summary>
     private static GameCatalog WithEnglishLocale()
     {
-        var config = new GameConfigBuilder().WithHeroes().WithEquipment().Build();
+        var config = new GameConfigBuilder().WithUnits().WithHeroes().WithEquipment().Build();
 
         config.Localization.Languages = ["uk", "en"];
+        var hero = config.Heroes[0];
+        hero.Lore = "Народжений у пагорбах";
+        var skill = Passives.Attack(10);
+        skill.Description = "Б'є передню лінію";
+        hero.Skills.Add(skill);
+
         config.Locales["en"] = new LocaleConfig
         {
-            Names = new Dictionary<string, string> { [$"building.{TestKeys.Townhall}"] = "Town Hall" }
+            Texts = new Dictionary<string, string>
+            {
+                [$"building.{TestKeys.Townhall}"] = "Town Hall",
+                [$"hero.{hero.Key}.lore"] = "Born in the hills",
+                [$"skill.{skill.Key}"] = "Shield Bash",
+                [$"skill.{skill.Key}.description"] = "Strikes the front line"
+            }
         };
 
         return new GameCatalog(config);
+    }
+
+    /// <summary>Не лише назви: лор героя, назва й опис навички теж ідуть мовою гравця.</summary>
+    [Fact]
+    public void ResponseFor_ShouldTranslateFieldsBesidesNames()
+    {
+        var catalog = WithEnglishLocale();
+        var source = catalog.Config.Heroes[0];
+
+        var hero = new GameCatalogProjection(catalog).ResponseFor("en").Heroes.Single(h => h.Key == source.Key);
+
+        Assert.Equal("Born in the hills", hero.Lore);
+        Assert.Equal("Shield Bash", hero.Skills[0].DisplayName);
+        Assert.Equal("Strikes the front line", hero.Skills[0].Description);
+        // Чого в локалі немає — з конфіга
+        Assert.Equal(source.Description, hero.Description);
     }
 
     [Fact]
