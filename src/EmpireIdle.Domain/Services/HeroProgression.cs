@@ -177,6 +177,13 @@ namespace EmpireIdle.Domain.Services
         public int MarchCapacity(int heroCount) => Math.Min(heroCount, _config.MaxMarches);
 
         /// <summary>
+        /// Скільки маршів ще можна відправити: межа рахується з вільних героїв разом із тими, що вже в поході,
+        /// мінус активні марші (розвідка теж марш).
+        /// </summary>
+        public int MarchesLeft(int availableHeroes, int activeMarches)
+            => Math.Max(MarchCapacity(availableHeroes + activeMarches) - activeMarches, 0);
+
+        /// <summary>
         /// Вартість лікування героя. Лінійна від рівня: сильніший герой
         /// дорожче обходиться після поразки.
         /// </summary>

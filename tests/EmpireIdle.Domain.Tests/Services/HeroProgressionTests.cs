@@ -292,6 +292,23 @@ namespace EmpireIdle.Domain.Tests.Services
             Assert.Equal(8, progression.MarchCapacity(heroCount: 20));
         }
 
+        /// <summary>
+        /// Лишок рахується від стелі з усіх героїв — і вільних, і тих, що в поході: 7 вільних і 3 марші
+        /// при стелі 8 — ще 5, а не 7.
+        /// </summary>
+        [Theory]
+        [InlineData(5, 0, 5)]
+        [InlineData(5, 2, 5)]
+        [InlineData(7, 3, 5)]
+        [InlineData(4, 8, 0)]
+        [InlineData(0, 2, 0)]
+        public void MarchesLeft_ShouldSubtractActiveMarches_FromTheCapAcrossAllHeroes(int available, int active, int expected)
+        {
+            var progression = Create(maxMarches: 8);
+
+            Assert.Equal(expected, progression.MarchesLeft(available, active));
+        }
+
         // ---------- Час ----------
 
         [Fact]

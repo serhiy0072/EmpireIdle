@@ -9,6 +9,7 @@ import {
   type ChatChannelName,
   type ChatMessageView,
 } from "../lib/queries/chat";
+import TabHotkeys from "../components/shell/TabHotkeys";
 
 const TABS: { channel: ChatChannelName; label: string }[] = [
   { channel: "Server", label: "Світ" },
@@ -179,6 +180,11 @@ export default function ChatPage() {
         </button>
       </div>
 
+      <TabHotkeys
+        keys={TABS.map((item) => item.channel)}
+        value={tab}
+        onChange={(channel) => setParams({ tab: channel }, { replace: true })}
+      />
       <nav className="flex gap-1">
         {TABS.map((item) => (
           <button

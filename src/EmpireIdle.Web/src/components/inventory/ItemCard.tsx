@@ -41,8 +41,8 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
   const gamePicksCell = teleportScope === "Random" || teleportScope === "ClanLeader";
 
   const usable = item.type === "resources" || item.type === "boost" || item.type === "scoutveil" || item.type === "energy" || item.type === "heroxp";
-  // Сервер приймає до 10 000 за запит (UseItemCommand.MaxCount) — цього досить на будь-який стек
-  const limit = Math.min(item.count, 10_000);
+  // «Усі» — весь стек: понад стелю сервера useUseItem шле кількома запитами
+  const limit = item.count;
   const safeCount = Math.min(limit, Math.max(1, count));
 
   const use = () => onUse({ itemKey: item.itemKey, count: safeCount, targetX: null, targetY: null });

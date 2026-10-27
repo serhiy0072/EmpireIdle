@@ -35,6 +35,20 @@ namespace EmpireIdle.API.Controllers
                 pen.IsHungry));
         }
 
+        /// <summary>Найближчий до села монстр, з якого виходить звір: кнопка «Знайти» у звіринці.</summary>
+        [HttpGet("{playerId:guid}/{beastKey}/nearest")]
+        [ProducesResponseType(typeof(NearestTameTargetResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<NearestTameTargetResponse>> GetNearest(Guid playerId, string beastKey,
+            CancellationToken cancellationToken)
+        {
+            var target = await _mediator.Send(new GetNearestTameTargetQuery(playerId, beastKey), cancellationToken);
+
+            return Ok(new NearestTameTargetResponse(target is null
+                ? null
+                : new TameTargetResponse(target.MonsterId, target.MonsterKey, target.Level, target.X, target.Y)));
+        }
+
         /// <summary>Нагодувати звіра кормом: рівень росте до стелі рангу, зайвий корм лишається в інвентарі.</summary>
         [HttpPost("{playerId:guid}/{beastKey}/feed")]
         [ProducesResponseType(typeof(BeastFedResponse), StatusCodes.Status200OK)]

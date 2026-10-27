@@ -8,6 +8,11 @@ import { refetchAtDue } from "./polling";
 export type BeastPenResponse = components["schemas"]["BeastPenResponse"];
 export type BeastResponse = components["schemas"]["BeastResponse"];
 export type BeastTamingResponse = components["schemas"]["BeastTamingResponse"];
+export type TameTargetResponse = components["schemas"]["TameTargetResponse"];
+type NearestTameTargetResponse = components["schemas"]["NearestTameTargetResponse"];
+
+/** Ключ ласощів для звірів з конфіга — той самий, що FeedItemKey у beasts.json. */
+export const FEED_ITEM = "beast_feed";
 
 /** Звіринець (GDD §5.10): місця, звірі з рівнями й пасивками, шанси приручення. */
 export function useBeastPen(playerId: string): UseQueryResult<BeastPenResponse> {
@@ -44,5 +49,16 @@ export function useActivateBeast(playerId: string) {
     mutationFn: (beastKey: string) =>
       api<void>(`/api/beasts/${playerId}/${beastKey}/activate`, { method: "POST", idempotent: true }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["beasts", "village", "power"]),
+  });
+}
+
+/**
+ * «Знайти» у звіринці: разовий пошук на клік, а не кешований стан — монстрів б'ють і спавнять
+ * щохвилини, і застарілий кеш повів би до порожньої клітини. null — такого монстра у світі зараз немає.
+ */
+export function useFindTameTarget(playerId: string) {
+  return useMutation({
+    mutationFn: async (beastKey: string): Promise<TameTargetResponse | null> =>
+      (await api<NearestTameTargetResponse>(`/api/beasts/${playerId}/${beastKey}/nearest`)).target ?? null,
   });
 }

@@ -63,6 +63,8 @@ export interface Catalog {
   maxTier: number;
   /** Кап рівня юніта від тренування чи прокачки (§5.2 GDD). */
   maxUnitLevel: number;
+  /** На скільки кожен рівень юніта понад перший підсилює атаку, захист і здоров'я (0.1 — +10%). */
+  unitLevelStatBonus: number;
   /** Скільки юнітів будівля тренує чи качає за одну партію на цьому рівні. */
   unitBatchSize: (buildingLevel: number) => number;
   /** Скільки юнітів своїх типів вміщує будівля юнітів цього рівня (рішення 13.10.2026). */
@@ -176,6 +178,7 @@ export function useCatalog(): Catalog {
       summonShards: data?.summonShards ?? 10,
       maxTier: data?.maxTier ?? 3,
       maxUnitLevel: data?.maxUnitLevel ?? 10,
+      unitLevelStatBonus: data?.unitLevelStatBonus ?? 0.1,
       unitBatchSize: (buildingLevel) => {
         const sizes = data?.unitBatchSizes ?? [];
         return sizes[Math.min(Math.max(buildingLevel, 1), sizes.length) - 1] ?? 1;

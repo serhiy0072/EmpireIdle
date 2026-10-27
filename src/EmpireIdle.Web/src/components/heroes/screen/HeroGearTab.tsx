@@ -148,7 +148,13 @@ export default function HeroGearTab({
         <GameButton onClick={() => onUnequipAll(worn.map((piece) => piece.id))} disabled={busy || !atHome || worn.length === 0}>
           Зняти все
         </GameButton>
-        <GameButton onClick={onEquipBest} disabled={busy || !atHome} variant="secondary" title="Найкраще вільне спорядження в кожен слот">
+        <GameButton
+          onClick={onEquipBest}
+          disabled={busy || !atHome}
+          variant="secondary"
+          title="Найкраще вільне спорядження в кожен слот"
+          tutorial="equip-best"
+        >
           Швидке використання
         </GameButton>
       </div>

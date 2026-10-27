@@ -304,8 +304,8 @@ export function UnitStats({ unit, level, maxLevel }: { unit: CatalogUnit; level:
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3">
         {STATS.filter((stat) => unit.stats[stat.key] !== undefined).map((stat) => {
           const base = unit.stats[stat.key] ?? 0;
-          const value = stat.scales ? base * unitStatMultiplier(level) : base;
-          const full = stat.scales ? base * unitStatMultiplier(maxLevel) : best(stat.key);
+          const value = stat.scales ? base * unitStatMultiplier(level, catalog.unitLevelStatBonus) : base;
+          const full = stat.scales ? base * unitStatMultiplier(maxLevel, catalog.unitLevelStatBonus) : best(stat.key);
 
           return (
             <div key={stat.key} className="flex items-center gap-2">

@@ -98,6 +98,15 @@ namespace EmpireIdle.Domain.Tests.Services
         public void UnitBatchSize_ShouldGrowFrom30To150_WithTheBuildingLevel(int level, int expected)
             => Assert.Equal(expected, ProgressionCurves.UnitBatchSize(level, maxLevel: 30, min: 30, max: 150));
 
+        /// <summary>Рівень юніта додає бонус із конфіга за кожен рівень понад перший; перший — база.</summary>
+        [Theory]
+        [InlineData(1, 0.1, 1.0)]
+        [InlineData(10, 0.1, 1.9)]
+        [InlineData(5, 0.25, 2.0)]
+        [InlineData(7, 0.0, 1.0)]
+        public void UnitStatMultiplier_ShouldAddTheConfiguredBonus_PerLevelAboveTheFirst(int level, double bonus, double expected)
+            => Assert.Equal(expected, ProgressionCurves.UnitStatMultiplier(level, bonus), 6);
+
         /// <summary>Місткість будівлі юнітів — від 1 500 до 300 000 геометрично (рішення 13.10.2026).</summary>
         [Theory]
         [InlineData(0, 1500)]

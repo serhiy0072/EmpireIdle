@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { TutorialStep } from "./steps";
 import { useTargetRect, type TargetRect } from "./useTargetRect";
+import { useHotkeys } from "../hooks/useHotkeys";
 
 interface Props {
   step: TutorialStep;
@@ -12,6 +13,8 @@ interface Props {
 const PAD = 6;
 const CARD_WIDTH = 320;
 const GAP = 12;
+/** Відступ картки в куті від низу: над нижньою панеллю й круглою кнопкою мапи (70 px), щоб їх не накривати. */
+const CORNER_BOTTOM = 84;
 
 /**
  * Картка під ціллю, якщо є місце, інакше над нею. Без цілі: підказка — у правому
@@ -20,7 +23,7 @@ const GAP = 12;
  */
 function cardStyle(rect: TargetRect | null, corner: boolean): CSSProperties {
   if (rect === null && corner) {
-    return { right: 16, bottom: 16, width: Math.min(CARD_WIDTH, window.innerWidth - 32) };
+    return { right: 16, bottom: CORNER_BOTTOM, width: Math.min(CARD_WIDTH, window.innerWidth - 32) };
   }
 
   if (rect === null) {
@@ -51,6 +54,9 @@ export default function TutorialOverlay({ step, onDismiss, onSkip }: Props) {
   // Дія обов'язкова лише в block-кроці з ціллю; решту можна сховати кнопкою
   const dismissable = step.mode !== "block" || step.done === undefined;
   const dismissLabel = step.mode === "hint" ? "Зрозуміло" : step.mode === "guide" ? "Приховати" : "Далі";
+
+  // Enter — та сама кнопка «Далі»/«Зрозуміло»; привітання без цілі ще й не пускає клавіші під себе
+  useHotkeys({ Enter: dismissable ? onDismiss : undefined }, { modal });
 
   const hole = rect === null
     ? null

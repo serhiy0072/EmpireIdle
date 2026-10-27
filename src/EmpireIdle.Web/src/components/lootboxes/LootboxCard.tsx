@@ -6,14 +6,14 @@ import { useLootboxPity, useOpenLootbox } from "../../lib/queries/lootboxes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { LootboxOdds } from "./LootboxPanels";
 
-/** Сервер відкриває щонайбільше стільки скринь за запит (OpenLootboxCommand.MaxCount). */
-const MAX_PER_OPEN = 100;
-
 interface Props {
   playerId: string;
   item: InventoryItemResponse;
-  /** Що випало — показує сторінка: остання відкрита скриня зникає з рюкзака разом із цією карткою. */
-  onOpened: (drops: LootboxDrop[]) => void;
+  /**
+   * Що випало й скільки скринь відкривали — показує сторінка: остання відкрита скриня зникає з рюкзака
+   * разом із цією карткою, а «Відкрити ще» повторює ту саму кількість.
+   */
+  onOpened: (drops: LootboxDrop[], count: number) => void;
 }
 
 /** Скриня в рюкзаку (GDD §9.12): шанси, гарантія, відкриття й те, що випало. */
@@ -22,7 +22,8 @@ export default function LootboxCard({ playerId, item, onOpened }: Props) {
   const pity = useLootboxPity(playerId);
   const [count, setCount] = useState(1);
 
-  const limit = Math.min(item.count, MAX_PER_OPEN);
+  // «Усі» — весь стек: понад стелю сервера useOpenLootbox відкриває кількома запитами
+  const limit = item.count;
   const safeCount = Math.min(limit, Math.max(1, count));
 
   return (
@@ -65,7 +66,7 @@ export default function LootboxCard({ playerId, item, onOpened }: Props) {
           <button
             type="button"
             onClick={() =>
-              open.mutate({ itemKey: item.itemKey, count: safeCount }, { onSuccess: (result) => onOpened(result.drops) })
+              open.mutate({ itemKey: item.itemKey, count: safeCount }, { onSuccess: (result) => onOpened(result.drops, safeCount) })
             }
             disabled={open.isPending}
             className="ml-auto rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"

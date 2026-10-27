@@ -131,11 +131,12 @@ namespace EmpireIdle.Application.Marches.Commands
             var availableHeroes = await _heroRepository.CountAvailableAsync(
                 request.PlayerId, garrison.Id, cancellationToken);
 
-            var capacity = _progression.MarchCapacity(availableHeroes + active.Count);
-
-            if (active.Count >= capacity)
+            if (_progression.MarchesLeft(availableHeroes, active.Count) == 0)
+            {
+                var capacity = _progression.MarchCapacity(availableHeroes + active.Count);
                 throw new RequirementNotMetException(RefusalReasons.MarchCapacity,
                     $"Cannot send more than {capacity} marches at once.", capacity);
+            }
 
             // До трьох героїв різних ролей; кожен веде лише юнітів своєї ролі й не більше за свої конвої (GDD §6.1)
             _convoys.EnsureCanLead(leaders, request.Units);

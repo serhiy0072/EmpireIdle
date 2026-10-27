@@ -16,6 +16,7 @@ import type { EquipmentResponse, InventoryItemResponse, LootboxDrop } from "../l
 import { useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
 import { useEquip, useInventory, useUnequip, useUseItem } from "../lib/queries/inventory";
+import { useOpenLootbox } from "../lib/queries/lootboxes";
 import { rarityKey } from "../lib/rarity";
 import { speedUpMinutesLabel } from "../lib/speedUp";
 
@@ -68,7 +69,9 @@ export default function InventoryPage() {
   const consume = useUseItem(playerId);
   const equip = useEquip(playerId);
   const unequip = useUnequip(playerId);
-  const [drops, setDrops] = useState<LootboxDrop[] | null>(null);
+  const reopen = useOpenLootbox(playerId);
+  // Останнє відкриття: що випало, з якої скрині й скільки — «Відкрити ще» повторює ту саму кількість
+  const [opened, setOpened] = useState<{ itemKey: string; count: number; drops: LootboxDrop[] } | null>(null);
 
   const [params, setParams] = useSearchParams();
   const tab = (params.get("tab") as Tab | null) ?? "resources";
@@ -102,11 +105,26 @@ export default function InventoryPage() {
   }
 
   const busy = consume.isPending || equip.isPending || unequip.isPending;
-  const failure = consume.error ?? equip.error ?? unequip.error;
+  const failure = consume.error ?? equip.error ?? unequip.error ?? reopen.error;
   const roster = heroes.data?.heroes ?? [];
 
-  const inTab = (type: string) => (TAB_OF_TYPE[type] ?? "other") === tab;
-  const shown = items.filter((item) => inTab(item.type));
+  // Скринь лишилось — «Відкрити ще» стільки ж, скільки минулого разу, але не більше за залишок; порожньо — кнопки немає
+  const againOf = (last: { itemKey: string; count: number }) => {
+    const left = items.find((item) => item.itemKey === last.itemKey)?.count ?? 0;
+    const count = Math.min(last.count, left);
+    if (count < 1) return undefined;
+
+    return {
+      label: count > 1 ? `Відкрити ще ${count}` : "Відкрити ще",
+      onClick: () =>
+        reopen.mutate({ itemKey: last.itemKey, count }, { onSuccess: (result) => setOpened({ ...last, count, drops: result.drops }) }),
+    };
+  };
+
+  // Ящик ресурсів лишається в «Ресурсах», навіть коли він скриня з випадковою сумою, як ящик золота (рішення 22.10.2026)
+  const tabOf = (item: { itemKey: string; type: string }) =>
+    item.itemKey.startsWith("crate_") ? "resources" : (TAB_OF_TYPE[item.type] ?? "other");
+  const shown = items.filter((item) => tabOf(item) === tab);
 
   const tabs: GameTab<Tab>[] = [
     { key: "resources", label: "Ресурси" },
@@ -218,10 +236,21 @@ export default function InventoryPage() {
 
       <ErrorBanner error={failure} />
 
-      {drops !== null && <LootboxDrops drops={drops} onClose={() => setDrops(null)} />}
+      {opened !== null && (
+        <LootboxDrops
+          drops={opened.drops}
+          onClose={() => setOpened(null)}
+          again={againOf(opened)}
+          pending={reopen.isPending}
+        />
+      )}
 
       {pickedItem !== null && pickedItem.type === "lootbox" && (
-        <LootboxCard playerId={playerId} item={pickedItem} onOpened={setDrops} />
+        <LootboxCard
+          playerId={playerId}
+          item={pickedItem}
+          onOpened={(drops, count) => setOpened({ itemKey: pickedItem.itemKey, count, drops })}
+        />
       )}
 
       {/* Дії — у світлій картці під сіткою: ті самі, що були, без дублювання логіки */}

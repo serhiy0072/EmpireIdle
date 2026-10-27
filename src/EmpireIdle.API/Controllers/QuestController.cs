@@ -1,3 +1,4 @@
+using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Quests.Commands;
 using EmpireIdle.Application.Quests.Queries;
 using EmpireIdle.Application.Quests.ReadModels;
@@ -31,5 +32,15 @@ public class QuestController : ControllerBase
     {
         await _mediator.Send(new ClaimQuestRewardCommand(playerId, questKey), cancellationToken);
         return NoContent();
+    }
+
+    /// <summary>Забрати нагороди всіх виконаних квестів одним запитом.</summary>
+    [HttpPost("{playerId:guid}/claim-all")]
+    [ProducesResponseType(typeof(ClaimAllQuestsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ClaimAllQuestsResponse>> ClaimAll(Guid playerId, CancellationToken cancellationToken)
+    {
+        var claimed = await _mediator.Send(new ClaimAllQuestRewardsCommand(playerId), cancellationToken);
+        return Ok(new ClaimAllQuestsResponse(claimed.ToList()));
     }
 }

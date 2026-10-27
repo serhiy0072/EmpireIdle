@@ -5,6 +5,7 @@ import ArmyPage from "../pages/ArmyPage";
 import UnitCampPage from "../pages/UnitCampPage";
 import ArtifactSetsPage from "../pages/ArtifactSetsPage";
 import BannersPage from "../pages/BannersPage";
+import BeastPage from "../pages/BeastPage";
 import BeastPenPage from "../pages/BeastPenPage";
 import ChatPage from "../pages/ChatPage";
 import ClanPage from "../pages/ClanPage";
@@ -53,6 +54,7 @@ export default function AppRoutes() {
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/inventory/sets" element={<ArtifactSetsPage />} />
             <Route path="/beasts" element={<BeastPenPage />} />
+            <Route path="/beasts/:beastKey" element={<BeastPage />} />
             <Route path="/banners" element={<BannersPage />} />
             <Route path="/clan" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />

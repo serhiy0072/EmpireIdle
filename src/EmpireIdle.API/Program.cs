@@ -155,6 +155,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Market.GoldPerGem > 0 && c.Market.GoldPerPower.Values.All(v => v > 0), "GameConfig.Market anchors must be positive.")
     .Validate(c => c.HeroSettings.MonsterExperiencePerLevel >= 0, "GameConfig.HeroSettings.MonsterExperiencePerLevel must not be negative.")
     .Validate(c => c.Dungeons.HeroExperiencePerRun >= 0, "GameConfig.Dungeons.HeroExperiencePerRun must not be negative.")
+    .Validate(c => c.UnitLevelStatBonus >= 0, "GameConfig.UnitLevelStatBonus must not be negative — a higher unit level must not weaken it.")
     .Validate(c => c.UnitBatchMin >= 1 && c.UnitBatchMax >= c.UnitBatchMin,
         "GameConfig.UnitBatchMin must be at least 1 and not above UnitBatchMax.")
     .Validate(c => c.UnitCapacityMin >= c.UnitBatchMax && c.UnitCapacityMax >= c.UnitCapacityMin,

@@ -366,7 +366,7 @@
         "Key": "scouttower",
         "DisplayName": "Вежа розвідки",
         "Upgradable": false,
-        "RequiresMainBuildingLevel": 6,
+        "RequiresMainBuildingLevel": 5,
         "Position": {
           "X": 62.0,
           "Y": 86.0

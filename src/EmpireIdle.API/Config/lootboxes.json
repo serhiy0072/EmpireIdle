@@ -2,6 +2,59 @@
   "GameConfig": {
     "Lootboxes": [
       {
+        "Key": "crate_gold_5000",
+        "Entries": [
+          {
+            "Type": "Resource",
+            "Key": "gold",
+            "Amount": 10000,
+            "Weight": 93100
+          },
+          {
+            "Type": "Resource",
+            "Key": "gold",
+            "Amount": 15000,
+            "Weight": 80000
+          },
+          {
+            "Type": "Resource",
+            "Key": "gold",
+            "Amount": 25000,
+            "Weight": 16000
+          },
+          {
+            "Type": "Resource",
+            "Key": "gold",
+            "Amount": 55000,
+            "Weight": 6000
+          },
+          {
+            "Type": "Resource",
+            "Key": "gold",
+            "Amount": 105000,
+            "Weight": 4000
+          },
+          {
+            "Type": "Resource",
+            "Key": "gold",
+            "Amount": 205000,
+            "Weight": 800
+          },
+          {
+            "Type": "Resource",
+            "Key": "gold",
+            "Amount": 505000,
+            "Weight": 80
+          },
+          {
+            "Type": "Resource",
+            "Key": "gold",
+            "Amount": 1005000,
+            "Weight": 20
+          }
+        ]
+      },
+      {
         "Key": "chest_supply",
         "PityWithin": 50,
         "Entries": [

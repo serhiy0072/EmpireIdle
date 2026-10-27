@@ -23,6 +23,12 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Максимальний рівень юніта.</summary>
         public int MaxUnitLevel { get; set; } = 10;
 
+        /// <summary>
+        /// На скільки кожен рівень юніта понад перший підсилює його атаку, захист і здоров'я:
+        /// 0.1 — +10% за рівень. Швидкість і вантаж від рівня не ростуть.
+        /// </summary>
+        public double UnitLevelStatBonus { get; set; } = 0.10;
+
         /// <summary>Список ресурсів доступних в грі.</summary>
         public List<ResourceConfig> Resources { get; set; } = new();
 

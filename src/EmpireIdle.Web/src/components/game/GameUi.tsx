@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTabHotkeys } from "../../hooks/useHotkeys";
 import { rarityKey } from "../../lib/rarity";
 
 /**
@@ -36,6 +37,8 @@ export function GameTabs<T extends string>({
   value: T;
   onChange: (next: T) => void;
 }) {
+  useTabHotkeys(tabs.map((tab) => tab.key), value, onChange);
+
   return (
     <nav className="flex gap-1">
       {tabs.map((tab) => {
@@ -225,12 +228,15 @@ export function GameButton({
   disabled,
   variant = "primary",
   title,
+  tutorial,
 }: {
   children: ReactNode;
   onClick: () => void;
   disabled?: boolean;
   variant?: "primary" | "secondary" | "accent";
   title?: string;
+  /** Якір навчання (data-tutorial): туторіал підсвічує саме цю кнопку. */
+  tutorial?: string;
 }) {
   const styles = {
     primary: "bg-gradient-to-b from-sky-400 to-blue-600 ring-sky-200",
@@ -244,6 +250,7 @@ export function GameButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
+      data-tutorial={tutorial}
       className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow ring-1 [text-shadow:0_1px_1px_#0006] hover:brightness-110 disabled:opacity-50 ${styles[variant]}`}
     >
       {children}

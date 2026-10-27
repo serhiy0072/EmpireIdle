@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { HOTKEY_PRIORITY, useHotkeys } from "../hooks/useHotkeys";
 import { useAttention } from "../hooks/useAttention";
 import { useSession } from "../hooks/useSession";
 import { logout } from "../lib/auth";
@@ -28,6 +29,7 @@ export default function AppLayout() {
   const session = useSession();
   const queryClient = useQueryClient();
   const location = useLocation();
+  const navigate = useNavigate();
   const playerId = session?.playerId ?? "";
   const village = useVillage(playerId);
   const wallet = useWallet(playerId);
@@ -41,6 +43,14 @@ export default function AppLayout() {
   const fullBleed = location.pathname === "/" || location.pathname === "/map";
 
   useDailyCheckIn(playerId);
+
+  // Esc — назад (рішення 21.10.2026): на попередній екран, а без історії (відкрили за посиланням) — у село.
+  // Село — дім, далі назад нікуди. Вікна й вибране на екрані реєструють свій Esc вище й закриваються першими
+  useHotkeys(
+    { Escape: () => void (location.key !== "default" ? navigate(-1) : navigate("/")) },
+    { priority: HOTKEY_PRIORITY.shell, enabled: location.pathname !== "/" },
+  );
+  useHotkeys({ Escape: () => setMenu(false) }, { modal: true, enabled: menu });
 
   // Чат дописується тут, а не на сторінці чату: інакше історія закритого чату
   // застаріла б, а перечитувати її за таймером нема потреби
@@ -61,6 +71,18 @@ export default function AppLayout() {
     <div className="flex h-dvh flex-col bg-gradient-to-b from-[#cfdcf0] to-[#e8eef8]">
       <header className="relative z-40 shrink-0 border-b-2 border-[#5b85c4] bg-gradient-to-b from-[#24467f] to-[#16305e] text-white shadow-lg">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-3 py-2">
+          {/* Додому, у село — замість кнопки «Село» на панелі (рішення 21.10.2026); на неї ж вказує навчання */}
+          {location.pathname !== "/" && (
+            <Link
+              to="/"
+              data-tutorial="nav:/"
+              aria-label="У село"
+              title="У село"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-sky-300 to-sky-600 text-lg font-bold text-white shadow ring-2 ring-sky-100 hover:brightness-110"
+            >
+              ←
+            </Link>
+          )}
           <PowerBadge playerId={playerId} village={village.data} />
           <ResourceBar village={village.data} />
 

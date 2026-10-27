@@ -29,6 +29,15 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<List<Monster>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
             => _context.Monsters.AsNoTracking().Where(m => ids.Contains(m.Id)).ToListAsync(cancellationToken);
 
+        /// <inheritdoc/>
+        public Task<Monster?> GetNearestAsync(int serverId, string type, int x, int y, CancellationToken cancellationToken = default)
+            => _context.Monsters
+                .AsNoTracking()
+                .Where(m => m.ServerId == serverId && m.Type == type)
+                .OrderBy(m => (m.X - x) * (m.X - x) + (m.Y - y) * (m.Y - y))
+                .ThenBy(m => m.Level)
+                .FirstOrDefaultAsync(cancellationToken);
+
         public async Task AddAsync(Monster monster, CancellationToken cancellationToken = default)
         {
             await _context.Monsters.AddAsync(monster, cancellationToken);

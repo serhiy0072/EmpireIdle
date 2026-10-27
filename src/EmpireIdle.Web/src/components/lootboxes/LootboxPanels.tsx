@@ -1,8 +1,9 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { LootboxDrop } from "../../lib/apiTypes";
 import { useCatalog, type Catalog } from "../../lib/queries/catalog";
 import { rarityLabel } from "../../lib/rarity";
 import ItemIcon from "../inventory/ItemIcon";
+import { useHotkeys } from "../../hooks/useHotkeys";
 
 /** Назва позиції скрині чи того, що з неї випало, — за типом нагороди. */
 function rewardName(catalog: Catalog, type: string, key: string | null | undefined): string {
@@ -208,13 +209,7 @@ interface WindowProps {
  * кнопка «ще раз» не стрибає. Клік будь-де поза кнопкою чи Esc закриває вікно.
  */
 export function RewardsWindow({ children, onClose, again, pending = false }: WindowProps) {
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  useHotkeys({ Escape: onClose, Enter: onClose }, { modal: true });
 
   return (
     <div

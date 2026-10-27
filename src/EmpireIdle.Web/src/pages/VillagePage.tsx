@@ -6,6 +6,7 @@ import { GameButton } from "../components/game/GameUi";
 import LockedBuildingCard from "../components/LockedBuildingCard";
 import DamageBanner from "../components/village/DamageBanner";
 import VillageMap from "../components/village/VillageMap";
+import { useHotkeys } from "../hooks/useHotkeys";
 import { useSession } from "../hooks/useSession";
 import { useCatalog } from "../lib/queries/catalog";
 import {
@@ -34,6 +35,12 @@ export default function VillagePage() {
   const [editing, setEditing] = useState(false);
   // Банер належить останній дії: помилка давнього кліку після успішного нового лише плутає
   const [lastAction, setLastAction] = useState<VillageAction | null>(null);
+
+  // Esc у селі не веде назад, але, як і на мапі, знімає вибір будівлі, а потім виходить з «Перебудувати»
+  useHotkeys(
+    { Escape: () => (selectedId !== null ? setSelectedId(null) : setEditing(false)) },
+    { enabled: selectedId !== null || editing },
+  );
 
   if (village.isPending) {
     return <p className="text-slate-500">Завантаження села…</p>;

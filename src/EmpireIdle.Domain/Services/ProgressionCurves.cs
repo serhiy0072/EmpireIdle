@@ -49,10 +49,10 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Множник до бойових статів юніта від рівня. Лінійний: +10% за рівень,
-        /// рівень 1 — база (×1.0).
+        /// Множник до бойових статів юніта від рівня. Лінійний: +<paramref name="bonusPerLevel"/> за рівень
+        /// (GameConfig.UnitLevelStatBonus), рівень 1 — база (×1.0).
         /// </summary>
-        public static double UnitStatMultiplier(int level) => 1 + 0.10 * (level - 1);
+        public static double UnitStatMultiplier(int level, double bonusPerLevel) => 1 + bonusPerLevel * (level - 1);
 
         /// <summary>
         /// Скільки юнітів свого типу вміщує будівля юнітів: від min на першому рівні до max на maxLevel,

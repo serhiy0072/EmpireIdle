@@ -52,6 +52,7 @@
         int SummonShards,
         int MaxTier,
         int MaxUnitLevel,
+        double UnitLevelStatBonus,
         IReadOnlyList<int> UnitBatchSizes,
         IReadOnlyList<int> UnitCapacities,
         int HealGemsPerUnit,
@@ -261,7 +262,7 @@
     /// <param name="RequiresBuilding">Будівля, потрібна для тренування; null — без вимог.</param>
     /// <param name="Stats">
     /// Бойові стати юніта 1 рівня (Attack, Defense, Speed, CarryCapacity…). Атака й захист ростуть
-    /// з рівнем на +10% за рівень (ProgressionCurves.UnitStatMultiplier), швидкість і вантаж — ні.
+    /// з рівнем на UnitLevelStatBonus за рівень (ProgressionCurves.UnitStatMultiplier), швидкість і вантаж — ні.
     /// </param>
     public record CatalogUnit(
         string Key,
