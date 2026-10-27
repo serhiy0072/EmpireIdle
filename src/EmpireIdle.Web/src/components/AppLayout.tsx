@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { HOTKEY_PRIORITY, useHotkeys } from "../hooks/useHotkeys";
 import { useAttention } from "../hooks/useAttention";
@@ -38,7 +38,11 @@ export default function AppLayout() {
   const attention = useAttention(playerId);
   const changeLanguage = useChangeLanguage(playerId);
   const language = settings.data?.language ?? DEFAULT_LANGUAGE;
-  const [menu, setMenu] = useState(false);
+  // Меню прив'язане до екрана, де його відкрили: перехід закриває його без ефекту
+  const [menuPath, setMenuPath] = useState<string | null>(null);
+  const menu = menuPath === location.pathname;
+  const closeMenu = () => setMenuPath(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   // Село й мапа — поле на весь екран між HUD і панеллю, без полів сторінки
   const fullBleed = location.pathname === "/" || location.pathname === "/map";
 
@@ -50,7 +54,19 @@ export default function AppLayout() {
     { Escape: () => void (location.key !== "default" ? navigate(-1) : navigate("/")) },
     { priority: HOTKEY_PRIORITY.shell, enabled: location.pathname !== "/" },
   );
-  useHotkeys({ Escape: () => setMenu(false) }, { modal: true, enabled: menu });
+  useHotkeys({ Escape: closeMenu }, { modal: true, enabled: menu });
+
+  // Клік повз меню закриває його, як будь-який спливний список
+  useEffect(() => {
+    if (!menu) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!(menuRef.current?.contains(event.target as Node) ?? false)) setMenuPath(null);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [menu]);
 
   // Чат дописується тут, а не на сторінці чату: інакше історія закритого чату
   // застаріла б, а перечитувати її за таймером нема потреби
@@ -99,10 +115,10 @@ export default function AppLayout() {
               💎 {wallet.data === undefined ? "…" : wallet.data.gemBalance.toLocaleString("uk-UA")}
             </span>
 
-            <div className="relative">
+            <div ref={menuRef} className="relative">
               <button
                 type="button"
-                onClick={() => setMenu((open) => !open)}
+                onClick={() => setMenuPath(menu ? null : location.pathname)}
                 aria-expanded={menu}
                 aria-label="Налаштування"
                 className="rounded-full bg-black/30 px-2 py-0.5 text-lg ring-1 ring-white/15 hover:bg-black/40"
