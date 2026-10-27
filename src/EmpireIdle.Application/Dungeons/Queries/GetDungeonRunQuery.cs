@@ -22,12 +22,14 @@ namespace EmpireIdle.Application.Dungeons.Queries
         private readonly IDungeonRepository _dungeons;
         private readonly BattleBuilder _builder;
         private readonly GameCatalog _catalog;
+        private readonly LocaleTexts _texts;
 
-        public GetDungeonRunQueryHandler(IDungeonRepository dungeons, BattleBuilder builder, GameCatalog catalog)
+        public GetDungeonRunQueryHandler(IDungeonRepository dungeons, BattleBuilder builder, GameCatalog catalog, LocaleTexts texts)
         {
             _dungeons = dungeons;
             _builder = builder;
             _catalog = catalog;
+            _texts = texts;
         }
 
         public async Task<DungeonRunView?> Handle(GetDungeonRunQuery request, CancellationToken cancellationToken)
@@ -40,7 +42,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
             var state = BattleSerializer.Read(run.Battle);
 
             return DungeonRunProjection.Project(run.Id, run.DungeonKey, run.Level, run.State, state,
-                _builder.WaveCount(run.Level), turns: [], reward: null, _catalog);
+                _builder.WaveCount(run.Level), turns: [], reward: null, _catalog, _texts);
         }
     }
 }

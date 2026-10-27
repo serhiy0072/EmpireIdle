@@ -102,7 +102,8 @@ public class TakeDungeonTurnCommandTests
             catalog,
             _unitOfWork,
             new FakeTimeProvider(Now),
-            NullLogger<TakeDungeonTurnCommandHandler>.Instance);
+            NullLogger<TakeDungeonTurnCommandHandler>.Instance,
+            new LocaleTexts(config, "uk"));
     }
 
     [Fact]

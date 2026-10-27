@@ -38,7 +38,8 @@ public class GetMapAreaQueryTests
     }
 
     private GetMapAreaQueryHandler Handler()
-        => new(_map, _monsters, _structures, _clans, new TerrainGenerator(Config.Map), new GameCatalog(Config), ServerOne());
+        => new(_map, _monsters, _structures, _clans, new TerrainGenerator(Config.Map), new GameCatalog(Config), ServerOne(),
+            new LocaleTexts(Config, "uk"));
 
     /// <summary>Споруда несе свій клан, тег і момент готовності — клієнт малює радіус і відрізняє свою територію.</summary>
     [Fact]

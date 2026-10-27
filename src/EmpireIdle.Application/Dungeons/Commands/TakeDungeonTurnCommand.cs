@@ -48,6 +48,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<TakeDungeonTurnCommandHandler> _logger;
+        private readonly LocaleTexts _texts;
 
         public TakeDungeonTurnCommandHandler(
             IDungeonRepository dungeons,
@@ -57,8 +58,10 @@ namespace EmpireIdle.Application.Dungeons.Commands
             GameCatalog catalog,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
-            ILogger<TakeDungeonTurnCommandHandler> logger)
+            ILogger<TakeDungeonTurnCommandHandler> logger,
+            LocaleTexts texts)
         {
+            _texts = texts;
             _dungeons = dungeons;
             _engine = engine;
             _builder = builder;
@@ -195,12 +198,12 @@ namespace EmpireIdle.Application.Dungeons.Commands
                         .Select(key => _catalog.FindItem(key))
                         .Where(item => item is not null)
                         .Select(item => new ArtifactDropView(
-                            item!.Key, item.DisplayName, item.Rarity.ToString().ToLowerInvariant(), item.SetKey ?? string.Empty))
+                            item!.Key, _texts.Name("item", item.Key, item.DisplayName), item.Rarity.ToString().ToLowerInvariant(), item.SetKey ?? string.Empty))
                         .ToList(),
                     reward.HeroExperience);
 
             return DungeonRunProjection.Project(run.Id, run.DungeonKey, run.Level, run.State, state,
-                _builder.WaveCount(run.Level), turns, view, _catalog);
+                _builder.WaveCount(run.Level), turns, view, _catalog, _texts);
         }
 
         /// <summary>Порожня черга означає кінець раунду — шикуємо новий.</summary>

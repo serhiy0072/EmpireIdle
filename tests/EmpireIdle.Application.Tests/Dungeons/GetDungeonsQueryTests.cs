@@ -28,7 +28,7 @@ public class GetDungeonsQueryTests
 
     private Task<DungeonsOverview> Overview()
         => new GetDungeonsQueryHandler(_dungeons, Substitute.For<IVillageRepository>(), new BattleBuilder(_config.Dungeons),
-                new GameCatalog(_config), new FakeTimeProvider(Now))
+                new GameCatalog(_config), new FakeTimeProvider(Now), new LocaleTexts(_config, "uk"))
             .Handle(new GetDungeonsQuery(PlayerId), CancellationToken.None);
 
     /// <summary>Перше поповнення доби — перша ціна, лишаються всі.</summary>

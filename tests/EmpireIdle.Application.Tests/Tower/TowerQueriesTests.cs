@@ -59,7 +59,8 @@ public class TowerQueriesTests
         var catalog = new GameCatalog(_config);
 
         return new GetTowerQueryHandler(_tower, _villages, new TowerFloors(catalog), new TowerRewards(_config.Tower),
-            TestEffects.Resolver(_effects, catalog: catalog), catalog, new FakeTimeProvider(Entities.Now));
+            TestEffects.Resolver(_effects, catalog: catalog), catalog, new FakeTimeProvider(Entities.Now),
+            new LocaleTexts(_config, "uk"));
     }
 
     private static TowerProgress Progress(int floors, Guid? playerId = null)

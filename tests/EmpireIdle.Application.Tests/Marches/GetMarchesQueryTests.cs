@@ -73,7 +73,7 @@ public class GetMarchesQueryTests
         var catalog = new GameCatalog(config);
 
         return new(_villages, _garrisons, _marches, _monsters, _heroes,
-            new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
+            new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog, new LocaleTexts(config, "uk"));
     }
 
     private Garrison GivenGarrison()

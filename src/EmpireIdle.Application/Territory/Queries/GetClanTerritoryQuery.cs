@@ -21,6 +21,7 @@ namespace EmpireIdle.Application.Territory.Queries
         private readonly IPlayerRepository _playerRepository;
         private readonly ClanTerritoryRules _rules;
         private readonly GameCatalog _catalog;
+        private readonly LocaleTexts _texts;
 
         public GetClanTerritoryQueryHandler(
             IClanRepository clanRepository,
@@ -29,8 +30,10 @@ namespace EmpireIdle.Application.Territory.Queries
             IGarrisonRepository garrisonRepository,
             IPlayerRepository playerRepository,
             ClanTerritoryRules rules,
-            GameCatalog catalog)
+            GameCatalog catalog,
+            LocaleTexts texts)
         {
+            _texts = texts;
             _clanRepository = clanRepository;
             _structureRepository = structureRepository;
             _clanQuestRepository = clanQuestRepository;
@@ -79,7 +82,7 @@ namespace EmpireIdle.Application.Territory.Queries
                     var objective = q.Objectives[0];
                     var p = progress.GetValueOrDefault(q.Key);
 
-                    return new ClanQuestView(q.Key, q.DisplayName, objective.Type, objective.Target,
+                    return new ClanQuestView(q.Key, _texts.Name("quest", q.Key, q.DisplayName), objective.Type, objective.Target,
                         p?.Amount ?? 0, objective.Count, p is not null && p.State != QuestState.InProgress,
                         q.ClanPoints, slotQuests.Contains(q.Key));
                 })

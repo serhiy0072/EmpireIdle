@@ -25,6 +25,7 @@ using EmpireIdle.Application.Speedups.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Application.Tower.Services;
 using EmpireIdle.Domain.Events;
+using EmpireIdle.Domain.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,6 +54,14 @@ namespace EmpireIdle.Application
 
             services.AddSingleton<GameCatalogProjection>();
             services.AddScoped<NotificationBuffer>();
+
+            // Тексти конфігів мовою запиту; поза HTTP (джоби) — мовою за замовчуванням
+            services.AddScoped(provider =>
+            {
+                var config = provider.GetRequiredService<GameCatalog>().Config;
+                var language = config.Localization.Resolve(provider.GetRequiredService<IRequestContext>().AcceptedLanguages);
+                return new LocaleTexts(config, language);
+            });
 
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();

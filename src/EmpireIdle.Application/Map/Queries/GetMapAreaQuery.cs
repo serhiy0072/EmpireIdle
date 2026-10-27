@@ -35,11 +35,13 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly TerrainGenerator _terrain;
         private readonly GameCatalog _catalog;
         private readonly IServerContext _serverContext;
+        private readonly LocaleTexts _texts;
 
         public GetMapAreaQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
             IClanStructureRepository structureRepository, IClanRepository clanRepository,
-            TerrainGenerator terrain, GameCatalog catalog, IServerContext serverContext)
+            TerrainGenerator terrain, GameCatalog catalog, IServerContext serverContext, LocaleTexts texts)
         {
+            _texts = texts;
             _serverContext = serverContext;
             _mapRepository = mapRepository;
             _monsterRepository = monsterRepository;
@@ -113,7 +115,9 @@ namespace EmpireIdle.Application.Map.Queries
                     var structure = c.OccupantType == MapOccupantType.ClanStructure ? structures.GetValueOrDefault(c.OccupantId) : null;
 
                     var clanTag = structure is null ? null : clans.GetValueOrDefault(structure.ClanId)?.Tag;
-                    var name = monster is null ? clanTag : _catalog.Monsters.GetValueOrDefault(monster.Type)?.DisplayName;
+                    var name = monster is null ? clanTag
+                        : _catalog.Monsters.GetValueOrDefault(monster.Type) is { } config ? _texts.Name("monster", config.Key, config.DisplayName)
+                        : null;
 
                     return new MapAreaOccupant(c.X, c.Y, c.OccupantType, c.OccupantId, name, monster?.Type, monster?.Level,
                         structure?.ClanId, clanTag, structure?.CompletesAt);

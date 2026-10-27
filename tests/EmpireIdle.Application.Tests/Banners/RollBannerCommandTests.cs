@@ -102,7 +102,8 @@ public class RollBannerCommandTests
             servers,
             _unitOfWork,
             new FakeTimeProvider(Now),
-            NullLogger<RollBannerCommandHandler>.Instance);
+            NullLogger<RollBannerCommandHandler>.Instance,
+            new LocaleTexts(new GameConfig(), "uk"));
     }
 
     /// <summary>Світ на рівні _serverLevel, піднятий до нього _levelSince.</summary>

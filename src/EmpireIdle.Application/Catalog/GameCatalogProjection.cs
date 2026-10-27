@@ -33,11 +33,7 @@ namespace EmpireIdle.Application.Catalog
         /// </summary>
         public CatalogResponse ResponseFor(string? language)
         {
-            var localization = _catalog.Config.Localization;
-
-            var resolved = language is not null && localization.SupportedLanguages.Contains(language)
-                ? language
-                : localization.DefaultLanguage;
+            var resolved = _catalog.Config.Localization.Resolve([language]);
 
             return _byLanguage.GetOrAdd(resolved, lang => Build(_catalog, lang));
         }

@@ -24,6 +24,7 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly IHeroRepository _heroRepository;
         private readonly HeroStats _heroStats;
         private readonly GameCatalog _catalog;
+        private readonly LocaleTexts _texts;
 
         public GetMarchesQueryHandler(
             IVillageRepository villageRepository,
@@ -32,8 +33,10 @@ namespace EmpireIdle.Application.Marches.Queries
             IMonsterRepository monsterRepository,
             IHeroRepository heroRepository,
             HeroStats heroStats,
-            GameCatalog catalog)
+            GameCatalog catalog,
+            LocaleTexts texts)
         {
+            _texts = texts;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
@@ -100,7 +103,7 @@ namespace EmpireIdle.Application.Marches.Queries
             => march.TargetType switch
             {
                 MarchTargetType.Monster => monsters.TryGetValue(march.TargetId, out var monster)
-                    ? (_catalog.MonsterName(monster.Type), monster.Level)
+                    ? (_texts.Name("monster", monster.Type, _catalog.MonsterName(monster.Type)), monster.Level)
                     : (null, null),
                 MarchTargetType.Village => (villageNames.GetValueOrDefault(march.TargetId), null),
                 _ => (null, null)
