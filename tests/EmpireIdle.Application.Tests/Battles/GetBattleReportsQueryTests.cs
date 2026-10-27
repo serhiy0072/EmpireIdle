@@ -1,6 +1,9 @@
 using EmpireIdle.Application.Battles.Queries;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.TestKit;
 using NSubstitute;
 
 namespace EmpireIdle.Application.Tests.Battles;
@@ -13,7 +16,18 @@ public class GetBattleReportsQueryTests
 
     private readonly IBattleReportRepository _reports = Substitute.For<IBattleReportRepository>();
 
-    private GetBattleReportsQueryHandler Handler() => new(_reports);
+    private GetBattleReportsQueryHandler Handler(string language = "uk")
+    {
+        var config = new GameConfigBuilder().WithBeasts().Build();
+        config.Localization.Languages = ["uk", "en"];
+        config.Locales["en"] = new LocaleConfig { Texts = new Dictionary<string, string> { ["monster.wolves"] = "Wolves" } };
+
+        return new(_reports, new GameCatalog(config), new LocaleTexts(config, language));
+    }
+
+    private static BattleReport Report(string targetName)
+        => new(Guid.NewGuid(), PlayerId, Guid.NewGuid(), 4, 7, "forest", targetName, 3,
+            won: true, attackerPower: 120, defenderPower: 80, randomSeed: 42, Now);
 
     [Fact]
     public async Task Handle_ShouldProjectTheReportWithItsLines()
@@ -42,5 +56,20 @@ public class GetBattleReportsQueryTests
         await Handler().Handle(new GetBattleReportsQuery(PlayerId, requested), CancellationToken.None);
 
         await _reports.Received(1).GetByPlayerAsync(PlayerId, expected, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Монстр — мовою читача, хоч бій записано іншою; село зветься так, як його назвав гравець.</summary>
+    [Fact]
+    public async Task Handle_ShouldNameAMonsterInTheRequestLanguage()
+    {
+        var monster = Report("Вовки");
+        monster.RecordMonster(TestKeys.BeastMonster);
+        var village = Report("Вовки");
+
+        _reports.GetByPlayerAsync(PlayerId, 20, Arg.Any<CancellationToken>()).Returns([monster, village]);
+
+        var views = await Handler("en").Handle(new GetBattleReportsQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal(["Wolves", "Вовки"], views.Select(v => v.TargetName));
     }
 }

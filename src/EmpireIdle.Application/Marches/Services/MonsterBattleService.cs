@@ -159,7 +159,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             await _aftermath.RecordAttackerAsync(march, village, garrison,
                 _catalog.MonsterName(monster.Type), monster.Level,
-                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken, tamed, experience);
+                attackerArmy, outcome, terrain, seed, utcNow, cancellationToken, tamed, experience, monster.Type);
 
             _logger.LogInformation(
                "Battle at ({X},{Y}) on {Terrain}: attacker {Outcome} ({AttackerPower:F0} vs {DefenderPower:F0}); " +

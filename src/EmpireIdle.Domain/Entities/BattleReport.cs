@@ -19,6 +19,12 @@ namespace EmpireIdle.Domain.Entities
         public string TargetName { get; private set; } = null!;
         public int TargetLevel { get; private set; }
 
+        /// <summary>
+        /// Тип монстра, якщо ціль — монстр: за ним звіт називає ціль мовою читача,
+        /// а TargetName лишається назвою мовою на момент бою. null — ціль не монстр.
+        /// </summary>
+        public string? MonsterType { get; private set; }
+
         public bool Won { get; private set; }
         public double AttackerPower { get; private set; }
         public double DefenderPower { get; private set; }
@@ -64,6 +70,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Додає рядок звіту по типу юніта.</summary>
         public void AddLine(string unitType, int sent, int wounded, int recoverable, int dead)
             => _lines.Add(new BattleReportLine(Guid.NewGuid(), Id, unitType, sent, wounded, recoverable, dead));
+
+        /// <summary>Ціль бою — монстр цього типу.</summary>
+        public void RecordMonster(string monsterType) => MonsterType = monsterType;
 
         /// <summary>Перемога дала звіра — новий вид чи ранг наявного.</summary>
         public void RecordTaming(string beastKey) => TamedBeastKey = beastKey;

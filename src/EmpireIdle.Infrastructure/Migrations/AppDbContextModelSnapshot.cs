@@ -237,6 +237,10 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<Guid>("MarchId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("MonsterType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
 
