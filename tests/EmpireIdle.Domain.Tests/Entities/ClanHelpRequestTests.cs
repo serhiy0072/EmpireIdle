@@ -39,6 +39,17 @@ public class ClanHelpRequestTests
     }
 
     [Fact]
+    public void AcceptHelp_ShouldTouchTheRequest()
+    {
+        var request = Request();
+        var later = Now.AddMinutes(5);
+
+        request.AcceptHelp(Guid.NewGuid(), 0.02, 20, later);
+
+        Assert.Equal(later, request.UpdatedAt);
+    }
+
+    [Fact]
     public void AcceptHelp_PastTheCap_ShouldNameTheCap()
     {
         var request = Request();
