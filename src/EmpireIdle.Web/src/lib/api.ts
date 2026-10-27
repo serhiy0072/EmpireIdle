@@ -9,7 +9,7 @@ export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   /**
-   * Команди з IIdempotentRequest: один ключ на виклик, і повтор після обриву
+   * Команди з IIdempotentRequest: один ключ на намір гравця, і повтор після обриву
    * мережі йде з ним же — сервер віддає той самий результат, а не виконує вдруге.
    */
   idempotent?: boolean;
@@ -64,7 +64,46 @@ const RETRY_DELAYS_MS = [500, 1_500];
 /** Проксі не дочекався сервера — команда могла виконатись, а відповідь загубитись. */
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
 
-export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+/**
+ * Скільки після відповіді однакова команда ще вважається тим самим наміром.
+ * Стільки ж ОС дає на подвійний клік.
+ */
+const SAME_INTENT_WINDOW_MS = 500;
+
+/** Команди в дорозі й щойно завершені — за методом, шляхом і тілом. */
+const recentCommands = new Map<string, Promise<unknown>>();
+
+/**
+ * Подвійний клік — це один намір, а не дві дії. Кнопка вимикається лише після
+ * рендеру, тож другий клік устигає викликати мутацію ще раз, а новий виклик
+ * дав би новий ключ: сервер виконав би команду вдруге або відмовив би, і
+ * гравець побачив би «Це вже існує» замість результату. Тому однакова команда
+ * в дорозі чи щойно завершена отримує той самий результат. Запит із signal не
+ * склеюємо: скасування одного виклику не має зачепити інший.
+ */
+export function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  if (options.idempotent !== true || options.signal !== undefined) {
+    return execute<T>(path, options);
+  }
+
+  const intent = `${options.method ?? "GET"} ${path} ${JSON.stringify(options.body ?? null)}`;
+  const recent = recentCommands.get(intent);
+
+  if (recent !== undefined) return recent as Promise<T>;
+
+  const command = execute<T>(path, options);
+  recentCommands.set(intent, command);
+
+  const forget = () =>
+    window.setTimeout(() => {
+      if (recentCommands.get(intent) === command) recentCommands.delete(intent);
+    }, SAME_INTENT_WINDOW_MS);
+
+  command.then(forget, forget);
+  return command;
+}
+
+async function execute<T>(path: string, options: RequestOptions): Promise<T> {
   // Ключ на дію гравця, а не на HTTP-запит: повтор після обриву має прийти
   // з тим самим ключем, щоб сервер віддав збережений результат, а не списав
   // вдруге. Новий ключ на кожен запит робив би ідемпотентність декорацією
