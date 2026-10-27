@@ -14981,6 +14981,10 @@
           },
           "password": {
             "type": "string"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

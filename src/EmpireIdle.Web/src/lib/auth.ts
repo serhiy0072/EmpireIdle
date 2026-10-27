@@ -1,4 +1,5 @@
 import { apiPost } from "./api";
+import { guestLanguage } from "./language";
 import { fromAuthResponse, getSession, setSession, type AuthResponse } from "./session";
 
 export type { AuthResponse, Session } from "./session";
@@ -16,7 +17,12 @@ export async function register(
   password: string,
   remember = true,
 ): Promise<AuthResponse> {
-  const auth = await apiPost<AuthResponse>("/api/auth/register", { userName, email, password });
+  const auth = await apiPost<AuthResponse>("/api/auth/register", {
+    userName,
+    email,
+    password,
+    language: guestLanguage(),
+  });
 
   setSession(fromAuthResponse(auth), remember);
   return auth;

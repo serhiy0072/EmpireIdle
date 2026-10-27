@@ -34,7 +34,7 @@ namespace EmpireIdle.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] DTOs.RegisterRequest request, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new RegisterPlayerCommand(request.UserName, request.Email, request.Password), cancellationToken);
+            await _mediator.Send(new RegisterPlayerCommand(request.UserName, request.Email, request.Password, request.Language), cancellationToken);
 
             // Логін — уже поза транзакцією, дані закомічені
             var (accessToken, refreshToken, playerId) = await _authService.LoginAsync(request.Email, request.Password, cancellationToken);

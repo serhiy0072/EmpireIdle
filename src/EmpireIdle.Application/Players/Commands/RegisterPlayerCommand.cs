@@ -11,8 +11,9 @@ namespace EmpireIdle.Application.Players.Commands
 {
     /// <summary>
     /// Реєстрація: акаунт входу + Player + Village + Garrison + PlayerWallet + клітина карти.
+    /// Language — мова, яку гравець бачив до входу; непідтримувана чи порожня дає мову за замовчуванням.
     /// </summary>
-    public record RegisterPlayerCommand(string UserName, string Email, string Password) : IRequest<Guid>
+    public record RegisterPlayerCommand(string UserName, string Email, string Password, string? Language = null) : IRequest<Guid>
     {
         // Пароль не має потрапити в лог через ToString запису
         public override string ToString() => $"{nameof(RegisterPlayerCommand)} {{ UserName = {UserName} }}";
@@ -100,7 +101,9 @@ namespace EmpireIdle.Application.Players.Commands
 
             var playerId = Guid.NewGuid();
 
-            var player = new Player(playerId, request.UserName, email, userId, now, serverId);
+            // Мова до входу не має зламати реєстрацію: невідома — тиха заміна на мову за замовчуванням
+            var language = _catalog.Config.Localization.Resolve([request.Language]);
+            var player = new Player(playerId, request.UserName, email, userId, now, serverId, language);
             var wallet = new PlayerWallet(Guid.NewGuid(), userId);
 
             var (x, y) = await _settlementPlacer.FindSpotAsync(
