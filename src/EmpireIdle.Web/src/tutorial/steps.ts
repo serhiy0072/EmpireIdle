@@ -502,7 +502,7 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
       key: "hint.skill-books",
       mode: "hint",
       title: "Книги вмінь",
-      text: "Книга піднімає вміння героя свого класу й рідкості: рівні коштують 3, 5, 7, 10 і 12 книг. Кожен наступний рівень потребує ще однієї зірки героя.",
+      text: "Книга піднімає вміння героя свого класу й рідкості: рівні коштують 5, 10, 20, 40 і 80 книг. Кожен наступний рівень потребує ще однієї зірки героя.",
       targets: ["nav:/heroes"],
       available: (st) => hasItem(st, (item) => item.itemKey.startsWith("skill_book_")),
     },

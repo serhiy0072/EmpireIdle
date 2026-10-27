@@ -92,7 +92,7 @@ function SkillDetails({
 }) {
   const catalog = useCatalog();
   const atMax = level >= maxLevel;
-  // Рівень коштує кілька книг своєї половини: 3, 5, 7, 10, 12 (рішення 15.10.2026)
+  // Рівень коштує кілька книг своєї половини: 5, 10, 20, 40, 80 (рішення 27.10.2026)
   const cost = catalog.skillBookCosts[level - 1] ?? 1;
   // Стеля вміння — зірки + 1: наступний рівень відкриває зірка з номером поточного рівня
   const needsStar = level > 0 && !atMax && level >= cap;
