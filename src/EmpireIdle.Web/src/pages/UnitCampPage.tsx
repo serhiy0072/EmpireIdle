@@ -19,6 +19,7 @@ import {
 import { useVillage } from "../lib/queries/village";
 import { roman, tierFrame } from "../lib/unitTiers";
 import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 type Mode = "train" | "stats" | "upgrade";
 
@@ -40,7 +41,7 @@ export default function UnitCampPage() {
   }
 
   if (village.isPending || garrison.isPending) {
-    return <p className="text-slate-500">Завантаження табору…</p>;
+    return <p className="text-slate-500">{t("army:unitCamp.loading")}</p>;
   }
 
   if (village.isError) return <ErrorBanner error={village.error} />;
@@ -57,9 +58,9 @@ export default function UnitCampPage() {
     <div className="mx-auto flex w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-gradient-to-b from-[#7fa6d6] via-[#3b6aa8] to-[#1d3b6f] text-white shadow-lg">
       {camp === undefined || unit === undefined ? (
         <div className="space-y-3 p-6 text-center">
-          <p>«{catalog.buildingName(building)}» ще не збудовано — табір відкриється разом із будівлею.</p>
+          <p>{t("army:unitCamp.notBuilt", { building: catalog.buildingName(building) })}</p>
           <Link to="/" className="text-sky-100 underline">
-            До села
+            {t("army:unitCamp.toVillage")}
           </Link>
         </div>
       ) : (
@@ -127,7 +128,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
   const maxBatch = catalog.unitBatchSize(buildingLevel);
   const frame = tierFrame(selected);
 
-  const locked = selected > ceiling ? `Рівень ${roman(selected)} відкриється з ратушею ${selected} рівня.` : null;
+  const locked = selected > ceiling ? `${t("army:camp.levelLocked", { level: roman(selected), townHall: selected })}.` : null;
   const sources = Object.entries(counts)
     .map(([level, count]) => [Number(level), count] as [number, number])
     .filter(([level, count]) => level < selected && count > 0)
@@ -140,14 +141,14 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
   return (
     <>
       <header className="flex items-center gap-3 px-3 pt-3">
-        <Link to="/army" aria-label="До війська" className="text-3xl font-bold text-white drop-shadow hover:text-sky-100">
+        <Link to="/army" aria-label={t("army:unitCamp.toArmy")} className="text-3xl font-bold text-white drop-shadow hover:text-sky-100">
           ←
         </Link>
         <h1 className="flex-1 text-center text-xl font-semibold drop-shadow">
           {unit.displayName} {roman(selected)}
         </h1>
         <span
-          title={`${catalog.buildingName(buildingType)}, рівень ${buildingLevel}`}
+          title={t("army:unitCamp.buildingLevel", { building: catalog.buildingName(buildingType), level: buildingLevel })}
           className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-b from-rose-500 to-red-700 text-sm font-bold ring-2 ring-amber-300"
         >
           {buildingLevel}
@@ -164,10 +165,10 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
           <UnitFigure unitType={unit.key} level={selected} size={190} />
         </span>
         <div className="absolute bottom-4 right-3 flex flex-col gap-2">
-          <button type="button" aria-label="Показники" title="Показники" onClick={() => toggle("stats")} className={sideButton}>
+          <button type="button" aria-label={t("army:camp.stats")} title={t("army:camp.stats")} onClick={() => toggle("stats")} className={sideButton}>
             {mode === "stats" ? "↶" : "☰"}
           </button>
-          <button type="button" aria-label="Прокачати до цього рівня" title="Прокачати до цього рівня" onClick={() => toggle("upgrade")} className={sideButton}>
+          <button type="button" aria-label={t("army:unitCamp.levelUpHere")} title={t("army:unitCamp.levelUpHere")} onClick={() => toggle("upgrade")} className={sideButton}>
             {mode === "upgrade" ? "↶" : "⇧"}
           </button>
         </div>
@@ -176,7 +177,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
       <LevelStrip unitType={unit.key} maxLevel={catalog.maxUnitLevel} ceiling={ceiling} counts={counts} selected={selected} onSelect={setSelected} />
 
       <p className="px-3 text-right text-xs text-sky-100 [text-shadow:0_1px_2px_#000]">
-        Місткість табору: {formatNumber(occupied)} / {formatNumber(capacity)}
+        {t("army:unitCamp.capacity", { occupied: formatNumber(occupied), capacity: formatNumber(capacity) })}
       </p>
 
       <div className="space-y-3 bg-[#1d3b6f]/80 p-3">
@@ -185,8 +186,12 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
         {mode === "train" &&
           (training !== undefined ? (
             <OrderCard
-              title="Тренування"
-              description={`Тренування: ${catalog.unitName(training.unitType)} ${roman(training.level)} (${formatNumber(training.count)})`}
+              title={t("army:unitCamp.trainingTitle")}
+              description={t("army:unitCamp.trainingDescription", {
+                unit: catalog.unitName(training.unitType),
+                level: roman(training.level),
+                count: formatNumber(training.count),
+              })}
               unitType={training.unitType}
               level={training.level}
               totalSeconds={cumulativeUnitLevelCost(unit.baseTrainSeconds, 1, training.level + 1, unit.trainTimeGrowth) * training.count}
@@ -207,9 +212,9 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               blocked={
                 locked ??
                 (underConstruction
-                  ? "Поки будівля покращується, нові партії не приймаються."
+                  ? t("army:unitCamp.underConstruction")
                   : free === 0
-                    ? "Табір заповнений — покращте будівлю, щоб вмістити більше."
+                    ? t("army:unitCamp.full")
                     : null)
               }
               pending={train.isPending}
@@ -221,8 +226,13 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
         {mode === "upgrade" &&
           (levelling !== undefined ? (
             <OrderCard
-              title="Прокачка"
-              description={`Прокачка: ${catalog.unitName(levelling.unitType)} ${roman(levelling.fromLevel)} → ${roman(levelling.toLevel)} (${formatNumber(levelling.count)})`}
+              title={t("army:unitCamp.levellingTitle")}
+              description={t("army:unitCamp.levellingDescription", {
+                unit: catalog.unitName(levelling.unitType),
+                from: roman(levelling.fromLevel),
+                to: roman(levelling.toLevel),
+                count: formatNumber(levelling.count),
+              })}
               unitType={levelling.unitType}
               level={levelling.toLevel}
               totalSeconds={
@@ -253,7 +263,12 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
         {/* Прокачка йде паралельно з тренуванням — нагадуємо про неї, поки гравець дивиться інше */}
         {mode !== "upgrade" && levelling !== undefined && (
           <button type="button" onClick={() => setMode("upgrade")} className="w-full text-center text-xs text-sky-200 underline">
-            Іде прокачка: {catalog.unitName(levelling.unitType)} {roman(levelling.fromLevel)} → {roman(levelling.toLevel)} ×{levelling.count}
+            {t("army:unitCamp.levellingNow", {
+              unit: catalog.unitName(levelling.unitType),
+              from: roman(levelling.fromLevel),
+              to: roman(levelling.toLevel),
+              count: levelling.count,
+            })}
           </button>
         )}
       </div>

@@ -1,1 +1,47 @@
-{}
+{
+  "camp": {
+    "levelLocked": "Рівень {{level}} відкриється з ратушею {{townHall}} рівня",
+    "level": "Рівень {{level}}",
+    "finish": "Завершити",
+    "speedUps": "Прискорення",
+    "training": "Тренування: {{unit}} {{level}}",
+    "batch": "Партія до {{max}}",
+    "train": "Тренувати",
+    "nothingToLevel": "Немає кого качати до рівня {{level}}: усі юніти вже на ньому чи вище.",
+    "levelUpTo": "Прокачка до рівня {{level}}",
+    "fromLevel": "з {{level}} · {{count}}",
+    "levelUp": "Прокачати",
+    "stats": "Показники"
+  },
+  "unitStat": {
+    "Attack": "Атака",
+    "Defense": "Захист",
+    "Speed": "Швидкість",
+    "CarryCapacity": "Вантаж"
+  },
+  "page": {
+    "loading": "Завантаження війська…",
+    "title": "Військо",
+    "total": "Разом у гарнізоні: {{count}}",
+    "queueFree": "Черга вільна",
+    "queue": "{{level}} ×{{count}} — {{remaining}}",
+    "garrison": "Гарнізон",
+    "empty": "Армія порожня — навчіть перших юнітів у таборах."
+  },
+  "unitCamp": {
+    "loading": "Завантаження табору…",
+    "notBuilt": "«{{building}}» ще не збудовано — табір відкриється разом із будівлею.",
+    "toVillage": "До села",
+    "toArmy": "До війська",
+    "buildingLevel": "{{building}}, рівень {{level}}",
+    "levelUpHere": "Прокачати до цього рівня",
+    "capacity": "Місткість табору: {{occupied}} / {{capacity}}",
+    "trainingTitle": "Тренування",
+    "trainingDescription": "Тренування: {{unit}} {{level}} ({{count}})",
+    "underConstruction": "Поки будівля покращується, нові партії не приймаються.",
+    "full": "Табір заповнений — покращте будівлю, щоб вмістити більше.",
+    "levellingTitle": "Прокачка",
+    "levellingDescription": "Прокачка: {{unit}} {{from}} → {{to}} ({{count}})",
+    "levellingNow": "Іде прокачка: {{unit}} {{from}} → {{to}} ×{{count}}"
+  }
+}

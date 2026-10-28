@@ -1,1 +1,47 @@
-{}
+{
+  "camp": {
+    "levelLocked": "Level {{level}} unlocks at Town Hall level {{townHall}}",
+    "level": "Level {{level}}",
+    "finish": "Finish",
+    "speedUps": "Speed-ups",
+    "training": "Training: {{unit}} {{level}}",
+    "batch": "Batch up to {{max}}",
+    "train": "Train",
+    "nothingToLevel": "No one to level up to {{level}}: every troop is already there or higher.",
+    "levelUpTo": "Level up to {{level}}",
+    "fromLevel": "from {{level}} · {{count}}",
+    "levelUp": "Level up",
+    "stats": "Stats"
+  },
+  "unitStat": {
+    "Attack": "Attack",
+    "Defense": "Defense",
+    "Speed": "Speed",
+    "CarryCapacity": "Carry"
+  },
+  "page": {
+    "loading": "Loading the army…",
+    "title": "Army",
+    "total": "In the garrison: {{count}}",
+    "queueFree": "Queue is free",
+    "queue": "{{level}} ×{{count}} — {{remaining}}",
+    "garrison": "Garrison",
+    "empty": "The army is empty — train your first troops in the camps."
+  },
+  "unitCamp": {
+    "loading": "Loading the camp…",
+    "notBuilt": "The {{building}} isn't built yet — the camp opens together with the building.",
+    "toVillage": "To the village",
+    "toArmy": "To the army",
+    "buildingLevel": "{{building}}, level {{level}}",
+    "levelUpHere": "Level up to this level",
+    "capacity": "Camp capacity: {{occupied}} / {{capacity}}",
+    "trainingTitle": "Training",
+    "trainingDescription": "Training: {{unit}} {{level}} ({{count}})",
+    "underConstruction": "While the building is being upgraded, no new batches are accepted.",
+    "full": "The camp is full — upgrade the building to fit more.",
+    "levellingTitle": "Levelling",
+    "levellingDescription": "Levelling: {{unit}} {{from}} → {{to}} ({{count}})",
+    "levellingNow": "Levelling in progress: {{unit}} {{from}} → {{to}} ×{{count}}"
+  }
+}

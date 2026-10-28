@@ -10,6 +10,7 @@ import SpeedUpItemsButton from "../SpeedUpItemsButton";
 import { roman, tierFrame } from "../../lib/unitTiers";
 import { UnitFigure } from "./UnitArt";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 /** Шестикутник із загостреним верхом — рамка юніта, як на референсі табору. */
 const HEX = "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)";
@@ -62,7 +63,7 @@ export function LevelStrip({ unitType, maxLevel, ceiling, counts, selected, onSe
           ref={level === selected ? selectedRef : undefined}
           type="button"
           onClick={() => onSelect(level)}
-          title={level > ceiling ? `Рівень ${roman(level)} відкриється з ратушею ${level} рівня` : `Рівень ${roman(level)}`}
+          title={level > ceiling ? t("army:camp.levelLocked", { level: roman(level), townHall: level }) : t("army:camp.level", { level: roman(level) })}
           className={`flex shrink-0 flex-col items-center gap-0.5 transition ${level === selected ? "scale-110" : "opacity-80 hover:opacity-100"}`}
         >
           <span className={level === selected ? "drop-shadow-[0_0_6px_#fff]" : ""}>
@@ -126,7 +127,7 @@ export function OrderCard(props: OrderProps) {
             disabled={props.finishing}
             className="rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 py-1.5 text-white shadow ring-1 ring-amber-200 [text-shadow:0_1px_1px_#0006] hover:brightness-110 disabled:opacity-50"
           >
-            <span className="block text-xs font-semibold">Завершити</span>
+            <span className="block text-xs font-semibold">{t("army:camp.finish")}</span>
             <span className="block text-lg font-bold leading-6">💎 {formatNumber(gems)}</span>
           </button>
         ) : (
@@ -136,7 +137,7 @@ export function OrderCard(props: OrderProps) {
           timer={props.timer}
           targetId={props.orderId}
           completesAt={props.completesAt}
-          label="Прискорення"
+          label={t("army:camp.speedUps")}
           className="h-full w-full rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 py-3 text-lg font-semibold text-white shadow ring-1 ring-sky-200 [text-shadow:0_1px_1px_#0006] hover:brightness-110"
         />
       </div>
@@ -195,8 +196,8 @@ export function TrainForm({ unit, level, maxBatch, blocked, pending, error, onTr
     <div className="space-y-3 rounded-xl bg-[#2a4f8c] p-3 ring-1 ring-[#3d6aae]">
       <ErrorBanner error={error} />
       <div className="flex items-baseline justify-between text-sm">
-        <span className="font-semibold">Тренування: {unit.displayName} {roman(level)}</span>
-        <span className="text-xs text-sky-200">Партія до {maxBatch}</span>
+        <span className="font-semibold">{t("army:camp.training", { unit: unit.displayName, level: roman(level) })}</span>
+        <span className="text-xs text-sky-200">{t("army:camp.batch", { max: maxBatch })}</span>
       </div>
       <CountPicker value={amount} max={maxBatch} onChange={setCount} />
       <p className="text-sm text-sky-100">
@@ -206,7 +207,7 @@ export function TrainForm({ unit, level, maxBatch, blocked, pending, error, onTr
       <div className="flex justify-end">
         <span data-tutorial={`train:${unit.key}`}>
           <GameButton onClick={() => onTrain(amount)} disabled={pending || blocked !== null} variant="accent">
-            Тренувати
+            {t("army:camp.train")}
           </GameButton>
         </span>
       </div>
@@ -238,7 +239,7 @@ export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending
   if (source === undefined) {
     return (
       <p className="rounded-xl bg-[#2a4f8c] p-3 text-sm text-sky-100 ring-1 ring-[#3d6aae]">
-        Немає кого качати до рівня {roman(toLevel)}: усі юніти вже на ньому чи вище.
+        {t("army:camp.nothingToLevel", { level: roman(toLevel) })}
       </p>
     );
   }
@@ -251,7 +252,7 @@ export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending
   return (
     <div className="space-y-3 rounded-xl bg-[#2a4f8c] p-3 ring-1 ring-[#3d6aae]">
       <ErrorBanner error={error} />
-      <p className="text-sm font-semibold">Прокачка до рівня {roman(toLevel)}</p>
+      <p className="text-sm font-semibold">{t("army:camp.levelUpTo", { level: roman(toLevel) })}</p>
       <div className="flex flex-wrap gap-2">
         {sources.map(([level, have]) => (
           <button
@@ -262,7 +263,7 @@ export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending
               level === fromLevel ? "bg-lime-500 text-slate-900 ring-lime-200" : "bg-slate-900/50 text-white ring-[#3d6aae]"
             }`}
           >
-            з {roman(level)} · {formatNumber(have)}
+            {t("army:camp.fromLevel", { level: roman(level), count: formatNumber(have) })}
           </button>
         ))}
       </div>
@@ -273,18 +274,18 @@ export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending
       {blocked !== null && <p className="text-xs text-amber-300">{blocked}</p>}
       <div className="flex justify-end">
         <GameButton onClick={() => onUpgrade(fromLevel, amount)} disabled={pending || blocked !== null} variant="accent">
-          Прокачати
+          {t("army:camp.levelUp")}
         </GameButton>
       </div>
     </div>
   );
 }
 
-const STATS: { key: string; label: string; icon: string; scales: boolean }[] = [
-  { key: "Attack", label: "Атака", icon: "⚔", scales: true },
-  { key: "Defense", label: "Захист", icon: "🛡", scales: true },
-  { key: "Speed", label: "Швидкість", icon: "👣", scales: false },
-  { key: "CarryCapacity", label: "Вантаж", icon: "🛒", scales: false },
+const STATS: { key: "Attack" | "Defense" | "Speed" | "CarryCapacity"; icon: string; scales: boolean }[] = [
+  { key: "Attack", icon: "⚔", scales: true },
+  { key: "Defense", icon: "🛡", scales: true },
+  { key: "Speed", icon: "👣", scales: false },
+  { key: "CarryCapacity", icon: "🛒", scales: false },
 ];
 
 /**
@@ -299,7 +300,7 @@ export function UnitStats({ unit, level, maxLevel }: { unit: CatalogUnit; level:
     <div className="space-y-3">
       <h3 className="flex items-center gap-2 text-sm text-sky-200">
         <span className="h-px flex-1 bg-sky-300/40" />
-        Показники
+        {t("army:camp.stats")}
         <span className="h-px flex-1 bg-sky-300/40" />
       </h3>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -315,7 +316,7 @@ export function UnitStats({ unit, level, maxLevel }: { unit: CatalogUnit; level:
               </span>
               <div className="flex-1">
                 <div className="flex justify-between text-sm">
-                  <dt>{stat.label}</dt>
+                  <dt>{t(`army:unitStat.${stat.key}`)}</dt>
                   <dd className="font-semibold tabular-nums">{Math.round(value * 10) / 10}</dd>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-900/60">
