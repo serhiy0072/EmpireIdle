@@ -13,6 +13,9 @@ namespace EmpireIdle.Domain.Enums
         UnitLevelUp = 2,
 
         /// <summary>Марш у дорозі.</summary>
-        March = 3
+        March = 3,
+
+        /// <summary>Дослідження особистої технології в Академії.</summary>
+        Research = 4
     }
 }

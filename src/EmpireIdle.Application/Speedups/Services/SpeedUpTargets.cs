@@ -20,20 +20,40 @@ namespace EmpireIdle.Application.Speedups.Services
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IMarchRepository _marchRepository;
+        private readonly IPlayerResearchRepository _researchRepository;
         private readonly GameCatalog _catalog;
 
         public SpeedUpTargets(IVillageRepository villageRepository, IGarrisonRepository garrisonRepository,
-            IMarchRepository marchRepository, GameCatalog catalog)
+            IMarchRepository marchRepository, IPlayerResearchRepository researchRepository, GameCatalog catalog)
         {
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
+            _researchRepository = researchRepository;
             _catalog = catalog;
         }
 
         public async Task<SpeedUpTarget> FindAsync(Guid playerId, SpeedUpTimer timer, Guid targetId,
             CancellationToken cancellationToken)
         {
+            if (timer == SpeedUpTimer.Research)
+            {
+                var research = await _researchRepository.GetByPlayerAsync(playerId, cancellationToken);
+
+                // Чужий запис не відрізнити від неіснуючого: шукаємо лише свій і порівнюємо id
+                if (research is null || research.Id != targetId)
+                    throw new EntityNotFoundException("Research", targetId);
+
+                if (research.CompletesAt is not { } completesAt)
+                    throw new RequirementNotMetException(RefusalReasons.ResearchNotActive, $"Player {playerId} is not researching.");
+
+                return new SpeedUpTarget(completesAt, (cut, now) =>
+                {
+                    research.Shorten(cut, now);
+                    research.CompleteDue(now);
+                });
+            }
+
             var village = await _villageRepository.GetByPlayerIdAsync(playerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {playerId}.");
 

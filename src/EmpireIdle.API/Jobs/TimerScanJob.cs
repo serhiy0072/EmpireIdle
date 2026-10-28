@@ -4,6 +4,8 @@ using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Garrisons.Queries;
 using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Heroes.Queries;
+using EmpireIdle.Application.Research.Commands;
+using EmpireIdle.Application.Research.Queries;
 using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
 using Hangfire;
@@ -27,6 +29,9 @@ namespace EmpireIdle.API.Jobs
 
             await _runner.ForEachItemAsync(nameof(CompleteGarrisonLevelUpsCommand), (mediator, ct) => mediator.Send(new GetGarrisonIdsWithDueLevelUpsQuery(), ct),
                 (mediator, id, ct) => mediator.Send(new CompleteGarrisonLevelUpsCommand(id), ct), cancellationToken);
+
+            await _runner.ForEachItemAsync(nameof(CompleteResearchCommand), (mediator, ct) => mediator.Send(new GetResearchIdsWithDueResearchQuery(), ct),
+                (mediator, id, ct) => mediator.Send(new CompleteResearchCommand(id), ct), cancellationToken);
 
 
             // Ефекти не прив'язані до світу: одне видалення на тік, а не по одному на кожен світ

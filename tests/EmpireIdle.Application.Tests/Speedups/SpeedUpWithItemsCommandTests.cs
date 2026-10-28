@@ -25,6 +25,7 @@ public class SpeedUpWithItemsCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly Village _village;
@@ -88,7 +89,7 @@ public class SpeedUpWithItemsCommandTests
         var catalog = new GameCatalog(config);
 
         return new SpeedUpWithItemsCommandHandler(_inventory,
-            new SpeedUpTargets(_villages, _garrisons, _marches, catalog),
+            new SpeedUpTargets(_villages, _garrisons, _marches, _research, catalog),
             new SpeedUpCalculator(config.Monetization), catalog, _unitOfWork, new FakeTimeProvider(Now),
             NullLogger<SpeedUpWithItemsCommandHandler>.Instance);
     }

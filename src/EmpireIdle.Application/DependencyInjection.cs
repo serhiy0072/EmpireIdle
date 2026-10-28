@@ -6,6 +6,7 @@ using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Heroes.Services;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Wallets.Services;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
@@ -80,6 +81,7 @@ namespace EmpireIdle.Application
             services.AddScoped<HeroShardBank>();
             services.AddScoped<TrainingCampService>();
             services.AddScoped<PlayerVip>();
+            services.AddScoped<PlayerTechnologies>();
             services.AddScoped<MonsterExperienceReward>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<ClanSuccession>();
