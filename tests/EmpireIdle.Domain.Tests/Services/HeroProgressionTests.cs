@@ -272,41 +272,43 @@ namespace EmpireIdle.Domain.Tests.Services
         // ---------- Марші ----------
 
         /// <summary>
-        /// Окремого лічильника слотів немає: один герой веде один марш,
-        /// тож межа й так дорівнює ростеру.
+        /// Базово три марші (рішення 28.10.2026), але не більше, ніж героїв: марш веде герой.
         /// </summary>
         [Fact]
-        public void MarchCapacity_ShouldFollowHeroCountBelowTheCap()
+        public void MarchCapacity_ShouldBeTheBase_ButNotAboveTheHeroCount()
         {
             var progression = Create(maxMarches: 8);
 
-            Assert.Equal(0, progression.MarchCapacity(heroCount: 0));
-            Assert.Equal(3, progression.MarchCapacity(heroCount: 3));
+            Assert.Equal(0, progression.MarchCapacity(heroCount: 0, extraMarches: 0));
+            Assert.Equal(2, progression.MarchCapacity(heroCount: 2, extraMarches: 0));
+            Assert.Equal(3, progression.MarchCapacity(heroCount: 20, extraMarches: 0));
         }
 
+        /// <summary>VIP додає марші понад базу, але стеля конфіга тримає.</summary>
         [Fact]
-        public void MarchCapacity_ShouldClampAtTheConfiguredCap()
+        public void MarchCapacity_ShouldAddVipMarches_UpToTheConfiguredCap()
         {
             var progression = Create(maxMarches: 8);
 
-            Assert.Equal(8, progression.MarchCapacity(heroCount: 20));
+            Assert.Equal(5, progression.MarchCapacity(heroCount: 20, extraMarches: 2));
+            Assert.Equal(8, progression.MarchCapacity(heroCount: 20, extraMarches: 9));
         }
 
         /// <summary>
-        /// Лишок рахується від стелі з усіх героїв — і вільних, і тих, що в поході: 7 вільних і 3 марші
-        /// при стелі 8 — ще 5, а не 7.
+        /// Лишок рахується від межі з усіх героїв — і вільних, і тих, що в поході: 7 вільних і 3 марші
+        /// при базі 3 і двох VIP-маршах — ще 2.
         /// </summary>
         [Theory]
-        [InlineData(5, 0, 5)]
-        [InlineData(5, 2, 5)]
-        [InlineData(7, 3, 5)]
-        [InlineData(4, 8, 0)]
-        [InlineData(0, 2, 0)]
-        public void MarchesLeft_ShouldSubtractActiveMarches_FromTheCapAcrossAllHeroes(int available, int active, int expected)
+        [InlineData(5, 0, 0, 3)]
+        [InlineData(5, 2, 0, 1)]
+        [InlineData(7, 3, 2, 2)]
+        [InlineData(4, 8, 5, 0)]
+        [InlineData(0, 2, 0, 0)]
+        public void MarchesLeft_ShouldSubtractActiveMarches_FromTheCapAcrossAllHeroes(int available, int active, int extra, int expected)
         {
             var progression = Create(maxMarches: 8);
 
-            Assert.Equal(expected, progression.MarchesLeft(available, active));
+            Assert.Equal(expected, progression.MarchesLeft(available, active, extra));
         }
 
         // ---------- Час ----------

@@ -38,6 +38,7 @@ public class SendMarchCommandTests
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
     private readonly IBeastPenRepository _pens = Substitute.For<IBeastPenRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private EmpireIdle.Application.Wallets.Services.PlayerVip _vip = TestVip.None();
 
     private EffectResolver Effects(GameCatalog catalog) => TestEffects.Resolver(_effects, _pens, catalog);
 
@@ -139,6 +140,7 @@ public class SendMarchCommandTests
             catalog,
             new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog),
             Effects(catalog),
+            _vip,
             NullLogger<SendMarchCommandHandler>.Instance);
     }
 
@@ -447,6 +449,25 @@ public class SendMarchCommandTests
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(Send(monster.Id, hero.Id), CancellationToken.None));
         Assert.Equal(RefusalReasons.MarchCapacity.Key, refusal.Reason);
+    }
+
+    /// <summary>
+    /// Понад базові три марші ходить лише VIP (рішення 28.10.2026): другий рівень дає четвертий марш,
+    /// навіть коли стеля конфіга вища.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldAllowAFourthMarch_OnlyWithAnEvenVipLevel()
+    {
+        var (_, monster, hero) = GivenState(activeMarches: 3, availableHeroes: 5);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler(h => h.MaxMarches = 8).Handle(Send(monster.Id, hero.Id), CancellationToken.None));
+        Assert.Equal(RefusalReasons.MarchCapacity.Key, refusal.Reason);
+
+        _vip = TestVip.Purchased(PlayerId, 200);
+        await Handler(h => h.MaxMarches = 8).Handle(Send(monster.Id, hero.Id), CancellationToken.None);
+
+        Assert.Equal(HeroState.Deployed, hero.State);
     }
 
     /// <summary>Три герої дають три походи, а не два.</summary>

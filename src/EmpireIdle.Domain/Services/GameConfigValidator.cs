@@ -1210,6 +1210,10 @@ namespace EmpireIdle.Domain.Services
                 throw new InvalidOperationException(
                     "HeroSettings.MaxMarches must be at least 1 — otherwise a player with heroes still has no marches.");
 
+            if (settings.BaseMarches < 1 || settings.BaseMarches > settings.MaxMarches)
+                throw new InvalidOperationException(
+                    "HeroSettings.BaseMarches must be within 1..MaxMarches — every player needs a march, and the cap must stay reachable.");
+
             if (settings.Classes.Count == 0)
                 throw new InvalidOperationException(
                     "HeroSettings.Classes is empty — every hero references a class, and weapons fit by class.");
