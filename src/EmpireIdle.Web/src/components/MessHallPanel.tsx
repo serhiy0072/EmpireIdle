@@ -1,5 +1,7 @@
 import { useVillage } from "../lib/queries/village";
 import { formatNumber } from "../lib/format";
+import { Trans } from "react-i18next";
+import { t } from "i18next";
 
 /**
  * Їдальня (рішення 20.10.2026): селище щогодини їсть м'ясо — 15 за кожен рівень будівель із рівнями.
@@ -12,11 +14,15 @@ export default function MessHallPanel({ playerId }: { playerId: string }) {
   return (
     <div className="space-y-1 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">
       <p>
-        Селище з'їдає <span className="font-semibold">{formatNumber(meal)} м'яса за годину</span> — що більше
-        рівнів у будівель, то більше. Списується кожні 10 хвилин.
+        <Trans
+          ns="village"
+          i18nKey="messHall.meal"
+          values={{ amount: formatNumber(meal) }}
+          components={{ b: <span className="font-semibold" /> }}
+        />
       </p>
       <p className="text-xs text-amber-800">
-        Тримайте ферму в рості: забракне м'яса — село голодуватиме, і видобуток усього, крім м'яса, впаде на чверть.
+        {t("village:messHall.hint")}
       </p>
     </div>
   );

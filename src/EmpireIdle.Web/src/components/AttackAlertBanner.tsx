@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { onGameEvent } from "../lib/realtime/connection";
 import { formatClock } from "../lib/format";
+import { t } from "i18next";
 
 /** Остання тривога: що сталося, де, і ключ для переходу на мапу. */
 interface Alert {
@@ -31,14 +32,15 @@ export default function AttackAlertBanner() {
       const attacker = `${event.attackerClanTag == null ? "" : `[${event.attackerClanTag}] `}${event.attackerName}`;
       const target =
         event.targetType === "ClanStructure"
-          ? `споруду клану${event.targetName == null ? "" : ` [${event.targetName}]`}`
-          : (event.targetName ?? "село");
-
-      const verb = event.intent === "Scout" ? "розвідує" : "іде на";
+          ? event.targetName == null
+            ? t("village:alert.structure")
+            : t("village:alert.namedStructure", { name: event.targetName })
+          : (event.targetName ?? t("village:alert.village"));
+      const where = { attacker, target, x: event.targetX, y: event.targetY, time: timeLabel(event.arrivesAt) };
 
       setAlert({
         key: event.marchId,
-        text: `${attacker} ${verb} ${target} (${event.targetX}, ${event.targetY}) — прибуде о ${timeLabel(event.arrivesAt)}.`,
+        text: event.intent === "Scout" ? t("village:alert.scouting", where) : t("village:alert.attacking", where),
         x: event.targetX,
         y: event.targetY,
         destroyed: false,
@@ -49,7 +51,7 @@ export default function AttackAlertBanner() {
     const offDestroyed = onGameEvent("StructureDestroyed", (event) =>
       setAlert({
         key: event.structureId,
-        text: `Споруду клану на (${event.x}, ${event.y}) зруйновано.`,
+        text: t("village:alert.destroyed", { x: event.x, y: event.y }),
         x: event.x,
         y: event.y,
         destroyed: true,
@@ -80,7 +82,7 @@ export default function AttackAlertBanner() {
     >
       <span>
         {alert.text}
-        {!alert.destroyed && !alert.scout && " Відправте підкріплення!"}
+        {!alert.destroyed && !alert.scout && ` ${t("village:alert.reinforce")}`}
       </span>
       <div className="flex gap-2">
         <Link
@@ -88,10 +90,10 @@ export default function AttackAlertBanner() {
           onClick={() => setAlert(null)}
           className="rounded-lg border border-current px-2 py-0.5 hover:bg-white/50"
         >
-          Показати на мапі
+          {t("village:alert.showOnMap")}
         </Link>
         <button type="button" onClick={() => setAlert(null)} className="px-1 hover:underline">
-          Закрити
+          {t("village:alert.close")}
         </button>
       </div>
     </div>

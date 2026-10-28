@@ -1,5 +1,6 @@
 import { at } from "../../lib/iso";
 import type { ArtResult } from "./buildingArt";
+import { t } from "i18next";
 
 interface Props {
   art: ArtResult;
@@ -28,7 +29,7 @@ export default function IsoBuildingOverlay({ art, x, y, name, level, gateLevel, 
   // Розмір на екрані сталий до віддалення: 1/zoom скасовує масштаб камери
   const scale = Math.max(1, 1 / zoom);
   const locked = gateLevel !== null;
-  const text = locked ? `🔒 Ратуша ${gateLevel}` : name;
+  const text = locked ? t("village:map.locked", { level: gateLevel }) : name;
   const textWidth = text.length * 6.6;
   const chip = level !== null && !locked;
   const chipWidth = chip ? String(level).length * 8 + 14 : 0;

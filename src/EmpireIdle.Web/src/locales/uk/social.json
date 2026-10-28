@@ -12,5 +12,60 @@
     "nameCharset": "Літери, цифри, пробіл, апостроф або дефіс",
     "tagLength": "Тег від 2 до 5 символів",
     "tagCharset": "Тег лише з латинських літер і цифр"
+  },
+  "objective": {
+    "collect": "Зібрати {{resource}}",
+    "upgrade": "{{building}} до рівня {{level}}",
+    "trainAny": "Навчити юнітів",
+    "train": "Навчити: {{unit}}",
+    "monsters": "Перемогти монстрів",
+    "gems": "Витратити самоцвітів"
+  },
+  "reward": {
+    "hero": "Герой: {{hero}}",
+    "heroExperience": "{{amount}} досвіду героям",
+    "artifactMany": "{{rarity}} артефакт ×{{amount}}",
+    "artifact": "{{rarity}} артефакт"
+  },
+  "chat": {
+    "channel": {
+      "world": "Світ",
+      "clan": "Клан",
+      "private": "Особисті"
+    },
+    "you": "ви",
+    "tickerHint": "Чат: {{channel}}. Торкніться, щоб розкрити; гортайте вбік, щоб змінити канал",
+    "previousChannel": "Попередній канал",
+    "nextChannel": "Наступний канал",
+    "noPrivate": "Особистих розмов ще немає",
+    "quiet": "Поки тиша — торкніться, щоб написати"
+  },
+  "quests": {
+    "claimed": "Отримано",
+    "claim": "Забрати",
+    "section": {
+      "daily": "Щоденні",
+      "events": "Події",
+      "story": "Історія"
+    },
+    "loading": "Завантаження квестів…",
+    "title": "Квести",
+    "claimable": "Готово до отримання: {{count}}",
+    "dailyReset": "щоденні оновляться за {{remaining}}",
+    "claimAll": "Зібрати все",
+    "none": "Наразі завдань немає.",
+    "server": "Серверні",
+    "serverLoading": "Завантаження…",
+    "serverNone": "Спільних цілей сервера зараз немає."
+  },
+  "serverQuest": {
+    "state": {
+      "InProgress": "Триває",
+      "Completed": "Виконано",
+      "Claimed": "Нагороди роздано"
+    },
+    "progress": "{{total}} / {{target}} — усім сервером",
+    "contribution": "Ваш внесок: <b>{{amount}}</b>",
+    "rank": "· місце <b>{{rank}}</b>"
   }
 }

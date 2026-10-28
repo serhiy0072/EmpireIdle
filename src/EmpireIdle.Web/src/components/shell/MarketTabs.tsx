@@ -1,11 +1,12 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTabHotkeys } from "../../hooks/useHotkeys";
+import { t } from "i18next";
 
 /** Вкладки будівлі «Ринок» (рішення 19.10.2026): крамниця, банери й ринок гравців — одна будівля. */
 const TABS = [
-  { to: "/shop", label: "Крамниця" },
-  { to: "/banners", label: "Банери" },
-  { to: "/market", label: "Ринок гравців" },
+  { to: "/shop", label: "shop" },
+  { to: "/banners", label: "banners" },
+  { to: "/market", label: "market" },
 ] as const;
 
 export default function MarketTabs() {
@@ -30,7 +31,7 @@ export default function MarketTabs() {
             }`
           }
         >
-          {tab.label}
+          {t(`items:marketTabs.${tab.label}`)}
         </NavLink>
       ))}
     </nav>

@@ -125,5 +125,38 @@
   "cooldownTurns_one": "−{{count}} turn",
   "cooldownTurns_few": "−{{count}} turns",
   "cooldownTurns_many": "−{{count}} turns",
-  "cooldownTurns_other": "−{{count}} turns"
+  "cooldownTurns_other": "−{{count}} turns",
+  "speedUp": {
+    "label": "Speed up",
+    "withCost": "Speed up ({{cost}} 💎)",
+    "itemsHint": "Speed up with items",
+    "items": "⏩ items",
+    "left": "≈ {{count}} min left. Extra minutes are lost.",
+    "total": "Total:",
+    "suggest": "pick",
+    "use": "Use"
+  },
+  "duration": {
+    "minutes": "{{count}} min",
+    "hours": "{{count}} h"
+  },
+  "nav": {
+    "heroes": "Heroes",
+    "tower": "Tower",
+    "quests": "Quests",
+    "inventory": "Backpack",
+    "clan": "Clan",
+    "mail": "Mail",
+    "rating": "Rating",
+    "village": "Village",
+    "worldMap": "World map",
+    "map": "Map"
+  },
+  "owned": "({{count}} owned)",
+  "role": {
+    "warrior": "Warrior · infantry",
+    "knight": "Knight · spearmen",
+    "archer": "Archer · archers"
+  },
+  "stars": "Stars: {{count}} of {{max}}"
 }

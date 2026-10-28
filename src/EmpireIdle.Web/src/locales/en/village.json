@@ -1,1 +1,79 @@
-{}
+{
+  "screen": {
+    "quests": "Quests",
+    "camp": "Camp",
+    "beastPen": "Beast Pen",
+    "infirmary": "Infirmary",
+    "heroes": "Heroes",
+    "gear": "Gear",
+    "inventory": "Inventory",
+    "market": "Market",
+    "clan": "Clan",
+    "worldMap": "World map",
+    "dungeons": "Dungeons"
+  },
+  "card": {
+    "level": "lv. {{level}}",
+    "damaged": "Damaged (level {{level}}) — works at half speed. Recovers in {{remaining}}.",
+    "produces": "Produces {{resource}} — everything made goes to storage on its own every minute.",
+    "building": "Under construction: {{remaining}}",
+    "upgrade": "Upgrade",
+    "locked": "Unlocks when the Town Hall reaches level {{level}}."
+  },
+  "hospital": {
+    "title": "Hospital",
+    "empty": "No wounded — they'll show up here after battles.",
+    "wounded": "Wounded",
+    "woundedStack": "{{unit}} (lv. {{level}}, {{count}} wounded)",
+    "cost": "{{resources}} or {{gems}} 💎",
+    "payResources": "With resources",
+    "recoverable": "Awaiting ransom",
+    "recoverableStack": "{{unit}} (lv. {{level}}, {{count}} available)",
+    "expires": "{{gems}} 💎 · lost in {{remaining}}",
+    "ransom": "Ransom"
+  },
+  "messHall": {
+    "meal": "The settlement eats <b>{{amount}} meat per hour</b> — the more building levels, the more. It's charged every 10 minutes.",
+    "hint": "Keep the Farm growing: run out of meat and the village starves, cutting production of everything but meat by a quarter."
+  },
+  "troops": {
+    "stack": "lv. {{level}}: {{count}}",
+    "level": "lv. {{level}}"
+  },
+  "hunger": {
+    "village": "<b>The settlement is short of meat.</b> The Mess Hall couldn't feed everyone: defense is a fifth weaker and production of everything but meat drops by a quarter. Upgrade the Farm — the hunger ends at the next meal (within 10 min) once there's enough meat.",
+    "beasts": "<b>The beasts are short of fodder.</b> While they're hungry, passives won't activate; active ones play out. The Fishing Hut makes fodder — the beasts eat their fill at the next meal (within 10 min)."
+  },
+  "damage": {
+    "list": "Damaged: {{buildings}}. Damaged buildings produce at half speed, and the walls protect less.",
+    "streak": "Defeats in a row: {{count}}.",
+    "lastChance": "One more defeat before a full recovery — and the settlement will be evicted.",
+    "left": "{{count}} more defeats without a full recovery until eviction.",
+    "repairCost": "Repair now: {{cost}}",
+    "repairAll": "Repair everything"
+  },
+  "map": {
+    "locked": "🔒 Town Hall {{level}}"
+  },
+  "page": {
+    "loading": "Loading the village…",
+    "done": "Done",
+    "rearrange": "Rearrange",
+    "dragHint": "Drag a building to a free spot inside the wall"
+  },
+  "alert": {
+    "structure": "a clan structure",
+    "namedStructure": "the clan structure [{{name}}]",
+    "village": "the village",
+    "scouting": "{{attacker}} is scouting {{target}} ({{x}}, {{y}}) — arrives at {{time}}.",
+    "attacking": "{{attacker}} is marching on {{target}} ({{x}}, {{y}}) — arrives at {{time}}.",
+    "destroyed": "The clan structure at ({{x}}, {{y}}) was destroyed.",
+    "reinforce": "Send reinforcements!",
+    "showOnMap": "Show on the map",
+    "close": "Close"
+  },
+  "power": {
+    "loading": "Calculating power…",
+    "breakdown": "Army {{army}} · heroes {{heroes}} · gear {{gear}}"
+  }
+}

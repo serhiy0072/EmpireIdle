@@ -1,1 +1,7 @@
-{}
+{
+  "marketTabs": {
+    "shop": "Shop",
+    "banners": "Banners",
+    "market": "Player market"
+  }
+}

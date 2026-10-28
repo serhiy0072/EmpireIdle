@@ -2,6 +2,7 @@ import type { QuestObjectiveView, RewardConfig } from "./apiTypes";
 import type { Catalog } from "./queries/catalog";
 import { rarityLabel } from "./rarity";
 import { formatNumber } from "./format";
+import { t } from "i18next";
 
 /**
  * Текст цілі з її типу й цілі. Тип — ім'я доменної події на беку
@@ -13,15 +14,15 @@ export function objectiveLabel(objective: QuestObjectiveView, catalog: Catalog):
 
   switch (objective.type) {
     case "BuildingCollected":
-      return `Зібрати ${catalog.resourceName(target)}`;
+      return t("social:objective.collect", { resource: catalog.resourceName(target) });
     case "BuildingUpgradeCompleted":
-      return `${catalog.buildingName(target)} до рівня ${objective.required}`;
+      return t("social:objective.upgrade", { building: catalog.buildingName(target), level: objective.required });
     case "UnitsTrained":
-      return target === "" ? "Навчити юнітів" : `Навчити: ${catalog.unitName(target)}`;
+      return target === "" ? t("social:objective.trainAny") : t("social:objective.train", { unit: catalog.unitName(target) });
     case "MonsterDefeated":
-      return "Перемогти монстрів";
+      return t("social:objective.monsters");
     case "GemsSpent":
-      return "Витратити самоцвітів";
+      return t("social:objective.gems");
     default:
       return target === "" ? objective.type : `${objective.type}: ${target}`;
   }
@@ -43,15 +44,17 @@ export function rewardLabel(reward: RewardConfig, catalog: Catalog): string {
     case "Resource":
       return `${amount} ${catalog.resourceName(key)}`;
     case "Hero":
-      return `Герой: ${catalog.heroName(key)}`;
+      return t("social:reward.hero", { hero: catalog.heroName(key) });
     case "Equipment":
     case "Item":
       return reward.amount > 1 ? `${catalog.itemName(key)} ×${amount}` : catalog.itemName(key);
     case "HeroExperience":
-      return `${amount} досвіду героям`;
+      return t("social:reward.heroExperience", { amount });
     case "Artifact":
       // Випадковий артефакт рідкості: «Рідкісний артефакт ×2»
-      return reward.amount > 1 ? `${rarityLabel(key)} артефакт ×${amount}` : `${rarityLabel(key)} артефакт`;
+      return reward.amount > 1
+        ? t("social:reward.artifactMany", { rarity: rarityLabel(key), amount })
+        : t("social:reward.artifact", { rarity: rarityLabel(key) });
     default:
       return `${reward.type} ${key} ×${amount}`;
   }

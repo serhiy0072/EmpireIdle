@@ -1,5 +1,6 @@
 import type { VillageDamageResponse } from "../../lib/apiTypes";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   damage: VillageDamageResponse;
@@ -20,18 +21,17 @@ export default function DamageBanner({ damage, damagedNames, resourceName, busy,
   return (
     <div className="space-y-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">
       <p>
-        Пошкоджено: {damagedNames.join(", ")}. Пошкоджені будівлі виробляють удвічі повільніше, а стіни
-        захищають слабше.
+        {t("village:damage.list", { buildings: damagedNames.join(", ") })}
       </p>
       <p>
-        Поразок поспіль: {damage.defeatStreak}.{" "}
-        {left === 1
-          ? "Ще одна поразка до повного відновлення — і поселення виселять."
-          : `До виселення — ще ${left} поразки без повного відновлення.`}
+        {t("village:damage.streak", { count: damage.defeatStreak })}{" "}
+        {left === 1 ? t("village:damage.lastChance") : t("village:damage.left", { count: left })}
       </p>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-rose-800">
-          Ремонт зараз: {damage.repairCost.map((c) => `${formatNumber(c.amount)} ${resourceName(c.resource)}`).join(", ")}
+          {t("village:damage.repairCost", {
+            cost: damage.repairCost.map((c) => `${formatNumber(c.amount)} ${resourceName(c.resource)}`).join(", "),
+          })}
         </span>
         <button
           type="button"
@@ -39,7 +39,7 @@ export default function DamageBanner({ damage, damagedNames, resourceName, busy,
           disabled={busy}
           className="rounded-lg bg-rose-600 px-3 py-1 text-sm font-medium text-white hover:bg-rose-700 disabled:opacity-50"
         >
-          Відремонтувати все
+          {t("village:damage.repairAll")}
         </button>
       </div>
     </div>

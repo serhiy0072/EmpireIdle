@@ -16,6 +16,7 @@ import {
   useUpgradeBuilding,
   useVillage,
 } from "../lib/queries/village";
+import { t } from "i18next";
 
 type VillageAction = "upgrade" | "speedUp" | "repair" | "move";
 
@@ -43,7 +44,7 @@ export default function VillagePage() {
   );
 
   if (village.isPending) {
-    return <p className="text-slate-500">Завантаження села…</p>;
+    return <p className="text-slate-500">{t("village:page.loading")}</p>;
   }
 
   if (village.isError) {
@@ -86,7 +87,7 @@ export default function VillagePage() {
             }}
             variant={editing ? "accent" : "secondary"}
           >
-            {editing ? "Готово" : "Перебудувати"}
+            {editing ? t("village:page.done") : t("village:page.rearrange")}
           </GameButton>
         </div>
       </div>
@@ -111,7 +112,7 @@ export default function VillagePage() {
 
       {editing && (
         <p className="pointer-events-none absolute inset-x-0 bottom-3 mx-auto w-fit rounded-lg bg-amber-100/95 px-3 py-1 text-sm text-amber-900 shadow">
-          Перетягніть будівлю на вільне місце всередині муру
+          {t("village:page.dragHint")}
         </p>
       )}
 

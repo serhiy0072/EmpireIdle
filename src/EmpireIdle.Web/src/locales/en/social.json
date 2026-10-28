@@ -12,5 +12,60 @@
     "nameCharset": "Letters, digits, space, apostrophe or hyphen",
     "tagLength": "Tag: 2 to 5 characters",
     "tagCharset": "Tag: Latin letters and digits only"
+  },
+  "objective": {
+    "collect": "Collect {{resource}}",
+    "upgrade": "{{building}} to level {{level}}",
+    "trainAny": "Train troops",
+    "train": "Train: {{unit}}",
+    "monsters": "Defeat monsters",
+    "gems": "Spend gems"
+  },
+  "reward": {
+    "hero": "Hero: {{hero}}",
+    "heroExperience": "{{amount}} hero XP",
+    "artifactMany": "{{rarity}} artifact ×{{amount}}",
+    "artifact": "{{rarity}} artifact"
+  },
+  "chat": {
+    "channel": {
+      "world": "World",
+      "clan": "Clan",
+      "private": "Private"
+    },
+    "you": "you",
+    "tickerHint": "Chat: {{channel}}. Tap to open; swipe sideways to switch channels",
+    "previousChannel": "Previous channel",
+    "nextChannel": "Next channel",
+    "noPrivate": "No private conversations yet",
+    "quiet": "All quiet — tap to write"
+  },
+  "quests": {
+    "claimed": "Claimed",
+    "claim": "Claim",
+    "section": {
+      "daily": "Daily",
+      "events": "Events",
+      "story": "Story"
+    },
+    "loading": "Loading quests…",
+    "title": "Quests",
+    "claimable": "Ready to claim: {{count}}",
+    "dailyReset": "dailies reset in {{remaining}}",
+    "claimAll": "Claim all",
+    "none": "No quests right now.",
+    "server": "Server",
+    "serverLoading": "Loading…",
+    "serverNone": "No shared server goals right now."
+  },
+  "serverQuest": {
+    "state": {
+      "InProgress": "In progress",
+      "Completed": "Completed",
+      "Claimed": "Rewards handed out"
+    },
+    "progress": "{{total}} / {{target}} — the whole server",
+    "contribution": "Your contribution: <b>{{amount}}</b>",
+    "rank": "· rank <b>{{rank}}</b>"
   }
 }

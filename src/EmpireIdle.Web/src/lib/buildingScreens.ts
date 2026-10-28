@@ -1,32 +1,35 @@
+import { t } from "i18next";
 export interface BuildingScreen {
   to: string;
   label: string;
 }
+
+type ScreenKey = "quests" | "camp" | "beastPen" | "infirmary" | "heroes" | "gear" | "inventory" | "market" | "clan" | "worldMap" | "dungeons";
 
 /**
  * Екрани, які «живуть» у будівлі: з картки будівлі на мапі села є переходи.
  * Ключі — як у buildings.json; будівля без запису переходів не має.
  * Список, а не один запис: вежа розвідки веде і на мапу, і до данжів.
  */
-const SCREENS: Record<string, readonly BuildingScreen[]> = {
-  townhall: [{ to: "/quests", label: "Квести" }],
-  barracks: [{ to: "/army/barracks", label: "Табір" }],
-  spearyard: [{ to: "/army/spearyard", label: "Табір" }],
-  range: [{ to: "/army/range", label: "Табір" }],
-  beastpen: [{ to: "/beasts", label: "Звіринець" }],
-  hospital: [{ to: "/army", label: "Лазарет" }],
-  heroeshall: [{ to: "/heroes", label: "Герої" }],
-  forge: [{ to: "/inventory?tab=equipment", label: "Спорядження" }],
-  warehouse: [{ to: "/inventory", label: "Інвентар" }],
+const SCREENS: Record<string, readonly { to: string; label: ScreenKey }[]> = {
+  townhall: [{ to: "/quests", label: "quests" }],
+  barracks: [{ to: "/army/barracks", label: "camp" }],
+  spearyard: [{ to: "/army/spearyard", label: "camp" }],
+  range: [{ to: "/army/range", label: "camp" }],
+  beastpen: [{ to: "/beasts", label: "beastPen" }],
+  hospital: [{ to: "/army", label: "infirmary" }],
+  heroeshall: [{ to: "/heroes", label: "heroes" }],
+  forge: [{ to: "/inventory?tab=equipment", label: "gear" }],
+  warehouse: [{ to: "/inventory", label: "inventory" }],
   // Одна будівля на всю торгівлю: крамниця, банери й ринок гравців — вкладки (MarketTabs)
-  market: [{ to: "/shop", label: "Ринок" }],
-  embassy: [{ to: "/clan", label: "Клан" }],
+  market: [{ to: "/shop", label: "market" }],
+  embassy: [{ to: "/clan", label: "clan" }],
   scouttower: [
-    { to: "/map", label: "Мапа світу" },
-    { to: "/dungeons", label: "Данжі" },
+    { to: "/map", label: "worldMap" },
+    { to: "/dungeons", label: "dungeons" },
   ],
 };
 
 export function screensFor(buildingKey: string): readonly BuildingScreen[] {
-  return SCREENS[buildingKey] ?? [];
+  return (SCREENS[buildingKey] ?? []).map(({ to, label }) => ({ to, label: t(`village:screen.${label}`) }));
 }

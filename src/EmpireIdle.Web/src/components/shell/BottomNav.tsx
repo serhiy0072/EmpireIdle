@@ -1,5 +1,6 @@
 import { Link, NavLink, useMatch } from "react-router-dom";
 import { NavIcon } from "./icons";
+import { t } from "i18next";
 
 /**
  * Розділи панелі — усі на виду, без меню «Ще»; на них же вказує навчання (data-tutorial="nav:…").
@@ -8,13 +9,13 @@ import { NavIcon } from "./icons";
  * стрілка ← у HUD, а Esc — назад.
  */
 const SECTIONS = [
-  { to: "/heroes", label: "Герої", icon: "heroes" },
-  { to: "/tower", label: "Вежа", icon: "tower" },
-  { to: "/quests", label: "Квести", icon: "quests" },
-  { to: "/inventory", label: "Рюкзак", icon: "inventory" },
-  { to: "/clan", label: "Клан", icon: "clan" },
-  { to: "/mail", label: "Скринька", icon: "mail" },
-  { to: "/rating", label: "Рейтинг", icon: "rating" },
+  { to: "/heroes", label: "heroes", icon: "heroes" },
+  { to: "/tower", label: "tower", icon: "tower" },
+  { to: "/quests", label: "quests", icon: "quests" },
+  { to: "/inventory", label: "inventory", icon: "inventory" },
+  { to: "/clan", label: "clan", icon: "clan" },
+  { to: "/mail", label: "mail", icon: "mail" },
+  { to: "/rating", label: "rating", icon: "rating" },
 ] as const;
 
 interface Props {
@@ -58,7 +59,7 @@ export default function BottomNav({ attention }: Props) {
               <NavIcon name={item.icon} />
               {badge(attention[item.to] ?? 0)}
             </span>
-            <span className="w-full truncate text-center">{item.label}</span>
+            <span className="w-full truncate text-center">{t(`common:nav.${item.label}`)}</span>
           </NavLink>
         ))}
       </div>
@@ -66,11 +67,11 @@ export default function BottomNav({ attention }: Props) {
       <Link
         to={onMap ? "/" : "/map"}
         data-tutorial={onMap ? undefined : "nav:/map"}
-        aria-label={onMap ? "Селище" : "Мапа світу"}
+        aria-label={onMap ? t("common:nav.village") : t("common:nav.worldMap")}
         className="absolute bottom-1.5 right-3 z-10 flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#5b85c4] to-[#24467f] text-[10px] font-bold text-white shadow-lg ring-4 ring-[#5b85c4] hover:brightness-110"
       >
         <NavIcon name={onMap ? "village" : "map"} size={30} />
-        {onMap ? "Селище" : "Мапа"}
+        {onMap ? t("common:nav.village") : t("common:nav.map")}
       </Link>
     </nav>
   );

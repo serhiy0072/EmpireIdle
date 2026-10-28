@@ -1,17 +1,18 @@
 import { formatNumber } from "./format";
+import { t } from "i18next";
 /**
  * Підпис кнопки прискорення. null — ціна невідома, показуємо просто дію.
  * Безкоштовного прискорення немає: на межі (ціна 0) кнопку не показують зовсім.
  */
 export function speedUpLabel(costGems: number | null): string {
-  if (costGems === null) return "Прискорити";
+  if (costGems === null) return t("common:speedUp.label");
 
-  return `Прискорити (${formatNumber(costGems)} 💎)`;
+  return t("common:speedUp.withCost", { cost: formatNumber(costGems) });
 }
 
 /** Тривалість предмета-прискорення коротко, як на плитці: «5 хв», «1 год», «12 год». */
 export function speedUpMinutesLabel(minutes: number): string {
-  return minutes < 60 ? `${minutes} хв` : `${minutes / 60} год`;
+  return minutes < 60 ? t("common:duration.minutes", { count: minutes }) : t("common:duration.hours", { count: minutes / 60 });
 }
 
 /** Прискорення в рюкзаку: скільки хвилин дає одне й скільки штук є. */

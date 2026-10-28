@@ -9,6 +9,7 @@ import HospitalPanel from "./HospitalPanel";
 import SpeedUpItemsButton from "./SpeedUpItemsButton";
 import MessHallPanel from "./MessHallPanel";
 import TroopsPanel from "./TroopsPanel";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -39,13 +40,12 @@ export default function BuildingCard({ playerId, building, busy, onUpgrade, onSp
     <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
       <div className="flex items-baseline justify-between">
         <h3 className="font-medium text-slate-800">{catalog.buildingName(building.type)}</h3>
-        {upgradable && <span className="text-sm text-slate-500">рів. {building.level}</span>}
+        {upgradable && <span className="text-sm text-slate-500">{t("village:card.level", { level: building.level })}</span>}
       </div>
 
       {building.damageLevel > 0 && building.damagedUntil != null && (
         <p className="rounded-lg bg-rose-50 px-3 py-1.5 text-sm text-rose-800">
-          Пошкоджено (рівень {building.damageLevel}) — темп удвічі нижчий. Відновиться за{" "}
-          {formatRemaining(building.damagedUntil, now)}.
+          {t("village:card.damaged", { level: building.damageLevel, remaining: formatRemaining(building.damagedUntil, now) })}
         </p>
       )}
 
@@ -63,13 +63,13 @@ export default function BuildingCard({ playerId, building, busy, onUpgrade, onSp
 
       {resource !== null && (
         <p className="text-xs text-slate-500">
-          Добуває {catalog.resourceName(resource).toLowerCase()} — усе вироблене щохвилини саме йде на склад.
+          {t("village:card.produces", { resource: catalog.resourceName(resource).toLowerCase() })}
         </p>
       )}
 
       {building.isUnderConstruction && building.constructionCompletesAt !== null && building.constructionCompletesAt !== undefined ? (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-600">Будується: {formatRemaining(building.constructionCompletesAt, now)}</span>
+          <span className="text-sm text-slate-600">{t("village:card.building", { remaining: formatRemaining(building.constructionCompletesAt, now) })}</span>
           <span className="flex items-center gap-2">
             <SpeedUpItemsButton timer="Construction" targetId={building.id} completesAt={building.constructionCompletesAt} />
             {speedUpCost !== 0 && (
@@ -94,7 +94,7 @@ export default function BuildingCard({ playerId, building, busy, onUpgrade, onSp
               disabled={busy}
               className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
             >
-              Покращити
+              {t("village:card.upgrade")}
             </button>
           )}
         </div>

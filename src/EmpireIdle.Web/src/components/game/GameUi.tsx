@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useTabHotkeys } from "../../hooks/useHotkeys";
 import { rarityKey } from "../../lib/rarity";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 /**
  * Ігрова «шкірка» екранів героя, рюкзака й табору (рішення 08.10.2026): темно-синє тло,
@@ -158,15 +159,17 @@ const ROLE_BACKS: Record<string, string> = {
   archer: "#15803d",
 };
 
-const ROLE_NAMES: Record<string, string> = { warrior: "Воїн · піхота", knight: "Лицар · списоносці", archer: "Лучник · стрільці" };
+function roleName(role: string): string {
+  return role === "warrior" || role === "knight" || role === "archer" ? t(`common:role.${role}`) : role;
+}
 
 /** Значок ролі героя на щитку — той самий, що на плитках героїв і спорядження. */
 export function RoleBadge({ role, size = 20 }: { role: string | undefined; size?: number }) {
   if (role === undefined) return null;
 
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} aria-label={ROLE_NAMES[role] ?? role} className="drop-shadow">
-      <title>{ROLE_NAMES[role] ?? role}</title>
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-label={roleName(role)} className="drop-shadow">
+      <title>{roleName(role)}</title>
       <path d="M12 1.5 L21.5 5 L20.5 14 Q18 20 12 22.5 Q6 20 3.5 14 L2.5 5 Z" fill={ROLE_BACKS[role] ?? "#475569"} stroke="#fff" strokeWidth={1.2} />
       {ROLE_GLYPHS[role]}
     </svg>
@@ -209,7 +212,7 @@ function HeroStar({ filled, parts, size }: { filled: number; parts: number; size
 /** П'ять зірок героя (GDD §6.1): заповнені промені — бірюзові, неповна зірка показує частинки. */
 export function StarRow({ starParts, partsPerStar, maxStars, size = 28 }: { starParts: number; partsPerStar: number; maxStars: number; size?: number }) {
   return (
-    <div className={`flex items-center ${size < 16 ? "gap-px" : "gap-1.5"}`} title={`Зірки: ${Math.floor(starParts / partsPerStar)} з ${maxStars}`}>
+    <div className={`flex items-center ${size < 16 ? "gap-px" : "gap-1.5"}`} title={t("common:stars", { count: Math.floor(starParts / partsPerStar), max: maxStars })}>
       {Array.from({ length: maxStars }, (_, index) => (
         <HeroStar
           key={index}

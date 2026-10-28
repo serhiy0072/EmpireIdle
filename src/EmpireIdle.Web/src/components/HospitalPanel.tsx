@@ -5,6 +5,7 @@ import { formatRemaining } from "../lib/time";
 import { HEAL_PAYMENT, useGarrison, useHealWounded, useRecoverUnits } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
 import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -31,21 +32,21 @@ export default function HospitalPanel({ playerId }: Props) {
   if (wounded.length === 0 && recoverable.length === 0) {
     return (
       <div className="space-y-1 border-t border-slate-200 pt-3">
-        <h4 className="text-sm font-medium text-slate-700">Госпіталь</h4>
-        <p className="text-sm text-slate-500">Поранених немає — після боїв вони з'являться тут.</p>
+        <h4 className="text-sm font-medium text-slate-700">{t("village:hospital.title")}</h4>
+        <p className="text-sm text-slate-500">{t("village:hospital.empty")}</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4 border-t border-slate-200 pt-3">
-      <h4 className="text-sm font-medium text-slate-700">Госпіталь</h4>
+      <h4 className="text-sm font-medium text-slate-700">{t("village:hospital.title")}</h4>
 
       <ErrorBanner error={heal.error ?? recover.error} />
 
       {wounded.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs font-medium text-slate-500">Поранені</p>
+          <p className="text-xs font-medium text-slate-500">{t("village:hospital.wounded")}</p>
           {wounded.map((stack) => {
             const key = `${stack.unitType}@${stack.level}`;
             const unit = catalog.unit(stack.unitType);
@@ -62,10 +63,10 @@ export default function HospitalPanel({ playerId }: Props) {
               <div key={key} className="flex items-center justify-between gap-2 text-sm">
                 <div>
                   <p className="text-slate-800">
-                    {catalog.unitName(stack.unitType)} (рів. {stack.level}, поранено {stack.count})
+                    {t("village:hospital.woundedStack", { unit: catalog.unitName(stack.unitType), level: stack.level, count: stack.count })}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {resourceLabel} або {gemsLabel} 💎
+                    {t("village:hospital.cost", { resources: resourceLabel, gems: gemsLabel })}
                   </p>
                 </div>
 
@@ -86,7 +87,7 @@ export default function HospitalPanel({ playerId }: Props) {
                     disabled={heal.isPending}
                     className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                   >
-                    Ресурсами
+                    {t("village:hospital.payResources")}
                   </button>
                   <button
                     type="button"
@@ -105,7 +106,7 @@ export default function HospitalPanel({ playerId }: Props) {
 
       {recoverable.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs font-medium text-slate-500">Чекають викупу</p>
+          <p className="text-xs font-medium text-slate-500">{t("village:hospital.recoverable")}</p>
           {recoverable.map((stack) => {
             const key = `${stack.unitType}@${stack.level}`;
             const count = Math.min(Math.max(recoverCounts[key] ?? 1, 1), stack.count);
@@ -115,10 +116,10 @@ export default function HospitalPanel({ playerId }: Props) {
               <div key={key} className="flex items-center justify-between gap-2 text-sm">
                 <div>
                   <p className="text-slate-800">
-                    {catalog.unitName(stack.unitType)} (рів. {stack.level}, доступно {stack.count})
+                    {t("village:hospital.recoverableStack", { unit: catalog.unitName(stack.unitType), level: stack.level, count: stack.count })}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {gemsLabel} 💎 · згорить за {formatRemaining(stack.expiresAt, now)}
+                    {t("village:hospital.expires", { gems: gemsLabel, remaining: formatRemaining(stack.expiresAt, now) })}
                   </p>
                 </div>
 
@@ -139,7 +140,7 @@ export default function HospitalPanel({ playerId }: Props) {
                     disabled={recover.isPending}
                     className="rounded-lg bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700 disabled:opacity-50"
                   >
-                    Викупити
+                    {t("village:hospital.ransom")}
                   </button>
                 </div>
               </div>

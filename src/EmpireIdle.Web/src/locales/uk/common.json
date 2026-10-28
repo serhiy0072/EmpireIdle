@@ -125,5 +125,38 @@
   "cooldownTurns_one": "−{{count}} хід",
   "cooldownTurns_few": "−{{count}} ходи",
   "cooldownTurns_many": "−{{count}} ходів",
-  "cooldownTurns_other": "−{{count}} ходу"
+  "cooldownTurns_other": "−{{count}} ходу",
+  "speedUp": {
+    "label": "Прискорити",
+    "withCost": "Прискорити ({{cost}} 💎)",
+    "itemsHint": "Прискорити предметами",
+    "items": "⏩ предмети",
+    "left": "Лишилось ≈ {{count}} хв. Надлишок хвилин згорає.",
+    "total": "Разом:",
+    "suggest": "підібрати",
+    "use": "Використати"
+  },
+  "duration": {
+    "minutes": "{{count}} хв",
+    "hours": "{{count}} год"
+  },
+  "nav": {
+    "heroes": "Герої",
+    "tower": "Вежа",
+    "quests": "Квести",
+    "inventory": "Рюкзак",
+    "clan": "Клан",
+    "mail": "Скринька",
+    "rating": "Рейтинг",
+    "village": "Селище",
+    "worldMap": "Мапа світу",
+    "map": "Мапа"
+  },
+  "owned": "(є {{count}})",
+  "role": {
+    "warrior": "Воїн · піхота",
+    "knight": "Лицар · списоносці",
+    "archer": "Лучник · стрільці"
+  },
+  "stars": "Зірки: {{count}} з {{max}}"
 }

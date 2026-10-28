@@ -1,5 +1,6 @@
 import { at, faces, toPath } from "../../lib/iso";
 import { Box, Cone, Cylinder } from "./isoShapes";
+import { t } from "i18next";
 
 /** Відступ стіни від краю ділянки й половина товщини — в одиницях плану. */
 const INSET = 5;
@@ -80,7 +81,7 @@ export default function IsoWall({ part, level, name, selected, locked, gateLevel
   }
 
   const label = at(50, NEAR, 0);
-  const text = locked ? `🔒 Ратуша ${gateLevel}` : `${name} · ${level}`;
+  const text = locked ? t("village:map.locked", { level: gateLevel }) : `${name} · ${level}`;
   const width = text.length * 7 + 20;
   const gateLeft = at(GATE_FROM, NEAR + HALF, 0);
   const gateRight = at(GATE_TO, NEAR + HALF, 0);
