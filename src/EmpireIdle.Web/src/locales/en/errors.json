@@ -1,0 +1,234 @@
+{
+  "registration": {
+    "DuplicateEmail": "this email is already registered — try signing in",
+    "DuplicateUserName": "this name is taken — pick another one",
+    "InvalidEmail": "the email doesn't look valid",
+    "InvalidUserName": "the name contains characters that aren't allowed",
+    "PasswordTooShort": "the password is too short",
+    "PasswordRequiresDigit": "the password needs a digit",
+    "PasswordRequiresLower": "the password needs a lowercase letter",
+    "PasswordRequiresUpper": "the password needs an uppercase letter",
+    "PasswordRequiresNonAlphanumeric": "the password needs a character that isn't a letter or a digit",
+    "failed": "Couldn't create the account — check the details and try again"
+  },
+  "refusal": {
+    "speedup": {
+      "atFloor": "{{seconds}} s or less to go — too late to speed up, just wait",
+      "done": "Already finished — nothing to speed up"
+    },
+    "march": {
+      "heroWounded": "The hero is in the hospital — heal them first",
+      "heroAway": "The hero is already on a march",
+      "heroElsewhere": "The hero is garrisoned with an ally and can only lead a march from there",
+      "capacity": "You can lead at most {{capacity}} marches at once",
+      "emptyAttack": "An attack needs at least one soldier",
+      "ownShield": "You can attack other players from Town Hall level {{level}} — until then your newbie shield is on",
+      "targetShielded": "This settlement is under a newbie shield — you can't attack it yet",
+      "notCamping": "Only a camp can be recalled — this march is still on the road",
+      "camping": "The camp is standing still — nothing to speed up, you can only recall it",
+      "ownCamp": "This is your own camp — you can only recall it",
+      "ownVillage": "You can't attack your own village",
+      "clanmate": "You can't attack your clanmates",
+      "targetFallShield": "This settlement fell recently and is under a shield — you can't attack it yet",
+      "wrongUnits": "None of the march's heroes ({{hero}}) leads {{unit}} — each hero leads only troops of their role",
+      "overCapacity": "{{hero}} leads up to {{capacity}} troops, but {{sent}} were sent",
+      "sameRole": "A march can't have two heroes of the same role: {{heroes}}",
+      "tooManyHeroes": "A march takes at most {{max}} heroes"
+    },
+    "common": {
+      "buildingRequired": "Requires the {{building}}",
+      "buildingLevelRequired": "Requires the {{building}} at level {{level}}"
+    },
+    "garrison": {
+      "batchSize": "You can train 1 to {{max}} troops at a time",
+      "trainingBusy": "The barracks is already training a batch — wait for it to finish or speed it up",
+      "levelUpBusy": "The barracks is already levelling a batch — wait for it to finish or speed it up",
+      "unitLevelCeiling": "Troops can't outrank the Town Hall: the cap is {{ceiling}} for now",
+      "armyCapacity": "The army is full: {{occupied}} of {{capacity}}, and you're adding {{requested}}. Upgrade the barracks",
+      "notEnoughUnits": "This squad has fewer troops than needed: {{need}} required, {{have}} available"
+    },
+    "village": {
+      "alreadyThere": "Your settlement already stands on this cell",
+      "nothingToRepair": "Nothing to repair — every building is intact",
+      "buildingOutOfBounds": "The building has to stand inside the wall",
+      "buildingOverlaps": "The building would overlap another one here — pick a free spot"
+    },
+    "mail": {
+      "nothingToClaim": "Nothing to claim here — the reward has already been taken",
+      "letterExpired": "The letter has expired — its reward is gone"
+    },
+    "building": {
+      "serverCeiling": "At world level {{serverLevel}} buildings only go up to level {{ceiling}}",
+      "maxLevel": "The building is already at its top level, {{maxLevel}}",
+      "townHallCeiling": "The {{building}} can't outgrow the Town Hall (level {{level}}) — upgrade the Town Hall first",
+      "villageLagging": "Before the Town Hall moves to the next tier, bring these up to level {{level}}: {{buildings}}",
+      "underConstruction": "This building is already under construction",
+      "notUpgradable": "The {{building}} has no levels — it can't be upgraded",
+      "alreadyCompleted": "Construction is already finished"
+    },
+    "scout": {
+      "blocked": "This village is hidden from scouts — they won't see a thing",
+      "ownTarget": "No need to scout your own village or your clan's structures",
+      "alreadyUnderway": "Your scouts are already heading to this target"
+    },
+    "item": {
+      "strongerBoostActive": "A stronger ×{{multiplier}} boost is active until {{until}} — this one won't work",
+      "notGiftable": "This item can't be given away",
+      "giftNotClanmate": "You can only give gifts to members of your clan",
+      "giftToSelf": "You can't give a gift to yourself",
+      "notEnough": "Not enough {{item}}: {{need}} needed, {{have}} available"
+    },
+    "lootbox": {
+      "freeNotReady": "The free opening will be available {{at}}"
+    },
+    "teleport": {
+      "outsideRegion": "This cell is outside the settled part of the world",
+      "cellUnsuitable": "You can't found a settlement on this cell",
+      "cellOccupied": "This cell is already taken",
+      "tooFar": "This teleport reaches no further than {{range}} cells from your settlement",
+      "noClan": "The clan teleport only works when you're in a clan",
+      "outsideClanTerritory": "The clan teleport only moves you onto your clan's territory — next to a structure",
+      "youAreLeader": "You are the clan leader — there's no one to move next to",
+      "noFreeCell": "There's no free space left around the clan leader — try again later"
+    },
+    "banner": {
+      "notOpen": "The banner opens {{startsAt}}",
+      "closed": "This banner has already closed",
+      "worldLevel": "The banner opens at world level {{level}}"
+    },
+    "quest": {
+      "notClaimable": "This quest's reward can't be claimed right now — maybe it already was"
+    },
+    "shop": {
+      "maxPerPurchase": "No more than {{max}} per purchase",
+      "offerClosed": "This offer is no longer on sale"
+    },
+    "clan": {
+      "notMember": "You're no longer in the clan — refresh the page",
+      "alreadyInClan": "You're already in a clan — leave it first",
+      "nameTaken": "The clan \"{{name}}\" [{{tag}}] already exists — pick another name or tag",
+      "full": "The clan already has {{capacity}} members — no room left",
+      "inviteOnly": "This clan accepts members by invitation only",
+      "alreadyApplied": "Your application to this clan is still under review",
+      "applyCooldown": "You can apply again after {{retryAt}}",
+      "targetInClan": "This player is already in a clan",
+      "alreadyInvited": "This player has already been invited — wait for an answer",
+      "applicantJoinedElsewhere": "The player has already joined another clan",
+      "leaderMustTransfer": "The leader can't just leave — hand over leadership first",
+      "noPermission": "The \"{{role}}\" role isn't allowed to do this",
+      "leaderOnly": "Only the leader can hand over leadership",
+      "roleProtected": "The leader and newcomer roles can't be changed or deleted",
+      "roleNameTaken": "The clan already has a \"{{name}}\" role",
+      "permissionsExceedOwn": "The \"{{role}}\" role can't grant permissions it doesn't have",
+      "requestResolved": "This application has already been handled",
+      "requestExpired": "The application has expired",
+      "helpAlreadyRequested": "Help has already been requested for this",
+      "helpNotNeeded": "This is already finished — no help needed",
+      "helpExpired": "The help request is no longer relevant",
+      "helpAlreadyHelped": "You've already helped with this request",
+      "helpFull": "The request has already received all {{max}} helps"
+    },
+    "territory": {
+      "notEnoughPoints": "The clan is short of contribution points: {{need}} needed, {{have}} available",
+      "noFreeSlot": "All {{slots}} structure slots are taken — demolish a structure or unlock a new slot",
+      "cellTaken": "This cell has already been taken — pick another one",
+      "cellUnfit": "You can't place a structure here: water, mountains or the edge of the settled world",
+      "foreignStructure": "You can only build and garrison in your own clan's structures",
+      "ownStructure": "You don't attack your own structure — you can demolish it"
+    },
+    "reinforce": {
+      "ownShield": "Reinforcements unlock at Town Hall level {{level}}",
+      "targetShielded": "This settlement is still under a newbie shield and doesn't accept reinforcements",
+      "clanmatesOnly": "You can only send reinforcements to players in your clan",
+      "embassyFull": "The embassy only has room for {{free}} troops, but you're sending {{incoming}}"
+    },
+    "hero": {
+      "onTheMove": "The hero is on a march — wait for them to come back",
+      "notWounded": "The hero is already healthy — nothing to heal",
+      "levelCeiling": "{{hero}} is already at the top level, {{ceiling}}",
+      "worldLevelRequired": "The next tier unlocks at world level {{required}} (currently {{current}})",
+      "evolutionItemRequired": "Evolution requires {{item}}",
+      "maxTier": "The hero is already at the top tier ({{tier}})",
+      "tierLocked": "Tier {{tier}} heroes appear at world level {{tier}}",
+      "notEnoughShards": "{{hero}}: {{need}} shards needed, {{have}} collected",
+      "maxStars": "All of the hero's stars are already filled",
+      "weaponMaxed": "The hero's weapon is already at its top level (+{{max}})",
+      "weaponShards": "Not enough weapon pieces: {{need}} needed, {{have}} available",
+      "weaponNotInChest": "This chest doesn't hold weapon pieces for {{hero}}",
+      "weaponNotSold": "{{hero}}'s weapon pieces aren't for sale — they only come from weapon chests",
+      "skillLocked": "{{skill}} unlocks at hero level {{level}}",
+      "skillStarCapped": "The next skill level unlocks at the hero's star {{stars}}",
+      "skillMaxed": "The skill is already at its top level, {{level}}",
+      "skillNoBook": "Not enough {{book}}: {{need}} needed, {{have}} available",
+      "notOwned": "Universal shards only go to an unlocked hero, and {{hero}} hasn't been summoned yet",
+      "shardUpgradeLocked": "The exchange opens once every hero of this rarity has all their stars"
+    },
+    "camp": {
+      "unavailable": "The camp opens once {{need}} heroes are outside it — you have {{have}}",
+      "slotLocked": "Slot {{slot}} isn't unlocked yet — upgrade the Town Hall or buy the slot",
+      "slotTaken": "Slot {{slot}} already holds a hero",
+      "slotCooling": "Slot {{slot}} is still recharging",
+      "heroAlreadyIn": "The hero is already in the camp",
+      "heroNotIn": "The hero isn't in the camp",
+      "heroIsReference": "This hero is among the {{count}} strongest outside the camp: they set the camp's level, so send a weaker one",
+      "heroLevelLocked": "The hero is in the camp, which holds their level. Take them out of the camp to raise their own level",
+      "allSlotsBought": "All {{count}} extra slots have already been bought",
+      "slotReady": "Slot {{slot}} is already ready"
+    },
+    "equipment": {
+      "maxLevel": "The artifact is already at its top level, {{max}}",
+      "maxMastery": "Mastery is already maxed — +{{max}}",
+      "broken": "The artifact is broken — repair it at the forge first",
+      "notBroken": "The artifact is intact — nothing to repair",
+      "uniqueFood": "{{item}} can't be used as fodder",
+      "foodEquipped": "Unequip the item from the hero first — equipped gear can't be used as fodder",
+      "wrongClass": "{{set}} is for the {{heroClass}} class only"
+    },
+    "market": {
+      "locked": "The market opens at Town Hall level {{level}}",
+      "listingLimit": "You already have {{limit}} listings — that's all your market allows. Upgrade it",
+      "priceOutOfCorridor": "The price has to be between {{min}} and {{max}} gold",
+      "notTradeable": "{{item}} can't be sold on the market",
+      "notEnoughItems": "Not enough {{item}}: {{need}} needed, {{have}} available",
+      "resaleCooldown": "Freshly bought items can be resold after {{until}}",
+      "itemListed": "The item is listed on the market — take the listing down first",
+      "listingClosed": "The listing has already been sold or withdrawn",
+      "ownListing": "This is your own listing"
+    },
+    "chat": {
+      "tooFast": "Too many messages in a row — wait {{seconds}} s",
+      "tooLong": "The message is too long: {{max}} characters at most",
+      "noClan": "The clan chat is for clan members only",
+      "toSelf": "You can't message yourself"
+    },
+    "dungeon": {
+      "townHallRequired": "This dungeon opens at Town Hall level {{level}}",
+      "levelLocked": "Level {{level}} unlocks after you clear level {{previous}}",
+      "heroWounded": "{{hero}} is in the hospital — pick another hero",
+      "runInProgress": "You already have an unfinished run — go back to it",
+      "targetUnreachable": "You can't reach this target yet: hit the front line or whoever is taunting first",
+      "energyFull": "Energy is already full — nothing to refill",
+      "refillLimit": "Energy has already been refilled {{limit}} times today — new refills from midnight UTC"
+    },
+    "squad": {
+      "heroWounded": "{{hero}} is in the hospital — replace the hero in the squad"
+    },
+    "tower": {
+      "townHallRequired": "The Thousand Tower opens at Town Hall level {{level}}",
+      "floorClosed": "Floor {{floor}} is already cleared — floor {{next}} awaits",
+      "conquered": "The tower is conquered: every floor is cleared"
+    },
+    "beast": {
+      "penMissing": "Nowhere to keep a tamed beast: open the Beast Pen first",
+      "penFull": "The Beast Pen is full: all {{capacity}} places are taken. Upgrade the Beast Pen",
+      "notTameable": "This monster can't be tamed",
+      "notEnoughFeed": "Not enough treats: {{need}} needed, {{have}} available",
+      "levelCapped": "The beast has hit the level {{level}} cap for its rank — raise the rank by taming another beast of its kind",
+      "onCooldown": "The beast is still resting — the passive can be activated {{readyAt}}",
+      "effectActive": "Another beast already gives the same bonus — wait until its effect ends"
+    },
+    "beasts": {
+      "hungry": "The beasts are hungry: the Beast Pen is short of fodder. Boost fodder at the Fishing Hut"
+    }
+  }
+}

@@ -9,6 +9,7 @@
 import { clanRoleName } from "./clanRoles";
 import { classLabel } from "./heroClasses";
 import { formatDateTime, formatNumber } from "./format";
+import { t } from "i18next";
 
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
@@ -50,17 +51,21 @@ function nameList(keys: string | number | undefined, name: (key: string) => stri
  * Коди Identity з відмови в реєстрації. Невідомий код не ховаємо за
  * загальною фразою мовчки — він іде в консоль, а гравець бачить нейтральний текст.
  */
-const REGISTRATION_CODES: Record<string, string> = {
-  DuplicateEmail: "цю пошту вже зареєстровано — спробуйте увійти",
-  DuplicateUserName: "це ім'я вже зайняте — оберіть інше",
-  InvalidEmail: "пошта виглядає некоректно",
-  InvalidUserName: "ім'я містить недозволені символи",
-  PasswordTooShort: "пароль закороткий",
-  PasswordRequiresDigit: "у паролі має бути цифра",
-  PasswordRequiresLower: "у паролі має бути мала літера",
-  PasswordRequiresUpper: "у паролі має бути велика літера",
-  PasswordRequiresNonAlphanumeric: "у паролі має бути символ, що не є літерою чи цифрою",
-};
+const REGISTRATION_CODES = [
+  "DuplicateEmail",
+  "DuplicateUserName",
+  "InvalidEmail",
+  "InvalidUserName",
+  "PasswordTooShort",
+  "PasswordRequiresDigit",
+  "PasswordRequiresLower",
+  "PasswordRequiresUpper",
+  "PasswordRequiresNonAlphanumeric",
+] as const;
+
+function isRegistrationCode(code: string): code is (typeof REGISTRATION_CODES)[number] {
+  return (REGISTRATION_CODES as readonly string[]).includes(code);
+}
 
 /** Момент UTC з сервера (ISO 8601) — у місцевому часі гравця. */
 function localTime(value: string | number | undefined): string {
@@ -69,12 +74,13 @@ function localTime(value: string | number | undefined): string {
 
 function registrationText(codes: string): string {
   const known = codes.split(",").flatMap((code) => {
-    const text = REGISTRATION_CODES[code];
-    if (text === undefined) console.warn("Невідомий код відмови в реєстрації", code);
-    return text === undefined ? [] : [text];
+    if (isRegistrationCode(code)) return [t(`errors:registration.${code}`)];
+
+    console.warn("Невідомий код відмови в реєстрації", code);
+    return [];
   });
 
-  if (known.length === 0) return "Не вдалося створити акаунт — перевірте дані й спробуйте ще раз";
+  if (known.length === 0) return t("errors:registration.failed");
 
   const sentence = known.join("; ");
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
@@ -85,226 +91,226 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "auth.registrationRejected": ({ codes }) => registrationText(String(codes)),
 
   // ---------- Спільні ----------
-  "common.buildingRequired": ({ building }, n) => `Потрібна будівля «${n.buildingName(String(building))}»`,
-  "common.buildingLevelRequired": ({ building, level }, n) => `Потрібна «${n.buildingName(String(building))}» ${level} рівня`,
+  "common.buildingRequired": ({ building }, n) => t("errors:refusal.common.buildingRequired", { building: n.buildingName(String(building)) }),
+  "common.buildingLevelRequired": ({ building, level }, n) => t("errors:refusal.common.buildingLevelRequired", { building: n.buildingName(String(building)), level }),
 
   // ---------- Гарнізон ----------
-  "garrison.batchSize": ({ max }) => `За раз — від 1 до ${max} воїнів`,
-  "garrison.trainingBusy": () => "Казарма вже тренує партію — дочекайтеся завершення або прискорте її",
-  "garrison.levelUpBusy": () => "Казарма вже прокачує партію — дочекайтеся завершення або прискорте її",
+  "garrison.batchSize": ({ max }) => t("errors:refusal.garrison.batchSize", { max }),
+  "garrison.trainingBusy": () => t("errors:refusal.garrison.trainingBusy"),
+  "garrison.levelUpBusy": () => t("errors:refusal.garrison.levelUpBusy"),
   "garrison.unitLevelCeiling": ({ ceiling }) =>
-    `Воїни не можуть бути вищого рівня, ніж ратуша: зараз максимум ${ceiling}`,
+    t("errors:refusal.garrison.unitLevelCeiling", { ceiling }),
   "garrison.armyCapacity": ({ occupied, capacity, requested }) =>
-    `Армія заповнена: ${occupied} з ${capacity}, а ви додаєте ${requested}. Підніміть рівень казарми`,
-  "garrison.notEnoughUnits": ({ need, have }) => `Воїнів цього загону менше, ніж треба: потрібно ${need}, є ${have}`,
+    t("errors:refusal.garrison.armyCapacity", { occupied, capacity, requested }),
+  "garrison.notEnoughUnits": ({ need, have }) => t("errors:refusal.garrison.notEnoughUnits", { need, have }),
 
   // ---------- Село й будівлі ----------
-  "village.alreadyThere": () => "Поселення вже стоїть на цій клітинці",
-  "mail.nothingToClaim": () => "Тут нічого забирати — нагороду вже отримано",
-  "mail.letterExpired": () => "Строк листа минув — нагорода згоріла",
-  "village.nothingToRepair": () => "Ремонтувати нічого — усі будівлі цілі",
-  "village.buildingOutOfBounds": () => "Будівля має стояти всередині муру",
-  "village.buildingOverlaps": () => "Тут будівля налізе на іншу — оберіть вільне місце",
+  "village.alreadyThere": () => t("errors:refusal.village.alreadyThere"),
+  "mail.nothingToClaim": () => t("errors:refusal.mail.nothingToClaim"),
+  "mail.letterExpired": () => t("errors:refusal.mail.letterExpired"),
+  "village.nothingToRepair": () => t("errors:refusal.village.nothingToRepair"),
+  "village.buildingOutOfBounds": () => t("errors:refusal.village.buildingOutOfBounds"),
+  "village.buildingOverlaps": () => t("errors:refusal.village.buildingOverlaps"),
   "building.serverCeiling": ({ serverLevel, ceiling }) =>
-    `На рівні світу ${serverLevel} будівлі ростуть лише до ${ceiling} рівня`,
-  "building.maxLevel": ({ maxLevel }) => `Будівля вже на найвищому рівні ${maxLevel}`,
+    t("errors:refusal.building.serverCeiling", { serverLevel, ceiling }),
+  "building.maxLevel": ({ maxLevel }) => t("errors:refusal.building.maxLevel", { maxLevel }),
   "building.townHallCeiling": ({ building, level }, n) =>
-    `«${n.buildingName(String(building))}» не може бути вищою за ратушу (${level} рівень) — спершу підніміть ратушу`,
+    t("errors:refusal.building.townHallCeiling", { building: n.buildingName(String(building)), level }),
   "building.villageLagging": ({ level, buildings }, n) =>
-    `Перш ніж ратуша перейде на новий тір, підтягніть до ${level} рівня: ${nameList(buildings, n.buildingName)}`,
-  "building.underConstruction": () => "Ця будівля вже будується",
-  "building.notUpgradable": ({ building }, n) => `${n.buildingName(String(building))} не має рівнів — її не покращують`,
-  "building.alreadyCompleted": () => "Будівництво вже завершено",
+    t("errors:refusal.building.villageLagging", { level, buildings: nameList(buildings, n.buildingName) }),
+  "building.underConstruction": () => t("errors:refusal.building.underConstruction"),
+  "building.notUpgradable": ({ building }, n) => t("errors:refusal.building.notUpgradable", { building: n.buildingName(String(building)) }),
+  "building.alreadyCompleted": () => t("errors:refusal.building.alreadyCompleted"),
 
   // ---------- Розвідка ----------
-  "scout.blocked": () => "Село ховається від розвідки — розвідники нічого не побачать",
-  "scout.ownTarget": () => "Своє село й споруди свого клану розвідувати не треба",
-  "scout.alreadyUnderway": () => "Твої розвідники вже йдуть до цієї цілі",
+  "scout.blocked": () => t("errors:refusal.scout.blocked"),
+  "scout.ownTarget": () => t("errors:refusal.scout.ownTarget"),
+  "scout.alreadyUnderway": () => t("errors:refusal.scout.alreadyUnderway"),
 
   // ---------- Прискорення ----------
   // Межа 0 (будівництво, тренування): відмова означає, що таймер уже скінчився
   "speedup.atFloor": ({ seconds }) =>
     Number(seconds) > 0
-      ? `До кінця ${seconds} с або менше — прискорити вже не можна, зачекайте`
-      : "Уже завершено — прискорювати нічого",
+      ? t("errors:refusal.speedup.atFloor", { seconds })
+      : t("errors:refusal.speedup.done"),
 
   // ---------- Інвентар, банери, квести, крамниця ----------
   "item.strongerBoostActive": ({ multiplier, until }) =>
-    `Уже діє сильніший прискорювач ×${multiplier} до ${localTime(until)} — цей не спрацює`,
-  "item.notGiftable": () => "Цей предмет не можна подарувати",
-  "item.giftNotClanmate": () => "Дарувати можна лише членам свого клану",
-  "item.giftToSelf": () => "Собі подарунок не зробиш",
-  "item.notEnough": ({ item, need, have }, n) => `Замало: «${n.itemName(String(item))}» потрібно ${need}, є ${have}`,
-  "lootbox.freeNotReady": ({ at }) => `Безкоштовне відкриття буде доступне ${localTime(at)}`,
-  "teleport.outsideRegion": () => "Ця клітинка поза освоєною зоною світу",
-  "teleport.cellUnsuitable": () => "На цій клітинці не можна заснувати поселення",
-  "teleport.cellOccupied": () => "Ця клітинка вже зайнята",
-  "banner.notOpen": ({ startsAt }) => `Банер відкриється ${localTime(startsAt)}`,
-  "banner.closed": () => "Цей банер уже закрито",
-  "banner.worldLevel": ({ level }) => `Банер відкриється на рівні світу ${level}`,
-  "quest.notClaimable": () => "Нагороду за цей квест зараз не можна забрати — можливо, вже забрано",
-  "shop.maxPerPurchase": ({ max }) => `За одну покупку — не більше ${max} шт.`,
-  "shop.offerClosed": () => "Ця пропозиція вже не продається",
+    t("errors:refusal.item.strongerBoostActive", { multiplier, until: localTime(until) }),
+  "item.notGiftable": () => t("errors:refusal.item.notGiftable"),
+  "item.giftNotClanmate": () => t("errors:refusal.item.giftNotClanmate"),
+  "item.giftToSelf": () => t("errors:refusal.item.giftToSelf"),
+  "item.notEnough": ({ item, need, have }, n) => t("errors:refusal.item.notEnough", { item: n.itemName(String(item)), need, have }),
+  "lootbox.freeNotReady": ({ at }) => t("errors:refusal.lootbox.freeNotReady", { at: localTime(at) }),
+  "teleport.outsideRegion": () => t("errors:refusal.teleport.outsideRegion"),
+  "teleport.cellUnsuitable": () => t("errors:refusal.teleport.cellUnsuitable"),
+  "teleport.cellOccupied": () => t("errors:refusal.teleport.cellOccupied"),
+  "banner.notOpen": ({ startsAt }) => t("errors:refusal.banner.notOpen", { startsAt: localTime(startsAt) }),
+  "banner.closed": () => t("errors:refusal.banner.closed"),
+  "banner.worldLevel": ({ level }) => t("errors:refusal.banner.worldLevel", { level }),
+  "quest.notClaimable": () => t("errors:refusal.quest.notClaimable"),
+  "shop.maxPerPurchase": ({ max }) => t("errors:refusal.shop.maxPerPurchase", { max }),
+  "shop.offerClosed": () => t("errors:refusal.shop.offerClosed"),
 
   // ---------- Клани ----------
-  "clan.notMember": () => "Ви вже не в клані — оновіть сторінку",
-  "clan.alreadyInClan": () => "Ви вже в клані — спершу вийдіть із нього",
-  "clan.nameTaken": ({ name, tag }) => `Клан «${name}» [${tag}] уже існує — оберіть іншу назву або тег`,
-  "clan.full": ({ capacity }) => `У клані вже ${capacity} учасників — місць немає`,
-  "clan.inviteOnly": () => "Цей клан приймає лише за запрошенням",
-  "clan.alreadyApplied": () => "Ваша заявка до цього клану ще розглядається",
-  "clan.applyCooldown": ({ retryAt }) => `Повторну заявку можна подати після ${localTime(retryAt)}`,
-  "clan.targetInClan": () => "Цей гравець уже в клані",
-  "clan.alreadyInvited": () => "Цього гравця вже запрошено — дочекайтеся відповіді",
-  "clan.applicantJoinedElsewhere": () => "Гравець уже вступив до іншого клану",
-  "clan.leaderMustTransfer": () => "Лідер не може просто вийти — спершу передайте лідерство",
-  "clan.noPermission": ({ role, roleKey }) => `Роль «${clanRoleName(roleKey, role)}» не дозволяє цю дію`,
-  "clan.leaderOnly": () => "Лідерство може передати лише лідер",
-  "clan.roleProtected": () => "Роль лідера й роль новачків не можна змінити чи видалити",
-  "clan.roleNameTaken": ({ name }) => `Роль «${name}» уже є в клані`,
+  "clan.notMember": () => t("errors:refusal.clan.notMember"),
+  "clan.alreadyInClan": () => t("errors:refusal.clan.alreadyInClan"),
+  "clan.nameTaken": ({ name, tag }) => t("errors:refusal.clan.nameTaken", { name, tag }),
+  "clan.full": ({ capacity }) => t("errors:refusal.clan.full", { capacity }),
+  "clan.inviteOnly": () => t("errors:refusal.clan.inviteOnly"),
+  "clan.alreadyApplied": () => t("errors:refusal.clan.alreadyApplied"),
+  "clan.applyCooldown": ({ retryAt }) => t("errors:refusal.clan.applyCooldown", { retryAt: localTime(retryAt) }),
+  "clan.targetInClan": () => t("errors:refusal.clan.targetInClan"),
+  "clan.alreadyInvited": () => t("errors:refusal.clan.alreadyInvited"),
+  "clan.applicantJoinedElsewhere": () => t("errors:refusal.clan.applicantJoinedElsewhere"),
+  "clan.leaderMustTransfer": () => t("errors:refusal.clan.leaderMustTransfer"),
+  "clan.noPermission": ({ role, roleKey }) => t("errors:refusal.clan.noPermission", { role: clanRoleName(roleKey, role) }),
+  "clan.leaderOnly": () => t("errors:refusal.clan.leaderOnly"),
+  "clan.roleProtected": () => t("errors:refusal.clan.roleProtected"),
+  "clan.roleNameTaken": ({ name }) => t("errors:refusal.clan.roleNameTaken", { name }),
   "clan.permissionsExceedOwn": ({ role, roleKey }) =>
-    `Роль «${clanRoleName(roleKey, role)}» не може видати дозволи, яких сама не має`,
-  "clan.requestResolved": () => "Цю заявку вже розглянули",
-  "clan.requestExpired": () => "Термін заявки минув",
-  "clan.helpAlreadyRequested": () => "Допомогу для цього вже попросили",
-  "clan.helpNotNeeded": () => "Це вже завершено — допомога не потрібна",
-  "clan.helpExpired": () => "Запит на допомогу вже неактуальний",
-  "clan.helpAlreadyHelped": () => "Ви вже допомогли з цим запитом",
-  "clan.helpFull": ({ max }) => `Запит уже отримав усі ${max} допомог`,
+    t("errors:refusal.clan.permissionsExceedOwn", { role: clanRoleName(roleKey, role) }),
+  "clan.requestResolved": () => t("errors:refusal.clan.requestResolved"),
+  "clan.requestExpired": () => t("errors:refusal.clan.requestExpired"),
+  "clan.helpAlreadyRequested": () => t("errors:refusal.clan.helpAlreadyRequested"),
+  "clan.helpNotNeeded": () => t("errors:refusal.clan.helpNotNeeded"),
+  "clan.helpExpired": () => t("errors:refusal.clan.helpExpired"),
+  "clan.helpAlreadyHelped": () => t("errors:refusal.clan.helpAlreadyHelped"),
+  "clan.helpFull": ({ max }) => t("errors:refusal.clan.helpFull", { max }),
 
   // ---------- Кланова територія ----------
-  "territory.notEnoughPoints": ({ need, have }) => `Клану бракує очок вкладу: потрібно ${need}, є ${have}`,
-  "territory.noFreeSlot": ({ slots }) => `Усі ${slots} слотів під споруди зайняті — знесіть споруду або відкрийте новий слот`,
-  "territory.cellTaken": () => "Цю клітину вже зайняли — оберіть іншу",
-  "territory.cellUnfit": () => "Тут не можна ставити споруду: вода, гори або край заселеного світу",
-  "territory.foreignStructure": () => "Будувати й стояти гарнізоном можна лише у спорудах свого клану",
-  "territory.ownStructure": () => "Свою споруду не атакують — її можна знести",
+  "territory.notEnoughPoints": ({ need, have }) => t("errors:refusal.territory.notEnoughPoints", { need, have }),
+  "territory.noFreeSlot": ({ slots }) => t("errors:refusal.territory.noFreeSlot", { slots }),
+  "territory.cellTaken": () => t("errors:refusal.territory.cellTaken"),
+  "territory.cellUnfit": () => t("errors:refusal.territory.cellUnfit"),
+  "territory.foreignStructure": () => t("errors:refusal.territory.foreignStructure"),
+  "territory.ownStructure": () => t("errors:refusal.territory.ownStructure"),
 
   // ---------- Марші й підкріплення ----------
   "march.heroUnavailable": ({ state }) =>
-    state === "Wounded" ? "Герой у госпіталі — спершу вилікуйте його" : "Герой уже в поході",
-  "march.heroElsewhere": () => "Герой стоїть у гарнізоні союзника й може вести похід лише звідти",
-  "march.capacity": ({ capacity }) => `Одночасно можна вести не більше ${capacity} походів`,
-  "march.emptyAttack": () => "Для атаки потрібен хоча б один воїн",
+    state === "Wounded" ? t("errors:refusal.march.heroWounded") : t("errors:refusal.march.heroAway"),
+  "march.heroElsewhere": () => t("errors:refusal.march.heroElsewhere"),
+  "march.capacity": ({ capacity }) => t("errors:refusal.march.capacity", { capacity }),
+  "march.emptyAttack": () => t("errors:refusal.march.emptyAttack"),
   "march.ownShield": ({ level }) =>
-    `Атакувати інших гравців можна з ратуші ${level} рівня — доти діє щит новачка`,
-  "march.targetShielded": () => "Це поселення під щитом новачка — атакувати його поки не можна",
-  "march.notCamping": () => "Відкликати можна лише табір — цей похід ще в дорозі",
-  "march.camping": () => "Табір стоїть на місці — прискорювати нічого, його можна лише відкликати",
-  "march.ownCamp": () => "Це ваш власний табір — його можна лише відкликати",
-  "march.ownVillage": () => "Власне село атакувати не можна",
-  "march.clanmate": () => "Соклановців атакувати не можна",
-  "march.targetFallShield": () => "Це поселення нещодавно впало й під щитом — атакувати його поки не можна",
-  "reinforce.ownShield": ({ level }) => `Підкріплення відкриваються з ратуші ${level} рівня`,
-  "reinforce.targetShielded": () => "Це поселення ще під щитом новачка й не приймає підкріплень",
-  "reinforce.clanmatesOnly": () => "Підкріплення можна слати лише гравцям свого клану",
+    t("errors:refusal.march.ownShield", { level }),
+  "march.targetShielded": () => t("errors:refusal.march.targetShielded"),
+  "march.notCamping": () => t("errors:refusal.march.notCamping"),
+  "march.camping": () => t("errors:refusal.march.camping"),
+  "march.ownCamp": () => t("errors:refusal.march.ownCamp"),
+  "march.ownVillage": () => t("errors:refusal.march.ownVillage"),
+  "march.clanmate": () => t("errors:refusal.march.clanmate"),
+  "march.targetFallShield": () => t("errors:refusal.march.targetFallShield"),
+  "reinforce.ownShield": ({ level }) => t("errors:refusal.reinforce.ownShield", { level }),
+  "reinforce.targetShielded": () => t("errors:refusal.reinforce.targetShielded"),
+  "reinforce.clanmatesOnly": () => t("errors:refusal.reinforce.clanmatesOnly"),
   "reinforce.embassyFull": ({ free, incoming }) =>
-    `У посольстві є місце лише для ${free} воїнів, а ви відправляєте ${incoming}`,
+    t("errors:refusal.reinforce.embassyFull", { free, incoming }),
 
   // ---------- Герої ----------
-  "hero.onTheMove": () => "Герой зараз у поході — дочекайтеся його повернення",
-  "hero.notWounded": () => "Герой уже здоровий — лікувати нікого",
-  "hero.levelCeiling": ({ hero, ceiling }, n) => `${n.heroName(String(hero))} уже на найвищому рівні — ${ceiling}`,
+  "hero.onTheMove": () => t("errors:refusal.hero.onTheMove"),
+  "hero.notWounded": () => t("errors:refusal.hero.notWounded"),
+  "hero.levelCeiling": ({ hero, ceiling }, n) => t("errors:refusal.hero.levelCeiling", { hero: n.heroName(String(hero)), ceiling }),
   "hero.worldLevelRequired": ({ required, current }) =>
-    `Наступний тір відкриється на рівні світу ${required} (зараз ${current})`,
-  "hero.evolutionItemRequired": ({ item }, n) => `Для еволюції потрібен предмет «${n.itemName(String(item))}»`,
-  "hero.maxTier": ({ tier }) => `Герой уже на найвищому тірі (${tier})`,
-  "hero.tierLocked": ({ tier }) => `Герой ${tier} тіру з'явиться на рівні світу ${tier}`,
-  "hero.notEnoughShards": ({ hero, need, have }, n) => `«${n.heroName(String(hero))}»: потрібно ${need} осколків, зібрано ${have}`,
-  "hero.maxStars": () => "Усі зірки героя вже заповнені",
-  "hero.weaponMaxed": ({ max }) => `Зброя героя вже на найвищому рівні (+${max})`,
-  "hero.weaponShards": ({ need, have }) => `Бракує шматків зброї: потрібно ${need}, є ${have}`,
-  "hero.weaponNotInChest": ({ hero }, n) => `Ця скриня не дає шматків зброї героя ${n.heroName(String(hero))}`,
-  "hero.weaponNotSold": ({ hero }, n) => `Шматки зброї героя ${n.heroName(String(hero))} не продаються — лише зі скринь зброї`,
+    t("errors:refusal.hero.worldLevelRequired", { required, current }),
+  "hero.evolutionItemRequired": ({ item }, n) => t("errors:refusal.hero.evolutionItemRequired", { item: n.itemName(String(item)) }),
+  "hero.maxTier": ({ tier }) => t("errors:refusal.hero.maxTier", { tier }),
+  "hero.tierLocked": ({ tier }) => t("errors:refusal.hero.tierLocked", { tier }),
+  "hero.notEnoughShards": ({ hero, need, have }, n) => t("errors:refusal.hero.notEnoughShards", { hero: n.heroName(String(hero)), need, have }),
+  "hero.maxStars": () => t("errors:refusal.hero.maxStars"),
+  "hero.weaponMaxed": ({ max }) => t("errors:refusal.hero.weaponMaxed", { max }),
+  "hero.weaponShards": ({ need, have }) => t("errors:refusal.hero.weaponShards", { need, have }),
+  "hero.weaponNotInChest": ({ hero }, n) => t("errors:refusal.hero.weaponNotInChest", { hero: n.heroName(String(hero)) }),
+  "hero.weaponNotSold": ({ hero }, n) => t("errors:refusal.hero.weaponNotSold", { hero: n.heroName(String(hero)) }),
   "march.wrongUnits": ({ unit, hero }, n) =>
-    `Жоден герой маршу (${nameList(hero, n.heroName)}) не веде «${n.unitName(String(unit))}» — кожен веде лише юнітів своєї ролі`,
-  "march.overCapacity": ({ capacity, sent, hero }, n) => `${nameList(hero, n.heroName)} веде до ${capacity} юнітів, а відправлено ${sent}`,
+    t("errors:refusal.march.wrongUnits", { hero: nameList(hero, n.heroName), unit: n.unitName(String(unit)) }),
+  "march.overCapacity": ({ capacity, sent, hero }, n) => t("errors:refusal.march.overCapacity", { hero: nameList(hero, n.heroName), capacity, sent }),
   "march.sameRole": ({ heroes }, n) =>
-    `У марші не може бути двох героїв однієї ролі: ${nameList(heroes, n.heroName)}`,
-  "march.tooManyHeroes": ({ max }) => `Марш веде не більше ${max} героїв`,
-  "camp.unavailable": ({ need, have }) => `Табір відкриється, коли поза ним буде ${need} героїв — зараз ${have}`,
-  "camp.slotLocked": ({ slot }) => `Слот ${slot} ще не відкрито — підніміть ратушу або купіть слот`,
-  "camp.slotTaken": ({ slot }) => `У слоті ${slot} уже стоїть герой`,
-  "camp.slotCooling": ({ slot }) => `Слот ${slot} ще перезаряджається`,
-  "camp.heroAlreadyIn": () => "Герой уже в таборі",
-  "camp.heroNotIn": () => "Героя немає в таборі",
+    t("errors:refusal.march.sameRole", { heroes: nameList(heroes, n.heroName) }),
+  "march.tooManyHeroes": ({ max }) => t("errors:refusal.march.tooManyHeroes", { max }),
+  "camp.unavailable": ({ need, have }) => t("errors:refusal.camp.unavailable", { need, have }),
+  "camp.slotLocked": ({ slot }) => t("errors:refusal.camp.slotLocked", { slot }),
+  "camp.slotTaken": ({ slot }) => t("errors:refusal.camp.slotTaken", { slot }),
+  "camp.slotCooling": ({ slot }) => t("errors:refusal.camp.slotCooling", { slot }),
+  "camp.heroAlreadyIn": () => t("errors:refusal.camp.heroAlreadyIn"),
+  "camp.heroNotIn": () => t("errors:refusal.camp.heroNotIn"),
   "camp.heroIsReference": ({ count }) =>
-    `Герой — серед ${count} найсильніших поза табором: вони задають рівень табору, тож у табір іде слабший`,
-  "camp.heroLevelLocked": () => "Герой у таборі: його рівень тримає табір. Виведіть героя з табору, щоб піднімати власний рівень",
-  "camp.allSlotsBought": ({ count }) => `Усі ${count} додаткові слоти вже куплені`,
-  "camp.slotReady": ({ slot }) => `Слот ${slot} уже готовий`,
-  "hero.skillLocked": ({ skill, level }, n) => `«${n.skillName(String(skill))}» відкриється з ${level} рівня героя`,
-  "hero.skillStarCapped": ({ stars }) => `Наступний рівень вміння відкриється на ${stars} зірці героя`,
-  "hero.skillMaxed": ({ level }) => `Вміння вже на найвищому, ${level} рівні`,
-  "hero.skillNoBook": ({ book, need, have }, n) => `Замало книг «${n.itemName(String(book))}»: потрібно ${need}, є ${have}`,
+    t("errors:refusal.camp.heroIsReference", { count }),
+  "camp.heroLevelLocked": () => t("errors:refusal.camp.heroLevelLocked"),
+  "camp.allSlotsBought": ({ count }) => t("errors:refusal.camp.allSlotsBought", { count }),
+  "camp.slotReady": ({ slot }) => t("errors:refusal.camp.slotReady", { slot }),
+  "hero.skillLocked": ({ skill, level }, n) => t("errors:refusal.hero.skillLocked", { skill: n.skillName(String(skill)), level }),
+  "hero.skillStarCapped": ({ stars }) => t("errors:refusal.hero.skillStarCapped", { stars }),
+  "hero.skillMaxed": ({ level }) => t("errors:refusal.hero.skillMaxed", { level }),
+  "hero.skillNoBook": ({ book, need, have }, n) => t("errors:refusal.hero.skillNoBook", { book: n.itemName(String(book)), need, have }),
   "hero.notOwned": ({ hero }, n) =>
-    `Універсальні осколки йдуть лише у відкритого героя, а «${n.heroName(String(hero))}» ще не призваний`,
-  "hero.shardUpgradeLocked": () => "Обмін відкриється, коли всі герої цієї рідкості матимуть усі зірки",
+    t("errors:refusal.hero.notOwned", { hero: n.heroName(String(hero)) }),
+  "hero.shardUpgradeLocked": () => t("errors:refusal.hero.shardUpgradeLocked"),
 
   // ---------- Спорядження ----------
-  "equipment.maxLevel": ({ max }) => `Артефакт уже на найвищому, ${max} рівні`,
-  "equipment.maxMastery": ({ max }) => `Заточка вже найвища — +${max}`,
-  "equipment.broken": () => "Артефакт зламаний — спершу відремонтуйте його в кузні",
-  "equipment.notBroken": () => "Артефакт цілий — ремонтувати нічого",
-  "equipment.uniqueFood": ({ item }, n) => `«${n.itemName(String(item))}» не згодовується`,
-  "equipment.foodEquipped": () => "Спершу зніміть предмет із героя — вдягнене не згодовується",
+  "equipment.maxLevel": ({ max }) => t("errors:refusal.equipment.maxLevel", { max }),
+  "equipment.maxMastery": ({ max }) => t("errors:refusal.equipment.maxMastery", { max }),
+  "equipment.broken": () => t("errors:refusal.equipment.broken"),
+  "equipment.notBroken": () => t("errors:refusal.equipment.notBroken"),
+  "equipment.uniqueFood": ({ item }, n) => t("errors:refusal.equipment.uniqueFood", { item: n.itemName(String(item)) }),
+  "equipment.foodEquipped": () => t("errors:refusal.equipment.foodEquipped"),
   "equipment.wrongClass": ({ set, class: heroClass }, n) =>
-    `«${n.artifactSetName(String(set))}» — лише для класу «${classLabel(String(heroClass))}»`,
+    t("errors:refusal.equipment.wrongClass", { set: n.artifactSetName(String(set)), heroClass: classLabel(String(heroClass)) }),
 
   // ---------- Ринок ----------
-  "market.locked": ({ level }) => `Ринок відкриється з ратушею ${level} рівня`,
-  "market.listingLimit": ({ limit }) => `Уже виставлено ${limit} лотів — стільки дозволяє ваш ринок. Підніміть його рівень`,
+  "market.locked": ({ level }) => t("errors:refusal.market.locked", { level }),
+  "market.listingLimit": ({ limit }) => t("errors:refusal.market.listingLimit", { limit }),
   "market.priceOutOfCorridor": ({ min, max }) =>
-    `Ціна має бути від ${formatNumber(Number(min))} до ${formatNumber(Number(max))} золота`,
-  "market.notTradeable": ({ item }, n) => `«${n.itemName(String(item))}» не продається на ринку`,
-  "market.notEnoughItems": ({ item, need, have }, n) => `Не вистачає «${n.itemName(String(item))}»: потрібно ${need}, є ${have}`,
-  "market.resaleCooldown": ({ until }) => `Щойно куплене можна перепродати після ${localTime(until)}`,
-  "market.itemListed": () => "Предмет виставлений на ринок — спершу зніміть лот",
-  "market.listingClosed": () => "Лот уже продано або знято",
-  "market.ownListing": () => "Це ваш власний лот",
+    t("errors:refusal.market.priceOutOfCorridor", { min: formatNumber(Number(min)), max: formatNumber(Number(max)) }),
+  "market.notTradeable": ({ item }, n) => t("errors:refusal.market.notTradeable", { item: n.itemName(String(item)) }),
+  "market.notEnoughItems": ({ item, need, have }, n) => t("errors:refusal.market.notEnoughItems", { item: n.itemName(String(item)), need, have }),
+  "market.resaleCooldown": ({ until }) => t("errors:refusal.market.resaleCooldown", { until: localTime(until) }),
+  "market.itemListed": () => t("errors:refusal.market.itemListed"),
+  "market.listingClosed": () => t("errors:refusal.market.listingClosed"),
+  "market.ownListing": () => t("errors:refusal.market.ownListing"),
 
   // ---------- Чат ----------
-  "chat.tooFast": ({ seconds }) => `Забагато повідомлень поспіль — зачекайте ${seconds} с`,
-  "chat.tooLong": ({ max }) => `Повідомлення задовге: не більше ${max} символів`,
-  "chat.noClan": () => "Клановий чат — лише для членів клану",
-  "chat.toSelf": () => "Не можна написати самому собі",
+  "chat.tooFast": ({ seconds }) => t("errors:refusal.chat.tooFast", { seconds }),
+  "chat.tooLong": ({ max }) => t("errors:refusal.chat.tooLong", { max }),
+  "chat.noClan": () => t("errors:refusal.chat.noClan"),
+  "chat.toSelf": () => t("errors:refusal.chat.toSelf"),
 
   // ---------- Данжі ----------
-  "dungeon.townHallRequired": ({ level }) => `Цей данж відкривається з ратушею ${level} рівня`,
-  "dungeon.levelLocked": ({ level, previous }) => `Рівень ${level} відкриється після проходження рівня ${previous}`,
-  "dungeon.heroWounded": ({ hero }, n) => `${n.heroName(String(hero))} зараз у госпіталі — оберіть іншого героя`,
-  "dungeon.runInProgress": () => "У вас уже є незавершений забіг — поверніться до нього",
-  "dungeon.targetUnreachable": () => "Цю ціль зараз не дістати: спершу бийте передню лінію або того, хто провокує",
-  "dungeon.energyFull": () => "Енергія вже повна — поповнювати нічого",
-  "dungeon.refillLimit": ({ limit }) => `Сьогодні енергію вже поповнено ${limit} разів — нові поповнення з опівночі UTC`,
+  "dungeon.townHallRequired": ({ level }) => t("errors:refusal.dungeon.townHallRequired", { level }),
+  "dungeon.levelLocked": ({ level, previous }) => t("errors:refusal.dungeon.levelLocked", { level, previous }),
+  "dungeon.heroWounded": ({ hero }, n) => t("errors:refusal.dungeon.heroWounded", { hero: n.heroName(String(hero)) }),
+  "dungeon.runInProgress": () => t("errors:refusal.dungeon.runInProgress"),
+  "dungeon.targetUnreachable": () => t("errors:refusal.dungeon.targetUnreachable"),
+  "dungeon.energyFull": () => t("errors:refusal.dungeon.energyFull"),
+  "dungeon.refillLimit": ({ limit }) => t("errors:refusal.dungeon.refillLimit", { limit }),
 
   // ---------- Одномоментний бій ----------
-  "squad.heroWounded": ({ hero }, n) => `${n.heroName(String(hero))} зараз у госпіталі — замініть героя в загоні`,
+  "squad.heroWounded": ({ hero }, n) => t("errors:refusal.squad.heroWounded", { hero: n.heroName(String(hero)) }),
 
   // ---------- Вежа ----------
-  "tower.townHallRequired": ({ level }) => `Тисячна вежа відкривається з ратушею ${level} рівня`,
-  "tower.floorClosed": ({ floor, next }) => `Поверх ${floor} уже закритий — на вас чекає поверх ${next}`,
-  "tower.conquered": () => "Вежу підкорено: усі поверхи пройдено",
+  "tower.townHallRequired": ({ level }) => t("errors:refusal.tower.townHallRequired", { level }),
+  "tower.floorClosed": ({ floor, next }) => t("errors:refusal.tower.floorClosed", { floor, next }),
+  "tower.conquered": () => t("errors:refusal.tower.conquered"),
 
   // ---------- Звірі ----------
-  "beast.penMissing": () => "Приручати нікуди: спершу відкрийте звіринець",
+  "beast.penMissing": () => t("errors:refusal.beast.penMissing"),
   "beast.penFull": ({ capacity }) =>
-    `Звіринець повний: усі ${capacity} місць зайняті іншими звірами. Підніміть рівень звіринця`,
-  "beast.notTameable": () => "Цього монстра не приручити",
-  "beasts.hungry": () => "Звірі голодні: звіринцю бракує корму. Наростіть корм у Рибальській хижі",
-  "beast.notEnoughFeed": ({ need, have }) => `Ласощів не вистачає: потрібно ${need}, є ${have}`,
+    t("errors:refusal.beast.penFull", { capacity }),
+  "beast.notTameable": () => t("errors:refusal.beast.notTameable"),
+  "beasts.hungry": () => t("errors:refusal.beasts.hungry"),
+  "beast.notEnoughFeed": ({ need, have }) => t("errors:refusal.beast.notEnoughFeed", { need, have }),
   "beast.levelCapped": ({ level }) =>
-    `Звір досяг стелі рівня ${level} для свого рангу — підніміть ранг, приручивши ще одного такого звіра`,
+    t("errors:refusal.beast.levelCapped", { level }),
   "beast.onCooldown": ({ readyAt }) =>
-    `Звір ще відпочиває — пасивку можна ввімкнути ${localTime(readyAt)}`,
-  "beast.effectActive": () => "Такий самий бонус уже дає інший звір — дочекайтесь, поки його дія скінчиться",
+    t("errors:refusal.beast.onCooldown", { readyAt: localTime(readyAt) }),
+  "beast.effectActive": () => t("errors:refusal.beast.effectActive"),
 
   // ---------- Телепорти ----------
-  "teleport.tooFar": ({ range }) => `Цей телепорт дістає не далі ${range} клітин від поселення`,
-  "teleport.noClan": () => "Клановий телепорт працює лише в клані",
-  "teleport.outsideClanTerritory": () => "Клановий телепорт переносить лише на територію вашого клану — поруч зі спорудою",
-  "teleport.youAreLeader": () => "Ви і є глава клану — переселятися до себе нікуди",
-  "teleport.noFreeCell": () => "Довкола глави клану не лишилося вільного місця — спробуйте пізніше",
+  "teleport.tooFar": ({ range }) => t("errors:refusal.teleport.tooFar", { range }),
+  "teleport.noClan": () => t("errors:refusal.teleport.noClan"),
+  "teleport.outsideClanTerritory": () => t("errors:refusal.teleport.outsideClanTerritory"),
+  "teleport.youAreLeader": () => t("errors:refusal.teleport.youAreLeader"),
+  "teleport.noFreeCell": () => t("errors:refusal.teleport.noFreeCell"),
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */
