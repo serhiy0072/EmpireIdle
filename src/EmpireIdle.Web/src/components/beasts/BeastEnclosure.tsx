@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { BEAST_SCALE, beastArtUrl, type BeastFrame } from "./beastArt";
+import { t } from "i18next";
 
 export interface PenBeast {
   beastKey: string;
@@ -230,7 +231,7 @@ export default function BeastEnclosure({ beasts, onSelect }: Props) {
           ctx.restore();
         }
 
-        const label = `Ур. ${levels.get(walker.key) ?? 1}`;
+        const label = t("heroes:list.level", { level: levels.get(walker.key) ?? 1 });
         ctx.font = "bold 13px system-ui, sans-serif";
         ctx.textAlign = "center";
         ctx.lineWidth = 3;
@@ -282,7 +283,7 @@ export default function BeastEnclosure({ beasts, onSelect }: Props) {
       ref={canvasRef}
       style={{ height: HEIGHT }}
       className="block w-full rounded-2xl shadow-inner ring-2 ring-[#5b85c4]"
-      aria-label="Загін звірів"
+      aria-label={t("village:beasts.enclosure")}
     />
   );
 }

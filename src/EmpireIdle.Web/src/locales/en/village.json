@@ -75,5 +75,43 @@
   "power": {
     "loading": "Calculating power…",
     "breakdown": "Army {{army}} · heroes {{heroes}} · gear {{gear}}"
+  },
+  "beasts": {
+    "effect": {
+      "Production": "production",
+      "Attack": "attack",
+      "Defense": "defense",
+      "MarchSpeed": "march speed",
+      "Carry": "carry capacity"
+    },
+    "toLevel": "To level",
+    "max": "Max",
+    "level": "Level",
+    "info": "Rank {{rank}} · level cap {{max}} · {{passive}}",
+    "capped": "Rank cap: only another beast of the same kind takes it further",
+    "toNext": "{{need}} treats to the next level · {{have}} in the backpack",
+    "treats": "{{count}} treats",
+    "passiveFor": "{{passive}} for {{hours}} h",
+    "activeFor": "Active for {{remaining}}",
+    "restingFor": "Resting for {{remaining}}",
+    "activate": "Activate for {{fodder}} fodder",
+    "enclosure": "Beast enclosure",
+    "list": "Beast list",
+    "listTitle": "Beast list",
+    "close": "Close",
+    "loading": "Loading…",
+    "pen": "Beast Pen",
+    "penSummary": "Kinds {{kinds}} of {{capacity}} · treats {{treats}}",
+    "upkeep": "eats {{fodder}} fodder/h",
+    "locked": "The Beast Pen isn't open yet — upgrade the Town Hall to tame beasts.",
+    "empty": "Nothing here yet. Find a monster on the <map>map</map> and send a march with the Tame intent.",
+    "tameable": "Tameable beasts",
+    "owned": "· already owned",
+    "noneInWorld": "none in the world right now — try later",
+    "chance": "{{chance}} chance · guaranteed in {{wins}} wins",
+    "find": "Find",
+    "toEnclosure": "To the enclosure",
+    "previous": "Previous beast",
+    "next": "Next beast"
   }
 }
