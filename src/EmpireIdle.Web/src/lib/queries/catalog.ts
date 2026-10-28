@@ -3,8 +3,7 @@ import { useMemo } from "react";
 import { api } from "../api";
 import { queryKeys } from "../queryKeys";
 import type { components } from "../schema";
-import { useSession } from "../../hooks/useSession";
-import { DEFAULT_LANGUAGE, usePlayerSettings } from "./player";
+import { useLanguage } from "../i18n";
 
 export type CatalogResponse = components["schemas"]["CatalogResponse"];
 export type CatalogHero = components["schemas"]["CatalogHero"];
@@ -122,9 +121,7 @@ export interface Catalog {
  * а після перезавантаження сторінки браузер отримає 304 за ETag.
  */
 export function useCatalog(): Catalog {
-  const session = useSession();
-  const settings = usePlayerSettings(session?.playerId ?? "");
-  const language = settings.data?.language ?? DEFAULT_LANGUAGE;
+  const language = useLanguage();
 
   const query = useQuery({
     queryKey: queryKeys.catalog(language),

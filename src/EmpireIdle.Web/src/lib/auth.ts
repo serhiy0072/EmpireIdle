@@ -1,5 +1,5 @@
 import { apiPost } from "./api";
-import { guestLanguage } from "./language";
+import { currentLanguage } from "./i18n";
 import { fromAuthResponse, getSession, setSession, type AuthResponse } from "./session";
 
 export type { AuthResponse, Session } from "./session";
@@ -21,7 +21,8 @@ export async function register(
     userName,
     email,
     password,
-    language: guestLanguage(),
+    // Акаунт одразу говорить тією мовою, яку гравець бачив до реєстрації
+    language: currentLanguage(),
   });
 
   setSession(fromAuthResponse(auth), remember);

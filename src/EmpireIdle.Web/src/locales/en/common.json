@@ -1,0 +1,12 @@
+{
+  "shell": {
+    "home": "To the village",
+    "shield": "🛡 until {{until}}",
+    "shieldHint": "Shield after your town fell: no one can attack you. Attacking a player removes it.",
+    "settings": "Settings",
+    "language": "Language",
+    "seed": "Seed",
+    "seeding": "Seeding…",
+    "logout": "Log out"
+  }
+}

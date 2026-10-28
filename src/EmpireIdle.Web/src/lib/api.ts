@@ -1,3 +1,4 @@
+import { currentLanguage } from "./i18n";
 import { ApiError, type ProblemDetails } from "./problem";
 import { fromAuthResponse, getSession, setSession, syncSessionFromStorage, type AuthResponse } from "./session";
 
@@ -172,7 +173,8 @@ async function isRetryable(response: Response): Promise<boolean> {
 
 async function send(path: string, options: RequestOptions, idempotencyKey: string | null): Promise<Response> {
   const token = await freshAccessToken();
-  const headers = new Headers({ Accept: "application/json" });
+  // Мову views визначає інтерфейс, а не браузер: інакше екран і дані говорили б різними мовами
+  const headers = new Headers({ Accept: "application/json", "Accept-Language": currentLanguage() });
 
   if (token !== null) {
     headers.set("Authorization", `Bearer ${token}`);
