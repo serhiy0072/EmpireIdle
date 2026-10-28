@@ -20,6 +20,7 @@ import { useHeroes } from "../lib/queries/heroes";
 import { rarityStyle } from "../lib/rarity";
 import { formatRemaining } from "../lib/time";
 import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 /**
  * Данжі: вибір данжу й рівня, склад команди до чотирьох героїв і сам бій.
@@ -65,7 +66,7 @@ export default function DungeonsPage() {
   );
 
   if (dungeons.isPending) {
-    return <p className="text-slate-500">Запалюємо смолоскипи…</p>;
+    return <p className="text-slate-500">{t("battle:dungeons.loading")}</p>;
   }
 
   if (dungeons.isError) {
@@ -81,7 +82,7 @@ export default function DungeonsPage() {
     return (
       <div className="space-y-4">
         <h1 className="text-xl font-medium text-slate-800">
-          {name} · рівень {battle.level}
+          {t("battle:dungeons.runTitle", { name, level: battle.level })}
         </h1>
         <DungeonBattle playerId={playerId} run={battle} onFinished={() => setBattle(null)} />
       </div>
@@ -111,11 +112,11 @@ export default function DungeonsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Данжі</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("battle:dungeons.title")}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm text-slate-500">
-            ⚡ {overview.energy} / {overview.maxEnergy} · забіг {overview.energyPerRun}
-            {overview.energyFullAt != null && ` · повна за ${formatRemaining(overview.energyFullAt, now)}`}
+            {t("battle:dungeons.energy", { energy: overview.energy, max: overview.maxEnergy, cost: overview.energyPerRun })}
+            {overview.energyFullAt != null && ` · ${t("battle:dungeons.fullIn", { remaining: formatRemaining(overview.energyFullAt, now) })}`}
           </p>
           {/* Поповнення лише до стелі: на повній шкалі кнопки немає — сервер однаково відмовить */}
           {overview.energy < overview.maxEnergy && overview.refillPriceGems != null && (
@@ -123,10 +124,10 @@ export default function DungeonsPage() {
               type="button"
               onClick={() => refill.mutate()}
               disabled={refill.isPending}
-              title={`Сьогодні лишилось поповнень: ${overview.refillsLeft}`}
+              title={t("battle:dungeons.refillsLeft", { count: overview.refillsLeft })}
               className="rounded-lg border border-amber-400 px-2 py-0.5 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
             >
-              Поповнити до {overview.maxEnergy} ⚡ · {formatNumber(overview.refillPriceGems)} 💎
+              {t("battle:dungeons.refill", { max: overview.maxEnergy, price: formatNumber(overview.refillPriceGems) })}
             </button>
           )}
         </div>
@@ -160,23 +161,23 @@ export default function DungeonsPage() {
                   </span>
                   <span className="text-xs text-slate-500">
                     {dungeon.isUnlocked
-                      ? `пройдено ${dungeon.clearedLevel}/${dungeon.levels.length}`
-                      : `🔒 ратуша ${dungeon.requiresMainBuildingLevel}`}
+                      ? t("battle:dungeons.cleared", { cleared: dungeon.clearedLevel, total: dungeon.levels.length })
+                      : t("battle:dungeons.locked", { level: dungeon.requiresMainBuildingLevel })}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">{dungeon.description}</p>
-                {setClass !== undefined && <p className="mt-0.5 text-xs text-slate-400">Набір для класу «{classLabel(setClass)}»</p>}
+                {setClass !== undefined && <p className="mt-0.5 text-xs text-slate-400">{t("battle:dungeons.setFor", { heroClass: classLabel(setClass) })}</p>}
               </button>
             );
           })}
         </div>
 
         {selected === null ? (
-          <p className="text-sm text-slate-500">Оберіть данж, щоб зібрати команду.</p>
+          <p className="text-sm text-slate-500">{t("battle:dungeons.pick")}</p>
         ) : (
           <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
             <section className="space-y-2">
-              <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Рівень</h2>
+              <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("battle:dungeons.level")}</h2>
               <div className="flex gap-2">
                 {selected.levels.map((option) => {
                   const locked = option.level > selected.unlockedLevel;
@@ -191,22 +192,24 @@ export default function DungeonsPage() {
                         level === option.level ? "border-emerald-500 bg-emerald-50" : "border-slate-200"
                       } ${locked ? "opacity-50" : "hover:border-slate-300"}`}
                     >
-                      <div className="font-medium text-slate-800">Рівень {option.level}</div>
+                      <div className="font-medium text-slate-800">{t("battle:dungeons.levelN", { level: option.level })}</div>
                       <div className={`mt-1 inline-block rounded px-2 py-0.5 text-xs ${rarityStyle(option.artifactRarity)}`}>
-                        {artifactRarityLabel(option.artifactRarity)} артефакт
+                        {t("battle:dungeons.artifact", { rarity: artifactRarityLabel(option.artifactRarity) })}
                       </div>
                       <div className="mt-1 text-xs text-slate-500">
-                        {option.waves} хвилі · вороги ×{option.powerMultiplier}
+                        {t("battle:dungeons.waves", { count: option.waves, multiplier: option.powerMultiplier })}
                       </div>
-                      {locked && <div className="text-xs text-slate-400">пройдіть рівень {option.level - 1}</div>}
+                      {locked && <div className="text-xs text-slate-400">{t("battle:dungeons.clearFirst", { level: option.level - 1 })}</div>}
                     </button>
                   );
                 })}
               </div>
               {levelView !== null && (
                 <p className="text-xs text-slate-500">
-                  Нагорода: {levelView.reward.map((line) => `${catalog.resourceName(line.resource)} ${formatNumber(line.amount)}`).join(" · ")}
-                  {levelView.heroExperience > 0 && ` · досвід героїв ${formatNumber(levelView.heroExperience)}`}
+                  {t("battle:dungeons.reward", {
+                    reward: levelView.reward.map((line) => `${catalog.resourceName(line.resource)} ${formatNumber(line.amount)}`).join(" · "),
+                  })}
+                  {levelView.heroExperience > 0 && ` · ${t("battle:dungeons.heroExperience", { amount: formatNumber(levelView.heroExperience) })}`}
                 </p>
               )}
               {dropSet !== null && (
@@ -216,7 +219,7 @@ export default function DungeonsPage() {
                 >
                   <span className="flex items-center gap-1.5">
                     <RoleBadge role={dropSet.class ?? undefined} size={16} />
-                    {dropSet.displayName} · рівень набору {dropSet.tier}
+                    {t("battle:dungeons.dropSet", { set: dropSet.displayName, tier: dropSet.tier })}
                   </span>
                   <span aria-hidden>→</span>
                 </Link>
@@ -225,10 +228,10 @@ export default function DungeonsPage() {
 
             <section className="space-y-2">
               <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">
-                Команда · {team.length}/{overview.teamSize}
+                {t("battle:dungeons.team", { count: team.length, size: overview.teamSize })}
               </h2>
               {idle.length === 0 ? (
-                <p className="text-sm text-slate-500">Немає доступних героїв — усі поранені.</p>
+                <p className="text-sm text-slate-500">{t("battle:dungeons.noHeroes")}</p>
               ) : (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {idle.map((hero) => {
@@ -249,7 +252,7 @@ export default function DungeonsPage() {
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-sm font-medium text-slate-800">{catalog.heroName(hero.heroKey)}</div>
                           <div className="text-xs text-slate-500">
-                            рів. {hero.effectiveLevel} · {classLabel(config?.class)}
+                            {t("battle:dungeons.hero", { level: hero.effectiveLevel, heroClass: classLabel(config?.class) })}
                           </div>
                         </div>
                         {picked && <span className="text-xs font-medium text-emerald-700">#{order}</span>}
@@ -270,8 +273,8 @@ export default function DungeonsPage() {
               className="w-full rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
             >
               {overview.energy < overview.energyPerRun
-                ? "Не вистачає енергії"
-                : `Почати забіг · ${overview.energyPerRun} ⚡`}
+                ? t("battle:dungeons.noEnergy")
+                : t("battle:dungeons.start", { cost: overview.energyPerRun })}
             </button>
           </div>
         )}

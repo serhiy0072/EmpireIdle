@@ -1,1 +1,140 @@
-{}
+{
+  "artifactRarity": {
+    "common": "Common",
+    "rare": "Rare",
+    "unique": "Unique"
+  },
+  "status": {
+    "Poison": "poison",
+    "Stun": "stun",
+    "AttackUp": "attack ↑",
+    "DefenseUp": "defense ↑",
+    "DefenseDown": "defense ↓",
+    "Shield": "shield",
+    "Taunt": "taunt"
+  },
+  "outcome": {
+    "Lost": {
+      "title": "The team has fallen",
+      "hint": "Energy spent. Level up your heroes or try another lineup."
+    },
+    "Won": {
+      "title": "Dungeon cleared",
+      "hint": "The reward is already in: resources in the village, the artifact in your inventory."
+    },
+    "Abandoned": {
+      "title": "Run abandoned",
+      "hint": "Energy spent, no reward."
+    },
+    "TimedOut": {
+      "title": "The battle dragged on",
+      "hint": "The wave wasn't finished within the round limit. Energy spent. Bring a lineup with more damage."
+    }
+  },
+  "log": {
+    "stunned": "stunned",
+    "hit": "attack",
+    "shield": "{{name}} shield {{value}}",
+    "blocked": "(blocked)"
+  },
+  "run": {
+    "backToList": "Back to dungeons",
+    "wave": "Wave {{wave}} of {{total}}",
+    "auto": "Auto battle",
+    "leave": "Leave",
+    "team": "Team",
+    "enemies": "Enemies",
+    "turn": "Turn: <b>{{name}}</b>",
+    "pickTarget": "pick a target",
+    "attack": "Attack",
+    "cooldown": "{{count}} turns"
+  },
+  "line": {
+    "front": "front",
+    "back": "back"
+  },
+  "combatant": {
+    "shield": "shield {{value}}"
+  },
+  "reward": {
+    "title": "Reward",
+    "heroExperience": "Hero XP"
+  },
+  "replay": {
+    "seconds": "{{count}} s",
+    "auto": "Auto",
+    "skip": "Skip"
+  },
+  "summary": {
+    "hero": "Hero",
+    "dealt": "Dealt",
+    "taken": "Taken",
+    "healed": "Healed",
+    "best": "MVP"
+  },
+  "squad": {
+    "title": "Squad",
+    "strongest": "Strongest",
+    "lane": "lane {{lane}}"
+  },
+  "tower": {
+    "floor": "Floor {{floor}}",
+    "boss": "boss",
+    "floorInfo": "{{archetype}} · heroes lv. {{heroes}} · troops lv. {{units}} · {{set}}",
+    "reward": "Reward:",
+    "noRating": "No one has cleared a floor yet — be the first.",
+    "player": "Player",
+    "floorColumn": "Floor"
+  },
+  "dungeons": {
+    "loading": "Lighting the torches…",
+    "runTitle": "{{name}} · level {{level}}",
+    "title": "Dungeons",
+    "energy": "⚡ {{energy}} / {{max}} · run {{cost}}",
+    "fullIn": "full in {{remaining}}",
+    "refillsLeft": "Refills left today: {{count}}",
+    "refill": "Refill to {{max}} ⚡ · {{price}} 💎",
+    "cleared": "cleared {{cleared}}/{{total}}",
+    "locked": "🔒 Town Hall {{level}}",
+    "setFor": "Set for the {{heroClass}} class",
+    "pick": "Pick a dungeon to assemble a team.",
+    "level": "Level",
+    "levelN": "Level {{level}}",
+    "artifact": "{{rarity}} artifact",
+    "waves": "{{count}} waves · enemies ×{{multiplier}}",
+    "clearFirst": "clear level {{level}}",
+    "reward": "Reward: {{reward}}",
+    "heroExperience": "hero XP {{amount}}",
+    "dropSet": "{{set}} · set tier {{tier}}",
+    "team": "Team · {{count}}/{{size}}",
+    "noHeroes": "No heroes available — all are wounded.",
+    "hero": "lv. {{level}} · {{heroClass}}",
+    "noEnergy": "Not enough energy",
+    "start": "Start a run · {{cost}} ⚡"
+  },
+  "towerPage": {
+    "attackBuff": "attack +{{percent}}%",
+    "defenseBuff": "defense +{{percent}}%",
+    "loading": "Climbing the stairs…",
+    "title": "Thousand Tower",
+    "progress": "Cleared {{floor}} / {{max}}",
+    "rank": "rank {{rank}}",
+    "tabTower": "Tower",
+    "tabRating": "Rating",
+    "ratingLoading": "Counting floors…",
+    "locked": "The tower opens at Town Hall level {{level}}.",
+    "buffs": "Active buffs: {{buffs}}",
+    "noBuffs": "No buffs: shop boosts and beasts strengthen your squad in the tower",
+    "autoRunning": "Auto assault — until the first defeat",
+    "stop": "Stop",
+    "counting": "Recording the battle…",
+    "won": "Floor {{floor}} cleared!",
+    "lost": "Floor {{floor}} held",
+    "lostHint": "Change the lineup or lanes, or level up your heroes — the same squad will lose the same way.",
+    "next": "Next",
+    "conquered": "The tower is conquered — every floor is cleared!",
+    "auto": "Auto until defeat",
+    "fighting": "Fighting…",
+    "storm": "Storm floor {{floor}}"
+  }
+}

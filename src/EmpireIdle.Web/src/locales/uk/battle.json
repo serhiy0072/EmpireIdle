@@ -1,1 +1,140 @@
-{}
+{
+  "artifactRarity": {
+    "common": "звичайний",
+    "rare": "рідкісний",
+    "unique": "унікальний"
+  },
+  "status": {
+    "Poison": "отрута",
+    "Stun": "оглушення",
+    "AttackUp": "атака ↑",
+    "DefenseUp": "захист ↑",
+    "DefenseDown": "захист ↓",
+    "Shield": "щит",
+    "Taunt": "провокація"
+  },
+  "outcome": {
+    "Lost": {
+      "title": "Команда полягла",
+      "hint": "Енергію витрачено. Підніміть рівні героїв або візьміть інший склад."
+    },
+    "Won": {
+      "title": "Данж зачищено",
+      "hint": "Нагороду вже зараховано: ресурси в селі, артефакт в інвентарі."
+    },
+    "Abandoned": {
+      "title": "Забіг покинуто",
+      "hint": "Енергію витрачено, нагороди немає."
+    },
+    "TimedOut": {
+      "title": "Бій затягнувся",
+      "hint": "Хвилю не дограно за відведені раунди. Енергію витрачено. Візьміть склад із більшою шкодою."
+    }
+  },
+  "log": {
+    "stunned": "оглушений",
+    "hit": "удар",
+    "shield": "{{name}} щит {{value}}",
+    "blocked": "(блок)"
+  },
+  "run": {
+    "backToList": "До списку данжів",
+    "wave": "Хвиля {{wave}} з {{total}}",
+    "auto": "Автобій",
+    "leave": "Вийти",
+    "team": "Команда",
+    "enemies": "Вороги",
+    "turn": "Хід: <b>{{name}}</b>",
+    "pickTarget": "оберіть ціль",
+    "attack": "Удар",
+    "cooldown": "{{count}} ход."
+  },
+  "line": {
+    "front": "перед",
+    "back": "тил"
+  },
+  "combatant": {
+    "shield": "щит {{value}}"
+  },
+  "reward": {
+    "title": "Нагорода",
+    "heroExperience": "Досвід героїв"
+  },
+  "replay": {
+    "seconds": "{{count}} с",
+    "auto": "Авто",
+    "skip": "Пропустити"
+  },
+  "summary": {
+    "hero": "Герой",
+    "dealt": "Завдав",
+    "taken": "Прийняв",
+    "healed": "Вилікував",
+    "best": "найкращий"
+  },
+  "squad": {
+    "title": "Загін",
+    "strongest": "Найсильніші",
+    "lane": "доріжка {{lane}}"
+  },
+  "tower": {
+    "floor": "Поверх {{floor}}",
+    "boss": "бос",
+    "floorInfo": "{{archetype}} · герої {{heroes}} рів. · юніти {{units}} рів. · {{set}}",
+    "reward": "Нагорода:",
+    "noRating": "Ще ніхто не пройшов жодного поверху — будьте першим.",
+    "player": "Гравець",
+    "floorColumn": "Поверх"
+  },
+  "dungeons": {
+    "loading": "Запалюємо смолоскипи…",
+    "runTitle": "{{name}} · рівень {{level}}",
+    "title": "Данжі",
+    "energy": "⚡ {{energy}} / {{max}} · забіг {{cost}}",
+    "fullIn": "повна за {{remaining}}",
+    "refillsLeft": "Сьогодні лишилось поповнень: {{count}}",
+    "refill": "Поповнити до {{max}} ⚡ · {{price}} 💎",
+    "cleared": "пройдено {{cleared}}/{{total}}",
+    "locked": "🔒 ратуша {{level}}",
+    "setFor": "Набір для класу «{{heroClass}}»",
+    "pick": "Оберіть данж, щоб зібрати команду.",
+    "level": "Рівень",
+    "levelN": "Рівень {{level}}",
+    "artifact": "{{rarity}} артефакт",
+    "waves": "{{count}} хвилі · вороги ×{{multiplier}}",
+    "clearFirst": "пройдіть рівень {{level}}",
+    "reward": "Нагорода: {{reward}}",
+    "heroExperience": "досвід героїв {{amount}}",
+    "dropSet": "{{set}} · рівень набору {{tier}}",
+    "team": "Команда · {{count}}/{{size}}",
+    "noHeroes": "Немає доступних героїв — усі поранені.",
+    "hero": "рів. {{level}} · {{heroClass}}",
+    "noEnergy": "Не вистачає енергії",
+    "start": "Почати забіг · {{cost}} ⚡"
+  },
+  "towerPage": {
+    "attackBuff": "атака +{{percent}}%",
+    "defenseBuff": "захист +{{percent}}%",
+    "loading": "Підіймаємося сходами…",
+    "title": "Тисячна вежа",
+    "progress": "Пройдено {{floor}} / {{max}}",
+    "rank": "місце {{rank}}",
+    "tabTower": "Вежа",
+    "tabRating": "Рейтинг",
+    "ratingLoading": "Рахуємо поверхи…",
+    "locked": "Вежа відкривається з ратушею {{level}} рівня.",
+    "buffs": "Діють бафи: {{buffs}}",
+    "noBuffs": "Бафів немає: бусти крамниці й звірі підсилюють загін у вежі",
+    "autoRunning": "Автоштурм — до першої поразки",
+    "stop": "Зупинити",
+    "counting": "Зараховуємо бій…",
+    "won": "Поверх {{floor}} пройдено!",
+    "lost": "Поверх {{floor}} вистояв",
+    "lostHint": "Змініть склад чи розстановку або прокачайте героїв — той самий загін програє так само.",
+    "next": "Далі",
+    "conquered": "Вежу підкорено — усі поверхи пройдено!",
+    "auto": "Авто до поразки",
+    "fighting": "Бій…",
+    "storm": "Штурм поверху {{floor}}"
+  }
+}

@@ -11,6 +11,7 @@ import { loadAutoSkills } from "../lib/battleSettings";
 import { useHeroes } from "../lib/queries/heroes";
 import { usePreviewTowerFloor, useStormTowerFloor, useTower, useTowerLeaderboard } from "../lib/queries/tower";
 import { loadSquad, saveSquad } from "../lib/squad";
+import { t } from "i18next";
 
 type Tab = "tower" | "rating";
 
@@ -34,8 +35,8 @@ function buffLabel(attack: number, defense: number): string {
   const percent = (multiplier: number) => Math.round((multiplier - 1) * 100);
   const parts: string[] = [];
 
-  if (attack > 1) parts.push(`атака +${percent(attack)}%`);
-  if (defense > 1) parts.push(`захист +${percent(defense)}%`);
+  if (attack > 1) parts.push(t("battle:towerPage.attackBuff", { percent: percent(attack) }));
+  if (defense > 1) parts.push(t("battle:towerPage.defenseBuff", { percent: percent(defense) }));
 
   return parts.join(", ");
 }
@@ -133,7 +134,7 @@ export default function TowerPage() {
     continueAuto(next);
   }, [autoRunning, fight, busy, result, next]);
 
-  if (tower.isPending) return <p className="text-slate-500">Підіймаємося сходами…</p>;
+  if (tower.isPending) return <p className="text-slate-500">{t("battle:towerPage.loading")}</p>;
   if (tower.isError) return <ErrorBanner error={tower.error} />;
 
   const view = tower.data;
@@ -154,18 +155,18 @@ export default function TowerPage() {
 
   return (
     <GameScreen
-      title="Тисячна вежа"
+      title={t("battle:towerPage.title")}
       actions={
         <p className="text-sm text-sky-100">
-          Пройдено {view.highestFloor} / {view.maxFloor}
-          {view.rank != null && ` · місце ${view.rank}`}
+          {t("battle:towerPage.progress", { floor: view.highestFloor, max: view.maxFloor })}
+          {view.rank != null && ` · ${t("battle:towerPage.rank", { rank: view.rank })}`}
         </p>
       }
     >
       <GameTabs<Tab>
         tabs={[
-          { key: "tower", label: "Вежа" },
-          { key: "rating", label: "Рейтинг" },
+          { key: "tower", label: t("battle:towerPage.tabTower") },
+          { key: "rating", label: t("battle:towerPage.tabRating") },
         ]}
         value={tab}
         onChange={setTab}
@@ -173,7 +174,7 @@ export default function TowerPage() {
       <GamePanel className="space-y-3">
         {tab === "rating" ? (
           leaderboard.isPending ? (
-            <p className="text-sm text-sky-200">Рахуємо поверхи…</p>
+            <p className="text-sm text-sky-200">{t("battle:towerPage.ratingLoading")}</p>
           ) : leaderboard.isError ? (
             <ErrorBanner error={leaderboard.error} />
           ) : (
@@ -183,22 +184,22 @@ export default function TowerPage() {
           <>
             {!view.unlocked && (
               <p className="rounded-lg bg-amber-900/50 px-3 py-2 text-sm ring-1 ring-amber-300">
-                Вежа відкривається з ратушею {view.requiresMainBuildingLevel} рівня.
+                {t("battle:towerPage.locked", { level: view.requiresMainBuildingLevel })}
               </p>
             )}
 
             {/* Бафи міста й звірів діють у вежі — гравець бачить їх до бою, а не після */}
             <p className="text-xs text-sky-200">
               {buffed
-                ? `Діють бафи: ${buffLabel(view.attackBuff, view.defenseBuff)}`
-                : "Бафів немає: бусти крамниці й звірі підсилюють загін у вежі"}
+                ? t("battle:towerPage.buffs", { buffs: buffLabel(view.attackBuff, view.defenseBuff) })
+                : t("battle:towerPage.noBuffs")}
             </p>
 
             {autoRunning && (
               <div className="flex items-center justify-between rounded-lg bg-amber-900/40 px-3 py-1.5 text-sm ring-1 ring-amber-300">
-                <span>Автоштурм — до першої поразки</span>
+                <span>{t("battle:towerPage.autoRunning")}</span>
                 <GameButton variant="secondary" onClick={() => setAuto(false)}>
-                  Зупинити
+                  {t("battle:towerPage.stop")}
                 </GameButton>
               </div>
             )}
@@ -214,14 +215,14 @@ export default function TowerPage() {
               />
             )}
 
-            {fight === null && storm.isPending && <p className="text-center text-sm text-sky-200">Зараховуємо бій…</p>}
+            {fight === null && storm.isPending && <p className="text-center text-sm text-sky-200">{t("battle:towerPage.counting")}</p>}
 
             {result !== null && fight === null && (
               <div
                 className={`space-y-2 rounded-xl p-3 text-center ring-1 ${result.victory ? "bg-emerald-900/50 ring-emerald-300" : "bg-rose-900/50 ring-rose-300"}`}
               >
                 <p className="text-base font-semibold">
-                  {result.victory ? `Поверх ${result.floor} пройдено!` : `Поверх ${result.floor} вистояв`}
+                  {result.victory ? t("battle:towerPage.won", { floor: result.floor }) : t("battle:towerPage.lost", { floor: result.floor })}
                 </p>
                 {result.victory ? (
                   <p className="text-sm">
@@ -229,12 +230,12 @@ export default function TowerPage() {
                   </p>
                 ) : (
                   // Бій сталий для того самого складу: повтор без змін дасть той самий результат
-                  <p className="text-sm text-rose-100">Змініть склад чи розстановку або прокачайте героїв — той самий загін програє так само.</p>
+                  <p className="text-sm text-rose-100">{t("battle:towerPage.lostHint")}</p>
                 )}
                 <BattleSummary replay={result.battle} />
                 <div className="flex justify-center">
                   <GameButton variant="secondary" onClick={() => setResult(null)}>
-                    Далі
+                    {t("battle:towerPage.next")}
                   </GameButton>
                 </div>
               </div>
@@ -243,7 +244,7 @@ export default function TowerPage() {
             {next != null ? (
               <TowerFloorPanel floor={next} />
             ) : (
-              <p className="text-center text-base font-semibold text-amber-300">Вежу підкорено — усі поверхи пройдено!</p>
+              <p className="text-center text-base font-semibold text-amber-300">{t("battle:towerPage.conquered")}</p>
             )}
 
             {next != null && view.unlocked && fight === null && (
@@ -252,10 +253,10 @@ export default function TowerPage() {
                 <ErrorBanner error={storm.error ?? preview.error} />
                 <div className="flex justify-end gap-2">
                   <GameButton variant="secondary" onClick={startAuto} disabled={!canStorm || autoRunning}>
-                    Авто до поразки
+                    {t("battle:towerPage.auto")}
                   </GameButton>
                   <GameButton variant="accent" onClick={() => stormFloor(next, true)} disabled={!canStorm || autoRunning}>
-                    {storm.isPending ? "Бій…" : `Штурм поверху ${next.number}`}
+                    {storm.isPending ? t("battle:towerPage.fighting") : t("battle:towerPage.storm", { floor: next.number })}
                   </GameButton>
                 </div>
               </div>

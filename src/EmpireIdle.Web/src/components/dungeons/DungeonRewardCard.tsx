@@ -5,6 +5,7 @@ import { Tile } from "../game/GameUi";
 import ArtifactHover from "../inventory/ArtifactHover";
 import ItemIcon from "../inventory/ItemIcon";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 type Reward = NonNullable<DungeonRunView["reward"]>;
 
@@ -28,7 +29,7 @@ export default function DungeonRewardCard({ reward }: { reward: Reward }) {
   return (
     <div className="overflow-hidden rounded-xl ring-1 ring-amber-300">
       <div className="bg-gradient-to-r from-amber-400 to-orange-500 px-3 py-1.5 text-sm font-bold text-white [text-shadow:0_1px_2px_#0006]">
-        🏆 Нагорода
+        🏆 {t("battle:reward.title")}
       </div>
 
       <div className="flex flex-wrap justify-center gap-3 bg-gradient-to-b from-amber-50 to-white p-3">
@@ -43,7 +44,7 @@ export default function DungeonRewardCard({ reward }: { reward: Reward }) {
         ))}
 
         {reward.heroExperience > 0 && (
-          <RewardSlot caption="Досвід героїв">
+          <RewardSlot caption={t("battle:reward.heroExperience")}>
             <Tile rarity="Rare" bottomRight={`+${formatNumber(reward.heroExperience)}`}>
               <span className="text-3xl" aria-hidden>
                 ⭐

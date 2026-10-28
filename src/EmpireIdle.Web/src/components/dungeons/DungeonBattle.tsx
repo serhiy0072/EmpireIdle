@@ -5,6 +5,8 @@ import { fetchDungeonRun, useAbandonDungeonRun, useDungeonTurn } from "../../lib
 import ErrorBanner from "../ErrorBanner";
 import CombatantCard from "./CombatantCard";
 import DungeonRewardCard from "./DungeonRewardCard";
+import { t } from "i18next";
+import { Trans } from "react-i18next";
 
 interface Props {
   playerId: string;
@@ -24,23 +26,14 @@ type Splash = { damage: number; healed: number; critical: boolean; blocked: bool
  * Підсумок забігу за станом із сервера. Нічия окрема від поразки: команда
  * жива, тож гравцеві треба пояснити, чому бій зупинено.
  */
-type Outcome = { title: string; hint: string };
+// Abandoned — бій покинули в іншій вкладці, ця дізналась про це лише на своєму ході
+const OUTCOMES = ["Won", "Lost", "Abandoned", "TimedOut"] as const;
 
-const LOST: Outcome = {
-  title: "Команда полягла",
-  hint: "Енергію витрачено. Підніміть рівні героїв або візьміть інший склад.",
-};
+type Outcome = (typeof OUTCOMES)[number];
 
-const OUTCOMES: Record<string, Outcome> = {
-  Won: { title: "Данж зачищено", hint: "Нагороду вже зараховано: ресурси в селі, артефакт в інвентарі." },
-  Lost: LOST,
-  // Бій покинули в іншій вкладці — ця дізналась про це лише на своєму ході
-  Abandoned: { title: "Забіг покинуто", hint: "Енергію витрачено, нагороди немає." },
-  TimedOut: {
-    title: "Бій затягнувся",
-    hint: "Хвилю не дограно за відведені раунди. Енергію витрачено. Візьміть склад із більшою шкодою.",
-  },
-};
+function outcomeOf(state: string): Outcome {
+  return (OUTCOMES as readonly string[]).includes(state) ? (state as Outcome) : "Lost";
+}
 
 /**
  * Покроковий бій.
@@ -80,9 +73,9 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
       return entries.map((entry) => {
         const who = people[entry.actorIndex]?.displayName ?? "?";
         const what = entry.stunned
-          ? "оглушений"
+          ? t("battle:log.stunned")
           : entry.abilityKey === null || entry.abilityKey === undefined
-            ? "удар"
+            ? t("battle:log.hit")
             : (abilityNames.get(entry.abilityKey) ?? entry.abilityKey);
         const effects = entry.effects
           .map((effect) => {
@@ -93,9 +86,9 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
                 : `${abilityNames.get(effect.skillKey) ?? effect.skillKey}: `;
             const name = `${source}${people[effect.targetIndex]?.displayName ?? "?"}`;
             if ((effect.healed ?? 0) > 0) return `${name} +${Math.round(effect.healed ?? 0)}`;
-            if ((effect.shieldGained ?? 0) > 0) return `${name} щит ${Math.round(effect.shieldGained ?? 0)}`;
+            if ((effect.shieldGained ?? 0) > 0) return t("battle:log.shield", { name, value: Math.round(effect.shieldGained ?? 0) });
             // Блок — з наборів і заточки: удар по герою дійшов, але ослаблений
-            return `${name} −${Math.round(effect.damage ?? 0)}${effect.critical === true ? "!" : ""}${effect.blocked === true ? " (блок)" : ""}${effect.died === true ? " †" : ""}`;
+            return `${name} −${Math.round(effect.damage ?? 0)}${effect.critical === true ? "!" : ""}${effect.blocked === true ? ` ${t("battle:log.blocked")}` : ""}${effect.died === true ? " †" : ""}`;
           })
           .join(", ");
 
@@ -256,13 +249,13 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
 
   if (finished !== null) {
     const won = finished.state === "Won";
-    const outcome = OUTCOMES[finished.state] ?? LOST;
+    const outcome = outcomeOf(finished.state);
     const reward = finished.reward;
 
     return (
       <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className={`text-lg font-medium ${won ? "text-emerald-700" : "text-rose-700"}`}>{outcome.title}</h2>
-        <p className="text-sm text-slate-600">{outcome.hint}</p>
+        <h2 className={`text-lg font-medium ${won ? "text-emerald-700" : "text-rose-700"}`}>{t(`battle:outcome.${outcome}.title`)}</h2>
+        <p className="text-sm text-slate-600">{t(`battle:outcome.${outcome}.hint`)}</p>
 
         {reward != null && <DungeonRewardCard reward={reward} />}
         <button
@@ -270,7 +263,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
           onClick={onFinished}
           className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900"
         >
-          До списку данжів
+          {t("battle:run.backToList")}
         </button>
       </div>
     );
@@ -280,12 +273,12 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm text-slate-600">
-          Хвиля {state.wave} з {state.waveCount}
+          {t("battle:run.wave", { wave: state.wave, total: state.waveCount })}
         </span>
 
         <div className="ml-auto flex items-center gap-1">
           <button type="button" onClick={() => setAuto((value) => !value)} className={button}>
-            {auto ? "Автобій ✓" : "Автобій"}
+            {auto ? `${t("battle:run.auto")} ✓` : t("battle:run.auto")}
           </button>
           <button type="button" onClick={() => setFast((value) => !value)} className={button}>
             {fast ? "×2 ✓" : "×2"}
@@ -296,7 +289,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
             disabled={abandon.isPending}
             className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
           >
-            Вийти
+            {t("battle:run.leave")}
           </button>
         </div>
       </div>
@@ -305,7 +298,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <section className="space-y-2">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Команда</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">{t("battle:run.team")}</h3>
           {heroes.map((combatant) => (
             <CombatantCard
               key={combatant.index}
@@ -320,7 +313,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         </section>
 
         <section className="space-y-2">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Вороги</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">{t("battle:run.enemies")}</h3>
           {enemies.map((combatant) => (
             <CombatantCard
               key={combatant.index}
@@ -338,8 +331,8 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
       {!auto && heroTurn && actor !== null && (
         <div className="space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
           <p className="text-sm text-amber-900">
-            Хід: <span className="font-medium">{actor.displayName}</span>
-            {target === null ? " — оберіть ціль" : ""}
+            <Trans ns="battle" i18nKey="run.turn" values={{ name: actor.displayName }} components={{ b: <span className="font-medium" /> }} />
+            {target === null ? ` — ${t("battle:run.pickTarget")}` : ""}
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -348,7 +341,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
               disabled={turn.isPending || target === null || target.side !== "Enemies" || !reachable(target, false)}
               className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
             >
-              Удар
+              {t("battle:run.attack")}
             </button>
             {actives.map((ability) => (
               <button
@@ -360,7 +353,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
                 className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
               >
                 {ability.displayName}
-                {!ability.ready && ` · ${ability.cooldownLeft} ход.`}
+                {!ability.ready && ` · ${t("battle:run.cooldown", { count: ability.cooldownLeft })}`}
               </button>
             ))}
           </div>
