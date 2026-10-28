@@ -230,5 +230,21 @@
     "beasts": {
       "hungry": "The beasts are hungry: the Beast Pen is short of fodder. Boost fodder at the Fishing Hut"
     }
+  },
+  "quoted": "{{name}}",
+  "network": "Couldn't reach the server",
+  "shortfall": "Not enough {{what}}: {{need}} needed, {{have}} available",
+  "unavailable": "This isn't available right now",
+  "inProgress": "This is already in progress",
+  "staleTurn": "The battle has moved on — refresh the page",
+  "conflict": "The data just changed — try again",
+  "alreadyExists": "This already exists",
+  "notFound": "Not found",
+  "badCredentials": "Wrong email or password",
+  "unknown": "Something went wrong. Try again",
+  "boundary": {
+    "title": "This screen couldn't be shown.",
+    "text": "Switch to another tab or refresh the page. Your progress is saved on the server.",
+    "reload": "Refresh the page"
   }
 }

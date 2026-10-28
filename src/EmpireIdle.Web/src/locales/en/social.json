@@ -1,1 +1,16 @@
-{}
+{
+  "clanRole": {
+    "leader": "Leader",
+    "deputy": "Deputy",
+    "general": "General",
+    "officer": "Officer",
+    "veteran": "Veteran",
+    "member": "Member"
+  },
+  "clanRules": {
+    "nameLength": "Name: 3 to 32 characters",
+    "nameCharset": "Letters, digits, space, apostrophe or hyphen",
+    "tagLength": "Tag: 2 to 5 characters",
+    "tagCharset": "Tag: Latin letters and digits only"
+  }
+}

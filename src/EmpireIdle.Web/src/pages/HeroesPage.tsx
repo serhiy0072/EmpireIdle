@@ -19,6 +19,7 @@ import {
 import { useInventory } from "../lib/queries/inventory";
 import { parseRosterSort, ROSTER_SORTS, sortRoster } from "../lib/heroOrder";
 import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 type Tab = "heroes" | "camp";
 
@@ -48,7 +49,7 @@ export default function HeroesPage() {
   const sort = parseRosterSort(params.get("sort"));
 
   if (heroes.isPending) {
-    return <p className="text-slate-500">Завантаження героїв…</p>;
+    return <p className="text-slate-500">{t("heroes:list.loading")}</p>;
   }
 
   if (heroes.isError) {
@@ -76,19 +77,23 @@ export default function HeroesPage() {
     )?.count ?? 0;
 
   const tabs: GameTab<Tab>[] = [
-    { key: "heroes", label: `Герої · ${roster.length}` },
-    { key: "camp", label: "Навчальний табір" },
+    { key: "heroes", label: t("heroes:list.tabHeroes", { count: roster.length }) },
+    { key: "camp", label: t("heroes:list.tabCamp") },
   ];
 
   return (
     <div className="space-y-4">
       <GameScreen
-        title="Герої"
+        title={t("heroes:list.title")}
         actions={
           <p className="text-right text-xs text-sky-100/80">
-            досвід {formatNumber(heroes.data.experience)} · вільних {free} · маршів до {heroes.data.marchCapacity} ·{" "}
+            {t("heroes:list.summary", {
+              experience: formatNumber(heroes.data.experience),
+              free,
+              marches: heroes.data.marchCapacity,
+            })}{" "}
             <Link to="/heroes/codex" className="text-sky-200 hover:underline">
-              кодекс
+              {t("heroes:list.codex")}
             </Link>
           </p>
         }
@@ -98,22 +103,22 @@ export default function HeroesPage() {
           {tab === "heroes" &&
             (roster.length === 0 ? (
               <p className="py-8 text-center text-sm text-sky-100/80">
-                Героїв ще немає — першого приведе квест ратуші, решту дають банери.
+                {t("heroes:list.empty")}
               </p>
             ) : (
               <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="text-sky-100/80">Сортувати:</span>
+                <span className="text-sky-100/80">{t("heroes:list.sortBy")}</span>
                 {ROSTER_SORTS.map((option) => (
                   <button
-                    key={option.key}
+                    key={option}
                     type="button"
-                    onClick={() => setParams({ tab, sort: option.key }, { replace: true })}
+                    onClick={() => setParams({ tab, sort: option }, { replace: true })}
                     className={`rounded-full px-3 py-1 font-semibold ring-1 transition ${
-                      option.key === sort ? "bg-[#e8eef8] text-[#1d3b6f] ring-white" : "bg-[#2a4f8c] text-white ring-[#3d6aae] hover:bg-[#3a63a6]"
+                      option === sort ? "bg-[#e8eef8] text-[#1d3b6f] ring-white" : "bg-[#2a4f8c] text-white ring-[#3d6aae] hover:bg-[#3a63a6]"
                     }`}
                   >
-                    {option.label}
+                    {t(`heroes:rosterSort.${option}`)}
                   </button>
                 ))}
               </div>
@@ -132,7 +137,7 @@ export default function HeroesPage() {
                       corner={<RoleBadge role={config?.class} size={18} />}
                       top={
                         <span className="pl-4">
-                          Ур. {hero.effectiveLevel}
+                          {t("heroes:list.level", { level: hero.effectiveLevel })}
                           {hero.state === "Deployed" ? " ⚑" : hero.state === "Wounded" ? " ✚" : hero.campSlot != null ? " ⛺" : ""}
                         </span>
                       }
@@ -166,15 +171,18 @@ export default function HeroesPage() {
       {tab === "heroes" && (
         <>
           <section className="space-y-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Осколки героїв</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("heroes:list.shards")}</h2>
             <ShardsPanel shards={heroes.data.shards} busy={busy} onSummon={(heroKey) => summon.mutate(heroKey)} />
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Універсальні осколки</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("heroes:list.universal")}</h2>
             <p className="text-sm text-slate-600">
-              Звичайні {universal("Common")} · рідкісні {universal("Rare")} · унікальні {universal("Unique")}. Ідуть у
-              відкритого героя своєї рідкості 1:1.
+              {t("heroes:list.universalText", {
+                common: universal("Common"),
+                rare: universal("Rare"),
+                unique: universal("Unique"),
+              })}
             </p>
             {/* Обмін відкриває сервер, коли всі герої рідкості мають усі зірки — інакше відмова з поясненням */}
             <div className="flex flex-wrap gap-2 text-sm">
@@ -184,7 +192,7 @@ export default function HeroesPage() {
                 disabled={busy || universal("Common") < 100}
                 className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                100 звичайних → 1 рідкісний
+                {t("heroes:list.upgradeCommon")}
               </button>
               <button
                 type="button"
@@ -192,7 +200,7 @@ export default function HeroesPage() {
                 disabled={busy || universal("Rare") < 300}
                 className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                300 рідкісних → 1 унікальний
+                {t("heroes:list.upgradeRare")}
               </button>
             </div>
           </section>

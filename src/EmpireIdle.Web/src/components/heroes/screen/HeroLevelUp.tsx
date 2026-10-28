@@ -8,6 +8,7 @@ import { statGains } from "../../../lib/statNames";
 import { GameButton } from "../../game/GameUi";
 import ItemIcon from "../../inventory/ItemIcon";
 import { formatNumber } from "../../../lib/format";
+import { t } from "i18next";
 
 /** Скриня крамниці, з якої падають банки досвіду. */
 const JAR_CHEST = "chest_supply";
@@ -47,7 +48,7 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
   if (hero.campSlot != null) {
     return (
       <p className="max-w-md text-center text-sm text-amber-200">
-        Герой у навчальному таборі: рівень {hero.effectiveLevel} тримає табір. Виведіть героя з табору, щоб піднімати власний рівень.
+        {t("heroes:levelUp.inCamp", { level: hero.effectiveLevel })}
       </p>
     );
   }
@@ -55,14 +56,14 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-2">
       <p className="text-sm text-sky-100">
-        Досвід:{" "}
+        {t("heroes:levelUp.experience")}{" "}
         <span className={affordable ? "font-bold text-emerald-300" : "font-bold text-amber-300"}>{formatNumber(pool)}</span>
         {" / "}
         <span className="font-bold">{formatNumber(need)}</span>
       </p>
 
       <GameButton onClick={press} disabled={busy || drinkJar.isPending} variant="accent">
-        Підняти рівень
+        {t("heroes:levelUp.raise")}
       </GameButton>
 
       {/* Що дасть рівень — до витрати досвіду */}
@@ -72,10 +73,10 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
 
       {!affordable && offering && (
         <div className="w-full space-y-2 rounded-xl bg-[#16305e]/80 p-3 text-left ring-1 ring-[#335c9a]">
-          <p className="text-sm text-amber-200">Бракує {formatNumber(missing)} досвіду.</p>
+          <p className="text-sm text-amber-200">{t("heroes:levelUp.missing", { count: formatNumber(missing) })}</p>
 
           {jars.length === 0 ? (
-            <p className="text-sm text-sky-100/80">Банок досвіду в рюкзаку немає.</p>
+            <p className="text-sm text-sky-100/80">{t("heroes:levelUp.noJars")}</p>
           ) : (
             jars.map(({ item, experience }) => (
               <div key={item.itemKey} className="flex items-center gap-2">
@@ -93,14 +94,14 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
                   }
                   disabled={busy || drinkJar.isPending}
                 >
-                  Використати всі
+                  {t("heroes:levelUp.useAll")}
                 </GameButton>
               </div>
             ))
           )}
 
           <Link to={`/shop#${JAR_CHEST}`} className="inline-block text-sm text-sky-300 hover:underline">
-            {catalog.itemName(JAR_CHEST)} у крамниці — банки досвіду всередині →
+            {t("heroes:levelUp.shopLink", { chest: catalog.itemName(JAR_CHEST) })}
           </Link>
         </div>
       )}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { skillHalfLabel, skillKindLabel, skillPreview, useCatalog, type CatalogHero, type CatalogSkill } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
 import { GameButton, Tile } from "../../game/GameUi";
+import { t } from "i18next";
 
 interface Props {
   hero: HeroSummary;
@@ -41,7 +42,7 @@ export default function HeroSkillsTab({ hero, config, books, busy, onUpgrade }: 
                 dimmed={level === 0}
                 onClick={() => setSelectedKey(skill.key)}
                 title={skill.displayName}
-                bottomRight={level === 0 ? `з ${skill.unlockLevel}` : `Рів. ${level}`}
+                bottomRight={level === 0 ? t("heroes:skills.from", { level: skill.unlockLevel }) : t("heroes:gear.level", { level })}
               >
                 <span className="text-3xl drop-shadow">{KIND_GLYPHS[skill.kind] ?? "✦"}</span>
               </Tile>
@@ -101,7 +102,7 @@ function SkillDetails({
     <div className="space-y-3 rounded-xl bg-[#16305e]/80 p-3 ring-1 ring-[#335c9a]">
       <div className="flex items-baseline justify-between gap-2">
         <h4 className="text-base font-semibold">
-          {skill.displayName} <span className="text-sky-200">Рів. {level}</span>
+          {skill.displayName} <span className="text-sky-200">{t("heroes:gear.level", { level })}</span>
         </h4>
         <span className="text-xs text-sky-200/80">{skillKindLabel(skill.kind)}</span>
       </div>
@@ -109,7 +110,7 @@ function SkillDetails({
       <p className="text-sm text-sky-50/90">{skill.description}</p>
 
       <div className="space-y-1">
-        <p className="text-sm font-semibold">Перегляд покращення</p>
+        <p className="text-sm font-semibold">{t("heroes:skills.preview")}</p>
         {skillPreview(skill, maxLevel).map((row) => (
           <p key={row.label} className="text-sm text-sky-100/90">
             <span className="text-sky-200/80">{row.label}: </span>
@@ -124,16 +125,16 @@ function SkillDetails({
       </div>
 
       {level === 0 ? (
-        <p className="text-center text-sm text-amber-200">Відкриється на {skill.unlockLevel} рівні героя</p>
+        <p className="text-center text-sm text-amber-200">{t("heroes:skills.unlocksAt", { level: skill.unlockLevel })}</p>
       ) : atMax ? (
-        <p className="text-center text-sm text-emerald-300">Найвищий рівень вміння</p>
+        <p className="text-center text-sm text-emerald-300">{t("heroes:skills.maxed")}</p>
       ) : needsStar ? (
-        <p className="text-center text-sm font-semibold text-rose-300">Щоб покращити: підніміть до {level} зірки</p>
+        <p className="text-center text-sm font-semibold text-rose-300">{t("heroes:skills.needStar", { stars: level })}</p>
       ) : (
         <div className="flex items-center justify-center gap-3">
-          <span className="text-sm text-sky-100">книг: {books}</span>
+          <span className="text-sm text-sky-100">{t("heroes:skills.books", { count: books })}</span>
           <GameButton onClick={onUpgrade} disabled={busy || books < cost} variant="accent">
-            Покращити · {cost} {cost === 1 ? "книга" : cost < 5 ? "книги" : "книг"}
+            {t("heroes:skills.upgrade", { count: cost })}
           </GameButton>
         </div>
       )}

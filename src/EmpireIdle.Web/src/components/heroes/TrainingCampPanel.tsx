@@ -5,6 +5,8 @@ import type { HeroesOverview, HeroSummary } from "../../lib/queries/heroes";
 import { formatRemaining } from "../../lib/time";
 import { GameButton, RoleBadge, StarRow, Tile, TileGrid } from "../game/GameUi";
 import HeroPortrait from "./HeroPortrait";
+import { t } from "i18next";
+import { Trans } from "react-i18next";
 
 interface Props {
   camp: HeroesOverview["camp"];
@@ -47,7 +49,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
         dimmed={busy}
         title={catalog.heroName(hero.heroKey)}
         corner={<RoleBadge role={config?.class} size={16} />}
-        top={<span className="pl-4">Ур. {level}</span>}
+        top={<span className="pl-4">{t("heroes:list.level", { level })}</span>}
         bottom={<StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={11} />}
       >
         <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={64} />
@@ -69,7 +71,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
             }}
             className={`flex-1 rounded-lg py-1.5 text-sm font-semibold ${mode === key ? "bg-sky-500 text-white shadow" : "text-sky-200"}`}
           >
-            {key === "train" ? "Навчання на рівень" : "Скидання рівня"}
+            {key === "train" ? t("heroes:camp.tabTrain") : t("heroes:camp.tabReset")}
           </button>
         ))}
       </div>
@@ -84,20 +86,21 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
                 return (
                   <div key={hero.id} className="flex flex-col items-center gap-1">
                     <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={56} />
-                    <span className="rounded bg-slate-900/60 px-2 text-xs font-semibold">Ур. {hero.level}</span>
+                    <span className="rounded bg-slate-900/60 px-2 text-xs font-semibold">{t("heroes:list.level", { level: hero.level })}</span>
                   </div>
                 );
               })}
             </div>
             <p className="rounded-lg bg-slate-900/40 px-3 py-2 text-center text-sm">
               {camp.available ? (
-                <>
-                  Герої на місці навчання автоматично підтягуються до{" "}
-                  <span className="text-amber-300">мінімального рівня {camp.referenceSize} інструкторів</span> — зараз це{" "}
-                  <span className="font-bold text-amber-300">{camp.level}</span>.
-                </>
+                <Trans
+                  ns="heroes"
+                  i18nKey="camp.intro"
+                  values={{ count: camp.referenceSize, level: camp.level }}
+                  components={{ hl: <span className="text-amber-300" />, b: <span className="font-bold text-amber-300" /> }}
+                />
               ) : (
-                `Табір запрацює, коли поза ним буде ${camp.referenceSize} героїв.`
+                t("heroes:camp.unavailable", { count: camp.referenceSize })
               )}
             </p>
           </section>
@@ -117,7 +120,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
                     type="button"
                     onClick={() => onSkipCooldown(slot.index)}
                     disabled={busy}
-                    title="Пропустити перезарядку"
+                    title={t("heroes:camp.skipCooldown")}
                     className="flex aspect-square w-full flex-col items-center justify-center rounded-xl bg-slate-800/80 text-xs text-sky-100 ring-1 ring-slate-500 disabled:opacity-50"
                   >
                     ⏳ {formatRemaining(slot.cooldownUntil!, now)}
@@ -131,7 +134,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
                   type="button"
                   onClick={() => setPickingSlot(pickingSlot === slot.index ? null : slot.index)}
                   disabled={busy || !camp.available}
-                  title="Поставити героя"
+                  title={t("heroes:camp.place")}
                   className={`flex aspect-square w-full items-center justify-center rounded-xl bg-[#16305e] text-4xl text-white ring-1 ring-[#335c9a] hover:bg-[#1f3d75] disabled:opacity-40 ${
                     pickingSlot === slot.index ? "outline outline-3 outline-offset-2 outline-yellow-300" : ""
                   }`}
@@ -146,7 +149,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
                 type="button"
                 onClick={onBuySlot}
                 disabled={busy}
-                title="Купити ще слот"
+                title={t("heroes:camp.buySlot")}
                 className="flex aspect-square w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-violet-300/60 text-xs text-violet-200 disabled:opacity-50"
               >
                 <span className="text-2xl">🔒</span>
@@ -156,15 +159,21 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
           </TileGrid>
 
           <p className="text-center text-xs text-sky-200/70">
-            Слотів: {camp.totalSlots} (безкоштовних {camp.freeSlots}, куплених {camp.purchasedSlots} з {camp.maxPurchasableSlots}).
-            Безкоштовні відкриваються з рівнем ратуші.
+            {t("heroes:camp.slots", {
+              total: camp.totalSlots,
+              free: camp.freeSlots,
+              bought: camp.purchasedSlots,
+              max: camp.maxPurchasableSlots,
+            })}
           </p>
 
           {focusedHero !== null && (
             <div className="flex items-center justify-between gap-3 rounded-xl bg-[#16305e]/80 p-3 ring-1 ring-[#335c9a]">
               <span className="text-sm">
-                {catalog.heroName(focusedHero.heroKey)} · рівень {focusedHero.effectiveLevel}
-                {focusedHero.effectiveLevel !== focusedHero.level && <span className="text-sky-200/80"> (власний {focusedHero.level})</span>}
+                {t("heroes:camp.focused", { hero: catalog.heroName(focusedHero.heroKey), level: focusedHero.effectiveLevel })}
+                {focusedHero.effectiveLevel !== focusedHero.level && (
+                  <span className="text-sky-200/80"> {t("heroes:camp.ownLevel", { level: focusedHero.level })}</span>
+                )}
               </span>
               <GameButton
                 onClick={() => {
@@ -174,14 +183,14 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
                 disabled={busy}
                 variant="secondary"
               >
-                Вийняти з табору
+                {t("heroes:camp.remove")}
               </GameButton>
             </div>
           )}
 
           {pickingSlot !== null && (
             <section className="space-y-2">
-              <h3 className="text-sm font-semibold">Хто йде в слот #{pickingSlot + 1}</h3>
+              <h3 className="text-sm font-semibold">{t("heroes:camp.pick", { slot: pickingSlot + 1 })}</h3>
               <TileGrid>
                 {/* Інструкторів у табір не ставлять (рішення 13.10.2026) — пропонуємо лише слабших за п'ятірку */}
                 {outside
@@ -199,7 +208,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
                   )}
               </TileGrid>
               <p className="text-xs text-sky-200/70">
-                Інструктори задають рівень табору, тож у слот іде лише хтось слабший за них.
+                {t("heroes:camp.pickHint")}
               </p>
             </section>
           )}
@@ -207,7 +216,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
       ) : (
         <>
           <p className="rounded-lg bg-slate-900/40 px-3 py-2 text-center text-sm">
-            Скидання повертає героя на 1 рівень, а <span className="text-amber-300">увесь витрачений досвід — у загальний запас</span>.
+            <Trans ns="heroes" i18nKey="camp.resetIntro" components={{ hl: <span className="text-amber-300" /> }} />
           </p>
           <TileGrid>
             {outside
@@ -218,7 +227,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
           {focusedHero !== null && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#16305e]/80 p-3 ring-1 ring-[#335c9a]">
               <span className="text-sm">
-                Скинути {catalog.heroName(focusedHero.heroKey)} з {focusedHero.level} на 1 рівень?
+                {t("heroes:camp.resetConfirm", { hero: catalog.heroName(focusedHero.heroKey), level: focusedHero.level })}
               </span>
               <GameButton
                 onClick={() => {
@@ -228,7 +237,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
                 disabled={busy}
                 variant="accent"
               >
-                Скинути рівень
+                {t("heroes:camp.reset")}
               </GameButton>
             </div>
           )}

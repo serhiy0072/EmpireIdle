@@ -3,6 +3,7 @@ import type { ClanInviteResponse } from "../../lib/apiTypes";
 import { clanNameIsValid, clanNameRules, clanTagIsValid, clanTagRules, type ClanRule } from "../../lib/clanRules";
 import { joinPolicyLabel, useClanBrowse } from "../../lib/queries/clans";
 import { formatRemaining } from "../../lib/time";
+import { t } from "i18next";
 
 interface Props {
   invites: ClanInviteResponse[];
@@ -26,8 +27,8 @@ function UnmetRules({ rules, value }: { rules: ClanRule[]; value: string }) {
   return (
     <ul className="mt-1 space-y-0.5">
       {unmet.map((rule) => (
-        <li key={rule.label} className="text-xs text-amber-700">
-          • {rule.label}
+        <li key={rule.key} className="text-xs text-amber-700">
+          • {t(`social:clanRules.${rule.key}`)}
         </li>
       ))}
     </ul>

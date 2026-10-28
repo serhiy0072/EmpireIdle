@@ -9,14 +9,11 @@ import ArtifactSetInfo from "../../inventory/ArtifactSetInfo";
 import ItemIcon from "../../inventory/ItemIcon";
 import { useHotkeys } from "../../../hooks/useHotkeys";
 import { formatNumber } from "../../../lib/format";
+import { t } from "i18next";
 
 type View = "info" | "choice" | "feed" | "mastery";
 
-const TITLES: Record<Exclude<View, "choice">, string> = {
-  info: "Інформація про спорядження",
-  feed: "Посилення",
-  mastery: "Майстерність коваля",
-};
+
 
 /** Вид вибору поверх головного: заміна в слоті героя чи герой, на якого вдягнути. */
 export interface EquipmentChoice {
@@ -64,7 +61,14 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
 
   // Виставлене на ринок не прокачується — спершу зняти лот
   const upgradable = !piece.isOnMarket;
-  const title = view === "choice" ? choice.title : TITLES[view];
+  const title =
+    view === "choice"
+      ? choice.title
+      : view === "info"
+        ? t("heroes:gear.titleInfo")
+        : view === "feed"
+          ? t("heroes:gear.titleFeed")
+          : t("heroes:gear.titleMastery");
   const arrow = "absolute top-1/2 -translate-y-1/2 rounded-full bg-sky-100/90 px-3 py-2 text-xl font-bold text-sky-700 shadow hover:bg-white";
 
   return (
@@ -78,10 +82,10 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
       <div onClick={(event) => event.stopPropagation()} className="relative w-full max-w-md">
         {onStep !== null && (
           <>
-            <button type="button" aria-label="Попереднє" onClick={() => onStep(-1)} className={`${arrow} -left-14`}>
+            <button type="button" aria-label={t("heroes:gear.previous")} onClick={() => onStep(-1)} className={`${arrow} -left-14`}>
               ‹
             </button>
-            <button type="button" aria-label="Наступне" onClick={() => onStep(1)} className={`${arrow} -right-14`}>
+            <button type="button" aria-label={t("heroes:gear.next")} onClick={() => onStep(1)} className={`${arrow} -right-14`}>
               ›
             </button>
           </>
@@ -90,12 +94,12 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
         <div className="flex max-h-[85vh] flex-col overflow-hidden rounded-2xl bg-sky-50 text-slate-800 shadow-2xl ring-2 ring-sky-300">
           <div className="flex items-center gap-2 bg-gradient-to-b from-sky-500 to-sky-600 px-4 py-2 text-white">
             {view !== "info" && (
-              <button type="button" aria-label="Назад" onClick={() => setView("info")} className="text-lg font-bold hover:text-sky-100">
+              <button type="button" aria-label={t("heroes:gear.back")} onClick={() => setView("info")} className="text-lg font-bold hover:text-sky-100">
                 ←
               </button>
             )}
             <h2 className="flex-1 text-center text-lg font-semibold">{title}</h2>
-            <button type="button" aria-label="Закрити" onClick={onClose} className="text-xl font-bold hover:text-sky-100">
+            <button type="button" aria-label={t("heroes:gear.close")} onClick={onClose} className="text-xl font-bold hover:text-sky-100">
               ✕
             </button>
           </div>
@@ -106,14 +110,14 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
                 <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={64} mastery={piece.mastery} />
                 {/* Рівень угорі, заточка внизу праворуч — як на плитках рюкзака */}
                 <span className="absolute inset-x-0 top-0.5 text-center text-xs font-bold text-white [text-shadow:0_1px_2px_#000]">
-                  Рів. {piece.level}
+                  {t("heroes:gear.level", { level: piece.level })}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{catalog.itemName(piece.itemKey)}</p>
                 <span className={`inline-block rounded px-2 py-0.5 text-xs ${rarityStyle(piece.rarity)}`}>{rarityLabel(piece.rarity)}</span>
                 <p className="mt-1 text-sm text-slate-600">⚔ {formatNumber(Math.round(piece.power))}</p>
-                {piece.isBroken && <p className="text-xs text-rose-700">Зламано: дає половину статів</p>}
+                {piece.isBroken && <p className="text-xs text-rose-700">{t("heroes:gear.broken")}</p>}
               </div>
               {view === "info" && <div className="flex shrink-0 flex-col gap-1">{actions(piece, () => setView("choice"))}</div>}
             </div>
@@ -121,7 +125,7 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
             {view === "info" && (
               <>
                 <section className="space-y-1">
-                  <h3 className="text-sm font-semibold">Показники спорядження</h3>
+                  <h3 className="text-sm font-semibold">{t("heroes:gear.stats")}</h3>
                   <dl className="divide-y divide-sky-100 rounded-lg bg-white/80 text-sm">
                     {Object.entries(piece.stats).map(([stat, value]) => (
                       <div key={stat} className="flex justify-between px-3 py-1.5">
@@ -133,14 +137,15 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
                 </section>
                 <ArtifactSetInfo itemKey={piece.itemKey} wornKeys={wornKeys} />
                 <section className="space-y-1">
-                  <h3 className="text-sm font-semibold">Майстерність коваля</h3>
+                  <h3 className="text-sm font-semibold">{t("heroes:gear.titleMastery")}</h3>
                   <p className="rounded-lg bg-white/80 px-3 py-1.5 text-sm text-slate-600">
-                    {piece.mastery} з {catalog.maxMastery}
-                    {piece.experienceToNext != null && ` · до рівня ${piece.level + 1} — ${piece.experienceToNext} досвіду`}
+                    {t("heroes:gear.mastery", { mastery: piece.mastery, max: catalog.maxMastery })}
+                    {piece.experienceToNext != null &&
+                      t("heroes:gear.toNextLevel", { level: piece.level + 1, experience: piece.experienceToNext })}
                   </p>
                 </section>
                 {note}
-                {!upgradable && <p className="text-xs text-amber-700">Предмет на ринку: прокачати можна, знявши лот.</p>}
+                {!upgradable && <p className="text-xs text-amber-700">{t("heroes:gear.listed")}</p>}
               </>
             )}
 
@@ -162,10 +167,10 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
           {view === "info" && (
             <div className="grid grid-cols-2 gap-3 border-t border-sky-200 p-4">
               <GameButton onClick={() => setView("mastery")} disabled={!upgradable}>
-                Майстерність коваля
+                {t("heroes:gear.titleMastery")}
               </GameButton>
               <GameButton onClick={() => setView("feed")} variant="accent" disabled={!upgradable}>
-                Посилити
+                {t("heroes:gear.empower")}
               </GameButton>
             </div>
           )}

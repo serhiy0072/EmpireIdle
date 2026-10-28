@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { heroArtUrl } from "./heroArt";
 import { portraitFor } from "./heroSprites";
+import { t } from "i18next";
 
 /**
  * Портрет героя: спрайт із маніфесту або процедурний (heroArt) — у кожного героя свої риси, клас
@@ -41,7 +42,7 @@ export default function HeroPortrait({ heroKey, heroClass, rank, tier, size = 56
       {tier > 1 && (
         <span
           className="absolute -right-1 -top-1 rounded bg-amber-400 px-1 text-[10px] font-bold leading-tight text-slate-900 ring-1 ring-amber-700"
-          title={`Тір ${tier}`}
+          title={t("heroes:portrait.tier", { tier })}
         >
           T{tier}
         </span>

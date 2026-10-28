@@ -22,6 +22,7 @@ import {
 } from "../lib/queries/heroes";
 import { useEquip, useEquipBest, useInventory, useUnequip, useUnequipAll } from "../lib/queries/inventory";
 import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 type Tab = "stats" | "skills" | "gear";
 
@@ -75,7 +76,7 @@ export default function HeroPage() {
   );
 
   if (heroes.isPending) {
-    return <p className="text-slate-500">Завантаження героя…</p>;
+    return <p className="text-slate-500">{t("heroes:hero.loading")}</p>;
   }
 
   if (heroes.isError) {
@@ -108,9 +109,9 @@ export default function HeroPage() {
   const shardsMissing = starCost === null ? 0 : Math.max(0, starCost - hero.shards);
 
   const tabs: GameTab<Tab>[] = [
-    { key: "stats", label: "Показники" },
-    { key: "skills", label: "Навички" },
-    { key: "gear", label: "Спорядж." },
+    { key: "stats", label: t("heroes:hero.tabStats") },
+    { key: "skills", label: t("heroes:hero.tabSkills") },
+    { key: "gear", label: t("heroes:hero.tabGear") },
   ];
 
   return (
@@ -118,7 +119,7 @@ export default function HeroPage() {
       <GameScreen
         title={
           <span className="flex items-center gap-2">
-            <Link to={`/heroes?sort=${sort}`} className="text-2xl leading-none text-sky-200 hover:text-white" aria-label="До ростеру">
+            <Link to={`/heroes?sort=${sort}`} className="text-2xl leading-none text-sky-200 hover:text-white" aria-label={t("heroes:hero.toRoster")}>
               ←
             </Link>
             {catalog.heroName(hero.heroKey)}
@@ -127,7 +128,7 @@ export default function HeroPage() {
         }
         actions={
           <Link to="/heroes/codex" className="text-sm text-sky-200 hover:underline">
-            кодекс
+            {t("heroes:list.codex")}
           </Link>
         }
       >
@@ -138,11 +139,11 @@ export default function HeroPage() {
           </div>
 
           <div className="flex w-full items-center justify-between">
-            <button type="button" onClick={() => go(-1)} className="px-3 text-4xl text-sky-200 hover:text-white" aria-label="Попередній герой">
+            <button type="button" onClick={() => go(-1)} className="px-3 text-4xl text-sky-200 hover:text-white" aria-label={t("heroes:hero.previous")}>
               ‹
             </button>
             <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={200} />
-            <button type="button" onClick={() => go(1)} className="px-3 text-4xl text-sky-200 hover:text-white" aria-label="Наступний герой">
+            <button type="button" onClick={() => go(1)} className="px-3 text-4xl text-sky-200 hover:text-white" aria-label={t("heroes:hero.next")}>
               ›
             </button>
           </div>
@@ -157,14 +158,14 @@ export default function HeroPage() {
             <GameButton
               onClick={() => advanceStar.mutate(hero.id)}
               disabled={busy || starCost === null || shardsMissing > 0}
-              title={starCost === null ? "Усі зірки заповнені" : `Частинка зірки · ${starCost} осколків (є ${hero.shards})`}
+              title={starCost === null ? t("heroes:hero.starsFull") : t("heroes:hero.starPart", { cost: starCost, have: hero.shards })}
             >
               ⬆
             </GameButton>
           </div>
           {shardsMissing > 0 && (
             <p className="text-xs text-sky-100/80">
-              Для частинки зірки бракує {shardsMissing} осколків героя
+              {t("heroes:hero.shardsMissing", { count: shardsMissing })}
               {universal > 0 && (
                 <>
                   {" · "}
@@ -174,7 +175,7 @@ export default function HeroPage() {
                     disabled={busy}
                     className="text-emerald-300 underline disabled:opacity-50"
                   >
-                    добрати {Math.min(shardsMissing, universal)} з універсальних
+                    {t("heroes:hero.fillFromUniversal", { count: Math.min(shardsMissing, universal) })}
                   </button>
                 </>
               )}
@@ -183,21 +184,21 @@ export default function HeroPage() {
 
           <div className="grid w-full max-w-md grid-cols-3 divide-x divide-[#335c9a] rounded-xl bg-[#16305e] py-2 text-center ring-1 ring-[#335c9a]">
             <div>
-              <p className="text-xs text-sky-200/80">Конвої</p>
+              <p className="text-xs text-sky-200/80">{t("heroes:hero.convoys")}</p>
               <p className="font-bold">{hero.convoys}</p>
             </div>
             <div>
-              <p className="text-xs text-sky-200/80">Рівень</p>
+              <p className="text-xs text-sky-200/80">{t("heroes:hero.level")}</p>
               <p className="text-2xl font-black">{hero.effectiveLevel}</p>
             </div>
             <div>
-              <p className="text-xs text-sky-200/80">Місткість війська</p>
+              <p className="text-xs text-sky-200/80">{t("heroes:hero.capacity")}</p>
               <p className="font-bold">{formatNumber(hero.convoyCapacity)}</p>
             </div>
           </div>
 
           {atLevelCap ? (
-            <p className="text-sm text-sky-100/80">Максимальний рівень!</p>
+            <p className="text-sm text-sky-100/80">{t("heroes:hero.maxLevel")}</p>
           ) : (
             <HeroLevelUp
               playerId={playerId}
@@ -213,7 +214,7 @@ export default function HeroPage() {
         <GameTabs tabs={tabs} value={tab} onChange={(next) => setParams({ tab: next, sort }, { replace: true })} />
         <GamePanel>
           {config === null ? (
-            <p className="text-sm text-sky-100/80">Героя немає в довіднику.</p>
+            <p className="text-sm text-sky-100/80">{t("heroes:hero.unknown")}</p>
           ) : tab === "skills" ? (
             <HeroSkillsTab
               hero={hero}
@@ -251,7 +252,7 @@ export default function HeroPage() {
       <ErrorBanner error={failure} />
 
       {equipBest.data?.equipped === 0 && tab === "gear" && (
-        <p className="text-sm text-slate-600">Кращого вільного спорядження немає — усе найкраще вже вдягнене.</p>
+        <p className="text-sm text-slate-600">{t("heroes:hero.noBetterGear")}</p>
       )}
     </div>
   );

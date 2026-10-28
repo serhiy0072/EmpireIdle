@@ -6,21 +6,22 @@
  * лише «Щось пішло не так». Якщо правило на беку зміниться, правити обидва боки.
  */
 export interface ClanRule {
-  label: string;
+  /** Ключ підпису в `social:clanRules`. */
+  key: "nameLength" | "nameCharset" | "tagLength" | "tagCharset";
   passed: (value: string) => boolean;
 }
 
 export const clanNameRules: ClanRule[] = [
-  { label: "Назва від 3 до 32 символів", passed: (value) => value.length >= 3 && value.length <= 32 },
+  { key: "nameLength", passed: (value) => value.length >= 3 && value.length <= 32 },
   {
-    label: "Літери, цифри, пробіл, апостроф або дефіс",
+    key: "nameCharset",
     passed: (value) => value.length > 0 && /^[\p{L}0-9 '-]+$/u.test(value),
   },
 ];
 
 export const clanTagRules: ClanRule[] = [
-  { label: "Тег від 2 до 5 символів", passed: (value) => value.length >= 2 && value.length <= 5 },
-  { label: "Тег лише з латинських літер і цифр", passed: (value) => value.length > 0 && /^[A-Za-z0-9]+$/.test(value) },
+  { key: "tagLength", passed: (value) => value.length >= 2 && value.length <= 5 },
+  { key: "tagCharset", passed: (value) => value.length > 0 && /^[A-Za-z0-9]+$/.test(value) },
 ];
 
 export function clanNameIsValid(name: string): boolean {

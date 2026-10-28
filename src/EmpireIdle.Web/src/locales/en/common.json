@@ -44,5 +44,86 @@
       "lower": "At least one lowercase letter",
       "upper": "At least one uppercase letter"
     }
-  }
+  },
+  "resourceGenitive": {
+    "gold": "gold",
+    "wood": "wood",
+    "stone": "stone",
+    "iron": "iron",
+    "food": "meat",
+    "fodder": "fodder",
+    "gems": "gems",
+    "dungeon-energy": "dungeon energy",
+    "heroExperience": "hero experience"
+  },
+  "heroClass": {
+    "warrior": "Warrior",
+    "knight": "Knight",
+    "archer": "Archer"
+  },
+  "terrain": {
+    "plain": "Plains",
+    "forest": "Forest",
+    "mountain": "Mountains",
+    "water": "Water",
+    "peaks": "Peaks",
+    "swamp": "Swamp"
+  },
+  "rank": {
+    "Common": "Common",
+    "Rare": "Rare",
+    "Unique": "Unique"
+  },
+  "stat": {
+    "Attack": "Attack",
+    "Defense": "Defense",
+    "Health": "Health",
+    "UnitAttack": "Troop attack",
+    "UnitDefense": "Troop defense",
+    "CritChance": "Crit chance",
+    "CritPower": "Crit power",
+    "SkillDamage": "Skill damage",
+    "AttackSpeed": "Attack speed",
+    "CooldownReduction": "Cooldown reduction",
+    "Ward": "Ward",
+    "Lifesteal": "Lifesteal",
+    "BlockChance": "Block chance",
+    "BlockPower": "Block power",
+    "DamageReduction": "Damage reduction",
+    "AttackPercent": "Hero attack",
+    "DefensePercent": "Hero defense",
+    "HealthPercent": "Hero health",
+    "TroopsAttack": "Class troops attack",
+    "TroopsDefense": "Class troops defense",
+    "CooldownTurns": "Skill cooldown"
+  },
+  "statHint": {
+    "CritChance": "In dungeons — the chance of a critical hit; on marches — a stronger hero attack",
+    "CritPower": "How much stronger a critical hit is; on marches it also boosts the hero's attack",
+    "Ward": "Ward: in dungeons — a shield worth part of the health for the first turns; in the army — the hero takes more damage before being wounded",
+    "BlockChance": "The chance that a hit on the hero in a dungeon is blocked",
+    "BlockPower": "How much damage a block absorbs on top of the base 30%",
+    "Lifesteal": "The share of damage dealt that returns to the hero as health",
+    "TroopsAttack": "Attack of the troops of the hero's class on marches and in defense",
+    "TroopsDefense": "Defense of the troops of the hero's class on marches and in defense",
+    "CooldownTurns": "How many turns sooner the active skill is ready again in dungeons",
+    "AttackSpeed": "More hits per second — takes effect with the new dungeon and arena combat",
+    "CooldownReduction": "Skills are ready more often — takes effect with the new dungeon and arena combat"
+  },
+  "classTroops": {
+    "attack": {
+      "warrior": "Infantry attack",
+      "knight": "Spearmen attack",
+      "archer": "Archer attack"
+    },
+    "defense": {
+      "warrior": "Infantry defense",
+      "knight": "Spearmen defense",
+      "archer": "Archer defense"
+    }
+  },
+  "cooldownTurns_one": "−{{count}} turn",
+  "cooldownTurns_few": "−{{count}} turns",
+  "cooldownTurns_many": "−{{count}} turns",
+  "cooldownTurns_other": "−{{count}} turns"
 }

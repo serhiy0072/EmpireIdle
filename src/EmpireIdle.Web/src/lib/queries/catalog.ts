@@ -4,6 +4,7 @@ import { api } from "../api";
 import { queryKeys } from "../queryKeys";
 import type { components } from "../schema";
 import { useLanguage } from "../i18n";
+import { t } from "i18next";
 
 export type CatalogResponse = components["schemas"]["CatalogResponse"];
 export type CatalogHero = components["schemas"]["CatalogHero"];
@@ -239,46 +240,44 @@ const RANK_STYLES: Record<string, string> = {
   Unique: "bg-amber-100 text-amber-800",
 };
 
-const RANK_LABELS: Record<string, string> = {
-  Common: "Звичайний",
-  Rare: "Рідкісний",
-  Unique: "Унікальний",
-};
+const RANK_LABELS = ["Common", "Rare", "Unique"] as const;
+
+function isRank(value: string): value is (typeof RANK_LABELS)[number] {
+  return (RANK_LABELS as readonly string[]).includes(value);
+}
 
 export function rankStyle(rank: string | undefined): string {
   return RANK_STYLES[rank ?? ""] ?? "bg-slate-100 text-slate-600";
 }
 
 export function rankLabel(rank: string | undefined): string {
-  return RANK_LABELS[rank ?? ""] ?? "—";
+  return rank !== undefined && isRank(rank) ? t(`common:rank.${rank}`) : "—";
 }
 
-const STATES: Record<string, string> = {
-  Idle: "Вдома",
-  Deployed: "У поході",
-  Wounded: "Поранений",
-  LevelingUp: "Качається",
-};
+const STATES = ["Idle", "Deployed", "Wounded", "LevelingUp"] as const;
+
+function isHeroState(value: string): value is (typeof STATES)[number] {
+  return (STATES as readonly string[]).includes(value);
+}
 
 export function heroState(state: string): string {
-  return STATES[state] ?? state;
+  return isHeroState(state) ? t(`heroes:state.${state}`) : state;
 }
 
-const SKILL_KINDS: Record<string, string> = {
-  Active: "активне",
-  Passive: "пасивне",
-  Periodic: "періодичне",
-  Utility: "небойове",
-};
+const SKILL_KINDS = ["Active", "Passive", "Periodic", "Utility"] as const;
+
+function isSkillKind(value: string): value is (typeof SKILL_KINDS)[number] {
+  return (SKILL_KINDS as readonly string[]).includes(value);
+}
 
 /** Вид вміння словом для підпису. */
 export function skillKindLabel(kind: string): string {
-  return SKILL_KINDS[kind] ?? kind;
+  return isSkillKind(kind) ? t(`heroes:skillKind.${kind}`) : kind;
 }
 
 /** Половина вмінь (GDD §6.1): її книга й піднімає вміння. */
 export function skillHalfLabel(half: string): string {
-  return half === "Attack" ? "Атака" : half === "Defense" ? "Захист" : half;
+  return half === "Attack" ? t("heroes:skillHalf.Attack") : half === "Defense" ? t("heroes:skillHalf.Defense") : half;
 }
 
 /** Значення з пер-рівневого списку — та сама формула, що HeroSkills.At на сервері. */
@@ -288,14 +287,19 @@ export function skillValue(values: number[], level: number): number {
   return values[Math.min(level, values.length) - 1] ?? 0;
 }
 
-const SKILL_STATS: Record<string, string> = { Attack: "атаки", Defense: "захисту" };
+function skillStat(stat: string): string {
+  return stat === "Attack" ? t("heroes:skillStat.Attack") : stat === "Defense" ? t("heroes:skillStat.Defense") : stat;
+}
 
-const SKILL_TARGETS: Record<string, string> = {
-  all: "усьому війську",
-  infantry: "піхоті",
-  archer: "лучникам",
-  spearman: "списоносцям",
-};
+const SKILL_TARGETS = ["all", "infantry", "archer", "spearman"] as const;
+
+function isSkillTarget(value: string): value is (typeof SKILL_TARGETS)[number] {
+  return (SKILL_TARGETS as readonly string[]).includes(value);
+}
+
+function skillTarget(target: string): string {
+  return isSkillTarget(target) ? t(`heroes:skillTarget.${target}`) : target;
+}
 
 /** Що вміння робить на рівні level; закрите (0) показується першим рівнем — «що відкриється». */
 export function skillEffect(skill: CatalogSkill, level: number): string {
@@ -306,24 +310,29 @@ export function skillEffect(skill: CatalogSkill, level: number): string {
     const scale = skillValue(skill.battle.levelScale, at);
     const power =
       skill.battle.damageMultiplier > 0
-        ? `×${(skill.battle.damageMultiplier * scale).toFixed(1)} шкоди`
+        ? t("heroes:skillEffect.damage", { value: (skill.battle.damageMultiplier * scale).toFixed(1) })
         : skill.battle.healPercent > 0
-          ? `лікує ${Math.round(skill.battle.healPercent * scale * 100)}%`
+          ? t("heroes:skillEffect.heal", { value: Math.round(skill.battle.healPercent * scale * 100) })
           : skill.battle.shieldPercent > 0
-            ? `щит ${Math.round(skill.battle.shieldPercent * scale * 100)}%`
-            : "накладає стан";
-    parts.push(`у данжі ${power}, раз на ${skill.battle.cooldown} ход.`);
+            ? t("heroes:skillEffect.shield", { value: Math.round(skill.battle.shieldPercent * scale * 100) })
+            : t("heroes:skillEffect.status");
+    parts.push(t("heroes:skillEffect.dungeon", { power, cooldown: skill.battle.cooldown }));
   }
 
   if (skill.troops !== null && skill.troops !== undefined) {
     const percent = skillValue(skill.troops.percents, at);
-    const stat = SKILL_STATS[skill.troops.stat] ?? skill.troops.stat;
-    parts.push(`+${percent}% ${stat} ${SKILL_TARGETS[skill.troops.target] ?? skill.troops.target}`);
+    parts.push(
+      t("heroes:skillEffect.troops", { percent, stat: skillStat(skill.troops.stat), target: skillTarget(skill.troops.target) }),
+    );
   }
 
   if (skill.utility !== null && skill.utility !== undefined) {
     const percent = skillValue(skill.utility.percents, at);
-    parts.push(skill.utility.effect === "MarchSpeed" ? `+${percent}% швидкості маршу` : `+${percent}% ${skill.utility.effect}`);
+    parts.push(
+      skill.utility.effect === "MarchSpeed"
+        ? t("heroes:skillEffect.marchSpeed", { percent })
+        : `+${percent}% ${skill.utility.effect}`,
+    );
   }
 
   return parts.join(" · ");
@@ -344,9 +353,8 @@ export function skillPreview(skill: CatalogSkill, maxLevel: number): SkillPrevie
 
   if (skill.troops !== null && skill.troops !== undefined) {
     const troops = skill.troops;
-    const stat = SKILL_STATS[troops.stat] ?? troops.stat;
     rows.push({
-      label: `${stat} ${SKILL_TARGETS[troops.target] ?? troops.target}`,
+      label: `${skillStat(troops.stat)} ${skillTarget(troops.target)}`,
       values: levels.map((level) => `${skillValue(troops.percents, level)}%`),
     });
   }
@@ -354,7 +362,7 @@ export function skillPreview(skill: CatalogSkill, maxLevel: number): SkillPrevie
   if (skill.utility !== null && skill.utility !== undefined) {
     const utility = skill.utility;
     rows.push({
-      label: utility.effect === "MarchSpeed" ? "швидкість маршу" : utility.effect,
+      label: utility.effect === "MarchSpeed" ? t("heroes:skillPreview.marchSpeed") : utility.effect,
       values: levels.map((level) => `${skillValue(utility.percents, level)}%`),
     });
   }
@@ -362,7 +370,7 @@ export function skillPreview(skill: CatalogSkill, maxLevel: number): SkillPrevie
   if (skill.battle !== null && skill.battle !== undefined && skill.battle.damageMultiplier > 0) {
     const battle = skill.battle;
     rows.push({
-      label: "шкода в данжі",
+      label: t("heroes:skillPreview.dungeonDamage"),
       values: levels.map((level) => `×${(battle.damageMultiplier * skillValue(battle.levelScale, level)).toFixed(1)}`),
     });
   }

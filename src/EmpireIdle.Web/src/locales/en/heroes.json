@@ -1,1 +1,214 @@
-{}
+{
+  "rosterSort": {
+    "power": "Power",
+    "tier": "Tier",
+    "level": "Level",
+    "rarity": "Rarity"
+  },
+  "list": {
+    "loading": "Loading heroes…",
+    "tabHeroes": "Heroes · {{count}}",
+    "tabCamp": "Training Camp",
+    "title": "Heroes",
+    "summary": "XP {{experience}} · idle {{free}} · marches up to {{marches}} ·",
+    "codex": "codex",
+    "empty": "No heroes yet — a Town Hall quest brings the first one, banners bring the rest.",
+    "sortBy": "Sort by:",
+    "level": "Lv. {{level}}",
+    "shards": "Hero shards",
+    "universal": "Universal shards",
+    "universalText": "Common {{common}} · Rare {{rare}} · Unique {{unique}}. They go 1:1 to an unlocked hero of the same rarity.",
+    "upgradeCommon": "100 Common → 1 Rare",
+    "upgradeRare": "300 Rare → 1 Unique"
+  },
+  "codex": {
+    "source": "shards · {{count}} to summon",
+    "loading": "Leafing through the codex…",
+    "title": "Hero Codex",
+    "collected": "Collected {{owned}} of {{total}} ·",
+    "myHeroes": "my heroes",
+    "rank": "Rank",
+    "allRanks": "All ranks",
+    "unique": "Unique",
+    "rare": "Rare",
+    "common": "Common",
+    "class": "Class",
+    "allClasses": "All classes",
+    "level": "lv. {{level}}",
+    "none": "No heroes match this filter.",
+    "speed": "speed {{speed}}",
+    "owned": "In your Hall of Heroes",
+    "missing": "Not collected yet · {{source}}",
+    "growth": "+{{value}}/lv.",
+    "skills": "Skills",
+    "unlockLevel": "from level {{level}}"
+  },
+  "state": {
+    "Idle": "Home",
+    "Deployed": "On a march",
+    "Wounded": "Wounded",
+    "LevelingUp": "Levelling up"
+  },
+  "skillKind": {
+    "Active": "active",
+    "Passive": "passive",
+    "Periodic": "periodic",
+    "Utility": "utility"
+  },
+  "skillHalf": {
+    "Attack": "Attack",
+    "Defense": "Defense"
+  },
+  "skillStat": {
+    "Attack": "attack",
+    "Defense": "defense"
+  },
+  "skillTarget": {
+    "all": "for all troops",
+    "infantry": "for infantry",
+    "archer": "for archers",
+    "spearman": "for spearmen"
+  },
+  "skillEffect": {
+    "damage": "×{{value}} damage",
+    "heal": "heals {{value}}%",
+    "shield": "shield {{value}}%",
+    "status": "applies a status",
+    "dungeon": "in dungeons {{power}}, once every {{cooldown}} turns",
+    "troops": "+{{percent}}% {{stat}} {{target}}",
+    "marchSpeed": "+{{percent}}% march speed"
+  },
+  "skillPreview": {
+    "marchSpeed": "march speed",
+    "dungeonDamage": "dungeon damage"
+  },
+  "shards": {
+    "empty": "No shards of new heroes yet — banners and chests give them.",
+    "summon": "Summon"
+  },
+  "portrait": {
+    "tier": "Tier {{tier}}"
+  },
+  "camp": {
+    "tabTrain": "Level training",
+    "tabReset": "Level reset",
+    "intro": "Heroes in training are automatically raised to <hl>the lowest level of your {{count}} instructors</hl> — currently <b>{{level}}</b>.",
+    "unavailable": "The camp starts working once {{count}} heroes are outside it.",
+    "skipCooldown": "Skip the cooldown",
+    "place": "Place a hero",
+    "buySlot": "Buy another slot",
+    "slots": "Slots: {{total}} ({{free}} free, {{bought}} of {{max}} bought). Free slots unlock with the Town Hall level.",
+    "focused": "{{hero}} · level {{level}}",
+    "ownLevel": "(own {{level}})",
+    "remove": "Take out of the camp",
+    "pick": "Who goes into slot #{{slot}}",
+    "pickHint": "The instructors set the camp's level, so only someone weaker than them can take a slot.",
+    "resetIntro": "A reset returns the hero to level 1, and <hl>all the XP spent goes back to the shared pool</hl>.",
+    "resetConfirm": "Reset {{hero}} from level {{level}} to 1?",
+    "reset": "Reset level"
+  },
+  "hero": {
+    "loading": "Loading the hero…",
+    "tabStats": "Stats",
+    "tabSkills": "Skills",
+    "tabGear": "Gear",
+    "toRoster": "Back to the roster",
+    "previous": "Previous hero",
+    "next": "Next hero",
+    "starsFull": "All stars are filled",
+    "starPart": "Star part · {{cost}} shards ({{have}} owned)",
+    "shardsMissing": "{{count}} more hero shards needed for a star part",
+    "fillFromUniversal": "take {{count}} from universal",
+    "convoys": "Convoys",
+    "level": "Level",
+    "capacity": "Troop capacity",
+    "maxLevel": "Max level!",
+    "unknown": "This hero isn't in the catalog.",
+    "noBetterGear": "No better free gear — the best is already equipped."
+  },
+  "gear": {
+    "titleInfo": "Gear info",
+    "titleFeed": "Empower",
+    "titleMastery": "Smith's mastery",
+    "previous": "Previous",
+    "next": "Next",
+    "back": "Back",
+    "close": "Close",
+    "level": "Lv. {{level}}",
+    "broken": "Broken: gives half the stats",
+    "stats": "Gear stats",
+    "mastery": "{{mastery}} of {{max}}",
+    "toNextLevel": " · {{experience}} XP to level {{level}}",
+    "listed": "The item is on the market: take the listing down to upgrade it.",
+    "empower": "Empower",
+    "away": "The hero is on a march — they can change gear at home.",
+    "unequipAll": "Unequip all",
+    "quickEquipHint": "The best free gear in every slot",
+    "quickEquip": "Quick equip",
+    "unequip": "Unequip",
+    "replace": "Replace",
+    "replaceTitle": "Replace gear",
+    "equipCandidate": "Equip: {{item}} · ⚔ {{power}}",
+    "awayNote": "The hero is on a march: unequip or replace at home, but you can upgrade right now.",
+    "noneFree": "no free gear",
+    "freeFitting": "free gear that fits",
+    "foreign": "{{count}} more are from another class's sets: this hero can't wear them."
+  },
+  "levelUp": {
+    "inCamp": "The hero is in the Training Camp, which holds them at level {{level}}. Take them out of the camp to raise their own level.",
+    "experience": "XP:",
+    "raise": "Level up",
+    "missing": "{{count}} XP short.",
+    "noJars": "No experience jars in the backpack.",
+    "useAll": "Use all",
+    "shopLink": "{{chest}} in the shop — experience jars inside →"
+  },
+  "skills": {
+    "from": "lv. {{level}}+",
+    "preview": "Upgrade preview",
+    "unlocksAt": "Unlocks at hero level {{level}}",
+    "maxed": "Top skill level",
+    "needStar": "To upgrade: reach star {{stars}}",
+    "books": "books: {{count}}",
+    "upgrade_one": "Upgrade · {{count}} book",
+    "upgrade_few": "Upgrade · {{count}} books",
+    "upgrade_many": "Upgrade · {{count}} books",
+    "upgrade_other": "Upgrade · {{count}} books"
+  },
+  "weapon": {
+    "short": "Weapon",
+    "max": "max",
+    "title": "Hero weapon",
+    "level": "· +{{level}} of {{max}}",
+    "bonus": "All hero stats +{{bonus}}%",
+    "notForged": "Not forged yet — the first pieces unlock +1.",
+    "next": "· at +{{level}}: +{{bonus}}%",
+    "maxed": "The weapon is at its top level.",
+    "pieces": "Pieces: {{have}} / {{cost}}",
+    "upgrade": "Upgrade to +{{level}}",
+    "openChests": "{{chest}}: open {{count}} ({{have}} owned)",
+    "buy": "Buy {{count}} for {{price}} 💎",
+    "onlyChests": "Unique weapon pieces only come from weapon chests in the shop."
+  },
+  "stats": {
+    "state": "State",
+    "tier": "Tier",
+    "ofMax": "{{value}} of {{max}}",
+    "level": "Level",
+    "campLevel": " (own {{level}}, camp)",
+    "leads": "Leads",
+    "speed": "Speed",
+    "defender": "Defends the village",
+    "yes": "yes",
+    "no": "no",
+    "preview": "Green — stats after reaching level {{level}}.",
+    "lore": "Story",
+    "maxTier": "Max tier",
+    "evolve": "Tier evolution",
+    "heal": "Heal",
+    "resetConfirm": "Reset to level 1? All XP goes back to the pool.",
+    "confirmYes": "Yes",
+    "confirmNo": "No",
+    "levelHint": "Levels are raised with XP from the pool — neither the Town Hall nor the tier caps them."
+  }
+}

@@ -2,6 +2,7 @@ import { isApiError } from "./problem";
 import { refusalText, type RefusalNames } from "./refusals";
 import { resourceGenitive } from "./resourceNames";
 import { formatNumber } from "./format";
+import { t } from "i18next";
 
 /**
  * Чого бракує, у родовому відмінку. Предмет чи воїнів сервер шле ключем, а родового
@@ -12,7 +13,7 @@ function shortfallName(key: string, names: RefusalNames | undefined): string {
   if (genitive !== key || names === undefined) return genitive;
 
   const item = names.itemName(key);
-  return `«${item !== key ? item : names.unitName(key)}»`;
+  return t("errors:quoted", { name: item !== key ? item : names.unitName(key) });
 }
 
 export interface ErrorMessage {
@@ -34,7 +35,7 @@ export interface ErrorMessage {
 export function explainError(error: unknown, names?: RefusalNames): ErrorMessage {
   if (!isApiError(error)) {
     console.error("Мережева помилка", error);
-    return { text: "Не вдалося з'єднатися з сервером", actionable: true };
+    return { text: t("errors:network"), actionable: true };
   }
 
   const traceId = error.problem.traceId;
@@ -42,7 +43,11 @@ export function explainError(error: unknown, names?: RefusalNames): ErrorMessage
 
   if (shortfall !== null) {
     return {
-      text: `Не вистачає ${shortfallName(shortfall.resource, names)}: потрібно ${formatNumber(shortfall.need)}, є ${formatNumber(shortfall.have)}`,
+      text: t("errors:shortfall", {
+        what: shortfallName(shortfall.resource, names),
+        need: formatNumber(shortfall.need),
+        have: formatNumber(shortfall.have),
+      }),
       actionable: true,
     };
   }
@@ -57,37 +62,37 @@ export function explainError(error: unknown, names?: RefusalNames): ErrorMessage
   // Відмова без відомої причини: англійський Detail гравцю не показуємо — лише в консоль
   if (error.is("RequirementNotMet")) {
     console.warn("Відмова без тексту для гравця", error.problem);
-    return { text: "Зараз це недоступно", actionable: true };
+    return { text: t("errors:unavailable"), actionable: true };
   }
 
   if (error.is("OperationInProgress")) {
-    return { text: "Дія вже виконується", actionable: true };
+    return { text: t("errors:inProgress"), actionable: true };
   }
 
   if (error.is("StaleTurn")) {
-    return { text: "Бій уже пішов далі — оновіть сторінку", actionable: true };
+    return { text: t("errors:staleTurn"), actionable: true };
   }
 
   if (error.is("ConcurrencyConflict")) {
-    return { text: "Дані щойно змінились, спробуйте ще раз", actionable: true };
+    return { text: t("errors:conflict"), actionable: true };
   }
 
   if (error.is("AlreadyExists")) {
-    return { text: "Це вже існує", actionable: true };
+    return { text: t("errors:alreadyExists"), actionable: true };
   }
 
   if (error.is("NotFound")) {
-    return { text: "Об'єкт не знайдено", actionable: true };
+    return { text: t("errors:notFound"), actionable: true };
   }
 
   if (error.is("AuthenticationFailed")) {
-    return { text: "Невірна пошта або пароль", actionable: true };
+    return { text: t("errors:badCredentials"), actionable: true };
   }
 
   // Валідація запиту — помилка в клієнті: гравець її виправити не може
   console.error("Запит відхилено сервером", error.problem);
 
-  return { text: "Щось пішло не так. Спробуйте ще раз", actionable: false, traceId };
+  return { text: t("errors:unknown"), actionable: false, traceId };
 }
 
 /** Короткий варіант для місць, де потрібен лише рядок. */
