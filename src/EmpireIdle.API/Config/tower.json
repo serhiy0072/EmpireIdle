@@ -48,36 +48,44 @@
         {
           "Every": 5,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Item", "Key": "hero_xp_1k", "Amount": 2 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 } ] ] },
-            { "FromFloor": 200, "Options": [ [ { "Type": "Item", "Key": "hero_xp_10k", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 } ] ] },
-            { "FromFloor": 600, "Options": [ [ { "Type": "Item", "Key": "hero_xp_20k", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Item", "Key": "hero_xp_1k", "Amount": 2 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_common", "Amount": 1 } ] ] },
+            { "FromFloor": 150, "Options": [ [ { "Type": "Item", "Key": "hero_xp_1k", "Amount": 2 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_rare", "Amount": 1 } ] ] },
+            { "FromFloor": 200, "Options": [ [ { "Type": "Item", "Key": "hero_xp_10k", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_rare", "Amount": 1 } ] ] },
+            { "FromFloor": 300, "Options": [ [ { "Type": "Item", "Key": "hero_xp_10k", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_unique", "Amount": 1 } ] ] },
+            { "FromFloor": 600, "Options": [ [ { "Type": "Item", "Key": "hero_xp_20k", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_unique", "Amount": 1 } ] ] }
           ]
         },
         {
           "Every": 10,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Common", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 } ] ] },
-            { "FromFloor": 100, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 } ] ] },
-            { "FromFloor": 400, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Common", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_common", "Amount": 1 } ] ] },
+            { "FromFloor": 100, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_common", "Amount": 1 } ] ] },
+            { "FromFloor": 150, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_rare", "Amount": 1 } ] ] },
+            { "FromFloor": 300, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_unique", "Amount": 1 } ] ] },
+            { "FromFloor": 400, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_unique", "Amount": 1 } ] ] }
           ]
         },
         {
           "Every": 50,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 2 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 } ] ] },
-            { "FromFloor": 300, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 2 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 2 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_common", "Amount": 2 } ] ] },
+            { "FromFloor": 150, "Options": [ [ { "Type": "Artifact", "Key": "Rare", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 2 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_rare", "Amount": 2 } ] ] },
+            { "FromFloor": 300, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 2 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_unique", "Amount": 2 } ] ] }
           ]
         },
         {
           "Every": 100,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 3 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "hero_essence_t2", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 3 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "hero_essence_t2", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_common", "Amount": 2 } ] ] },
+            { "FromFloor": 150, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 3 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "hero_essence_t2", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_rare", "Amount": 2 } ] ] },
+            { "FromFloor": 300, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 1 }, { "Type": "Item", "Key": "key_rare", "Amount": 3 }, { "Type": "Item", "Key": "key_unique", "Amount": 1 }, { "Type": "Item", "Key": "hero_essence_t2", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_unique", "Amount": 2 } ] ] }
           ]
         },
         {
           "Every": 250,
           "Stages": [
-            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 2 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 2 }, { "Type": "Item", "Key": "hero_essence_t3", "Amount": 1 } ] ] }
+            { "FromFloor": 1, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 2 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 2 }, { "Type": "Item", "Key": "hero_essence_t3", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_rare", "Amount": 2 } ] ] },
+            { "FromFloor": 300, "Options": [ [ { "Type": "Artifact", "Key": "Unique", "Amount": 2 }, { "Type": "Item", "Key": "key_rare", "Amount": 1 }, { "Type": "Item", "Key": "key_unique", "Amount": 2 }, { "Type": "Item", "Key": "hero_essence_t3", "Amount": 1 }, { "Type": "Item", "Key": "chest_books_unique", "Amount": 2 } ] ] }
           ]
         }
       ]
