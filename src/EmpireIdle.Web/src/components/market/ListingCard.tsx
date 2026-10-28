@@ -6,6 +6,7 @@ import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { statLabel, statValue } from "../../lib/statNames";
 import { formatRemaining } from "../../lib/time";
 import ItemIcon from "../inventory/ItemIcon";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   listing: MarketListingView;
@@ -41,7 +42,7 @@ export default function ListingCard({ listing, action }: Props) {
               <span className="ml-1 text-amber-600">рів. {listing.equipment?.level}</span>
             )}
           </span>
-          <span className="font-medium text-amber-700">{listing.priceGold.toLocaleString("uk-UA")} 🪙</span>
+          <span className="font-medium text-amber-700">{formatNumber(listing.priceGold)} 🪙</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-1 text-xs">
@@ -56,7 +57,7 @@ export default function ListingCard({ listing, action }: Props) {
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
           <span>
-            {listing.pricePerUnit.toLocaleString("uk-UA", { maximumFractionDigits: 1 })} 🪙 за {unit}
+            {formatNumber(listing.pricePerUnit, { maximumFractionDigits: 1 })} 🪙 за {unit}
             {listing.state === "Active"
               ? ` · ще ${formatRemaining(listing.expiresAt, now)}`
               : ` · ${STATE_LABELS[listing.state] ?? listing.state}`}

@@ -1,6 +1,7 @@
 import { isApiError } from "./problem";
 import { refusalText, type RefusalNames } from "./refusals";
 import { resourceGenitive } from "./resourceNames";
+import { formatNumber } from "./format";
 
 /**
  * Чого бракує, у родовому відмінку. Предмет чи воїнів сервер шле ключем, а родового
@@ -41,7 +42,7 @@ export function explainError(error: unknown, names?: RefusalNames): ErrorMessage
 
   if (shortfall !== null) {
     return {
-      text: `Не вистачає ${shortfallName(shortfall.resource, names)}: потрібно ${shortfall.need.toLocaleString("uk-UA")}, є ${shortfall.have.toLocaleString("uk-UA")}`,
+      text: `Не вистачає ${shortfallName(shortfall.resource, names)}: потрібно ${formatNumber(shortfall.need)}, є ${formatNumber(shortfall.have)}`,
       actionable: true,
     };
   }

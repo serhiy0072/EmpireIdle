@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ClanApplicationResponse } from "../../lib/apiTypes";
 import { formatRemaining } from "../../lib/time";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   applications: ClanApplicationResponse[];
@@ -29,7 +30,7 @@ export default function ClanRequestsPanel({ applications, now, busy, onResolve, 
               <div className="flex-1 text-sm">
                 <span className="font-medium text-slate-800">{application.playerName}</span>
                 <span className="ml-2 text-xs text-slate-500">
-                  сила {Math.round(application.power).toLocaleString("uk-UA")} · ще {formatRemaining(application.expiresAt, now)}
+                  сила {formatNumber(Math.round(application.power))} · ще {formatRemaining(application.expiresAt, now)}
                 </span>
               </div>
               <button

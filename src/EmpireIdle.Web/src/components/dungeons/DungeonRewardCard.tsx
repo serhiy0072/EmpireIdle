@@ -4,6 +4,7 @@ import { useCatalog } from "../../lib/queries/catalog";
 import { Tile } from "../game/GameUi";
 import ArtifactHover from "../inventory/ArtifactHover";
 import ItemIcon from "../inventory/ItemIcon";
+import { formatNumber } from "../../lib/format";
 
 type Reward = NonNullable<DungeonRunView["reward"]>;
 
@@ -33,7 +34,7 @@ export default function DungeonRewardCard({ reward }: { reward: Reward }) {
       <div className="flex flex-wrap justify-center gap-3 bg-gradient-to-b from-amber-50 to-white p-3">
         {reward.resources.map((line) => (
           <RewardSlot key={line.resource} caption={catalog.resourceName(line.resource)}>
-            <Tile rarity="Common" bottomRight={`+${line.amount.toLocaleString("uk-UA")}`}>
+            <Tile rarity="Common" bottomRight={`+${formatNumber(line.amount)}`}>
               <span className="text-3xl" aria-hidden>
                 {RESOURCE_GLYPHS[line.resource] ?? "📦"}
               </span>
@@ -43,7 +44,7 @@ export default function DungeonRewardCard({ reward }: { reward: Reward }) {
 
         {reward.heroExperience > 0 && (
           <RewardSlot caption="Досвід героїв">
-            <Tile rarity="Rare" bottomRight={`+${reward.heroExperience.toLocaleString("uk-UA")}`}>
+            <Tile rarity="Rare" bottomRight={`+${formatNumber(reward.heroExperience)}`}>
               <span className="text-3xl" aria-hidden>
                 ⭐
               </span>

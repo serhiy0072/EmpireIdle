@@ -4,6 +4,7 @@ import { useCatalog } from "../lib/queries/catalog";
 import { formatRemaining } from "../lib/time";
 import { HEAL_PAYMENT, useGarrison, useHealWounded, useRecoverUnits } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
+import { formatNumber } from "../lib/format";
 
 interface Props {
   playerId: string;
@@ -52,10 +53,10 @@ export default function HospitalPanel({ playerId }: Props) {
 
             const resourceLabel = unit
               ? unit.cost
-                  .map((line) => `${Math.ceil(line.amount * count * catalog.healResourceCostShare).toLocaleString("uk-UA")} ${catalog.resourceName(line.resource)}`)
+                  .map((line) => `${formatNumber(Math.ceil(line.amount * count * catalog.healResourceCostShare))} ${catalog.resourceName(line.resource)}`)
                   .join(", ")
               : "";
-            const gemsLabel = (count * catalog.healGemsPerUnit).toLocaleString("uk-UA");
+            const gemsLabel = formatNumber(count * catalog.healGemsPerUnit);
 
             return (
               <div key={key} className="flex items-center justify-between gap-2 text-sm">
@@ -108,7 +109,7 @@ export default function HospitalPanel({ playerId }: Props) {
           {recoverable.map((stack) => {
             const key = `${stack.unitType}@${stack.level}`;
             const count = Math.min(Math.max(recoverCounts[key] ?? 1, 1), stack.count);
-            const gemsLabel = (count * stack.costGems).toLocaleString("uk-UA");
+            const gemsLabel = formatNumber(count * stack.costGems);
 
             return (
               <div key={key} className="flex items-center justify-between gap-2 text-sm">

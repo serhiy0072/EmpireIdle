@@ -18,6 +18,7 @@ import {
 } from "../lib/queries/heroes";
 import { useInventory } from "../lib/queries/inventory";
 import { parseRosterSort, ROSTER_SORTS, sortRoster } from "../lib/heroOrder";
+import { formatNumber } from "../lib/format";
 
 type Tab = "heroes" | "camp";
 
@@ -85,7 +86,7 @@ export default function HeroesPage() {
         title="Герої"
         actions={
           <p className="text-right text-xs text-sky-100/80">
-            досвід {heroes.data.experience.toLocaleString("uk-UA")} · вільних {free} · маршів до {heroes.data.marchCapacity} ·{" "}
+            досвід {formatNumber(heroes.data.experience)} · вільних {free} · маршів до {heroes.data.marchCapacity} ·{" "}
             <Link to="/heroes/codex" className="text-sky-200 hover:underline">
               кодекс
             </Link>

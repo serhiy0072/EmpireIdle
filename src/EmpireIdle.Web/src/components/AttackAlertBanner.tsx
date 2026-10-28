@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { onGameEvent } from "../lib/realtime/connection";
+import { formatClock } from "../lib/format";
 
 /** Остання тривога: що сталося, де, і ключ для переходу на мапу. */
 interface Alert {
@@ -14,7 +15,7 @@ interface Alert {
 }
 
 function timeLabel(iso: string): string {
-  return new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+  return formatClock(iso);
 }
 
 /**

@@ -10,6 +10,7 @@ import {
   type ChatMessageView,
 } from "../lib/queries/chat";
 import TabHotkeys from "../components/shell/TabHotkeys";
+import { formatClock } from "../lib/format";
 
 const TABS: { channel: ChatChannelName; label: string }[] = [
   { channel: "Server", label: "Світ" },
@@ -17,7 +18,7 @@ const TABS: { channel: ChatChannelName; label: string }[] = [
   { channel: "Private", label: "Особисті" },
 ];
 
-const time = (iso: string) => new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+const time = (iso: string) => formatClock(iso);
 
 /** Одне повідомлення: переклад, якщо є, а оригінал — у підказці. */
 function Message({ message }: { message: ChatMessageView }) {

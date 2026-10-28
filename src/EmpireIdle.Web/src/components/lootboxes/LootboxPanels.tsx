@@ -4,6 +4,7 @@ import { useCatalog, type Catalog } from "../../lib/queries/catalog";
 import { rarityLabel } from "../../lib/rarity";
 import ItemIcon from "../inventory/ItemIcon";
 import { useHotkeys } from "../../hooks/useHotkeys";
+import { formatNumber } from "../../lib/format";
 
 /** Назва позиції скрині чи того, що з неї випало, — за типом нагороди. */
 function rewardName(catalog: Catalog, type: string, key: string | null | undefined): string {
@@ -67,7 +68,7 @@ export function LootboxOdds({ itemKey, since }: OddsProps) {
           {box.entries.map((entry, index) => (
             <li key={index} className="flex items-center justify-between gap-2 px-2 py-1">
               <span className="text-slate-700">
-                {rewardName(catalog, entry.type, entry.key)} ×{entry.amount.toLocaleString("uk-UA")}
+                {rewardName(catalog, entry.type, entry.key)} ×{formatNumber(entry.amount)}
                 {entry.pity && <span className="ml-1 text-xs text-amber-700">★ гарантія</span>}
               </span>
               <span className="tabular-nums text-slate-500">{entry.chance}%</span>

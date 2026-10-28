@@ -2,13 +2,14 @@ import { Link } from "react-router-dom";
 import { useNow } from "../../hooks/useNow";
 import type { ClanTerritoryResponse } from "../../lib/apiTypes";
 import { formatRemaining } from "../../lib/time";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   territory: ClanTerritoryResponse;
   myPlayerId: string;
 }
 
-const number = (value: number) => value.toLocaleString("uk-UA");
+const number = (value: number) => formatNumber(value);
 
 /**
  * Територія клану (GDD §7.2): очки вкладу, слоти, споруди, квести клану й топ внеску.

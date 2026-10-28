@@ -19,6 +19,7 @@ import { classLabel } from "../lib/heroClasses";
 import { useHeroes } from "../lib/queries/heroes";
 import { rarityStyle } from "../lib/rarity";
 import { formatRemaining } from "../lib/time";
+import { formatNumber } from "../lib/format";
 
 /**
  * Данжі: вибір данжу й рівня, склад команди до чотирьох героїв і сам бій.
@@ -125,7 +126,7 @@ export default function DungeonsPage() {
               title={`Сьогодні лишилось поповнень: ${overview.refillsLeft}`}
               className="rounded-lg border border-amber-400 px-2 py-0.5 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
             >
-              Поповнити до {overview.maxEnergy} ⚡ · {overview.refillPriceGems.toLocaleString("uk-UA")} 💎
+              Поповнити до {overview.maxEnergy} ⚡ · {formatNumber(overview.refillPriceGems)} 💎
             </button>
           )}
         </div>
@@ -204,8 +205,8 @@ export default function DungeonsPage() {
               </div>
               {levelView !== null && (
                 <p className="text-xs text-slate-500">
-                  Нагорода: {levelView.reward.map((line) => `${catalog.resourceName(line.resource)} ${line.amount.toLocaleString("uk-UA")}`).join(" · ")}
-                  {levelView.heroExperience > 0 && ` · досвід героїв ${levelView.heroExperience.toLocaleString("uk-UA")}`}
+                  Нагорода: {levelView.reward.map((line) => `${catalog.resourceName(line.resource)} ${formatNumber(line.amount)}`).join(" · ")}
+                  {levelView.heroExperience > 0 && ` · досвід героїв ${formatNumber(levelView.heroExperience)}`}
                 </p>
               )}
               {dropSet !== null && (

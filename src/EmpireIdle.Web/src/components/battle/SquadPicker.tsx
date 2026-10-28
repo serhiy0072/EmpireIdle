@@ -5,6 +5,7 @@ import type { HeroSummary } from "../../lib/queries/heroes";
 import { strongestSquad } from "../../lib/squad";
 import { GameButton } from "../game/GameUi";
 import HeroPortrait from "../heroes/HeroPortrait";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   heroes: HeroSummary[];
@@ -84,7 +85,7 @@ export default function SquadPicker({ heroes, lanes, onChange }: Props): ReactEl
                 <span className="text-sky-200">
                   {classLabel(config?.class)} · {hero.effectiveLevel}
                 </span>
-                <span className="text-amber-200">⚔ {Math.round(hero.power).toLocaleString("uk-UA")}</span>
+                <span className="text-amber-200">⚔ {formatNumber(Math.round(hero.power))}</span>
               </button>
             </li>
           );

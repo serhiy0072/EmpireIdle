@@ -23,6 +23,7 @@ import PowerBadge from "./PowerBadge";
 import ResourceBar from "./ResourceBar";
 import BottomNav from "./shell/BottomNav";
 import ChatTicker from "./shell/ChatTicker";
+import { formatNumber } from "../lib/format";
 
 export default function AppLayout() {
   const { t } = useTranslation();
@@ -118,7 +119,7 @@ export default function AppLayout() {
               </span>
             )}
             <span className="rounded-full bg-gradient-to-b from-violet-400 to-violet-700 px-3 py-0.5 text-sm font-semibold tabular-nums ring-1 ring-violet-200">
-              💎 {wallet.data === undefined ? "…" : wallet.data.gemBalance.toLocaleString("uk-UA")}
+              💎 {wallet.data === undefined ? "…" : formatNumber(wallet.data.gemBalance)}
             </span>
 
             <div ref={menuRef} className="relative">

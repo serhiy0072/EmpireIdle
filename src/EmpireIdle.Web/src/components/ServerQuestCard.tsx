@@ -1,4 +1,5 @@
 import type { ServerQuestResponse } from "../lib/apiTypes";
+import { formatNumber } from "../lib/format";
 
 interface Props {
   quest: ServerQuestResponse;
@@ -31,12 +32,12 @@ export default function ServerQuestCard({ quest }: Props) {
           <div className={`h-full ${finished ? "bg-emerald-500" : "bg-sky-500"}`} style={{ width: `${ratio * 100}%` }} />
         </div>
         <p className="mt-1 text-xs text-slate-500">
-          {quest.total.toLocaleString("uk-UA")} / {quest.target.toLocaleString("uk-UA")} — усім сервером
+          {formatNumber(quest.total)} / {formatNumber(quest.target)} — усім сервером
         </p>
       </div>
 
       <p className="text-sm text-slate-600">
-        Ваш внесок: <span className="font-medium">{quest.myContribution.toLocaleString("uk-UA")}</span>
+        Ваш внесок: <span className="font-medium">{formatNumber(quest.myContribution)}</span>
         {quest.myRank > 0 && (
           <>
             {" "}

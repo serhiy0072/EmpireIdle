@@ -7,6 +7,7 @@ import { useUseItem } from "../../../lib/queries/inventory";
 import { statGains } from "../../../lib/statNames";
 import { GameButton } from "../../game/GameUi";
 import ItemIcon from "../../inventory/ItemIcon";
+import { formatNumber } from "../../../lib/format";
 
 /** Скриня крамниці, з якої падають банки досвіду. */
 const JAR_CHEST = "chest_supply";
@@ -55,9 +56,9 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
     <div className="flex w-full max-w-md flex-col items-center gap-2">
       <p className="text-sm text-sky-100">
         Досвід:{" "}
-        <span className={affordable ? "font-bold text-emerald-300" : "font-bold text-amber-300"}>{pool.toLocaleString("uk-UA")}</span>
+        <span className={affordable ? "font-bold text-emerald-300" : "font-bold text-amber-300"}>{formatNumber(pool)}</span>
         {" / "}
-        <span className="font-bold">{need.toLocaleString("uk-UA")}</span>
+        <span className="font-bold">{formatNumber(need)}</span>
       </p>
 
       <GameButton onClick={press} disabled={busy || drinkJar.isPending} variant="accent">
@@ -71,7 +72,7 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
 
       {!affordable && offering && (
         <div className="w-full space-y-2 rounded-xl bg-[#16305e]/80 p-3 text-left ring-1 ring-[#335c9a]">
-          <p className="text-sm text-amber-200">Бракує {missing.toLocaleString("uk-UA")} досвіду.</p>
+          <p className="text-sm text-amber-200">Бракує {formatNumber(missing)} досвіду.</p>
 
           {jars.length === 0 ? (
             <p className="text-sm text-sky-100/80">Банок досвіду в рюкзаку немає.</p>
@@ -80,9 +81,9 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
               <div key={item.itemKey} className="flex items-center gap-2">
                 <ItemIcon itemKey={item.itemKey} type={item.type} rarity={item.rarity} size={32} />
                 <span className="flex-1 text-sm">
-                  {item.displayName} ×{item.count.toLocaleString("uk-UA")}
+                  {item.displayName} ×{formatNumber(item.count)}
                   {experience > 0 && (
-                    <span className="text-sky-200/80"> · +{(experience * item.count).toLocaleString("uk-UA")}</span>
+                    <span className="text-sky-200/80"> · +{formatNumber(experience * item.count)}</span>
                   )}
                 </span>
                 <GameButton

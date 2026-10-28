@@ -21,6 +21,7 @@ import {
   useUpgradeHeroSkill,
 } from "../lib/queries/heroes";
 import { useEquip, useEquipBest, useInventory, useUnequip, useUnequipAll } from "../lib/queries/inventory";
+import { formatNumber } from "../lib/format";
 
 type Tab = "stats" | "skills" | "gear";
 
@@ -147,7 +148,7 @@ export default function HeroPage() {
           </div>
 
           <p className="rounded-full bg-gradient-to-r from-transparent via-rose-700/70 to-transparent px-8 py-0.5 text-lg font-bold">
-            ⚔ {Math.round(hero.power).toLocaleString("uk-UA")}
+            ⚔ {formatNumber(Math.round(hero.power))}
           </p>
 
           {/* Зірки за осколки героя (GDD §6.1): кожна частинка — +5% бойової міці */}
@@ -191,7 +192,7 @@ export default function HeroPage() {
             </div>
             <div>
               <p className="text-xs text-sky-200/80">Місткість війська</p>
-              <p className="font-bold">{hero.convoyCapacity.toLocaleString("uk-UA")}</p>
+              <p className="font-bold">{formatNumber(hero.convoyCapacity)}</p>
             </div>
           </div>
 

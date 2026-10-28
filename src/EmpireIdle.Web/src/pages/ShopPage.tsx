@@ -11,6 +11,7 @@ import { useBuyLootbox, useLootboxPity } from "../lib/queries/lootboxes";
 import { useBuyShopItem, useCheckout, useShop } from "../lib/queries/shop";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
+import { formatMoment, formatNumber } from "../lib/format";
 
 const TYPE_LABELS: Record<string, string> = {
   evolution: "Еволюція героя",
@@ -25,7 +26,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 function price(cents: number, currency: string): string {
-  return new Intl.NumberFormat("uk-UA", { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
+  return formatNumber(cents / 100, { style: "currency", currency: currency.toUpperCase() });
 }
 
 interface OfferProps {
@@ -58,7 +59,7 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
             {offer.onSaleUntil != null && (
               <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">
                 лише до{" "}
-                {new Date(offer.onSaleUntil).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                {formatMoment(offer.onSaleUntil)}
               </span>
             )}
           </div>
@@ -99,7 +100,7 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
         >
           {gems < total
             ? "Не вистачає 💎"
-            : `${offer.type === "lootbox" ? "Відкрити" : "Купити"} за ${total.toLocaleString("uk-UA")} 💎`}
+            : `${offer.type === "lootbox" ? "Відкрити" : "Купити"} за ${formatNumber(total)} 💎`}
         </button>
       </div>
     </div>
@@ -143,7 +144,7 @@ export default function ShopPage() {
       <MarketTabs />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Крамниця</h1>
-        <p className="text-sm text-slate-500">💎 {gems.toLocaleString("uk-UA")}</p>
+        <p className="text-sm text-slate-500">💎 {formatNumber(gems)}</p>
       </div>
 
       <ErrorBanner error={buy.error ?? buyLootbox.error ?? checkout.error} />
@@ -157,7 +158,7 @@ export default function ShopPage() {
             lastBuy === null
               ? undefined
               : {
-                  label: `Ще ×${lastBuy.count} · 💎 ${(lastBuy.price * lastBuy.count).toLocaleString("uk-UA")}`,
+                  label: `Ще ×${lastBuy.count} · 💎 ${formatNumber(lastBuy.price * lastBuy.count)}`,
                   disabled: gems < lastBuy.price * lastBuy.count,
                   onClick: () =>
                     buyLootbox.mutate(
@@ -206,7 +207,7 @@ export default function ShopPage() {
           {shop.data.gemPacks.map((pack) => (
             <div key={pack.key} className="flex flex-col rounded-xl border border-violet-200 bg-white p-3">
               <span className="font-medium text-slate-800">{pack.displayName}</span>
-              <span className="mt-1 text-2xl font-semibold text-violet-700">💎 {pack.gems.toLocaleString("uk-UA")}</span>
+              <span className="mt-1 text-2xl font-semibold text-violet-700">💎 {formatNumber(pack.gems)}</span>
               {pack.bonusPercent > 0 && <span className="text-xs text-emerald-700">+{pack.bonusPercent}% бонус</span>}
               {/* Оплата йде на сторінку Stripe: тут лише перехід, жодних платіжних даних */}
               <button

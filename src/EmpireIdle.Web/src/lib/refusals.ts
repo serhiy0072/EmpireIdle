@@ -8,6 +8,7 @@
 
 import { clanRoleName } from "./clanRoles";
 import { classLabel } from "./heroClasses";
+import { formatDateTime, formatNumber } from "./format";
 
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
@@ -63,7 +64,7 @@ const REGISTRATION_CODES: Record<string, string> = {
 
 /** Момент UTC з сервера (ISO 8601) — у місцевому часі гравця. */
 function localTime(value: string | number | undefined): string {
-  return new Date(String(value)).toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" });
+  return formatDateTime(String(value), { dateStyle: "short", timeStyle: "short" });
 }
 
 function registrationText(codes: string): string {
@@ -254,7 +255,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "market.locked": ({ level }) => `Ринок відкриється з ратушею ${level} рівня`,
   "market.listingLimit": ({ limit }) => `Уже виставлено ${limit} лотів — стільки дозволяє ваш ринок. Підніміть його рівень`,
   "market.priceOutOfCorridor": ({ min, max }) =>
-    `Ціна має бути від ${Number(min).toLocaleString("uk-UA")} до ${Number(max).toLocaleString("uk-UA")} золота`,
+    `Ціна має бути від ${formatNumber(Number(min))} до ${formatNumber(Number(max))} золота`,
   "market.notTradeable": ({ item }, n) => `«${n.itemName(String(item))}» не продається на ринку`,
   "market.notEnoughItems": ({ item, need, have }, n) => `Не вистачає «${n.itemName(String(item))}»: потрібно ${need}, є ${have}`,
   "market.resaleCooldown": ({ until }) => `Щойно куплене можна перепродати після ${localTime(until)}`,

@@ -1,3 +1,4 @@
+import { formatNumber } from "./format";
 /** Назви статів героїв, спорядження й наборів. Ключі — як у конфігу сервера. */
 const STAT_LABELS: Record<string, string> = {
   Attack: "Атака",
@@ -102,5 +103,5 @@ export function statGains(now: Record<string, number>, next: Record<string, numb
 
 /** Значення стату для показу: «120» для пласких, «3%» для відсоткових. */
 export function statValue(key: string, value: number): string {
-  return FLAT_STATS.has(key) ? Math.round(value).toLocaleString("uk-UA") : `${Number(value.toFixed(1)).toLocaleString("uk-UA")}%`;
+  return FLAT_STATS.has(key) ? formatNumber(Math.round(value)) : `${formatNumber(Number(value.toFixed(1)))}%`;
 }

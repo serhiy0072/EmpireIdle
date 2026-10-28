@@ -6,6 +6,7 @@ import { useKeyChests, useLootboxPity, useOpenKeyChest } from "../../lib/queries
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 import { LootboxDrops, LootboxOdds } from "./LootboxPanels";
+import { formatNumber } from "../../lib/format";
 
 /** Скільки скринь відкрити ключами за раз — не більше, ніж ключів, і не більше за ліміт запиту. */
 const KEY_BATCH = 10;
@@ -31,7 +32,7 @@ function KeyChestCard({ chest, since, busy, onOpen }: CardProps) {
       <div className="flex items-baseline justify-between gap-2">
         <span className="font-medium text-slate-800">{catalog.itemName(chest.chestKey)}</span>
         <span className="text-xs text-slate-500">
-          безкоштовно {chest.freeLeftToday} / {chest.freePerDay} · 🗝 {chest.keys.toLocaleString("uk-UA")}
+          безкоштовно {chest.freeLeftToday} / {chest.freePerDay} · 🗝 {formatNumber(chest.keys)}
         </span>
       </div>
 

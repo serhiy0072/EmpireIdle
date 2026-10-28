@@ -8,6 +8,7 @@ import { GameButton } from "../../game/GameUi";
 import ArtifactSetInfo from "../../inventory/ArtifactSetInfo";
 import ItemIcon from "../../inventory/ItemIcon";
 import { useHotkeys } from "../../../hooks/useHotkeys";
+import { formatNumber } from "../../../lib/format";
 
 type View = "info" | "choice" | "feed" | "mastery";
 
@@ -111,7 +112,7 @@ export default function EquipmentInfoModal({ playerId, piece, wornKeys, onStep, 
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{catalog.itemName(piece.itemKey)}</p>
                 <span className={`inline-block rounded px-2 py-0.5 text-xs ${rarityStyle(piece.rarity)}`}>{rarityLabel(piece.rarity)}</span>
-                <p className="mt-1 text-sm text-slate-600">⚔ {Math.round(piece.power).toLocaleString("uk-UA")}</p>
+                <p className="mt-1 text-sm text-slate-600">⚔ {formatNumber(Math.round(piece.power))}</p>
                 {piece.isBroken && <p className="text-xs text-rose-700">Зламано: дає половину статів</p>}
               </div>
               {view === "info" && <div className="flex shrink-0 flex-col gap-1">{actions(piece, () => setView("choice"))}</div>}

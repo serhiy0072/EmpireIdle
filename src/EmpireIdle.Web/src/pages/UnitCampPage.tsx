@@ -18,6 +18,7 @@ import {
 } from "../lib/queries/garrison";
 import { useVillage } from "../lib/queries/village";
 import { roman, tierFrame } from "../lib/unitTiers";
+import { formatNumber } from "../lib/format";
 
 type Mode = "train" | "stats" | "upgrade";
 
@@ -175,7 +176,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
       <LevelStrip unitType={unit.key} maxLevel={catalog.maxUnitLevel} ceiling={ceiling} counts={counts} selected={selected} onSelect={setSelected} />
 
       <p className="px-3 text-right text-xs text-sky-100 [text-shadow:0_1px_2px_#000]">
-        Місткість табору: {occupied.toLocaleString("uk-UA")} / {capacity.toLocaleString("uk-UA")}
+        Місткість табору: {formatNumber(occupied)} / {formatNumber(capacity)}
       </p>
 
       <div className="space-y-3 bg-[#1d3b6f]/80 p-3">
@@ -185,7 +186,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
           (training !== undefined ? (
             <OrderCard
               title="Тренування"
-              description={`Тренування: ${catalog.unitName(training.unitType)} ${roman(training.level)} (${training.count.toLocaleString("uk-UA")})`}
+              description={`Тренування: ${catalog.unitName(training.unitType)} ${roman(training.level)} (${formatNumber(training.count)})`}
               unitType={training.unitType}
               level={training.level}
               totalSeconds={cumulativeUnitLevelCost(unit.baseTrainSeconds, 1, training.level + 1, unit.trainTimeGrowth) * training.count}
@@ -221,7 +222,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
           (levelling !== undefined ? (
             <OrderCard
               title="Прокачка"
-              description={`Прокачка: ${catalog.unitName(levelling.unitType)} ${roman(levelling.fromLevel)} → ${roman(levelling.toLevel)} (${levelling.count.toLocaleString("uk-UA")})`}
+              description={`Прокачка: ${catalog.unitName(levelling.unitType)} ${roman(levelling.fromLevel)} → ${roman(levelling.toLevel)} (${formatNumber(levelling.count)})`}
               unitType={levelling.unitType}
               level={levelling.toLevel}
               totalSeconds={

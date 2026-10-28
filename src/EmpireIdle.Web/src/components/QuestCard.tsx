@@ -2,6 +2,7 @@ import type { QuestView } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { QUEST_STATE } from "../lib/queries/quests";
 import { objectiveIsThreshold, objectiveLabel, rewardLabel } from "../lib/questLabels";
+import { formatNumber } from "../lib/format";
 
 interface Props {
   quest: QuestView;
@@ -41,8 +42,8 @@ export default function QuestCard({ quest, busy, onClaim }: Props) {
                 </span>
                 {!objectiveIsThreshold(objective) && (
                   <span className="text-xs text-slate-500">
-                    {Math.min(objective.amount, objective.required).toLocaleString("uk-UA")} /{" "}
-                    {objective.required.toLocaleString("uk-UA")}
+                    {formatNumber(Math.min(objective.amount, objective.required))} /{" "}
+                    {formatNumber(objective.required)}
                   </span>
                 )}
               </div>

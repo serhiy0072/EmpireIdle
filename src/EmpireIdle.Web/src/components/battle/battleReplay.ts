@@ -1,4 +1,5 @@
 import type { BattleReplay } from "../../lib/apiTypes";
+import { formatNumber } from "../../lib/format";
 
 /** Види подій логу — ті самі числа, що BattleEventKind на сервері. */
 export const EventKind = { Hit: 0, Death: 1, Heal: 2, Cast: 3, Shield: 4, Status: 5, Advance: 6, Ready: 7 } as const;
@@ -103,7 +104,7 @@ export function advance(playback: Playback, replay: BattleReplay, toTick: number
     if (kind === EventKind.Hit && (crit || heroes(target)) && amount > 0)
       playback.floaters.push({
         fighter: target,
-        text: Math.round(amount).toLocaleString("uk-UA"),
+        text: formatNumber(Math.round(amount)),
         color: poison ? "#c084fc" : crit ? "#facc15" : "#fca5a5",
         big: crit,
         born: tick,

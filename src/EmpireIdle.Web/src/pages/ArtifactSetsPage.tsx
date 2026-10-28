@@ -9,6 +9,7 @@ import { RoleBadge } from "../components/game/GameUi";
 import { classLabel } from "../lib/heroClasses";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
 import { bonusValue, isDungeonOnly, statLabel, statLabelForClass } from "../lib/statNames";
+import { formatNumber } from "../lib/format";
 
 /** Характер набору словами: гравцеві «Attack, Health» нічого не каже про роль. */
 function character(set: CatalogArtifactSet): { label: string; style: string } | null {
@@ -96,7 +97,7 @@ export default function ArtifactSetsPage() {
       {tiers.map(([tier, sets]) => (
         <section key={tier} className="space-y-2">
           <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">
-            Рівень {tier} · стати ×{sets[0]?.statMultiplier.toLocaleString("uk-UA")}
+            Рівень {tier} · стати ×{sets[0] !== undefined && formatNumber(sets[0].statMultiplier)}
           </h2>
 
           <div className="grid gap-3 md:grid-cols-2">

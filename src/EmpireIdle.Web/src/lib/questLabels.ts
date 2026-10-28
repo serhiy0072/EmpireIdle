@@ -1,6 +1,7 @@
 import type { QuestObjectiveView, RewardConfig } from "./apiTypes";
 import type { Catalog } from "./queries/catalog";
 import { rarityLabel } from "./rarity";
+import { formatNumber } from "./format";
 
 /**
  * Текст цілі з її типу й цілі. Тип — ім'я доменної події на беку
@@ -33,7 +34,7 @@ export function objectiveIsThreshold(objective: QuestObjectiveView): boolean {
 
 /** Підпис нагороди: тип каже, у якому довіднику шукати назву. */
 export function rewardLabel(reward: RewardConfig, catalog: Catalog): string {
-  const amount = reward.amount.toLocaleString("uk-UA");
+  const amount = formatNumber(reward.amount);
   const key = reward.key ?? "";
 
   switch (reward.type) {

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import ErrorBanner from "../components/ErrorBanner";
 import { useSession } from "../hooks/useSession";
 import { compactPower, useLeaderboard, useMyRank, usePower } from "../lib/queries/rating";
+import { formatNumber } from "../lib/format";
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -56,7 +57,7 @@ export default function RatingPage() {
             Ваше місце: <span className="text-2xl text-amber-700">#{me.rank}</span>
           </h2>
           <span className="text-sm text-slate-600">
-            рейтинг <span className="font-medium text-slate-800">{me.rating.toLocaleString("uk-UA")}</span>
+            рейтинг <span className="font-medium text-slate-800">{formatNumber(me.rating)}</span>
           </span>
         </div>
 
@@ -70,8 +71,8 @@ export default function RatingPage() {
                 : `Армія ${compactPower(power.data.army)} · герої ${compactPower(power.data.hero)} · спорядження ${compactPower(power.data.equipment)}`
             }
           />
-          <Stat label="🏗 Розвиток" value={Math.round(me.developmentScore).toLocaleString("uk-UA")} hint="Рівні будівель села" />
-          <Stat label="🔥 Активність" value={Math.round(me.activityScore).toLocaleString("uk-UA")} hint="Бої, монстри, квести, внески" />
+          <Stat label="🏗 Розвиток" value={formatNumber(Math.round(me.developmentScore))} hint="Рівні будівель села" />
+          <Stat label="🔥 Активність" value={formatNumber(Math.round(me.activityScore))} hint="Бої, монстри, квести, внески" />
         </div>
 
         <p className="mt-3 text-xs text-slate-500">
@@ -108,7 +109,7 @@ export default function RatingPage() {
                       </Link>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right text-slate-700">{entry.rating.toLocaleString("uk-UA")}</td>
+                  <td className="px-3 py-2 text-right text-slate-700">{formatNumber(entry.rating)}</td>
                   <td className="px-3 py-2 text-right text-slate-700">{compactPower(entry.power)}</td>
                 </tr>
               );

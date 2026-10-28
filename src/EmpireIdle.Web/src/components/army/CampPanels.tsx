@@ -9,6 +9,7 @@ import { GameButton } from "../game/GameUi";
 import SpeedUpItemsButton from "../SpeedUpItemsButton";
 import { roman, tierFrame } from "../../lib/unitTiers";
 import { UnitFigure } from "./UnitArt";
+import { formatNumber } from "../../lib/format";
 
 /** Шестикутник із загостреним верхом — рамка юніта, як на референсі табору. */
 const HEX = "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)";
@@ -68,7 +69,7 @@ export function LevelStrip({ unitType, maxLevel, ceiling, counts, selected, onSe
             <UnitHex unitType={unitType} level={level} size={46} dimmed={level > ceiling} />
           </span>
           <span className="text-xs font-semibold tabular-nums text-white [text-shadow:0_1px_2px_#000]">
-            {(counts[level] ?? 0).toLocaleString("uk-UA")}
+            {formatNumber(counts[level] ?? 0)}
           </span>
         </button>
       ))}
@@ -126,7 +127,7 @@ export function OrderCard(props: OrderProps) {
             className="rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 py-1.5 text-white shadow ring-1 ring-amber-200 [text-shadow:0_1px_1px_#0006] hover:brightness-110 disabled:opacity-50"
           >
             <span className="block text-xs font-semibold">Завершити</span>
-            <span className="block text-lg font-bold leading-6">💎 {gems.toLocaleString("uk-UA")}</span>
+            <span className="block text-lg font-bold leading-6">💎 {formatNumber(gems)}</span>
           </button>
         ) : (
           <span />
@@ -148,7 +149,7 @@ function costLine(unit: CatalogUnit, fromLevel: number, toLevel: number, count: 
   return unit.cost
     .map((line) => {
       const perUnit = cumulativeUnitLevelCost(line.amount, fromLevel, toLevel, unit.levelUpCostGrowth);
-      return `${(perUnit * count).toLocaleString("uk-UA")} ${resourceName(line.resource)}`;
+      return `${formatNumber(perUnit * count)} ${resourceName(line.resource)}`;
     })
     .join(" · ");
 }
@@ -261,7 +262,7 @@ export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending
               level === fromLevel ? "bg-lime-500 text-slate-900 ring-lime-200" : "bg-slate-900/50 text-white ring-[#3d6aae]"
             }`}
           >
-            з {roman(level)} · {have.toLocaleString("uk-UA")}
+            з {roman(level)} · {formatNumber(have)}
           </button>
         ))}
       </div>

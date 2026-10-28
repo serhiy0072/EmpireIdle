@@ -1,4 +1,5 @@
 import type { VillageDamageResponse } from "../../lib/apiTypes";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   damage: VillageDamageResponse;
@@ -30,7 +31,7 @@ export default function DamageBanner({ damage, damagedNames, resourceName, busy,
       </p>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-rose-800">
-          Ремонт зараз: {damage.repairCost.map((c) => `${c.amount.toLocaleString("uk-UA")} ${resourceName(c.resource)}`).join(", ")}
+          Ремонт зараз: {damage.repairCost.map((c) => `${formatNumber(c.amount)} ${resourceName(c.resource)}`).join(", ")}
         </span>
         <button
           type="button"

@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import type { BattleReplay } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { EventKind } from "./battleReplay";
+import { formatNumber } from "../../lib/format";
 
 interface HeroLine {
   index: number;
@@ -64,7 +65,7 @@ export default function BattleSummary({ replay }: { replay: BattleReplay }): Rea
   const catalog = useCatalog();
   const lines = summarize(replay);
   const best = lines.reduce<HeroLine | null>((top, line) => (top === null || line.dealt > top.dealt ? line : top), null);
-  const format = (value: number) => Math.round(value).toLocaleString("uk-UA");
+  const format = (value: number) => formatNumber(Math.round(value));
 
   return (
     <table className="w-full text-left text-xs">

@@ -2,6 +2,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
 import type { LeaderboardEntryResponse, PlayerRankResponse, PowerResponse } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
+import { formatNumber } from "../format";
 
 /** Скільки рядків топу тягнемо: одна сторінка без прокрутки за межі екрана. */
 export const LEADERBOARD_SIZE = 100;
@@ -39,5 +40,5 @@ export function useMyRank(playerId: string): UseQueryResult<PlayerRankResponse> 
 export function compactPower(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 10_000) return `${(value / 1_000).toFixed(1)}K`;
-  return Math.round(value).toLocaleString("uk-UA");
+  return formatNumber(Math.round(value));
 }

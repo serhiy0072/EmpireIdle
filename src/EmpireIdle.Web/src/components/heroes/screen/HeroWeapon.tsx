@@ -4,6 +4,7 @@ import { useCatalog, type CatalogHero } from "../../../lib/queries/catalog";
 import { useBuyWeaponShards, useOpenWeaponChests, useUpgradeWeapon, type HeroSummary } from "../../../lib/queries/heroes";
 import { useWallet } from "../../../lib/queries/wallet";
 import { GameButton } from "../../game/GameUi";
+import { formatNumber } from "../../../lib/format";
 
 /** Іконка зброї за класом героя: окремого предмета-зброї немає, тож і арту за ключем теж. */
 const WEAPON_ICON: Record<string, string> = { warrior: "⚔️", knight: "🔱", archer: "🏹" };
@@ -119,7 +120,7 @@ export function WeaponDetails({ playerId, hero, config, items }: DetailsProps) {
               onClick={() => buyShards.mutate({ heroId: hero.id, count: missing })}
               disabled={busy || gems < shardPrice * missing}
             >
-              Докупити {missing} за {(shardPrice * missing).toLocaleString("uk-UA")} 💎
+              Докупити {missing} за {formatNumber(shardPrice * missing)} 💎
             </GameButton>
           )}
           {chests.length === 0 && shardPrice === null && (

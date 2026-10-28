@@ -2,6 +2,7 @@ import type { VillageResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { compactPower } from "../lib/queries/rating";
 import { ResourceGlyph } from "./shell/icons";
+import { formatNumber } from "../lib/format";
 
 interface Props {
   village: VillageResponse | undefined;
@@ -23,7 +24,7 @@ export default function ResourceBar({ village }: Props) {
         .map((resource) => (
           <span
             key={resource.resourceType}
-            title={`${catalog.resourceName(resource.resourceType)}: ${resource.amount.toLocaleString("uk-UA")}`}
+            title={`${catalog.resourceName(resource.resourceType)}: ${formatNumber(resource.amount)}`}
             className="flex items-center gap-1 rounded-full bg-black/30 py-0.5 pl-0.5 pr-3 text-sm font-semibold tabular-nums text-white ring-1 ring-white/15"
           >
             <ResourceGlyph resource={resource.resourceType} />

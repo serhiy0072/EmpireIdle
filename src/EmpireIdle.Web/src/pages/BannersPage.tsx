@@ -9,6 +9,7 @@ import type { BannerDropResult } from "../lib/apiTypes";
 import { MAX_ROLLS_PER_REQUEST, useBanners, useRollBanner } from "../lib/queries/banners";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
+import { formatNumber } from "../lib/format";
 
 /** Скільки випадів тримаємо в історії сесії. */
 const HISTORY_LIMIT = 50;
@@ -63,7 +64,7 @@ export default function BannersPage() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Банери</h1>
         <p className="text-sm text-slate-500">
-          💎 {gems.toLocaleString("uk-UA")}
+          💎 {formatNumber(gems)}
         </p>
       </div>
 
@@ -115,7 +116,7 @@ export default function BannersPage() {
           onClose={() => setShown(null)}
           pending={roll.isPending}
           again={{
-            label: `Ще ×${shown.count} · 💎 ${(shownBanner.priceGems * shown.count).toLocaleString("uk-UA")}`,
+            label: `Ще ×${shown.count} · 💎 ${formatNumber(shownBanner.priceGems * shown.count)}`,
             onClick: () => rollBanner(shown.bannerKey, shown.count),
             disabled: gems < shownBanner.priceGems * shown.count,
           }}

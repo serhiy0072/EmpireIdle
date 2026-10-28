@@ -13,6 +13,7 @@ import ErrorBanner from "../ErrorBanner";
 import { GameButton, RoleBadge, StarRow } from "../game/GameUi";
 import HeroPortrait from "../heroes/HeroPortrait";
 import { useHotkeys } from "../../hooks/useHotkeys";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   playerId: string;
@@ -177,11 +178,11 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
           <div className="flex items-center justify-between rounded-xl bg-[#1d3b6f] px-4 py-2 text-sm font-semibold ring-1 ring-[#335c9a]">
             <span title="Скільки військ іде з героями — з їхньої загальної місткості">
-              👥 {sent.toLocaleString("uk-UA")}/{capacity.toLocaleString("uk-UA")}
+              👥 {formatNumber(sent)}/{formatNumber(capacity)}
             </span>
             {forecast?.attackerPower != null && (
               <span title={forecast.targetPower == null ? undefined : `Сила цілі ${compactPower(forecast.targetPower)}`}>
-                ⚔ {Math.round(forecast.attackerPower).toLocaleString("uk-UA")}
+                ⚔ {formatNumber(Math.round(forecast.attackerPower))}
               </span>
             )}
           </div>
@@ -292,7 +293,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                             aria-label={`Скільки: ${catalog.unitName(stack.unitType)}`}
                             className="w-20 rounded-lg bg-slate-200 px-2 py-0.5 text-center tabular-nums"
                           />
-                          <span className="text-slate-500">/{stack.count.toLocaleString("uk-UA")}</span>
+                          <span className="text-slate-500">/{formatNumber(stack.count)}</span>
                         </span>
                       </div>
                       <div className="flex items-center gap-2">

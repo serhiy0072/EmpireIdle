@@ -3,13 +3,14 @@ import type { BattleReportResponse } from "../../lib/apiTypes";
 import { useBattleReports, useMarkReportRead } from "../../lib/queries/battleReports";
 import { useCatalog } from "../../lib/queries/catalog";
 import ErrorBanner from "../ErrorBanner";
+import { formatDateTime, formatNumber } from "../../lib/format";
 
 interface Props {
   playerId: string;
 }
 
 function when(value: string): string {
-  return new Date(value).toLocaleString("uk-UA", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  return formatDateTime(value, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
 /** Звіти боїв: непрочитані жирним, розгортання позначає прочитаним. */
@@ -70,7 +71,7 @@ export default function BattleReportList({ playerId }: Props) {
               </p>
               {report.heroExperience > 0 && (
                 <p className="text-xs font-medium text-amber-700">
-                  ⭐ Досвід героїв +{report.heroExperience.toLocaleString("uk-UA")}
+                  ⭐ Досвід героїв +{formatNumber(report.heroExperience)}
                 </p>
               )}
               <table className="w-full text-xs">

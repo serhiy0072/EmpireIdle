@@ -9,6 +9,7 @@ import { useSession } from "../hooks/useSession";
 import { FEED_ITEM, useBeastPen, useFindTameTarget } from "../lib/queries/beasts";
 import { useCatalog } from "../lib/queries/catalog";
 import { useInventory } from "../lib/queries/inventory";
+import { formatNumber } from "../lib/format";
 
 /**
  * Звіринець (GDD §5.10): приручені звірі й кого ще можна приручити. Годування й пасивка — на екрані
@@ -38,9 +39,9 @@ export default function BeastPenPage() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Звіринець</h1>
         <p className="text-sm text-slate-600">
-          Видів {pen.data.beasts.length} з {pen.data.capacity} · ласощів {feedLeft.toLocaleString("uk-UA")}
+          Видів {pen.data.beasts.length} з {pen.data.capacity} · ласощів {formatNumber(feedLeft)}
           {pen.data.fodderUpkeepPerHour > 0 && (
-            <> · їсть {pen.data.fodderUpkeepPerHour.toLocaleString("uk-UA")} корму/год</>
+            <> · їсть {formatNumber(pen.data.fodderUpkeepPerHour)} корму/год</>
           )}
         </p>
       </div>

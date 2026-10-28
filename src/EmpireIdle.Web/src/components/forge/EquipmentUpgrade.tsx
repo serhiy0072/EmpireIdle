@@ -4,6 +4,7 @@ import { useCatalog } from "../../lib/queries/catalog";
 import { useFeedArtifact, useInventory, useRaiseMastery, useRepairArtifact } from "../../lib/queries/inventory";
 import { useWallet } from "../../lib/queries/wallet";
 import ErrorBanner from "../ErrorBanner";
+import { formatNumber } from "../../lib/format";
 
 /** Скільки предметів сервер приймає за одне згодовування — FeedArtifactCommand.MaxFood. */
 const MAX_FOOD = 1_000;
@@ -159,7 +160,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
 
             {foodIds.length >= MAX_FOOD && (
               <p className="text-xs text-amber-700">
-                За раз можна згодувати до {MAX_FOOD.toLocaleString("uk-UA")} предметів — решту докладіть наступним разом.
+                За раз можна згодувати до {formatNumber(MAX_FOOD)} предметів — решту докладіть наступним разом.
               </p>
             )}
             <div className="max-h-48 space-y-1 overflow-y-auto">
@@ -299,7 +300,7 @@ export function EquipmentMastery({ playerId, selected }: Props) {
                 disabled={busy || (wallet.data?.gemBalance ?? 0) < repairGems}
                 className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
               >
-                Відремонтувати за {repairGems.toLocaleString("uk-UA")} 💎
+                Відремонтувати за {formatNumber(repairGems)} 💎
               </button>
               <button
                 type="button"
@@ -327,11 +328,11 @@ export function EquipmentMastery({ playerId, selected }: Props) {
             >
               {attempt === null
                 ? "Спробувати"
-                : `Спробувати за ${attempt.stones.toLocaleString("uk-UA")} 🪨 · шанс ${Math.round(attempt.chance * 100)}%`}
+                : `Спробувати за ${formatNumber(attempt.stones)} 🪨 · шанс ${Math.round(attempt.chance * 100)}%`}
             </button>
             <p className="text-xs text-slate-500">
-              {stoneName}: є {stones.toLocaleString("uk-UA")}
-              {attempt !== null && stones < attempt.stones && ` — бракує ${(attempt.stones - stones).toLocaleString("uk-UA")}`}.
+              {stoneName}: є {formatNumber(stones)}
+              {attempt !== null && stones < attempt.stones && ` — бракує ${formatNumber(attempt.stones - stones)}`}.
               {" "}Невдача з'їдає камені, майстерність не падає. Камені падають зі скринь і банерів.
             </p>
           </>

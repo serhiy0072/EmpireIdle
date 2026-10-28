@@ -9,6 +9,7 @@ import { useGarrison } from "../lib/queries/garrison";
 import { useVillage } from "../lib/queries/village";
 import { formatRemaining } from "../lib/time";
 import { roman } from "../lib/unitTiers";
+import { formatNumber } from "../lib/format";
 
 /**
  * Військо: увесь гарнізон в одному місці. Тренування й прокачка живуть у таборах — по одному
@@ -47,7 +48,7 @@ export default function ArmyPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-medium text-slate-800">Військо</h1>
-        <p className="text-sm text-slate-500">Разом у гарнізоні: {total.toLocaleString("uk-UA")}</p>
+        <p className="text-sm text-slate-500">Разом у гарнізоні: {formatNumber(total)}</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -68,7 +69,7 @@ export default function ArmyPage() {
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold">{catalog.buildingName(camp.type)}</span>
                 <span className="block text-xs text-sky-100">
-                  {unit?.displayName ?? "—"}: {owned.toLocaleString("uk-UA")}
+                  {unit?.displayName ?? "—"}: {formatNumber(owned)}
                 </span>
                 <span className="block text-xs text-lime-300">
                   {training === undefined
@@ -96,7 +97,7 @@ export default function ArmyPage() {
                 <span className="text-slate-800">
                   {catalog.unitName(unit.unitType)} {roman(unit.level)}
                 </span>
-                <span className="font-medium text-slate-700">{unit.count.toLocaleString("uk-UA")}</span>
+                <span className="font-medium text-slate-700">{formatNumber(unit.count)}</span>
               </div>
             ))}
           </div>

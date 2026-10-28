@@ -3,6 +3,7 @@ import { useCatalog } from "../../lib/queries/catalog";
 import { useInventory } from "../../lib/queries/inventory";
 import { MARKET_KIND, useListOnMarket, useMarketQuote, type MarketGoods } from "../../lib/queries/market";
 import ErrorBanner from "../ErrorBanner";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   playerId: string;
@@ -121,7 +122,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
         <>
           <label className="block text-sm">
             <span className="text-slate-600">
-              Ціна, золото (від {quote.data.minPrice.toLocaleString("uk-UA")} до {quote.data.maxPrice.toLocaleString("uk-UA")})
+              Ціна, золото (від {formatNumber(quote.data.minPrice)} до {formatNumber(quote.data.maxPrice)})
             </span>
             <input
               type="number"
@@ -134,7 +135,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
           </label>
 
           <p className="text-xs text-slate-500">
-            Податок за виставлення — {tax.toLocaleString("uk-UA")} 🪙, не повертається навіть якщо зняти лот.
+            Податок за виставлення — {formatNumber(tax)} 🪙, не повертається навіть якщо зняти лот.
           </p>
 
           <button

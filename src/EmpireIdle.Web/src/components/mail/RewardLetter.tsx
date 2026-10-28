@@ -1,5 +1,6 @@
 import type { MailLetterView, MailRewardView } from "../../lib/queries/mail";
 import type { Catalog } from "../../lib/queries/catalog";
+import { formatMoment, formatNumber } from "../../lib/format";
 
 interface Props {
   letter: MailLetterView;
@@ -16,13 +17,12 @@ const TITLES: Record<string, (letter: MailLetterView) => string> = {
   ServerQuestReward: () => "Нагорода світу за спільний квест",
 };
 
-const date = (iso: string) =>
-  new Date(iso).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const date = (iso: string) => formatMoment(iso);
 
 /** Рядок нагороди мовою гравця: gems, ресурс чи предмет. */
 function rewardLabel(reward: MailRewardView, catalog: Catalog): string {
   const type = reward.type.toLowerCase();
-  const amount = reward.amount.toLocaleString("uk-UA");
+  const amount = formatNumber(reward.amount);
 
   if (type === "gems") return `💎 ${amount}`;
   if (type === "resource" && reward.key != null) return `${catalog.resourceName(reward.key)} × ${amount}`;

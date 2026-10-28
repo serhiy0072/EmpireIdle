@@ -1,4 +1,5 @@
 import { useVillage } from "../lib/queries/village";
+import { formatNumber } from "../lib/format";
 
 /**
  * Їдальня (рішення 20.10.2026): селище щогодини їсть м'ясо — 15 за кожен рівень будівель із рівнями.
@@ -11,7 +12,7 @@ export default function MessHallPanel({ playerId }: { playerId: string }) {
   return (
     <div className="space-y-1 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">
       <p>
-        Селище з'їдає <span className="font-semibold">{meal.toLocaleString("uk-UA")} м'яса за годину</span> — що більше
+        Селище з'їдає <span className="font-semibold">{formatNumber(meal)} м'яса за годину</span> — що більше
         рівнів у будівель, то більше. Списується кожні 10 хвилин.
       </p>
       <p className="text-xs text-amber-800">

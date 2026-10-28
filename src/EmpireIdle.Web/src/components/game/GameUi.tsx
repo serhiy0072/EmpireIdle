@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useTabHotkeys } from "../../hooks/useHotkeys";
 import { rarityKey } from "../../lib/rarity";
+import { formatNumber } from "../../lib/format";
 
 /**
  * Ігрова «шкірка» екранів героя, рюкзака й табору (рішення 08.10.2026): темно-синє тло,
@@ -123,7 +124,7 @@ export function Tile({ rarity, children, count, top, corner, bottom, bottomLeft,
       {bottomLeft !== undefined && <span className="absolute bottom-0.5 left-0.5">{bottomLeft}</span>}
       {(bottomRight !== undefined || count !== undefined) && (
         <span className="absolute bottom-0.5 right-1 text-xs font-bold text-white [text-shadow:0_1px_2px_#000]">
-          {bottomRight ?? count?.toLocaleString("uk-UA")}
+          {bottomRight ?? (count !== undefined && formatNumber(count))}
         </span>
       )}
     </button>

@@ -1,6 +1,7 @@
 import type { BannerView } from "../../lib/apiTypes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { formatRemaining } from "../../lib/time";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   banner: BannerView;
@@ -101,7 +102,7 @@ export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }
           disabled={busy || !canPaySeries}
           className="rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
         >
-          ×{maxRolls} · {(unit * maxRolls).toLocaleString("uk-UA")} {icon}
+          ×{maxRolls} · {formatNumber(unit * maxRolls)} {icon}
         </button>
       </div>
     </div>

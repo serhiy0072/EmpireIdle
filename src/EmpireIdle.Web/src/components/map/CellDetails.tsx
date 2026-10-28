@@ -17,6 +17,7 @@ import { terrainLabel } from "../../lib/terrain";
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 import StructureActions from "./StructureActions";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   playerId: string;
@@ -101,7 +102,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
         <div className="space-y-1 text-sm">
           <p className="text-slate-700">
             Рівень {cell.monsterLevel ?? "?"}
-            {cell.monsterPower != null && <span className="ml-2 font-medium">⚔ {Math.round(cell.monsterPower).toLocaleString("uk-UA")}</span>}
+            {cell.monsterPower != null && <span className="ml-2 font-medium">⚔ {formatNumber(Math.round(cell.monsterPower))}</span>}
           </p>
           {cell.monsterUnits !== null && cell.monsterUnits !== undefined && (
             <ul className="text-slate-600">
@@ -203,8 +204,8 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
         <div className="space-y-2 rounded-lg bg-slate-50 p-3 text-sm">
           <ErrorBanner error={place.error} />
           <p className="text-slate-600">
-            Споруда клану: {territory.structureCost.toLocaleString("uk-UA")} очок вкладу (є{" "}
-            {territory.points.toLocaleString("uk-UA")}) · вільних слотів {Math.max(slotsLeft, 0)}
+            Споруда клану: {formatNumber(territory.structureCost)} очок вкладу (є{" "}
+            {formatNumber(territory.points)}) · вільних слотів {Math.max(slotsLeft, 0)}
           </p>
           <button
             type="button"

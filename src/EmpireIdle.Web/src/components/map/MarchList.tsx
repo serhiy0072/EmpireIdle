@@ -5,6 +5,7 @@ import { MARCH_INTENT, MARCH_STATE, MARCH_TARGET, useRecallCamp, useSpeedUpMarch
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 import SpeedUpItemsButton from "../SpeedUpItemsButton";
+import { formatNumber } from "../../lib/format";
 
 interface Props {
   playerId: string;
@@ -53,7 +54,7 @@ export default function MarchList({ playerId, marches }: Props) {
                 {march.units
                   .map((unit) => `${catalog.unitName(unit.unitType)} ×${unit.count}`)
                   .join(", ")}{" "}
-                · разом {total.toLocaleString("uk-UA")}
+                · разом {formatNumber(total)}
               </p>
             </div>
 

@@ -14,6 +14,7 @@ import {
   type AnnouncementView,
   type MailLetterView,
 } from "../lib/queries/mail";
+import { formatMoment } from "../lib/format";
 
 const ANNOUNCEMENT_LABELS: Record<string, string> = {
   News: "Новина",
@@ -29,8 +30,7 @@ const INVITE_STATES: Record<string, string> = {
   Gone: "Клан розпущено",
 };
 
-const date = (iso: string) =>
-  new Date(iso).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const date = (iso: string) => formatMoment(iso);
 
 const unreadDot = <span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-label="непрочитане" />;
 

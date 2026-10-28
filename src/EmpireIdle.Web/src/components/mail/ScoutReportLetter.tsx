@@ -2,14 +2,14 @@ import type { MailLetterView } from "../../lib/queries/mail";
 import { useCatalog } from "../../lib/queries/catalog";
 import { MARCH_TARGET } from "../../lib/queries/marches";
 import { SCOUT_OUTCOMES } from "../../lib/queries/scouting";
+import { formatMoment, formatNumber } from "../../lib/format";
 
 interface Props {
   letter: MailLetterView;
   onOpen: () => void;
 }
 
-const date = (iso: string) =>
-  new Date(iso).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const date = (iso: string) => formatMoment(iso);
 
 /**
  * Лист зі звітом розвідки: сила оборони з усіма бонусами й що можна винести.
@@ -42,7 +42,7 @@ export default function ScoutReportLetter({ letter, onOpen }: Props) {
         <>
           <p className="text-sm text-slate-700">
             Сила оборони:{" "}
-            <span className="font-medium">{Math.round(report.defencePower ?? 0).toLocaleString("uk-UA")}</span>
+            <span className="font-medium">{formatNumber(Math.round(report.defencePower ?? 0))}</span>
             <span className="text-xs text-slate-500"> (з усіма бонусами)</span>
           </p>
           {report.targetType === MARCH_TARGET.village && (
@@ -50,7 +50,7 @@ export default function ScoutReportLetter({ letter, onOpen }: Props) {
               Можна винести:{" "}
               {loot.length === 0
                 ? "нічого"
-                : loot.map(([key, amount]) => `${catalog.resourceName(key)} ${amount.toLocaleString("uk-UA")}`).join(", ")}
+                : loot.map(([key, amount]) => `${catalog.resourceName(key)} ${formatNumber(amount)}`).join(", ")}
             </p>
           )}
         </>

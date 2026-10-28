@@ -3,6 +3,7 @@ import { formatRemaining } from "../../lib/time";
 import { GameButton } from "../game/GameUi";
 import { beastArtUrl } from "./beastArt";
 import { passiveLine } from "./beastText";
+import { formatNumber } from "../../lib/format";
 
 interface FeedProps {
   beast: BeastResponse;
@@ -45,7 +46,7 @@ export function BeastFeedPanel({ beast, feedLeft, busy, onFeed }: FeedProps) {
           <p className="text-xs text-sky-200/80">
             {capped
               ? "Стеля рангу: далі веде лише ще один такий самий звір"
-              : `До наступного рівня — ${toNext.toLocaleString("uk-UA")} ласощів · у рюкзаку ${feedLeft.toLocaleString("uk-UA")}`}
+              : `До наступного рівня — ${formatNumber(toNext)} ласощів · у рюкзаку ${formatNumber(feedLeft)}`}
           </p>
         </div>
       </div>
@@ -58,7 +59,7 @@ export function BeastFeedPanel({ beast, feedLeft, busy, onFeed }: FeedProps) {
               onClick={() => onFeed(option.count)}
               disabled={busy || option.count < 1 || feedLeft < option.count}
               variant="accent"
-              title={`${option.count.toLocaleString("uk-UA")} ласощів`}
+              title={`${formatNumber(option.count)} ласощів`}
             >
               {option.label}
             </GameButton>
@@ -93,7 +94,7 @@ export function BeastPassivePanel({ beast, now, busy, onActivate }: PassiveProps
         <span className="text-sky-200/80">Відпочиває ще {formatRemaining(passive.cooldownUntil!, now)}</span>
       ) : (
         <GameButton onClick={onActivate} disabled={busy}>
-          Активувати за {passive.activationFodder.toLocaleString("uk-UA")} корму
+          Активувати за {formatNumber(passive.activationFodder)} корму
         </GameButton>
       )}
     </div>
