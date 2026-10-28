@@ -1,12 +1,48 @@
 {
+  "language": "Language",
   "shell": {
     "home": "To the village",
     "shield": "🛡 until {{until}}",
     "shieldHint": "Shield after your town fell: no one can attack you. Attacking a player removes it.",
     "settings": "Settings",
-    "language": "Language",
     "seed": "Seed",
     "seeding": "Seeding…",
     "logout": "Log out"
+  },
+  "auth": {
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password"
+  },
+  "login": {
+    "title": "Sign in to EmpireIdle",
+    "passwordPlaceholder": "Enter your password",
+    "remember": "Remember me",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "noAccount": "No account yet?",
+    "register": "Sign up"
+  },
+  "register": {
+    "title": "Join EmpireIdle",
+    "userName": "Name",
+    "userNamePlaceholder": "What should we call you",
+    "confirm": "Repeat the password",
+    "mismatch": "The passwords don't match",
+    "incomplete": "Fill in every field and meet the name and password requirements.",
+    "submit": "Create account",
+    "submitting": "Creating…",
+    "haveAccount": "Already have an account?",
+    "login": "Sign in",
+    "userNameRules": {
+      "length": "3 to 50 characters",
+      "charset": "Latin letters, digits, dot, hyphen or underscore"
+    },
+    "passwordRules": {
+      "length": "At least 8 characters",
+      "digit": "At least one digit",
+      "lower": "At least one lowercase letter",
+      "upper": "At least one uppercase letter"
+    }
   }
 }

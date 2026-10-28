@@ -139,7 +139,7 @@ export default function AppLayout() {
                       value={accountLanguage ?? language}
                       onChange={(event) => changeLanguage.mutate(event.target.value)}
                       disabled={changeLanguage.isPending}
-                      aria-label={t("shell.language")}
+                      aria-label={t("language")}
                       className="w-full rounded-lg bg-white px-2 py-1 text-sm text-slate-700"
                     >
                       {settings.data?.languages.map((code) => (

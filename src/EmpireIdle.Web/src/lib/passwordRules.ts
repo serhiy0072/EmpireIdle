@@ -7,15 +7,16 @@
  * правити треба обидва боки.
  */
 export interface PasswordRule {
-  label: string;
+  /** Ключ підпису в `register.passwordRules`. */
+  key: "length" | "digit" | "lower" | "upper";
   passed: (password: string) => boolean;
 }
 
 export const passwordRules: PasswordRule[] = [
-  { label: "Щонайменше 8 символів", passed: (value) => value.length >= 8 },
-  { label: "Хоча б одна цифра", passed: (value) => /\d/.test(value) },
-  { label: "Хоча б одна мала літера", passed: (value) => /[a-zа-яіїєґ]/.test(value) },
-  { label: "Хоча б одна велика літера", passed: (value) => /[A-ZА-ЯІЇЄҐ]/.test(value) },
+  { key: "length", passed: (value) => value.length >= 8 },
+  { key: "digit", passed: (value) => /\d/.test(value) },
+  { key: "lower", passed: (value) => /[a-zа-яіїєґ]/.test(value) },
+  { key: "upper", passed: (value) => /[A-ZА-ЯІЇЄҐ]/.test(value) },
 ];
 
 export function passwordIsValid(password: string): boolean {

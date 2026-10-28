@@ -1,12 +1,48 @@
 {
+  "language": "Мова",
   "shell": {
     "home": "У село",
     "shield": "🛡 до {{until}}",
     "shieldHint": "Щит після падіння міста: вас не можуть атакувати. Ваш напад на гравця його знімає.",
     "settings": "Налаштування",
-    "language": "Мова",
     "seed": "Сід",
     "seeding": "Наливаємо…",
     "logout": "Вийти"
+  },
+  "auth": {
+    "email": "Email",
+    "emailPlaceholder": "Введіть ваш email",
+    "password": "Пароль"
+  },
+  "login": {
+    "title": "Вхід в EmpireIdle",
+    "passwordPlaceholder": "Введіть ваш пароль",
+    "remember": "Запам'ятати мене",
+    "submit": "Вхід",
+    "submitting": "Входимо…",
+    "noAccount": "Немає акаунта?",
+    "register": "Зареєструватись"
+  },
+  "register": {
+    "title": "Реєстрація в EmpireIdle",
+    "userName": "Ім'я",
+    "userNamePlaceholder": "Як вас називати",
+    "confirm": "Повторіть пароль",
+    "mismatch": "Паролі не збігаються",
+    "incomplete": "Заповніть усі поля й виконайте вимоги до імені та пароля.",
+    "submit": "Створити акаунт",
+    "submitting": "Створюємо…",
+    "haveAccount": "Уже маєте акаунт?",
+    "login": "Увійти",
+    "userNameRules": {
+      "length": "Від 3 до 50 символів",
+      "charset": "Латинські літери, цифри, крапка, дефіс або підкреслення"
+    },
+    "passwordRules": {
+      "length": "Щонайменше 8 символів",
+      "digit": "Хоча б одна цифра",
+      "lower": "Хоча б одна мала літера",
+      "upper": "Хоча б одна велика літера"
+    }
   }
 }
