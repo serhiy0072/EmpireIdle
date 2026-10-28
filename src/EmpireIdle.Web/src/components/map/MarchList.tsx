@@ -6,6 +6,7 @@ import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 import SpeedUpItemsButton from "../SpeedUpItemsButton";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -20,7 +21,7 @@ export default function MarchList({ playerId, marches }: Props) {
   const recall = useRecallCamp(playerId);
 
   if (marches.length === 0) {
-    return <p className="text-sm text-slate-500">Армія вдома — походів немає.</p>;
+    return <p className="text-sm text-slate-500">{t("map:marches.none")}</p>;
   }
 
   return (
@@ -31,22 +32,23 @@ export default function MarchList({ playerId, marches }: Props) {
         const returning = march.state === MARCH_STATE.returning;
         const camping = march.state === MARCH_STATE.camping;
         const total = march.units.reduce((sum, unit) => sum + unit.count, 0);
-        const level = march.targetLevel != null ? ` (рів. ${march.targetLevel})` : "";
+        const level = march.targetLevel != null ? ` ${t("map:level", { level: march.targetLevel })}` : "";
         const place = march.targetName != null ? `${march.targetName}${level}` : `(${march.targetX}, ${march.targetY})`;
-        const target = march.targetType === MARCH_TARGET.clanStructure ? `споруду клану ${place}` : place;
+        const target = march.targetType === MARCH_TARGET.clanStructure ? t("map:marches.structure", { place }) : place;
 
         return (
           <div key={march.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 text-sm">
             <div>
               <p className="text-slate-800">
                 {camping ? (
-                  <>
-                    Табір на ({march.targetX}, {march.targetY}) — {target} переїхало
-                  </>
+                  <>{t("map:marches.camp", { x: march.targetX, y: march.targetY, target })}</>
                 ) : (
                   <>
-                    {returning ? "Повертається з" : march.intent === MARCH_INTENT.scout ? "Розвідники йдуть на" : "Іде на"}{" "}
-                    {target}
+                    {returning
+                      ? t("map:marches.returning", { target })
+                      : march.intent === MARCH_INTENT.scout
+                        ? t("map:marches.scouting", { target })
+                        : t("map:marches.going", { target })}
                   </>
                 )}
               </p>
@@ -54,7 +56,7 @@ export default function MarchList({ playerId, marches }: Props) {
                 {march.units
                   .map((unit) => `${catalog.unitName(unit.unitType)} ×${unit.count}`)
                   .join(", ")}{" "}
-                · разом {formatNumber(total)}
+                {t("map:marches.total", { count: formatNumber(total) })}
               </p>
             </div>
 
@@ -65,7 +67,7 @@ export default function MarchList({ playerId, marches }: Props) {
                 disabled={recall.isPending}
                 className="rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-white disabled:opacity-50"
               >
-                Відкликати
+                {t("map:marches.recall")}
               </button>
             ) : (
               <div className="flex flex-col items-end gap-1">
@@ -82,7 +84,7 @@ export default function MarchList({ playerId, marches }: Props) {
                         type="button"
                         onClick={() => speedUp.mutate({ marchId: march.id, percent: option.percent })}
                         disabled={speedUp.isPending}
-                        title={`Зрізати ${option.percent}% залишку дороги за ${option.gems} 💎`}
+                        title={t("map:marches.speedUp", { percent: option.percent, gems: option.gems })}
                         className="rounded-lg bg-gradient-to-b from-sky-400 to-blue-600 px-1.5 py-0.5 text-[11px] font-semibold text-white shadow hover:brightness-110 disabled:opacity-50"
                       >
                         −{option.percent}% · {option.gems}💎

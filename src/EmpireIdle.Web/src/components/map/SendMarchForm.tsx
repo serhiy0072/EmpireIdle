@@ -14,6 +14,7 @@ import { GameButton, RoleBadge, StarRow } from "../game/GameUi";
 import HeroPortrait from "../heroes/HeroPortrait";
 import { useHotkeys } from "../../hooks/useHotkeys";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -23,10 +24,10 @@ interface Props {
 }
 
 /** Прогноз бою одним рядком під героями, як на референсі. */
-const VERDICT_LINES: Record<number, { text: string; className: string }> = {
-  0: { text: "Цілком імовірно, що ви переможете", className: "text-emerald-300" },
-  1: { text: "Перемога можлива, але не певна", className: "text-amber-300" },
-  2: { text: "Цей бій не виграти", className: "text-rose-300" },
+const VERDICT_LINES: Record<number, { text: "likely" | "possible" | "hopeless"; className: string }> = {
+  0: { text: "likely", className: "text-emerald-300" },
+  1: { text: "possible", className: "text-amber-300" },
+  2: { text: "hopeless", className: "text-rose-300" },
 };
 
 /**
@@ -153,7 +154,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
   const forecast = previewKey !== null && preview.data !== undefined ? preview.data : null;
   const verdict = forecast === null ? null : (VERDICT_LINES[forecast.verdict] ?? null);
-  const title = reinforce ? "Підкріплення" : tame ? "Приручення" : "Ціль";
+  const title = reinforce ? t("map:march.reinforce") : tame ? t("map:march.tame") : t("map:march.target");
 
   // Співвідношення ролей у загоні — як унизу референса
   const shares = leaders.map((hero) => {
@@ -167,7 +168,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
     <div role="dialog" aria-modal="true" aria-label={`${title}: ${target.name}`} className="fixed inset-0 z-50 flex justify-center bg-slate-950/70">
       <div className="flex h-full w-full max-w-xl flex-col bg-gradient-to-b from-[#24467f] to-[#16305e] text-white shadow-2xl">
         <header className="flex items-center gap-3 px-4 py-3">
-          <button type="button" aria-label="Назад" onClick={onCancel} className="text-3xl font-bold text-sky-200 hover:text-white">
+          <button type="button" aria-label={t("map:march.back")} onClick={onCancel} className="text-3xl font-bold text-sky-200 hover:text-white">
             ←
           </button>
           <h2 className="min-w-0 flex-1 truncate text-xl font-semibold [text-shadow:0_1px_2px_#0008]">
@@ -177,11 +178,11 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
           <div className="flex items-center justify-between rounded-xl bg-[#1d3b6f] px-4 py-2 text-sm font-semibold ring-1 ring-[#335c9a]">
-            <span title="Скільки військ іде з героями — з їхньої загальної місткості">
+            <span title={t("map:march.capacityHint")}>
               👥 {formatNumber(sent)}/{formatNumber(capacity)}
             </span>
             {forecast?.attackerPower != null && (
-              <span title={forecast.targetPower == null ? undefined : `Сила цілі ${compactPower(forecast.targetPower)}`}>
+              <span title={forecast.targetPower == null ? undefined : t("map:march.targetPower", { power: compactPower(forecast.targetPower) })}>
                 ⚔ {formatNumber(Math.round(forecast.attackerPower))}
               </span>
             )}
@@ -191,18 +192,17 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
           {reinforce && (
             <p className="rounded-lg bg-emerald-900/50 px-3 py-2 text-sm text-emerald-100 ring-1 ring-emerald-400/40">
-              Військо стане гарнізоном споруди, а поки вона будується — прискорить будівництво: сильніший загін дає більше.
+              {t("map:march.reinforceHint")}
             </p>
           )}
           {tame && (
             <p className="rounded-lg bg-amber-900/50 px-3 py-2 text-sm text-amber-100 ring-1 ring-amber-400/40">
-              Бій як звичайний. Перемога з шансом дасть звіра в звіринець замість здобичі; не вдасться — заберете здобич, а
-              гарантія наблизиться.
+              {t("map:march.tameHint")}
             </p>
           )}
           {losesShield && (
             <p className="rounded-lg bg-amber-900/50 px-3 py-2 text-sm text-amber-100 ring-1 ring-amber-400/40">
-              Напад на гравця зніме ваш щит після падіння міста.
+              {t("map:march.losesShield")}
             </p>
           )}
 
@@ -218,7 +218,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                   onClick={() => setPicking(true)}
                   disabled={idleHeroes.length <= leaders.length}
                   className="flex aspect-[3/4] items-center justify-center rounded-xl bg-[#335c9a]/60 text-5xl font-bold text-white/90 ring-1 ring-[#5b85c4] hover:bg-[#335c9a] disabled:opacity-40"
-                  aria-label="Додати героя"
+                  aria-label={t("map:march.addHero")}
                 >
                   +
                 </button>
@@ -235,14 +235,14 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                   </span>
                   <button
                     type="button"
-                    aria-label="Прибрати героя"
+                    aria-label={t("map:march.removeHero")}
                     onClick={() => setPicked(chosen.filter((id) => id !== hero.id))}
                     className="absolute right-1 top-1 h-7 w-7 rounded-full bg-rose-500 text-lg font-bold leading-6 text-white ring-2 ring-white hover:bg-rose-400"
                   >
                     −
                   </button>
                   <div className="bg-black/30 px-2 py-1">
-                    <p className="text-sm font-bold [text-shadow:0_1px_1px_#000]">Рів. {hero.effectiveLevel}</p>
+                    <p className="text-sm font-bold [text-shadow:0_1px_1px_#000]">{t("heroes:gear.level", { level: hero.effectiveLevel })}</p>
                     <StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={12} />
                   </div>
                 </div>
@@ -252,18 +252,18 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
           {verdict !== null && (
             <p className={`text-center text-base font-semibold ${verdict.className} ${preview.isPending ? "opacity-60" : ""}`}>
-              {verdict.text}
-              {forecast?.verdict === 1 && ` · шанс ${Math.round(forecast.winChance * 100)}%`}
+              {t(`map:march.verdict.${verdict.text}`)}
+              {forecast?.verdict === 1 && ` · ${t("map:march.chance", { chance: Math.round(forecast.winChance * 100) })}`}
             </p>
           )}
 
           {leaders.length === 0 ? (
             <p className="rounded-xl bg-[#1d3b6f] px-4 py-6 text-center text-sm text-sky-100 ring-1 ring-[#335c9a]">
-              {idleHeroes.length === 0 ? "Немає вільного героя: кожен похід веде герой, що вдома." : "Додайте героя: військо йде лише з героєм."}
+              {idleHeroes.length === 0 ? t("map:march.noIdleHero") : t("map:march.addHeroHint")}
             </p>
           ) : stacks.length === 0 ? (
             <p className="rounded-xl bg-[#1d3b6f] px-4 py-6 text-center text-sm text-sky-100 ring-1 ring-[#335c9a]">
-              У гарнізоні немає юнітів ролей обраних героїв — кожен герой веде лише своїх.
+              {t("map:march.noUnits")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -281,7 +281,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                     <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate text-sm text-slate-600">
-                          {catalog.unitName(stack.unitType)} · рів. {stack.level}
+                          {t("map:march.stack", { unit: catalog.unitName(stack.unitType), level: stack.level })}
                         </span>
                         <span className="flex items-center gap-1 text-sm font-semibold">
                           <input
@@ -290,7 +290,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                             max={max}
                             value={value}
                             onChange={(event) => set(Number(event.target.value))}
-                            aria-label={`Скільки: ${catalog.unitName(stack.unitType)}`}
+                            aria-label={t("map:march.howMany", { unit: catalog.unitName(stack.unitType) })}
                             className="w-20 rounded-lg bg-slate-200 px-2 py-0.5 text-center tabular-nums"
                           />
                           <span className="text-slate-500">/{formatNumber(stack.count)}</span>
@@ -301,7 +301,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                           type="button"
                           onClick={() => set(value - 1)}
                           className="h-8 w-8 shrink-0 rounded-lg bg-gradient-to-b from-sky-400 to-blue-600 text-xl font-bold leading-none text-white shadow"
-                          aria-label="Менше"
+                          aria-label={t("map:march.less")}
                         >
                           −
                         </button>
@@ -312,13 +312,13 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
                           value={value}
                           onChange={(event) => set(Number(event.target.value))}
                           className="h-2 min-w-0 flex-1 cursor-pointer accent-emerald-500"
-                          aria-label={`Повзунок: ${catalog.unitName(stack.unitType)}`}
+                          aria-label={t("map:march.slider", { unit: catalog.unitName(stack.unitType) })}
                         />
                         <button
                           type="button"
                           onClick={() => set(value + 1)}
                           className="h-8 w-8 shrink-0 rounded-lg bg-gradient-to-b from-sky-400 to-blue-600 text-xl font-bold leading-none text-white shadow"
-                          aria-label="Більше"
+                          aria-label={t("map:march.more")}
                         >
                           +
                         </button>
@@ -333,7 +333,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
         {shares.length > 0 && (
           <div className="flex items-center justify-around border-t border-[#335c9a] bg-[#16305e] px-4 py-2 text-sm">
-            <span className="text-sky-200">Співвідношення військ:</span>
+            <span className="text-sky-200">{t("map:march.shares")}</span>
             {shares.map(({ hero, share }) => (
               <span key={hero.id} className="flex items-center gap-1 font-semibold">
                 <RoleBadge role={hero.unitType ?? undefined} size={20} />
@@ -345,19 +345,19 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
 
         <footer className="flex items-center gap-2 border-t-2 border-[#5b85c4] bg-gradient-to-b from-[#1d3b6f] to-[#0f2147] px-3 py-3">
           <GameButton onClick={() => setCounts({})} variant="secondary" disabled={sent === 0}>
-            Зняти всіх
+            {t("map:march.clearAll")}
           </GameButton>
           <GameButton onClick={fillEven} variant="secondary" disabled={stacks.length === 0}>
-            Порівну
+            {t("map:march.even")}
           </GameButton>
           <GameButton onClick={fillMax} variant="secondary" disabled={stacks.length === 0}>
-            Максимум
+            {t("map:march.max")}
           </GameButton>
           <div className="ml-auto flex flex-col items-center gap-1">
             {forecast !== null && <span className="font-mono text-xs text-sky-100">⏱ {formatDuration(parseTimeSpan(forecast.travelTime))}</span>}
             <span data-tutorial="send-march">
               <GameButton onClick={() => send.mutate(request(), { onSuccess: onSent })} disabled={!ready || send.isPending}>
-                {send.isPending ? "Відправляємо…" : "Відправити"}
+                {send.isPending ? t("map:cell.sending") : t("map:march.send")}
               </GameButton>
             </span>
           </div>
@@ -411,8 +411,8 @@ function HeroPicker({
         className="flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-sky-50 text-slate-800 shadow-2xl ring-2 ring-sky-300"
       >
         <div className="flex items-center bg-gradient-to-b from-sky-500 to-sky-600 px-4 py-2 text-white">
-          <h3 className="flex-1 text-center text-lg font-semibold">Обрати героїв</h3>
-          <button type="button" aria-label="Закрити" onClick={onClose} className="text-xl font-bold hover:text-sky-100">
+          <h3 className="flex-1 text-center text-lg font-semibold">{t("map:march.pickHeroes")}</h3>
+          <button type="button" aria-label={t("map:march.close")} onClick={onClose} className="text-xl font-bold hover:text-sky-100">
             ✕
           </button>
         </div>
@@ -438,13 +438,13 @@ function HeroPicker({
                     <RoleBadge role={hero.unitType ?? undefined} size={20} />
                   </span>
                   <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={72} />
-                  <span className="text-xs font-bold [text-shadow:0_1px_1px_#000]">Рів. {hero.effectiveLevel}</span>
+                  <span className="text-xs font-bold [text-shadow:0_1px_1px_#000]">{t("heroes:gear.level", { level: hero.effectiveLevel })}</span>
                 </button>
               );
             })}
           </div>
 
-          <p className="text-xs text-slate-500">Від найсильнішого · по одному герою на роль</p>
+          <p className="text-xs text-slate-500">{t("map:march.pickHint")}</p>
           <div className="grid grid-cols-4 gap-2">
             {heroes.map((hero) => {
               const config = catalog.hero(hero.heroKey);
@@ -457,7 +457,7 @@ function HeroPicker({
                   type="button"
                   onClick={() => toggle(hero)}
                   disabled={blocked}
-                  title={`${catalog.heroName(hero.heroKey)} · ⚔ ${compactPower(hero.power)}${hero.isDefender ? " · боронить село" : ""}`}
+                  title={`${catalog.heroName(hero.heroKey)} · ⚔ ${compactPower(hero.power)}${hero.isDefender ? ` · ${t("map:march.defender")}` : ""}`}
                   className={`relative flex flex-col items-center rounded-lg bg-white p-1 ring-2 disabled:opacity-40 ${
                     on ? "ring-amber-400" : "ring-sky-200 hover:ring-sky-400"
                   }`}
@@ -466,7 +466,7 @@ function HeroPicker({
                     <RoleBadge role={hero.unitType ?? undefined} size={16} />
                   </span>
                   <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={52} />
-                  <span className="text-[11px] font-semibold">Рів. {hero.effectiveLevel}</span>
+                  <span className="text-[11px] font-semibold">{t("heroes:gear.level", { level: hero.effectiveLevel })}</span>
                   <StarRow starParts={hero.starParts} partsPerStar={catalog.partsPerStar} maxStars={catalog.maxStars} size={9} />
                 </button>
               );
@@ -476,9 +476,9 @@ function HeroPicker({
 
         <div className="grid grid-cols-2 gap-3 border-t border-sky-200 p-4">
           <GameButton onClick={() => setDraft([])} variant="secondary" disabled={draft.length === 0}>
-            Очистити
+            {t("map:march.clear")}
           </GameButton>
-          <GameButton onClick={() => onAssign(draft)}>Призначити</GameButton>
+          <GameButton onClick={() => onAssign(draft)}>{t("map:march.assign")}</GameButton>
         </div>
       </div>
     </div>

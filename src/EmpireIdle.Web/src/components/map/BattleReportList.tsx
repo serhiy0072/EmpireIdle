@@ -4,6 +4,7 @@ import { useBattleReports, useMarkReportRead } from "../../lib/queries/battleRep
 import { useCatalog } from "../../lib/queries/catalog";
 import ErrorBanner from "../ErrorBanner";
 import { formatDateTime, formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -21,7 +22,7 @@ export default function BattleReportList({ playerId }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
 
   if (reports.isPending) {
-    return <p className="text-sm text-slate-500">Завантаження звітів…</p>;
+    return <p className="text-sm text-slate-500">{t("map:reports.loading")}</p>;
   }
 
   if (reports.isError) {
@@ -29,7 +30,7 @@ export default function BattleReportList({ playerId }: Props) {
   }
 
   if (reports.data.length === 0) {
-    return <p className="text-sm text-slate-500">Боїв ще не було.</p>;
+    return <p className="text-sm text-slate-500">{t("map:reports.none")}</p>;
   }
 
   const open = (report: BattleReportResponse) => {
@@ -48,9 +49,9 @@ export default function BattleReportList({ playerId }: Props) {
             className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm"
           >
             <span className={report.isRead ? "text-slate-700" : "font-semibold text-slate-900"}>
-              {report.won ? "Перемога" : "Поразка"} · {report.targetName}
-              {report.targetLevel > 0 && ` (рів. ${report.targetLevel})`}
-              {report.tamedBeastKey != null && ` · приручено: ${catalog.beastName(report.tamedBeastKey)}`}
+              {report.won ? t("map:reports.victory") : t("map:reports.defeat")} · {report.targetName}
+              {report.targetLevel > 0 && ` ${t("map:level", { level: report.targetLevel })}`}
+              {report.tamedBeastKey != null && ` · ${t("map:reports.tamed", { beast: catalog.beastName(report.tamedBeastKey) })}`}
             </span>
             <span className="flex items-center gap-2 text-xs text-slate-500">
               <span
@@ -66,23 +67,27 @@ export default function BattleReportList({ playerId }: Props) {
           {openId === report.id && (
             <div className="space-y-2 border-t border-slate-100 px-3 py-2 text-sm">
               <p className="text-xs text-slate-500">
-                ({report.x}, {report.y}) · сила {Math.round(report.attackerPower)} проти{" "}
-                {Math.round(report.defenderPower)}
+                {t("map:reports.powers", {
+                  x: report.x,
+                  y: report.y,
+                  attacker: Math.round(report.attackerPower),
+                  defender: Math.round(report.defenderPower),
+                })}
               </p>
               {report.heroExperience > 0 && (
                 <p className="text-xs font-medium text-amber-700">
-                  ⭐ Досвід героїв +{formatNumber(report.heroExperience)}
+                  {t("map:reports.heroExperience", { amount: formatNumber(report.heroExperience) })}
                 </p>
               )}
               <table className="w-full text-xs">
                 <thead className="text-slate-500">
                   <tr>
-                    <th className="text-left font-medium">Юніт</th>
-                    <th className="text-right font-medium">Пішло</th>
-                    <th className="text-right font-medium">Вціліло</th>
-                    <th className="text-right font-medium">Поранено</th>
-                    <th className="text-right font-medium">До викупу</th>
-                    <th className="text-right font-medium">Загинуло</th>
+                    <th className="text-left font-medium">{t("map:reports.unit")}</th>
+                    <th className="text-right font-medium">{t("map:reports.sent")}</th>
+                    <th className="text-right font-medium">{t("map:reports.survived")}</th>
+                    <th className="text-right font-medium">{t("map:reports.wounded")}</th>
+                    <th className="text-right font-medium">{t("map:reports.recoverable")}</th>
+                    <th className="text-right font-medium">{t("map:reports.dead")}</th>
                   </tr>
                 </thead>
                 <tbody>

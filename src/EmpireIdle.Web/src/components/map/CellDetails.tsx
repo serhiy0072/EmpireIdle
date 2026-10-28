@@ -18,6 +18,7 @@ import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 import StructureActions from "./StructureActions";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -63,11 +64,12 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
       : null;
   const ownStructure =
     occupant === "ClanStructure" ? (territory?.structures.find((s) => s.id === cell.occupantId) ?? null) : null;
-  const structureName = `Споруда клану${cell.occupantName == null ? "" : ` [${cell.occupantName}]`}`;
+  const structureName =
+    cell.occupantName == null ? t("map:cell.structure") : t("map:cell.namedStructure", { name: cell.occupantName });
   const name =
     occupant === "ClanStructure"
       ? structureName
-      : (cell.occupantName ?? (occupant === "Monster" ? "Монстр" : occupant === "Village" ? "Село" : ""));
+      : (cell.occupantName ?? (occupant === "Monster" ? t("map:cell.monster") : occupant === "Village" ? t("map:cell.village") : ""));
   const targetType: MarchTargetType | null =
     occupant === "Monster"
       ? MARCH_TARGET.monster
@@ -86,7 +88,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
     <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="font-medium text-slate-800">
-          {isHome ? "Ваше село" : occupant === null ? terrainLabel(cell.terrainType) : name}
+          {isHome ? t("map:cell.home") : occupant === null ? terrainLabel(cell.terrainType) : name}
         </h3>
         <span className="text-xs text-slate-500">
           ({cell.x}, {cell.y})
@@ -94,14 +96,14 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
       </div>
 
       <p className="text-sm text-slate-600">
-        {terrainLabel(cell.terrainType)} · хід ×{cell.moveCost}
-        {!cell.passable && " · непрохідна"}
+        {t("map:cell.terrain", { terrain: terrainLabel(cell.terrainType), cost: cell.moveCost })}
+        {!cell.passable && ` · ${t("map:cell.impassable")}`}
       </p>
 
       {occupant === "Monster" && (
         <div className="space-y-1 text-sm">
           <p className="text-slate-700">
-            Рівень {cell.monsterLevel ?? "?"}
+            {t("map:cell.level", { level: cell.monsterLevel ?? "?" })}
             {cell.monsterPower != null && <span className="ml-2 font-medium">⚔ {formatNumber(Math.round(cell.monsterPower))}</span>}
           </p>
           {cell.monsterUnits !== null && cell.monsterUnits !== undefined && (
@@ -118,7 +120,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
 
       {occupant === "Village" && isShieldActive(cell.shieldUntil) && (
         <p className="text-sm text-emerald-700">
-          🛡 Нещодавно впало — під щитом до {shieldUntilLabel(cell.shieldUntil)}
+          {t("map:cell.fallShield", { until: shieldUntilLabel(cell.shieldUntil) })}
         </p>
       )}
 
@@ -129,8 +131,9 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
               <span>
                 {threat.intent === MARCH_INTENT.scout ? "👁" : "⚔"}{" "}
                 {threat.attackerClanTag == null ? "" : `[${threat.attackerClanTag}] `}
-                {threat.attackerName} {threat.intent === MARCH_INTENT.scout ? "розвідує" : "іде сюди"} з ({threat.fromX},{" "}
-                {threat.fromY})
+                {threat.intent === MARCH_INTENT.scout
+                  ? t("map:cell.threatScout", { attacker: threat.attackerName, x: threat.fromX, y: threat.fromY })
+                  : t("map:cell.threatAttack", { attacker: threat.attackerName, x: threat.fromX, y: threat.fromY })}
               </span>
               <span className="font-mono">{formatRemaining(threat.arrivesAt, now)}</span>
             </li>
@@ -145,15 +148,15 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
         <ul className="space-y-2">
           {camps.map((camp) => {
             const own = camp.ownerPlayerId === playerId;
-            const campName = `Табір ${camp.ownerClanTag == null ? "" : `[${camp.ownerClanTag}] `}${camp.ownerName}`;
+            const campName = t("map:cell.camp", { owner: `${camp.ownerClanTag == null ? "" : `[${camp.ownerClanTag}] `}${camp.ownerName}` });
 
             return (
               <li key={camp.marchId} className="space-y-2 rounded-lg bg-rose-50 p-3 text-sm">
-                <p className="font-medium text-rose-900">⛺ {own ? "Ваш табір" : campName}</p>
+                <p className="font-medium text-rose-900">⛺ {own ? t("map:cell.ownCamp") : campName}</p>
                 <p className="text-xs text-rose-800">
                   {own
-                    ? "Армія стоїть у полі без стін — її можна атакувати. Відкличте, щоб повернути додому."
-                    : "Чужа армія в полі: стін у неї немає, склад покаже розвідка."}
+                    ? t("map:cell.ownCampHint")
+                    : t("map:cell.foreignCampHint")}
                 </p>
                 {own ? (
                   <button
@@ -162,7 +165,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
                     disabled={recall.isPending}
                     className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                   >
-                    Відкликати
+                    {t("map:cell.recall")}
                   </button>
                 ) : (
                   <div className="flex gap-2">
@@ -171,7 +174,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
                       onClick={() => onMarch({ type: MARCH_TARGET.camp, id: camp.marchId, name: campName })}
                       className="flex-1 rounded-lg bg-rose-600 px-3 py-1.5 font-medium text-white hover:bg-rose-700"
                     >
-                      Атакувати
+                      {t("map:cell.attack")}
                     </button>
                     <button
                       type="button"
@@ -179,7 +182,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
                       disabled={scout.isPending || scoutOnTheWay(camp.marchId)}
                       className="flex-1 rounded-lg border border-amber-400 bg-white px-3 py-1.5 font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
                     >
-                      {scoutOnTheWay(camp.marchId) ? "Розвідники в дорозі" : "Розвідати"}
+                      {scoutOnTheWay(camp.marchId) ? t("map:cell.scoutsOnTheWay") : t("map:cell.scout")}
                     </button>
                   </div>
                 )}
@@ -204,8 +207,11 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
         <div className="space-y-2 rounded-lg bg-slate-50 p-3 text-sm">
           <ErrorBanner error={place.error} />
           <p className="text-slate-600">
-            Споруда клану: {formatNumber(territory.structureCost)} очок вкладу (є{" "}
-            {formatNumber(territory.points)}) · вільних слотів {Math.max(slotsLeft, 0)}
+            {t("map:cell.placeCost", {
+              cost: formatNumber(territory.structureCost),
+              points: formatNumber(territory.points),
+              slots: Math.max(slotsLeft, 0),
+            })}
           </p>
           <button
             type="button"
@@ -213,7 +219,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
             disabled={place.isPending || slotsLeft <= 0 || territory.points < territory.structureCost}
             className="w-full rounded-lg bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            {place.isPending ? "Закладаємо…" : "Закласти споруду"}
+            {place.isPending ? t("map:cell.placing") : t("map:cell.place")}
           </button>
         </div>
       )}
@@ -225,7 +231,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
           onClick={() => onMarch({ type: targetType, id: cell.occupantId as string, name })}
           className="w-full rounded-lg bg-rose-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-rose-700"
         >
-          Атакувати
+          {t("map:cell.attack")}
         </button>
       )}
 
@@ -237,7 +243,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
           }
           className="w-full rounded-lg border border-amber-400 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-50"
         >
-          Приручити · шанс {Math.round(tameable.chance * 1000) / 10}%
+          {t("map:cell.tame", { chance: Math.round(tameable.chance * 1000) / 10 })}
         </button>
       )}
 
@@ -249,7 +255,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
             disabled={scout.isPending || scoutOnTheWay(cell.occupantId)}
             className="w-full rounded-lg border border-amber-400 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
           >
-            {scout.isPending ? "Відправляємо…" : scoutOnTheWay(cell.occupantId) ? "Розвідники в дорозі" : "Розвідати"}
+            {scout.isPending ? t("map:cell.sending") : scoutOnTheWay(cell.occupantId) ? t("map:cell.scoutsOnTheWay") : t("map:cell.scout")}
           </button>
         </div>
       )}

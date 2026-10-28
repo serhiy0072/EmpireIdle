@@ -18,6 +18,7 @@ import { useMapArea, useMapCell, type MapView } from "../lib/queries/map";
 import { MARCH_INTENT, MARCH_STATE, MARCH_TARGET, useIncomingAttacks, useMarches } from "../lib/queries/marches";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
+import { t } from "i18next";
 
 type Target = { type: MarchTargetType; id: string; name: string; intent?: MarchIntent };
 
@@ -39,9 +40,9 @@ export default function MapPage() {
   // Межа типу телепорта — щоб гравець не клікав навмання, а сервер не відмовляв (GDD §8.9)
   const teleportHint =
     teleportItem?.teleportScope === "Nearby"
-      ? `Цей телепорт дістає не далі ${teleportItem.teleportRange ?? 0} клітин від поселення.`
+      ? t("map:teleport.range", { range: teleportItem.teleportRange ?? 0 })
       : teleportItem?.teleportScope === "ClanTerritory"
-        ? "Лише на території вашого клану — поруч зі спорудою."
+        ? t("map:teleport.clanOnly")
         : null;
   const teleport = useUseItem(playerId);
   const cancelTeleport = () => setSearchParams({});
@@ -93,7 +94,7 @@ export default function MapPage() {
   const area = useMapArea(effectiveView);
 
   // Камера показує інше — мапа просить ділянку під нею
-  const changeView = useCallback((next: MapView) => setView(next), []);
+  const changeView = useCallback((next: MapView) => setView(next), [setView]);
   const cell = useMapCell(selected?.x ?? null, selected?.y ?? null);
 
   // Свої марші йдуть від дому, повернення — назад до нього; обидві ноги ведемо від legStartedAt.
@@ -121,7 +122,7 @@ export default function MapPage() {
   }, [home, marches.data, incoming.data]);
 
   if (village.isPending) {
-    return <p className="text-slate-500">Завантаження мапи…</p>;
+    return <p className="text-slate-500">{t("map:page.loading")}</p>;
   }
 
   if (village.isError) {
@@ -145,7 +146,7 @@ export default function MapPage() {
     <>
       <button
         type="button"
-        aria-label="Закрити"
+        aria-label={t("map:page.close")}
         onClick={() => {
           setSelected(null);
           setTarget(null);
@@ -155,7 +156,7 @@ export default function MapPage() {
         ✕
       </button>
       {cell.isPending ? (
-        <p className="p-4 text-sm text-slate-500">Дивимось…</p>
+        <p className="p-4 text-sm text-slate-500">{t("map:page.looking")}</p>
       ) : cell.isError ? (
         <div className="p-4">
           <ErrorBanner error={cell.error} />
@@ -163,24 +164,23 @@ export default function MapPage() {
       ) : teleportKey !== null ? (
         <div className="space-y-3 rounded-xl border border-emerald-300 bg-white p-4">
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="font-medium text-slate-800">Переселитися сюди?</h3>
+            <h3 className="font-medium text-slate-800">{t("map:teleport.confirm")}</h3>
             <span className="text-xs text-slate-500">
               ({cell.data.x}, {cell.data.y})
             </span>
           </div>
           {/* Придатність вирішує сервер, але очевидне кажемо одразу: вода й зайняте не підходять */}
           {!cell.data.habitable ? (
-            <p className="text-sm text-amber-800">Тут не оселитись — оберіть рівнину, ліс або гори.</p>
+            <p className="text-sm text-amber-800">{t("map:teleport.unfit")}</p>
           ) : cell.data.occupantType != null ? (
-            <p className="text-sm text-amber-800">Клітина зайнята — оберіть вільну.</p>
+            <p className="text-sm text-amber-800">{t("map:teleport.taken")}</p>
           ) : tooFar ? (
             <p className="text-sm text-amber-800">
-              Задалеко: цей телепорт дістає не далі {teleportItem?.teleportRange} клітин від поселення.
+              {t("map:teleport.tooFar", { range: teleportItem?.teleportRange })}
             </p>
           ) : (
             <p className="text-sm text-slate-600">
-              Село переїде разом із гарнізоном; усі ваші війська — з походів, таборів і підкріплень у союзників —
-              одразу будуть удома.
+              {t("map:teleport.explain")}
             </p>
           )}
           <div className="flex gap-2">
@@ -199,10 +199,10 @@ export default function MapPage() {
               disabled={teleport.isPending || !cell.data.habitable || cell.data.occupantType != null || tooFar}
               className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              Переселитися
+              {t("map:teleport.move")}
             </button>
             <button type="button" onClick={cancelTeleport} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
-              Скасувати
+              {t("map:teleport.cancel")}
             </button>
           </div>
         </div>
@@ -257,14 +257,16 @@ export default function MapPage() {
 
       <div className="pointer-events-none absolute inset-x-3 top-3 flex flex-wrap items-start gap-2">
         <h1 className="rounded-xl bg-gradient-to-b from-[#24467f] to-[#16305e] px-4 py-1.5 text-base font-semibold text-white shadow-lg ring-2 ring-[#5b85c4] [text-shadow:0_1px_1px_#0008]">
-          Мапа світу
-          {home !== null && <span className="ml-2 text-xs font-normal text-sky-200">ваше село ({home.x}, {home.y})</span>}
+          {t("map:world.label")}
+          {home !== null && (
+            <span className="ml-2 text-xs font-normal text-sky-200">{t("map:page.home", { x: home.x, y: home.y })}</span>
+          )}
         </h1>
         <div className="flex-1" />
         <div className="pointer-events-auto flex gap-2">
           <span data-tutorial="reports">
             <GameButton onClick={() => setReports(true)} variant="secondary">
-              Звіти
+              {t("map:page.reports")}
             </GameButton>
           </span>
           <GameButton
@@ -273,7 +275,7 @@ export default function MapPage() {
               setHomeRequest((value) => value + 1);
             }}
           >
-            Додому
+            {t("map:page.home2")}
           </GameButton>
         </div>
       </div>
@@ -282,7 +284,7 @@ export default function MapPage() {
         {teleportKey !== null && (
           <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50/95 px-4 py-3 shadow-lg">
             <span className="text-sm text-emerald-900">
-              Переселення: оберіть вільну придатну клітину на мапі й підтвердіть у вікні біля неї.
+              {t("map:teleport.pick")}
               {teleportHint !== null && ` ${teleportHint}`}
             </span>
             <button
@@ -290,7 +292,7 @@ export default function MapPage() {
               onClick={cancelTeleport}
               className="rounded-lg border border-emerald-300 px-3 py-1 text-sm text-emerald-900 hover:bg-emerald-100"
             >
-              Скасувати
+              {t("map:teleport.cancel")}
             </button>
           </div>
         )}
@@ -301,13 +303,13 @@ export default function MapPage() {
       <aside className="pointer-events-none absolute inset-x-3 bottom-3 flex max-h-[60%] flex-col gap-2 sm:inset-x-auto sm:right-3 sm:top-16 sm:max-h-none sm:w-80">
         {(marches.data?.length ?? 0) > 0 || marches.isError ? (
           <section className="pointer-events-auto space-y-2 rounded-xl bg-white/95 p-3 shadow-2xl ring-2 ring-[#5b85c4]">
-            <h2 className="text-sm font-semibold text-slate-800">Походи</h2>
+            <h2 className="text-sm font-semibold text-slate-800">{t("map:page.marches")}</h2>
             {marches.isError ? <ErrorBanner error={marches.error} /> : <MarchList playerId={playerId} marches={marches.data ?? []} />}
           </section>
         ) : (
           !panelOpen && (
             <p className="rounded-xl bg-[#1d3b6f]/90 px-3 py-2 text-xs text-sky-100 shadow-lg ring-1 ring-[#5b85c4]">
-              Торкніться клітини: монстр, село, вежа клану чи намет табору — і тут з’являться дії.
+              {t("map:page.tapHint")}
             </p>
           )
         )}
@@ -321,7 +323,7 @@ export default function MapPage() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Звіти"
+          aria-label={t("map:page.reports")}
           onClick={() => setReports(false)}
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4"
         >
@@ -330,15 +332,15 @@ export default function MapPage() {
             className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-sky-50 text-slate-800 shadow-2xl ring-2 ring-sky-300"
           >
             <div className="flex items-center gap-2 bg-gradient-to-b from-sky-500 to-sky-600 px-4 py-2 text-white">
-              <h2 className="flex-1 text-center text-lg font-semibold">Звіти</h2>
-              <button type="button" aria-label="Закрити" onClick={() => setReports(false)} className="text-xl font-bold hover:text-sky-100">
+              <h2 className="flex-1 text-center text-lg font-semibold">{t("map:page.reports")}</h2>
+              <button type="button" aria-label={t("map:page.close")} onClick={() => setReports(false)} className="text-xl font-bold hover:text-sky-100">
                 ✕
               </button>
             </div>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
               {/* Звіти розвідки лежать у скриньці — тут лише бої */}
               <section className="space-y-2">
-                <h3 className="text-sm font-semibold">Бої</h3>
+                <h3 className="text-sm font-semibold">{t("map:page.battles")}</h3>
                 <BattleReportList playerId={playerId} />
               </section>
             </div>

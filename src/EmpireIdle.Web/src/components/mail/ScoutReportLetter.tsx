@@ -1,7 +1,7 @@
 import type { MailLetterView } from "../../lib/queries/mail";
 import { useCatalog } from "../../lib/queries/catalog";
 import { MARCH_TARGET } from "../../lib/queries/marches";
-import { SCOUT_OUTCOMES } from "../../lib/queries/scouting";
+import { scoutOutcomeLabel } from "../../lib/queries/scouting";
 import { formatMoment, formatNumber } from "../../lib/format";
 
 interface Props {
@@ -55,7 +55,7 @@ export default function ScoutReportLetter({ letter, onOpen }: Props) {
           )}
         </>
       ) : (
-        <p className="text-sm text-amber-800">{SCOUT_OUTCOMES[report.outcome] ?? report.outcome}</p>
+        <p className="text-sm text-amber-800">{scoutOutcomeLabel(report.outcome)}</p>
       )}
     </li>
   );
