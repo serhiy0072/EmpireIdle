@@ -120,5 +120,113 @@
     "character": "Set focus: {{stats}}",
     "collected": "collected {{collected}} / {{total}}",
     "threshold": "{{count}} pieces: {{bonus}}"
+  },
+  "keyChests": {
+    "free": "free {{left}} / {{perDay}} · 🗝 {{keys}}",
+    "openFree": "Open for free",
+    "freeIn": "Free in {{remaining}}",
+    "noFree": "No free openings left today",
+    "withKey": "With a key",
+    "withKeys": "With keys ×{{count}}",
+    "keyInShop": "{{key}} — in the shop ↓",
+    "title": "Key chests",
+    "again": "Open again ×{{count}} · 🗝 {{count}}"
+  },
+  "lootbox": {
+    "chest": "Chest",
+    "all": "all",
+    "open": "Open",
+    "openCount": "Open {{count}}",
+    "hideOdds": "Hide odds",
+    "odds": "Odds",
+    "rolls": "{{count}} rewards per opening",
+    "pityWithin": "guaranteed within {{count}}",
+    "pityIn": "guaranteed in {{count}}",
+    "pity": "★ guaranteed",
+    "hideContents": "Hide contents",
+    "contents": "Contents",
+    "weapon": "Weapon: {{hero}}",
+    "weaponPick": "×{{count}} piece of your choice",
+    "rewards": "Rewards",
+    "rewardsTitle": "Rewards",
+    "tapToClose": "Tap anywhere to close"
+  },
+  "reward": {
+    "gems": "Gems 💎",
+    "heroShards": "Shards: {{hero}}",
+    "hero": "Hero: {{hero}}",
+    "heroExperience": "Hero XP",
+    "randomArtifact": "Random artifact ({{rarity}})",
+    "randomHero": "Random hero ({{rarity}})",
+    "randomHeroShards": "Random hero shards ({{rarity}})"
+  },
+  "banner": {
+    "kind": {
+      "1": "Heroes · event",
+      "2": "Weapons · event",
+      "3": "Standard · permanent",
+      "other": "Banner"
+    },
+    "endsIn": "ends in {{remaining}}",
+    "featured": "Featured: <b>{{name}}</b>",
+    "featuredGuaranteed": "the next Unique is guaranteed to be the featured one",
+    "rarePity": "Rare guaranteed in",
+    "uniquePity": "Unique guaranteed in",
+    "odds": "Odds · {{count}} rewards",
+    "notEnough": "Not enough {{icon}}"
+  },
+  "banners": {
+    "loading": "Loading banners…",
+    "title": "Banners",
+    "pity": "guaranteed",
+    "lostFiftyFifty": "lost the 50/50",
+    "history": "Earlier: {{items}}",
+    "none": "No active banners right now.",
+    "again": "Again ×{{count}} · 💎 {{price}}"
+  },
+  "shopType": {
+    "evolution": "Hero evolution",
+    "boost": "Boost",
+    "resources": "Resources",
+    "teleport": "Teleport",
+    "scoutveil": "Scout veil",
+    "feed": "Treats",
+    "lootbox": "Chest",
+    "weaponchest": "Weapon chest",
+    "chestkey": "Chest key"
+  },
+  "shop": {
+    "onSaleUntil": "only until {{until}}",
+    "max": "max",
+    "notEnough": "Not enough 💎",
+    "openFor": "Open for {{price}} 💎",
+    "buyFor": "Buy for {{price}} 💎",
+    "loading": "Loading the shop…",
+    "title": "Shop",
+    "forGems": "For gems",
+    "gems": "Gems",
+    "bonus": "+{{percent}}% bonus"
+  },
+  "listing": {
+    "state": {
+      "Sold": "Sold",
+      "Cancelled": "Withdrawn",
+      "Expired": "Expired"
+    },
+    "perItem": "item",
+    "perPower": "power point",
+    "perUnit": "{{price}} 🪙 per {{unit}}",
+    "left": "{{remaining}} left"
+  },
+  "sell": {
+    "equipped": "(equipped)",
+    "full": "All listing slots are taken. Wait for a sale, withdraw a listing or upgrade the market.",
+    "nothing": "Nothing to sell: gear and tradeable items (boosts, essences) will show up here.",
+    "what": "What to sell",
+    "pick": "— pick —",
+    "quantity": "Quantity ({{count}} owned)",
+    "price": "Price, gold ({{min}} to {{max}})",
+    "tax": "Listing tax — {{tax}} 🪙, not refunded even if you withdraw the listing.",
+    "list": "List"
   }
 }

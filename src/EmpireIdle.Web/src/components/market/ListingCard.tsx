@@ -7,6 +7,7 @@ import { statLabel, statValue } from "../../lib/statNames";
 import { formatRemaining } from "../../lib/time";
 import ItemIcon from "../inventory/ItemIcon";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   listing: MarketListingView;
@@ -14,11 +15,11 @@ interface Props {
   action?: ReactNode;
 }
 
-const STATE_LABELS: Record<string, string> = {
-  Sold: "Продано",
-  Cancelled: "Знято",
-  Expired: "Строк минув",
-};
+const STATES = ["Sold", "Cancelled", "Expired"] as const;
+
+function stateLabel(state: string): string {
+  return (STATES as readonly string[]).includes(state) ? t(`items:listing.state.${state as (typeof STATES)[number]}`) : state;
+}
 
 /** Лот ринку: товар, ціна за весь лот і за одиницю, скільки лишилось висіти. */
 export default function ListingCard({ listing, action }: Props) {
@@ -27,7 +28,7 @@ export default function ListingCard({ listing, action }: Props) {
 
   const name = catalog.itemName(listing.itemKey);
   const rarity = listing.equipment?.rarity ?? catalog.item(listing.itemKey)?.rarity;
-  const unit = listing.kind === "Item" ? "шт." : "одиницю сили";
+  const unit = listing.kind === "Item" ? t("items:listing.perItem") : t("items:listing.perPower");
 
   return (
     <div className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3">
@@ -39,7 +40,7 @@ export default function ListingCard({ listing, action }: Props) {
             {name}
             {listing.quantity > 1 && <span className="ml-1 text-slate-500">×{listing.quantity}</span>}
             {(listing.equipment?.level ?? 0) > 0 && (
-              <span className="ml-1 text-amber-600">рів. {listing.equipment?.level}</span>
+              <span className="ml-1 text-amber-600">{t("items:artifact.level", { level: listing.equipment?.level })}</span>
             )}
           </span>
           <span className="font-medium text-amber-700">{formatNumber(listing.priceGold)} 🪙</span>
@@ -57,10 +58,10 @@ export default function ListingCard({ listing, action }: Props) {
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
           <span>
-            {formatNumber(listing.pricePerUnit, { maximumFractionDigits: 1 })} 🪙 за {unit}
+            {t("items:listing.perUnit", { price: formatNumber(listing.pricePerUnit, { maximumFractionDigits: 1 }), unit })}
             {listing.state === "Active"
-              ? ` · ще ${formatRemaining(listing.expiresAt, now)}`
-              : ` · ${STATE_LABELS[listing.state] ?? listing.state}`}
+              ? ` · ${t("items:listing.left", { remaining: formatRemaining(listing.expiresAt, now) })}`
+              : ` · ${stateLabel(listing.state)}`}
           </span>
           {action}
         </div>

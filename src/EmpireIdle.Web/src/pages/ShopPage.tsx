@@ -12,18 +12,13 @@ import { useBuyShopItem, useCheckout, useShop } from "../lib/queries/shop";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
 import { formatMoment, formatNumber } from "../lib/format";
+import { t } from "i18next";
 
-const TYPE_LABELS: Record<string, string> = {
-  evolution: "Еволюція героя",
-  boost: "Буст",
-  resources: "Ресурси",
-  teleport: "Телепорт",
-  scoutveil: "Захист від розвідки",
-  feed: "Ласощі",
-  lootbox: "Скриня",
-  weaponchest: "Скриня зброї",
-  chestkey: "Ключ скрині",
-};
+const TYPES = ["evolution", "boost", "resources", "teleport", "scoutveil", "feed", "lootbox", "weaponchest", "chestkey"] as const;
+
+function typeLabel(type: string): string {
+  return (TYPES as readonly string[]).includes(type) ? t(`items:shopType.${type as (typeof TYPES)[number]}`) : type;
+}
 
 function price(cents: number, currency: string): string {
   return formatNumber(cents / 100, { style: "currency", currency: currency.toUpperCase() });
@@ -54,12 +49,11 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
           </div>
           <div className="mt-1 flex items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(offer.rarity)}`}>{rarityLabel(offer.rarity)}</span>
-            <span className="text-slate-500">{TYPE_LABELS[offer.type] ?? offer.type}</span>
+            <span className="text-slate-500">{typeLabel(offer.type)}</span>
             {/* Предмет апу тіру продається лише вікном (GDD §6.1) — кажемо, доки, щоб не прогавили */}
             {offer.onSaleUntil != null && (
               <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">
-                лише до{" "}
-                {formatMoment(offer.onSaleUntil)}
+                {t("items:shop.onSaleUntil", { until: formatMoment(offer.onSaleUntil) })}
               </span>
             )}
           </div>
@@ -88,7 +82,7 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
               onClick={() => setCount(Math.max(1, Math.min(offer.maxPerPurchase, Math.floor(gems / offer.priceGems))))}
               className="text-sm text-sky-700 hover:underline"
             >
-              макс.
+              {t("items:shop.max")}
             </button>
           </>
         )}
@@ -99,8 +93,10 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
           className="ml-auto rounded-lg bg-violet-600 px-3 py-1 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
         >
           {gems < total
-            ? "Не вистачає 💎"
-            : `${offer.type === "lootbox" ? "Відкрити" : "Купити"} за ${formatNumber(total)} 💎`}
+            ? t("items:shop.notEnough")
+            : offer.type === "lootbox"
+              ? t("items:shop.openFor", { price: formatNumber(total) })
+              : t("items:shop.buyFor", { price: formatNumber(total) })}
         </button>
       </div>
     </div>
@@ -130,7 +126,7 @@ export default function ShopPage() {
   }, [shop.data, location.hash]);
 
   if (shop.isPending) {
-    return <p className="text-slate-500">Завантаження крамниці…</p>;
+    return <p className="text-slate-500">{t("items:shop.loading")}</p>;
   }
 
   if (shop.isError) {
@@ -143,7 +139,7 @@ export default function ShopPage() {
     <div className="space-y-6">
       <MarketTabs />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Крамниця</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("items:shop.title")}</h1>
         <p className="text-sm text-slate-500">💎 {formatNumber(gems)}</p>
       </div>
 
@@ -158,7 +154,7 @@ export default function ShopPage() {
             lastBuy === null
               ? undefined
               : {
-                  label: `Ще ×${lastBuy.count} · 💎 ${formatNumber(lastBuy.price * lastBuy.count)}`,
+                  label: t("items:banners.again", { count: lastBuy.count, price: formatNumber(lastBuy.price * lastBuy.count) }),
                   disabled: gems < lastBuy.price * lastBuy.count,
                   onClick: () =>
                     buyLootbox.mutate(
@@ -173,7 +169,7 @@ export default function ShopPage() {
       <KeyChests playerId={playerId} />
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">За самоцвіти</h2>
+        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("items:shop.forGems")}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {shop.data.items.map((offer) => (
             <Offer
@@ -202,13 +198,13 @@ export default function ShopPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Самоцвіти</h2>
+        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("items:shop.gems")}</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {shop.data.gemPacks.map((pack) => (
             <div key={pack.key} className="flex flex-col rounded-xl border border-violet-200 bg-white p-3">
               <span className="font-medium text-slate-800">{pack.displayName}</span>
               <span className="mt-1 text-2xl font-semibold text-violet-700">💎 {formatNumber(pack.gems)}</span>
-              {pack.bonusPercent > 0 && <span className="text-xs text-emerald-700">+{pack.bonusPercent}% бонус</span>}
+              {pack.bonusPercent > 0 && <span className="text-xs text-emerald-700">{t("items:shop.bonus", { percent: pack.bonusPercent })}</span>}
               {/* Оплата йде на сторінку Stripe: тут лише перехід, жодних платіжних даних */}
               <button
                 type="button"

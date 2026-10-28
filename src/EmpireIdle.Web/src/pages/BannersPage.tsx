@@ -10,6 +10,7 @@ import { MAX_ROLLS_PER_REQUEST, useBanners, useRollBanner } from "../lib/queries
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
 import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 /** Скільки випадів тримаємо в історії сесії. */
 const HISTORY_LIMIT = 50;
@@ -34,7 +35,7 @@ export default function BannersPage() {
   const [shown, setShown] = useState<{ bannerKey: string; count: number } | null>(null);
 
   if (banners.isPending) {
-    return <p className="text-slate-500">Завантаження банерів…</p>;
+    return <p className="text-slate-500">{t("items:banners.loading")}</p>;
   }
 
   if (banners.isError) {
@@ -62,7 +63,7 @@ export default function BannersPage() {
     <div className="space-y-4">
       <MarketTabs />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Банери</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("items:banners.title")}</h1>
         <p className="text-sm text-slate-500">
           💎 {formatNumber(gems)}
         </p>
@@ -77,14 +78,14 @@ export default function BannersPage() {
               <li key={index} className="flex flex-wrap items-center gap-2 text-sm">
                 <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(drop.rarity)}`}>{rarityLabel(drop.rarity)}</span>
                 <span className={drop.rarity >= 2 ? "font-medium text-slate-800" : "text-slate-700"}>{drop.displayName}</span>
-                {drop.wasPity && <span className="text-xs text-slate-500">гарантія</span>}
-                {drop.lostFiftyFifty && <span className="text-xs text-slate-500">50/50 програно</span>}
+                {drop.wasPity && <span className="text-xs text-slate-500">{t("items:banners.pity")}</span>}
+                {drop.lostFiftyFifty && <span className="text-xs text-slate-500">{t("items:banners.lostFiftyFifty")}</span>}
               </li>
             ))}
           </ul>
           {history.length > 0 && (
             <p className="mt-2 text-xs text-slate-500">
-              Раніше: {history.slice(0, 10).map((entry) => entry.displayName).join(", ")}
+              {t("items:banners.history", { items: history.slice(0, 10).map((entry) => entry.displayName).join(", ") })}
               {history.length > 10 && "…"}
             </p>
           )}
@@ -92,7 +93,7 @@ export default function BannersPage() {
       )}
 
       {banners.data.length === 0 ? (
-        <p className="text-sm text-slate-500">Зараз немає активних банерів.</p>
+        <p className="text-sm text-slate-500">{t("items:banners.none")}</p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {/* Постійний банер — першим: він завжди є, події приходять і йдуть */}
@@ -116,7 +117,7 @@ export default function BannersPage() {
           onClose={() => setShown(null)}
           pending={roll.isPending}
           again={{
-            label: `Ще ×${shown.count} · 💎 ${formatNumber(shownBanner.priceGems * shown.count)}`,
+            label: t("items:banners.again", { count: shown.count, price: formatNumber(shownBanner.priceGems * shown.count) }),
             onClick: () => rollBanner(shown.bannerKey, shown.count),
             disabled: gems < shownBanner.priceGems * shown.count,
           }}

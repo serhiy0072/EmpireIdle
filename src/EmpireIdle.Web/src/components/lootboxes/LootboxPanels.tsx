@@ -5,26 +5,27 @@ import { rarityLabel } from "../../lib/rarity";
 import ItemIcon from "../inventory/ItemIcon";
 import { useHotkeys } from "../../hooks/useHotkeys";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 /** Назва позиції скрині чи того, що з неї випало, — за типом нагороди. */
 function rewardName(catalog: Catalog, type: string, key: string | null | undefined): string {
   switch (type.toLowerCase()) {
     case "gems":
-      return "Самоцвіти 💎";
+      return t("items:reward.gems");
     case "resource":
       return catalog.resourceName(key ?? "");
     case "heroshards":
-      return `Осколки: ${catalog.heroName(key ?? "")}`;
+      return t("items:reward.heroShards", { hero: catalog.heroName(key ?? "") });
     case "hero":
-      return `Герой: ${catalog.heroName(key ?? "")}`;
+      return t("items:reward.hero", { hero: catalog.heroName(key ?? "") });
     case "heroexperience":
-      return "Досвід героїв";
+      return t("items:reward.heroExperience");
     case "artifact":
-      return `Випадковий артефакт (${rarityLabel(key ?? "")})`;
+      return t("items:reward.randomArtifact", { rarity: rarityLabel(key ?? "") });
     case "randomhero":
-      return `Випадковий герой (${rarityLabel(key ?? "")})`;
+      return t("items:reward.randomHero", { rarity: rarityLabel(key ?? "") });
     case "randomheroshards":
-      return `Осколки випадкового героя (${rarityLabel(key ?? "")})`;
+      return t("items:reward.randomHeroShards", { rarity: rarityLabel(key ?? "") });
     default:
       return catalog.itemName(key ?? "");
   }
@@ -53,12 +54,12 @@ export function LootboxOdds({ itemKey, since }: OddsProps) {
     <div className="mt-2 text-sm">
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => setOpen(!open)} className="text-sky-700 hover:underline">
-          {open ? "Сховати шанси" : "Шанси"}
+          {open ? t("items:lootbox.hideOdds") : t("items:lootbox.odds")}
         </button>
-        {box.rolls > 1 && <span className="text-xs text-slate-500">{box.rolls} нагороди за відкриття</span>}
+        {box.rolls > 1 && <span className="text-xs text-slate-500">{t("items:lootbox.rolls", { count: box.rolls })}</span>}
         {box.pityWithin > 0 && (
           <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
-            {left === null ? `гарантія — не пізніше ${box.pityWithin}-ї` : `гарантія через ${left}`}
+            {left === null ? t("items:lootbox.pityWithin", { count: box.pityWithin }) : t("items:lootbox.pityIn", { count: left })}
           </span>
         )}
       </div>
@@ -69,7 +70,7 @@ export function LootboxOdds({ itemKey, since }: OddsProps) {
             <li key={index} className="flex items-center justify-between gap-2 px-2 py-1">
               <span className="text-slate-700">
                 {rewardName(catalog, entry.type, entry.key)} ×{formatNumber(entry.amount)}
-                {entry.pity && <span className="ml-1 text-xs text-amber-700">★ гарантія</span>}
+                {entry.pity && <span className="ml-1 text-xs text-amber-700">{t("items:lootbox.pity")}</span>}
               </span>
               <span className="tabular-nums text-slate-500">{entry.chance}%</span>
             </li>
@@ -94,15 +95,15 @@ export function WeaponChestContents({ itemKey }: { itemKey: string }) {
   return (
     <div className="mt-2 text-sm">
       <button type="button" onClick={() => setOpen(!open)} className="text-sky-700 hover:underline">
-        {open ? "Сховати вміст" : "Вміст"}
+        {open ? t("items:lootbox.hideContents") : t("items:lootbox.contents")}
       </button>
 
       {open && (
         <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200">
           {chest.weaponHeroes.map((heroKey) => (
             <li key={heroKey} className="flex items-center justify-between gap-2 px-2 py-1">
-              <span className="text-slate-700">Зброя: {catalog.heroName(heroKey)}</span>
-              <span className="tabular-nums text-slate-500">×{chest.weaponShards ?? 1} шматок на вибір</span>
+              <span className="text-slate-700">{t("items:lootbox.weapon", { hero: catalog.heroName(heroKey) })}</span>
+              <span className="tabular-nums text-slate-500">{t("items:lootbox.weaponPick", { count: chest.weaponShards ?? 1 })}</span>
             </li>
           ))}
         </ul>
@@ -216,13 +217,13 @@ export function RewardsWindow({ children, onClose, again, pending = false }: Win
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Нагороди"
+      aria-label={t("items:lootbox.rewards")}
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4"
     >
       <div className="flex h-[30rem] w-full max-w-md flex-col items-center rounded-2xl bg-gradient-to-b from-[#1d3f75] to-[#0f2347] p-4 shadow-2xl ring-1 ring-sky-300/40">
         <div className="w-full rounded-lg bg-gradient-to-r from-sky-400/30 via-sky-200/40 to-sky-400/30 py-2 text-center text-lg font-semibold tracking-wide text-white ring-1 ring-sky-200/60">
-          Нагороди
+          {t("items:lootbox.rewardsTitle")}
         </div>
 
         <div className={`mt-4 min-h-0 w-full flex-1 overflow-y-auto ${pending ? "opacity-40" : ""}`}>
@@ -250,7 +251,7 @@ export function RewardsWindow({ children, onClose, again, pending = false }: Win
             </button>
           )}
         </div>
-        <p className="mt-2 text-xs text-sky-100/80">Щоб закрити, натисніть будь-де</p>
+        <p className="mt-2 text-xs text-sky-100/80">{t("items:lootbox.tapToClose")}</p>
       </div>
     </div>
   );

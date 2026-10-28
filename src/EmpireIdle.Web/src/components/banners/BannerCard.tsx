@@ -2,6 +2,8 @@ import type { BannerView } from "../../lib/apiTypes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { formatRemaining } from "../../lib/time";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
+import { Trans } from "react-i18next";
 
 interface Props {
   banner: BannerView;
@@ -14,7 +16,9 @@ interface Props {
 }
 
 /** Kind з контракту: 1 — герої, 2 — зброя, 3 — стандартний (постійний, без промо). */
-const KIND_LABELS: Record<number, string> = { 1: "Герої · подія", 2: "Зброя · подія", 3: "Стандартний · постійно" };
+function kindLabel(kind: number): string {
+  return kind === 1 || kind === 2 || kind === 3 ? t(`items:banner.kind.${kind}`) : t("items:banner.kind.other");
+}
 
 /**
  * Банер із лічильниками гарантій. Pity спільний на групу, тож
@@ -40,8 +44,8 @@ export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }
         <div>
           <h2 className="font-medium text-slate-800">{banner.displayName}</h2>
           <p className="text-xs text-slate-500">
-            {KIND_LABELS[banner.kind] ?? "Банер"}
-            {banner.endsAt !== null && banner.endsAt !== undefined && ` · до кінця ${formatRemaining(banner.endsAt, now)}`}
+            {kindLabel(banner.kind)}
+            {banner.endsAt !== null && banner.endsAt !== undefined && ` · ${t("items:banner.endsIn", { remaining: formatRemaining(banner.endsAt, now) })}`}
           </p>
         </div>
         <div className="flex gap-1 text-sm">
@@ -51,20 +55,20 @@ export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }
 
       {featured !== null && (
         <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          Промо: <span className="font-medium">{featured.displayName}</span>
-          {banner.featuredGuaranteed && " — наступний унікальний гарантовано промо"}
+          <Trans ns="items" i18nKey="banner.featured" values={{ name: featured.displayName }} components={{ b: <span className="font-medium" /> }} />
+          {banner.featuredGuaranteed && ` — ${t("items:banner.featuredGuaranteed")}`}
         </div>
       )}
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div className="rounded-lg bg-slate-50 px-3 py-2">
-          <div className="text-xs text-slate-500">Рідкісний гарантовано через</div>
+          <div className="text-xs text-slate-500">{t("items:banner.rarePity")}</div>
           <div className="font-medium text-slate-800">
             {rareLeft} <span className="text-xs text-slate-500">/ {banner.rarePity}</span>
           </div>
         </div>
         <div className="rounded-lg bg-slate-50 px-3 py-2">
-          <div className="text-xs text-slate-500">Унікальний гарантовано через</div>
+          <div className="text-xs text-slate-500">{t("items:banner.uniquePity")}</div>
           <div className="font-medium text-slate-800">
             {uniqueLeft} <span className="text-xs text-slate-500">/ {banner.uniquePity}</span>
           </div>
@@ -72,7 +76,7 @@ export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }
       </div>
 
       <details className="mt-3 text-sm">
-        <summary className="cursor-pointer text-slate-600">Шанси · {banner.drops.length} нагород</summary>
+        <summary className="cursor-pointer text-slate-600">{t("items:banner.odds", { count: banner.drops.length })}</summary>
         <ul className="mt-2 space-y-1">
           {banner.drops.map((drop) => (
             <li key={drop.key} className="flex items-center justify-between gap-2">
@@ -93,7 +97,7 @@ export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }
           disabled={busy || !canPay}
           className="rounded-lg border border-violet-300 px-3 py-2 text-sm font-medium text-violet-800 hover:bg-violet-50 disabled:opacity-50"
         >
-          {canPay ? `×1 · ${unit} ${icon}` : `Не вистачає ${icon}`}
+          {canPay ? `×1 · ${unit} ${icon}` : t("items:banner.notEnough", { icon })}
         </button>
         {/* Серія — один запит: гравець не впирається в ліміт запитів, а гарантія рахується всередині серії */}
         <button

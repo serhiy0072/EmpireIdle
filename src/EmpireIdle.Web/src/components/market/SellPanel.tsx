@@ -4,6 +4,7 @@ import { useInventory } from "../../lib/queries/inventory";
 import { MARKET_KIND, useListOnMarket, useMarketQuote, type MarketGoods } from "../../lib/queries/market";
 import ErrorBanner from "../ErrorBanner";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -39,7 +40,9 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
       .filter((item) => !item.isOnMarket)
       .map((item) => ({
         id: `e:${item.id}`,
-        label: `${catalog.itemName(item.itemKey)}${item.level > 0 ? ` · рів. ${item.level}` : ""}${item.equippedByHeroId != null ? " (вдягнено)" : ""}`,
+        label: `${catalog.itemName(item.itemKey)}${item.level > 0 ? ` · ${t("items:artifact.level", { level: item.level })}` : ""}${
+          item.equippedByHeroId != null ? ` ${t("items:sell.equipped")}` : ""
+        }`,
         goods: { kind: MARKET_KIND.Equipment, equipmentId: item.id, quantity: 1 },
       }));
 
@@ -47,7 +50,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
       .filter((item) => item.count > 0 && catalog.item(item.itemKey)?.tradeable === true)
       .map((item) => ({
         id: `i:${item.itemKey}`,
-        label: `${item.displayName} (є ${item.count})`,
+        label: `${item.displayName} ${t("common:owned", { count: item.count })}`,
         goods: { kind: MARKET_KIND.Item, itemKey: item.itemKey, quantity: 1 },
         available: item.count,
       }));
@@ -66,13 +69,13 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
   const tax = quote.data === undefined ? 0 : Math.max(1, Math.ceil(chosenPrice * quote.data.taxShare));
 
   if (!canList) {
-    return <p className="text-sm text-slate-500">Усі лоти зайняті. Дочекайтеся продажу, зніміть лот або підніміть рівень ринку.</p>;
+    return <p className="text-sm text-slate-500">{t("items:sell.full")}</p>;
   }
 
   if (options.length === 0) {
     return (
       <p className="text-sm text-slate-500">
-        Продати нічого: спорядження й предмети, що торгуються (бусти, есенції), з'являться тут.
+        {t("items:sell.nothing")}
       </p>
     );
   }
@@ -82,7 +85,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
       <ErrorBanner error={list.error ?? quote.error} />
 
       <label className="block text-sm">
-        <span className="text-slate-600">Що продаємо</span>
+        <span className="text-slate-600">{t("items:sell.what")}</span>
         <select
           value={selectedId}
           onChange={(event) => {
@@ -92,7 +95,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
           }}
           className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1"
         >
-          <option value="">— оберіть —</option>
+          <option value="">{t("items:sell.pick")}</option>
           {options.map((option) => (
             <option key={option.id} value={option.id}>
               {option.label}
@@ -103,7 +106,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
 
       {selected?.available !== undefined && (
         <label className="block text-sm">
-          <span className="text-slate-600">Кількість (є {selected.available})</span>
+          <span className="text-slate-600">{t("items:sell.quantity", { count: selected.available })}</span>
           <input
             type="number"
             min={1}
@@ -122,7 +125,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
         <>
           <label className="block text-sm">
             <span className="text-slate-600">
-              Ціна, золото (від {formatNumber(quote.data.minPrice)} до {formatNumber(quote.data.maxPrice)})
+              {t("items:sell.price", { min: formatNumber(quote.data.minPrice), max: formatNumber(quote.data.maxPrice) })}
             </span>
             <input
               type="number"
@@ -135,7 +138,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
           </label>
 
           <p className="text-xs text-slate-500">
-            Податок за виставлення — {formatNumber(tax)} 🪙, не повертається навіть якщо зняти лот.
+            {t("items:sell.tax", { tax: formatNumber(tax) })}
           </p>
 
           <button
@@ -156,7 +159,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
             }
             className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            Виставити
+            {t("items:sell.list")}
           </button>
         </>
       )}

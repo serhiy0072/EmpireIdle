@@ -120,5 +120,113 @@
     "character": "Характер набору: {{stats}}",
     "collected": "зібрано {{collected}} / {{total}}",
     "threshold": "{{count}} предмети: {{bonus}}"
+  },
+  "keyChests": {
+    "free": "безкоштовно {{left}} / {{perDay}} · 🗝 {{keys}}",
+    "openFree": "Відкрити безкоштовно",
+    "freeIn": "Безкоштовно через {{remaining}}",
+    "noFree": "Безкоштовних на сьогодні немає",
+    "withKey": "Ключем",
+    "withKeys": "Ключами ×{{count}}",
+    "keyInShop": "{{key}} — у крамниці ↓",
+    "title": "Скрині з ключами",
+    "again": "Відкрити ще ×{{count}} · 🗝 {{count}}"
+  },
+  "lootbox": {
+    "chest": "Скриня",
+    "all": "усі",
+    "open": "Відкрити",
+    "openCount": "Відкрити {{count}}",
+    "hideOdds": "Сховати шанси",
+    "odds": "Шанси",
+    "rolls": "{{count}} нагороди за відкриття",
+    "pityWithin": "гарантія — не пізніше {{count}}-ї",
+    "pityIn": "гарантія через {{count}}",
+    "pity": "★ гарантія",
+    "hideContents": "Сховати вміст",
+    "contents": "Вміст",
+    "weapon": "Зброя: {{hero}}",
+    "weaponPick": "×{{count}} шматок на вибір",
+    "rewards": "Нагороди",
+    "rewardsTitle": "Нагороди",
+    "tapToClose": "Щоб закрити, натисніть будь-де"
+  },
+  "reward": {
+    "gems": "Самоцвіти 💎",
+    "heroShards": "Осколки: {{hero}}",
+    "hero": "Герой: {{hero}}",
+    "heroExperience": "Досвід героїв",
+    "randomArtifact": "Випадковий артефакт ({{rarity}})",
+    "randomHero": "Випадковий герой ({{rarity}})",
+    "randomHeroShards": "Осколки випадкового героя ({{rarity}})"
+  },
+  "banner": {
+    "kind": {
+      "1": "Герої · подія",
+      "2": "Зброя · подія",
+      "3": "Стандартний · постійно",
+      "other": "Банер"
+    },
+    "endsIn": "до кінця {{remaining}}",
+    "featured": "Промо: <b>{{name}}</b>",
+    "featuredGuaranteed": "наступний унікальний гарантовано промо",
+    "rarePity": "Рідкісний гарантовано через",
+    "uniquePity": "Унікальний гарантовано через",
+    "odds": "Шанси · {{count}} нагород",
+    "notEnough": "Не вистачає {{icon}}"
+  },
+  "banners": {
+    "loading": "Завантаження банерів…",
+    "title": "Банери",
+    "pity": "гарантія",
+    "lostFiftyFifty": "50/50 програно",
+    "history": "Раніше: {{items}}",
+    "none": "Зараз немає активних банерів.",
+    "again": "Ще ×{{count}} · 💎 {{price}}"
+  },
+  "shopType": {
+    "evolution": "Еволюція героя",
+    "boost": "Буст",
+    "resources": "Ресурси",
+    "teleport": "Телепорт",
+    "scoutveil": "Захист від розвідки",
+    "feed": "Ласощі",
+    "lootbox": "Скриня",
+    "weaponchest": "Скриня зброї",
+    "chestkey": "Ключ скрині"
+  },
+  "shop": {
+    "onSaleUntil": "лише до {{until}}",
+    "max": "макс.",
+    "notEnough": "Не вистачає 💎",
+    "openFor": "Відкрити за {{price}} 💎",
+    "buyFor": "Купити за {{price}} 💎",
+    "loading": "Завантаження крамниці…",
+    "title": "Крамниця",
+    "forGems": "За самоцвіти",
+    "gems": "Самоцвіти",
+    "bonus": "+{{percent}}% бонус"
+  },
+  "listing": {
+    "state": {
+      "Sold": "Продано",
+      "Cancelled": "Знято",
+      "Expired": "Строк минув"
+    },
+    "perItem": "шт.",
+    "perPower": "одиницю сили",
+    "perUnit": "{{price}} 🪙 за {{unit}}",
+    "left": "ще {{remaining}}"
+  },
+  "sell": {
+    "equipped": "(вдягнено)",
+    "full": "Усі лоти зайняті. Дочекайтеся продажу, зніміть лот або підніміть рівень ринку.",
+    "nothing": "Продати нічого: спорядження й предмети, що торгуються (бусти, есенції), з'являться тут.",
+    "what": "Що продаємо",
+    "pick": "— оберіть —",
+    "quantity": "Кількість (є {{count}})",
+    "price": "Ціна, золото (від {{min}} до {{max}})",
+    "tax": "Податок за виставлення — {{tax}} 🪙, не повертається навіть якщо зняти лот.",
+    "list": "Виставити"
   }
 }

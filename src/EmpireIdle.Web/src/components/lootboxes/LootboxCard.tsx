@@ -5,6 +5,7 @@ import type { InventoryItemResponse, LootboxDrop } from "../../lib/apiTypes";
 import { useLootboxPity, useOpenLootbox } from "../../lib/queries/lootboxes";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { LootboxOdds } from "./LootboxPanels";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -38,7 +39,7 @@ export default function LootboxCard({ playerId, item, onOpened }: Props) {
             </div>
             <div className="mt-1 flex items-center gap-1 text-xs">
               <span className={`rounded px-2 py-0.5 ${rarityStyle(item.rarity)}`}>{rarityLabel(item.rarity)}</span>
-              <span className="text-slate-500">Скриня</span>
+              <span className="text-slate-500">{t("items:lootbox.chest")}</span>
             </div>
           </div>
         </div>
@@ -59,7 +60,7 @@ export default function LootboxCard({ playerId, item, onOpened }: Props) {
                 className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
               />
               <button type="button" onClick={() => setCount(limit)} className="text-sm text-sky-700 hover:underline">
-                усі
+                {t("items:lootbox.all")}
               </button>
             </>
           )}
@@ -71,7 +72,7 @@ export default function LootboxCard({ playerId, item, onOpened }: Props) {
             disabled={open.isPending}
             className="ml-auto rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            Відкрити{safeCount > 1 ? ` ${safeCount}` : ""}
+            {safeCount > 1 ? t("items:lootbox.openCount", { count: safeCount }) : t("items:lootbox.open")}
           </button>
         </div>
       </div>
