@@ -22,6 +22,8 @@ public static class TestKeys
     public const string Hall = "heroeshall";
     public const string Hospital = "hospital";
     public const string Forge = "forge";
+    public const string Academy = "academy";
+    public const string ClanShopItem = "speedup_test";
 
     public const string Infantry = "infantry";
     public const string Archer = "archer";

@@ -57,6 +57,7 @@ builder.Configuration
     .AddJsonFile("Config/beasts.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/provisions.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/lootboxes.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("Config/technologies.json", optional: false, reloadOnChange: false)
     .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
@@ -99,6 +100,19 @@ builder.Services.AddOptions<GameConfig>()
         && c.Monetization.VipThresholds.Zip(c.Monetization.VipThresholds.Skip(1)).All(pair => pair.First < pair.Second),
         "GameConfig.Monetization.VipThresholds must be positive and strictly growing — otherwise a VIP level is skipped or free.")
     .Validate(c => c.Monetization.VipLevelsPerExtraMarch >= 1, "GameConfig.Monetization.VipLevelsPerExtraMarch must be at least 1.")
+    .Validate(c => c.Technologies.Personal is { BaseMinutes: > 0, RowTimeGrowth: >= 1, LevelTimeGrowth: >= 1, CostPerMinutePerTownHall: > 0, CostRounding: >= 1 },
+        "GameConfig.Technologies.Personal needs a positive base time and cost, growth of at least 1 and a rounding of at least 1.")
+    .Validate(c => c.Technologies.Personal.MaxHelps >= 0 && c.Technologies.Personal.HelpShare >= 0
+        && c.Technologies.Personal.MaxHelps * c.Technologies.Personal.HelpShare < 1,
+        "GameConfig.Technologies.Personal help must not be negative and all helps together must leave some research time.")
+    .Validate(c => c.Technologies.Clan is { BasePoints: > 0, RowGrowth: >= 1, LevelGrowth: >= 1, PointsRounding: >= 1 },
+        "GameConfig.Technologies.Clan needs positive base points, growth of at least 1 and a rounding of at least 1.")
+    .Validate(c => c.Technologies.Clan.Offering is { MaxAttempts: >= 1, AttemptRechargeSeconds: >= 1, PointsPerAttempt: >= 1, GemPoints: >= 1, GemPriceStep: >= 1, GemDailyLimit: >= 0 }
+        && c.Technologies.Clan.Offering.GemPriceCap >= c.Technologies.Clan.Offering.GemPriceStep,
+        "GameConfig.Technologies.Clan.Offering needs positive attempts, recharge, points and gem prices, with the gem price cap not below its step.")
+    .Validate(c => c.Technologies.Clan.Coins.BaseAmount >= 1
+        && c.Technologies.Clan.Coins.Multipliers.All(m => m.Multiplier >= 1 && m.Weight > 0),
+        "GameConfig.Technologies.Clan.Coins needs a positive base and multipliers of at least ×1 with positive weights.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and <= 1, "GameConfig.Monetization.SpeedUpExponent must be above 0 and at most 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count == Enum.GetValues<EmpireIdle.Domain.Enums.BattleOdds>().Length - 1,
         "GameConfig.Combat.PreviewOddsThresholds needs one entry fewer than BattleOdds bands — otherwise previews skip bands or return values outside the enum.")

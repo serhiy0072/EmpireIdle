@@ -477,6 +477,101 @@
             return this;
         }
 
+        /// <summary>
+        /// Технології (рішення 28.10.2026): Академія без рівнів, два тіри й по два вузли в кожному дереві —
+        /// атака піхоти з наступним розміром конвою (особисті) і атака всіх з підношенням золотом (кланові).
+        /// </summary>
+        public GameConfigBuilder WithTechnologies(Action<TechnologiesConfig>? tune = null)
+        {
+            if (_config.Buildings.Count == 0)
+                WithBuildings();
+
+            if (_config.Units.Count == 0)
+                WithUnits();
+
+            var academy = Building(TestKeys.Academy);
+            academy.Upgradable = false;
+            academy.Cost = [];
+            _config.Buildings.Add(academy);
+
+            _config.Items.Add(new ItemConfig
+            {
+                Key = TestKeys.ClanShopItem,
+                DisplayName = "Прискорення",
+                Description = "Тестове прискорення",
+                Type = "speedup",
+                SpeedUpMinutes = 5
+            });
+
+            static TechnologyTierConfig Tier(int tier) => new()
+            {
+                Tier = tier, MainBuildingLevel = tier * 5, WorldLevel = tier, TimeMultiplier = tier, ReferenceTownHall = tier * 5,
+                PointsMultiplier = tier, Scales = new() { [TechnologyScaling.Battle] = tier }
+            };
+
+            _config.Technologies = new TechnologiesConfig
+            {
+                Personal = new PersonalTechnologiesConfig
+                {
+                    BuildingKey = TestKeys.Academy,
+                    Tabs = ["battle"],
+                    TabResources = new() { ["battle"] = new() { [TestKeys.Food] = 1, [TestKeys.Gold] = 0.5 } },
+                    Tiers = [Tier(1), Tier(2)],
+                    Nodes =
+                    [
+                        new TechnologyNodeConfig
+                        {
+                            Key = "attack_infantry", Tab = "battle", Row = 1, Levels = 3, Scaling = TechnologyScaling.Battle,
+                            Effects = [new TechnologyEffectConfig { Stat = TechnologyStat.Attack, Target = TestKeys.Infantry, PerLevel = 0.01 }]
+                        },
+                        new TechnologyNodeConfig
+                        {
+                            Key = "command_infantry", Tab = "battle", Row = 2, Levels = 2, Requires = ["attack_infantry"],
+                            Effects = [new TechnologyEffectConfig { Stat = TechnologyStat.ConvoySize, Target = TestKeys.Infantry, PerLevel = 4 }]
+                        }
+                    ]
+                },
+                Clan = new ClanTechnologiesConfig
+                {
+                    Tabs = ["valor"],
+                    Tiers = [Tier(1), Tier(2)],
+                    Nodes =
+                    [
+                        new TechnologyNodeConfig
+                        {
+                            Key = "v_attack_all", Tab = "valor", Row = 1, Levels = 3, Scaling = TechnologyScaling.Battle,
+                            OfferResources = [TestKeys.Gold],
+                            Effects = [new TechnologyEffectConfig { Stat = TechnologyStat.Attack, PerLevel = 0.01 }]
+                        },
+                        new TechnologyNodeConfig
+                        {
+                            Key = "c_coins", Tab = "valor", Row = 2, Levels = 3, Requires = ["v_attack_all"],
+                            OfferResources = [TestKeys.Gold, TestKeys.Wood],
+                            Effects = [new TechnologyEffectConfig { Stat = TechnologyStat.CoinBonus, PerLevel = 0.02 }]
+                        }
+                    ],
+                    Offering = new ClanOfferingConfig
+                    {
+                        AttemptCostPerTownHall = new() { [TestKeys.Gold] = 50, [TestKeys.Wood] = 40 }
+                    },
+                    Coins = new ClanCoinsConfig
+                    {
+                        Multipliers = [new CoinMultiplierConfig { Multiplier = 1, Weight = 90 }, new CoinMultiplierConfig { Multiplier = 10, Weight = 10 }]
+                    },
+                    Shop = new ClanShopConfig
+                    {
+                        DailySlots = 1,
+                        DailyPool = [new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 1000, Limit = 3 }],
+                        Weekly = [new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 5000, Limit = 1 }]
+                    }
+                }
+            };
+
+            tune?.Invoke(_config.Technologies);
+
+            return this;
+        }
+
         public GameConfig Build() => _config;
 
         /// <summary>Конфіг разом із каталогом — тобто вже провалідований.</summary>

@@ -58,6 +58,179 @@ namespace EmpireIdle.Domain.Services
             ValidateFlatBuildings(config);
             ValidateMonsters(config);
             ValidateTierGates(config);
+            ValidateTechnologies(config);
+        }
+
+        /// <summary>Стати, що мають сенс лише для клану: особисте дерево їх не дає.</summary>
+        private static readonly HashSet<TechnologyStat> ClanOnlyStats =
+        [
+            TechnologyStat.HelpShareCap, TechnologyStat.OfferingAttempts, TechnologyStat.CoinBonus,
+            TechnologyStat.TerritoryAttack, TechnologyStat.TerritoryDefense, TechnologyStat.StructureBuildSpeed,
+            TechnologyStat.StructureGarrison, TechnologyStat.StructureCost, TechnologyStat.LootCashback
+        ];
+
+        /// <summary>
+        /// Технології (рішення 28.10.2026): дерево кожної вкладки має перший ряд, передумови — з тієї ж вкладки
+        /// й меншого ряду (так циклів не буває), цілі ефектів — наявні юніти й ресурси, тіри йдуть підряд від першого.
+        /// Особисті потребують будівлі без рівнів, кланові — ресурсів підношень і предметів магазину з каталогу.
+        /// </summary>
+        private static void ValidateTechnologies(GameConfig config)
+        {
+            var technologies = config.Technologies;
+            var personal = technologies.Personal;
+
+            if (personal.Nodes.Count > 0)
+            {
+                if (personal.BuildingKey is null
+                    || config.Buildings.FirstOrDefault(b => b.Key == personal.BuildingKey) is not { Upgradable: false })
+                    throw new InvalidOperationException(
+                        $"Technologies.Personal.BuildingKey '{personal.BuildingKey}' must be a building without levels.");
+
+                ValidateTechnologyTree(config, "Personal", personal.Tabs, personal.Tiers, personal.Nodes, clan: false);
+
+                foreach (var tab in personal.Tabs)
+                {
+                    if (!personal.TabResources.TryGetValue(tab, out var weights) || weights.Count == 0)
+                        throw new InvalidOperationException($"Technologies.Personal tab '{tab}' has no resource prices.");
+
+                    foreach (var (resource, weight) in weights)
+                    {
+                        if (config.Resources.All(r => r.Key != resource) || weight <= 0)
+                            throw new InvalidOperationException(
+                                $"Technologies.Personal tab '{tab}' prices '{resource}', which must be a resource with a positive weight.");
+                    }
+                }
+            }
+
+            var clan = technologies.Clan;
+
+            if (clan.Nodes.Count == 0)
+                return;
+
+            ValidateTechnologyTree(config, "Clan", clan.Tabs, clan.Tiers, clan.Nodes, clan: true);
+
+            foreach (var (resource, cost) in clan.Offering.AttemptCostPerTownHall)
+            {
+                if (config.Resources.All(r => r.Key != resource) || cost <= 0)
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.Offering costs '{resource}', which must be a resource with a positive price.");
+            }
+
+            foreach (var node in clan.Nodes)
+            {
+                if (node.OfferResources.Count == 0
+                    || node.OfferResources.Any(r => !clan.Offering.AttemptCostPerTownHall.ContainsKey(r)))
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan node '{node.Key}' must accept offerings in resources priced by Offering.AttemptCostPerTownHall.");
+            }
+
+            if (clan.Coins.Multipliers.Count == 0)
+                throw new InvalidOperationException("Technologies.Clan.Coins.Multipliers is empty — an offering would roll no coins.");
+
+            var shop = clan.Shop;
+
+            if (shop.DailySlots < 0 || shop.DailySlots > shop.DailyPool.Count)
+                throw new InvalidOperationException("Technologies.Clan.Shop.DailySlots must be within 0..the size of DailyPool.");
+
+            foreach (var offer in shop.DailyPool.Concat(shop.Weekly))
+            {
+                var item = config.Items.FirstOrDefault(i => i.Key == offer.ItemKey)
+                    ?? throw new InvalidOperationException($"Technologies.Clan.Shop sells unknown item '{offer.ItemKey}'.");
+
+                // Предмет із ринку перетворив би монети на gems через продаж іншим гравцям
+                if (item.Tradeable)
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.Shop sells '{offer.ItemKey}', which is tradeable — coins would leak into gems through the market.");
+
+                if (offer.Price <= 0 || offer.Limit < 1)
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.Shop offer '{offer.ItemKey}' needs a positive price and a limit of at least 1.");
+            }
+        }
+
+        private static void ValidateTechnologyTree(GameConfig config, string section, List<string> tabs,
+            List<TechnologyTierConfig> tiers, List<TechnologyNodeConfig> nodes, bool clan)
+        {
+            if (tabs.Count == 0 || tabs.Distinct().Count() != tabs.Count)
+                throw new InvalidOperationException($"Technologies.{section}.Tabs must list distinct tabs.");
+
+            if (tiers.Count == 0 || tiers.Select(t => t.Tier).Where((tier, index) => tier != index + 1).Any())
+                throw new InvalidOperationException($"Technologies.{section}.Tiers must run from 1 without gaps.");
+
+            for (var i = 1; i < tiers.Count; i++)
+            {
+                if (tiers[i].WorldLevel < tiers[i - 1].WorldLevel || tiers[i].MainBuildingLevel < tiers[i - 1].MainBuildingLevel)
+                    throw new InvalidOperationException(
+                        $"Technologies.{section} tier {tiers[i].Tier} opens earlier than tier {tiers[i - 1].Tier}.");
+            }
+
+            if (tiers.Any(t => t.TimeMultiplier <= 0 || t.PointsMultiplier <= 0 || t.ReferenceTownHall < 1
+                               || t.Scales.Values.Any(scale => scale <= 0)))
+                throw new InvalidOperationException(
+                    $"Technologies.{section}.Tiers need positive time and point multipliers, reference town hall and scales.");
+
+            var byKey = new Dictionary<string, TechnologyNodeConfig>();
+
+            foreach (var node in nodes)
+            {
+                if (string.IsNullOrWhiteSpace(node.Key) || !byKey.TryAdd(node.Key, node))
+                    throw new InvalidOperationException($"Technologies.{section} has an empty or duplicate node key '{node.Key}'.");
+
+                if (!tabs.Contains(node.Tab))
+                    throw new InvalidOperationException($"Technologies.{section} node '{node.Key}' is on unknown tab '{node.Tab}'.");
+
+                if (node.Row < 1 || node.Levels < 1 || node.Effects.Count == 0)
+                    throw new InvalidOperationException(
+                        $"Technologies.{section} node '{node.Key}' needs a row from 1, at least one level and an effect.");
+
+                foreach (var effect in node.Effects)
+                    ValidateTechnologyEffect(config, section, node.Key, effect, clan);
+            }
+
+            foreach (var node in nodes)
+            {
+                foreach (var required in node.Requires)
+                {
+                    if (!byKey.TryGetValue(required, out var prerequisite) || prerequisite.Tab != node.Tab || prerequisite.Row >= node.Row)
+                        throw new InvalidOperationException(
+                            $"Technologies.{section} node '{node.Key}' requires '{required}', which must be on the same tab in an earlier row.");
+                }
+
+                // Вузол поза першим рядом без передумов був би відкритий одразу й ламав порядок дерева
+                if (node.Row > 1 && node.Requires.Count == 0)
+                    throw new InvalidOperationException($"Technologies.{section} node '{node.Key}' is past row 1 without prerequisites.");
+            }
+
+            foreach (var tab in tabs)
+            {
+                if (nodes.All(n => n.Tab != tab || n.Row != 1))
+                    throw new InvalidOperationException($"Technologies.{section} tab '{tab}' has no node in row 1 to start from.");
+            }
+        }
+
+        private static void ValidateTechnologyEffect(GameConfig config, string section, string node,
+            TechnologyEffectConfig effect, bool clan)
+        {
+            if (effect.PerLevel <= 0)
+                throw new InvalidOperationException($"Technologies.{section} node '{node}' has an effect without a positive bonus.");
+
+            if (!clan && ClanOnlyStats.Contains(effect.Stat))
+                throw new InvalidOperationException($"Technologies.{section} node '{node}' uses clan-only stat {effect.Stat}.");
+
+            if (effect.Target is null)
+                return;
+
+            var valid = effect.Stat switch
+            {
+                TechnologyStat.Attack or TechnologyStat.Defense or TechnologyStat.ConvoySize
+                    => config.Units.Any(u => u.Key == effect.Target),
+                TechnologyStat.Production => config.Resources.Any(r => r.Key == effect.Target),
+                _ => false
+            };
+
+            if (!valid)
+                throw new InvalidOperationException(
+                    $"Technologies.{section} node '{node}' targets '{effect.Target}', which {effect.Stat} cannot aim at.");
         }
 
         /// <summary>

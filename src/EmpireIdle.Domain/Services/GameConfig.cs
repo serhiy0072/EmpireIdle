@@ -147,5 +147,8 @@ namespace EmpireIdle.Domain.Services
 
         /// <summary>Провізія: Їдальня їсть м'ясо, нестача — голод села (рішення 20.10.2026).</summary>
         public ProvisionsConfig Provisions { get; set; } = new();
+
+        /// <summary>Особисті й кланові технології (рішення 28.10.2026).</summary>
+        public TechnologiesConfig Technologies { get; set; } = new();
     }
 }
