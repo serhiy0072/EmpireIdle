@@ -228,5 +228,27 @@
     "price": "Price, gold ({{min}} to {{max}})",
     "tax": "Listing tax — {{tax}} 🪙, not refunded even if you withdraw the listing.",
     "list": "List"
+  },
+  "market": {
+    "tab": {
+      "browse": "Browse",
+      "mine": "My listings",
+      "sell": "Sell"
+    },
+    "kind": {
+      "all": "All",
+      "equipment": "Gear",
+      "items": "Items"
+    },
+    "title": "Player market",
+    "loading": "Loading the market…",
+    "locked": "The market opens when the Town Hall reaches level {{level}}.",
+    "none": "This world has no market.",
+    "summary": "Listings {{active}}/{{limit}} · tax {{tax}}% · {{hours}} h term",
+    "empty": "No one is selling anything yet.",
+    "yours": "your listing",
+    "buy": "Buy",
+    "noListings": "You have no listings.",
+    "withdraw": "Withdraw"
   }
 }
