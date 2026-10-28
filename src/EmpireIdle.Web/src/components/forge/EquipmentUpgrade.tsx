@@ -5,6 +5,7 @@ import { useFeedArtifact, useInventory, useRaiseMastery, useRepairArtifact } fro
 import { useWallet } from "../../lib/queries/wallet";
 import ErrorBanner from "../ErrorBanner";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 /** Скільки предметів сервер приймає за одне згодовування — FeedArtifactCommand.MaxFood. */
 const MAX_FOOD = 1_000;
@@ -121,25 +122,25 @@ export function EquipmentFeed({ playerId, selected }: Props) {
       <ErrorBanner error={feed.error} />
       <section className="space-y-2">
         <h3 className="text-sm font-medium text-slate-800">
-          Посилення · рівень {selected.level} з {catalog.maxArtifactLevel}
+          {t("items:forge.feedTitle", { level: selected.level, max: catalog.maxArtifactLevel })}
         </h3>
 
         {selected.experienceToNext == null ? (
-          <p className="text-xs text-slate-500">Найвищий рівень.</p>
+          <p className="text-xs text-slate-500">{t("items:forge.maxLevel")}</p>
         ) : (
           <>
             <p className="text-xs text-slate-500">
-              До наступного рівня — {selected.experienceToNext} досвіду
+              {t("items:forge.toNext", { experience: selected.experienceToNext })}
               {gained > 0 && (
                 <span className="text-emerald-700">
                   {" "}
-                  · обрано +{gained} → рівень {levelAfter}
+                  {t("items:forge.picked", { gained, level: levelAfter })}
                 </span>
               )}
             </p>
 
             {food.length === 0 && ownedWrenches.length === 0 ? (
-              <p className="text-xs text-slate-500">Нема чим посилити: потрібні вільні неунікальні артефакти або різці гравера.</p>
+              <p className="text-xs text-slate-500">{t("items:forge.nothing")}</p>
             ) : (
               <div className="flex gap-2">
                 <button
@@ -148,11 +149,11 @@ export function EquipmentFeed({ playerId, selected }: Props) {
                   disabled={busy}
                   className="rounded-lg border border-amber-400 px-3 py-1 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
                 >
-                  Автовибір +1 рівень
+                  {t("items:forge.autoPick")}
                 </button>
                 {gained > 0 && (
                   <button type="button" onClick={reset} disabled={busy} className="text-sm text-slate-500 hover:underline">
-                    очистити
+                    {t("items:forge.clear")}
                   </button>
                 )}
               </div>
@@ -160,7 +161,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
 
             {foodIds.length >= MAX_FOOD && (
               <p className="text-xs text-amber-700">
-                За раз можна згодувати до {formatNumber(MAX_FOOD)} предметів — решту докладіть наступним разом.
+                {t("items:forge.maxFood", { count: formatNumber(MAX_FOOD) })}
               </p>
             )}
             <div className="max-h-48 space-y-1 overflow-y-auto">
@@ -178,13 +179,13 @@ export function EquipmentFeed({ playerId, selected }: Props) {
                       }
                     />
                     <span className="truncate">{catalog.itemName(item.itemKey)}</span>
-                    {item.level > 0 && <span className="text-xs text-amber-700">рів. {item.level}</span>}
+                    {item.level > 0 && <span className="text-xs text-amber-700">{t("items:artifact.level", { level: item.level })}</span>}
                     <span className="ml-auto text-xs text-slate-500">+{item.feedValue}</span>
                   </label>
                 ) : wrench !== null ? (
                   <label key={wrench.itemKey} className="flex items-center gap-2 text-sm text-slate-700">
                     <span className="truncate">{wrench.displayName}</span>
-                    <span className="text-xs text-slate-500">є {wrench.count}</span>
+                    <span className="text-xs text-slate-500">{t("items:forge.have", { count: wrench.count })}</span>
                     <input
                       type="number"
                       min={0}
@@ -211,8 +212,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
             {confirming ? (
               <div className="space-y-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-900">
                 <p>
-                  Серед обраного є прокачані предмети ({levelledFood.map((item) => catalog.itemName(item.itemKey)).join(", ")}).
-                  Їхній досвід перейде в ціль, але самі предмети зникнуть разом із майстерністю.
+                  {t("items:forge.levelledWarning", { items: levelledFood.map((item) => catalog.itemName(item.itemKey)).join(", ") })}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -221,14 +221,14 @@ export function EquipmentFeed({ playerId, selected }: Props) {
                     disabled={busy}
                     className="rounded-lg bg-amber-500 px-3 py-1 font-medium text-white hover:bg-amber-600 disabled:opacity-50"
                   >
-                    Згодувати
+                    {t("items:forge.feed")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirming(false)}
                     className="rounded-lg border border-amber-300 px-3 py-1 hover:bg-amber-100"
                   >
-                    Скасувати
+                    {t("items:forge.cancel")}
                   </button>
                 </div>
               </div>
@@ -239,7 +239,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
                 disabled={busy || gained === 0}
                 className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
               >
-                Посилити
+                {t("items:forge.empower")}
               </button>
             )}
           </>
@@ -277,21 +277,21 @@ export function EquipmentMastery({ playerId, selected }: Props) {
       <ErrorBanner error={mastery.error ?? repair.error} />
       <section className="space-y-2">
         <h3 className="text-sm font-medium text-slate-800">
-          Майстерність коваля · {selected.mastery} з {catalog.maxMastery}
+          {t("items:forge.masteryTitle", { mastery: selected.mastery, max: catalog.maxMastery })}
         </h3>
         {mastery.data !== undefined && mastery.variables === selected.id && (
           <p className={`text-xs ${mastery.data.success ? "text-emerald-700" : "text-rose-700"}`}>
             {mastery.data.success
-              ? "Вдалося!"
+              ? t("items:forge.success")
               : mastery.data.broken
-                ? "Не вдалося — предмет зламався. Відремонтуйте його, щоб повернути повні стати й точити далі."
-                : "Не вдалося — камені витрачено, предмет цілий."}
+                ? t("items:forge.broke")
+                : t("items:forge.failed")}
           </p>
         )}
         {selected.isBroken ? (
           <div className="space-y-2 rounded-lg border border-rose-200 bg-rose-50 p-2">
             <p className="text-xs text-rose-800">
-              Зламаний: дає половину статів і не точиться. Рівень качати можна.
+              {t("items:forge.brokenHint")}
             </p>
             <div className="flex flex-wrap gap-2">
               <button
@@ -300,7 +300,7 @@ export function EquipmentMastery({ playerId, selected }: Props) {
                 disabled={busy || (wallet.data?.gemBalance ?? 0) < repairGems}
                 className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
               >
-                Відремонтувати за {formatNumber(repairGems)} 💎
+                {t("items:forge.repair", { gems: formatNumber(repairGems) })}
               </button>
               <button
                 type="button"
@@ -308,7 +308,7 @@ export function EquipmentMastery({ playerId, selected }: Props) {
                 disabled={busy || kits === 0}
                 className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                {catalog.itemName(catalog.artifactRepair.kitItemKey)} · є {kits}
+                {t("items:forge.kit", { kit: catalog.itemName(catalog.artifactRepair.kitItemKey), count: kits })}
               </button>
             </div>
           </div>
@@ -316,8 +316,7 @@ export function EquipmentMastery({ playerId, selected }: Props) {
           <>
             {breakChance > 0 && (
               <p className="text-xs text-amber-700">
-                Обережно: після невдалої спроби предмет може зламатися ({Math.round(breakChance * 100)}%). Зламаний дає
-                половину статів, доки його не відремонтуєте.
+                {t("items:forge.breakWarning", { chance: Math.round(breakChance * 100) })}
               </p>
             )}
             <button
@@ -327,17 +326,18 @@ export function EquipmentMastery({ playerId, selected }: Props) {
               className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
             >
               {attempt === null
-                ? "Спробувати"
-                : `Спробувати за ${formatNumber(attempt.stones)} 🪨 · шанс ${Math.round(attempt.chance * 100)}%`}
+                ? t("items:forge.try")
+                : t("items:forge.tryFor", { stones: formatNumber(attempt.stones), chance: Math.round(attempt.chance * 100) })}
             </button>
             <p className="text-xs text-slate-500">
-              {stoneName}: є {formatNumber(stones)}
-              {attempt !== null && stones < attempt.stones && ` — бракує ${formatNumber(attempt.stones - stones)}`}.
-              {" "}Невдача з'їдає камені, майстерність не падає. Камені падають зі скринь і банерів.
+              {t("items:forge.stones", { stone: stoneName, count: formatNumber(stones) })}
+              {attempt !== null && stones < attempt.stones && ` — ${t("items:forge.stonesMissing", { count: formatNumber(attempt.stones - stones) })}`}.
+              {" "}
+              {t("items:forge.stonesHint")}
             </p>
           </>
         ) : (
-          <p className="text-xs text-slate-500">Найвища майстерність.</p>
+          <p className="text-xs text-slate-500">{t("items:forge.maxMastery")}</p>
         )}
       </section>
     </>

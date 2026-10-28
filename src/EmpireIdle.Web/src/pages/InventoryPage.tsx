@@ -19,6 +19,7 @@ import { useEquip, useInventory, useUnequip, useUseItem } from "../lib/queries/i
 import { useOpenLootbox } from "../lib/queries/lootboxes";
 import { rarityKey } from "../lib/rarity";
 import { speedUpMinutesLabel } from "../lib/speedUp";
+import { t } from "i18next";
 
 type Tab = "resources" | "speedups" | "bonus" | "equipment" | "other";
 
@@ -97,7 +98,7 @@ export default function InventoryPage() {
   const equipment = useMemo(() => sortEquipment(inventory.data?.equipment ?? []), [inventory.data?.equipment]);
 
   if (inventory.isPending) {
-    return <p className="text-slate-500">Завантаження рюкзака…</p>;
+    return <p className="text-slate-500">{t("items:backpack.loading")}</p>;
   }
 
   if (inventory.isError) {
@@ -115,7 +116,7 @@ export default function InventoryPage() {
     if (count < 1) return undefined;
 
     return {
-      label: count > 1 ? `Відкрити ще ${count}` : "Відкрити ще",
+      label: count > 1 ? t("items:backpack.openMore", { count }) : t("items:backpack.openAgain"),
       onClick: () =>
         reopen.mutate({ itemKey: last.itemKey, count }, { onSuccess: (result) => setOpened({ ...last, count, drops: result.drops }) }),
     };
@@ -127,11 +128,11 @@ export default function InventoryPage() {
   const shown = items.filter((item) => tabOf(item) === tab);
 
   const tabs: GameTab<Tab>[] = [
-    { key: "resources", label: "Ресурси" },
-    { key: "speedups", label: "Прискорення" },
-    { key: "bonus", label: "Бонус" },
-    { key: "equipment", label: "Спорядж." },
-    { key: "other", label: "Інше" },
+    { key: "resources", label: t("items:backpack.tab.resources") },
+    { key: "speedups", label: t("items:backpack.tab.speedups") },
+    { key: "bonus", label: t("items:backpack.tab.bonus") },
+    { key: "equipment", label: t("items:backpack.tab.equipment") },
+    { key: "other", label: t("items:backpack.tab.other") },
   ];
 
   const pickedItem = tab === "equipment" ? null : (shown.find((item) => item.itemKey === selected) ?? null);
@@ -159,12 +160,12 @@ export default function InventoryPage() {
   return (
     <div className="space-y-3">
       <GameScreen
-        title="Рюкзак"
+        title={t("items:backpack.title")}
         actions={
           <div className="flex items-center gap-3 text-sm">
             <ActiveEffects effects={inventory.data.activeEffects} now={now} />
             <Link to="/inventory/sets" className="text-sky-200 hover:underline">
-              набори
+              {t("items:backpack.sets")}
             </Link>
           </div>
         }
@@ -173,7 +174,7 @@ export default function InventoryPage() {
         <GamePanel className="min-h-[40vh]">
           {tab === "equipment" ? (
             equipment.length === 0 ? (
-              <p className="py-8 text-center text-sm text-sky-100/80">Спорядження ще немає — воно випадає в данжах і з банерів.</p>
+              <p className="py-8 text-center text-sm text-sky-100/80">{t("items:backpack.noGear")}</p>
             ) : (
               <TileGrid>
                 {equipment.map((piece) => {
@@ -186,7 +187,7 @@ export default function InventoryPage() {
                       rarity={piece.rarity}
                       selected={piece.id === selected}
                       onClick={() => select({ item: piece.id })}
-                      top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+                      top={piece.level > 0 ? t("heroes:gear.level", { level: piece.level }) : undefined}
                       bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
                       bottomLeft={
                         wearer === undefined ? undefined : (
@@ -211,8 +212,8 @@ export default function InventoryPage() {
           ) : shown.length === 0 ? (
             <p className="py-8 text-center text-sm text-sky-100/80">
               {tab === "speedups"
-                ? "Прискорень ще немає — їх дають квести, щоденні активності й скрині."
-                : "Порожньо. Предмети дають квести й банери."}
+                ? t("items:backpack.noSpeedups")
+                : t("items:backpack.empty")}
             </p>
           ) : (
             <TileGrid>
@@ -276,7 +277,7 @@ export default function InventoryPage() {
           )}
           {pickedItem.type === "speedup" && (
             <p className="px-1 text-xs text-slate-500">
-              Прискорення вживається з таймера: натисніть «Прискорити» біля будівництва, тренування чи маршу.
+              {t("items:backpack.speedupHint")}
             </p>
           )}
         </div>
@@ -292,25 +293,25 @@ export default function InventoryPage() {
           actions={(piece, choose) =>
             piece.isOnMarket ? (
               <Link to="/market?tab=mine" className="text-xs text-amber-700 hover:underline">
-                До своїх лотів
+                {t("items:backpack.myListings")}
               </Link>
             ) : piece.equippedByHeroId != null ? (
               <GameButton onClick={() => unequip.mutate(piece.id)} disabled={busy} variant="accent">
-                Зняти
+                {t("items:backpack.unequip")}
               </GameButton>
             ) : (
               <GameButton onClick={choose} disabled={busy || wearersFor(piece).length === 0}>
-                Одягнути
+                {t("items:backpack.equip")}
               </GameButton>
             )
           }
           choice={{
-            title: "Кому вдягнути",
+            title: t("items:backpack.whoWears"),
             render: (piece, done) => (
               <div className="space-y-2">
                 {catalog.artifactSlotName(piece.itemKey) !== null && (
                   <p className="text-xs text-slate-600">
-                    Замінить те, що в слоті «{catalog.artifactSlotName(piece.itemKey)?.toLowerCase()}».
+                    {t("items:backpack.replaces", { slot: catalog.artifactSlotName(piece.itemKey)?.toLowerCase() })}
                   </p>
                 )}
                 <div className="grid grid-cols-4 gap-2">
@@ -330,7 +331,7 @@ export default function InventoryPage() {
                       >
                         <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={56} />
                         <span className="w-full truncate text-center">{catalog.heroName(hero.heroKey)}</span>
-                        <span className="text-slate-500">{hero.level} рів.</span>
+                        <span className="text-slate-500">{t("items:backpack.heroLevel", { level: hero.level })}</span>
                       </button>
                     );
                   })}

@@ -5,6 +5,7 @@ import { rarityLabel } from "../../lib/rarity";
 import { setThresholds, wornOfSet } from "../../lib/setBonus";
 import { bonusValue, isDungeonOnly, statHint, statLabelForClass } from "../../lib/statNames";
 import { RoleBadge } from "../game/GameUi";
+import { t } from "i18next";
 
 interface Props {
   itemKey: string;
@@ -38,11 +39,11 @@ export default function ArtifactSetInfo({ itemKey, wornKeys }: Props) {
           </Link>
         </h3>
         <span className={`text-xs font-semibold tabular-nums ${worn >= 2 ? "text-emerald-700" : "text-slate-500"}`}>
-          {worn}/{slots} вдягнено
+          {t("items:set.worn", { worn, slots })}
         </span>
       </div>
 
-      {set.class != null && <p className="text-xs text-slate-500">Лише для класу «{classLabel(set.class)}»</p>}
+      {set.class != null && <p className="text-xs text-slate-500">{t("items:set.classOnly", { heroClass: classLabel(set.class) })}</p>}
 
       {thresholds.map((threshold) => {
         const bonus = Object.entries(threshold.bonus);
@@ -56,7 +57,7 @@ export default function ArtifactSetInfo({ itemKey, wornKeys }: Props) {
           >
             <p className="text-xs font-medium">
               {threshold.required}/{slots}
-              {threshold.active ? ` · діє · ${rarityLabel(threshold.rarity).toLowerCase()}` : ""}
+              {threshold.active ? ` · ${t("items:set.active", { rarity: rarityLabel(threshold.rarity).toLowerCase() })}` : ""}
             </p>
             {bonus.length === 0 ? (
               <p>—</p>
@@ -66,7 +67,7 @@ export default function ArtifactSetInfo({ itemKey, wornKeys }: Props) {
                   <li key={stat} className="flex justify-between gap-2" title={statHint(stat)}>
                     <span className={statHint(stat) === undefined ? "" : "cursor-help underline decoration-dotted"}>
                       {statLabelForClass(stat, set.class)}
-                      {isDungeonOnly(stat) && <span className="text-xs opacity-75"> · у данжі</span>}
+                      {isDungeonOnly(stat) && <span className="text-xs opacity-75"> · {t("items:set.dungeonOnly")}</span>}
                     </span>
                     <span className="font-semibold tabular-nums">{bonusValue(stat, value)}</span>
                   </li>
@@ -79,11 +80,11 @@ export default function ArtifactSetInfo({ itemKey, wornKeys }: Props) {
 
       {set.dungeon != null && (
         <p className="text-xs text-slate-500">
-          Де отримати:{" "}
+          {t("items:set.source")}{" "}
           <Link to={`/dungeons?dungeon=${set.dungeon.key}`} className="font-medium text-emerald-700 hover:underline">
             {set.dungeon.displayName}
           </Link>{" "}
-          · ратуша {set.dungeon.requiresMainBuildingLevel}
+          {t("items:set.townHall", { level: set.dungeon.requiresMainBuildingLevel })}
         </p>
       )}
     </section>

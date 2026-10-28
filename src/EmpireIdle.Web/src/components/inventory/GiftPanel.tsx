@@ -3,6 +3,7 @@ import type { InventoryItemResponse } from "../../lib/apiTypes";
 import { useMyClan } from "../../lib/queries/clans";
 import { useGiftItem } from "../../lib/queries/inventory";
 import ErrorBanner from "../ErrorBanner";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -31,7 +32,7 @@ export default function GiftPanel({ playerId, item }: Props) {
         onClick={() => setOpen(true)}
         className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50"
       >
-        Подарувати
+        {t("items:gift.give")}
       </button>
     );
   }
@@ -41,9 +42,9 @@ export default function GiftPanel({ playerId, item }: Props) {
       <ErrorBanner error={gift.error} />
 
       {clan.data == null ? (
-        <p className="text-sm text-slate-500">Дарувати можна лише членам свого клану — спершу вступіть у клан.</p>
+        <p className="text-sm text-slate-500">{t("items:gift.noClan")}</p>
       ) : clanmates.length === 0 ? (
-        <p className="text-sm text-slate-500">У клані поки нікого, крім вас.</p>
+        <p className="text-sm text-slate-500">{t("items:gift.alone")}</p>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -51,7 +52,7 @@ export default function GiftPanel({ playerId, item }: Props) {
             onChange={(event) => setRecipientId(event.target.value)}
             className="min-w-0 flex-1 rounded-lg border border-slate-300 px-2 py-1 text-sm"
           >
-            <option value="">Кому…</option>
+            <option value="">{t("items:gift.to")}</option>
             {clanmates.map((member) => (
               <option key={member.playerId} value={member.playerId}>
                 {member.playerName}
@@ -81,13 +82,13 @@ export default function GiftPanel({ playerId, item }: Props) {
             }
             className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            Подарувати
+            {t("items:gift.give")}
           </button>
         </div>
       )}
 
       <button type="button" onClick={() => setOpen(false)} className="text-xs text-slate-500 hover:underline">
-        Скасувати
+        {t("items:gift.cancel")}
       </button>
     </div>
   );

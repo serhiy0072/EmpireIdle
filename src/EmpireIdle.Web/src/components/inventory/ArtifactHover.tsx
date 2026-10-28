@@ -5,6 +5,7 @@ import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import { statLabel, statValue } from "../../lib/statNames";
 import ArtifactSetInfo from "./ArtifactSetInfo";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 /** Що відомо про артефакт: екземпляр має рівень і роллені стати, нагорода данжу — лише ключ і рідкість. */
 export interface HoveredArtifact {
@@ -53,9 +54,9 @@ export default function ArtifactHover({ artifact, wornKeys = [], children }: Pro
               <p className="font-semibold">{catalog.itemName(artifact.itemKey)}</p>
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 <span className={`rounded px-1.5 py-0.5 ${rarityStyle(artifact.rarity)}`}>{rarityLabel(artifact.rarity)}</span>
-                {artifact.level !== undefined && <span className="text-slate-600">рів. {artifact.level}</span>}
+                {artifact.level !== undefined && <span className="text-slate-600">{t("items:artifact.level", { level: artifact.level })}</span>}
                 {artifact.power !== undefined && <span className="text-slate-600">⚔ {formatNumber(Math.round(artifact.power))}</span>}
-                {artifact.isBroken === true && <span className="rounded bg-rose-100 px-1.5 text-rose-700">зламано — половина статів</span>}
+                {artifact.isBroken === true && <span className="rounded bg-rose-100 px-1.5 text-rose-700">{t("items:artifact.broken")}</span>}
               </div>
             </div>
 

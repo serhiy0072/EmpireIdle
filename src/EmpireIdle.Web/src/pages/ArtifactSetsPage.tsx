@@ -10,11 +10,12 @@ import { classLabel } from "../lib/heroClasses";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
 import { bonusValue, isDungeonOnly, statLabel, statLabelForClass } from "../lib/statNames";
 import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 /** Характер набору словами: гравцеві «Attack, Health» нічого не каже про роль. */
 function character(set: CatalogArtifactSet): { label: string; style: string } | null {
-  if (set.focusStats.includes("Attack")) return { label: "Атакувальний", style: "bg-rose-100 text-rose-800" };
-  if (set.focusStats.includes("Defense")) return { label: "Захисний", style: "bg-sky-100 text-sky-800" };
+  if (set.focusStats.includes("Attack")) return { label: t("items:sets.offensive"), style: "bg-rose-100 text-rose-800" };
+  if (set.focusStats.includes("Defense")) return { label: t("items:sets.defensive"), style: "bg-sky-100 text-sky-800" };
 
   return set.focusStats.length > 0
     ? { label: set.focusStats.map(statLabel).join(", "), style: "bg-slate-100 text-slate-700" }
@@ -23,7 +24,7 @@ function character(set: CatalogArtifactSet): { label: string; style: string } | 
 
 function bonusText(bonus: Record<string, number>, heroClass: string | null | undefined): string {
   const lines = Object.entries(bonus).map(
-    ([stat, value]) => `${statLabelForClass(stat, heroClass)} ${bonusValue(stat, value)}${isDungeonOnly(stat) ? " (у данжі)" : ""}`,
+    ([stat, value]) => `${statLabelForClass(stat, heroClass)} ${bonusValue(stat, value)}${isDungeonOnly(stat) ? ` (${t("items:set.dungeonOnly")})` : ""}`,
   );
 
   return lines.length === 0 ? "—" : lines.join(" · ");
@@ -67,29 +68,26 @@ export default function ArtifactSetsPage() {
   }, [focused, catalog.loaded]);
 
   if (!catalog.loaded) {
-    return <p className="text-slate-500">Завантаження наборів…</p>;
+    return <p className="text-slate-500">{t("items:sets.loading")}</p>;
   }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Набори артефактів</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("items:sets.title")}</h1>
         <p className="text-sm text-slate-500">
           <Link to="/inventory" className="text-emerald-700 hover:underline">
-            інвентар
+            {t("items:sets.inventory")}
           </Link>{" "}
           ·{" "}
           <Link to="/dungeons" className="text-emerald-700 hover:underline">
-            данжі
+            {t("items:sets.dungeons")}
           </Link>
         </p>
       </div>
 
       <p className="text-sm text-slate-600">
-        Кожен данж дає набір із чотирьох частин для одного класу героїв — інший клас його не вдягне. Два предмети
-        набору дають перший бонус, чотири — ще один. Рідкість предметів можна змішувати: числа порогу беруться з
-        рідкості N-го найрідкіснішого предмета, тож 2 унікальні й 2 звичайні дають перший бонус унікальним, а другий —
-        звичайним.
+        {t("items:sets.intro")}
       </p>
 
       {inventory.isError && <ErrorBanner error={inventory.error} />}
@@ -97,7 +95,7 @@ export default function ArtifactSetsPage() {
       {tiers.map(([tier, sets]) => (
         <section key={tier} className="space-y-2">
           <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">
-            Рівень {tier} · стати ×{sets[0] !== undefined && formatNumber(sets[0].statMultiplier)}
+            {t("items:sets.tier", { tier, multiplier: sets[0] !== undefined ? formatNumber(sets[0].statMultiplier) : "" })}
           </h2>
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -121,24 +119,24 @@ export default function ArtifactSetsPage() {
                     {role !== null && <span className={`rounded px-2 py-0.5 text-xs ${role.style}`}>{role.label}</span>}
                   </div>
 
-                  {set.class != null && <p className="text-xs text-slate-500">Для класу «{classLabel(set.class)}»</p>}
+                  {set.class != null && <p className="text-xs text-slate-500">{t("items:sets.forClass", { heroClass: classLabel(set.class) })}</p>}
                   {set.description !== "" && <p className="text-sm italic text-slate-600">{set.description}</p>}
 
                   {set.dungeon != null ? (
                     <p className="text-xs text-slate-500">
-                      Падає в данжі{" "}
+                      {t("items:sets.dropsIn")}{" "}
                       <Link to="/dungeons" className="text-emerald-700 hover:underline">
                         {set.dungeon.displayName}
                       </Link>{" "}
-                      · ратуша {set.dungeon.requiresMainBuildingLevel}
+                      {t("items:set.townHall", { level: set.dungeon.requiresMainBuildingLevel })}
                     </p>
                   ) : (
-                    <p className="text-xs text-slate-500">Не падає в данжах</p>
+                    <p className="text-xs text-slate-500">{t("items:sets.noDungeon")}</p>
                   )}
 
                   {set.focusStats.length > 0 && (
                     <p className="text-xs text-slate-500">
-                      Характер набору: {set.focusStats.map(statLabel).join(", ").toLowerCase()}
+                      {t("items:sets.character", { stats: set.focusStats.map(statLabel).join(", ").toLowerCase() })}
                     </p>
                   )}
 
@@ -154,13 +152,13 @@ export default function ArtifactSetsPage() {
                               {rarityLabel(rarity.rarity)}
                             </span>
                             <span className={complete ? "text-xs font-medium text-emerald-700" : "text-xs text-slate-500"}>
-                              зібрано {collected} / {rarity.pieceKeys.length}
+                              {t("items:sets.collected", { collected, total: rarity.pieceKeys.length })}
                             </span>
                           </div>
 
                           {rarity.thresholds.map((threshold) => (
                             <p key={threshold.requiredPieces} className="mt-1 text-sm text-slate-700">
-                              {threshold.requiredPieces} предмети: {bonusText(threshold.bonus, set.class)}
+                              {t("items:sets.threshold", { count: threshold.requiredPieces, bonus: bonusText(threshold.bonus, set.class) })}
                             </p>
                           ))}
 

@@ -3,5 +3,122 @@
     "shop": "Shop",
     "banners": "Banners",
     "market": "Player market"
+  },
+  "effect": {
+    "Production": "production",
+    "Attack": "attack",
+    "Defense": "defense",
+    "ScoutBlock": "hidden from scouts"
+  },
+  "artifact": {
+    "level": "lv. {{level}}",
+    "broken": "broken — half the stats"
+  },
+  "set": {
+    "worn": "{{worn}}/{{slots}} worn",
+    "classOnly": "{{heroClass}} class only",
+    "active": "active · {{rarity}}",
+    "dungeonOnly": "in dungeons",
+    "source": "Where to get:",
+    "townHall": "· Town Hall {{level}}"
+  },
+  "type": {
+    "resources": "Resources",
+    "boost": "Boost",
+    "teleport": "Teleport",
+    "evolution": "Evolution",
+    "feed": "Treats",
+    "scoutveil": "Scout veil",
+    "energy": "Dungeon energy",
+    "heroxp": "Hero XP",
+    "chestkey": "Chest key"
+  },
+  "item": {
+    "all": "all",
+    "use": "Use",
+    "teleportConfirm": "Move? All troops return home at once.",
+    "yes": "Yes",
+    "no": "No",
+    "teleportLeader": "Move next to the leader",
+    "teleportRandom": "Move to a random spot",
+    "pickOnMap": "Pick a spot on the map →",
+    "evolutionHint": "Spent when a hero evolves.",
+    "feedHint": "Feed the beasts in the Beast Pen"
+  },
+  "gift": {
+    "give": "Give",
+    "noClan": "You can only give gifts to your clan members — join a clan first.",
+    "alone": "There's no one in the clan but you yet.",
+    "to": "To…",
+    "cancel": "Cancel"
+  },
+  "forge": {
+    "feedTitle": "Empower · level {{level}} of {{max}}",
+    "maxLevel": "Top level.",
+    "toNext": "{{experience}} XP to the next level",
+    "picked": "· picked +{{gained}} → level {{level}}",
+    "nothing": "Nothing to empower with: you need free non-unique artifacts or engraver's chisels.",
+    "autoPick": "Auto-pick +1 level",
+    "clear": "clear",
+    "maxFood": "You can feed up to {{count}} items at a time — add the rest next time.",
+    "have": "{{count}} owned",
+    "levelledWarning": "Some picked items are levelled ({{items}}). Their XP goes into the target, but the items themselves disappear along with their mastery.",
+    "feed": "Feed",
+    "cancel": "Cancel",
+    "empower": "Empower",
+    "masteryTitle": "Smith's mastery · {{mastery}} of {{max}}",
+    "success": "Success!",
+    "broke": "Failed — the item broke. Repair it to restore full stats and keep enhancing.",
+    "failed": "Failed — the stones are spent, the item is intact.",
+    "brokenHint": "Broken: gives half the stats and can't be enhanced. You can still raise its level.",
+    "repair": "Repair for {{gems}} 💎",
+    "kit": "{{kit}} · {{count}} owned",
+    "breakWarning": "Careful: a failed attempt may break the item ({{chance}}%). A broken item gives half the stats until you repair it.",
+    "try": "Try",
+    "tryFor": "Try for {{stones}} 🪨 · {{chance}}% chance",
+    "stones": "{{stone}}: {{count}} owned",
+    "stonesMissing": "{{count}} short",
+    "stonesHint": "A failure eats the stones, mastery doesn't drop. Stones drop from chests and banners.",
+    "maxMastery": "Top mastery."
+  },
+  "backpack": {
+    "loading": "Loading the backpack…",
+    "openMore": "Open {{count}} more",
+    "openAgain": "Open another",
+    "tab": {
+      "resources": "Resources",
+      "speedups": "Speed-ups",
+      "bonus": "Bonus",
+      "equipment": "Gear",
+      "other": "Other"
+    },
+    "title": "Backpack",
+    "sets": "sets",
+    "noGear": "No gear yet — it drops in dungeons and from banners.",
+    "noSpeedups": "No speed-ups yet — quests, daily activities and chests give them.",
+    "empty": "Empty. Quests and banners give items.",
+    "speedupHint": "Speed-ups are used from a timer: press \"Speed up\" next to construction, training or a march.",
+    "myListings": "To my listings",
+    "unequip": "Unequip",
+    "equip": "Equip",
+    "whoWears": "Who wears it",
+    "replaces": "Replaces what's in the {{slot}} slot.",
+    "heroLevel": "lv. {{level}}"
+  },
+  "sets": {
+    "offensive": "Offensive",
+    "defensive": "Defensive",
+    "loading": "Loading sets…",
+    "title": "Artifact sets",
+    "inventory": "inventory",
+    "dungeons": "dungeons",
+    "intro": "Each dungeon gives a four-piece set for one hero class — other classes can't wear it. Two pieces give the first bonus, four give another. You can mix rarities: a threshold's numbers come from the rarity of the N-th rarest piece, so 2 Unique and 2 Common pieces give the first bonus at Unique and the second at Common.",
+    "tier": "Tier {{tier}} · stats ×{{multiplier}}",
+    "forClass": "For the {{heroClass}} class",
+    "dropsIn": "Drops in the dungeon",
+    "noDungeon": "Doesn't drop in dungeons",
+    "character": "Set focus: {{stats}}",
+    "collected": "collected {{collected}} / {{total}}",
+    "threshold": "{{count}} pieces: {{bonus}}"
   }
 }
