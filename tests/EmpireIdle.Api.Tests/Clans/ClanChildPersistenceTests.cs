@@ -117,8 +117,12 @@ public class ClanChildPersistenceTests : IAsyncLifetime
         var firstCopy = await first.ClanHelpRequests.Include(r => r.Helpers).FirstAsync(r => r.Id == request.Id);
         var secondCopy = await second.ClanHelpRequests.Include(r => r.Helpers).FirstAsync(r => r.Id == request.Id);
 
-        firstCopy.AcceptHelp(Guid.NewGuid(), 0.1, maxHelpers: 1, now);
-        secondCopy.AcceptHelp(Guid.NewGuid(), 0.1, maxHelpers: 1, now);
+        // Допомога приходить пізніше за створення запиту: з тим самим моментом Touch нічого б не змінив
+        // (Postgres зберігає мікросекунди, і прочитаний UpdatedAt часом точно дорівнює now), а без зміни
+        // кореня EF не перевіряє xmin — тест падав приблизно раз на десять прогонів
+        var helpedAt = now.AddSeconds(1);
+        firstCopy.AcceptHelp(Guid.NewGuid(), 0.1, maxHelpers: 1, helpedAt);
+        secondCopy.AcceptHelp(Guid.NewGuid(), 0.1, maxHelpers: 1, helpedAt);
         await first.SaveChangesAsync();
 
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => second.SaveChangesAsync());
