@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { TutorialStep } from "./steps";
 import { useTargetRect, type TargetRect } from "./useTargetRect";
 import { useHotkeys } from "../hooks/useHotkeys";
+import { t } from "i18next";
 
 interface Props {
   step: TutorialStep;
@@ -53,7 +54,8 @@ export default function TutorialOverlay({ step, onDismiss, onSkip }: Props) {
   const blocking = step.mode === "block" && rect !== null;
   // Дія обов'язкова лише в block-кроці з ціллю; решту можна сховати кнопкою
   const dismissable = step.mode !== "block" || step.done === undefined;
-  const dismissLabel = step.mode === "hint" ? "Зрозуміло" : step.mode === "guide" ? "Приховати" : "Далі";
+  const dismissLabel =
+    step.mode === "hint" ? t("tutorial:overlay.gotIt") : step.mode === "guide" ? t("tutorial:overlay.hide") : t("tutorial:overlay.next");
 
   // Enter — та сама кнопка «Далі»/«Зрозуміло»; привітання без цілі ще й не пускає клавіші під себе
   useHotkeys({ Enter: dismissable ? onDismiss : undefined }, { modal });
@@ -105,7 +107,7 @@ export default function TutorialOverlay({ step, onDismiss, onSkip }: Props) {
             <span />
           ) : (
             <button type="button" onClick={onSkip} className="text-xs text-slate-500 hover:underline">
-              Пропустити навчання
+              {t("tutorial:overlay.skip")}
             </button>
           )}
 

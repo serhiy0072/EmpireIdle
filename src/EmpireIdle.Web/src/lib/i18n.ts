@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import resourcesToBackend from "i18next-resources-to-backend";
 import { initReactI18next, useTranslation } from "react-i18next";
-import uk from "../locales/uk/common.json";
+import { uk, type Namespace } from "../locales/uk";
 import { queryClient } from "./queryClient";
 
 /** Мови, для яких клієнт має переклад; сервер підтримує той самий набір. */
@@ -20,7 +20,7 @@ const LANGUAGE_KEY = "ui-language";
 declare module "i18next" {
   interface CustomTypeOptions {
     defaultNS: "common";
-    resources: { common: typeof uk };
+    resources: typeof uk;
   }
 }
 
@@ -98,9 +98,9 @@ export async function initI18n(): Promise<void> {
       fallbackLng: DEFAULT_LANGUAGE,
       supportedLngs: LANGUAGES,
       load: "languageOnly",
-      ns: ["common"],
+      ns: Object.keys(uk) as Namespace[],
       defaultNS: "common",
-      resources: { uk: { common: uk } },
+      resources: { uk },
       // Вшита мова — лише частина ресурсів: інші бекенд довантажує на вимогу
       partialBundledLanguages: true,
       // React сам екранує текст

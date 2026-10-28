@@ -13,6 +13,7 @@ import type {
 import type { BeastPenResponse } from "../lib/queries/beasts";
 import type { Catalog } from "../lib/queries/catalog";
 import type { HeroesOverview } from "../lib/queries/heroes";
+import { t } from "i18next";
 import { QUEST_STATE, QUEST_WINDOW } from "../lib/queries/quests";
 
 /**
@@ -127,147 +128,161 @@ function armySize(s: TutorialSnapshot): number {
   return (s.garrison?.units ?? []).reduce((sum, u) => sum + u.count, 0);
 }
 
-/** Ведений ланцюжок. Порядок у масиві — порядок показу. */
-export const INTRO_STEPS: TutorialStep[] = [
-  {
-    key: "intro.welcome",
-    mode: "block",
-    title: "Вітаємо в EmpireIdle",
-    text: "Ви отримали село, шахту й запас золота та дерева. За кілька кроків покажемо, як тут усе працює — або пропустіть навчання й розбирайтесь самі.",
-    targets: [],
-    available: () => true,
-  },
-  // Апгрейд першим: стартових ресурсів на нього вистачає, а шахта ще порожня —
-  // блокувати гравця, поки вона накопичить 50 золота, означало б п'ять хвилин нудьги
-  {
-    key: "intro.upgrade",
-    mode: "block",
-    title: "Покращте ратушу",
-    text: "Ратуша відкриває інші будівлі, ресурси й героїв. Клацніть на неї й натисніть «Покращити» — стартових запасів вистачить.",
-    targets: ["upgrade", `building:${MAIN_BUILDING}`, "nav:/"],
-    available: () => true,
-    done: (s) => reachedOrBuilding(s, MAIN_BUILDING, 2),
-  },
-  {
-    key: "intro.timers",
-    mode: "hint",
-    title: "Будівництво триває",
-    text: "Кожен апгрейд займає час. Поки триває — тренуйте військо або прискорте його за самоцвіти 💎: вони приходять за квести.",
-    targets: [],
-    available: (s) => building(s, MAIN_BUILDING)?.isUnderConstruction === true,
-  },
-  {
-    key: "intro.collect",
-    mode: "guide",
-    title: "Золото йде саме",
-    text: "Шахта копає золото сама, навіть коли вас немає, і щохвилини складає його на склад. Зачекайте трохи — 50 зібраного золота закриють перший квест.",
-    targets: [`building:${GOLD_MINE}`, "nav:/"],
-    available: () => true,
-    done: (s) => {
-      const q = quest(s, "intro_farm");
-      return q !== undefined && q.state !== QUEST_STATE.inProgress;
+/** Ведений ланцюжок. Порядок у масиві — порядок показу. Функція, а не константа: тексти — мовою на момент показу. */
+export function introSteps(): TutorialStep[] {
+  return [
+    {
+      key: "intro.welcome",
+      mode: "block",
+      title: t("tutorial:intro.welcome.title"),
+      text: t("tutorial:intro.welcome.text"),
+      targets: [],
+      available: () => true,
     },
-  },
-  {
-    key: "intro.claim",
-    mode: "block",
-    title: "Заберіть нагороду",
-    text: "Перший квест виконано. Нагороди самі не приходять — відкрийте «Квести» й натисніть «Забрати».",
-    targets: ["claim:intro_farm", "nav:/quests"],
-    available: (s) => quest(s, "intro_farm")?.state === QUEST_STATE.completed,
-    done: (s) => quest(s, "intro_farm")?.state === QUEST_STATE.claimed,
-  },
-  {
-    key: "intro.train",
-    mode: "guide",
-    title: "Навчіть перших воїнів",
-    text: "Казарма вже стоїть. Торкніться її в селі, відкрийте «Табір» і натренуйте 5 піхотинців — по 15 золота за кожного. Без війська походів немає.",
-    targets: [`train:${FIRST_UNIT}`, "camp:barracks", "building:barracks", "nav:/"],
-    available: () => true,
-    done: (s) => armySize(s) >= 5 || (s.garrison?.trainingOrders.length ?? 0) > 0,
-  },
-  {
-    key: "intro.townhall3",
-    mode: "guide",
-    title: "Ратуша 3 рівня",
-    text: "3-й рівень ратуші відкриє ферму, госпіталь, ринок і Вежу, а квест «Серце поселення» приведе першого героя. Збирайте ресурси й покращуйте.",
-    targets: [`building:${MAIN_BUILDING}`, "nav:/"],
-    available: (s) => reachedOrBuilding(s, MAIN_BUILDING, 2),
-    done: (s) => reachedOrBuilding(s, MAIN_BUILDING, 3),
-  },
-  // Герой — нагорода квесту за ратушу 3: без цього кроку ланцюжок мовчав би, доки гравець сам не знайде «Забрати»
-  {
-    key: "intro.claim-hero",
-    mode: "block",
-    title: "Заберіть нагороди",
-    text: "Квести за ратушу виконано. Заберіть нагороди — за 3-й рівень на вас чекає перший герой.",
-    targets: ["claim:intro_townhall_3", "claim:intro_townhall_2", "nav:/quests"],
-    available: (s) =>
-      quest(s, "intro_townhall_2")?.state === QUEST_STATE.completed || quest(s, "intro_townhall_3")?.state === QUEST_STATE.completed,
-    done: (s) => quest(s, "intro_townhall_3")?.state === QUEST_STATE.claimed,
-  },
-  {
-    key: "intro.hero",
-    mode: "guide",
-    title: "Ваш перший герой",
-    text: "Герой веде армію: без нього марш не вирушить. Кожен герой веде війська своєї ролі: воїн — піхоту, лицар — списоносців, лучник — лучників. Подивіться його вміння у вкладці «Герої».",
-    targets: ["hero-card", "nav:/heroes"],
-    available: (s) => (s.heroes?.heroes.length ?? 0) > 0,
-  },
-  {
-    key: "intro.march",
-    mode: "guide",
-    title: "Перший похід",
-    text: "Відкрийте мапу, оберіть монстра поруч із селом і натисніть «Атакувати». Форма сама візьме найсильніших вільних героїв (по одному на роль) і максимум війська та покаже прогноз бою — лишається натиснути «Відправити».",
-    targets: ["send-march", "attack", "nav:/map"],
-    available: (s) =>
-      (s.heroes?.heroes.some((h) => h.state === "Idle") ?? false) && armySize(s) > 0,
-    done: (s) => (s.marches?.length ?? 0) > 0 || (s.reports?.length ?? 0) > 0,
-  },
-  {
-    key: "intro.report",
-    mode: "guide",
-    title: "Звіт бою",
-    text: "Бій відбувся. У звіті видно, хто вцілів і хто поранений: поранені лежать у госпіталі, їх лікують ресурсами або 💎. Частину загиблих можна викупити за 10 💎 кожного, але лише 24 години.",
-    targets: ["reports", "nav:/map"],
-    available: (s) => (s.reports?.length ?? 0) > 0,
-  },
-  {
-    key: "intro.next",
-    mode: "hint",
-    title: "Далі — самі",
-    text: "Квести поведуть далі: ратуша 5, перші данжі, звіринець. Нові можливості ми пояснимо, щойно вони відкриються.",
-    targets: [],
-    available: (s) => s.seen.has("intro.report"),
-  },
-];
+    // Апгрейд першим: стартових ресурсів на нього вистачає, а шахта ще порожня —
+    // блокувати гравця, поки вона накопичить 50 золота, означало б п'ять хвилин нудьги
+    {
+      key: "intro.upgrade",
+      mode: "block",
+      title: t("tutorial:intro.upgrade.title"),
+      text: t("tutorial:intro.upgrade.text"),
+      targets: ["upgrade", `building:${MAIN_BUILDING}`, "nav:/"],
+      available: () => true,
+      done: (s) => reachedOrBuilding(s, MAIN_BUILDING, 2),
+    },
+    {
+      key: "intro.timers",
+      mode: "hint",
+      title: t("tutorial:intro.timers.title"),
+      text: t("tutorial:intro.timers.text"),
+      targets: [],
+      available: (s) => building(s, MAIN_BUILDING)?.isUnderConstruction === true,
+    },
+    {
+      key: "intro.collect",
+      mode: "guide",
+      title: t("tutorial:intro.collect.title"),
+      text: t("tutorial:intro.collect.text"),
+      targets: [`building:${GOLD_MINE}`, "nav:/"],
+      available: () => true,
+      done: (s) => {
+        const q = quest(s, "intro_farm");
+        return q !== undefined && q.state !== QUEST_STATE.inProgress;
+      },
+    },
+    {
+      key: "intro.claim",
+      mode: "block",
+      title: t("tutorial:intro.claim.title"),
+      text: t("tutorial:intro.claim.text"),
+      targets: ["claim:intro_farm", "nav:/quests"],
+      available: (s) => quest(s, "intro_farm")?.state === QUEST_STATE.completed,
+      done: (s) => quest(s, "intro_farm")?.state === QUEST_STATE.claimed,
+    },
+    {
+      key: "intro.train",
+      mode: "guide",
+      title: t("tutorial:intro.train.title"),
+      text: t("tutorial:intro.train.text"),
+      targets: [`train:${FIRST_UNIT}`, "camp:barracks", "building:barracks", "nav:/"],
+      available: () => true,
+      done: (s) => armySize(s) >= 5 || (s.garrison?.trainingOrders.length ?? 0) > 0,
+    },
+    {
+      key: "intro.townhall3",
+      mode: "guide",
+      title: t("tutorial:intro.townhall3.title"),
+      text: t("tutorial:intro.townhall3.text"),
+      targets: [`building:${MAIN_BUILDING}`, "nav:/"],
+      available: (s) => reachedOrBuilding(s, MAIN_BUILDING, 2),
+      done: (s) => reachedOrBuilding(s, MAIN_BUILDING, 3),
+    },
+    // Герой — нагорода квесту за ратушу 3: без цього кроку ланцюжок мовчав би, доки гравець сам не знайде «Забрати»
+    {
+      key: "intro.claim-hero",
+      mode: "block",
+      title: t("tutorial:intro.claim-hero.title"),
+      text: t("tutorial:intro.claim-hero.text"),
+      targets: ["claim:intro_townhall_3", "claim:intro_townhall_2", "nav:/quests"],
+      available: (s) =>
+        quest(s, "intro_townhall_2")?.state === QUEST_STATE.completed || quest(s, "intro_townhall_3")?.state === QUEST_STATE.completed,
+      done: (s) => quest(s, "intro_townhall_3")?.state === QUEST_STATE.claimed,
+    },
+    {
+      key: "intro.hero",
+      mode: "guide",
+      title: t("tutorial:intro.hero.title"),
+      text: t("tutorial:intro.hero.text"),
+      targets: ["hero-card", "nav:/heroes"],
+      available: (s) => (s.heroes?.heroes.length ?? 0) > 0,
+    },
+    {
+      key: "intro.march",
+      mode: "guide",
+      title: t("tutorial:intro.march.title"),
+      text: t("tutorial:intro.march.text"),
+      targets: ["send-march", "attack", "nav:/map"],
+      available: (s) =>
+        (s.heroes?.heroes.some((h) => h.state === "Idle") ?? false) && armySize(s) > 0,
+      done: (s) => (s.marches?.length ?? 0) > 0 || (s.reports?.length ?? 0) > 0,
+    },
+    {
+      key: "intro.report",
+      mode: "guide",
+      title: t("tutorial:intro.report.title"),
+      text: t("tutorial:intro.report.text"),
+      targets: ["reports", "nav:/map"],
+      available: (s) => (s.reports?.length ?? 0) > 0,
+    },
+    {
+      key: "intro.next",
+      mode: "hint",
+      title: t("tutorial:intro.next.title"),
+      text: t("tutorial:intro.next.text"),
+      targets: [],
+      available: (s) => s.seen.has("intro.report"),
+    },
+  ];
+}
 
 /**
  * Що нового приносить рівень ратуші — рядок на будівлю (рішення 22.10.2026: одна картка на рівень
  * замість картки на кожну будівлю). Будівля, якої тут немає, отримує загальний рядок.
  */
-const TOWN_HALL_LINES: Record<string, string> = {
-  heroeshall: "Зала героїв — тут живуть і ростуть ваші герої.",
-  ironmine: "Залізна копальня — залізо для списоносців, муру й лікування героїв.",
-  range: "Стрільбище — лучники, сильні проти списоносців.",
-  farm: "Ферма — м'ясо, яким живиться село.",
-  hospital: "Госпіталь — сюди лягають поранені після боїв.",
-  market: "Ринок — крамниця, банери героїв, торгівля з гравцями й безкоштовні скрині щодня.",
-  spearyard: "Двір списоносців — списоносці, сильні проти піхоти.",
-  messhall: "Їдальня — щогодини з'їдає м'ясо, і що більше село, то більше.",
-  wall: "Мур — +3% до оборони села за рівень.",
-  scouttower: "Вежа розвідки — розвідка чужих сіл і вхід у данжі.",
-  embassy: "Посольство — приймає підкріплення союзників, 50 місць за рівень.",
-  forge: "Кузня — заточка артефактів за точильні камені.",
-  fishinghut: "Рибальська хижа — корм для звірів.",
-  beastpen: "Звіринець — приручені звірі дають бонуси.",
-};
+const TOWN_HALL_LINES = [
+  "heroeshall",
+  "ironmine",
+  "range",
+  "farm",
+  "hospital",
+  "market",
+  "spearyard",
+  "messhall",
+  "wall",
+  "scouttower",
+  "embassy",
+  "forge",
+  "fishinghut",
+  "beastpen",
+] as const;
+
+type TownHallLine = (typeof TOWN_HALL_LINES)[number];
+
+function isTownHallLine(type: string): type is TownHallLine {
+  return (TOWN_HALL_LINES as readonly string[]).includes(type);
+}
 
 /** Розділи, що відкриваються ратушею, але не є будівлями села. */
-const TOWN_HALL_FEATURES: Record<number, string[]> = {
-  3: ["Тисячна вежа — кнопка «Вежа» внизу: поверх за поверхом, нагорода за кожен."],
-  5: ["Данжі — забіги загону героїв за артефактами наборів; вхід — через Вежу розвідки."],
-};
+function townHallFeatures(level: number): string[] {
+  switch (level) {
+    case 3:
+      return [t("tutorial:townhall.features.tower")];
+    case 5:
+      return [t("tutorial:townhall.features.dungeons")];
+    default:
+      return [];
+  }
+}
 
 /**
  * Контекстні підказки: спливають один раз, коли механіка стала доступною чи вперше трапилась.
@@ -280,8 +295,8 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
   steps.push({
     key: "hint.incoming-attack",
     mode: "guide",
-    title: "На вас іде атака",
-    text: "Ворожий марш уже в дорозі — час прибуття видно на мапі. Витратьте зайве понад захищене, дотренуйте військо або прискорте мур.",
+    title: t("tutorial:hint.incoming-attack.title"),
+    text: t("tutorial:hint.incoming-attack.text"),
     targets: ["nav:/map"],
     available: (st) => st.incoming?.some((attack) => attack.mine) ?? false,
   });
@@ -292,88 +307,88 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     {
       key: "hint.tower",
       mode: "hint",
-      title: "Тисячна вежа",
-      text: "Кожен поверх — бій ваших героїв проти загону вежі. За поверх — 20 💎 і досвід героїв, на кожному 5-му — рідкісний ключ, на кожному 10-му — ще й артефакт і унікальний ключ.",
+      title: t("tutorial:hint.tower.title"),
+      text: t("tutorial:hint.tower.text"),
       targets: [],
       available: (st) => st.route === "/tower",
     },
     {
       key: "hint.banners",
       mode: "hint",
-      title: "Банери героїв",
-      text: "Призов коштує 1000 💎 (стандартний — 1200). Рідкісна нагорода гарантована не пізніше 10-ї спроби, унікальна — не пізніше 50-ї (у стандартного — 60-ї). Усі шанси — під «Шанси».",
+      title: t("tutorial:hint.banners.title"),
+      text: t("tutorial:hint.banners.text"),
       targets: [],
       available: (st) => st.route === "/banners",
     },
     {
       key: "hint.market",
       mode: "hint",
-      title: "Ринок гравців",
-      text: "Продавайте й купуйте в інших гравців. Лот висить 48 годин, податок — 5%, одночасно до 10 лотів; куплене можна перепродати лише через 72 години.",
+      title: t("tutorial:hint.market.title"),
+      text: t("tutorial:hint.market.text"),
       targets: [],
       available: (st) => st.route === "/market",
     },
     {
       key: "hint.dungeons",
       mode: "hint",
-      title: "Данжі",
-      text: "Загін із 4 героїв проходить хвилі ворогів; воїни й лицарі стоять попереду. Забіг коштує 10 енергії зі 100, повна шкала відновлюється за 20 годин. Кожен данж дає артефакти свого набору й досвід героям.",
+      title: t("tutorial:hint.dungeons.title"),
+      text: t("tutorial:hint.dungeons.text"),
       targets: [],
       available: (st) => st.route === "/dungeons",
     },
     {
       key: "hint.beastpen",
       mode: "hint",
-      title: "Звіринець",
-      text: "Звіра приручають на мапі: «Приручити» на монстрі його виду — це звичайний бій, і перемога з шансом приводить звіра. Не пізніше 10-ї перемоги звір гарантований. «Знайти» відкриє найближчого.",
+      title: t("tutorial:hint.beastpen.title"),
+      text: t("tutorial:hint.beastpen.text"),
       targets: [],
       available: (st) => st.route === "/beasts",
     },
     {
       key: "hint.clan",
       mode: "hint",
-      title: "Клан",
-      text: "Співклановці скорочують ваші таймери: кожен помічник — 2%, разом до 40%. На території клану ваші війська б'ються на 10% сильніше.",
+      title: t("tutorial:hint.clan.title"),
+      text: t("tutorial:hint.clan.text"),
       targets: [],
       available: (st) => st.route === "/clan" && st.clan === null,
     },
     {
       key: "hint.rating",
       mode: "hint",
-      title: "Рейтинг",
-      text: "Рейтинг рахує силу (55%), розвиток (25%) і активність (20%).",
+      title: t("tutorial:hint.rating.title"),
+      text: t("tutorial:hint.rating.text"),
       targets: [],
       available: (st) => st.route === "/rating",
     },
     {
       key: "hint.codex",
       mode: "hint",
-      title: "Кодекс героїв",
-      text: "Кодекс — усі герої гри й де їх шукати.",
+      title: t("tutorial:hint.codex.title"),
+      text: t("tutorial:hint.codex.text"),
       targets: [],
       available: (st) => st.route === "/heroes/codex",
     },
     {
       key: "hint.scout",
       mode: "hint",
-      title: "Розвідка",
-      text: "Перед атакою на село розвідайте його: звіт прийде в скриньку. Завіса туману на 24 години ховає ваше село від розвідки.",
+      title: t("tutorial:hint.scout.title"),
+      text: t("tutorial:hint.scout.text"),
       targets: [],
       available: (st) => st.route === "/map" && unlocked(st, "scouttower"),
     },
     {
       key: "hint.key-chests",
       mode: "hint",
-      title: "Скрині за ключі",
-      text: "Рідкісну скриню можна відкрити безкоштовно 5 разів на день, з перервою 5 хв, унікальну — раз на 48 годин. Понад це потрібні ключі: їх дає Вежа й продає крамниця.",
+      title: t("tutorial:hint.key-chests.title"),
+      text: t("tutorial:hint.key-chests.text"),
       targets: ["nav:/shop"],
       available: (st) => st.route === "/shop" || hasItem(st, (item) => item.itemKey === "key_rare" || item.itemKey === "key_unique"),
     },
     {
       key: "hint.sets",
       mode: "hint",
-      title: "Набори артефактів",
-      text: "2 і 4 предмети одного набору на герої його класу дають додаткові бонуси. Набори падають у данжах — кожен данж має свій.",
+      title: t("tutorial:hint.sets.title"),
+      text: t("tutorial:hint.sets.text"),
       targets: ["nav:/inventory"],
       available: (st) => st.route === "/inventory/sets" || hasSetPair(st),
     },
@@ -385,15 +400,17 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     return config !== null && config.requiresMainBuildingLevel === level ? [{ type: b.type, name: config.displayName }] : [];
   });
   const lines = [
-    ...opened.map(({ type, name }) => TOWN_HALL_LINES[type] ?? `${name} — клацніть на неї в селі, щоб побачити, що вона дає.`),
-    ...(TOWN_HALL_FEATURES[level] ?? []),
+    ...opened.map(({ type, name }) =>
+      isTownHallLine(type) ? t(`tutorial:townhall.lines.${type}`) : t("tutorial:townhall.other", { name }),
+    ),
+    ...townHallFeatures(level),
   ];
 
   if (level >= 2 && lines.length > 0) {
     steps.push({
       key: `hint.townhall.${level}`,
       mode: "hint",
-      title: `Ратуша ${level}: нове в селі`,
+      title: t("tutorial:townhall.title", { level }),
       text: lines.join(" "),
       targets: [...opened.map(({ type }) => `building:${type}`), "nav:/"],
       available: () => true,
@@ -404,56 +421,56 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     {
       key: "hint.shield-end",
       mode: "hint",
-      title: "Захист новачка знято",
-      text: "Поки ратуша була нижче 3 рівня, на вас не могли напасти. Тепер можуть: від грабунку захищено 250 ресурсу за кожен рівень складу, а золота — банку. Решту вкладайте в будівництво, а не тримайте.",
+      title: t("tutorial:hint.shield-end.title"),
+      text: t("tutorial:hint.shield-end.text"),
       targets: ["building:warehouse", "building:bank", "nav:/"],
       available: (st) => townHallLevel(st) >= NEWBIE_SHIELD_LEVEL,
     },
     {
       key: "hint.city-damage",
       mode: "hint",
-      title: "Село пограбоване",
-      text: "Поразка пошкодила будівлі: вони видобувають удвічі менше, доки не відновляться за 7 годин або не будуть відремонтовані. Кілька поразок поспіль без відновлення виселять село з місця.",
+      title: t("tutorial:hint.city-damage.title"),
+      text: t("tutorial:hint.city-damage.text"),
       targets: [],
       available: (st) => (st.village.damage?.defeatStreak ?? 0) > 0,
     },
     {
       key: "hint.hunger",
       mode: "hint",
-      title: "Село голодує",
-      text: "Їдальні бракує м'яса: видобуток усього, крім м'яса, впав на 25%, а оборона — на 20%. Покращуйте ферму або поповніть м'ясо з ящика.",
+      title: t("tutorial:hint.hunger.title"),
+      text: t("tutorial:hint.hunger.text"),
       targets: ["building:farm", "building:messhall", "nav:/"],
       available: (st) => st.village.isHungry,
     },
     {
       key: "hint.hero-xp",
       mode: "hint",
-      title: "Досвід героїв",
-      text: "Досвід за монстрів, Вежу й данжі йде в спільний запас. Витрачайте його на рівень будь-якого героя на його екрані.",
+      title: t("tutorial:hint.hero-xp.title"),
+      text: t("tutorial:hint.hero-xp.text"),
       targets: ["nav:/heroes"],
       available: (st) => (st.heroes?.experience ?? 0) > 0 && (st.heroes?.heroes.length ?? 0) > 0,
     },
     {
       key: "hint.first-artifact",
       mode: "hint",
-      title: "Перший артефакт",
-      text: "Артефакти вдягають герої: намисто, корона, кільце й пояс. Відкрийте героя → спорядження: кнопка «Швидке використання» вдягне найкраще вільне.",
+      title: t("tutorial:hint.first-artifact.title"),
+      text: t("tutorial:hint.first-artifact.text"),
       targets: ["equip-best", "nav:/heroes"],
       available: (st) => st.inventory?.equipment.some((piece) => piece.equippedByHeroId == null) ?? false,
     },
     {
       key: "hint.mail",
       mode: "hint",
-      title: "Скринька",
-      text: "Нагороди за вхід, квестові нагороди й звіти розвідки приходять листами. Нагороди за вхід згорають, щойно почнеться наступний день чи тиждень, — заходьте й забирайте.",
+      title: t("tutorial:hint.mail.title"),
+      text: t("tutorial:hint.mail.text"),
       targets: ["nav:/mail"],
       available: (st) => st.unreadMail > 0,
     },
     {
       key: "hint.chests",
       mode: "hint",
-      title: "Скрині",
-      text: "Скрині відкриваються в рюкзаку, можна цілим стосом. Гарантія з опису («не пізніше N-ї скрині») працює чесно: лічильник зберігається між відкриттями.",
+      title: t("tutorial:hint.chests.title"),
+      text: t("tutorial:hint.chests.text"),
       targets: ["nav:/inventory"],
       available: (st) => hasItem(st, (item) => item.type === "lootbox"),
     },
@@ -464,24 +481,24 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     {
       key: "hint.march-roles",
       mode: "hint",
-      title: "Марш і колони",
-      text: "У марш іде від 1 до 3 героїв, і кожен веде колони війська своєї ролі. Колона — 100 воїнів; на 1 рівні героя їх 2, на 10-му — 3, і далі більше. «Порівну» ділить військо між маршами, які ще можна відправити.",
+      title: t("tutorial:hint.march-roles.title"),
+      text: t("tutorial:hint.march-roles.text"),
       targets: ["nav:/map"],
       available: (st) => (st.heroes?.heroes.length ?? 0) >= 2,
     },
     {
       key: "hint.type-advantage",
       mode: "hint",
-      title: "Хто кого б'є",
-      text: "Піхота б'є лучників, лучники — списоносців, списоносці — піхоту: +35% урону по слабшому. Місцевість теж важить: у лісі сильніша піхота, у горах — лучники.",
+      title: t("tutorial:hint.type-advantage.title"),
+      text: t("tutorial:hint.type-advantage.text"),
       targets: [],
       available: (st) => new Set((st.garrison?.units ?? []).filter((u) => u.count > 0).map((u) => u.unitType)).size >= 2,
     },
     {
       key: "hint.camp",
       mode: "hint",
-      title: "Навчальний табір",
-      text: "Герой у таборі одразу отримує рівень найслабшого з ваших 5 найсильніших героїв — без витрати досвіду. Вийнятий герой звільняє слот на 24 години.",
+      title: t("tutorial:hint.camp.title"),
+      text: t("tutorial:hint.camp.text"),
       targets: ["nav:/heroes"],
       available: (st) => {
         const camp = st.heroes?.camp;
@@ -493,64 +510,64 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     {
       key: "hint.stars",
       mode: "hint",
-      title: "Зірки героя",
-      text: "Осколки купують частини зірок: 6 частин — зірка, максимум 5 зірок. Кожна частина посилює героя, а кожна зірка відкриває ще один рівень умінь.",
+      title: t("tutorial:hint.stars.title"),
+      text: t("tutorial:hint.stars.text"),
       targets: ["nav:/heroes"],
       available: (st) => st.heroes?.heroes.some((h) => h.nextStarPartCost != null && h.shards >= h.nextStarPartCost) ?? false,
     },
     {
       key: "hint.skill-books",
       mode: "hint",
-      title: "Книги вмінь",
-      text: "Книга піднімає вміння героя свого класу й рідкості: рівні коштують 5, 10, 20, 40 і 80 книг. Кожен наступний рівень потребує ще однієї зірки героя.",
+      title: t("tutorial:hint.skill-books.title"),
+      text: t("tutorial:hint.skill-books.text"),
       targets: ["nav:/heroes"],
       available: (st) => hasItem(st, (item) => item.itemKey.startsWith("skill_book_")),
     },
     {
       key: "hint.wrench",
       mode: "hint",
-      title: "Різці гравера",
-      text: "Різець дає артефакту досвід рівня — 100 або 300, як згодований звичайний чи рідкісний артефакт.",
+      title: t("tutorial:hint.wrench.title"),
+      text: t("tutorial:hint.wrench.text"),
       targets: ["nav:/inventory"],
       available: (st) => hasItem(st, (item) => item.itemKey.startsWith("wrench_")),
     },
     {
       key: "hint.forge",
       mode: "hint",
-      title: "Заточка",
-      text: "Кузня заточує артефакти за точильні камені аж до +20. До +5 заточка завжди вдала, далі шанс падає до 40%, а з +11 невдача може зламати артефакт — його лагодить ремкомплект або 💎.",
+      title: t("tutorial:hint.forge.title"),
+      text: t("tutorial:hint.forge.text"),
       targets: ["building:forge", "nav:/"],
       available: (st) => unlocked(st, "forge") && hasItem(st, (item) => item.itemKey === st.catalog.masteryStoneItemKey),
     },
     {
       key: "hint.beast-tamed",
       mode: "hint",
-      title: "Ваш звір",
-      text: "Ласощі піднімають звірові рівень і посилюють його бонус. Бонус вмикається за корм і діє кілька годин, а утримання звіринця щогодини з'їдає корм.",
+      title: t("tutorial:hint.beast-tamed.title"),
+      text: t("tutorial:hint.beast-tamed.text"),
       targets: ["nav:/beasts"],
       available: (st) => (st.beastPen?.beasts.length ?? 0) > 0,
     },
     {
       key: "hint.beasts-hungry",
       mode: "hint",
-      title: "Звірам бракує корму",
-      text: "Без корму бонуси звірів не вмикаються. Покращуйте рибальську хижу.",
+      title: t("tutorial:hint.beasts-hungry.title"),
+      text: t("tutorial:hint.beasts-hungry.text"),
       targets: ["building:fishinghut", "nav:/"],
       available: (st) => (st.beastPen?.beasts.length ?? 0) > 0 && st.beastPen?.isHungry === true,
     },
     {
       key: "hint.evolution",
       mode: "hint",
-      title: "Еволюція",
-      text: "Герой досяг стелі свого тіру. Есенція Другого Кола переведе його в наступний тір (потрібен рівень світу 2), Третього Кола — ще вище (рівень світу 3).",
+      title: t("tutorial:hint.evolution.title"),
+      text: t("tutorial:hint.evolution.text"),
       targets: ["nav:/heroes"],
       available: (st) => st.heroes?.heroes.some((h) => h.level >= h.maxLevel && h.tier < st.catalog.maxTier) ?? false,
     },
     {
       key: "hint.weapon",
       mode: "hint",
-      title: "Зброя героя",
-      text: "Шматки зброї посилюють героя відсотком до характеристик, до 5 рівнів. Скриня зброї дає шматок унікальної зброї героя банера на ваш вибір.",
+      title: t("tutorial:hint.weapon.title"),
+      text: t("tutorial:hint.weapon.text"),
       targets: ["nav:/heroes"],
       available: (st) =>
         (st.heroes?.heroes.some((h) => h.nextWeaponCost != null && h.weaponShards >= h.nextWeaponCost) ?? false)
@@ -563,40 +580,40 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     {
       key: "hint.clan-help",
       mode: "hint",
-      title: "Допомога клану",
-      text: "Натискайте «Допомогти» — це безкоштовно й скорочує таймери союзників.",
+      title: t("tutorial:hint.clan-help.title"),
+      text: t("tutorial:hint.clan-help.text"),
       targets: ["nav:/clan"],
       available: (st) => st.clanHelp?.some((item) => !item.isMine && !item.alreadyHelped) ?? false,
     },
     {
       key: "hint.reinforce",
       mode: "hint",
-      title: "Підкріплення",
-      text: "Посольство приймає війська союзників на оборону села. Свої війська союзнику — через марш із наміром «Підкріпити».",
+      title: t("tutorial:hint.reinforce.title"),
+      text: t("tutorial:hint.reinforce.text"),
       targets: ["building:embassy", "nav:/"],
       available: (st) => st.clan != null && unlocked(st, "embassy"),
     },
     {
       key: "hint.teleport",
       mode: "hint",
-      title: "Телепорт",
-      text: "Телепорт переносить село на вільну клітину. Ближній — до 100 клітин, клановий — на територію клану.",
+      title: t("tutorial:hint.teleport.title"),
+      text: t("tutorial:hint.teleport.text"),
       targets: ["nav:/inventory"],
       available: (st) => hasItem(st, (item) => item.type === "teleport"),
     },
     {
       key: "hint.speedup-items",
       mode: "hint",
-      title: "Прискорення",
-      text: "Прискорення зрізають час із будь-якого таймера: будівництва, тренування, рівнів війська чи маршу.",
+      title: t("tutorial:hint.speedup-items.title"),
+      text: t("tutorial:hint.speedup-items.text"),
       targets: ["nav:/inventory"],
       available: (st) => hasItem(st, (item) => item.type === "speedup"),
     },
     {
       key: "hint.hotkeys",
       mode: "hint",
-      title: "Клавіші",
-      text: "Esc — назад або закрити вікно, Enter — підтвердити, ←/→ — гортати вкладки й сусідів.",
+      title: t("tutorial:hint.hotkeys.title"),
+      text: t("tutorial:hint.hotkeys.text"),
       targets: [],
       // Лише з мишею й після ланцюжка: на телефоні клавіш немає, а посеред навчання це зайвий шум
       available: (st) => st.pointerFine && (st.seen.has("intro.next") || st.skipped) && st.route !== "/",
@@ -607,24 +624,27 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     {
       key: "hint.wounded",
       mode: "hint",
-      title: "Поранені",
-      text: "Частина війська після бою не гине, а лягає в госпіталь. Торкніться госпіталю в селі й вилікуйте їх ресурсами або самоцвітами.",
+      title: t("tutorial:hint.wounded.title"),
+      text: t("tutorial:hint.wounded.text"),
       targets: ["building:hospital", "nav:/"],
       available: (st) => (st.garrison?.wounded.some((w) => w.count > 0) ?? false),
     },
     {
       key: "hint.recoverable",
       mode: "hint",
-      title: "Юніти до викупу",
-      text: "Загиблих можна повернути за самоцвіти, але лише до дедлайну — далі вони згорають. Дивіться госпіталь у селі.",
+      title: t("tutorial:hint.recoverable.title"),
+      text: t("tutorial:hint.recoverable.text"),
       targets: ["building:hospital", "nav:/"],
       available: (st) => (st.garrison?.recoverable.some((r) => r.count > 0) ?? false),
     },
     {
       key: "hint.unit-level",
       mode: "hint",
-      title: "Прокачка юнітів",
-      text: `Навчених воїнів можна підняти на вищий рівень у таборі їхньої будівлі: +${Math.round(s.catalog.unitLevelStatBonus * 100)}% до атаки, захисту й здоров'я за рівень. Стеля — рівень ратуші, але не вище ${s.catalog.maxUnitLevel}.`,
+      title: t("tutorial:hint.unit-level.title"),
+      text: t("tutorial:hint.unit-level.text", {
+        bonus: Math.round(s.catalog.unitLevelStatBonus * 100),
+        max: s.catalog.maxUnitLevel,
+      }),
       targets: ["building:barracks", "nav:/"],
       // На ратуші 1 стеля рівня юніта — 1: прокачувати нема куди
       available: (st) => armySize(st) >= 5 && st.seen.has("intro.train") && townHallLevel(st) >= 2,
@@ -632,30 +652,35 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
     {
       key: "hint.shards",
       mode: "hint",
-      title: "Осколки героїв",
-      text: "Осколки героїв падають із банерів і скринь. 10 осколків нового героя призивають його, а осколки вже наявного йдуть у його зірки. Універсальний осколок стає осколком будь-якого відкритого героя тієї ж рідкості.",
+      title: t("tutorial:hint.shards.title"),
+      text: t("tutorial:hint.shards.text"),
       targets: ["nav:/heroes"],
       available: (st) => (st.heroes?.shards.length ?? 0) > 0 || hasItem(st, (item) => item.itemKey.startsWith("universal_shard")),
     },
     {
       key: "hint.gems",
       mode: "hint",
-      title: "Самоцвіти",
-      text: "💎 прискорюють будівництво, тренування й походи, лікують поранених і викупають загиблих. Витрачайте на те, що заважає найбільше. Предмети-прискорення з рюкзака теж зрізають таймери — спершу витрачайте їх.",
+      title: t("tutorial:hint.gems.title"),
+      text: t("tutorial:hint.gems.text"),
       targets: [],
       available: (st) => (st.wallet?.gemBalance ?? 0) > 0 && st.seen.has("intro.timers"),
     },
     {
       key: "hint.daily",
       mode: "hint",
-      title: "Щоденні квести",
-      text: "Щодня о 00:00 UTC з'являються нові завдання з нагородами. Заходьте раз на день — це найшвидше джерело самоцвітів.",
+      title: t("tutorial:hint.daily.title"),
+      text: t("tutorial:hint.daily.text"),
       targets: ["nav:/quests"],
       available: (st) => (st.quests?.some((q) => q.window === QUEST_WINDOW.daily) ?? false) && st.seen.has("intro.claim"),
     },
   );
 
   return steps;
+}
+
+/** Крок веденого ланцюжка: після нього підказки не ставлять паузу. */
+export function isIntroStep(step: TutorialStep): boolean {
+  return step.key.startsWith("intro.");
 }
 
 /**
@@ -665,7 +690,7 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
  */
 export function activeStep(s: TutorialSnapshot): TutorialStep | null {
   if (!s.skipped) {
-    for (const step of INTRO_STEPS) {
+    for (const step of introSteps()) {
       if (!step.available(s)) continue;
 
       const closed = step.done === undefined ? s.seen.has(step.key) : step.done(s) || s.seen.has(step.key);
