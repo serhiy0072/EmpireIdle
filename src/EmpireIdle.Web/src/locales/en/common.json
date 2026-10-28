@@ -158,5 +158,9 @@
     "knight": "Knight · spearmen",
     "archer": "Archer · archers"
   },
-  "stars": "Stars: {{count}} of {{max}}"
+  "stars": "Stars: {{count}} of {{max}}",
+  "vip": {
+    "level": "VIP {{level}}",
+    "hint": "VIP level grows with purchased gems; every even level adds a march."
+  }
 }

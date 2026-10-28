@@ -205,7 +205,9 @@
     "title": "Крамниця",
     "forGems": "За самоцвіти",
     "gems": "Самоцвіти",
-    "bonus": "+{{percent}}% бонус"
+    "bonus": "+{{percent}}% бонус",
+    "vipProgress": "VIP {{level}} · ще {{left}} куплених 💎 до VIP {{next}}. Кожен парний VIP-рівень додає марш.",
+    "vipMax": "VIP {{level}} — найвищий рівень."
   },
   "listing": {
     "state": {

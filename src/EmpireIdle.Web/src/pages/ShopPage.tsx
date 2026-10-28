@@ -199,6 +199,17 @@ export default function ShopPage() {
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("items:shop.gems")}</h2>
+        {wallet.data !== undefined && (
+          <p className="text-sm text-slate-600">
+            {wallet.data.nextVipThreshold == null
+              ? t("items:shop.vipMax", { level: wallet.data.vipLevel })
+              : t("items:shop.vipProgress", {
+                  level: wallet.data.vipLevel,
+                  next: wallet.data.vipLevel + 1,
+                  left: formatNumber(wallet.data.nextVipThreshold - wallet.data.purchasedGems),
+                })}
+          </p>
+        )}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {shop.data.gemPacks.map((pack) => (
             <div key={pack.key} className="flex flex-col rounded-xl border border-violet-200 bg-white p-3">

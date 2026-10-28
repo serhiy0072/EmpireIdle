@@ -205,7 +205,9 @@
     "title": "Shop",
     "forGems": "For gems",
     "gems": "Gems",
-    "bonus": "+{{percent}}% bonus"
+    "bonus": "+{{percent}}% bonus",
+    "vipProgress": "VIP {{level}} · {{left}} more purchased 💎 to VIP {{next}}. Every even VIP level adds a march.",
+    "vipMax": "VIP {{level}} — the top level."
   },
   "listing": {
     "state": {

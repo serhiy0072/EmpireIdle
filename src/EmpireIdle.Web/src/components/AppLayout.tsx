@@ -118,6 +118,14 @@ export default function AppLayout() {
                 {t("shell.shield", { until: shieldUntilLabel(village.data?.shieldUntil) })}
               </span>
             )}
+            {(wallet.data?.vipLevel ?? 0) > 0 && (
+              <span
+                className="rounded-full bg-gradient-to-b from-amber-300 to-amber-600 px-2 py-0.5 text-xs font-bold text-amber-950 ring-1 ring-amber-100"
+                title={t("vip.hint")}
+              >
+                {t("vip.level", { level: wallet.data?.vipLevel })}
+              </span>
+            )}
             <span className="rounded-full bg-gradient-to-b from-violet-400 to-violet-700 px-3 py-0.5 text-sm font-semibold tabular-nums ring-1 ring-violet-200">
               💎 {wallet.data === undefined ? "…" : formatNumber(wallet.data.gemBalance)}
             </span>
