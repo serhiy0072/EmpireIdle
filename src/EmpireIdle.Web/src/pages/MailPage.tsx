@@ -15,24 +15,23 @@ import {
   type MailLetterView,
 } from "../lib/queries/mail";
 import { formatMoment } from "../lib/format";
+import { t } from "i18next";
 
-const ANNOUNCEMENT_LABELS: Record<string, string> = {
-  News: "Новина",
-  Event: "Івент",
-  Maintenance: "Технічні роботи",
-};
+const ANNOUNCEMENTS = ["News", "Event", "Maintenance"] as const;
 
-const INVITE_STATES: Record<string, string> = {
-  Accepted: "Прийнято",
-  Declined: "Відхилено",
-  Cancelled: "Клан скасував запрошення",
-  Expired: "Строк минув",
-  Gone: "Клан розпущено",
-};
+const INVITE_STATES = ["Accepted", "Declined", "Cancelled", "Expired", "Gone"] as const;
+
+function announcementLabel(kind: string): string {
+  return (ANNOUNCEMENTS as readonly string[]).includes(kind) ? t(`social:mail.announcement.${kind as (typeof ANNOUNCEMENTS)[number]}`) : kind;
+}
+
+function inviteStateLabel(state: string): string {
+  return (INVITE_STATES as readonly string[]).includes(state) ? t(`social:mail.inviteState.${state as (typeof INVITE_STATES)[number]}`) : state;
+}
 
 const date = (iso: string) => formatMoment(iso);
 
-const unreadDot = <span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-label="непрочитане" />;
+const unreadDot = <span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-label={t("social:mail.unread")} />;
 
 interface LetterProps {
   playerId: string;
@@ -53,16 +52,22 @@ function CityFallLetter({ letter, onOpen }: Omit<LetterProps, "playerId">) {
       <div className="flex items-baseline justify-between gap-2 text-sm">
         <span className="font-medium text-slate-800">
           {!letter.isRead && unreadDot}
-          Ваше поселення впало
+          {t("social:mail.fallTitle")}
         </span>
         <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
       </div>
       {fall == null ? (
-        <p className="text-sm text-slate-500">Подробиці вже недоступні.</p>
+        <p className="text-sm text-slate-500">{t("social:mail.noDetails")}</p>
       ) : (
         <p className="text-sm text-slate-700">
-          {fall.attackerName} переміг вашу оборону й виселив вас із ({fall.fromX}, {fall.fromY}) на ({fall.toX},{" "}
-          {fall.toY}). Щит захищає вас від нападів до {date(fall.shieldUntil)}; ваш напад на гравця його зніме.
+          {t("social:mail.fall", {
+            attacker: fall.attackerName,
+            fromX: fall.fromX,
+            fromY: fall.fromY,
+            toX: fall.toX,
+            toY: fall.toY,
+            until: date(fall.shieldUntil),
+          })}
         </p>
       )}
     </li>
@@ -82,16 +87,15 @@ function StructureFallLetter({ letter, onOpen }: Omit<LetterProps, "playerId">) 
       <div className="flex items-baseline justify-between gap-2 text-sm">
         <span className="font-medium text-slate-800">
           {!letter.isRead && unreadDot}
-          Споруду клану зруйновано
+          {t("social:mail.structureTitle")}
         </span>
         <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
       </div>
       {fall == null ? (
-        <p className="text-sm text-slate-500">Подробиці вже недоступні.</p>
+        <p className="text-sm text-slate-500">{t("social:mail.noDetails")}</p>
       ) : (
         <p className="text-sm text-slate-700">
-          {fall.attackerName} зруйнував споруду клану на ({fall.x}, {fall.y}). Слот звільнено, бонус території в її
-          радіусі зник — споруду можна закласти знову.
+          {t("social:mail.structure", { attacker: fall.attackerName, x: fall.x, y: fall.y })}
         </p>
       )}
     </li>
@@ -123,7 +127,7 @@ function InviteLetter({ playerId, letter, onOpen }: LetterProps) {
       <div className="flex items-baseline justify-between gap-2 text-sm">
         <span className="font-medium text-slate-800">
           {!letter.isRead && unreadDot}
-          Запрошення в клан {invite != null && `${invite.clanName} [${invite.clanTag}]`}
+          {t("social:mail.inviteTitle")} {invite != null && `${invite.clanName} [${invite.clanTag}]`}
         </span>
         <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
       </div>
@@ -131,7 +135,7 @@ function InviteLetter({ playerId, letter, onOpen }: LetterProps) {
       <ErrorBanner error={resolve.error} />
 
       {invite == null ? (
-        <p className="text-sm text-slate-500">Запрошення вже недоступне.</p>
+        <p className="text-sm text-slate-500">{t("social:mail.inviteGone")}</p>
       ) : invite.canRespond ? (
         <div className="flex gap-2">
           <button
@@ -140,7 +144,7 @@ function InviteLetter({ playerId, letter, onOpen }: LetterProps) {
             onClick={() => answer(true)}
             className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            Прийняти
+            {t("social:mail.accept")}
           </button>
           <button
             type="button"
@@ -148,11 +152,11 @@ function InviteLetter({ playerId, letter, onOpen }: LetterProps) {
             onClick={() => answer(false)}
             className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            Відхилити
+            {t("social:mail.decline")}
           </button>
         </div>
       ) : (
-        <p className="text-sm text-slate-500">{INVITE_STATES[invite.state] ?? invite.state}</p>
+        <p className="text-sm text-slate-500">{inviteStateLabel(invite.state)}</p>
       )}
     </li>
   );
@@ -171,7 +175,7 @@ function Announcement({ announcement, onOpen }: { announcement: AnnouncementView
           {announcement.title}
         </span>
         <span className="text-xs text-slate-400">
-          {ANNOUNCEMENT_LABELS[announcement.kind] ?? announcement.kind} · {date(announcement.publishedAt)}
+          {announcementLabel(announcement.kind)} · {date(announcement.publishedAt)}
         </span>
       </div>
       <p className="whitespace-pre-wrap text-sm text-slate-700">{announcement.body}</p>
@@ -194,7 +198,7 @@ export default function MailPage() {
   const catalog = useCatalog();
 
   if (mailbox.isPending) {
-    return <p className="text-slate-500">Завантаження скриньки…</p>;
+    return <p className="text-slate-500">{t("social:mail.loading")}</p>;
   }
 
   if (mailbox.isError) {
@@ -208,7 +212,7 @@ export default function MailPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Скринька</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("social:mail.title")}</h1>
         {claimable > 0 && (
           <button
             type="button"
@@ -216,7 +220,7 @@ export default function MailPage() {
             onClick={() => claimAll.mutate()}
             className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            Забрати все ({claimable})
+            {t("social:mail.claimAll", { count: claimable })}
           </button>
         )}
       </div>
@@ -224,9 +228,9 @@ export default function MailPage() {
       <ErrorBanner error={claimAll.error ?? claimLetter.error} />
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Оголошення</h2>
+        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:mail.announcements")}</h2>
         {announcements.length === 0 ? (
-          <p className="text-sm text-slate-500">Оголошень немає.</p>
+          <p className="text-sm text-slate-500">{t("social:mail.noAnnouncements")}</p>
         ) : (
           <ul className="space-y-2">
             {announcements.map((announcement) => (
@@ -241,9 +245,9 @@ export default function MailPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Листи</h2>
+        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:mail.letters")}</h2>
         {letters.length === 0 ? (
-          <p className="text-sm text-slate-500">Листів немає.</p>
+          <p className="text-sm text-slate-500">{t("social:mail.noLetters")}</p>
         ) : (
           <ul className="space-y-2">
             {letters.map((letter) =>

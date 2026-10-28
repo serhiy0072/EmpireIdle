@@ -3,6 +3,7 @@ import { useCatalog } from "../../lib/queries/catalog";
 import { MARCH_TARGET } from "../../lib/queries/marches";
 import { scoutOutcomeLabel } from "../../lib/queries/scouting";
 import { formatMoment, formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   letter: MailLetterView;
@@ -29,27 +30,27 @@ export default function ScoutReportLetter({ letter, onOpen }: Props) {
       <div className="flex items-baseline justify-between gap-2 text-sm">
         <span className="font-medium text-slate-800">
           {!letter.isRead && (
-            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-label="непрочитане" />
+            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-label={t("social:mail.unread")} />
           )}
-          Розвідка
-          {report !== null && `: ${report.targetName === "" ? "ціль" : report.targetName} (${report.x}, ${report.y})`}
+          {t("social:scout.title")}
+          {report !== null && `: ${report.targetName === "" ? t("social:scout.target") : report.targetName} (${report.x}, ${report.y})`}
         </span>
         <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
       </div>
       {report === null ? (
-        <p className="text-sm text-slate-500">Звіт уже не зберігся.</p>
+        <p className="text-sm text-slate-500">{t("social:scout.gone")}</p>
       ) : report.outcome === "Success" ? (
         <>
           <p className="text-sm text-slate-700">
-            Сила оборони:{" "}
+            {t("social:scout.defence")}{" "}
             <span className="font-medium">{formatNumber(Math.round(report.defencePower ?? 0))}</span>
-            <span className="text-xs text-slate-500"> (з усіма бонусами)</span>
+            <span className="text-xs text-slate-500"> {t("social:scout.withBonuses")}</span>
           </p>
           {report.targetType === MARCH_TARGET.village && (
             <p className="text-sm text-slate-600">
-              Можна винести:{" "}
+              {t("social:scout.loot")}{" "}
               {loot.length === 0
-                ? "нічого"
+                ? t("social:scout.nothing")
                 : loot.map(([key, amount]) => `${catalog.resourceName(key)} ${formatNumber(amount)}`).join(", ")}
             </p>
           )}

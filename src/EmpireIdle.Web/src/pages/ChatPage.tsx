@@ -11,11 +11,12 @@ import {
 } from "../lib/queries/chat";
 import TabHotkeys from "../components/shell/TabHotkeys";
 import { formatClock } from "../lib/format";
+import { t } from "i18next";
 
-const TABS: { channel: ChatChannelName; label: string }[] = [
-  { channel: "Server", label: "Світ" },
-  { channel: "Clan", label: "Клан" },
-  { channel: "Private", label: "Особисті" },
+const TABS: { channel: ChatChannelName; label: "world" | "clan" | "private" }[] = [
+  { channel: "Server", label: "world" },
+  { channel: "Clan", label: "clan" },
+  { channel: "Private", label: "private" },
 ];
 
 const time = (iso: string) => formatClock(iso);
@@ -30,12 +31,12 @@ function Message({ message }: { message: ChatMessageView }) {
         className={`max-w-[80%] rounded-xl px-3 py-1.5 text-sm ${
           message.isOwn ? "bg-emerald-100 text-emerald-950" : "bg-white text-slate-800"
         }`}
-        title={translated ? `Оригінал (${message.language}): ${message.text}` : undefined}
+        title={translated ? t("social:chat.original", { language: message.language, text: message.text }) : undefined}
       >
         {!message.isOwn && <div className="text-xs font-medium text-slate-500">{message.senderName}</div>}
         <div className="whitespace-pre-wrap break-words">{message.translatedText ?? message.text}</div>
         <div className="mt-0.5 text-right text-[10px] text-slate-400">
-          {translated && "перекладено · "}
+          {translated && `${t("social:chat.translated")} · `}
           {time(message.sentAt)}
         </div>
       </div>
@@ -91,7 +92,7 @@ function Thread({ playerId, channel, partnerId, emptyText }: ThreadProps) {
           value={text}
           onChange={(event) => setText(event.target.value)}
           maxLength={300}
-          placeholder="Повідомлення…"
+          placeholder={t("social:chat.placeholder")}
           className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
         />
         <button
@@ -99,7 +100,7 @@ function Thread({ playerId, channel, partnerId, emptyText }: ThreadProps) {
           disabled={send.isPending || text.trim() === ""}
           className="rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
         >
-          Надіслати
+          {t("social:chat.send")}
         </button>
       </form>
     </div>
@@ -113,7 +114,7 @@ function PrivateChats({ playerId }: { playerId: string }) {
 
   const partnerId = params.get("to");
   const partnerName =
-    params.get("name") ?? conversations.data?.find((c) => c.partnerId === partnerId)?.partnerName ?? "гравцем";
+    params.get("name") ?? conversations.data?.find((c) => c.partnerId === partnerId)?.partnerName ?? t("social:chat.aPlayer");
 
   if (partnerId !== null) {
     return (
@@ -123,10 +124,10 @@ function PrivateChats({ playerId }: { playerId: string }) {
           onClick={() => setParams({ tab: "Private" }, { replace: true })}
           className="text-sm text-emerald-700 hover:underline"
         >
-          ← усі розмови
+          {t("social:chat.allConversations")}
         </button>
-        <p className="text-sm text-slate-600">Розмова з {partnerName}</p>
-        <Thread playerId={playerId} channel="Private" partnerId={partnerId} emptyText="Напишіть перше повідомлення." />
+        <p className="text-sm text-slate-600">{t("social:chat.conversationWith", { name: partnerName })}</p>
+        <Thread playerId={playerId} channel="Private" partnerId={partnerId} emptyText={t("social:chat.firstMessage")} />
       </div>
     );
   }
@@ -136,7 +137,7 @@ function PrivateChats({ playerId }: { playerId: string }) {
       <ErrorBanner error={conversations.error} />
       {conversations.data?.length === 0 && (
         <p className="text-sm text-slate-500">
-          Розмов ще немає. Написати гравцеві можна з його картки в клані чи рейтингу.
+          {t("social:chat.noConversations")}
         </p>
       )}
       <ul className="space-y-1">
@@ -151,7 +152,7 @@ function PrivateChats({ playerId }: { playerId: string }) {
             >
               <div className="text-sm font-medium text-slate-800">{conversation.partnerName}</div>
               <div className="truncate text-xs text-slate-500">
-                {conversation.lastMessage.isOwn && "ви: "}
+                {conversation.lastMessage.isOwn && `${t("social:chat.you")}: `}
                 {conversation.lastMessage.translatedText ?? conversation.lastMessage.text}
               </div>
             </button>
@@ -174,10 +175,10 @@ export default function ChatPage() {
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Чат</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("social:chat.title")}</h1>
         {/* Чат розкривається зі смужки над панеллю — згортаємо туди, звідки прийшли */}
         <button type="button" onClick={() => navigate(-1)} className="text-sm text-emerald-700 hover:underline">
-          Згорнути ↓
+          {t("social:chat.collapse")}
         </button>
       </div>
 
@@ -196,20 +197,20 @@ export default function ChatPage() {
               tab === item.channel ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            {item.label}
+            {t(`social:chat.channel.${item.label}`)}
           </button>
         ))}
       </nav>
 
       {tab === "Server" && (
-        <Thread playerId={playerId} channel="Server" partnerId={null} emptyText="У світі поки тиша. Привітайтеся!" />
+        <Thread playerId={playerId} channel="Server" partnerId={null} emptyText={t("social:chat.worldEmpty")} />
       )}
       {tab === "Clan" && (
         <Thread
           playerId={playerId}
           channel="Clan"
           partnerId={null}
-          emptyText="Тут пишуть члени вашого клану. Без клану канал порожній."
+          emptyText={t("social:chat.clanEmpty")}
         />
       )}
       {tab === "Private" && <PrivateChats playerId={playerId} />}

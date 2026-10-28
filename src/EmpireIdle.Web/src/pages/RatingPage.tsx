@@ -3,6 +3,8 @@ import ErrorBanner from "../components/ErrorBanner";
 import { useSession } from "../hooks/useSession";
 import { compactPower, useLeaderboard, useMyRank, usePower } from "../lib/queries/rating";
 import { formatNumber } from "../lib/format";
+import { t } from "i18next";
+import { Trans } from "react-i18next";
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -15,7 +17,11 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 
 function since(iso: string): string {
   const minutes = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60_000));
-  return minutes < 1 ? "щойно" : minutes < 60 ? `${minutes} хв тому` : `${Math.floor(minutes / 60)} год тому`;
+  return minutes < 1
+    ? t("social:rating.justNow")
+    : minutes < 60
+      ? t("social:rating.minutesAgo", { count: minutes })
+      : t("social:rating.hoursAgo", { count: Math.floor(minutes / 60) });
 }
 
 /**
@@ -31,7 +37,7 @@ export default function RatingPage() {
   const top = useLeaderboard();
 
   if (rank.isPending || top.isPending) {
-    return <p className="text-slate-500">Рахуємо рейтинг…</p>;
+    return <p className="text-slate-500">{t("social:rating.loading")}</p>;
   }
 
   if (rank.isError) {
@@ -47,36 +53,40 @@ export default function RatingPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Рейтинг світу</h1>
-        <p className="text-xs text-slate-500">Перераховується щогодини · оновлено {since(me.updatedAt)}</p>
+        <h1 className="text-xl font-medium text-slate-800">{t("social:rating.title")}</h1>
+        <p className="text-xs text-slate-500">{t("social:rating.updated", { since: since(me.updatedAt) })}</p>
       </div>
 
       <section className="rounded-xl border border-amber-200 bg-white p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-medium text-slate-800">
-            Ваше місце: <span className="text-2xl text-amber-700">#{me.rank}</span>
+            <Trans ns="social" i18nKey="rating.place" values={{ rank: me.rank }} components={{ b: <span className="text-2xl text-amber-700" /> }} />
           </h2>
           <span className="text-sm text-slate-600">
-            рейтинг <span className="font-medium text-slate-800">{formatNumber(me.rating)}</span>
+            <Trans ns="social" i18nKey="rating.score" values={{ rating: formatNumber(me.rating) }} components={{ b: <span className="font-medium text-slate-800" /> }} />
           </span>
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <Stat
-            label="⚔ Сила"
+            label={t("social:rating.power")}
             value={power.data === undefined ? compactPower(me.powerScore) : compactPower(power.data.total)}
             hint={
               power.data === undefined
                 ? undefined
-                : `Армія ${compactPower(power.data.army)} · герої ${compactPower(power.data.hero)} · спорядження ${compactPower(power.data.equipment)}`
+                : t("village:power.breakdown", {
+                    army: compactPower(power.data.army),
+                    heroes: compactPower(power.data.hero),
+                    gear: compactPower(power.data.equipment),
+                  })
             }
           />
-          <Stat label="🏗 Розвиток" value={formatNumber(Math.round(me.developmentScore))} hint="Рівні будівель села" />
-          <Stat label="🔥 Активність" value={formatNumber(Math.round(me.activityScore))} hint="Бої, монстри, квести, внески" />
+          <Stat label={t("social:rating.development")} value={formatNumber(Math.round(me.developmentScore))} hint={t("social:rating.developmentHint")} />
+          <Stat label={t("social:rating.activity")} value={formatNumber(Math.round(me.activityScore))} hint={t("social:rating.activityHint")} />
         </div>
 
         <p className="mt-3 text-xs text-slate-500">
-          Монстрів переможено {me.monstersDefeated} · боїв виграно {me.battlesWon} · квестів виконано {me.questsCompleted}
+          {t("social:rating.stats", { monsters: me.monstersDefeated, battles: me.battlesWon, quests: me.questsCompleted })}
         </p>
       </section>
 
@@ -85,9 +95,9 @@ export default function RatingPage() {
           <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-3 py-2">#</th>
-              <th className="px-3 py-2">Гравець</th>
-              <th className="px-3 py-2 text-right">Рейтинг</th>
-              <th className="px-3 py-2 text-right">⚔ Сила</th>
+              <th className="px-3 py-2">{t("social:rating.player")}</th>
+              <th className="px-3 py-2 text-right">{t("social:rating.rating")}</th>
+              <th className="px-3 py-2 text-right">{t("social:rating.power")}</th>
             </tr>
           </thead>
           <tbody>
@@ -99,13 +109,13 @@ export default function RatingPage() {
                   <td className="px-3 py-2 font-medium text-slate-800">
                     {entry.playerName}
                     {mine ? (
-                      <span className="ml-1 text-xs text-amber-700">(ви)</span>
+                      <span className="ml-1 text-xs text-amber-700">{t("social:rating.you")}</span>
                     ) : (
                       <Link
                         to={`/chat?${new URLSearchParams({ tab: "Private", to: entry.playerId, name: entry.playerName }).toString()}`}
                         className="ml-2 text-xs font-normal text-emerald-700 hover:underline"
                       >
-                        написати
+                        {t("social:rating.message")}
                       </Link>
                     )}
                   </td>
@@ -117,7 +127,7 @@ export default function RatingPage() {
             {top.data.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-3 py-4 text-center text-slate-500">
-                  Топ ще не сформовано — перший перерахунок за годину.
+                  {t("social:rating.notYet")}
                 </td>
               </tr>
             )}

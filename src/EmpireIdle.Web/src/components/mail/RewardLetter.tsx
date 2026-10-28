@@ -1,6 +1,7 @@
 import type { MailLetterView, MailRewardView } from "../../lib/queries/mail";
 import type { Catalog } from "../../lib/queries/catalog";
 import { formatMoment, formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   letter: MailLetterView;
@@ -11,10 +12,10 @@ interface Props {
 }
 
 const TITLES: Record<string, (letter: MailLetterView) => string> = {
-  DailyReward: (letter) => `Щоденна нагорода — день ${letter.sequence ?? 1}`,
-  WeeklyReward: () => "Нагорода тижня",
-  MonthlyReward: () => "Нагорода місяця",
-  ServerQuestReward: () => "Нагорода світу за спільний квест",
+  DailyReward: (letter) => t("social:reward.daily", { day: letter.sequence ?? 1 }),
+  WeeklyReward: () => t("social:reward.weekly"),
+  MonthlyReward: () => t("social:reward.monthly"),
+  ServerQuestReward: () => t("social:reward.serverQuest"),
 };
 
 const date = (iso: string) => formatMoment(iso);
@@ -36,7 +37,7 @@ function rewardLabel(reward: MailRewardView, catalog: Catalog): string {
  * Незабране згорає разом із листом — строк видно заздалегідь.
  */
 export default function RewardLetter({ letter, catalog, busy, onClaim, onOpen }: Props) {
-  const title = TITLES[letter.kind]?.(letter) ?? "Нагорода";
+  const title = TITLES[letter.kind]?.(letter) ?? t("social:reward.generic");
 
   return (
     <li
@@ -47,7 +48,7 @@ export default function RewardLetter({ letter, catalog, busy, onClaim, onOpen }:
       <div className="flex items-baseline justify-between gap-2 text-sm">
         <span className="font-medium text-slate-800">
           {!letter.isRead && (
-            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-label="непрочитане" />
+            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-label={t("social:mail.unread")} />
           )}
           🎁 {title}
         </span>
@@ -64,9 +65,9 @@ export default function RewardLetter({ letter, catalog, busy, onClaim, onOpen }:
 
       <div className="flex items-center justify-between gap-2">
         {letter.claimedAt != null ? (
-          <span className="text-xs text-slate-500">Отримано {date(letter.claimedAt)}</span>
+          <span className="text-xs text-slate-500">{t("social:reward.claimedAt", { date: date(letter.claimedAt) })}</span>
         ) : (
-          <span className="text-xs text-slate-500">Згорить {date(letter.expiresAt)}</span>
+          <span className="text-xs text-slate-500">{t("social:reward.expiresAt", { date: date(letter.expiresAt) })}</span>
         )}
 
         {letter.canClaim && (
@@ -79,7 +80,7 @@ export default function RewardLetter({ letter, catalog, busy, onClaim, onOpen }:
             }}
             className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            Забрати
+            {t("social:reward.claim")}
           </button>
         )}
       </div>

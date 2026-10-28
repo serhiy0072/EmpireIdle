@@ -25,7 +25,15 @@
     "hero": "Hero: {{hero}}",
     "heroExperience": "{{amount}} hero XP",
     "artifactMany": "{{rarity}} artifact ×{{amount}}",
-    "artifact": "{{rarity}} artifact"
+    "artifact": "{{rarity}} artifact",
+    "daily": "Daily reward — day {{day}}",
+    "weekly": "Weekly reward",
+    "monthly": "Monthly reward",
+    "serverQuest": "World reward for a shared quest",
+    "generic": "Reward",
+    "claimedAt": "Claimed {{date}}",
+    "expiresAt": "Expires {{date}}",
+    "claim": "Claim"
   },
   "chat": {
     "channel": {
@@ -38,7 +46,20 @@
     "previousChannel": "Previous channel",
     "nextChannel": "Next channel",
     "noPrivate": "No private conversations yet",
-    "quiet": "All quiet — tap to write"
+    "quiet": "All quiet — tap to write",
+    "original": "Original ({{language}}): {{text}}",
+    "translated": "translated",
+    "placeholder": "Message…",
+    "send": "Send",
+    "aPlayer": "a player",
+    "allConversations": "← all conversations",
+    "conversationWith": "Conversation with {{name}}",
+    "firstMessage": "Write the first message.",
+    "noConversations": "No conversations yet. You can message a player from their card in the clan or the rating.",
+    "title": "Chat",
+    "collapse": "Collapse ↓",
+    "worldEmpty": "All quiet in the world. Say hello!",
+    "clanEmpty": "Your clan members write here. Without a clan the channel is empty."
   },
   "quests": {
     "claimed": "Claimed",
@@ -194,5 +215,66 @@
     "disband": "Disband the clan",
     "leave": "Leave the clan",
     "recalled": "Marches recalled: {{count}}"
+  },
+  "mail": {
+    "announcement": {
+      "News": "News",
+      "Event": "Event",
+      "Maintenance": "Maintenance"
+    },
+    "inviteState": {
+      "Accepted": "Accepted",
+      "Declined": "Declined",
+      "Cancelled": "The clan withdrew the invitation",
+      "Expired": "Expired",
+      "Gone": "The clan was disbanded"
+    },
+    "unread": "unread",
+    "fallTitle": "Your settlement fell",
+    "noDetails": "The details are no longer available.",
+    "fall": "{{attacker}} broke your defense and evicted you from ({{fromX}}, {{fromY}}) to ({{toX}}, {{toY}}). A shield protects you from attacks until {{until}}; attacking a player removes it.",
+    "structureTitle": "Clan structure destroyed",
+    "structure": "{{attacker}} destroyed the clan structure at ({{x}}, {{y}}). The slot is free, the territory bonus in its radius is gone — you can lay the structure again.",
+    "inviteTitle": "Clan invitation",
+    "inviteGone": "The invitation is no longer available.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "loading": "Loading the mail…",
+    "title": "Mail",
+    "claimAll": "Claim all ({{count}})",
+    "announcements": "Announcements",
+    "noAnnouncements": "No announcements.",
+    "letters": "Letters",
+    "noLetters": "No letters."
+  },
+  "scout": {
+    "title": "Scouting",
+    "target": "target",
+    "gone": "The report is no longer available.",
+    "defence": "Defense power:",
+    "withBonuses": "(with all bonuses)",
+    "loot": "Lootable:",
+    "nothing": "nothing"
+  },
+  "rating": {
+    "justNow": "just now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} h ago",
+    "loading": "Calculating the rating…",
+    "title": "World rating",
+    "updated": "Recalculated hourly · updated {{since}}",
+    "place": "Your place: <b>#{{rank}}</b>",
+    "score": "rating <b>{{rating}}</b>",
+    "power": "⚔ Power",
+    "development": "🏗 Development",
+    "developmentHint": "Village building levels",
+    "activity": "🔥 Activity",
+    "activityHint": "Battles, monsters, quests, contributions",
+    "stats": "Monsters defeated {{monsters}} · battles won {{battles}} · quests completed {{quests}}",
+    "player": "Player",
+    "rating": "Rating",
+    "you": "(you)",
+    "message": "message",
+    "notYet": "The top isn't ready yet — the first recalculation is within an hour."
   }
 }
