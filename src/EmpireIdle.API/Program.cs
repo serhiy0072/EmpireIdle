@@ -95,6 +95,10 @@ builder.Services.AddOptions<GameConfig>()
         && c.Monetization.MarchSpeedUps.Select(o => o.Percent).Distinct().Count() == c.Monetization.MarchSpeedUps.Count,
         "GameConfig.Monetization.MarchSpeedUps must list distinct percents of 1–99 with a positive gem price.")
     .Validate(c => c.Monetization.SpeedUpFactor > 0, "GameConfig.Monetization.SpeedUpFactor must be positive.")
+    .Validate(c => c.Monetization.VipThresholds.All(gems => gems > 0)
+        && c.Monetization.VipThresholds.Zip(c.Monetization.VipThresholds.Skip(1)).All(pair => pair.First < pair.Second),
+        "GameConfig.Monetization.VipThresholds must be positive and strictly growing — otherwise a VIP level is skipped or free.")
+    .Validate(c => c.Monetization.VipLevelsPerExtraMarch >= 1, "GameConfig.Monetization.VipLevelsPerExtraMarch must be at least 1.")
     .Validate(c => c.Monetization.SpeedUpExponent is > 0 and <= 1, "GameConfig.Monetization.SpeedUpExponent must be above 0 and at most 1 — otherwise long timers become unaffordable.")
     .Validate(c => c.Combat.PreviewOddsThresholds.Count == Enum.GetValues<EmpireIdle.Domain.Enums.BattleOdds>().Length - 1,
         "GameConfig.Combat.PreviewOddsThresholds needs one entry fewer than BattleOdds bands — otherwise previews skip bands or return values outside the enum.")
@@ -281,6 +285,7 @@ builder.Services.AddHostedService<GameCatalogStartupCheck>();
 builder.Services.AddSingleton(sp => new TerrainGenerator(gameConfig.Map));
 builder.Services.AddSingleton(sp => new CasualtySplitter(gameConfig.Combat));
 builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetization));
+builder.Services.AddSingleton(sp => new VipProgression(gameConfig.Monetization));
 builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));

@@ -31,6 +31,20 @@ public class PlayerWalletTests
         Assert.Equal(TransactionType.GemPurchase, Assert.Single(wallet.Transactions).Type);
     }
 
+    /// <summary>VIP рахується лише від покупок: нагороди й витрати лічильник куплених gems не чіпають.</summary>
+    [Fact]
+    public void PurchasedGems_ShouldCountOnlyPurchases()
+    {
+        var wallet = new PlayerWallet(Guid.NewGuid(), "user-1");
+
+        wallet.AddGems(new GemAmount(100), "cs_1", Now);
+        wallet.AddGems(new GemAmount(250), "cs_2", Now);
+        wallet.GrantGems(new GemAmount(1000), "quest:daily_1", Now);
+        wallet.SpendGems(new GemAmount(300), "speed-up", Guid.NewGuid(), Now);
+
+        Assert.Equal(350, wallet.PurchasedGems);
+    }
+
     /// <summary>Значення зберігаються числами в журналі — їх не можна переставляти.</summary>
     [Theory]
     [InlineData(TransactionType.GemPurchase, 0)]

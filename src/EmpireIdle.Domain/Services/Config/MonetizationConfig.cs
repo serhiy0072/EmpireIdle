@@ -28,6 +28,15 @@ namespace EmpireIdle.Domain.Services.Config
         /// за сталу ціну — замість формули від часу.
         /// </summary>
         public List<MarchSpeedUpConfig> MarchSpeedUps { get; set; } = new();
+
+        /// <summary>
+        /// VIP-рівні (рішення 28.10.2026): скільки куплених за весь час gems відкриває кожен рівень,
+        /// від першого. Порожній список — VIP вимкнено, усі на нульовому рівні.
+        /// </summary>
+        public List<long> VipThresholds { get; set; } = new();
+
+        /// <summary>Кожен такий VIP-рівень додає один марш понад базові (рішення 28.10.2026: кожен парний).</summary>
+        public int VipLevelsPerExtraMarch { get; set; } = 2;
     }
 
     /// <summary>Варіант прискорення маршу.</summary>

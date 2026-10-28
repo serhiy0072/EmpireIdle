@@ -16246,13 +16246,28 @@
       },
       "WalletResponse": {
         "required": [
-          "gemBalance"
+          "gemBalance",
+          "purchasedGems",
+          "vipLevel"
         ],
         "type": "object",
         "properties": {
           "gemBalance": {
             "type": "integer",
             "format": "int32"
+          },
+          "purchasedGems": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vipLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextVipThreshold": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
           }
         },
         "additionalProperties": false

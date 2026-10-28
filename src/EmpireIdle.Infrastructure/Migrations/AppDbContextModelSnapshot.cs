@@ -2034,6 +2034,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("GemBalance");
 
+                    b.Property<long>("PurchasedGems")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
