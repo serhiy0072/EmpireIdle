@@ -10,6 +10,7 @@ import { clanRoleName } from "./clanRoles";
 import { classLabel } from "./heroClasses";
 import { formatDateTime, formatNumber } from "./format";
 import { t } from "i18next";
+import { technologyName } from "./technologies";
 
 type RefusalKey = keyof typeof import("../../../../refusals/reasons.json");
 
@@ -311,6 +312,15 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "teleport.outsideClanTerritory": () => t("errors:refusal.teleport.outsideClanTerritory"),
   "teleport.youAreLeader": () => t("errors:refusal.teleport.youAreLeader"),
   "teleport.noFreeCell": () => t("errors:refusal.teleport.noFreeCell"),
+
+  // ---------- Дослідження ----------
+  "research.academyLocked": ({ level }) => t("errors:refusal.research.academyLocked", { level }),
+  "research.busy": () => t("errors:refusal.research.busy"),
+  "research.tierLocked": ({ tier, level, worldLevel }) => t("errors:refusal.research.tierLocked", { tier, level, worldLevel }),
+  "research.previousTier": ({ tier }) => t("errors:refusal.research.previousTier", { tier }),
+  "research.prerequisites": ({ nodes }) => t("errors:refusal.research.prerequisites", { nodes: nameList(nodes, technologyName) }),
+  "research.maxed": () => t("errors:refusal.research.maxed"),
+  "research.notActive": () => t("errors:refusal.research.notActive"),
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */

@@ -514,5 +514,28 @@
 
         /// <summary>Телепорт до лідера — довкола його села не лишилось вільної придатної клітини.</summary>
         public static readonly RefusalReason TeleportNoFreeCell = new("teleport.noFreeCell");
+
+        // ---------- Дослідження (особисті технології) ----------
+
+        /// <summary>Академія ще закрита ратушею; level — потрібний рівень ратуші.</summary>
+        public static readonly RefusalReason ResearchAcademyLocked = new("research.academyLocked", "level");
+
+        /// <summary>Академія вже досліджує інший вузол — одне дослідження за раз.</summary>
+        public static readonly RefusalReason ResearchBusy = new("research.busy");
+
+        /// <summary>Тір закритий ратушею або рівнем світу.</summary>
+        public static readonly RefusalReason ResearchTierLocked = new("research.tierLocked", "tier", "level", "worldLevel");
+
+        /// <summary>Попередній тір цієї вкладки ще не закрито до кінця.</summary>
+        public static readonly RefusalReason ResearchPreviousTier = new("research.previousTier", "tier");
+
+        /// <summary>Не вивчено жодного рівня потрібних вузлів; nodes — ключі через кому.</summary>
+        public static readonly RefusalReason ResearchPrerequisites = new("research.prerequisites", "nodes");
+
+        /// <summary>Вузол уже на найвищому рівні.</summary>
+        public static readonly RefusalReason ResearchMaxed = new("research.maxed");
+
+        /// <summary>Прискорювати чи просити допомоги нема чого: Академія вільна.</summary>
+        public static readonly RefusalReason ResearchNotActive = new("research.notActive");
     }
 }

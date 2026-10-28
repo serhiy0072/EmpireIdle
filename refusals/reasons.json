@@ -324,6 +324,23 @@
     "level"
   ],
   "reinforce.targetShielded": [],
+  "research.academyLocked": [
+    "level"
+  ],
+  "research.busy": [],
+  "research.maxed": [],
+  "research.notActive": [],
+  "research.prerequisites": [
+    "nodes"
+  ],
+  "research.previousTier": [
+    "tier"
+  ],
+  "research.tierLocked": [
+    "tier",
+    "level",
+    "worldLevel"
+  ],
   "scout.alreadyUnderway": [],
   "scout.blocked": [],
   "scout.ownTarget": [],

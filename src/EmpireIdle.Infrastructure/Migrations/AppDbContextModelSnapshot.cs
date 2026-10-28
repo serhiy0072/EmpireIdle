@@ -2024,6 +2024,58 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("PlayerRatings", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.PlayerResearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActiveKey")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int>("ActiveLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("CompletesAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Levels")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'::jsonb");
+
+                    b.Property<TimeSpan>("PlannedDuration")
+                        .HasColumnType("interval");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.HasIndex("ServerId", "CompletesAt");
+
+                    b.ToTable("PlayerResearch", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.PlayerWallet", b =>
                 {
                     b.Property<Guid>("Id")
