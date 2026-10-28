@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
@@ -47,7 +48,10 @@ namespace EmpireIdle.Application.Clans.Queries
             if (requests.Count == 0)
                 return [];
 
-            var maxHelpers = _catalog.Config.Clan.MaxHelpers;
+            // У досліджень свій ліміт допомог (рішення 28.10.2026)
+            int MaxHelpers(ClanHelpTarget target) => target == ClanHelpTarget.Research
+                ? _catalog.Config.Technologies.Personal.MaxHelps
+                : _catalog.Config.Clan.MaxHelpers;
 
             var names = await _playerRepository.GetNamesAsync(
                 requests.Select(r => r.PlayerId).Distinct().ToList(), cancellationToken);
@@ -60,7 +64,7 @@ namespace EmpireIdle.Application.Clans.Queries
                     r.TargetType,
                     r.TargetId,
                     r.HelpCount,
-                    maxHelpers,
+                    MaxHelpers(r.TargetType),
                     r.Helpers.Any(h => h.HelperId == request.PlayerId),
                     r.PlayerId == request.PlayerId,
                     r.CreatedAt,
