@@ -51,13 +51,13 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
       <div className="space-y-4">
         {joinOutcome === "ApplicationSubmitted" && (
           <div role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-            Заявку подано — чекайте на рішення клану.
+            {t("social:browser.applied")}
           </div>
         )}
 
         {invites.length > 0 && (
           <section className="space-y-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Запрошення</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:browser.invites")}</h2>
             {invites.map((invite) => (
               <div key={invite.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-violet-200 bg-white p-3">
                 <div className="flex-1">
@@ -65,7 +65,7 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
                     [{invite.clanTag}] {invite.clanName}
                   </span>
                   <span className="ml-2 text-xs text-slate-500">
-                    {invite.memberCount}/{invite.capacity} · діє {formatRemaining(invite.expiresAt, now)}
+                    {t("social:browser.invite", { members: invite.memberCount, capacity: invite.capacity, remaining: formatRemaining(invite.expiresAt, now) })}
                   </span>
                   {invite.description !== "" && <p className="text-sm text-slate-600">{invite.description}</p>}
                 </div>
@@ -75,10 +75,10 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
                   disabled={busy}
                   className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
-                  Прийняти
+                  {t("social:browser.accept")}
                 </button>
                 <button type="button" onClick={() => onResolveInvite(invite.requestId, false)} disabled={busy} className={button}>
-                  Відхилити
+                  {t("social:browser.decline")}
                 </button>
               </div>
             ))}
@@ -87,10 +87,10 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
 
         <section className="space-y-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Клани</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:browser.clans")}</h2>
             <input
               type="search"
-              placeholder="Назва або тег"
+              placeholder={t("social:browser.search")}
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value);
@@ -101,11 +101,11 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
           </div>
 
           {clans.isPending ? (
-            <p className="text-sm text-slate-500">Шукаємо…</p>
+            <p className="text-sm text-slate-500">{t("social:browser.searching")}</p>
           ) : clans.isError ? (
-            <p className="text-sm text-red-700">Не вдалося завантажити каталог.</p>
+            <p className="text-sm text-red-700">{t("social:browser.loadFailed")}</p>
           ) : clans.data.items.length === 0 ? (
-            <p className="text-sm text-slate-500">Нічого не знайдено.</p>
+            <p className="text-sm text-slate-500">{t("social:browser.nothing")}</p>
           ) : (
             <ul className="space-y-2">
               {clans.data.items.map((clan) => (
@@ -122,7 +122,7 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
                   {/* Закритий клан приймає лише за запрошенням — кнопки нема, щоб не ловити відмову */}
                   {clan.joinPolicy !== "InviteOnly" && (
                     <button type="button" onClick={() => onJoin(clan.id)} disabled={busy || clan.isFull} className={button}>
-                      {clan.isFull ? "Повний" : clan.joinPolicy === "Open" ? "Вступити" : "Подати заявку"}
+                      {clan.isFull ? t("social:browser.full") : clan.joinPolicy === "Open" ? t("social:browser.join") : t("social:browser.apply")}
                     </button>
                   )}
                 </li>
@@ -147,14 +147,14 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
       </div>
 
       <section className="h-fit space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="font-medium text-slate-800">Створити клан</h2>
+        <h2 className="font-medium text-slate-800">{t("social:browser.create")}</h2>
         <label className="block text-sm text-slate-600">
-          Назва
+          {t("social:browser.name")}
           <input value={name} onChange={(event) => setName(event.target.value)} maxLength={32} className={`mt-1 w-full ${input}`} />
           <UnmetRules rules={clanNameRules} value={name.trim()} />
         </label>
         <label className="block text-sm text-slate-600">
-          Тег
+          {t("social:browser.tag")}
           <input
             value={tag}
             onChange={(event) => setTag(event.target.value.toUpperCase())}
@@ -169,7 +169,7 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
           disabled={busy || !clanNameIsValid(name.trim()) || !clanTagIsValid(tag.trim())}
           className="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
         >
-          Заснувати
+          {t("social:browser.found")}
         </button>
       </section>
     </div>

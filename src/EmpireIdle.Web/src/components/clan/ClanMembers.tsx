@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { ClanMemberResponse, ClanRoleResponse } from "../../lib/apiTypes";
 import { clanRoleName } from "../../lib/clanRoles";
+import { t } from "i18next";
 
 interface Props {
   members: ClanMemberResponse[];
@@ -27,7 +28,7 @@ function compact(value: number): string {
 function since(iso: string, now: number): string {
   const days = Math.floor((now - Date.parse(iso)) / 86_400_000);
 
-  return days <= 0 ? "сьогодні" : `${days} дн. тому`;
+  return days <= 0 ? t("social:members.today") : t("social:members.daysAgo", { count: days });
 }
 
 /**
@@ -61,10 +62,10 @@ export default function ClanMembers({
       <table className="w-full text-sm">
         <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
           <tr>
-            <th className="px-3 py-2">Гравець</th>
-            <th className="px-3 py-2">Роль</th>
-            <th className="px-3 py-2 text-right">Сила</th>
-            <th className="px-3 py-2">Активність</th>
+            <th className="px-3 py-2">{t("social:members.player")}</th>
+            <th className="px-3 py-2">{t("social:members.role")}</th>
+            <th className="px-3 py-2 text-right">{t("social:members.power")}</th>
+            <th className="px-3 py-2">{t("social:members.activity")}</th>
             <th className="px-3 py-2" />
           </tr>
         </thead>
@@ -78,13 +79,13 @@ export default function ClanMembers({
                 <td className="px-3 py-2 font-medium text-slate-800">
                   {member.playerName}
                   {me ? (
-                    <span className="ml-1 text-xs text-emerald-700">(ви)</span>
+                    <span className="ml-1 text-xs text-emerald-700">{t("social:members.you")}</span>
                   ) : (
                     <Link
                       to={`/chat?${new URLSearchParams({ tab: "Private", to: member.playerId, name: member.playerName }).toString()}`}
                       className="ml-2 text-xs font-normal text-emerald-700 hover:underline"
                     >
-                      написати
+                      {t("social:members.message")}
                     </Link>
                   )}
                 </td>
@@ -128,7 +129,7 @@ export default function ClanMembers({
                       disabled={busy}
                       className="rounded-lg border border-amber-300 px-2 py-0.5 text-xs text-amber-800 hover:bg-amber-50 disabled:opacity-50"
                     >
-                      {confirmLeader === member.playerId ? "Точно передати?" : "Зробити лідером"}
+                      {confirmLeader === member.playerId ? t("social:members.confirmLeader") : t("social:members.makeLeader")}
                     </button>
                   )}
                   {canKick && below && (
@@ -138,7 +139,7 @@ export default function ClanMembers({
                       disabled={busy}
                       className="rounded-lg border border-red-200 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
                     >
-                      Виключити
+                      {t("social:members.kick")}
                     </button>
                   )}
                 </td>

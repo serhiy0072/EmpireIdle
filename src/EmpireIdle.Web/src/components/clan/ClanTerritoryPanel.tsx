@@ -3,6 +3,7 @@ import { useNow } from "../../hooks/useNow";
 import type { ClanTerritoryResponse } from "../../lib/apiTypes";
 import { formatRemaining } from "../../lib/time";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   territory: ClanTerritoryResponse;
@@ -22,58 +23,60 @@ export default function ClanTerritoryPanel({ territory, myPlayerId }: Props) {
     <div className="grid gap-4 md:grid-cols-2">
       <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-medium text-slate-800">Очки вкладу</h3>
+          <h3 className="font-medium text-slate-800">{t("social:territory.points")}</h3>
           <span className="text-lg font-medium text-emerald-700">{number(territory.points)}</span>
         </div>
         <p className="text-sm text-slate-600">
-          Набігають із боїв з монстрами (частка здобичі — вашої нагороди це не зменшує) і за квести клану.
+          {t("social:territory.pointsHint")}
         </p>
 
         {territory.enabled ? (
           <>
             <p className="text-sm text-slate-600">
-              Споруда коштує {number(territory.structureCost)} очок, будується{" "}
-              {Math.round(territory.buildMinutes / 60)} год (марші підкріплення прискорюють) і дає бонус до атаки й
-              захисту всім учасникам у радіусі {territory.radius} клітин.
+              {t("social:territory.structureInfo", {
+                cost: number(territory.structureCost),
+                hours: Math.round(territory.buildMinutes / 60),
+                radius: territory.radius,
+              })}
             </p>
             <p className="text-sm text-slate-700">
-              Слоти: {territory.structures.length} / {territory.slotsOpen} відкрито · максимум {territory.slotsMax}
+              {t("social:territory.slots", { used: territory.structures.length, open: territory.slotsOpen, max: territory.slotsMax })}
             </p>
             <ul className="space-y-1 text-sm">
               {territory.slotUnlocks.map((unlock, index) => {
                 const quest = territory.quests.find((q) => q.key === unlock.questKey);
                 const label =
                   unlock.minMembers != null
-                    ? `${unlock.minMembers} учасників`
-                    : `квест «${quest?.displayName ?? unlock.questKey}»`;
+                    ? t("social:territory.unlockMembers", { count: unlock.minMembers })
+                    : t("social:territory.unlockQuest", { quest: quest?.displayName ?? unlock.questKey });
 
                 return (
                   <li key={index} className={unlock.unlocked ? "text-emerald-700" : "text-slate-500"}>
-                    {unlock.unlocked ? "✓" : "○"} Слот за {label}
+                    {unlock.unlocked ? "✓" : "○"} {t("social:territory.slotFor", { label })}
                   </li>
                 );
               })}
             </ul>
             {!territory.canBuild && (
-              <p className="text-xs text-slate-500">Закладати й зносити споруди може роль із правом «споруди».</p>
+              <p className="text-xs text-slate-500">{t("social:territory.noRight")}</p>
             )}
           </>
         ) : (
-          <p className="text-sm text-slate-500">У цьому світі споруд клану немає — очки чекають на них.</p>
+          <p className="text-sm text-slate-500">{t("social:territory.disabled")}</p>
         )}
       </section>
 
       {territory.enabled && (
         <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="font-medium text-slate-800">Споруди</h3>
+            <h3 className="font-medium text-slate-800">{t("social:territory.structures")}</h3>
             <Link to="/map" className="text-sm text-emerald-700 hover:underline">
-              На мапу
+              {t("social:territory.toMap")}
             </Link>
           </div>
           {territory.structures.length === 0 ? (
             <p className="text-sm text-slate-500">
-              Жодної. {territory.canBuild ? "Оберіть вільну придатну клітину на мапі й закладіть першу." : ""}
+              {t("social:territory.none")} {territory.canBuild ? t("social:territory.placeFirst") : ""}
             </p>
           ) : (
             <ul className="space-y-2">
@@ -86,11 +89,11 @@ export default function ClanTerritoryPanel({ territory, myPlayerId }: Props) {
                       ({structure.x}, {structure.y})
                     </span>
                     <span className="text-slate-600">
-                      гарнізон {structure.garrisonUnits}/{territory.garrisonCapacity}
-                      {structure.myUnits > 0 && ` · ваших ${structure.myUnits}`}
+                      {t("social:territory.garrison", { units: structure.garrisonUnits, capacity: territory.garrisonCapacity })}
+                      {structure.myUnits > 0 && ` · ${t("social:territory.yours", { count: structure.myUnits })}`}
                     </span>
                     <span className={building ? "font-mono text-amber-700" : "text-emerald-700"}>
-                      {building ? formatRemaining(structure.readyAt, now) : "діє"}
+                      {building ? formatRemaining(structure.readyAt, now) : t("social:territory.active")}
                     </span>
                   </li>
                 );
@@ -101,9 +104,9 @@ export default function ClanTerritoryPanel({ territory, myPlayerId }: Props) {
       )}
 
       <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <h3 className="font-medium text-slate-800">Квести клану</h3>
+        <h3 className="font-medium text-slate-800">{t("social:territory.quests")}</h3>
         {territory.quests.length === 0 ? (
-          <p className="text-sm text-slate-500">Квестів клану поки немає.</p>
+          <p className="text-sm text-slate-500">{t("social:territory.noQuests")}</p>
         ) : (
           <ul className="space-y-3">
             {territory.quests.map((quest) => {
@@ -117,7 +120,8 @@ export default function ClanTerritoryPanel({ territory, myPlayerId }: Props) {
                       {quest.displayName}
                     </span>
                     <span className="text-xs text-slate-500">
-                      +{number(quest.clanPoints)} очок{quest.opensSlot && " · слот"}
+                      {t("social:territory.questPoints", { points: number(quest.clanPoints) })}
+                      {quest.opensSlot && ` · ${t("social:territory.slot")}`}
                     </span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
@@ -134,9 +138,9 @@ export default function ClanTerritoryPanel({ territory, myPlayerId }: Props) {
       </section>
 
       <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <h3 className="font-medium text-slate-800">Найбільший внесок</h3>
+        <h3 className="font-medium text-slate-800">{t("social:territory.topContributors")}</h3>
         {territory.contributors.length === 0 ? (
-          <p className="text-sm text-slate-500">Ще ніхто нічого не приніс.</p>
+          <p className="text-sm text-slate-500">{t("social:territory.noContributors")}</p>
         ) : (
           <ol className="space-y-1 text-sm">
             {territory.contributors.map((contributor, index) => (

@@ -13,6 +13,7 @@ import type {
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer, type PlayerScope } from "./invalidate";
 import { refetchAtDue } from "./polling";
+import { t } from "i18next";
 
 /**
  * Поза кланом сервер відповідає 204 без тіла — це стан, а не помилка.
@@ -207,14 +208,10 @@ export function useCancelRequest(playerId: string) {
   );
 }
 
-const POLICY_LABELS: Record<string, string> = {
-  Open: "Відкритий",
-  ByApproval: "За схваленням",
-  InviteOnly: "Лише за запрошенням",
-};
+const POLICIES = ["Open", "ByApproval", "InviteOnly"] as const;
 
 export function joinPolicyLabel(policy: string): string {
-  return POLICY_LABELS[policy] ?? policy;
+  return (POLICIES as readonly string[]).includes(policy) ? t(`social:clan.policy.${policy as (typeof POLICIES)[number]}`) : policy;
 }
 
 /** Числові значення ClanJoinPolicy з контракту — сервер приймає enum числом. */
@@ -224,16 +221,10 @@ export const JOIN_POLICIES: { value: ClanJoinPolicy; name: string }[] = [
   { value: 2, name: "InviteOnly" },
 ];
 
-const PERMISSION_LABELS: Record<string, string> = {
-  Recruit: "набір",
-  Kick: "виключення",
-  AssignRoles: "ролі учасників",
-  ManageRoles: "керування ролями",
-  EditProfile: "профіль",
-  BuildStructures: "споруди",
-  Disband: "розпуск",
-};
+const PERMISSIONS = ["Recruit", "Kick", "AssignRoles", "ManageRoles", "EditProfile", "BuildStructures", "Disband"] as const;
 
 export function permissionLabel(permission: string): string {
-  return PERMISSION_LABELS[permission] ?? permission;
+  return (PERMISSIONS as readonly string[]).includes(permission)
+    ? t(`social:clan.permission.${permission as (typeof PERMISSIONS)[number]}`)
+    : permission;
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ClanApplicationResponse } from "../../lib/apiTypes";
 import { formatRemaining } from "../../lib/time";
 import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   applications: ClanApplicationResponse[];
@@ -21,16 +22,16 @@ export default function ClanRequestsPanel({ applications, now, busy, onResolve, 
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <section className="space-y-2">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">Заявки · {applications.length}</h3>
+        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:requests.title", { count: applications.length })}</h3>
         {applications.length === 0 ? (
-          <p className="text-sm text-slate-500">Заявок немає.</p>
+          <p className="text-sm text-slate-500">{t("social:requests.none")}</p>
         ) : (
           applications.map((application) => (
             <div key={application.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex-1 text-sm">
                 <span className="font-medium text-slate-800">{application.playerName}</span>
                 <span className="ml-2 text-xs text-slate-500">
-                  сила {formatNumber(Math.round(application.power))} · ще {formatRemaining(application.expiresAt, now)}
+                  {t("social:requests.info", { power: formatNumber(Math.round(application.power)), remaining: formatRemaining(application.expiresAt, now) })}
                 </span>
               </div>
               <button
@@ -39,10 +40,10 @@ export default function ClanRequestsPanel({ applications, now, busy, onResolve, 
                 disabled={busy}
                 className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
               >
-                Прийняти
+                {t("social:requests.accept")}
               </button>
               <button type="button" onClick={() => onResolve(application.requestId, false)} disabled={busy} className={button}>
-                Відхилити
+                {t("social:requests.decline")}
               </button>
             </div>
           ))
@@ -50,12 +51,12 @@ export default function ClanRequestsPanel({ applications, now, busy, onResolve, 
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">Запросити</h3>
+        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:requests.invite")}</h3>
         <div className="flex gap-2">
           <input
             value={target}
             onChange={(event) => setTarget(event.target.value)}
-            placeholder="ID гравця"
+            placeholder={t("social:requests.playerId")}
             className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 font-mono text-sm text-slate-800"
           />
           <button
@@ -67,10 +68,10 @@ export default function ClanRequestsPanel({ applications, now, busy, onResolve, 
             disabled={busy || !validTarget}
             className={button}
           >
-            Надіслати
+            {t("social:requests.send")}
           </button>
         </div>
-        <p className="text-xs text-slate-500">Гравець знаходить свій ID у розділі «Клан» — попросіть його надіслати.</p>
+        <p className="text-xs text-slate-500">{t("social:requests.idHint")}</p>
       </section>
     </div>
   );

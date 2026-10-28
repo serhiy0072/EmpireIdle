@@ -1,6 +1,7 @@
 import type { BuildingResponse, ClanHelpItemResponse, ClanHelpTarget, TrainingOrderResponse } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { formatRemaining } from "../../lib/time";
+import { t } from "i18next";
 
 interface Props {
   items: ClanHelpItemResponse[];
@@ -28,17 +29,17 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <section className="space-y-2">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">Просять допомоги</h3>
+        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:help.asking")}</h3>
         {others.length === 0 ? (
-          <p className="text-sm text-slate-500">Зараз нікому не потрібна допомога.</p>
+          <p className="text-sm text-slate-500">{t("social:help.none")}</p>
         ) : (
           others.map((item) => (
             <div key={item.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex-1 text-sm">
                 <span className="font-medium text-slate-800">{item.playerName}</span>
-                <span className="ml-2 text-slate-500">{item.targetType === "Construction" ? "будівництво" : "тренування"}</span>
+                <span className="ml-2 text-slate-500">{item.targetType === "Construction" ? t("social:help.construction") : t("social:help.training")}</span>
                 <div className="text-xs text-slate-500">
-                  {item.helpCount}/{item.maxHelpers} · ще {formatRemaining(item.expiresAt, now)}
+                  {t("social:help.progress", { count: item.helpCount, max: item.maxHelpers, remaining: formatRemaining(item.expiresAt, now) })}
                 </div>
               </div>
               <button
@@ -51,7 +52,7 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
                     : "rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                 }
               >
-                {item.alreadyHelped ? "Допомогли" : "Допомогти"}
+                {item.alreadyHelped ? t("social:help.helped") : t("social:help.help")}
               </button>
             </div>
           ))
@@ -59,12 +60,12 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">Мої прохання</h3>
+        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:help.mine")}</h3>
         {mine.map((item) => (
           <div key={item.requestId} className="rounded-xl border border-emerald-200 bg-white p-3 text-sm">
-            <span className="text-slate-800">{item.targetType === "Construction" ? "Будівництво" : "Тренування"}</span>
+            <span className="text-slate-800">{item.targetType === "Construction" ? t("social:help.Construction") : t("social:help.Training")}</span>
             <span className="ml-2 text-xs text-slate-500">
-              допомогли {item.helpCount}/{item.maxHelpers} · ще {formatRemaining(item.expiresAt, now)}
+              {t("social:help.mineProgress", { count: item.helpCount, max: item.maxHelpers, remaining: formatRemaining(item.expiresAt, now) })}
             </span>
           </div>
         ))}
@@ -77,7 +78,7 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
                 {catalog.buildingName(building.type)} → {building.level + 1}
               </span>
               <button type="button" onClick={() => onRequest(0, building.id)} disabled={busy} className={button}>
-                Попросити
+                {t("social:help.ask")}
               </button>
             </div>
           ))}
@@ -90,13 +91,13 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
                 {catalog.unitName(order.unitType)} ×{order.count}
               </span>
               <button type="button" onClick={() => onRequest(1, order.id)} disabled={busy} className={button}>
-                Попросити
+                {t("social:help.ask")}
               </button>
             </div>
           ))}
 
         {mine.length === 0 && constructions.length === 0 && trainings.length === 0 && (
-          <p className="text-sm text-slate-500">Немає черг, які можна прискорити.</p>
+          <p className="text-sm text-slate-500">{t("social:help.nothingToAsk")}</p>
         )}
       </section>
     </div>

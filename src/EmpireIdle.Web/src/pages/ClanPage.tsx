@@ -32,6 +32,7 @@ import { useGarrison } from "../lib/queries/garrison";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 import TabHotkeys from "../components/shell/TabHotkeys";
+import { t } from "i18next";
 
 type Tab = "help" | "members" | "territory" | "requests" | "settings";
 
@@ -71,7 +72,7 @@ export default function ClanPage() {
   const [confirmLeave, setConfirmLeave] = useState(false);
 
   if (clan.isPending) {
-    return <p className="text-slate-500">Завантаження клану…</p>;
+    return <p className="text-slate-500">{t("social:page.loading")}</p>;
   }
 
   if (clan.isError) {
@@ -96,9 +97,9 @@ export default function ClanPage() {
     return (
       <div className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="text-xl font-medium text-slate-800">Клан</h1>
+          <h1 className="text-xl font-medium text-slate-800">{t("social:page.title")}</h1>
           <button type="button" onClick={copyId} className="font-mono text-xs text-slate-500 hover:text-slate-800">
-            {copied ? "скопійовано" : `мій ID: ${playerId}`}
+            {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
           </button>
         </div>
         <ErrorBanner error={failure} />
@@ -125,15 +126,15 @@ export default function ClanPage() {
   const pendingHelp = helpItems.filter((item) => !item.isMine && !item.alreadyHelped).length;
 
   const tabs: { key: Tab; label: string; visible: boolean }[] = [
-    { key: "help", label: pendingHelp > 0 ? `Допомога · ${pendingHelp}` : "Допомога", visible: true },
-    { key: "members", label: `Учасники · ${clan.data.memberCount}/${clan.data.capacity}`, visible: true },
-    { key: "territory", label: "Територія", visible: true },
+    { key: "help", label: pendingHelp > 0 ? t("social:page.tabHelpCount", { count: pendingHelp }) : t("social:page.tabHelp"), visible: true },
+    { key: "members", label: t("social:page.tabMembers", { count: clan.data.memberCount, capacity: clan.data.capacity }), visible: true },
+    { key: "territory", label: t("social:page.tabTerritory"), visible: true },
     {
       key: "requests",
-      label: (applications.data?.length ?? 0) > 0 ? `Набір · ${applications.data?.length}` : "Набір",
+      label: (applications.data?.length ?? 0) > 0 ? t("social:page.tabRecruitCount", { count: applications.data?.length }) : t("social:page.tabRecruit"),
       visible: canRecruit,
     },
-    { key: "settings", label: "Налаштування", visible: true },
+    { key: "settings", label: t("social:page.tabSettings"), visible: true },
   ];
 
   return (
@@ -201,7 +202,7 @@ export default function ClanPage() {
         (territory.isError ? (
           <ErrorBanner error={territory.error} />
         ) : territory.data == null ? (
-          <p className="text-sm text-slate-500">Завантаження…</p>
+          <p className="text-sm text-slate-500">{t("social:page.loadingShort")}</p>
         ) : (
           <ClanTerritoryPanel territory={territory.data} myPlayerId={playerId} />
         ))}
@@ -219,7 +220,7 @@ export default function ClanPage() {
       {tab === "settings" && (
         <div className="grid gap-4 md:grid-cols-2">
           <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-            <h3 className="font-medium text-slate-800">Профіль</h3>
+            <h3 className="font-medium text-slate-800">{t("social:page.profile")}</h3>
             <ClanSettings
               clan={clan.data}
               canEdit={permissions.has("EditProfile")}
@@ -229,9 +230,9 @@ export default function ClanPage() {
           </section>
 
           <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-            <h3 className="font-medium text-slate-800">Моє</h3>
+            <h3 className="font-medium text-slate-800">{t("social:page.mine")}</h3>
             <button type="button" onClick={copyId} className="font-mono text-xs text-slate-500 hover:text-slate-800">
-              {copied ? "скопійовано" : `мій ID: ${playerId}`}
+              {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
             </button>
             <div className="flex flex-wrap gap-2">
               <button
@@ -240,7 +241,7 @@ export default function ClanPage() {
                 disabled={busy}
                 className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                Відкликати підкріплення
+                {t("social:page.recall")}
               </button>
               {/* Лідер теж може вийти: лідерство перейде найвищому за рангом, а сам-один — розпускає клан */}
               <button
@@ -257,20 +258,20 @@ export default function ClanPage() {
                 disabled={busy}
                 title={
                   isLeader && clan.data.memberCount > 1
-                    ? "Лідерство перейде учаснику з найвищою роллю"
+                    ? t("social:page.leaderLeaves")
                     : undefined
                 }
                 className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
               >
                 {confirmLeave
-                  ? "Точно? Натисніть ще раз"
+                  ? t("social:page.confirmLeave")
                   : isLeader && clan.data.memberCount <= 1
-                    ? "Розпустити клан"
-                    : "Покинути клан"}
+                    ? t("social:page.disband")
+                    : t("social:page.leave")}
               </button>
             </div>
             {typeof recall.data === "number" && (
-              <p className="text-xs text-slate-500">Відкликано маршів: {recall.data}</p>
+              <p className="text-xs text-slate-500">{t("social:page.recalled", { count: recall.data })}</p>
             )}
           </section>
         </div>
