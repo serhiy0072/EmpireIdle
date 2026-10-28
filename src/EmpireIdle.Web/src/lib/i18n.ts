@@ -86,13 +86,18 @@ export async function setLanguage(language: string): Promise<void> {
   void queryClient.invalidateQueries();
 }
 
+/** Переклади, що довантажуються окремими чанками; українська вже в бандлі, тож її тут немає. */
+const LAZY_LOCALES = import.meta.glob<Record<string, unknown>>(["../locales/*/*.json", "!../locales/uk/*.json"], {
+  import: "default",
+});
+
 /** Ініціалізація до першого рендеру: інша мова, ніж вшита, приїжде окремим чанком. */
 export async function initI18n(): Promise<void> {
   const language = initialLanguage();
 
   await i18n
     .use(initReactI18next)
-    .use(resourcesToBackend((lng: string, ns: string) => import(`../locales/${lng}/${ns}.json`)))
+    .use(resourcesToBackend((lng: string, ns: string) => LAZY_LOCALES[`../locales/${lng}/${ns}.json`]?.()))
     .init({
       lng: language,
       fallbackLng: DEFAULT_LANGUAGE,
