@@ -6,7 +6,7 @@
       "TerrainSeed": 20260922,
       "TerrainPatchSize": 5,
       "CellsPerMonster": 90,
-      "TravelSpeedMultiplier": 8,
+      "TravelSpeedMultiplier": 16,
       "FullyOpenAtLevel": 3,
       "Geometry": {
         "RingBoundaries": [ 0.20, 0.50 ],
