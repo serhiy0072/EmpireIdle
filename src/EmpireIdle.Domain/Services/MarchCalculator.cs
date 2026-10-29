@@ -56,8 +56,8 @@ namespace EmpireIdle.Domain.Services
 
             var terrainFactor = GetAverageMoveCost(serverId, fromX, fromY, toX, toY);
 
-            // Одна клітина за 1/speed хвилин, скоригована на рельєф
-            var minutes = distance / speed * terrainFactor;
+            // Одна клітина за 1/speed хвилин, скоригована на рельєф і загальний темп світу
+            var minutes = distance / (speed * _catalog.Config.Map.TravelSpeedMultiplier) * terrainFactor;
             return TimeSpan.FromMinutes(minutes);
         }
 

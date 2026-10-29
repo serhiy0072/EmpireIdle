@@ -197,5 +197,24 @@ namespace EmpireIdle.Domain.Tests.Services
                 calc.CalculateDuration(1, 100, 100, 150, 100, infantry),
                 calc.CalculateDuration(1, 100, 100, 150, 100, infantry, heroSpeed));
         }
+
+        /// <summary>Загальний темп світу (рішення 29.10.2026): множник 8 — та сама дорога вісім разів коротша.</summary>
+        [Fact]
+        public void CalculateDuration_ShouldDivideByTheTravelSpeedMultiplier()
+        {
+            var fast = new GameConfig
+            {
+                Units = Units(),
+                Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true }],
+                Map = new MapConfig { TravelSpeedMultiplier = 8 }
+            };
+            var army = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
+
+            var normal = Calculator().CalculateDuration(1, 10, 10, 50, 40, army);
+            var quick = new MarchCalculator(new TerrainGenerator(MapConfig()), new GameCatalog(fast))
+                .CalculateDuration(1, 10, 10, 50, 40, army);
+
+            Assert.Equal(normal.TotalMilliseconds / 8, quick.TotalMilliseconds, precision: 3);
+        }
     }
 }
