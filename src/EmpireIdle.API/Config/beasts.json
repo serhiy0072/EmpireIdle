@@ -4,6 +4,7 @@
       "TameChancePerPenLevel": 0.01,
       "MaxTameChanceMultiplier": 2.0,
       "PityWins": 10,
+      "TameTravelSpeedMultiplier": 5,
       "MaxRank": 5,
       "LevelsPerRank": 10,
       "FeedItemKey": "beast_feed",

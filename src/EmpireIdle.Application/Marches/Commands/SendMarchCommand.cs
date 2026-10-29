@@ -193,10 +193,11 @@ namespace EmpireIdle.Application.Marches.Commands
             // Колона йде за найповільнішим учасником, і герої тут нарівні
             // з юнітами: підкріплення з самих героїв інакше плелося б
             // базовою швидкістю замість власної.
-            // Пасивка звіра й небойові вміння героїв пришвидшують марш; множник фіксується
-            // на марші й діє на зворотній дорозі
+            // Пасивка звіра, небойові вміння героїв і мета походу пришвидшують марш; множник
+            // фіксується на марші й діє на зворотній дорозі
             var speed = await _effects.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
-                * _progression.MarchSpeedMultiplier(leaders);
+                * _progression.MarchSpeedMultiplier(leaders)
+                * _calculator.IntentSpeedMultiplier(request.Intent);
 
             var duration = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, request.Units,

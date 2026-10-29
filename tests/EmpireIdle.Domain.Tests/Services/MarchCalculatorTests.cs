@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.Domain.Services.Config;
@@ -215,6 +216,25 @@ namespace EmpireIdle.Domain.Tests.Services
                 .CalculateDuration(1, 10, 10, 50, 40, army);
 
             Assert.Equal(normal.TotalMilliseconds / 8, quick.TotalMilliseconds, precision: 3);
+        }
+
+        /// <summary>Марш на приручення (рішення 29.10.2026) швидший у TameTravelSpeedMultiplier разів, решта — ні.</summary>
+        [Theory]
+        [InlineData(MarchIntent.Tame, 5.0)]
+        [InlineData(MarchIntent.Attack, 1.0)]
+        [InlineData(MarchIntent.Reinforce, 1.0)]
+        public void IntentSpeedMultiplier_ShouldSpeedUpOnlyTaming(MarchIntent intent, double expected)
+        {
+            var config = new GameConfig
+            {
+                Units = Units(),
+                Buildings = [new BuildingConfig { Key = "townhall", IsMainBuilding = true }],
+                Beasts = new BeastsConfig { TameTravelSpeedMultiplier = 5 }
+            };
+
+            var calc = new MarchCalculator(new TerrainGenerator(MapConfig()), new GameCatalog(config));
+
+            Assert.Equal(expected, calc.IntentSpeedMultiplier(intent));
         }
     }
 }

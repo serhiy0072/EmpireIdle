@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Services
@@ -60,6 +61,13 @@ namespace EmpireIdle.Domain.Services
             var minutes = distance / (speed * _catalog.Config.Map.TravelSpeedMultiplier) * terrainFactor;
             return TimeSpan.FromMinutes(minutes);
         }
+
+        /// <summary>
+        /// Множник швидкості від мети походу: на приручення марш іде швидше (рішення 29.10.2026).
+        /// Фіксується на марші разом з іншими бонусами, тож діє й на зворотній дорозі.
+        /// </summary>
+        public double IntentSpeedMultiplier(MarchIntent intent)
+            => intent == MarchIntent.Tame ? _catalog.Config.Beasts.TameTravelSpeedMultiplier : 1.0;
 
         /// <summary>
         /// Середня вартість руху по клітинах прямої лінії (алгоритм Брезенхема).

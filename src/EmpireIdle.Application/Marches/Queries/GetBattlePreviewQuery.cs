@@ -21,7 +21,8 @@ namespace EmpireIdle.Application.Marches.Queries
         MarchTargetType TargetType,
         Guid TargetId,
         IReadOnlyList<Guid> HeroIds,
-        Dictionary<UnitStackKey, int> Units) : IRequest<BattlePreviewResult>, IPlayerScopedRequest;
+        Dictionary<UnitStackKey, int> Units,
+        MarchIntent Intent = MarchIntent.Attack) : IRequest<BattlePreviewResult>, IPlayerScopedRequest;
 
     public sealed class GetBattlePreviewQueryHandler : IRequestHandler<GetBattlePreviewQuery, BattlePreviewResult>
     {
@@ -128,7 +129,8 @@ namespace EmpireIdle.Application.Marches.Queries
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, attackerArmy,
                 _progression.MarchSpeed(leaders.Select(l => l.Config)))
                 / await _effectResolver.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
-                / _progression.MarchSpeedMultiplier(leaders);
+                / _progression.MarchSpeedMultiplier(leaders)
+                / _calculator.IntentSpeedMultiplier(request.Intent);
 
             // Сили — лише проти монстра (рішення 12.10.2026): у чужого села це розвідка, а не прев'ю
             var monster = request.TargetType == MarchTargetType.Monster;

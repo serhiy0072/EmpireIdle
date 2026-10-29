@@ -260,6 +260,7 @@ builder.Services.AddOptions<GameConfig>()
         "GameConfig.Rating activity points cannot be negative.")
     .Validate(c => c.Map.Terrains.All(t => t.MoveCost > 0), "GameConfig.Map.Terrains MoveCost must be positive — a march over it would take no time.")
     .Validate(c => c.Map.TravelSpeedMultiplier > 0, "GameConfig.Map.TravelSpeedMultiplier must be above zero.")
+    .Validate(c => c.Beasts.TameTravelSpeedMultiplier > 0, "GameConfig.Beasts.TameTravelSpeedMultiplier must be above zero.")
     .Validate(c => c.Map.ImpassableMoveMultiplier >= 1, "GameConfig.Map.ImpassableMoveMultiplier must be at least 1 — an impassable cell is never faster than a passable one.")
     .Validate(c => c.Retention is { BattleReportDays: > 0, ScoutReportDays: > 0, FinishedDungeonRunDays: > 0, ClosedMarketListingDays: > 0, ResolvedClanRequestDays: > 0, ExpiredEffectHours: > 0 },
         "GameConfig.Retention days must all be positive — a zero would delete history the moment it is written.")
