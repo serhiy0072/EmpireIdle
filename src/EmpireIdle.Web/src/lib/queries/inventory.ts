@@ -164,7 +164,7 @@ export function useUnequipAll(playerId: string) {
 }
 
 /** Таймер прискорення на сервері (SpeedUpTimer): число в запиті, назва — у межах каталогу. */
-export const SPEED_UP_TIMER_IDS = { Construction: 0, Training: 1, UnitLevelUp: 2, March: 3 } as const;
+export const SPEED_UP_TIMER_IDS = { Construction: 0, Training: 1, UnitLevelUp: 2, March: 3, Research: 4 } as const;
 
 /** Прискорити таймер предметами: хвилини складаються, надлишок понад залишок згорає. */
 export function useSpeedUpWithItems(playerId: string) {
@@ -177,6 +177,6 @@ export function useSpeedUpWithItems(playerId: string) {
         body: { timer: SPEED_UP_TIMER_IDS[input.timer], targetId: input.targetId, items: input.items },
         idempotent: true,
       }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "garrison", "marches", "power"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "garrison", "marches", "power", "research"]),
   });
 }

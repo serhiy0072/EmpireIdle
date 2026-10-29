@@ -137,7 +137,9 @@
     "Training": "Training",
     "mineProgress": "helped {{count}}/{{max}} · {{remaining}} left",
     "ask": "Ask",
-    "nothingToAsk": "No queues that can be sped up."
+    "nothingToAsk": "No queues that can be sped up.",
+    "research": "research",
+    "Research": "Research"
   },
   "members": {
     "today": "today",

@@ -13,7 +13,7 @@ export type CatalogResource = components["schemas"]["CatalogResource"];
 export type CatalogBuilding = components["schemas"]["CatalogBuilding"];
 
 /** Таймер прискорення — ключ межі в каталозі (SpeedUpTimer на сервері). */
-export type SpeedUpTimer = "Construction" | "Training" | "UnitLevelUp" | "March";
+export type SpeedUpTimer = "Construction" | "Training" | "UnitLevelUp" | "March" | "Research";
 export type CatalogSkill = components["schemas"]["CatalogSkill"];
 export type CatalogUnit = components["schemas"]["CatalogUnit"];
 export type CatalogBeast = components["schemas"]["CatalogBeast"];

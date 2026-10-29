@@ -10,7 +10,8 @@
     "market": "Market",
     "clan": "Clan",
     "worldMap": "World map",
-    "dungeons": "Dungeons"
+    "dungeons": "Dungeons",
+    "research": "Research"
   },
   "card": {
     "level": "lv. {{level}}",

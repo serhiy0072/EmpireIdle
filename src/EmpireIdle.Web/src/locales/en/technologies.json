@@ -1,4 +1,19 @@
 {
+  "page": {
+    "title": "Laboratory",
+    "loading": "Loading research…",
+    "locked": "The Laboratory opens at Town Hall level {{level}}.",
+    "idle": "Nothing is being researched — pick a technology.",
+    "researching": "Researching: {{name}} → {{level}}",
+    "remaining": "{{remaining}} left",
+    "askHelp": "Ask the clan",
+    "helpAsked": "The clan is helping",
+    "tier": "Tier {{tier}}",
+    "tierLocked": "Town Hall {{level}} · world level {{worldLevel}}",
+    "max": "MAX",
+    "bonuses": "All bonuses",
+    "noBonuses": "Nothing researched yet."
+  },
   "node": {
     "march_expansion": "March Expansion",
     "attack_infantry": "Infantry Onslaught",
@@ -49,5 +64,51 @@
     "v_defense_spearman": "Steady Shafts",
     "v_defense_archer": "Light Step",
     "v_marchspeed": "Swift Couriers"
+  },
+  "detail": {
+    "level": "Level {{level}}/{{max}}",
+    "perLevel": "Per level",
+    "total": "Now",
+    "cost": "Cost",
+    "time": "Time",
+    "start": "Research",
+    "close": "Close",
+    "maxed": "Fully researched.",
+    "busy": "The Laboratory is busy with another research.",
+    "tierGated": "This tier is still locked.",
+    "previousTier": "Finish the previous tier of this tab first.",
+    "prerequisites": "Research first: {{nodes}}"
+  },
+  "tab": {
+    "battle": "Battle",
+    "economy": "Economy",
+    "development": "Development"
+  },
+  "stat": {
+    "Attack": "Attack",
+    "Defense": "Defense",
+    "ConvoySize": "Units per convoy",
+    "MarchSpeed": "March speed",
+    "Carry": "March carry",
+    "Production": "Production",
+    "MealUpkeep": "Less food upkeep",
+    "ConstructionSpeed": "Construction speed",
+    "TrainingSpeed": "Training speed",
+    "UnitLevelUpSpeed": "Unit level-up speed",
+    "ResearchSpeed": "Research speed",
+    "WoundedCapacity": "Infirmary capacity",
+    "UnitCapacity": "Barracks capacity",
+    "HeroExperience": "Hero experience",
+    "TameChance": "Taming chance",
+    "ProtectedStorage": "Protected storage",
+    "HelpShareCap": "Clan help limit",
+    "OfferingAttempts": "Offering attempts",
+    "CoinBonus": "Clan coins",
+    "TerritoryAttack": "Territory attack",
+    "TerritoryDefense": "Territory defense",
+    "StructureBuildSpeed": "Structure build speed",
+    "StructureGarrison": "Structure garrison",
+    "StructureCost": "Cheaper structures",
+    "LootCashback": "Loot cashback"
   }
 }

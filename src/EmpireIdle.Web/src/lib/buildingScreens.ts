@@ -4,7 +4,7 @@ export interface BuildingScreen {
   label: string;
 }
 
-type ScreenKey = "quests" | "camp" | "beastPen" | "infirmary" | "heroes" | "gear" | "inventory" | "market" | "clan" | "worldMap" | "dungeons";
+type ScreenKey = "quests" | "camp" | "beastPen" | "infirmary" | "heroes" | "gear" | "inventory" | "market" | "clan" | "worldMap" | "dungeons" | "research";
 
 /**
  * Екрани, які «живуть» у будівлі: з картки будівлі на мапі села є переходи.
@@ -24,6 +24,7 @@ const SCREENS: Record<string, readonly { to: string; label: ScreenKey }[]> = {
   // Одна будівля на всю торгівлю: крамниця, банери й ринок гравців — вкладки (MarketTabs)
   market: [{ to: "/shop", label: "market" }],
   embassy: [{ to: "/clan", label: "clan" }],
+  laboratory: [{ to: "/laboratory", label: "research" }],
   scouttower: [
     { to: "/map", label: "worldMap" },
     { to: "/dungeons", label: "dungeons" },

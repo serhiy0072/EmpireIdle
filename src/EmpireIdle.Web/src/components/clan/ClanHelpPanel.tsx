@@ -14,6 +14,18 @@ interface Props {
   onRequest: (targetType: ClanHelpTarget, targetId: string) => void;
 }
 
+/** Ціль прохання з контракту (рядок) — ключ підпису. */
+const HELP_LABEL: Record<string, "construction" | "training" | "research"> = {
+  Construction: "construction",
+  Training: "training",
+  Research: "research",
+};
+const HELP_TITLE: Record<string, "Construction" | "Training" | "Research"> = {
+  Construction: "Construction",
+  Training: "Training",
+  Research: "Research",
+};
+
 const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
 
 /**
@@ -37,7 +49,7 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
             <div key={item.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex-1 text-sm">
                 <span className="font-medium text-slate-800">{item.playerName}</span>
-                <span className="ml-2 text-slate-500">{item.targetType === "Construction" ? t("social:help.construction") : t("social:help.training")}</span>
+                <span className="ml-2 text-slate-500">{t(`social:help.${HELP_LABEL[item.targetType] ?? "training"}`)}</span>
                 <div className="text-xs text-slate-500">
                   {t("social:help.progress", { count: item.helpCount, max: item.maxHelpers, remaining: formatRemaining(item.expiresAt, now) })}
                 </div>
@@ -63,7 +75,7 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
         <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:help.mine")}</h3>
         {mine.map((item) => (
           <div key={item.requestId} className="rounded-xl border border-emerald-200 bg-white p-3 text-sm">
-            <span className="text-slate-800">{item.targetType === "Construction" ? t("social:help.Construction") : t("social:help.Training")}</span>
+            <span className="text-slate-800">{t(`social:help.${HELP_TITLE[item.targetType] ?? "Training"}`)}</span>
             <span className="ml-2 text-xs text-slate-500">
               {t("social:help.mineProgress", { count: item.helpCount, max: item.maxHelpers, remaining: formatRemaining(item.expiresAt, now) })}
             </span>

@@ -137,7 +137,9 @@
     "Training": "Тренування",
     "mineProgress": "допомогли {{count}}/{{max}} · ще {{remaining}}",
     "ask": "Попросити",
-    "nothingToAsk": "Немає черг, які можна прискорити."
+    "nothingToAsk": "Немає черг, які можна прискорити.",
+    "research": "дослідження",
+    "Research": "Дослідження"
   },
   "members": {
     "today": "сьогодні",

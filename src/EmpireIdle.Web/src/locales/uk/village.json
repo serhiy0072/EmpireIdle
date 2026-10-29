@@ -10,7 +10,8 @@
     "market": "Ринок",
     "clan": "Клан",
     "worldMap": "Мапа світу",
-    "dungeons": "Данжі"
+    "dungeons": "Данжі",
+    "research": "Дослідження"
   },
   "card": {
     "level": "рів. {{level}}",

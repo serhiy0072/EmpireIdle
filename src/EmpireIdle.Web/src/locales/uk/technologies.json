@@ -1,4 +1,19 @@
 {
+  "page": {
+    "title": "Лабораторія",
+    "loading": "Завантаження досліджень…",
+    "locked": "Лабораторія відкривається з ратушею {{level}} рівня.",
+    "idle": "Зараз нічого не досліджується — оберіть технологію.",
+    "researching": "Дослідження: {{name}} → {{level}}",
+    "remaining": "ще {{remaining}}",
+    "askHelp": "Попросити клан",
+    "helpAsked": "Клан уже допомагає",
+    "tier": "Тір {{tier}}",
+    "tierLocked": "Ратуша {{level}} · рівень світу {{worldLevel}}",
+    "max": "MAX",
+    "bonuses": "Усі бонуси",
+    "noBonuses": "Ще нічого не вивчено."
+  },
   "node": {
     "march_expansion": "Розширення маршу",
     "attack_infantry": "Натиск піхоти",
@@ -49,5 +64,51 @@
     "v_defense_spearman": "Стійкі древка",
     "v_defense_archer": "Легкий крок",
     "v_marchspeed": "Швидкі гінці"
+  },
+  "detail": {
+    "level": "Рівень {{level}}/{{max}}",
+    "perLevel": "За рівень",
+    "total": "Зараз",
+    "cost": "Ціна",
+    "time": "Час",
+    "start": "Дослідити",
+    "close": "Закрити",
+    "maxed": "Вивчено повністю.",
+    "busy": "Лабораторія вже зайнята іншим дослідженням.",
+    "tierGated": "Тір ще закритий.",
+    "previousTier": "Спершу завершіть попередній тір цієї вкладки.",
+    "prerequisites": "Спершу вивчіть: {{nodes}}"
+  },
+  "tab": {
+    "battle": "Битва",
+    "economy": "Економіка",
+    "development": "Розвиток"
+  },
+  "stat": {
+    "Attack": "Атака",
+    "Defense": "Захист",
+    "ConvoySize": "Юнітів у конвої",
+    "MarchSpeed": "Швидкість маршу",
+    "Carry": "Вантаж маршу",
+    "Production": "Видобуток",
+    "MealUpkeep": "Менше їжі на утримання",
+    "ConstructionSpeed": "Швидкість будівництва",
+    "TrainingSpeed": "Швидкість тренування",
+    "UnitLevelUpSpeed": "Швидкість прокачки юнітів",
+    "ResearchSpeed": "Швидкість досліджень",
+    "WoundedCapacity": "Місткість лазарету",
+    "UnitCapacity": "Місткість казарм",
+    "HeroExperience": "Досвід героїв",
+    "TameChance": "Шанс приручення",
+    "ProtectedStorage": "Захищене сховище",
+    "HelpShareCap": "Ліміт допомог клану",
+    "OfferingAttempts": "Спроби підношень",
+    "CoinBonus": "Кланові монети",
+    "TerritoryAttack": "Атака на території",
+    "TerritoryDefense": "Захист на території",
+    "StructureBuildSpeed": "Швидкість будови споруд",
+    "StructureGarrison": "Гарнізон споруд",
+    "StructureCost": "Дешевші споруди",
+    "LootCashback": "Повернення здобичі"
   }
 }
