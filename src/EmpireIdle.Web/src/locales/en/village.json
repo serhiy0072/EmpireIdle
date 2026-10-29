@@ -114,5 +114,9 @@
     "toEnclosure": "To the enclosure",
     "previous": "Previous beast",
     "next": "Next beast"
+  },
+  "ring": {
+    "details": "Details",
+    "speedUp": "Speed up"
   }
 }

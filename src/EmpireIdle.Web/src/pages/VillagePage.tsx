@@ -1,13 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BuildingCard from "../components/BuildingCard";
 import HungerBanner from "../components/HungerBanner";
 import ErrorBanner from "../components/ErrorBanner";
 import { GameButton } from "../components/game/GameUi";
 import LockedBuildingCard from "../components/LockedBuildingCard";
+import type { RingAction } from "../components/village/BuildingActionRing";
 import DamageBanner from "../components/village/DamageBanner";
 import VillageMap from "../components/village/VillageMap";
 import { useHotkeys } from "../hooks/useHotkeys";
+import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
+import type { BuildingResponse } from "../lib/apiTypes";
+import { screensFor } from "../lib/buildingScreens";
 import { useCatalog } from "../lib/queries/catalog";
 import {
   useMoveBuilding,
@@ -16,14 +21,20 @@ import {
   useUpgradeBuilding,
   useVillage,
 } from "../lib/queries/village";
+import { speedUpLabel } from "../lib/speedUp";
 import { t } from "i18next";
 
 type VillageAction = "upgrade" | "speedUp" | "repair" | "move";
+
+/** Стіна — периметр без місця на плані: кільця під нею немає, одразу картка. */
+const WALL_KEY = "wall";
 
 export default function VillagePage() {
   const session = useSession();
   const playerId = session?.playerId ?? "";
   const catalog = useCatalog();
+  const navigate = useNavigate();
+  const now = useNow();
 
   const village = useVillage(playerId);
   const upgrade = useUpgradeBuilding(playerId);
@@ -32,14 +43,21 @@ export default function VillagePage() {
   const move = useMoveBuilding(playerId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Картка будівлі — за кнопкою «Подробиці» в кільці, а не на кожен клік (референс 29.10.2026)
+  const [details, setDetails] = useState(false);
   // Режим «Перебудувати»: будівлі тягнуться мишею по сітці (рішення 13.10.2026)
   const [editing, setEditing] = useState(false);
   // Банер належить останній дії: помилка давнього кліку після успішного нового лише плутає
   const [lastAction, setLastAction] = useState<VillageAction | null>(null);
 
-  // Esc у селі не веде назад, але, як і на мапі, знімає вибір будівлі, а потім виходить з «Перебудувати»
+  const select = (buildingId: string | null) => {
+    setSelectedId(buildingId);
+    setDetails(false);
+  };
+
+  // Esc у селі не веде назад: закриває картку, знімає вибір будівлі, а потім виходить з «Перебудувати»
   useHotkeys(
-    { Escape: () => (selectedId !== null ? setSelectedId(null) : setEditing(false)) },
+    { Escape: () => (details ? setDetails(false) : selectedId !== null ? select(null) : setEditing(false)) },
     { enabled: selectedId !== null || editing },
   );
 
@@ -62,14 +80,68 @@ export default function VillagePage() {
 
   const selected = village.data.buildings.find((building) => building.id === selectedId) ?? null;
 
+  /** Кнопки кільця: подробиці, покращення або прискорення, переходи на екрани будівлі. */
+  const ringActions = (building: BuildingResponse): RingAction[] => {
+    const detailsAction: RingAction = { key: "details", icon: "📄", label: t("village:ring.details"), onClick: () => setDetails(true) };
+
+    if (!building.isUnlocked) return [detailsAction];
+
+    const upgradable = catalog.building(building.type)?.upgradable !== false;
+    const completesAt = building.isUnderConstruction ? building.constructionCompletesAt : null;
+    const gems =
+      completesAt == null || building.speedUpCostGems == null
+        ? null
+        : catalog.speedUpCost("Construction", completesAt, now, building.speedUpCostGems);
+
+    const timer: RingAction[] =
+      completesAt == null
+        ? upgradable
+          ? [
+              {
+                key: "upgrade",
+                icon: "⬆️",
+                label: t("village:card.upgrade"),
+                disabled: busy,
+                tutorial: "upgrade",
+                onClick: () => run("upgrade", () => upgrade.mutate(building.id)),
+              },
+            ]
+          : []
+        : gems === 0
+          ? []
+          : [
+              {
+                key: "speedUp",
+                icon: "⚡",
+                label: t("village:ring.speedUp"),
+                note: gems === null ? undefined : speedUpLabel(gems),
+                accent: true,
+                disabled: busy,
+                onClick: () => run("speedUp", () => speedUp.mutate(building.id)),
+              },
+            ];
+
+    const screens = screensFor(building.type).map<RingAction>((screen) => ({
+      key: screen.to,
+      icon: screen.icon,
+      label: screen.label,
+      onClick: () => void navigate(screen.to),
+    }));
+
+    return [detailsAction, ...timer, ...screens];
+  };
+
+  const showCard = selected !== null && !editing && (details || selected.type === WALL_KEY);
+
   return (
     <div className="relative h-full">
       <VillageMap
         buildings={village.data.buildings}
         catalog={catalog}
         selectedId={selectedId}
-        onSelect={setSelectedId}
+        onSelect={select}
         editing={editing}
+        actions={selected === null || editing ? [] : ringActions(selected)}
         onMove={(buildingId, x, y) => run("move", () => move.mutate({ buildingId, x, y }))}
       />
 
@@ -83,7 +155,7 @@ export default function VillagePage() {
           <GameButton
             onClick={() => {
               setEditing(!editing);
-              setSelectedId(null);
+              select(null);
             }}
             variant={editing ? "accent" : "secondary"}
           >
@@ -116,7 +188,7 @@ export default function VillagePage() {
         </p>
       )}
 
-      {selected !== null && !editing && (
+      {showCard && (
         // Над смужкою чату, щоб вона не перекривала картку
         <div className="absolute inset-x-3 bottom-20 max-w-sm">
           {selected.isUnlocked ? (

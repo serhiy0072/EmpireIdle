@@ -2,6 +2,8 @@ import { t } from "i18next";
 export interface BuildingScreen {
   to: string;
   label: string;
+  /** Значок кнопки в кільці дій будівлі. */
+  icon: string;
 }
 
 type ScreenKey = "quests" | "camp" | "beastPen" | "infirmary" | "heroes" | "gear" | "inventory" | "market" | "clan" | "worldMap" | "dungeons" | "research";
@@ -31,6 +33,21 @@ const SCREENS: Record<string, readonly { to: string; label: ScreenKey }[]> = {
   ],
 };
 
+const ICONS: Record<ScreenKey, string> = {
+  quests: "📜",
+  camp: "🪖",
+  beastPen: "🐾",
+  infirmary: "🩹",
+  heroes: "🦸",
+  gear: "⚒️",
+  inventory: "🎒",
+  market: "🏪",
+  clan: "🏰",
+  worldMap: "🗺️",
+  dungeons: "🕳️",
+  research: "🔬",
+};
+
 export function screensFor(buildingKey: string): readonly BuildingScreen[] {
-  return (SCREENS[buildingKey] ?? []).map(({ to, label }) => ({ to, label: t(`village:screen.${label}`) }));
+  return (SCREENS[buildingKey] ?? []).map(({ to, label }) => ({ to, label: t(`village:screen.${label}`), icon: ICONS[label] }));
 }
