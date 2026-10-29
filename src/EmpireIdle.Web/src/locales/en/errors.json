@@ -231,13 +231,13 @@
       "hungry": "The beasts are hungry: the Beast Pen is short of fodder. Boost fodder at the Fishing Hut"
     },
     "research": {
-      "academyLocked": "The Academy opens at Town Hall level {{level}}",
-      "busy": "The Academy is already researching — one research at a time",
+      "laboratoryLocked": "The Laboratory opens at Town Hall level {{level}}",
+      "busy": "The Laboratory is already researching — one research at a time",
       "tierLocked": "Tier {{tier}} opens at Town Hall level {{level}} in world level {{worldLevel}}",
       "previousTier": "Finish tier {{tier}} of this tab first",
       "prerequisites": "Research at least one level of: {{nodes}}",
       "maxed": "The technology is already at its top level",
-      "notActive": "The Academy isn't researching anything"
+      "notActive": "The Laboratory isn't researching anything"
     }
   },
   "quoted": "{{name}}",

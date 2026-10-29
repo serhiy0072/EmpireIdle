@@ -15,7 +15,7 @@ using NSubstitute;
 namespace EmpireIdle.Application.Tests.Research;
 
 /// <summary>
-/// Дослідження в Академії (рішення 28.10.2026): старт із гейтами й ціною, одне дослідження за раз,
+/// Дослідження в Лабораторії (рішення 28.10.2026): старт із гейтами й ціною, одне дослідження за раз,
 /// прискорення за gems. Фікстура TestKit: тір 1 — ратуша 5 і світ 1, тір 2 — ратуша 10 і світ 2.
 /// </summary>
 public class ResearchCommandTests
@@ -80,11 +80,11 @@ public class ResearchCommandTests
     }
 
     [Fact]
-    public async Task Handle_ShouldRefuse_WhileTheAcademyIsClosed()
+    public async Task Handle_ShouldRefuse_WhileTheLaboratoryIsClosed()
     {
-        _config.Buildings.Single(b => b.Key == TestKeys.Academy).RequiresMainBuildingLevel = 9;
+        _config.Buildings.Single(b => b.Key == TestKeys.Laboratory).RequiresMainBuildingLevel = 9;
 
-        Assert.Equal(RefusalReasons.ResearchAcademyLocked.Key, (await Refused(1, "attack_infantry")).Reason);
+        Assert.Equal(RefusalReasons.ResearchLaboratoryLocked.Key, (await Refused(1, "attack_infantry")).Reason);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class ResearchCommandTests
         Assert.Equal(RefusalReasons.ResearchBusy.Key, (await Refused(1, "attack_infantry")).Reason);
     }
 
-    /// <summary>Дозріле дослідження не тримає Академію: наступне починається без чекання сканера.</summary>
+    /// <summary>Дозріле дослідження не тримає Лабораторію: наступне починається без чекання сканера.</summary>
     [Fact]
     public async Task Handle_ShouldFinishARipeResearch_BeforeStartingTheNext()
     {

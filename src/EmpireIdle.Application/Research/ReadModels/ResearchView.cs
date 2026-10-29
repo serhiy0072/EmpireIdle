@@ -3,11 +3,11 @@ using EmpireIdle.Domain.Services.Config;
 namespace EmpireIdle.Application.Research.ReadModels
 {
     /// <summary>
-    /// Академія гравця: дерево всіх тірів із поточними рівнями, ціною й часом наступного рівня,
+    /// Лабораторія гравця: дерево всіх тірів із поточними рівнями, ціною й часом наступного рівня,
     /// активне дослідження й сумарні бонуси. Дерево приходить із сервера, бо ціни й доступність рахує він.
     /// </summary>
-    /// <param name="Unlocked">Академію відкрито ратушею.</param>
-    /// <param name="RequiredMainBuildingLevel">З якого рівня ратуші відкривається Академія.</param>
+    /// <param name="Unlocked">Лабораторію відкрито ратушею.</param>
+    /// <param name="RequiredMainBuildingLevel">З якого рівня ратуші відкривається Лабораторія.</param>
     public record ResearchView(
         Guid? ResearchId,
         bool Unlocked,

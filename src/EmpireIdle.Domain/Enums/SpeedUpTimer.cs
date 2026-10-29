@@ -15,7 +15,7 @@ namespace EmpireIdle.Domain.Enums
         /// <summary>Марш у дорозі.</summary>
         March = 3,
 
-        /// <summary>Дослідження особистої технології в Академії.</summary>
+        /// <summary>Дослідження особистої технології в Лабораторії.</summary>
         Research = 4
     }
 }

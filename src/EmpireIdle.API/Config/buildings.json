@@ -373,8 +373,8 @@
         }
       },
       {
-        "Key": "academy",
-        "DisplayName": "Академія",
+        "Key": "laboratory",
+        "DisplayName": "Лабораторія",
         "Upgradable": false,
         "RequiresMainBuildingLevel": 6,
         "Position": { "X": 28.0, "Y": 72.0 }

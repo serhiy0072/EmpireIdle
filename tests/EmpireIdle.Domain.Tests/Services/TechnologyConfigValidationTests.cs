@@ -6,7 +6,7 @@ namespace EmpireIdle.Domain.Tests.Services;
 
 /// <summary>
 /// Технології в конфігу (рішення 28.10.2026). Кожен тест ламає одну річ у валідному конфігу:
-/// дерева особистих і кланових технологій, Академія, підношення й клановий магазин.
+/// дерева особистих і кланових технологій, Лабораторія, підношення й клановий магазин.
 /// </summary>
 public class TechnologyConfigValidationTests
 {
@@ -27,14 +27,14 @@ public class TechnologyConfigValidationTests
     public void Validate_ShouldAcceptTheTechnologyConfig()
         => Assert.Null(Record.Exception(() => GameConfigValidator.Validate(Valid())));
 
-    /// <summary>Без технологій у конфігу Академія не потрібна — секцію пропускаємо.</summary>
+    /// <summary>Без технологій у конфігу Лабораторія не потрібна — секцію пропускаємо.</summary>
     [Fact]
     public void Validate_ShouldSkipEmptyTechnologies()
         => Assert.Null(Record.Exception(() => GameConfigValidator.Validate(new GameConfigBuilder().WithBuildings().Build())));
 
     [Fact]
-    public void Validate_ShouldRejectAnAcademyWithLevels()
-        => Assert.Contains("BuildingKey", Rejects(c => c.Buildings.Single(b => b.Key == TestKeys.Academy).Upgradable = true).Message);
+    public void Validate_ShouldRejectALaboratoryWithLevels()
+        => Assert.Contains("BuildingKey", Rejects(c => c.Buildings.Single(b => b.Key == TestKeys.Laboratory).Upgradable = true).Message);
 
     [Fact]
     public void Validate_ShouldRejectANodeOnAnUnknownTab()

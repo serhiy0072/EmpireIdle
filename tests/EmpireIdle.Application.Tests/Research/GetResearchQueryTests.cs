@@ -11,7 +11,7 @@ using NSubstitute;
 
 namespace EmpireIdle.Application.Tests.Research;
 
-/// <summary>Стан Академії для екрана: дерево всіх тірів, ціна наступного рівня й активне дослідження.</summary>
+/// <summary>Стан Лабораторії для екрана: дерево всіх тірів, ціна наступного рівня й активне дослідження.</summary>
 public class GetResearchQueryTests
 {
     private static readonly DateTime Now = Entities.Now;

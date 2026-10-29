@@ -8,7 +8,7 @@ using MediatR;
 
 namespace EmpireIdle.Application.Research.Queries
 {
-    /// <summary>Академія гравця: дерево з рівнями, ціною й часом наступного рівня та активне дослідження.</summary>
+    /// <summary>Лабораторія гравця: дерево з рівнями, ціною й часом наступного рівня та активне дослідження.</summary>
     public record GetResearchQuery(Guid PlayerId) : IRequest<ResearchView>, IPlayerScopedRequest;
 
     public sealed class GetResearchQueryHandler : IRequestHandler<GetResearchQuery, ResearchView>
@@ -45,7 +45,7 @@ namespace EmpireIdle.Application.Research.Queries
 
             var mainBuildingLevel = _status.MainBuildingLevel(village);
             var worldLevel = server?.Level ?? 1;
-            var academy = _technologies.BuildingKey is { } key ? _catalog.Buildings.GetValueOrDefault(key) : null;
+            var laboratory = _technologies.BuildingKey is { } key ? _catalog.Buildings.GetValueOrDefault(key) : null;
 
             // Запит нічого не змінює: дозріле, але ще не завершене сканером дослідження показується вже вивченим
             var levels = new Dictionary<string, int>(research?.Levels ?? new Dictionary<string, int>());
@@ -71,8 +71,8 @@ namespace EmpireIdle.Application.Research.Queries
 
             return new ResearchView(
                 research?.Id,
-                academy is not null && _status.IsUnlocked(village, academy.Key),
-                academy?.RequiresMainBuildingLevel ?? 0,
+                laboratory is not null && _status.IsUnlocked(village, laboratory.Key),
+                laboratory?.RequiresMainBuildingLevel ?? 0,
                 _catalog.Config.Technologies.Personal.Tabs,
                 tree.Tiers.Select(t => new ResearchTierView(t.Tier, t.MainBuildingLevel, t.WorldLevel,
                     mainBuildingLevel >= t.MainBuildingLevel && worldLevel >= t.WorldLevel)).ToList(),

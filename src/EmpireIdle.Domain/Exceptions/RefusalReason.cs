@@ -517,10 +517,10 @@
 
         // ---------- Дослідження (особисті технології) ----------
 
-        /// <summary>Академія ще закрита ратушею; level — потрібний рівень ратуші.</summary>
-        public static readonly RefusalReason ResearchAcademyLocked = new("research.academyLocked", "level");
+        /// <summary>Лабораторія ще закрита ратушею; level — потрібний рівень ратуші.</summary>
+        public static readonly RefusalReason ResearchLaboratoryLocked = new("research.laboratoryLocked", "level");
 
-        /// <summary>Академія вже досліджує інший вузол — одне дослідження за раз.</summary>
+        /// <summary>Лабораторія вже досліджує інший вузол — одне дослідження за раз.</summary>
         public static readonly RefusalReason ResearchBusy = new("research.busy");
 
         /// <summary>Тір закритий ратушею або рівнем світу.</summary>
@@ -535,7 +535,7 @@
         /// <summary>Вузол уже на найвищому рівні.</summary>
         public static readonly RefusalReason ResearchMaxed = new("research.maxed");
 
-        /// <summary>Прискорювати чи просити допомоги нема чого: Академія вільна.</summary>
+        /// <summary>Прискорювати чи просити допомоги нема чого: Лабораторія вільна.</summary>
         public static readonly RefusalReason ResearchNotActive = new("research.notActive");
     }
 }

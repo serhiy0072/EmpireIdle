@@ -478,7 +478,7 @@
         }
 
         /// <summary>
-        /// Технології (рішення 28.10.2026): Академія без рівнів, два тіри й по два вузли в кожному дереві —
+        /// Технології (рішення 28.10.2026): Лабораторія без рівнів, два тіри й по два вузли в кожному дереві —
         /// атака піхоти з наступним розміром конвою (особисті) і атака всіх з підношенням золотом (кланові).
         /// </summary>
         public GameConfigBuilder WithTechnologies(Action<TechnologiesConfig>? tune = null)
@@ -489,10 +489,10 @@
             if (_config.Units.Count == 0)
                 WithUnits();
 
-            var academy = Building(TestKeys.Academy);
-            academy.Upgradable = false;
-            academy.Cost = [];
-            _config.Buildings.Add(academy);
+            var laboratory = Building(TestKeys.Laboratory);
+            laboratory.Upgradable = false;
+            laboratory.Cost = [];
+            _config.Buildings.Add(laboratory);
 
             _config.Items.Add(new ItemConfig
             {
@@ -513,7 +513,7 @@
             {
                 Personal = new PersonalTechnologiesConfig
                 {
-                    BuildingKey = TestKeys.Academy,
+                    BuildingKey = TestKeys.Laboratory,
                     Tabs = ["battle"],
                     TabResources = new() { ["battle"] = new() { [TestKeys.Food] = 1, [TestKeys.Gold] = 0.5 } },
                     Tiers = [Tier(1), Tier(2)],

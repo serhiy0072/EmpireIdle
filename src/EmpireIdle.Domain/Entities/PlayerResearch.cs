@@ -17,7 +17,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Вивчені рівні: «тір:вузол» → рівень.</summary>
         public IReadOnlyDictionary<string, int> Levels { get; private set; } = new Dictionary<string, int>();
 
-        /// <summary>Вузол, що зараз досліджується («тір:вузол»); null — Академія вільна.</summary>
+        /// <summary>Вузол, що зараз досліджується («тір:вузол»); null — Лабораторія вільна.</summary>
         public string? ActiveKey { get; private set; }
 
         /// <summary>Рівень, який дасть поточне дослідження.</summary>
@@ -49,7 +49,7 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>
         /// Починає наступний рівень вузла. Друге дослідження поверх поточного — чесна відмова:
-        /// гравець бачить її, коли Академію відкрито у двох вкладках.
+        /// гравець бачить її, коли Лабораторію відкрито у двох вкладках.
         /// </summary>
         public void Start(TechnologyKey key, TimeSpan duration, DateTime utcNow)
         {
@@ -84,7 +84,7 @@ namespace EmpireIdle.Domain.Entities
             => CompletesAt is { } completesAt && completesAt > utcNow ? completesAt - utcNow : TimeSpan.Zero;
 
         /// <summary>
-        /// Записує дозрілий рівень і звільняє Академію. Повертає вивчений ключ або null, якщо ще рано
+        /// Записує дозрілий рівень і звільняє Лабораторію. Повертає вивчений ключ або null, якщо ще рано
         /// чи нічого не досліджується.
         /// </summary>
         public TechnologyKey? CompleteDue(DateTime utcNow)

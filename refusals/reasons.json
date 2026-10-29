@@ -324,10 +324,10 @@
     "level"
   ],
   "reinforce.targetShielded": [],
-  "research.academyLocked": [
+  "research.busy": [],
+  "research.laboratoryLocked": [
     "level"
   ],
-  "research.busy": [],
   "research.maxed": [],
   "research.notActive": [],
   "research.prerequisites": [

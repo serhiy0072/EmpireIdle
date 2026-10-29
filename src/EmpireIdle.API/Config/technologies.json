@@ -2,7 +2,7 @@
   "GameConfig": {
     "Technologies": {
       "Personal": {
-        "BuildingKey": "academy",
+        "BuildingKey": "laboratory",
         "Tabs": ["battle", "economy", "development"],
         "BaseMinutes": 15,
         "RowTimeGrowth": 1.3,

@@ -314,7 +314,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "teleport.noFreeCell": () => t("errors:refusal.teleport.noFreeCell"),
 
   // ---------- Дослідження ----------
-  "research.academyLocked": ({ level }) => t("errors:refusal.research.academyLocked", { level }),
+  "research.laboratoryLocked": ({ level }) => t("errors:refusal.research.laboratoryLocked", { level }),
   "research.busy": () => t("errors:refusal.research.busy"),
   "research.tierLocked": ({ tier, level, worldLevel }) => t("errors:refusal.research.tierLocked", { tier, level, worldLevel }),
   "research.previousTier": ({ tier }) => t("errors:refusal.research.previousTier", { tier }),

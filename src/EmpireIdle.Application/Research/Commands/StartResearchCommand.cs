@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Research.Commands
 {
-    /// <summary>Почати наступний рівень вузла особистих технологій в Академії (рішення 28.10.2026).</summary>
+    /// <summary>Почати наступний рівень вузла особистих технологій в Лабораторії (рішення 28.10.2026).</summary>
     public record StartResearchCommand(Guid PlayerId, int Tier, string Node)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
@@ -62,13 +62,13 @@ namespace EmpireIdle.Application.Research.Commands
             var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            var academy = _technologies.BuildingKey is { } key && _catalog.Buildings.TryGetValue(key, out var config)
+            var laboratory = _technologies.BuildingKey is { } key && _catalog.Buildings.TryGetValue(key, out var config)
                 ? config
                 : throw new EntityNotFoundException("Technology building", _technologies.BuildingKey ?? "none");
 
-            if (!_status.IsUnlocked(village, academy.Key))
-                throw new RequirementNotMetException(RefusalReasons.ResearchAcademyLocked,
-                    $"The academy opens at town hall {academy.RequiresMainBuildingLevel}.", academy.RequiresMainBuildingLevel);
+            if (!_status.IsUnlocked(village, laboratory.Key))
+                throw new RequirementNotMetException(RefusalReasons.ResearchLaboratoryLocked,
+                    $"The laboratory opens at town hall {laboratory.RequiresMainBuildingLevel}.", laboratory.RequiresMainBuildingLevel);
 
             var node = _technologies.Tree.Node(request.Node)
                 ?? throw new EntityNotFoundException("Technology", request.Node);
@@ -82,7 +82,7 @@ namespace EmpireIdle.Application.Research.Commands
                 await _research.AddAsync(research, cancellationToken);
             }
 
-            // Дозріле дослідження звільняє Академію саме, без чекання сканера
+            // Дозріле дослідження звільняє Лабораторію саме, без чекання сканера
             research.CompleteDue(now);
 
             var server = await _servers.GetByIdAsync(_serverContext.ServerId, cancellationToken)
@@ -110,7 +110,7 @@ namespace EmpireIdle.Application.Research.Commands
         private void EnsureAvailable(PlayerResearch research, int tier, TechnologyNodeConfig node, TechnologyTierConfig tierConfig,
             int mainBuildingLevel, int worldLevel)
         {
-            // Зайнята Академія — перша причина: решта не важить, доки дослідження йде
+            // Зайнята Лабораторія — перша причина: решта не важить, доки дослідження йде
             if (research.IsResearching)
                 throw new RequirementNotMetException(RefusalReasons.ResearchBusy,
                     $"Player {research.PlayerId} is already researching {research.ActiveKey}.");

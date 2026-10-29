@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EmpireIdle.API.Controllers
 {
-    /// <summary>Академія: особисті технології гравця (рішення 28.10.2026).</summary>
+    /// <summary>Лабораторія: особисті технології гравця (рішення 28.10.2026).</summary>
     [ApiController]
     [Authorize]
     [Route("api/research")]

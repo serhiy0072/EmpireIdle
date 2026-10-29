@@ -36,7 +36,7 @@ public class PlayerResearchTests
     }
 
     [Fact]
-    public void CompleteDue_ShouldWaitForTheTimer_ThenRecordTheLevelAndFreeTheAcademy()
+    public void CompleteDue_ShouldWaitForTheTimer_ThenRecordTheLevelAndFreeTheLaboratory()
     {
         var research = Research();
         research.Start(Attack, TimeSpan.FromMinutes(30), Now);
