@@ -8,6 +8,7 @@ import { formatRemaining } from "../lib/time";
 import HospitalPanel from "./HospitalPanel";
 import SpeedUpItemsButton from "./SpeedUpItemsButton";
 import MessHallPanel from "./MessHallPanel";
+import LaboratoryPanel from "./research/LaboratoryPanel";
 import TroopsPanel from "./TroopsPanel";
 import { t } from "i18next";
 
@@ -105,6 +106,8 @@ export default function BuildingCard({ playerId, building, busy, onUpgrade, onSp
       {building.type === "messhall" && <MessHallPanel playerId={playerId} />}
 
       {building.type === "hospital" && <HospitalPanel playerId={playerId} />}
+
+      {building.type === "laboratory" && <LaboratoryPanel playerId={playerId} />}
     </div>
   );
 }
