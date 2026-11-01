@@ -91,7 +91,7 @@ namespace EmpireIdle.API.Controllers
             var response = items
                 .Select(h => new ClanHelpItemResponse(h.RequestId, h.PlayerId, h.PlayerName,
                     h.TargetType.ToString(), h.TargetId, h.HelpCount, h.MaxHelpers,
-                    h.AlreadyHelped, h.IsMine, h.CreatedAt, h.ExpiresAt))
+                    h.AlreadyHelped, h.IsMine, h.CreatedAt, h.ExpiresAt, h.Subject))
                 .ToList();
 
             return Ok(response);

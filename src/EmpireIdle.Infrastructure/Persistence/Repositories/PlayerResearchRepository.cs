@@ -22,6 +22,12 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<PlayerResearch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => _context.PlayerResearch.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
+        public async Task<Dictionary<Guid, string>> GetActiveKeysAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+            => await _context.PlayerResearch
+                .AsNoTracking()
+                .Where(r => ids.Contains(r.Id) && r.ActiveKey != null)
+                .ToDictionaryAsync(r => r.Id, r => r.ActiveKey!, cancellationToken);
+
         public async Task AddAsync(PlayerResearch research, CancellationToken cancellationToken = default)
             => await _context.PlayerResearch.AddAsync(research, cancellationToken);
 

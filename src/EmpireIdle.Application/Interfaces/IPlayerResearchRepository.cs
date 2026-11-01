@@ -13,6 +13,9 @@ namespace EmpireIdle.Application.Interfaces
 
         Task<PlayerResearch?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+        /// <summary>Ключі активних досліджень за id записів; записи без активного дослідження відсутні.</summary>
+        Task<Dictionary<Guid, string>> GetActiveKeysAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
+
         Task AddAsync(PlayerResearch research, CancellationToken cancellationToken = default);
 
         /// <summary>Id записів поточного світу, чиє дослідження дозріло, — для сканера таймерів.</summary>

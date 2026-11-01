@@ -98,3 +98,16 @@ export function tierNumeral(tier: number): string {
 
   return result;
 }
+
+/**
+ * Ключ технології з сервера («тір:вузол», як TechnologyKey) — у назву з тіром: «Списи вперед II».
+ * Незрозумілий ключ — null, тоді показують загальний підпис.
+ */
+export function technologyKeyLabel(key: string): string | null {
+  const separator = key.indexOf(":");
+  const tier = Number(key.slice(0, separator));
+
+  if (separator <= 0 || !Number.isInteger(tier)) return null;
+
+  return `${technologyName(key.slice(separator + 1))} ${tierNumeral(tier)}`;
+}

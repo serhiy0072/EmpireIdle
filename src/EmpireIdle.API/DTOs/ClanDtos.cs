@@ -88,7 +88,7 @@ public record MyClanResponse(
     List<ClanRoleResponse> Roles,
     List<ClanMemberResponse> Members);
 
-/// <summary>Активний запит на допомогу.</summary>
+/// <summary>Активний запит на допомогу. Subject — ключ технології «тір:вузол» для дослідження, інакше null.</summary>
 public record ClanHelpItemResponse(
     Guid RequestId,
     Guid PlayerId,
@@ -100,7 +100,8 @@ public record ClanHelpItemResponse(
     bool AlreadyHelped,
     bool IsMine,
     DateTime CreatedAt,
-    DateTime ExpiresAt);
+    DateTime ExpiresAt,
+    string? Subject);
 
 /// <summary>Заявка в черзі офіцера.</summary>
 public record ClanApplicationResponse(

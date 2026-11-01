@@ -3,6 +3,10 @@ using EmpireIdle.Domain.Enums;
 namespace EmpireIdle.Application.Clans.ReadModels
 {
     /// <summary>Активний запит на кланову допомогу.</summary>
+    /// <param name="Subject">
+    /// Що саме прискорюють: для дослідження — ключ технології «тір:вузол». Для будівництва
+    /// й тренування поки null — клієнт показує загальний підпис.
+    /// </param>
     public record ClanHelpItem(
         Guid RequestId,
         Guid PlayerId,
@@ -14,5 +18,6 @@ namespace EmpireIdle.Application.Clans.ReadModels
         bool AlreadyHelped,
         bool IsMine,
         DateTime CreatedAt,
-        DateTime ExpiresAt);
+        DateTime ExpiresAt,
+        string? Subject);
 }
