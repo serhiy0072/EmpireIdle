@@ -21,7 +21,7 @@ import {
   useUpgradeBuilding,
   useVillage,
 } from "../lib/queries/village";
-import { speedUpLabel } from "../lib/speedUp";
+import { formatNumber } from "../lib/format";
 import { t } from "i18next";
 
 type VillageAction = "upgrade" | "speedUp" | "repair" | "move";
@@ -114,7 +114,8 @@ export default function VillagePage() {
                 key: "speedUp",
                 icon: "⚡",
                 label: t("village:ring.speedUp"),
-                note: gems === null ? undefined : speedUpLabel(gems),
+                // Назва дії вже в підписі кнопки — під нею лише ціна
+                note: gems === null ? undefined : `${formatNumber(gems)} 💎`,
                 accent: true,
                 disabled: busy,
                 onClick: () => run("speedUp", () => speedUp.mutate(building.id)),
