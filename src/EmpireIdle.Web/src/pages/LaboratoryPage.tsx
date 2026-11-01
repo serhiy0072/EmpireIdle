@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import ErrorBanner from "../components/ErrorBanner";
 import { GameButton, GameScreen, GameTabs } from "../components/game/GameUi";
 import ResearchNodeDialog from "../components/research/ResearchNodeDialog";
@@ -178,10 +178,76 @@ interface TierTreeProps {
   onPick: (node: ResearchNodeView) => void;
 }
 
-/** Один тір вкладки: ряди вузлів згори вниз, у ряду — поруч. */
+/** Лінія від передумови до вузла в координатах контейнера тіру. */
+interface Link {
+  key: string;
+  path: string;
+  /** Передумову вивчено хоча б на рівень — вузол уже не чекає на неї. */
+  met: boolean;
+}
+
+/**
+ * Лінії передумов: від низу плитки передумови (під підписом) до верху плитки вузла, ламаною «деревом».
+ * Позиції міряються після розкладки, бо ряди переносяться flex-wrap і залежать від ширини.
+ */
+function useLinks(nodes: ResearchNodeView[]) {
+  const container = useRef<HTMLDivElement>(null);
+  const tiles = useRef(new Map<string, HTMLElement>());
+  const [links, setLinks] = useState<Link[]>([]);
+
+  useLayoutEffect(() => {
+    const box = container.current;
+    if (box === null) return;
+
+    const measure = () => {
+      const origin = box.getBoundingClientRect();
+      const levels = new Map(nodes.map((node) => [node.node, node.level]));
+      const next: Link[] = [];
+
+      for (const node of nodes) {
+        const to = tiles.current.get(node.node)?.getBoundingClientRect();
+        if (to === undefined) continue;
+
+        for (const required of node.requires) {
+          const from = tiles.current.get(required)?.getBoundingClientRect();
+          if (from === undefined) continue;
+
+          const x1 = from.left + from.width / 2 - origin.left;
+          const y1 = from.bottom - origin.top;
+          const x2 = to.left + to.width / 2 - origin.left;
+          const y2 = to.top - origin.top;
+          const mid = (y1 + y2) / 2;
+
+          next.push({
+            key: `${required}>${node.node}`,
+            path: `M${x1} ${y1} V${mid} H${x2} V${y2}`,
+            met: (levels.get(required) ?? 0) >= 1,
+          });
+        }
+      }
+
+      setLinks(next);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [nodes]);
+
+  const register = (key: string) => (element: HTMLElement | null) => {
+    if (element === null) tiles.current.delete(key);
+    else tiles.current.set(key, element);
+  };
+
+  return { container, links, register };
+}
+
+/** Один тір вкладки: ряди вузлів згори вниз, у ряду — поруч, передумови з'єднані лініями. */
 function TierTree({ view, tier, tab, open, lockedHint, activeKey, onPick }: TierTreeProps) {
-  const nodes = view.nodes.filter((node) => node.tier === tier && node.tab === tab);
+  const nodes = useMemo(() => view.nodes.filter((node) => node.tier === tier && node.tab === tab), [view.nodes, tier, tab]);
   const rows = [...new Set(nodes.map((node) => node.row))].sort((a, b) => a - b);
+  const { container, links, register } = useLinks(nodes);
 
   if (nodes.length === 0) return null;
 
@@ -193,13 +259,33 @@ function TierTree({ view, tier, tab, open, lockedHint, activeKey, onPick }: Tier
         {!open && <span className="text-xs text-white/70">🔒 {lockedHint}</span>}
         <span className="h-px flex-1 bg-sky-300/40" />
       </div>
-      <div className="space-y-4">
+      <div ref={container} className="relative space-y-6">
+        <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" aria-hidden>
+          {links.map((link) => (
+            <path
+              key={link.key}
+              d={link.path}
+              fill="none"
+              stroke={link.met ? "#7dd3fc" : "#94a3b8"}
+              strokeWidth={3}
+              strokeLinejoin="round"
+              strokeDasharray={link.met ? undefined : "6 4"}
+              opacity={link.met ? 0.95 : 0.75}
+            />
+          ))}
+        </svg>
         {rows.map((row) => (
-          <div key={row} className="flex flex-wrap justify-center gap-4">
+          <div key={row} className="relative flex flex-wrap justify-center gap-4">
             {nodes
               .filter((node) => node.row === row)
               .map((node) => (
-                <NodeTile key={node.node} node={node} active={activeKey === `${node.tier}:${node.node}`} onClick={() => onPick(node)} />
+                <NodeTile
+                  key={node.node}
+                  node={node}
+                  active={activeKey === `${node.tier}:${node.node}`}
+                  tileRef={register(node.node)}
+                  onClick={() => onPick(node)}
+                />
               ))}
           </div>
         ))}
@@ -208,12 +294,20 @@ function TierTree({ view, tier, tab, open, lockedHint, activeKey, onPick }: Tier
   );
 }
 
-function NodeTile({ node, active, onClick }: { node: ResearchNodeView; active: boolean; onClick: () => void }) {
+interface NodeTileProps {
+  node: ResearchNodeView;
+  active: boolean;
+  /** Плитка — точка кріплення ліній передумов. */
+  tileRef: (element: HTMLElement | null) => void;
+  onClick: () => void;
+}
+
+function NodeTile({ node, active, tileRef, onClick }: NodeTileProps) {
   const maxed = node.level >= node.maxLevel;
   const available = node.availability === "Available";
 
   return (
-    <button type="button" onClick={onClick} className="flex w-24 flex-col items-center gap-1 text-center">
+    <button ref={tileRef} type="button" onClick={onClick} className="flex w-24 flex-col items-center gap-1 text-center">
       <span
         className={`relative flex h-16 w-16 items-center justify-center rounded-2xl text-2xl shadow ring-2 ${
           maxed
