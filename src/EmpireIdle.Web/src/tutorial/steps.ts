@@ -71,6 +71,39 @@ export interface TutorialStep {
   available: (s: TutorialSnapshot) => boolean;
   /** Мета кроку досягнута в грі. Кроки без done закриваються кнопкою (seen). */
   done?: (s: TutorialSnapshot) => boolean;
+  /**
+   * Екрани, де підказка доречна. Без поля — виводяться з targets (див. hintScreens):
+   * картка про лабораторію на екрані крамниці лише заважала б (QA 01.11.2026).
+   */
+  screens?: string[];
+}
+
+const VILLAGE_ROUTE = "/";
+
+/**
+ * Де показувати підказку: явні screens, інакше екрани її цілей — будівля живе в селі,
+ * посилання навігації веде на свій розділ. Порожньо — підказка про весь інтерфейс, показується будь-де.
+ */
+function hintScreens(step: TutorialStep): string[] {
+  if (step.screens !== undefined) return step.screens;
+
+  const screens = step.targets.flatMap((target) => {
+    if (target.startsWith("building:")) return [VILLAGE_ROUTE];
+    if (target.startsWith("nav:")) return [target.slice("nav:".length)];
+    return [];
+  });
+
+  return [...new Set(screens)];
+}
+
+/** Екран або його підекран: «/heroes» покриває «/heroes/codex», але «/» — лише саме село. */
+function onScreen(route: string, screen: string): boolean {
+  return route === screen || (screen !== VILLAGE_ROUTE && route.startsWith(`${screen}/`));
+}
+
+function onItsScreen(step: TutorialStep, route: string): boolean {
+  const screens = hintScreens(step);
+  return screens.length === 0 || screens.some((screen) => onScreen(route, screen));
 }
 
 const MAIN_BUILDING = "townhall";
@@ -432,6 +465,7 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
       title: t("tutorial:hint.city-damage.title"),
       text: t("tutorial:hint.city-damage.text"),
       targets: [],
+      screens: [VILLAGE_ROUTE],
       available: (st) => (st.village.damage?.defeatStreak ?? 0) > 0,
     },
     {
@@ -464,6 +498,8 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
       title: t("tutorial:hint.mail.title"),
       text: t("tutorial:hint.mail.text"),
       targets: ["nav:/mail"],
+      // Лист чекає, поки гравець у селі: на самій пошті казати «у вас пошта» запізно
+      screens: [VILLAGE_ROUTE, "/mail"],
       available: (st) => st.unreadMail > 0,
     },
     {
@@ -492,6 +528,7 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
       title: t("tutorial:hint.type-advantage.title"),
       text: t("tutorial:hint.type-advantage.text"),
       targets: [],
+      screens: ["/army", "/map"],
       available: (st) => new Set((st.garrison?.units ?? []).filter((u) => u.count > 0).map((u) => u.unitType)).size >= 2,
     },
     {
@@ -702,5 +739,10 @@ export function activeStep(s: TutorialSnapshot): TutorialStep | null {
   // Підказки не перебивають ведений ланцюжок: він завжди доходить сюди лише коли вичерпаний
   if (s.hintsPaused) return null;
 
-  return hintSteps(s).find((step) => !s.seen.has(step.key) && step.available(s)) ?? null;
+  // Тиха підказка чекає свого екрана; guide (атака на село) термінова — її видно будь-де
+  return (
+    hintSteps(s).find(
+      (step) => !s.seen.has(step.key) && step.available(s) && (step.mode !== "hint" || onItsScreen(step, s.route)),
+    ) ?? null
+  );
 }
