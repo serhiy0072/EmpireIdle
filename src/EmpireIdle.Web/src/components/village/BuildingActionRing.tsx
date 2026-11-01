@@ -25,6 +25,8 @@ interface Props {
 /** Радіус дуги на екрані й розмір кнопки — сталі до масштабу камери. */
 const RADIUS = 92;
 const BUTTON = 26;
+/** Кут між сусідніми кнопками на дузі, градуси. */
+const ARC_STEP = 55;
 
 /**
  * Кільце дій під вибраною будівлею, як на референсі 29.10.2026: «Подробиці», «Покращити»,
@@ -33,8 +35,9 @@ const BUTTON = 26;
 export default function BuildingActionRing({ art, x, y, zoom, actions }: Props) {
   const center = at(x, y, art.height * 0.35);
   const scale = Math.max(1, 1 / zoom);
-  // Нижня дуга: від лівого краю до правого; одна кнопка — рівно під центром
-  const spread = Math.min(150, 40 * (actions.length - 1));
+  // Нижня дуга: від лівого краю до правого; одна кнопка — рівно під центром.
+  // Крок дуги тримає сусідні кнопки на ~85 px — ширше за підпис на кшталт «Дослідження»
+  const spread = Math.min(150, ARC_STEP * (actions.length - 1));
   const first = 90 + spread / 2;
   const step = actions.length > 1 ? spread / (actions.length - 1) : 0;
 
