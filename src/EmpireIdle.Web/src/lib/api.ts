@@ -65,6 +65,9 @@ const RETRY_DELAYS_MS = [500, 1_500];
 /** Проксі не дочекався сервера — команда могла виконатись, а відповідь загубитись. */
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
 
+/** Коди 409, після яких сервер зняв резерв ключа і повтор має сенс (див. isRetryable). */
+const RETRYABLE_CONFLICTS = new Set(["OperationInProgress", "ConcurrencyConflict", "AlreadyExists"]);
+
 /**
  * Скільки після відповіді однакова команда ще вважається тим самим наміром.
  * Стільки ж ОС дає на подвійний клік.
@@ -159,7 +162,10 @@ async function sendWithRetry(path: string, options: RequestOptions, idempotencyK
  * детермінований. 409 OperationInProgress — той самий ключ ще виконується,
  * тож чекаємо на його результат. 409 ConcurrencyConflict — команду відкотила
  * паралельна зміна (автозбір щохвилини торкається села), резерв ключа знято,
- * і повтор виконає її на свіжому стані.
+ * і повтор виконає її на свіжому стані. 409 AlreadyExists — гонку за унікальністю
+ * програно (два перші кроки навчання створюють один рядок прогресу): повтор знайде
+ * рядок переможця, а справжній дубль на свіжому стані відмовить доменною причиною.
+ * AlreadyExists з 400 — відмова, а не гонка, її не повторюємо.
  */
 async function isRetryable(response: Response): Promise<boolean> {
   if (RETRYABLE_STATUSES.has(response.status)) return true;
@@ -168,7 +174,7 @@ async function isRetryable(response: Response): Promise<boolean> {
 
   const problem = parseJson(await response.clone().text()) as ProblemDetails | null;
 
-  return problem?.errorCode === "OperationInProgress" || problem?.errorCode === "ConcurrencyConflict";
+  return problem?.errorCode !== undefined && RETRYABLE_CONFLICTS.has(problem.errorCode);
 }
 
 async function send(path: string, options: RequestOptions, idempotencyKey: string | null): Promise<Response> {
